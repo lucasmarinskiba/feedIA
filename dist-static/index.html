@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es">
   <head>
-  <meta name="x-feedia-version" content="1.0.0-dev-1781900855451">
+  <meta name="x-feedia-version" content="1.0.0-dev-1782168600441">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' /api; img-src 'self' blob: data: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
@@ -148,18 +148,6 @@
             </span>
             <span class="nav-label">Brújula del Día</span>
             <span class="nav-badge accent">🧭</span>
-          </button>
-          <button class="nav-item" data-route="handsfree">
-            <span class="nav-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M12 1a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4z" />
-                <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
-                <line x1="12" y1="18" x2="12" y2="23" />
-                <line x1="8" y1="23" x2="16" y2="23" />
-              </svg>
-            </span>
-            <span class="nav-label">Manos Libres</span>
-            <span class="nav-badge accent">🎙️</span>
           </button>
           <button class="nav-item" data-route="brandkit">
             <span class="nav-icon">
@@ -1162,6 +1150,7 @@
             <span id="voice-wake-icon">🎤</span>
             <span id="voice-wake-label">Activar "Hola FeedIA"</span>
           </button>
+          <button class="btn ghost" id="voice-manos-libres-btn" title="Cambiar a interfaz de terminal">🖥️ Modo Manos Libres</button>
         </div>
       </div>
     </div>
