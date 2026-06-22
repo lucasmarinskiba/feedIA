@@ -5873,7 +5873,7 @@ input:checked + .toggle-track::after {
 .voice-fab {
   position: fixed;
   right: 22px;
-  bottom: 22px;
+  bottom: 120px;
   z-index: 360;
   width: 56px;
   height: 56px;
