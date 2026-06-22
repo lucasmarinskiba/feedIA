@@ -1,0 +1,8 @@
+{
+  "id": "backup-2026-05-14-1778788572700",
+  "timestamp": "2026-05-14T19:56:12.722Z",
+  "reason": "Backup inicial de prueba",
+  "version": "0.1.0",
+  "nodeVersion": "v22.17.1",
+  "retentionDays": 90
+}

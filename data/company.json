@@ -1,0 +1,179 @@
+{
+  "empresa": {
+    "nombre": "Paithon Labs",
+    "tipo": "startup",
+    "sector": "Automatización con IA",
+    "descripcion": "Empresa especializada en automatización con inteligencia artificial para PyMEs en LATAM. Desarrolla agentes de IA que eliminan tareas repetitivas y liberan tiempo humano para trabajo estratégico.",
+    "fundacion": "2024",
+    "pais": "Argentina",
+    "idioma_primario": "es-AR",
+    "sitio_web": "paithonlabs.com",
+    "instagram": "@paithonlabs",
+    "valores": [
+      "Automatización sin humo: resultados concretos, no promesas vacías",
+      "Transparencia radical: si algo no funciona, lo decimos",
+      "Tecnología accesible: IA para PyMEs, no solo para corporaciones",
+      "Privacidad por diseño: los datos del cliente son del cliente"
+    ],
+    "propuesta_de_valor": "Recuperá el tiempo que perdés en redes sociales. FeedIA gestiona Instagram de forma autónoma mientras vos trabajás en lo que importa.",
+    "audiencia_objetivo": "Dueños de PyMEs y consultores de 28-45 años en LATAM que quieren presencia en Instagram sin dedicar horas al día"
+  },
+
+  "sistema_ia": {
+    "nombre": "FeedIA",
+    "version": "0.1.0",
+    "descripcion": "Sistema multiagente de IA para gestión autónoma de Instagram. Orquestado por Talía, ejecutado por especialistas.",
+    "arquitectura": "Multiagente con orquestador central (Talía) + agentes especializados por dominio",
+    "modelo_principal": "claude-opus-4-7",
+    "modelo_rapido": "claude-sonnet-4-6"
+  },
+
+  "equipo_ia": [
+    {
+      "id": "talia",
+      "nombre": "Talía",
+      "emoji": "🎯",
+      "rol": "Agente Manager / Orquestadora General",
+      "tipo_agente": "goal_based",
+      "descripcion": "Gerente de recursos y operaciones del sistema FeedIA. Recibe la orden global del usuario, comprende la estructura del equipo, fragmenta el trabajo en tareas atómicas y las asigna al agente especialista correcto. Conoce a todos los agentes como una gerente de RRHH conoce a su equipo.",
+      "responsabilidades": [
+        "Recibir y descomponer objetivos globales del usuario",
+        "Diseñar playbooks multi-agente",
+        "Asignar tareas a los agentes correctos según sus especialidades",
+        "Monitorear el progreso del playbook",
+        "Escalar a humano cuando hay checkpoints críticos",
+        "Sintetizar resultados de todos los agentes en un reporte ejecutivo"
+      ],
+      "acceso_datos": [
+        "company.json",
+        "brand.json",
+        "brand-strategy.json",
+        "registry de agentes",
+        "historial de performance"
+      ],
+      "nivel_autonomia": "checkpoint",
+      "puede_ver": "todos los agentes, sus capacidades y su historial de tareas",
+      "no_puede_ver": "datos de clientes finales, tokens de API, contraseñas"
+    },
+    {
+      "id": "feedia-core",
+      "nombre": "FeedIA Core",
+      "emoji": "🤖",
+      "rol": "Agente CMO Principal",
+      "tipo_agente": "goal_based",
+      "descripcion": "Agente CMO autónomo de Instagram. Ejecuta estrategia, crea contenido y gestiona la comunidad para la marca.",
+      "especialidades": [
+        "estrategia de contenido",
+        "copywriting",
+        "captions",
+        "planificación semanal",
+        "análisis de nicho"
+      ],
+      "nivel_autonomia": "checkpoint"
+    },
+    {
+      "id": "copywriter",
+      "nombre": "Nova",
+      "emoji": "✍️",
+      "rol": "Copywriter Especialista",
+      "tipo_agente": "utility_based",
+      "descripcion": "Especialista en hooks, retención y copywriting persuasivo para Instagram sin tono gurú.",
+      "especialidades": ["hooks", "retención", "captions", "reels scripts", "carruseles"],
+      "nivel_autonomia": "full"
+    },
+    {
+      "id": "trend-scout",
+      "nombre": "Scout",
+      "emoji": "🔭",
+      "rol": "Explorador de Tendencias",
+      "tipo_agente": "model_based_reflex",
+      "descripcion": "Detecta tendencias, ángulos virales y oportunidades de contenido antes de que se saturen.",
+      "especialidades": ["trend scouting", "validación de ángulos", "análisis de competencia", "hashtags"],
+      "nivel_autonomia": "full"
+    },
+    {
+      "id": "community",
+      "nombre": "Lía",
+      "emoji": "💬",
+      "rol": "Community Manager",
+      "tipo_agente": "model_based_reflex",
+      "descripcion": "Gestiona la comunidad: responde comentarios, nutre fans, gestiona DMs y detecta leads.",
+      "especialidades": ["inbox DMs", "moderación comentarios", "fan nurturing", "lead qualification"],
+      "nivel_autonomia": "checkpoint"
+    },
+    {
+      "id": "analytics",
+      "nombre": "Vero",
+      "emoji": "📊",
+      "rol": "Analista de Performance",
+      "tipo_agente": "utility_based",
+      "descripcion": "Analiza métricas, detecta anomalías, genera reportes y predice performance de contenido.",
+      "especialidades": ["analytics", "anomaly detection", "weekly reports", "performance prediction", "A/B testing"],
+      "nivel_autonomia": "full"
+    },
+    {
+      "id": "crisis",
+      "nombre": "Gard",
+      "emoji": "🛡️",
+      "rol": "Gestor de Crisis y Compliance",
+      "tipo_agente": "simple_reflex",
+      "descripcion": "Monitorea comentarios peligrosos, pausa publicaciones ante crisis y garantiza cumplimiento de políticas de Instagram.",
+      "especialidades": ["crisis management", "compliance", "brand safety", "sentiment analysis"],
+      "nivel_autonomia": "checkpoint"
+    },
+    {
+      "id": "content-studio",
+      "nombre": "Luca",
+      "emoji": "🎨",
+      "rol": "Director de Contenido Multimedia",
+      "tipo_agente": "goal_based",
+      "descripcion": "Coordina la producción de contenido multimedia: carruseles, reels, stories, faceless. Orquesta los motores de renderizado (Canva, ImageGen, etc.).",
+      "especialidades": ["carruseles", "reels", "stories", "faceless content", "visual rendering", "brand kit"],
+      "nivel_autonomia": "full"
+    },
+    {
+      "id": "growth",
+      "nombre": "Max",
+      "emoji": "🚀",
+      "rol": "Especialista en Crecimiento",
+      "tipo_agente": "learning",
+      "descripcion": "Ejecuta estrategias de crecimiento orgánico: interacción con cuentas faro, outreach, colaboraciones y experimentos de growth.",
+      "especialidades": ["beacon engagement", "outreach", "collabs", "growth experiments", "UGC"],
+      "nivel_autonomia": "checkpoint"
+    },
+    {
+      "id": "computer-navigator",
+      "nombre": "Pixel",
+      "emoji": "🖥️",
+      "rol": "Navegador de Computadora",
+      "tipo_agente": "goal_based",
+      "descripcion": "Controla directamente el cursor y el teclado para navegar Instagram y aplicaciones de escritorio como un humano. Puede hacer clic, escribir, scrollear, tomar capturas de pantalla y ejecutar cualquier acción visual.",
+      "especialidades": ["computer use", "instagram navigation", "desktop automation", "screenshot", "form filling"],
+      "nivel_autonomia": "checkpoint"
+    }
+  ],
+
+  "estructura_organizacional": {
+    "jerarquia": "Talía (Manager) → Agentes Especializados → Herramientas",
+    "flujo_de_trabajo": "Usuario → Talía descompone → Playbook de tareas → Agentes ejecutan en paralelo/secuencia → Talía consolida → Usuario recibe reporte",
+    "checkpoints_criticos": [
+      "publicar en Instagram",
+      "enviar DMs de venta",
+      "gastar presupuesto",
+      "responder crisis pública",
+      "cambiar estrategia de marca"
+    ],
+    "principio_de_privacidad": "Los datos internos de empresa (company.json, brand.json, estrategia) son confidenciales. No se comparten con terceros. Los tokens de API están solo en variables de entorno."
+  },
+
+  "contexto_competitivo": {
+    "competidores_directos": ["Later", "Hootsuite", "Buffer", "Metricool"],
+    "diferenciadores": [
+      "Agentes con IA generativa real, no solo scheduling",
+      "Multiagente con orquestación inteligente",
+      "Computer use: puede navegar Instagram como humano",
+      "Especializado en PyMEs LATAM con español rioplatense",
+      "Sin suscripción mensual cara: modelo de consultoría + herramienta"
+    ]
+  }
+}

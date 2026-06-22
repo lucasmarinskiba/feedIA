@@ -1,0 +1,557 @@
+// @ts-nocheck
+import type { BrandProfile } from '../../config/types.js';
+import type { RecipeInput, RecipeOutput, ContentAsset } from '../../studio/types.js';
+import { getDefaultRunner } from '../../studio/index.js';
+import { createReel, createCarrusel, createStorySequence, createCaption } from '../content/index.js';
+import { generateHooks } from '../copywriting/index.js';
+import { investigarHashtags, buildPostHashtags } from '../hashtags/index.js';
+import { auditReceptorResponsibility } from '../ethics/index.js';
+import { scoreAesthetic } from '../aesthetic/index.js';
+import { log } from '../../agent/logger.js';
+
+// Helper to convert studio render results to recipe output
+const renderToAssets = (renderResults: Array<{ artifactUrls?: string[]; format: string }>): ContentAsset[] => {
+  const assets: ContentAsset[] = [];
+  for (const rr of renderResults) {
+    if (rr.artifactUrls) {
+      rr.artifactUrls.forEach((url, idx) => {
+        assets.push({
+          id: `asset-${idx}-${Date.now()}`,
+          type: rr.format === 'mp4' ? 'video' : 'image',
+          source: 'generated',
+          url,
+        });
+      });
+    }
+  }
+  return assets;
+};
+
+// ─── RECIPE 1: Reel Faceless Tutorial ───
+export const reelFacelessTutorial = async (
+  brand: BrandProfile,
+  input: RecipeInput,
+): Promise<RecipeOutput> => {
+  const idea = input.idea;
+  const reel = await createReel(brand, idea, 30);
+  const hooks = await generateHooks(brand, idea);
+  const topHook = hooks.ranked[0]?.text ?? reel.hookText;
+  const caption = await createCaption(brand, idea, 'reel');
+  const hashtags = await investigarHashtags(brand, idea);
+  const selected = buildPostHashtags(
+    { mega: [], grande: [], medio: [], nicho: [], marca: [] },
+    { mega: 0, grande: 0, medio: 0, nicho: 0, marca: 0 },
+  );
+
+  const runner = getDefaultRunner();
+  const render = await runner.render({
+    id: `recipe-reel-faceless-${Date.now()}`,
+    recipeId: 'reel-faceless-tutorial',
+    format: 'mp4',
+    title: `Reel Faceless — ${idea.slice(0, 40)}`,
+    brandProfileId: brand.name,
+    assets: [],
+    fields: {
+      hook_visual: reel.hookVisual,
+      hook_text: topHook,
+      cta: reel.cta,
+      audio_sugerido: reel.audioSugerido,
+      ...reel.beats.reduce((acc, b, i) => {
+        acc[`texto_pantalla_${i + 1}`] = b.textoEnPantalla;
+        acc[`broll_${i + 1}`] = b.bRoll;
+        return acc;
+      }, {} as Record<string, string>),
+    },
+    options: { templateFormat: 'reel', count: 1 },
+  });
+
+  const ethics = auditReceptorResponsibility(brand, caption.variants.media, [topHook]);
+
+  return {
+    recipeId: 'reel-faceless-tutorial',
+    ok: render.ok && ethics.passes,
+    contentPieces: [
+      {
+        format: 'reel',
+        title: idea,
+        caption: caption.variants.media,
+        hashtags: selected,
+        assets: renderToAssets([render]),
+        renderResults: [render],
+      },
+    ],
+    pipelineResults: [],
+    error: render.error || (ethics.passes ? undefined : `Ética: ${ethics.issues.join('; ')}`),
+  };
+};
+
+// ─── RECIPE 2: Carrusel Educativo ───
+export const carruselEducativo = async (
+  brand: BrandProfile,
+  input: RecipeInput,
+): Promise<RecipeOutput> => {
+  const idea = input.idea;
+  const longitud = (input.extraParams?.['longitud'] as 'corto' | 'medio' | 'largo') ?? 'medio';
+  const carrusel = await createCarrusel(brand, idea, longitud);
+  const caption = await createCaption(brand, idea, 'carrusel');
+
+  const runner = getDefaultRunner();
+  const render = await runner.render({
+    id: `recipe-carrusel-edu-${Date.now()}`,
+    recipeId: 'carrusel-educativo',
+    format: 'png',
+    title: `Carrusel — ${idea.slice(0, 40)}`,
+    brandProfileId: brand.name,
+    assets: [],
+    fields: {
+      ...carrusel.slides.reduce((acc, s, i) => {
+        acc[`titulo_${i + 1}`] = s.titulo;
+        acc[`cuerpo_${i + 1}`] = s.cuerpo;
+        return acc;
+      }, {} as Record<string, string>),
+      hashtags: carrusel.hashtags.join(' '),
+    },
+    options: { templateFormat: 'carrusel' },
+  });
+
+  const ethics = auditReceptorResponsibility(brand, caption.variants.media, carrusel.slides.map((s) => s.titulo));
+
+  return {
+    recipeId: 'carrusel-educativo',
+    ok: render.ok && ethics.passes,
+    contentPieces: [
+      {
+        format: 'carrusel',
+        title: idea,
+        caption: caption.variants.media,
+        hashtags: carrusel.hashtags,
+        assets: renderToAssets([render]),
+        renderResults: [render],
+      },
+    ],
+    pipelineResults: [],
+    error: render.error || (ethics.passes ? undefined : `Ética: ${ethics.issues.join('; ')}`),
+  };
+};
+
+// ─── RECIPE 3: Story Sequence Launch ───
+export const storySequenceLaunch = async (
+  brand: BrandProfile,
+  input: RecipeInput,
+): Promise<RecipeOutput> => {
+  const evento = input.idea;
+  const cantidad = Number(input.extraParams?.['cantidad'] ?? 5);
+  const stories = await createStorySequence(brand, evento, cantidad);
+
+  const runner = getDefaultRunner();
+  const render = await runner.render({
+    id: `recipe-story-launch-${Date.now()}`,
+    recipeId: 'story-sequence-launch',
+    format: 'png',
+    title: `Stories — ${evento.slice(0, 40)}`,
+    brandProfileId: brand.name,
+    assets: [],
+    fields: {
+      ...stories.slides.reduce((acc, s, i) => {
+        acc[`story_${i + 1}`] = s.textoPrincipal;
+        return acc;
+      }, {} as Record<string, string>),
+    },
+    options: { templateFormat: 'historia', storyCount: cantidad },
+  });
+
+  return {
+    recipeId: 'story-sequence-launch',
+    ok: render.ok,
+    contentPieces: [
+      {
+        format: 'historia',
+        title: evento,
+        assets: renderToAssets([render]),
+        renderResults: [render],
+      },
+    ],
+    pipelineResults: [],
+    error: render.error,
+  };
+};
+
+// ─── RECIPE 4: Post Imagen Quote ───
+export const postImagenQuote = async (
+  brand: BrandProfile,
+  input: RecipeInput,
+): Promise<RecipeOutput> => {
+  const quote = input.idea;
+  const caption = await createCaption(brand, quote, 'post-imagen');
+
+  const runner = getDefaultRunner();
+  const render = await runner.render({
+    id: `recipe-quote-${Date.now()}`,
+    recipeId: 'post-imagen-quote',
+    format: 'png',
+    title: `Quote — ${quote.slice(0, 40)}`,
+    brandProfileId: brand.name,
+    assets: [],
+    fields: {
+      quote,
+      author: brand.name,
+    },
+    options: { templateFormat: 'post-imagen' },
+  });
+
+  return {
+    recipeId: 'post-imagen-quote',
+    ok: render.ok,
+    contentPieces: [
+      {
+        format: 'post-imagen',
+        title: quote,
+        caption: caption.variants.corta,
+        assets: renderToAssets([render]),
+        renderResults: [render],
+      },
+    ],
+    pipelineResults: [],
+    error: render.error,
+  };
+};
+
+// ─── RECIPE 5: Repurpose Blog to All ───
+export const repurposeBlogToAll = async (
+  brand: BrandProfile,
+  input: RecipeInput,
+): Promise<RecipeOutput> => {
+  const titulo = input.idea;
+  const texto = (input.extraParams?.['texto'] as string) ?? '';
+  const { repurposeContent } = await import('../repurposing/index.js');
+  const repurposed = await repurposeContent(brand, { tipo: 'blog', titulo, texto });
+
+  const contentPieces: RecipeOutput['contentPieces'] = [];
+  const renderResults: ContentAsset[] = [];
+
+  // Render each piece
+  const runner = getDefaultRunner();
+  for (const piece of repurposed.pieces) {
+    const format = piece.format === 'carrusel' ? 'png' : piece.format === 'reel' ? 'mp4' : 'png';
+    const templateFormat = piece.format === 'carrusel' ? 'carrusel' : piece.format === 'reel' ? 'reel' : 'post-imagen';
+    const render = await runner.render({
+      id: `recipe-repurpose-${piece.format}-${Date.now()}`,
+      recipeId: 'repurpose-blog-to-all',
+      format,
+      title: `${piece.format} — ${titulo.slice(0, 30)}`,
+      brandProfileId: brand.name,
+      assets: [],
+      fields: { content: piece.content, format: piece.format },
+      options: { templateFormat },
+    });
+    contentPieces.push({
+      format: piece.format,
+      title: piece.title,
+      caption: piece.caption,
+      hashtags: piece.hashtags,
+      assets: renderToAssets([render]),
+      renderResults: [render],
+    });
+    renderResults.push(...renderToAssets([render]));
+  }
+
+  return {
+    recipeId: 'repurpose-blog-to-all',
+    ok: contentPieces.every((p) => p.renderResults.every((r) => r.ok)),
+    contentPieces,
+    pipelineResults: [],
+  };
+};
+
+// ─── RECIPE 6: Weekly Content Package ───
+export const weeklyContentPackage = async (
+  brand: BrandProfile,
+  input: RecipeInput,
+): Promise<RecipeOutput> => {
+  const theme = input.idea;
+  const runner = getDefaultRunner();
+  const contentPieces: RecipeOutput['contentPieces'] = [];
+
+  // 3 Reels
+  for (let i = 0; i < 3; i++) {
+    const reelIdea = `${theme} — parte ${i + 1}`;
+    const reel = await createReel(brand, reelIdea, 30);
+    const render = await runner.render({
+      id: `recipe-weekly-reel-${i}-${Date.now()}`,
+      recipeId: 'weekly-content-package',
+      format: 'mp4',
+      title: `Reel ${i + 1} — ${theme.slice(0, 30)}`,
+      brandProfileId: brand.name,
+      assets: [],
+      fields: {
+        hook_visual: reel.hookVisual,
+        cta: reel.cta,
+        audio_sugerido: reel.audioSugerido,
+      },
+      options: { templateFormat: 'reel' },
+    });
+    contentPieces.push({
+      format: 'reel',
+      title: reelIdea,
+      assets: renderToAssets([render]),
+      renderResults: [render],
+    });
+  }
+
+  // 2 Carruseles
+  for (let i = 0; i < 2; i++) {
+    const carruselIdea = `${theme} — guía ${i + 1}`;
+    const carrusel = await createCarrusel(brand, carruselIdea, 'medio');
+    const render = await runner.render({
+      id: `recipe-weekly-carrusel-${i}-${Date.now()}`,
+      recipeId: 'weekly-content-package',
+      format: 'png',
+      title: `Carrusel ${i + 1} — ${theme.slice(0, 30)}`,
+      brandProfileId: brand.name,
+      assets: [],
+      fields: {
+        ...carrusel.slides.reduce((acc, s, idx) => {
+          acc[`titulo_${idx + 1}`] = s.titulo;
+          acc[`cuerpo_${idx + 1}`] = s.cuerpo;
+          return acc;
+        }, {} as Record<string, string>),
+      },
+      options: { templateFormat: 'carrusel' },
+    });
+    contentPieces.push({
+      format: 'carrusel',
+      title: carruselIdea,
+      assets: renderToAssets([render]),
+      renderResults: [render],
+    });
+  }
+
+  // 14 Stories (2 por día)
+  const stories = await createStorySequence(brand, theme, 14);
+  const render = await runner.render({
+    id: `recipe-weekly-stories-${Date.now()}`,
+    recipeId: 'weekly-content-package',
+    format: 'png',
+    title: `Stories semana — ${theme.slice(0, 30)}`,
+    brandProfileId: brand.name,
+    assets: [],
+    fields: {
+      ...stories.slides.reduce((acc, s, idx) => {
+        acc[`story_${idx + 1}`] = s.textoPrincipal;
+        return acc;
+      }, {} as Record<string, string>),
+    },
+    options: { templateFormat: 'historia', storyCount: 14 },
+  });
+  contentPieces.push({
+    format: 'historia',
+    title: `${theme} — stories semanales`,
+    assets: renderToAssets([render]),
+    renderResults: [render],
+  });
+
+  return {
+    recipeId: 'weekly-content-package',
+    ok: contentPieces.every((p) => p.renderResults.every((r) => r.ok)),
+    contentPieces,
+    pipelineResults: [],
+  };
+};
+
+// ─── RECIPE 7: Trending Audio Reel ───
+export const trendingAudioReel = async (
+  brand: BrandProfile,
+  input: RecipeInput,
+): Promise<RecipeOutput> => {
+  const audioTrend = input.idea;
+  const adaptation = `Adaptación de audio trending "${audioTrend}" para ${brand.niche}`;
+  const reel = await createReel(brand, adaptation, 20);
+  const caption = await createCaption(brand, adaptation, 'reel');
+
+  const runner = getDefaultRunner();
+  const render = await runner.render({
+    id: `recipe-trending-${Date.now()}`,
+    recipeId: 'trending-audio-reel',
+    format: 'mp4',
+    title: `Trending — ${audioTrend.slice(0, 40)}`,
+    brandProfileId: brand.name,
+    assets: [],
+    fields: {
+      hook_visual: reel.hookVisual,
+      cta: reel.cta,
+      audio_sugerido: audioTrend,
+    },
+    options: { templateFormat: 'reel' },
+  });
+
+  return {
+    recipeId: 'trending-audio-reel',
+    ok: render.ok,
+    contentPieces: [
+      {
+        format: 'reel',
+        title: adaptation,
+        caption: caption.variants.corta,
+        assets: renderToAssets([render]),
+        renderResults: [render],
+      },
+    ],
+    pipelineResults: [],
+    error: render.error,
+  };
+};
+
+// ─── RECIPE 8: Testimonial to Carrusel ───
+export const testimonialToCarrusel = async (
+  brand: BrandProfile,
+  input: RecipeInput,
+): Promise<RecipeOutput> => {
+  const testimonio = input.idea;
+  const idea = `Testimonio: ${testimonio}`;
+  const carrusel = await createCarrusel(brand, idea, 'corto');
+  const caption = await createCaption(brand, idea, 'carrusel');
+
+  const runner = getDefaultRunner();
+  const render = await runner.render({
+    id: `recipe-testimonial-${Date.now()}`,
+    recipeId: 'testimonial-to-carrusel',
+    format: 'png',
+    title: `Testimonio — ${testimonio.slice(0, 40)}`,
+    brandProfileId: brand.name,
+    assets: [],
+    fields: {
+      ...carrusel.slides.reduce((acc, s, i) => {
+        acc[`titulo_${i + 1}`] = s.titulo;
+        acc[`cuerpo_${i + 1}`] = s.cuerpo;
+        return acc;
+      }, {} as Record<string, string>),
+    },
+    options: { templateFormat: 'carrusel' },
+  });
+
+  return {
+    recipeId: 'testimonial-to-carrusel',
+    ok: render.ok,
+    contentPieces: [
+      {
+        format: 'carrusel',
+        title: idea,
+        caption: caption.variants.media,
+        hashtags: carrusel.hashtags,
+        assets: renderToAssets([render]),
+        renderResults: [render],
+      },
+    ],
+    pipelineResults: [],
+    error: render.error,
+  };
+};
+
+// ─── RECIPE 9: Product Showcase Reel ───
+export const productShowcaseReel = async (
+  brand: BrandProfile,
+  input: RecipeInput,
+): Promise<RecipeOutput> => {
+  const producto = input.idea;
+  const reel = await createReel(brand, `Showcase: ${producto}`, 30);
+  const caption = await createCaption(brand, producto, 'reel');
+
+  const runner = getDefaultRunner();
+  const render = await runner.render({
+    id: `recipe-showcase-${Date.now()}`,
+    recipeId: 'product-showcase-reel',
+    format: 'mp4',
+    title: `Showcase — ${producto.slice(0, 40)}`,
+    brandProfileId: brand.name,
+    assets: [],
+    fields: {
+      hook_visual: reel.hookVisual,
+      cta: `Conocé más sobre ${producto}`,
+      audio_sugerido: 'trending upbeat product showcase',
+    },
+    options: { templateFormat: 'reel' },
+  });
+
+  return {
+    recipeId: 'product-showcase-reel',
+    ok: render.ok,
+    contentPieces: [
+      {
+        format: 'reel',
+        title: producto,
+        caption: caption.variants.media,
+        assets: renderToAssets([render]),
+        renderResults: [render],
+      },
+    ],
+    pipelineResults: [],
+    error: render.error,
+  };
+};
+
+// ─── RECIPE 10: FAQ Faceless Triple ───
+export const faqFacelessTriple = async (
+  brand: BrandProfile,
+  input: RecipeInput,
+): Promise<RecipeOutput> => {
+  const faqs = input.idea.split('|').map((s) => s.trim()).filter(Boolean);
+  const contentPieces: RecipeOutput['contentPieces'] = [];
+  const runner = getDefaultRunner();
+
+  for (const faq of faqs.slice(0, 3)) {
+    const reel = await createReel(brand, `FAQ: ${faq}`, 20);
+    const render = await runner.render({
+      id: `recipe-faq-${Date.now()}-${faq.slice(0, 10)}`,
+      recipeId: 'faq-faceless-triple',
+      format: 'mp4',
+      title: `FAQ — ${faq.slice(0, 40)}`,
+      brandProfileId: brand.name,
+      assets: [],
+      fields: {
+        hook_visual: reel.hookVisual,
+        cta: '¿Tenés más preguntas? Mandá DM',
+        audio_sugerido: 'trending FAQ background',
+      },
+      options: { templateFormat: 'reel' },
+    });
+    contentPieces.push({
+      format: 'reel',
+      title: faq,
+      assets: renderToAssets([render]),
+      renderResults: [render],
+    });
+  }
+
+  // Carrusel resumen
+  const resumenIdea = `Resumen: ${faqs.join(' + ')}`;
+  const carrusel = await createCarrusel(brand, resumenIdea, 'corto');
+  const renderCarrusel = await runner.render({
+    id: `recipe-faq-resumen-${Date.now()}`,
+    recipeId: 'faq-faceless-triple',
+    format: 'png',
+    title: `FAQ Resumen`,
+    brandProfileId: brand.name,
+    assets: [],
+    fields: {
+      ...carrusel.slides.reduce((acc, s, i) => {
+        acc[`titulo_${i + 1}`] = s.titulo;
+        acc[`cuerpo_${i + 1}`] = s.cuerpo;
+        return acc;
+      }, {} as Record<string, string>),
+    },
+    options: { templateFormat: 'carrusel' },
+  });
+  contentPieces.push({
+    format: 'carrusel',
+    title: resumenIdea,
+    assets: renderToAssets([renderCarrusel]),
+    renderResults: [renderCarrusel],
+  });
+
+  return {
+    recipeId: 'faq-faceless-triple',
+    ok: contentPieces.every((p) => p.renderResults.every((r) => r.ok)),
+    contentPieces,
+    pipelineResults: [],
+  };
+};

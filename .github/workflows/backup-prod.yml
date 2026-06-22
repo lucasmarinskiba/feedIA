@@ -1,0 +1,65 @@
+name: Backup Production
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  backup:
+    name: Backup Supabase production
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Run backup
+        run: node scripts/backup-supabase.mjs --env=production
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PROD }}
+          S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.BACKUP_AWS_REGION }}
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-backup-${{ github.run_id }}
+          path: backups/*.sql
+          retention-days: 30
+
+      - name: Notify on success
+        if: success() && secrets.ADMIN_WEBHOOK_URL != ''
+        run: |
+          curl -fsS -X POST "${{ secrets.ADMIN_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"text":"✅ FeedIA production backup completed","run_url":"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'
+
+      - name: Notify on failure
+        if: failure() && secrets.ADMIN_WEBHOOK_URL != ''
+        run: |
+          curl -fsS -X POST "${{ secrets.ADMIN_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"text":"❌ FeedIA production backup failed","run_url":"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'

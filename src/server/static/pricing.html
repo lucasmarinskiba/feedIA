@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FeedIA — Planes y precios</title>
+    <meta
+      name="description"
+      content="Planes de FeedIA: Free, Starter, Pro y Agency. Conectá Instagram + TikTok y delegá tu marketing al equipo de IA."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='28'>👑</text></svg>"
+    />
+    <style>
+      :root {
+        --bg: #fafafb;
+        --bg-card: #ffffff;
+        --bg-soft: #f4f5f7;
+        --border: rgba(17, 18, 22, 0.1);
+        --border-soft: rgba(17, 18, 22, 0.06);
+        --text: #0e0e11;
+        --text-2: #4b4d57;
+        --text-3: #888a93;
+        --shadow-sm: 0 1px 2px rgba(20, 22, 30, 0.06);
+        --shadow: 0 10px 30px rgba(20, 22, 30, 0.08);
+        --shadow-lg: 0 24px 60px rgba(20, 22, 30, 0.12);
+        --radius: 14px;
+        --radius-sm: 10px;
+        --radius-lg: 20px;
+        --gradient: linear-gradient(135deg, #f09433, #e1306c 35%, #a855f7 65%, #22d3ee);
+        --brand: #e1306c;
+        --brand-2: #a855f7;
+      }
+      [data-theme='dark'] {
+        --bg: #0b0b0f;
+        --bg-card: #15161b;
+        --bg-soft: #1b1c22;
+        --border: rgba(255, 255, 255, 0.08);
+        --border-soft: rgba(255, 255, 255, 0.04);
+        --text: #f5f5f7;
+        --text-2: #b8bac2;
+        --text-3: #8b8d95;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Text', system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: -1;
+        background:
+          radial-gradient(700px 480px at 12% -8%, rgba(225, 48, 108, 0.1), transparent 60%),
+          radial-gradient(800px 560px at 100% 20%, rgba(168, 85, 247, 0.09), transparent 60%);
+      }
+      .nav {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 22px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        font-size: 18px;
+      }
+      .brand-logo {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        background: var(--gradient);
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-size: 18px;
+      }
+      .nav-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .nav-link {
+        color: var(--text-2);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 8px 14px;
+        border-radius: 9px;
+        transition: background 0.15s;
+      }
+      .nav-link:hover {
+        background: var(--bg-soft);
+        color: var(--text);
+      }
+      .nav-cta {
+        padding: 9px 16px;
+        background: var(--gradient);
+        color: #fff;
+        border-radius: 9px;
+        text-decoration: none;
+        font-size: 13.5px;
+        font-weight: 700;
+      }
+
+      .hero {
+        max-width: 980px;
+        margin: 32px auto 14px;
+        padding: 0 24px;
+        text-align: center;
+      }
+      .hero h1 {
+        font-size: clamp(34px, 4.4vw, 54px);
+        line-height: 1.04;
+        letter-spacing: -0.025em;
+        margin-bottom: 14px;
+      }
+      .hero h1 em {
+        font-style: normal;
+        background: var(--gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .hero p {
+        font-size: 17px;
+        color: var(--text-2);
+        max-width: 640px;
+        margin: 0 auto 28px;
+        line-height: 1.55;
+      }
+
+      .billing-toggle {
+        display: inline-flex;
+        gap: 4px;
+        padding: 4px;
+        background: var(--bg-soft);
+        border-radius: 999px;
+        margin-bottom: 12px;
+      }
+      .billing-toggle button {
+        padding: 8px 16px;
+        border: 0;
+        background: transparent;
+        color: var(--text-2);
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 999px;
+        cursor: pointer;
+        font-family: inherit;
+        transition:
+          background 0.15s,
+          color 0.15s;
+      }
+      .billing-toggle button.active {
+        background: var(--bg-card);
+        color: var(--text);
+        box-shadow: var(--shadow-sm);
+      }
+      .save-badge {
+        font-size: 11px;
+        background: rgba(16, 185, 129, 0.15);
+        color: #059669;
+        padding: 2px 7px;
+        border-radius: 999px;
+        margin-left: 4px;
+        font-weight: 700;
+      }
+      [data-theme='dark'] .save-badge {
+        color: #34d399;
+      }
+
+      .plans {
+        max-width: 1340px;
+        margin: 24px auto 48px;
+        padding: 0 24px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 14px;
+      }
+      @media (max-width: 1280px) {
+        .plans {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      @media (max-width: 880px) {
+        .plans {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 600px) {
+        .plans {
+          grid-template-columns: 1fr;
+        }
+      }
+      .plan-value {
+        font-size: 12px;
+        color: var(--text-3);
+        line-height: 1.55;
+        margin-top: 4px;
+        padding: 11px 12px;
+        background: var(--bg-soft);
+        border-radius: 10px;
+        border-left: 3px solid var(--brand);
+      }
+      .plan-ideal-for {
+        font-size: 11.5px;
+        color: var(--text-3);
+        line-height: 1.5;
+        padding: 8px 10px;
+        background: rgba(34, 211, 238, 0.06);
+        border-radius: 8px;
+        border-left: 2px solid #22d3ee;
+      }
+      .plan-ideal-for strong {
+        color: var(--text);
+        font-size: 11px;
+      }
+      .plan-what-you-get {
+        font-size: 12.5px;
+        color: var(--text-2);
+        line-height: 1.5;
+      }
+      .plan-what-you-get strong {
+        display: block;
+        font-size: 11px;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px;
+      }
+      .plan-what-you-get ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .plan-what-you-get li {
+        padding-left: 6px;
+        font-weight: 500;
+        color: var(--text);
+      }
+      .plan-features-details summary {
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-3);
+        padding: 8px 0;
+        margin-top: 6px;
+        border-top: 1px solid var(--border-soft);
+      }
+      .plan-features-details summary::-webkit-details-marker {
+        display: none;
+      }
+      .plan-features-details summary::after {
+        content: ' ▾';
+      }
+      .plan-features-details[open] summary::after {
+        content: ' ▴';
+      }
+      .plan-not-included {
+        font-size: 12px;
+        color: var(--text-3);
+        margin-top: 8px;
+      }
+      .plan-not-included li {
+        display: flex;
+        gap: 6px;
+        align-items: flex-start;
+        line-height: 1.4;
+        margin-top: 4px;
+        list-style: none;
+        opacity: 0.65;
+      }
+      .plan-not-included li::before {
+        content: '✕';
+        color: var(--text-3);
+        font-weight: 800;
+        flex-shrink: 0;
+      }
+      .plan-cycle-hint {
+        font-size: 11px;
+        color: #059669;
+        font-weight: 700;
+        margin-top: 4px;
+      }
+      [data-theme='dark'] .plan-cycle-hint {
+        color: #34d399;
+      }
+
+      .plan {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 28px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease,
+          border-color 0.2s ease;
+      }
+      .plan:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+      }
+      .plan.popular {
+        border-color: var(--brand);
+        box-shadow:
+          0 10px 40px rgba(225, 48, 108, 0.12),
+          0 0 0 1px rgba(225, 48, 108, 0.4);
+        background: linear-gradient(180deg, rgba(225, 48, 108, 0.04), var(--bg-card) 30%);
+      }
+      .plan.popular .badge-pop {
+        position: absolute;
+        top: -11px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--gradient);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+        padding: 4px 12px;
+        border-radius: 999px;
+        letter-spacing: 0.05em;
+      }
+      .plan-name {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .plan-tagline {
+        font-size: 13px;
+        color: var(--text-3);
+        margin-top: 4px;
+      }
+      .plan-price {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-top: 6px;
+      }
+      .plan-price .amount {
+        font-size: 42px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .plan-price .period {
+        font-size: 13px;
+        color: var(--text-3);
+      }
+      .plan-cta {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        border: 1px solid var(--border);
+        background: var(--bg-soft);
+        color: var(--text);
+        cursor: pointer;
+        font-family: inherit;
+        transition:
+          filter 0.15s,
+          transform 0.12s,
+          background 0.15s;
+      }
+      .plan-cta:hover {
+        background: var(--border);
+      }
+      .plan-cta:active {
+        transform: scale(0.985);
+      }
+      .plan-cta:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .plan.popular .plan-cta {
+        background: var(--gradient);
+        color: #fff;
+        border-color: transparent;
+      }
+      .plan.popular .plan-cta:hover {
+        filter: brightness(1.07);
+      }
+      .plan.current .plan-cta {
+        background: rgba(16, 185, 129, 0.12);
+        color: #059669;
+        border-color: rgba(16, 185, 129, 0.35);
+        cursor: default;
+      }
+      [data-theme='dark'] .plan.current .plan-cta {
+        color: #34d399;
+      }
+
+      .features {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 13.5px;
+        color: var(--text-2);
+      }
+      .features li {
+        display: flex;
+        gap: 9px;
+        align-items: flex-start;
+        line-height: 1.45;
+        list-style: none;
+      }
+      .features li::before {
+        content: '✓';
+        color: var(--brand);
+        font-weight: 800;
+        flex-shrink: 0;
+        line-height: 1.4;
+      }
+
+      .faq {
+        max-width: 760px;
+        margin: 24px auto 60px;
+        padding: 0 24px;
+      }
+      .faq h2 {
+        font-size: 22px;
+        margin-bottom: 18px;
+        text-align: center;
+        letter-spacing: -0.02em;
+      }
+      .faq details {
+        background: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-bottom: 8px;
+      }
+      .faq summary {
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        list-style: none;
+      }
+      .faq summary::-webkit-details-marker {
+        display: none;
+      }
+      .faq summary::after {
+        content: '+';
+        float: right;
+        color: var(--text-3);
+        font-size: 18px;
+        line-height: 1;
+        transition: transform 0.2s;
+      }
+      .faq details[open] summary::after {
+        content: '−';
+      }
+      .faq p {
+        font-size: 13.5px;
+        color: var(--text-2);
+        margin-top: 10px;
+        line-height: 1.55;
+      }
+
+      .footer {
+        text-align: center;
+        color: var(--text-3);
+        font-size: 12.5px;
+        padding: 24px;
+      }
+
+      .theme-toggle {
+        position: fixed;
+        top: 18px;
+        right: 18px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-2);
+        cursor: pointer;
+        font-size: 15px;
+        display: grid;
+        place-items: center;
+        transition: transform 0.15s;
+        z-index: 100;
+      }
+      .theme-toggle:hover {
+        transform: rotate(-12deg);
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--text);
+        color: var(--bg);
+        padding: 12px 18px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        box-shadow: var(--shadow-lg);
+        animation: tIn 0.25s ease;
+      }
+      @keyframes tIn {
+        from {
+          opacity: 0;
+          transform: translate(-50%, 10px);
+        }
+        to {
+          opacity: 1;
+          transform: translate(-50%, 0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema">🌙</button>
+
+    <nav class="nav">
+      <a href="/" class="brand" style="text-decoration: none; color: inherit">
+        <div class="brand-logo">👑</div>
+        <span>FeedIA</span>
+      </a>
+      <div class="nav-actions">
+        <a href="/" class="nav-link">Dashboard</a>
+        <a href="/login.html" class="nav-link" id="nav-login">Iniciar sesión</a>
+        <a href="/login.html" class="nav-cta" id="nav-cta">Empezar gratis</a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <h1>Elegí tu <em>plan</em>. Cancelá cuando quieras.</h1>
+      <p>
+        Conectá Instagram + TikTok y delegá tu marketing al equipo de IA. Precios pensados para creadores LATAM. Pagá
+        menos que un café por día.
+      </p>
+      <div class="billing-toggle">
+        <button class="active" data-billing="monthly">Mensual</button>
+        <button data-billing="annual">Anual <span class="save-badge">−30%</span></button>
+      </div>
+    </section>
+
+    <section class="plans" id="plans-grid">
+      <div class="plan" style="text-align: center; padding: 60px">Cargando planes…</div>
+    </section>
+
+    <section id="credit-packs" style="max-width: 1100px; margin: 30px auto; padding: 0 24px">
+      <div style="text-align: center; margin-bottom: 20px">
+        <h2 style="font-size: 28px; letter-spacing: -0.02em; margin-bottom: 8px">🎬 Credit packs de video</h2>
+        <p style="color: var(--text-3); max-width: 600px; margin: 0 auto; font-size: 15px; line-height: 1.5">
+          ¿Agotaste tu cuota mensual de video credits? Comprá un pack one-time. No caducan. Se acumulan a tu balance
+          overage. <strong>1 credit = 1 segundo 720p</strong>, 1080p = 2.5×, 4K = 7.5×.
+        </p>
+      </div>
+      <div
+        id="credit-packs-grid"
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px"
+      >
+        <div style="text-align: center; padding: 40px; color: var(--text-3)">Cargando packs…</div>
+      </div>
+    </section>
+
+    <section class="faq">
+      <h2>Preguntas frecuentes</h2>
+      <details>
+        <summary>¿Puedo cancelar en cualquier momento?</summary>
+        <p>Sí. Cancelás desde tu panel cuando quieras. Tu plan sigue activo hasta el final del período pagado.</p>
+      </details>
+      <details>
+        <summary>¿Cómo funciona el plan Free?</summary>
+        <p>Gratis para siempre. 1 cuenta IG o TikTok, hasta 5 publicaciones/mes. Sin tarjeta requerida.</p>
+      </details>
+      <details>
+        <summary>¿Puedo conectar varias cuentas?</summary>
+        <p>Sí. Starter incluye 2 (IG + TT), Pro hasta 6, Agency hasta 20. Cada plan tiene límites claros.</p>
+      </details>
+      <details>
+        <summary>¿Cómo pagás?</summary>
+        <p>Tarjeta de crédito vía Stripe. Pagos seguros, cifrados, con factura automática.</p>
+      </details>
+      <details>
+        <summary>¿Y si necesito más?</summary>
+        <p>Escribinos. Hacemos planes custom para agencias, equipos grandes y enterprise con SLA.</p>
+      </details>
+    </section>
+
+    <div class="footer">© FeedIA · Pagos seguros con Stripe · Cancelá cuando quieras</div>
+
+    <script>
+      // ─── Theme ────────────────────────────────────────────────────────────
+      const themeKey = 'feedia.theme';
+      const savedTheme = localStorage.getItem(themeKey) || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      const themeBtn = document.getElementById('theme-toggle');
+      themeBtn.textContent = savedTheme === 'light' ? '🌙' : '☀️';
+      themeBtn.onclick = () => {
+        const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem(themeKey, next);
+        themeBtn.textContent = next === 'light' ? '🌙' : '☀️';
+      };
+
+      let currentUser = null;
+      let currentPlan = 'free';
+      let plansData = [];
+      let billing = 'monthly';
+
+      const fmtUsd = (n) => (n === 0 ? 'Gratis' : '$' + n);
+
+      const toast = (msg) => {
+        const el = document.createElement('div');
+        el.className = 'toast';
+        el.textContent = msg;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 2600);
+      };
+
+      const renderPlans = () => {
+        const grid = document.getElementById('plans-grid');
+        grid.innerHTML = plansData
+          .map((p) => {
+            const isCurrent = currentUser && currentPlan === p.id;
+            const isPaid = p.id !== 'free';
+            const annualPerMonth = p.priceUsdAnnualPerMonth || 0;
+            const displayPrice = billing === 'annual' && p.priceUsd > 0 ? annualPerMonth : p.priceUsd || 0;
+            const periodLabel = p.priceUsd === 0 ? '' : billing === 'annual' ? '/mes' : '/mes';
+            const cycleHint =
+              billing === 'annual' && p.priceUsd > 0
+                ? `<div class="plan-cycle-hint">Pagás $${p.priceUsdAnnual} una vez al año (ahorrás ${p.savingsAnnualPct}%)</div>`
+                : '';
+            const cta = !currentUser
+              ? p.id === 'free'
+                ? 'Empezar gratis'
+                : 'Empezar con ' + p.name
+              : isCurrent
+                ? `Tu plan actual ${p.badge || ''}`
+                : p.id === 'free'
+                  ? 'Downgrade'
+                  : 'Cambiar a ' + p.name;
+            return `
+          <div class="plan ${p.mostPopular ? 'popular' : ''} ${isCurrent ? 'current' : ''}">
+            ${p.mostPopular ? '<div class="badge-pop">MÁS ELEGIDO</div>' : ''}
+            <div>
+              <div class="plan-name">${p.badge || ''} ${p.name}</div>
+              <div class="plan-tagline">${p.tagline || ''}</div>
+            </div>
+            <div class="plan-price">
+              <span class="amount">${displayPrice === 0 ? 'Gratis' : '$' + displayPrice}</span>
+              ${displayPrice !== 0 ? `<span class="period">${periodLabel}</span>` : ''}
+            </div>
+            ${cycleHint}
+            ${p.valueProp ? `<div class="plan-value">${p.valueProp}</div>` : ''}
+            ${p.idealFor ? `<div class="plan-ideal-for"><strong>Ideal para:</strong> ${p.idealFor}</div>` : ''}
+            ${
+              (p.whatYouGet || []).length
+                ? `
+              <div class="plan-what-you-get">
+                <strong>Qué te llevás:</strong>
+                <ul>${(p.whatYouGet || []).map((w) => `<li>✓ ${w}</li>`).join('')}</ul>
+              </div>`
+                : ''
+            }
+            <button class="plan-cta" data-plan="${p.id}" data-paid="${isPaid}" ${isCurrent ? 'disabled' : ''}>${cta}</button>
+            <details class="plan-features-details">
+              <summary>Ver todas las features (${(p.features || []).length})</summary>
+              <ul class="features">
+                ${(p.features || []).map((f) => `<li>${f}</li>`).join('')}
+              </ul>
+              ${
+                (p.notIncluded || []).length
+                  ? `
+                <ul class="plan-not-included">
+                  ${(p.notIncluded || []).map((n) => `<li>${n}</li>`).join('')}
+                </ul>`
+                  : ''
+              }
+            </details>
+          </div>`;
+          })
+          .join('');
+
+        grid.querySelectorAll('.plan-cta:not([disabled])').forEach((btn) => {
+          btn.addEventListener('click', () => handleSelect(btn.dataset.plan, btn.dataset.paid === 'true'));
+        });
+      };
+
+      const handleSelect = async (planId, isPaid) => {
+        if (!currentUser) {
+          location.href = '/login.html?next=/pricing.html';
+          return;
+        }
+        if (!isPaid) {
+          toast('Ya tenés acceso al plan Free.');
+          return;
+        }
+        try {
+          const r = await fetch('/api/billing/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ planId, cycle: billing }),
+          });
+          const data = await r.json();
+          if (!r.ok || !data.url) {
+            toast(data.error || 'No se pudo iniciar checkout');
+            return;
+          }
+          location.href = data.url;
+        } catch {
+          toast('Error de red. Reintentá.');
+        }
+      };
+
+      const renderCreditPacks = (packs) => {
+        const grid = document.getElementById('credit-packs-grid');
+        if (!grid) return;
+        grid.innerHTML = packs
+          .map(
+            (p) => `
+        <div class="plan" style="padding:22px 18px;">
+          <div>
+            <div class="plan-name">${p.label}</div>
+            <div class="plan-tagline">${p.credits.toLocaleString('es-AR')} credits</div>
+          </div>
+          <div class="plan-price">
+            <span class="amount">$${p.priceUsd}</span>
+            ${p.savingsPct ? `<span class="save-badge" style="margin-left:6px;">−${p.savingsPct}%</span>` : ''}
+          </div>
+          <div class="plan-value" style="font-size:11.5px;">${p.description}</div>
+          <button class="plan-cta" data-pack="${p.id}" ${!p.available ? 'disabled' : ''}>${p.available ? 'Comprar pack' : 'Próximamente'}</button>
+        </div>`,
+          )
+          .join('');
+        grid.querySelectorAll('[data-pack]:not([disabled])').forEach((btn) => {
+          btn.addEventListener('click', () => buyCreditPack(btn.dataset.pack));
+        });
+      };
+
+      const buyCreditPack = async (packId) => {
+        if (!currentUser) {
+          location.href = '/login.html?next=/pricing.html#credit-packs';
+          return;
+        }
+        try {
+          const r = await fetch('/api/billing/buy-credits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ packId }),
+          });
+          const data = await r.json();
+          if (!r.ok || !data.url) {
+            toast(data.error || 'No se pudo iniciar checkout');
+            return;
+          }
+          location.href = data.url;
+        } catch {
+          toast('Error de red');
+        }
+      };
+
+      // ─── Init ─────────────────────────────────────────────────────────────
+      (async () => {
+        try {
+          const [meRes, plansRes, subRes, packsRes] = await Promise.all([
+            fetch('/api/auth/me', { credentials: 'include' })
+              .then((r) => (r.ok ? r.json() : null))
+              .catch(() => null),
+            fetch('/api/billing/plans').then((r) => r.json()),
+            fetch('/api/billing/subscription', { credentials: 'include' })
+              .then((r) => (r.ok ? r.json() : null))
+              .catch(() => null),
+            fetch('/api/billing/credit-packs')
+              .then((r) => r.json())
+              .catch(() => null),
+          ]);
+
+          currentUser = meRes?.user || null;
+          plansData = plansRes?.plans || [];
+          currentPlan = subRes?.currentPlan || 'free';
+
+          if (currentUser) {
+            document.getElementById('nav-login').style.display = 'none';
+            document.getElementById('nav-cta').textContent = 'Ir al panel';
+            document.getElementById('nav-cta').href = '/';
+          }
+          renderPlans();
+          if (packsRes?.packs) renderCreditPacks(packsRes.packs);
+        } catch {
+          document.getElementById('plans-grid').innerHTML =
+            '<div style="text-align:center;padding:40px;color:var(--text-3);">No se pudieron cargar los planes.</div>';
+        }
+      })();
+
+      document.querySelectorAll('.billing-toggle button').forEach((b) => {
+        b.addEventListener('click', () => {
+          document.querySelectorAll('.billing-toggle button').forEach((x) => x.classList.remove('active'));
+          b.classList.add('active');
+          billing = b.dataset.billing;
+          renderPlans();
+        });
+      });
+
+      // ─── Checkout success/cancel toast ───────────────────────────────────
+      const urlParams = new URLSearchParams(location.search);
+      if (urlParams.get('checkout') === 'cancelled') toast('Checkout cancelado.');
+    </script>
+  </body>
+</html>

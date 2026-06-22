@@ -1,0 +1,17 @@
+# Override example: connect app/workers to remote Supabase + Upstash instead of local services.
+# Copy to docker-compose.override.yml and fill values.
+
+services:
+  app:
+    environment:
+      SUPABASE_URL: https://<project>.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY:
+      REDIS_URL: rediss://default:...@...upstash.io:6379
+      DATABASE_URL:
+
+  workers:
+    environment:
+      SUPABASE_URL: https://<project>.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY:
+      REDIS_URL: rediss://default:...@...upstash.io:6379
+      DATABASE_URL:

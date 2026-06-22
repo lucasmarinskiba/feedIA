@@ -1,0 +1,43 @@
+{
+  "name": "Paithon Labs",
+  "type": "empresa",
+  "niche": "Automatización con IA para PyMEs en LATAM",
+  "audience": {
+    "description": "Dueños de PyMEs y consultores de 28-45 años que sienten que pierden horas en tareas repetitivas y desconfían de promesas mágicas de IA.",
+    "pains": [
+      "burnout por gestión de redes",
+      "no saben por dónde empezar con IA",
+      "miedo a invertir en herramientas que no rinden",
+      "agencias caras que entregan poco"
+    ],
+    "desires": [
+      "recuperar tiempo personal",
+      "que los procesos se ejecuten solos",
+      "claridad sobre qué automatizar primero",
+      "decisiones basadas en datos, no en intuición"
+    ],
+    "locale": "es-AR"
+  },
+  "voice": {
+    "tone": ["directo", "técnico-claro", "sin humo", "cálido pero firme"],
+    "forbidden": ["gurú", "secreto", "fórmula mágica", "literalmente", "rompiéndola"],
+    "referenceQuotes": [
+      "No vendemos magia, vendemos procesos que funcionan a las 3 AM.",
+      "Si tu IA no te devuelve horas, no es IA, es decoración."
+    ]
+  },
+  "visual": {
+    "palette": ["#0A0A0A", "#F5F5F5", "#FF5F1F"],
+    "typography": ["Inter", "JetBrains Mono"],
+    "style": "minimalismo técnico con acentos cálidos"
+  },
+  "goals": {
+    "primary": "leads",
+    "metricsToWatch": ["guardados", "compartidos", "DMs entrantes", "watch time"]
+  },
+  "competitors": ["@makedotcom", "@n8n.io", "@zapier"],
+  "hashtagPools": {
+    "core": ["#automatizacionIA", "#pymeLatam", "#agentesIA"],
+    "amplio": ["#productividad", "#emprendimiento", "#IAaplicada"]
+  }
+}

@@ -1,0 +1,12 @@
+node_modules
+src
+scripts
+docs
+api
+.vscode
+.git
+.env
+.env.*
+dist-static
+dist/*.map
+.github

@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FeedIA — Tu equipo de IA para Instagram + TikTok</title>
+    <meta
+      name="description"
+      content="FeedIA: equipo de IA que crea, publica y administra tu cuenta de Instagram y TikTok con datos reales. Conectá tu cuenta y delegá tu marketing."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='28'>👑</text></svg>"
+    />
+    <style>
+      :root {
+        --bg: #fafafb;
+        --bg-card: #ffffff;
+        --bg-soft: #f4f5f7;
+        --border: rgba(17, 18, 22, 0.1);
+        --border-soft: rgba(17, 18, 22, 0.06);
+        --text: #0e0e11;
+        --text-2: #4b4d57;
+        --text-3: #888a93;
+        --shadow-sm: 0 1px 2px rgba(20, 22, 30, 0.06);
+        --shadow: 0 10px 30px rgba(20, 22, 30, 0.08);
+        --shadow-lg: 0 24px 60px rgba(20, 22, 30, 0.12);
+        --radius: 14px;
+        --radius-sm: 10px;
+        --radius-lg: 20px;
+        --gradient: linear-gradient(135deg, #f09433, #e1306c 35%, #a855f7 65%, #22d3ee);
+      }
+      [data-theme='dark'] {
+        --bg: #0b0b0f;
+        --bg-card: #15161b;
+        --bg-soft: #1b1c22;
+        --border: rgba(255, 255, 255, 0.08);
+        --border-soft: rgba(255, 255, 255, 0.04);
+        --text: #f5f5f7;
+        --text-2: #b8bac2;
+        --text-3: #8b8d95;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Text', system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: -1;
+        background:
+          radial-gradient(680px 480px at 12% -8%, rgba(225, 48, 108, 0.1), transparent 60%),
+          radial-gradient(700px 520px at 100% 20%, rgba(168, 85, 247, 0.08), transparent 58%),
+          radial-gradient(900px 560px at 50% 120%, rgba(34, 211, 238, 0.06), transparent 60%);
+      }
+      .shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 1.05fr 1fr;
+        gap: 0;
+      }
+      @media (max-width: 980px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+        .marketing {
+          display: none;
+        }
+      }
+      .marketing {
+        padding: 48px 56px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        font-size: 18px;
+        letter-spacing: -0.01em;
+      }
+      .brand-logo {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        background: var(--gradient);
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-size: 18px;
+        box-shadow: var(--shadow);
+      }
+      .pitch h1 {
+        font-size: clamp(34px, 4vw, 50px);
+        line-height: 1.06;
+        letter-spacing: -0.025em;
+        margin-bottom: 18px;
+        max-width: 540px;
+      }
+      .pitch h1 em {
+        font-style: normal;
+        background: var(--gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .pitch p {
+        font-size: 17px;
+        color: var(--text-2);
+        max-width: 520px;
+        line-height: 1.55;
+        margin-bottom: 32px;
+      }
+      .features {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px 18px;
+        max-width: 540px;
+      }
+      .feat {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 12px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius);
+      }
+      .feat-ic {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        background: var(--bg-soft);
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        font-size: 16px;
+      }
+      .feat-tx strong {
+        display: block;
+        font-size: 13.5px;
+        margin-bottom: 2px;
+        letter-spacing: -0.01em;
+      }
+      .feat-tx span {
+        font-size: 12.5px;
+        color: var(--text-3);
+        line-height: 1.4;
+      }
+      .social-proof {
+        display: flex;
+        gap: 22px;
+        align-items: center;
+        padding-top: 24px;
+        margin-top: 24px;
+        border-top: 1px solid var(--border-soft);
+        max-width: 540px;
+      }
+      .stars {
+        color: #f5a623;
+        letter-spacing: 1px;
+        font-size: 14px;
+      }
+      .social-proof p {
+        font-size: 12.5px;
+        color: var(--text-3);
+        line-height: 1.45;
+      }
+      .auth {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 28px;
+        background: linear-gradient(180deg, transparent, rgba(20, 22, 30, 0.025));
+      }
+      [data-theme='dark'] .auth {
+        background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.015));
+      }
+      .auth-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        width: 100%;
+        max-width: 440px;
+        padding: 36px 32px;
+      }
+      .auth-logo-mobile {
+        display: none;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+      @media (max-width: 980px) {
+        .auth-logo-mobile {
+          display: flex;
+        }
+      }
+      .auth-title {
+        font-size: 26px;
+        letter-spacing: -0.02em;
+        font-weight: 700;
+        text-align: center;
+      }
+      .auth-sub {
+        text-align: center;
+        color: var(--text-3);
+        font-size: 13.5px;
+        margin-top: 6px;
+        margin-bottom: 26px;
+      }
+      .tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2px;
+        background: var(--bg-soft);
+        border-radius: var(--radius-sm);
+        padding: 3px;
+        margin-bottom: 22px;
+      }
+      .tab {
+        padding: 9px 12px;
+        background: transparent;
+        border: none;
+        color: var(--text-2);
+        cursor: pointer;
+        border-radius: 7px;
+        font-size: 13.5px;
+        font-weight: 600;
+        transition:
+          background 0.18s,
+          color 0.18s;
+        font-family: inherit;
+      }
+      .tab.active {
+        background: var(--bg-card);
+        color: var(--text);
+        box-shadow: var(--shadow-sm);
+      }
+      .form {
+        display: none;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .form.active {
+        display: flex;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .field label {
+        font-size: 12.5px;
+        color: var(--text-2);
+        font-weight: 600;
+      }
+      .input {
+        width: 100%;
+        padding: 11px 13px;
+        background: var(--bg-soft);
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font-size: 14px;
+        transition:
+          border-color 0.18s,
+          background 0.18s;
+        font-family: inherit;
+        outline: none;
+      }
+      .input:focus {
+        background: var(--bg-card);
+        border-color: rgba(225, 48, 108, 0.45);
+        box-shadow: 0 0 0 4px rgba(225, 48, 108, 0.08);
+      }
+      .submit {
+        margin-top: 8px;
+        padding: 12px 16px;
+        background: var(--gradient);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          filter 0.15s,
+          transform 0.12s;
+        font-family: inherit;
+      }
+      .submit:hover {
+        filter: brightness(1.07);
+      }
+      .submit:active {
+        transform: scale(0.985);
+      }
+      .submit:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+      .legal {
+        font-size: 11.5px;
+        color: var(--text-3);
+        text-align: center;
+        margin-top: 18px;
+        line-height: 1.5;
+      }
+      .legal a {
+        color: var(--text-2);
+        text-decoration: underline;
+      }
+      .error {
+        display: none;
+        padding: 10px 12px;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #dc2626;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        margin-top: 4px;
+      }
+      [data-theme='dark'] .error {
+        color: #fca5a5;
+      }
+      .error.show {
+        display: block;
+      }
+      .theme-toggle {
+        position: fixed;
+        top: 18px;
+        right: 18px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-2);
+        cursor: pointer;
+        font-size: 15px;
+        display: grid;
+        place-items: center;
+        transition:
+          transform 0.15s,
+          border-color 0.15s;
+        z-index: 100;
+      }
+      .theme-toggle:hover {
+        transform: rotate(-12deg);
+        border-color: var(--text-3);
+      }
+    </style>
+  </head>
+  <body>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema">🌙</button>
+    <div class="shell">
+      <aside class="marketing">
+        <div class="brand">
+          <div class="brand-logo">👑</div>
+          <span>FeedIA</span>
+        </div>
+        <div class="pitch">
+          <h1>Tu equipo de IA para <em>Instagram y TikTok</em>.</h1>
+          <p>
+            Crea contenido, programa publicaciones, responde mensajes y crece tu cuenta — sin contratar agencia. Conectá
+            tu Instagram o TikTok y delegá.
+          </p>
+          <div class="features">
+            <div class="feat">
+              <div class="feat-ic">🎯</div>
+              <div class="feat-tx">
+                <strong>Carruseles, Reels y Stories</strong><span>Generación con voz de marca.</span>
+              </div>
+            </div>
+            <div class="feat">
+              <div class="feat-ic">📊</div>
+              <div class="feat-tx"><strong>Datos reales</strong><span>Métricas directas de Meta y TikTok.</span></div>
+            </div>
+            <div class="feat">
+              <div class="feat-ic">💬</div>
+              <div class="feat-tx"><strong>Community manager</strong><span>Responde DMs y comentarios.</span></div>
+            </div>
+            <div class="feat">
+              <div class="feat-ic">🚀</div>
+              <div class="feat-tx"><strong>Autopilot</strong><span>El sistema decide y publica solo.</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="social-proof">
+          <div>
+            <div class="stars">★★★★★</div>
+            <p>“Subí 12K seguidores en 3 meses sin dedicar tiempo a redes”</p>
+          </div>
+        </div>
+      </aside>
+      <section class="auth">
+        <div class="auth-card">
+          <div class="auth-logo-mobile">
+            <div class="brand">
+              <div class="brand-logo">👑</div>
+              <span>FeedIA</span>
+            </div>
+          </div>
+          <h2 class="auth-title" id="auth-title">Bienvenido de vuelta</h2>
+          <p class="auth-sub" id="auth-sub">Iniciá sesión para entrar a tu panel.</p>
+          <div class="tabs" role="tablist">
+            <button class="tab active" data-tab="login" role="tab" aria-selected="true">Iniciar sesión</button>
+            <button class="tab" data-tab="register" role="tab" aria-selected="false">Crear cuenta</button>
+          </div>
+          <form class="form active" id="login-form" autocomplete="on">
+            <div class="field">
+              <label for="login-email">Email</label
+              ><input
+                class="input"
+                id="login-email"
+                name="email"
+                type="email"
+                required
+                autocomplete="email"
+                placeholder="tu@email.com"
+              />
+            </div>
+            <div class="field">
+              <label for="login-password">Contraseña</label
+              ><input
+                class="input"
+                id="login-password"
+                name="password"
+                type="password"
+                required
+                autocomplete="current-password"
+                placeholder="••••••••"
+              />
+            </div>
+            <button class="submit" type="submit" id="login-submit">Entrar a FeedIA →</button>
+            <div class="error" id="login-error"></div>
+          </form>
+          <form class="form" id="register-form" autocomplete="on">
+            <div class="field">
+              <label for="reg-name">Tu nombre o marca</label
+              ><input
+                class="input"
+                id="reg-name"
+                name="displayName"
+                type="text"
+                required
+                minlength="2"
+                autocomplete="name"
+                placeholder="Ej: Paithon Labs"
+              />
+            </div>
+            <div class="field">
+              <label for="reg-email">Email</label
+              ><input
+                class="input"
+                id="reg-email"
+                name="email"
+                type="email"
+                required
+                autocomplete="email"
+                placeholder="tu@email.com"
+              />
+            </div>
+            <div class="field">
+              <label for="reg-password">Contraseña</label
+              ><input
+                class="input"
+                id="reg-password"
+                name="password"
+                type="password"
+                required
+                minlength="8"
+                autocomplete="new-password"
+                placeholder="Mín. 8 caracteres"
+              />
+            </div>
+            <button class="submit" type="submit" id="register-submit">Crear cuenta gratis →</button>
+            <div class="error" id="register-error"></div>
+          </form>
+          <p class="legal">
+            Al continuar aceptás los <a href="#">Términos</a> y la <a href="#">Política de Privacidad</a>.<br />Free
+            plan disponible · sin tarjeta requerida.
+          </p>
+        </div>
+      </section>
+    </div>
+    <script>
+      const themeKey = 'feedia.theme';
+      const savedTheme = localStorage.getItem(themeKey) || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      const toggle = document.getElementById('theme-toggle');
+      toggle.textContent = savedTheme === 'light' ? '🌙' : '☀️';
+      toggle.addEventListener('click', () => {
+        const cur = document.documentElement.getAttribute('data-theme');
+        const next = cur === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem(themeKey, next);
+        toggle.textContent = next === 'light' ? '🌙' : '☀️';
+      });
+      const tabs = document.querySelectorAll('.tab');
+      const forms = document.querySelectorAll('.form');
+      const title = document.getElementById('auth-title');
+      const sub = document.getElementById('auth-sub');
+      tabs.forEach((t) =>
+        t.addEventListener('click', () => {
+          tabs.forEach((x) => {
+            x.classList.remove('active');
+            x.setAttribute('aria-selected', 'false');
+          });
+          t.classList.add('active');
+          t.setAttribute('aria-selected', 'true');
+          forms.forEach((f) => f.classList.remove('active'));
+          document.getElementById(t.dataset.tab + '-form').classList.add('active');
+          if (t.dataset.tab === 'register') {
+            title.textContent = 'Empezá gratis';
+            sub.textContent = 'Crea tu cuenta y conectá Instagram o TikTok en segundos.';
+          } else {
+            title.textContent = 'Bienvenido de vuelta';
+            sub.textContent = 'Iniciá sesión para entrar a tu panel.';
+          }
+        }),
+      );
+      const showError = (id, msg) => {
+        const el = document.getElementById(id);
+        el.textContent = msg;
+        el.classList.add('show');
+      };
+      const clearError = (id) => {
+        const el = document.getElementById(id);
+        el.textContent = '';
+        el.classList.remove('show');
+      };
+      const lockBtn = (id, label) => {
+        const b = document.getElementById(id);
+        if (!b) return () => {};
+        const orig = b.textContent;
+        b.disabled = true;
+        b.textContent = label;
+        return () => {
+          b.disabled = false;
+          b.textContent = orig;
+        };
+      };
+      (async () => {
+        try {
+          const r = await fetch('/api/auth/me', { credentials: 'include' });
+          if (r.ok) {
+            const d = await r.json();
+            if (d?.user) location.replace('/');
+          }
+        } catch {
+          /* noop */
+        }
+      })();
+      document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearError('login-error');
+        const unlock = lockBtn('login-submit', 'Entrando…');
+        try {
+          const r = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              email: document.getElementById('login-email').value.trim(),
+              password: document.getElementById('login-password').value,
+            }),
+          });
+          const data = await r.json().catch(() => ({}));
+          if (!r.ok) {
+            showError('login-error', data.error || 'No se pudo iniciar sesión');
+            unlock();
+            return;
+          }
+          location.replace('/');
+        } catch {
+          showError('login-error', 'Error de red. Reintentá.');
+          unlock();
+        }
+      });
+      document.getElementById('register-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearError('register-error');
+        const unlock = lockBtn('register-submit', 'Creando cuenta…');
+        try {
+          const r = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              displayName: document.getElementById('reg-name').value.trim(),
+              email: document.getElementById('reg-email').value.trim(),
+              password: document.getElementById('reg-password').value,
+              plan: 'free',
+            }),
+          });
+          const data = await r.json().catch(() => ({}));
+          if (!r.ok) {
+            showError('register-error', data.error || 'No se pudo crear la cuenta');
+            unlock();
+            return;
+          }
+          location.replace('/');
+        } catch {
+          showError('register-error', 'Error de red. Reintentá.');
+          unlock();
+        }
+      });
+    </script>
+  </body>
+</html>

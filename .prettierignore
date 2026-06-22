@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-static
+package-lock.json
+*.min.js
+*.min.css
+backups/
+data/runtime/
+output/
+supabase/

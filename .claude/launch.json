@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Iggy Dashboard",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["tsx", "src/cli.ts", "daemon"],
+      "port": 7321,
+      "autoPort": false
+    }
+  ]
+}

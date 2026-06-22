@@ -1,0 +1,30 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - octocat
+  categories:
+    - title: 🚀 Features
+      labels:
+        - feature
+        - enhancement
+    - title: 🐛 Bug Fixes
+      labels:
+        - bug
+        - fix
+    - title: 🔒 Security
+      labels:
+        - security
+    - title: ⚙️ Operations
+      labels:
+        - ops
+        - ci/cd
+        - infrastructure
+    - title: 📚 Documentation
+      labels:
+        - docs
+        - documentation
+    - title: Other Changes
+      labels:
+        - '*'

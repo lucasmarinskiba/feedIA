@@ -1,0 +1,13 @@
+#!/bin/sh
+# Pre-commit gate de FeedIA — corre lint-staged y typecheck rápido.
+# El CI corre npm run verify completo.
+
+set -e
+
+echo "[pre-commit] Running lint-staged..."
+npx lint-staged
+
+echo "[pre-commit] Running fast typecheck..."
+npx tsc --noEmit
+
+echo "[pre-commit] ✓ Todo en verde. Commit permitido."

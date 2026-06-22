@@ -1,0 +1,20 @@
+# Global fallback
+* @lucasdmarin
+
+# Backend and core logic
+/src/ @lucasdmarin
+
+# API serverless functions
+/api/ @lucasdmarin
+
+# Database migrations and schema
+/supabase/migrations/ @lucasdmarin
+
+# CI/CD and infrastructure
+/.github/workflows/ @lucasdmarin
+/Dockerfile @lucasdmarin
+/docker-compose.yml @lucasdmarin
+
+# Documentation
+/docs/ @lucasdmarin
+*.md @lucasdmarin

@@ -1,0 +1,12 @@
+{
+  "active": true,
+  "triggeredAt": "2026-05-14T18:58:44.172Z",
+  "reason": "Prueba de sistema de emergencia",
+  "initiatedBy": "cli",
+  "actionsTaken": [
+    "emergency_flag_memory=true",
+    "state_saved_to_disk",
+    "audit_log_written",
+    "alert_sent"
+  ]
+}

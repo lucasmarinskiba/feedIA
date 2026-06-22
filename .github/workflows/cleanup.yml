@@ -1,0 +1,78 @@
+name: Cleanup
+
+on:
+  schedule:
+    - cron: '0 2 1 * *' # First day of every month at 02:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  cleanup-ghcr:
+    name: Cleanup GHCR images
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run GHCR cleanup
+        run: node scripts/cleanup-ghcr.mjs ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+  cleanup-redis:
+    name: Cleanup Redis
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Redis cleanup
+        run: node scripts/cleanup-redis.mjs ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
+        env:
+          REDIS_URL: ${{ secrets.REDIS_URL_PROD }}
+
+  cleanup-vercel:
+    name: Cleanup Vercel preview deployments
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove old preview deployments
+        run: |
+          set -e
+          npm install -g vercel
+          # Keep last 30 preview deployments per branch
+          vercel remove --yes --safe --limit=30 --token=${{ secrets.VERCEL_TOKEN }} || true
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

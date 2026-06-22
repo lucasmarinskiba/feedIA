@@ -1,0 +1,3 @@
+-- Seed data for local Supabase development.
+-- Applied automatically by `supabase db reset`.
+-- Keep lightweight; owner seed lives in migration 002_seed_owner.sql.

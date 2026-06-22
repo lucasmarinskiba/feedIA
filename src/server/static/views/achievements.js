@@ -1,0 +1,198 @@
+/* ══════════════════════════════════════════════════════════════════════════════
+   ACHIEVEMENTS — Galería de trofeos desbloqueables
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { apiSafe, apiBust } from '../lib/api.js';
+import { escape } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+
+const EMPTY_SNAPSHOT = {
+  totalUnlocked: 0,
+  totalAvailable: 0,
+  completionPct: 0,
+  totalPoints: 0,
+  epicUnlocked: 0,
+  legendaryUnlocked: 0,
+  mythicUnlocked: 0,
+  lastUnlocked: null,
+};
+
+const RARITY_COLORS = {
+  común: '#9CA3AF',
+  rara: '#3B82F6',
+  épica: '#A855F7',
+  legendaria: '#F59E0B',
+  mítica: '#EF4444',
+};
+
+const CATEGORY_EMOJI = {
+  crecimiento: '📈',
+  engagement: '❤️',
+  contenido: '🎬',
+  comunidad: '💬',
+  ventas: '💰',
+  rituales: '☀️',
+  maestría: '🎖️',
+  especiales: '✨',
+};
+
+let activeCategory = null;
+let showOnlyUnlocked = false;
+
+const renderBadge = (a, unlocked) => {
+  const c = RARITY_COLORS[a.rarity] ?? '#9CA3AF';
+  const hidden = a.hidden && !unlocked;
+  return `
+    <div class="card achievement-card ${unlocked ? 'unlocked' : 'locked'}" style="border-left: 4px solid ${c}; opacity: ${unlocked || !a.hidden ? 1 : 0.4};">
+      <div class="meta">
+        <span class="tag tiny" style="background:${c}; color:white;">${escape(a.rarity)}</span>
+        <span class="tag tiny">${escape(a.category)}</span>
+        <span class="tag tiny">+${a.points}pts</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin:10px 0;">
+        <div style="font-size:42px;line-height:1;">${hidden ? '🔒' : escape(a.emoji)}</div>
+        <div>
+          <h3 style="margin:0;">${hidden ? '???' : escape(a.name)}</h3>
+          <div class="small muted">${hidden ? 'Logro oculto' : escape(a.description)}</div>
+        </div>
+      </div>
+      ${unlocked ? `<div class="small accent" style="margin-top:6px;">✓ Desbloqueado · ${new Date(a.unlockedAt).toLocaleDateString('es-AR')}</div>` : ''}
+      ${!hidden ? `<div class="small muted" style="font-style:italic;margin-top:8px;">"${escape(a.flavorText)}"</div>` : ''}
+      ${!hidden ? `<div class="small" style="margin-top:6px;"><strong>Cómo:</strong> ${escape(a.unlockCondition)}</div>` : ''}
+      ${unlocked && a.shareableText ? `<button class="btn small" data-share="${escape(a.id)}" style="margin-top:8px;">Compartir 📤</button>` : ''}
+    </div>`;
+};
+
+export const renderAchievements = async (container) => {
+  container.innerHTML = `
+    <div class="page-header">
+      <h1>🏆 Logros</h1>
+      <p class="muted">Cada paso del camino tiene un trofeo. Coleccionalos.</p>
+    </div>
+    <div id="achievements-stats" class="stats-grid" style="margin-bottom:20px;"></div>
+    <div class="hook-category-filter" id="cat-filter"></div>
+    <div style="margin:10px 0;display:flex;gap:10px;align-items:center;">
+      <label class="small"><input type="checkbox" id="only-unlocked"> Solo desbloqueados</label>
+      <button class="btn small" id="evaluate-btn">🔄 Evaluar progreso</button>
+    </div>
+    <div id="achievements-grid" class="page-grid"></div>
+    <div id="next-section" style="margin-top:30px;"></div>
+  `;
+
+  const [allRes, unlockedRes, snapshotRes, nextRes] = await Promise.all([
+    apiSafe('/api/achievements', []),
+    apiSafe('/api/achievements/unlocked', []),
+    apiSafe('/api/achievements/snapshot', EMPTY_SNAPSHOT),
+    apiSafe('/api/achievements/next', []),
+  ]);
+  const all = allRes.data ?? [];
+  const unlocked = unlockedRes.data ?? [];
+  const snapshot = snapshotRes.data ?? EMPTY_SNAPSHOT;
+  const next = nextRes.data ?? [];
+  const isOffline = !!allRes.error && !!snapshotRes.error;
+
+  if (isOffline && all.length === 0) {
+    const grid = container.querySelector('#achievements-grid');
+    if (grid)
+      grid.innerHTML =
+        '<div class="empty-state">📡 Sin conexión al backend. Los logros se cargarán cuando el servidor vuelva.</div>';
+    return;
+  }
+
+  // Stats
+  document.getElementById('achievements-stats').innerHTML = `
+    <div class="card stat-card">
+      <div class="stat-label">Desbloqueados</div>
+      <div class="stat-value">${snapshot.totalUnlocked}/${snapshot.totalAvailable}</div>
+      <div class="small muted">${snapshot.completionPct.toFixed(1)}%</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-label">Puntos</div>
+      <div class="stat-value">${snapshot.totalPoints}</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-label">Épicos+</div>
+      <div class="stat-value">${snapshot.epicUnlocked + snapshot.legendaryUnlocked + snapshot.mythicUnlocked}</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-label">Último desbloqueo</div>
+      <div class="stat-value" style="font-size:14px;">${snapshot.lastUnlocked ? escape(snapshot.lastUnlocked.name) : '—'}</div>
+    </div>
+  `;
+
+  // Category filter
+  const cats = [...new Set(all.map((a) => a.category))];
+  document.getElementById('cat-filter').innerHTML = `
+    <button class="tab-btn ${!activeCategory ? 'active' : ''}" data-cat="">Todos</button>
+    ${cats.map((c) => `<button class="tab-btn ${activeCategory === c ? 'active' : ''}" data-cat="${escape(c)}">${CATEGORY_EMOJI[c] ?? ''} ${escape(c)}</button>`).join('')}
+  `;
+
+  // Grid
+  const unlockedMap = new Map(unlocked.map((u) => [u.id, u]));
+  let visible = all;
+  if (activeCategory) visible = visible.filter((a) => a.category === activeCategory);
+  if (showOnlyUnlocked) visible = visible.filter((a) => unlockedMap.has(a.id));
+
+  document.getElementById('achievements-grid').innerHTML = visible
+    .map((a) => renderBadge(unlockedMap.get(a.id) ?? a, unlockedMap.has(a.id)))
+    .join('');
+
+  // Next achievements
+  if (next.length > 0) {
+    document.getElementById('next-section').innerHTML = `
+      <h2 style="margin-bottom:10px;">🎯 Próximos a desbloquear</h2>
+      <div class="page-grid">${next
+        .map(
+          (n) => `
+        <div class="card">
+          <div style="font-size:28px;">${escape(n.achievement.emoji)}</div>
+          <h4>${escape(n.achievement.name)}</h4>
+          <div class="small muted">${escape(n.achievement.description)}</div>
+          <div class="small accent" style="margin-top:6px;"><strong>Progreso:</strong> ${escape(n.progressHint)}</div>
+        </div>`,
+        )
+        .join('')}</div>
+    `;
+  }
+
+  // Listeners
+  document.getElementById('cat-filter').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-cat]');
+    if (!btn) return;
+    activeCategory = btn.dataset.cat || null;
+    renderAchievements(container);
+  });
+
+  document.getElementById('only-unlocked').addEventListener('change', (e) => {
+    showOnlyUnlocked = e.target.checked;
+    renderAchievements(container);
+  });
+
+  document.getElementById('evaluate-btn').addEventListener('click', async () => {
+    toast('Evaluando achievements...', 'info');
+    apiBust('/api/achievements');
+    const { data: newUnlocks } = await apiSafe('/api/achievements/evaluate', [], { method: 'POST', body: {} });
+    const count = (newUnlocks ?? []).length;
+    if (count > 0) {
+      toast(
+        `🎉 ${count} nuevo${count > 1 ? 's' : ''} achievement${count > 1 ? 's' : ''} desbloqueado${count > 1 ? 's' : ''}`,
+        'success',
+      );
+    } else {
+      toast('Sin nuevos achievements esta vez', 'info');
+    }
+    renderAchievements(container);
+  });
+
+  container.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-share]');
+    if (btn) {
+      const id = btn.dataset.share;
+      await apiSafe(`/api/achievements/${id}/share`, null, { method: 'POST', body: {} });
+      const a = unlocked.find((x) => x.id === id);
+      if (a && navigator.clipboard) {
+        navigator.clipboard.writeText(a.shareableText);
+        toast('Copiado al portapapeles', 'success');
+      }
+    }
+  });
+};

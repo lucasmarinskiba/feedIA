@@ -1,0 +1,44 @@
+{
+  "id": "analisis-rapido-contenido",
+  "name": "Análisis Rápido de Contenido",
+  "description": "Pipeline de 3 pasos para analizar el último contenido publicado: revisa métricas, detecta oportunidades y genera recomendaciones accionables.",
+  "version": "1.0.0",
+  "createdBy": "system",
+  "tags": ["analytics", "content", "quick"],
+  "tasks": [
+    {
+      "id": "recolectar-metricas",
+      "agentId": "analytics-inspector",
+      "instructions": "Analiza las métricas de las últimas 5 publicaciones de la cuenta. Extrae: alcance, engagement rate, saves, shares y compara con el promedio histórico. Reporta las 2 mejores y 2 peores publicaciones con hipótesis de por qué funcionaron o no.",
+      "dependsOn": [],
+      "tools": ["fetch_post_insights", "fetch_account_insights"],
+      "maxRetries": 1,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "detectar-oportunidades",
+      "agentId": "market-intelligence",
+      "instructions": "Basándote en el análisis de métricas anterior, detecta oportunidades inmediatas: tendencias emergentes en el nicho, hashtags subvalorados que podrían escalar, y formatos de contenido que están funcionando en competidores pero esta cuenta no está usando.",
+      "dependsOn": ["recolectar-metricas"],
+      "tools": ["trends_scout_real", "competitor_track_real"],
+      "maxRetries": 1,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "generar-recomendaciones",
+      "agentId": "content-creator",
+      "instructions": "Genera 3 recomendaciones accionables concretas para las próximas 48 horas, basadas en el análisis de métricas y oportunidades detectadas. Incluye: tipo de contenido, hook sugerido, hashtags principales, y horario óptimo de publicación.",
+      "dependsOn": ["detectar-oportunidades"],
+      "tools": ["generate_content_brief", "build_hooks"],
+      "maxRetries": 1,
+      "timeoutMs": 90000
+    }
+  ],
+  "metadata": {
+    "estimatedDurationMinutes": 8,
+    "recommendedFor": ["daily-check", "pre-campaign"],
+    "autoSchedule": {
+      "enabled": false
+    }
+  }
+}

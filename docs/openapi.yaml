@@ -1,0 +1,354 @@
+openapi: 3.0.3
+info:
+  title: FeedIA API
+  description: |
+    API pública de FeedIA para gestión de marca, contenido, publicaciones,
+    analytics y colas de trabajo en background.
+  version: 1.0.0
+  contact:
+    name: FeedIA Support
+    email: lucasdmarin@gmail.com
+servers:
+  - url: https://feedia.vercel.app/api/v1
+    description: Production
+  - url: http://localhost:3000/api/v1
+    description: Local development
+
+security:
+  - bearerAuth: []
+  - apiKeyAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Servicio disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /features:
+    get:
+      summary: Feature flags visibles para el usuario
+      operationId: listFeatures
+      responses:
+        '200':
+          description: Lista de features activas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeaturesResponse'
+
+  /features/{key}:
+    get:
+      summary: Estado de una feature flag
+      operationId: getFeature
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Estado de la feature
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureResponse'
+
+  /queue/jobs:
+    post:
+      summary: Encolar un job en background
+      operationId: enqueueJob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnqueueJobRequest'
+      responses:
+        '202':
+          description: Job encolado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnqueueJobResponse'
+        '503':
+          description: Colas deshabilitadas
+
+  /queue/jobs/{name}/{id}:
+    get:
+      summary: Estado de un job encolado
+      operationId: getJobStatus
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [videoGenerate, socialPublish, batchAudit, contentForge]
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Estado del job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatusResponse'
+        '404':
+          description: Job no encontrado
+
+  /content/generate:
+    post:
+      summary: Generar contenido (caption, hooks, carousel, reel)
+      operationId: generateContent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateContentRequest'
+      responses:
+        '200':
+          description: Contenido generado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateContentResponse'
+
+  /analytics/{accountId}:
+    get:
+      summary: Métricas de una cuenta
+      operationId: getAnalytics
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Métricas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsResponse'
+
+  /webhooks/instagram:
+    post:
+      summary: Webhook entrante de Instagram
+      operationId: instagramWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook procesado
+
+  /admin/releases:
+    get:
+      summary: Listar feature flags (owner/admin)
+      operationId: listReleases
+      responses:
+        '200':
+          description: Lista de releases
+    post:
+      summary: Crear/actualizar feature flag (owner/admin)
+      operationId: updateRelease
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseRequest'
+      responses:
+        '200':
+          description: Release actualizado
+
+  /admin/monitoring:
+    get:
+      summary: Dashboard de monitoreo (owner/admin)
+      operationId: getMonitoring
+      responses:
+        '200':
+          description: Métricas del sistema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitoringResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-feedia-api-key
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        ts:
+          type: integer
+        version:
+          type: string
+
+    FeaturesResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        flags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feature'
+        version:
+          type: string
+
+    FeatureResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        key:
+          type: string
+        enabled:
+          type: boolean
+
+    Feature:
+      type: object
+      properties:
+        key:
+          type: string
+        enabled:
+          type: boolean
+        description:
+          type: string
+
+    EnqueueJobRequest:
+      type: object
+      required: [name, payload]
+      properties:
+        name:
+          type: string
+          enum: [videoGenerate, socialPublish, batchAudit, contentForge]
+        payload:
+          type: object
+        accountId:
+          type: string
+        userId:
+          type: string
+
+    EnqueueJobResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        id:
+          type: string
+        name:
+          type: string
+
+    JobStatusResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        status:
+          type: object
+          properties:
+            id:
+              type: string
+            state:
+              type: string
+            progress:
+              type: number
+            result:
+              type: object
+            error:
+              type: string
+
+    GenerateContentRequest:
+      type: object
+      required: [topic, format]
+      properties:
+        topic:
+          type: string
+        format:
+          type: string
+          enum: [reel, carousel, story, post]
+        tone:
+          type: string
+
+    GenerateContentResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        content:
+          type: object
+
+    AnalyticsResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        accountId:
+          type: string
+        metrics:
+          type: object
+
+    ReleaseRequest:
+      type: object
+      required: [key]
+      properties:
+        key:
+          type: string
+        enabled:
+          type: boolean
+        allowed_plans:
+          type: array
+          items:
+            type: string
+        rollout_percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+        description:
+          type: string
+
+    MonitoringResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        generatedAt:
+          type: string
+          format: date-time
+        stats:
+          type: object
+        recentErrors:
+          type: array
+          items:
+            type: object
+        alerts:
+          type: object

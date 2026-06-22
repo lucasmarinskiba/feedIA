@@ -1,0 +1,102 @@
+name: Deploy Production
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to deploy (default: latest)'
+        required: false
+        default: 'latest'
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF_PROD }}
+  PUBLIC_BASE_URL: ${{ secrets.PUBLIC_BASE_URL_PROD }}
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        run: supabase link --project-ref $SUPABASE_PROJECT_REF
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Push Supabase migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PROD }}
+
+      - name: Deploy Vercel Production
+        run: npx vercel --token=${{ secrets.VERCEL_TOKEN }} --prod --yes
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Determine image tag
+        id: image
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.event.inputs.image_tag }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy Workers
+        env:
+          RENDER_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_PROD }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_PROD }}
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_PROD }}
+        run: |
+          set -e
+          if [ -n "$RENDER_HOOK" ]; then
+            echo "Triggering Render deploy hook..."
+            curl -fsS -X POST "$RENDER_HOOK"
+          elif [ -n "$RAILWAY_TOKEN" ]; then
+            echo "Triggering Railway deploy..."
+            npm install -g @railway/cli
+            railway up --service feedia-workers --environment production
+          elif [ -n "$FLY_API_TOKEN" ]; then
+            echo "Triggering Fly.io deploy..."
+            npm install -g flyctl
+            flyctl deploy --app feedia-workers --image ghcr.io/${{ github.repository }}/workers:${{ steps.image.outputs.tag }}
+          else
+            echo "⚠️ No worker deploy hook/token configured. Skipping worker deploy."
+          fi
+
+      - name: Wait for Workers to restart
+        run: sleep 30
+
+      - name: Run smoke tests
+        run: node scripts/smoke-tests.mjs "${{ env.PUBLIC_BASE_URL }}"
+        env:
+          OWNER_TEST_EMAIL: ${{ secrets.OWNER_TEST_EMAIL }}
+          OWNER_TEST_PASSWORD: ${{ secrets.OWNER_TEST_PASSWORD }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

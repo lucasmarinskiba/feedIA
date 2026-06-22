@@ -1,0 +1,182 @@
+{
+  "vision": "Hacer que la inteligencia artificial sea accesible, comprensible y rentable para cada PyME de Latinoamérica, eliminando la barrera tecnológica que separa a las empresas medianas del futuro.",
+  "mission": "Automatizar lo tedioso para que los emprendedores dediquen su tiempo a lo que realmente importa: hacer crecer su negocio, conectar con clientes y recuperar horas de vida.",
+  "values": [
+    "Transparencia radical: decimos lo que hacemos y hacemos lo que decimos",
+    "Eficiencia obsesiva: si no ahorra tiempo, no sirve",
+    "Empoderamiento: nuestros clientes deben entender y controlar sus automatizaciones",
+    "Humildad tecnológica: la IA es una herramienta, no magia ni reemplazo humano",
+    "Resultados medibles: cobramos por impacto, no por horas de configuración"
+  ],
+  "promise": "Te devolvemos al menos 10 horas semanales de trabajo manual en 30 días, o te reembolsamos el 100% de tu inversión.",
+  "positioning": "Somos la única agencia de automatización con IA en LATAM que cobra por resultados medibles (horas ahorradas, leads generados, tareas eliminadas), no por horas de consultoría. No vendemos magia. Vendemos procesos que funcionan a las 3 AM.",
+  "story": "Paithon Labs nació cuando sus fundadores, ex-consultores de procesos, se cansaron de ver a PyMEs gastar fortunas en agencias que prometían 'transformación digital' pero entregaban solo diapositivas. Decidieron construir algo diferente: automatizaciones concretas, medibles y accesibles. El nombre viene de Python + Passion: código limpio, pasión por resultados.",
+  "personality": [
+    "Directo y sin vueltas",
+    "Cálido pero firme",
+    "Técnico sin ser aburrido",
+    "Desafiante del status quo",
+    "Confiable como un reloj"
+  ],
+  "archetype": "The Rebel / The Sage híbrido",
+  "architecture": "master-brand",
+  "differentiators": [
+    "Cobro por resultados, no por horas",
+    "Implementación en 48h, no en 3 meses",
+    "El cliente entiende y controla todo",
+    "Sin contratos de permanencia",
+    "Soporte humano real, no bots"
+  ],
+  "experiencePrinciples": [
+    "Cada interacción debe ahorrarle tiempo al cliente, nunca sumarle complejidad",
+    "La transparencia es no negociable: precios claros, procesos visibles, resultados medibles",
+    "El cliente debe sentirse empoderado, no dependiente",
+    "Resolver problemas antes de que el cliente los note",
+    "Cada punto de contacto debe reflejar eficiencia y calidez"
+  ],
+  "targetPersonas": [
+    {
+      "name": "Emprendedor Agotado",
+      "description": "Dueño de PyME de 28-40 años que hace de todo: ventas, marketing, operaciones. Está quemado por tareas repetitivas.",
+      "pains": [
+        "Pierde 3-4 horas diarias en tareas que podrían automatizarse",
+        "No tiene presupuesto para contratar un equipo grande",
+        "Ha probado herramientas de IA pero no sabe por dónde empezar",
+        "Desconfía de agencias que prometen y no cumplen"
+      ],
+      "desires": [
+        "Recuperar tiempo para su familia y hobbies",
+        "Tener claridad sobre qué automatizar primero",
+        "Pagar solo por resultados concretos",
+        "Entender cómo funciona su automatización"
+      ],
+      "platforms": ["Instagram", "LinkedIn", "WhatsApp"]
+    },
+    {
+      "name": "Consultor Eficiente",
+      "description": "Consultor independiente de 35-50 años que vende servicios profesionales. Necesita posicionarse sin perder horas en redes.",
+      "pains": [
+        "No tiene tiempo para crear contenido consistente",
+        "Siente que Instagram es un monstruo que le roba energía",
+        "No sabe cómo convertir seguidores en clientes",
+        "Le cuesta mostrarse como experto sin parecer arrogante"
+      ],
+      "desires": [
+        "Posicionarse como referente sin vivir en redes sociales",
+        "Generar leads de calidad automáticamente",
+        "Mantener una presencia profesional sin esfuerzo diario",
+        "Cobrar más por su expertise"
+      ],
+      "platforms": ["LinkedIn", "Instagram"]
+    }
+  ],
+  "brandVoiceRules": [
+    {
+      "situation": "Post educativo / carrusel",
+      "tone": "Didáctico, directo, sin humo. Como un mentor que respeta tu inteligencia.",
+      "examples": [
+        "Acá te muestro exactamente cómo ahorré 12 horas semanales con este flujo.",
+        "No es magia. Son 3 triggers bien configurados."
+      ],
+      "forbidden": ["gurú", "secreto", "fórmula mágica", "literalmente", "rompiéndola", "revolucionario"]
+    },
+    {
+      "situation": "Respuesta a comentario / DM",
+      "tone": "Cálido, empático, accionable. Como un amigo que sabe del tema.",
+      "examples": ["¡Buena pregunta! Te paso un ejemplo concreto...", "Me pasó lo mismo. Lo resolví así:"],
+      "forbidden": ["gracias por tu comentario", "❤️", "visitá nuestra web", "contactá a ventas"]
+    },
+    {
+      "situation": "Story / Reel informal",
+      "tone": "Humano, imperfecto, detrás de escena. Sin edición excesiva.",
+      "examples": [
+        "Me equivoqué 3 veces antes de que esto funcione. Te cuento.",
+        "Hoy el flujo falló. Acá está lo que aprendí."
+      ],
+      "forbidden": ["perfecto", "impecable", "sin errores", "100% garantizado"]
+    },
+    {
+      "situation": "Crisis / comentario negativo",
+      "tone": "Calmado, factual, empático. Sin defensiva.",
+      "examples": [
+        "Entiendo tu frustración. Tenés razón en X. Acá está lo que hicimos...",
+        "Nos fallamos. Esto es lo que aprendimos y cómo lo resolvemos."
+      ],
+      "forbidden": ["no es nuestra culpa", "el cliente siempre tiene razón", "entendés mal", "nunca pasó antes"]
+    },
+    {
+      "situation": "CTA / oferta / venta",
+      "tone": "Directo, sin presión, basado en resultados.",
+      "examples": [
+        "Si querés ver cómo funciona en tu caso particular, agendá 15 minutos.",
+        "¿Te devuelvo 10 horas semanales? Probá sin riesgo."
+      ],
+      "forbidden": ["última oportunidad", "quedan 3 lugares", "oferta exclusiva solo hoy", "no te lo podés perder"]
+    }
+  ],
+  "activePromises": [
+    {
+      "id": "prom-default-001",
+      "title": "Devolver al menos 10 horas semanales de trabajo manual",
+      "description": "En 30 días, el cliente debe recuperar al menos 10 horas semanales de tareas manuales gracias a las automatizaciones implementadas.",
+      "category": "time_saved",
+      "metric": { "metric": "hours_saved", "target": 10, "unit": "horas semanales", "baseline": 0 },
+      "deadline": "30 días desde contratación",
+      "compensation": {
+        "type": "refund_pct",
+        "value": 100,
+        "description": "Reembolso del 100% de la inversión si no se cumple"
+      }
+    }
+  ],
+  "visualUsageRules": [
+    {
+      "element": "Logo",
+      "allowedContexts": ["reels", "carruseles", "stories", "highlight covers", "watermarks"],
+      "forbiddenContexts": ["sobre fotos complejas", "con fondos de competidores", "distorsionado o rotado"],
+      "usageNotes": "Siempre en esquina inferior derecha, 10% opacidad en reels. Nunca distorsionar. Espacio de respiro mínimo: altura de la x."
+    },
+    {
+      "element": "Paleta primaria",
+      "allowedContexts": ["CTAs", "elementos de acción", "highlight covers", "botones"],
+      "forbiddenContexts": ["fondos grandes", "texto sobre primario", "más del 20% de área total"],
+      "usageNotes": "#FF5F1F solo para acciones. Máximo 20% del área visual. Nunca como fondo principal."
+    },
+    {
+      "element": "Paleta secundaria",
+      "allowedContexts": ["fondos", "gradientes", "elementos de apoyo"],
+      "forbiddenContexts": ["CTAs", "texto importante"],
+      "usageNotes": "#0A0A0A y #F5F5F5 para fondos y estructura. Balance 60% neutro, 30% oscuro, 10% acento."
+    },
+    {
+      "element": "Tipografía headings",
+      "allowedContexts": ["títulos de carrusel", "headlines", "nombres de secciones"],
+      "forbiddenContexts": ["body text", "captions largos", "comentarios"],
+      "usageNotes": "Inter Bold para headings. Mínimo 24px en mobile. Nunca en cursiva ni subrayada."
+    },
+    {
+      "element": "Tipografía body",
+      "allowedContexts": ["captions", "descripciones", "body text", "comentarios"],
+      "forbiddenContexts": ["headlines", "CTAs principales"],
+      "usageNotes": "JetBrains Mono o Inter Regular. Mínimo 14px en mobile. Línea de 1.5x."
+    },
+    {
+      "element": "Watermark",
+      "allowedContexts": ["reels", "carruseles de producto", "posts de equipo", "stories de proceso"],
+      "forbiddenContexts": ["posts personales del fundador", "stories de opinión", "comentarios"],
+      "usageNotes": "Opacidad 10-15%. Esquina inferior derecha. Nunca sobre el sujeto principal."
+    },
+    {
+      "element": "Fotografía de equipo",
+      "allowedContexts": ["stories", "posts de cultura", "reels de behind-the-scenes"],
+      "forbiddenContexts": ["posts de producto", "carruseles educativos", "CTAs"],
+      "usageNotes": "Natural, sin poses forzadas. Iluminación natural preferida. Sin filtros excesivos."
+    },
+    {
+      "element": "Iconografía",
+      "allowedContexts": ["highlight covers", "infografías", "carruseles", "stories"],
+      "forbiddenContexts": ["sobre fotos de personas", "como fondo principal", "distorsionada"],
+      "usageNotes": "Línea simple, 2px grosor. Mismo estilo para todos los íconos. Colores de marca únicamente."
+    }
+  ]
+}

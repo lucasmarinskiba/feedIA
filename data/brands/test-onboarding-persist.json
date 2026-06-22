@@ -1,0 +1,148 @@
+{
+  "id": "test-onboarding-persist",
+  "name": "Paithon Labs",
+  "type": "empresa",
+  "niche": "Inteligencia artificial para Instagram",
+  "audience": {
+    "description": "Empresas y creadores que quieren escalar su presencia en Instagram.",
+    "pains": [
+      "Falta de tiempo",
+      "No saben qué publicar",
+      "Bajo engagement"
+    ],
+    "desires": [
+      "Más clientes",
+      "Marca reconocida",
+      "Contenido constante"
+    ],
+    "locale": "es-AR"
+  },
+  "voice": {
+    "tone": [
+      "profesional",
+      "amigable",
+      "directo"
+    ],
+    "forbidden": [],
+    "referenceQuotes": []
+  },
+  "visual": {
+    "palette": [],
+    "typography": [],
+    "style": "minimalista",
+    "mood": "profesional",
+    "photographyStyle": "natural",
+    "compositionRules": [],
+    "allowedIconography": [],
+    "forbiddenIconography": [],
+    "moodboardUrls": [],
+    "density": "medium",
+    "imageTextRatio": "balanced"
+  },
+  "goals": {
+    "primary": "leads",
+    "metricsToWatch": [
+      "alcance",
+      "interacciones",
+      "leads"
+    ]
+  },
+  "competitors": [
+    "@competidor1",
+    "@competidor2"
+  ],
+  "hashtagPools": {},
+  "contentPillars": [
+    {
+      "id": "educacion",
+      "name": "Educación práctica",
+      "description": "Contenido que enseña algo útil al público de Inteligencia artificial para Instagram.",
+      "weight": 25,
+      "formats": [
+        "carrusel",
+        "reel"
+      ],
+      "exampleTopics": [
+        "Errores comunes en Inteligencia artificial para Instagram",
+        "Guía rápida para principiantes"
+      ]
+    },
+    {
+      "id": "autoridad",
+      "name": "Autoridad y caso de estudio",
+      "description": "Demuestra experiencia con resultados, procesos o testimonios.",
+      "weight": 21,
+      "formats": [
+        "reel",
+        "carrusel"
+      ],
+      "exampleTopics": [
+        "Detrás de escena de nuestro proceso",
+        "Resultado de un cliente"
+      ]
+    },
+    {
+      "id": "comunidad",
+      "name": "Conversación y comunidad",
+      "description": "Invita a interactuar, compartir opiniones y sentirse parte.",
+      "weight": 17,
+      "formats": [
+        "historia",
+        "post-imagen"
+      ],
+      "exampleTopics": [
+        "Pregunta a tu audiencia",
+        "Encuesta del día"
+      ]
+    },
+    {
+      "id": "valor-emocional",
+      "name": "Valor emocional",
+      "description": "Conecta con los deseos y dolores de la audiencia.",
+      "weight": 21,
+      "formats": [
+        "reel",
+        "historia"
+      ],
+      "exampleTopics": [
+        "La historia detrás de la marca",
+        "Motivación para seguir adelante"
+      ]
+    },
+    {
+      "id": "conversion",
+      "name": "Conversión suave",
+      "description": "Presenta la oferta sin ser agresivo, enfocado en el beneficio.",
+      "weight": 17,
+      "formats": [
+        "carrusel",
+        "reel"
+      ],
+      "exampleTopics": [
+        "Cómo funciona nuestro servicio",
+        "Preguntas frecuentes antes de comprar"
+      ]
+    }
+  ],
+  "complianceRules": [],
+  "brandStrategy": {
+    "vision": "",
+    "mission": "",
+    "values": [],
+    "promise": "",
+    "positioning": "",
+    "story": "Agencia de IA que crea y publica contenido en Instagram.",
+    "personality": [
+      "profesional",
+      "amigable",
+      "directo"
+    ],
+    "archetype": "",
+    "architecture": "master-brand",
+    "differentiators": [],
+    "experiencePrinciples": [],
+    "targetPersonas": [],
+    "brandVoiceRules": [],
+    "visualUsageRules": []
+  }
+}

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.DS_Store
+.cache/
+output/
+data/runtime/
+
+.vercel
+data/skill-jobs/
+.claude/settings.local.json
+.env.prod

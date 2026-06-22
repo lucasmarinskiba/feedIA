@@ -1,0 +1,17 @@
+app = 'feedia-workers'
+primary_region = 'mia'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[env]
+  NODE_ENV = 'production'
+  WORKERS_ENABLED = 'true'
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 512
+
+[processes]
+  workers = 'node dist/workers/index.js'

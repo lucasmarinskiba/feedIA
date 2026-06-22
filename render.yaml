@@ -1,0 +1,25 @@
+services:
+  - type: worker
+    name: feedia-workers
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: WORKERS_ENABLED
+        value: 'true'
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PUBLIC_BASE_URL
+        value: https://feedia.vercel.app
+    healthCheckPath: /health
+    autoDeploy: true

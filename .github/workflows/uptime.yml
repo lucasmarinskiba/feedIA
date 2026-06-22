@@ -1,0 +1,63 @@
+name: Uptime Checks
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check-production:
+    name: Check production uptime
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check /api/health
+        run: |
+          curl -fsS --max-time 30 "${{ secrets.PUBLIC_BASE_URL_PROD }}/api/health" | tee health.json
+          echo ""
+          python3 - <<'PY'
+          import json, sys
+          data = json.load(open('health.json'))
+          if not data.get('ok'):
+            print('Health check failed:', data)
+            sys.exit(1)
+          print('Health check OK')
+          PY
+
+      - name: Check root page
+        run: |
+          curl -fsS --max-time 30 -o /dev/null -w "%{http_code}\n" "${{ secrets.PUBLIC_BASE_URL_PROD }}/"
+
+      - name: Notify on failure
+        if: failure() && secrets.ADMIN_WEBHOOK_URL != ''
+        run: |
+          curl -fsS -X POST "${{ secrets.ADMIN_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"text":"❌ FeedIA production uptime check failed"}'
+
+  check-staging:
+    name: Check staging uptime
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check /api/health
+        run: |
+          curl -fsS --max-time 30 "${{ secrets.PUBLIC_BASE_URL_STAGING }}/api/health" | tee health.json
+          echo ""
+          python3 - <<'PY'
+          import json, sys
+          data = json.load(open('health.json'))
+          if not data.get('ok'):
+            print('Health check failed:', data)
+            sys.exit(1)
+          print('Health check OK')
+          PY
+
+      - name: Check root page
+        run: |
+          curl -fsS --max-time 30 -o /dev/null -w "%{http_code}\n" "${{ secrets.PUBLIC_BASE_URL_STAGING }}/"
+
+      - name: Notify on failure
+        if: failure() && secrets.ADMIN_WEBHOOK_URL != ''
+        run: |
+          curl -fsS -X POST "${{ secrets.ADMIN_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"text":"❌ FeedIA staging uptime check failed"}'

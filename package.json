@@ -1,0 +1,76 @@
+{
+  "name": "agente-ia-instagram",
+  "version": "1.0.0",
+  "description": "Agente de IA especialista en Instagram: estrategia, creación multimodal, crecimiento, comunidad y operación autónoma.",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "iggy": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node --enable-source-maps dist/cli.js",
+    "dev": "tsx src/cli.ts",
+    "agent": "tsx src/cli.ts agent",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run lint && npm run typecheck && npm run build && npm test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "build:static": "node scripts/build-static.mjs",
+    "validate:env": "node scripts/validate-env.mjs --strict",
+    "setup:supabase": "node scripts/setup-supabase.mjs",
+    "setup:redis": "node scripts/setup-redis.mjs",
+    "setup:all": "node scripts/setup-all.mjs",
+    "build:docker": "docker build -t feedia-workers:latest .",
+    "workers": "node dist/workers/index.js",
+    "workers:dev": "tsx src/workers/index.ts",
+    "prepare": "node scripts/setup-hooks.mjs",
+    "canva:auth": "tsx scripts/get-canva-token.ts"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,json,md,yml,yaml}": [
+      "prettier --write"
+    ],
+    "src/**/*.ts": [
+      "eslint --fix"
+    ]
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.98.0",
+    "@sentry/node": "^10.58.0",
+    "better-sqlite3": "^12.10.0",
+    "bullmq": "^5.78.0",
+    "chalk": "^5.3.0",
+    "dotenv": "^16.4.5",
+    "js-yaml": "^4.2.0",
+    "node-cron": "^3.0.3",
+    "ora": "^8.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1071.0",
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.7.0",
+    "@types/node-cron": "^3.0.11",
+    "@typescript-eslint/eslint-plugin": "^8.10.0",
+    "@typescript-eslint/parser": "^8.10.0",
+    "@vitest/coverage-v8": "^4.1.9",
+    "esbuild": "^0.24.0",
+    "eslint": "^9.13.0",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.4",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3",
+    "vitest": "^4.1.9"
+  }
+}
