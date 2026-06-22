@@ -5933,7 +5933,7 @@ input:checked + .toggle-track::after {
    ══════════════════════════════════════════════════════════════════════════════ */
 .chatbot-fab {
   position: fixed;
-  left: 22px;
+  right: 22px;
   bottom: 22px;
   z-index: 361;
   width: 56px;
