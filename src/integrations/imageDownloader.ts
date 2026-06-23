@@ -245,23 +245,48 @@ export const detectImageRequests = (prompt: string): string[] => {
 
 /**
  * Search for image URLs based on keywords.
- * Returns placeholder URLs (in production would search Unsplash, Pexels, etc).
+ * Primary: Unsplash API (real images). Fallback: mock URLs.
  */
 export const searchImageUrls = async (keywords: string[]): Promise<string[]> => {
-  // In production: search Unsplash API, Pexels API, or similar
-  // For now: return empty (user provides images manually)
-  // Future: integrate with free image APIs
+  // Lazy import (only needed if UNSPLASH_API_KEY set)
+  const { searchUnsplash, triggerUnsplashDownload } = await import('./unsplashAdapter.js');
 
-  const mockUrls: Record<string, string> = {
-    silueta: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400',
-    persona: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-    gente: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400',
-    icono: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400',
-  };
+  const urls: string[] = [];
 
-  const urls = keywords
-    .map((k) => mockUrls[k.toLowerCase()])
-    .filter((url) => url !== undefined);
+  for (const keyword of keywords) {
+    try {
+      // Search Unsplash
+      const results = await searchUnsplash(keyword, 3);
 
-  return urls.length > 0 ? urls : [];
+      if (results.length > 0) {
+        // Trigger download counter (Unsplash ToS requirement)
+        for (const result of results) {
+          void triggerUnsplashDownload(result.id);
+        }
+
+        // Collect URLs
+        urls.push(...results.map((r) => r.url));
+      }
+    } catch (err) {
+      // Fallback: continue to next keyword
+    }
+  }
+
+  // Fallback: mock URLs if Unsplash unavailable
+  if (urls.length === 0) {
+    const mockUrls: Record<string, string> = {
+      silueta: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400',
+      persona: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      gente: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400',
+      icono: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400',
+    };
+
+    const fallbackUrls = keywords
+      .map((k) => mockUrls[k.toLowerCase()])
+      .filter((url) => url !== undefined);
+
+    return fallbackUrls;
+  }
+
+  return urls;
 };
