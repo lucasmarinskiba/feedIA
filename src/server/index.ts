@@ -8,6 +8,7 @@ import { buildDashboardRoutes } from './dashboardApi.js';
 
 import { buildExtendedRoutes } from './extendedRoutes.js';
 import { buildSkillsRoutes } from './skillsRoutes.js';
+import { carouselDesignerRoutes } from './carouselDesignerRoutes.js';
 import { authRoutes } from './authRoutes.js';
 import { startSchedulerLoop } from './schedulerLoop.js';
 import { buildStudioRoutes } from './studioApi.js';
@@ -234,6 +235,7 @@ export const startDaemon = (opts: DaemonOptions = {}): { stop: () => void } => {
       ...dashboardRoutes,
       ...extendedRoutes,
       ...skillsRoutes,
+      ...carouselDesignerRoutes,
       ...studioRoutes,
       ...calendarRoutes,
       ...onboardingRoutes,
