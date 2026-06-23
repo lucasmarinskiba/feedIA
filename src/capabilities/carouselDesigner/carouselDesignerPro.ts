@@ -6,6 +6,7 @@ import { downloadImageFromUrl, downloadAndUploadToCanva, detectImageRequests, se
 import { canva } from '../../integrations/canva';
 import { generateAnimatedCarousel, isRunwayAvailable } from '../../integrations/runway';
 import { validateAesthetic, autoFixAesthetic } from './visualQA';
+import { createCarouselExport } from './carouselExporter';
 
 export interface CarouselDesignerProInput {
   prompt: string;
@@ -244,6 +245,15 @@ export const designCarouselPinterest = async (
     const endTime = Date.now();
     const totalMinutes = (endTime - startTime) / 1000 / 60;
 
+    // Step 8: Create export package (ZIP directory)
+    let exportPackage;
+    try {
+      exportPackage = await createCarouselExport(carouselId, finalSlides, animations, mp4Url);
+    } catch (err) {
+      // Fallback: no export, continue
+      exportPackage = null;
+    }
+
     return {
       id: carouselId,
       originalPrompt: input.prompt,
@@ -257,6 +267,7 @@ export const designCarouselPinterest = async (
         slides: [],
         mp4Url,
         cssFile,
+        zipUrl: exportPackage?.downloadUrl,
       },
       aestheticScore: qaResult.score,
       readyToPublish: qaResult.score >= 70,

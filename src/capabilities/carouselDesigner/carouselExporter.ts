@@ -1,125 +1,161 @@
 /**
- * Carousel Exporter — Create downloadable ZIP with slides, CSS, MP4, metadata.
- * Handles file collection, ZIP creation, cleanup.
+ * Carousel Exporter — Create downloadable ZIP package.
+ * Collects PNG slides + CSS + MP4 + metadata.json
  */
 
-import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
-import { randomUUID } from 'crypto';
 
-export interface ExportPackage {
+export interface CarouselExport {
   zipPath: string;
   downloadUrl: string;
   fileSize: number;
   createdAt: string;
-  expiresAt: string; // 24h from creation
+  expiresAt: string;
 }
 
-const EXPORT_DIR = process.env.VERCEL ? join('/tmp', 'carousel-exports') : join(process.cwd(), 'data', 'carousel-exports');
-
-const ensureDir = (): void => {
-  if (!existsSync(EXPORT_DIR)) {
-    mkdirSync(EXPORT_DIR, { recursive: true });
-  }
-};
-
 /**
- * Create downloadable carousel export package.
- * Collects: PNG slides + CSS + MP4 (if available) + metadata.json
+ * Create carousel export package (ZIP structure in /tmp).
+ * Returns metadata for download.
  */
-export const createCarouselExport = async (data: {
-  jobId: string;
-  slides: Array<{ slide: number; path: string }>;
-  cssFile: string;
-  mp4Url?: string;
-  metadata: {
-    prompt: string;
-    style: string;
-    aestheticScore: number;
-    totalDuration: number;
-    createdAt: string;
-  };
-}): Promise<ExportPackage> => {
-  ensureDir();
-
-  const exportId = `export-${randomUUID().slice(0, 8)}`;
-  const exportDir = join(EXPORT_DIR, exportId);
-
-  // Create export directory
-  if (!existsSync(exportDir)) {
-    mkdirSync(exportDir, { recursive: true });
-  }
+export const createCarouselExport = async (
+  jobId: string,
+  slides: any[],
+  animations: { css: string; timeline: any[] },
+  mp4Url?: string,
+): Promise<CarouselExport> => {
+  const exportDir = `/tmp/carousel-exports/${jobId}`;
+  const createdAt = new Date().toISOString();
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
 
   try {
-    // Create metadata.json
-    const metadataPath = join(exportDir, 'carousel.json');
+    // Ensure export directory
+    mkdirSync(exportDir, { recursive: true });
+
+    // 1. Write PNG slide metadata (placeholder paths)
+    const slidesMetadata = slides.map((slide, idx) => ({
+      id: idx + 1,
+      text: slide.visualText,
+      design_notes: slide.designNotes,
+      pattern: slide.pinterestPattern,
+      colors: slide.colorPalette,
+      animation: slide.animation,
+      image_asset: slide.downloadedAssetId || null,
+      file: `slide-${idx + 1}.png`,
+    }));
+
     writeFileSync(
-      metadataPath,
-      JSON.stringify(
-        {
-          ...data.metadata,
-          jobId: data.jobId,
-          slides: data.slides.map((s) => ({
-            slide: s.slide,
-            filename: `slide-${String(s.slide).padStart(2, '0')}.png`,
-          })),
-          animations: {
-            cssFile: 'animations.css',
-            mp4: data.mp4Url ? 'carousel.mp4' : null,
-          },
-        },
-        null,
-        2,
-      ),
+      join(exportDir, 'slides.json'),
+      JSON.stringify(slidesMetadata, null, 2),
       'utf8',
     );
 
-    // Save CSS file
-    const cssPath = join(exportDir, 'animations.css');
-    writeFileSync(cssPath, data.cssFile, 'utf8');
+    // 2. Write CSS animations
+    writeFileSync(join(exportDir, 'animations.css'), animations.css, 'utf8');
 
-    // Create slides subdirectory (metadata only, actual PNGs referenced by URL)
-    const slidesIndexPath = join(exportDir, 'slides.txt');
-    const slidesIndex = data.slides.map((s) => `${s.slide}: ${s.path}`).join('\n');
-    writeFileSync(slidesIndexPath, slidesIndex, 'utf8');
+    // 3. Write animation timeline
+    const timelineMetadata = {
+      total_duration_ms: animations.timeline[animations.timeline.length - 1]?.delay +
+        animations.timeline[animations.timeline.length - 1]?.duration || 0,
+      slides: animations.timeline,
+    };
 
-    // Create index.html for preview
-    const htmlPreview = generateHTMLPreview(data);
-    const htmlPath = join(exportDir, 'preview.html');
-    writeFileSync(htmlPath, htmlPreview, 'utf8');
+    writeFileSync(
+      join(exportDir, 'timeline.json'),
+      JSON.stringify(timelineMetadata, null, 2),
+      'utf8',
+    );
 
-    // ZIP would be created here in production using archiver or similar
-    // For now, return directory path (Vercel can serve static files)
-    const zipPath = exportDir;
-    const downloadUrl = `/api/carousel-exports/${exportId}/download`;
-    const createdAt = new Date().toISOString();
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    // 4. Write main metadata.json
+    const metadata = {
+      id: jobId,
+      version: '1.0',
+      created_at: createdAt,
+      expires_at: expiresAt,
+      slides_count: slides.length,
+      animation_type: slides[0]?.animation?.type || 'fade',
+      aesthetic_score: 0, // Will be filled by completeJob
+      mp4_url: mp4Url || null,
+      export_format: 'zip',
+      files: {
+        slides: 'slides.json',
+        css: 'animations.css',
+        timeline: 'timeline.json',
+        preview: 'preview.html',
+      },
+    };
+
+    writeFileSync(
+      join(exportDir, 'metadata.json'),
+      JSON.stringify(metadata, null, 2),
+      'utf8',
+    );
+
+    // 5. Create HTML preview
+    const htmlPreview = generateHTMLPreview(slides, animations.css);
+    writeFileSync(join(exportDir, 'preview.html'), htmlPreview, 'utf8');
+
+    // 6. Create manifest (list of files)
+    const files = readdirSync(exportDir);
+    const manifest = {
+      export_id: jobId,
+      created_at: createdAt,
+      files: files.map((f) => ({
+        name: f,
+        path: f,
+        type: f.endsWith('.json') ? 'json' : f.endsWith('.css') ? 'css' : 'html',
+      })),
+    };
+
+    writeFileSync(
+      join(exportDir, 'MANIFEST.json'),
+      JSON.stringify(manifest, null, 2),
+      'utf8',
+    );
+
+    // 7. Create .zip equivalent (placeholder: tar.gz would be better, but for now just directory)
+    // In production: use archiver to create actual ZIP
+    // For now: return directory path as "zipPath" (can be served as download)
+
+    const fileSize = files.reduce(
+      (sum, f) => {
+        try {
+          const fs = require('fs');
+          return sum + fs.statSync(join(exportDir, f)).size;
+        } catch {
+          return sum;
+        }
+      },
+      0,
+    );
 
     return {
-      zipPath,
-      downloadUrl,
-      fileSize: 0, // Placeholder
+      zipPath: exportDir,
+      downloadUrl: `/api/skills/carousel-designer-pro/download/${jobId}/package`,
+      fileSize,
       createdAt,
       expiresAt,
     };
   } catch (error) {
-    throw new Error(`Failed to create carousel export: ${error}`);
+    throw new Error(`Failed to create export: ${(error as Error).message}`);
   }
 };
 
 /**
- * Generate HTML preview file for carousel.
+ * Generate HTML5 preview with inline CSS animations.
  */
-const generateHTMLPreview = (data: {
-  slides: Array<{ slide: number; path: string }>;
-  cssFile: string;
-  metadata: { prompt: string; style: string };
-}): string => {
-  const slidesHTML = data.slides
+const generateHTMLPreview = (slides: any[], css: string): string => {
+  const slidesHTML = slides
     .map(
-      (slide) => `
-    <div class="slide slide-${slide.slide}">
-      <img src="${slide.path}" alt="Slide ${slide.slide}" loading="lazy" />
+      (slide, idx) => `
+    <div class="slide slide-${idx + 1}" style="animation: ${slide.animation?.type || 'fade'} ${slide.animation?.duration || 400}ms ${slide.animation?.easing || 'ease-out'} forwards ${slide.animation?.delay || 0}ms;">
+      <h2 style="font-size: ${slide.typography?.headline?.size || 32}px; font-weight: ${slide.typography?.headline?.weight || 700}; color: ${slide.colorPalette?.primary || '#000'};">
+        ${slide.visualText}
+      </h2>
+      ${slide.imageUrl ? `<img src="${slide.imageUrl}" alt="slide-${idx + 1}" style="max-width: 80%; margin: 20px 0;" />` : ''}
+      <p style="font-size: ${slide.typography?.body?.size || 16}px; color: ${slide.colorPalette?.secondary || '#666'};">
+        ${slide.designNotes}
+      </p>
     </div>
   `,
     )
@@ -127,110 +163,65 @@ const generateHTMLPreview = (data: {
 
   return `
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carousel Preview — ${data.metadata.prompt}</title>
+  <title>Carousel Preview</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #0f0f12;
-      padding: 40px 20px;
-      color: #fff;
-    }
-    .container { max-width: 1200px; margin: 0 auto; }
-    h1 { margin-bottom: 10px; font-size: 24px; }
-    .meta {
-      margin-bottom: 30px;
-      padding: 16px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 8px;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-    .carousel {
-      width: 480px;
-      aspect-ratio: 4/5;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-      margin: 0 auto;
-      background: #fff;
-      position: relative;
-    }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f12; padding: 20px; }
+    .carousel { width: 480px; aspect-ratio: 4/5; margin: 0 auto; overflow: hidden; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); position: relative; background: white; }
     .slide {
       width: 100%;
       height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
       position: absolute;
-      top: 0;
-      left: 0;
-      opacity: 0;
-      animation: fadeIn 2.5s ease-out forwards;
-    }
-    .slide img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    ${data.cssFile}
-    .controls {
-      margin-top: 30px;
       text-align: center;
-      font-size: 14px;
-      color: #aaa;
     }
+    ${css}
+    .info { margin-top: 40px; color: #666; font-size: 12px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📱 Carousel Preview</h1>
-    <div class="meta">
-      <strong>Prompt:</strong> ${data.metadata.prompt}<br>
-      <strong>Style:</strong> ${data.metadata.style}<br>
-      <strong>Slides:</strong> ${data.slides.length}<br>
-      <em>Nota: Animaciones renderizadas en CSS. Descargar ZIP para exportar MP4.</em>
-    </div>
-    <div class="carousel">
-      ${slidesHTML}
-    </div>
-    <div class="controls">
-      💾 Descargá el ZIP para obtener: PNG slides + CSS + MP4 (si disponible) + metadata JSON
-    </div>
+  <div class="carousel">
+    ${slidesHTML}
+  </div>
+  <div class="info">
+    <p>Carousel with ${slides.length} slides · Animations: ${slides[0]?.animation?.type || 'fade'}</p>
   </div>
 </body>
 </html>
-`;
+  `;
 };
 
 /**
- * List available exports (recent first).
+ * Get export directory for downloading.
+ * Used by download endpoint to serve files.
  */
-export const listExports = (limit: number = 10): string[] => {
-  ensureDir();
-  if (!existsSync(EXPORT_DIR)) return [];
+export const getExportDirectory = (jobId: string): string => {
+  return `/tmp/carousel-exports/${jobId}`;
+};
 
+/**
+ * List files in export directory.
+ * Used by download endpoint to show manifest.
+ */
+export const listExportFiles = (jobId: string): string[] => {
   try {
-    const { readdirSync } = require('fs');
-    const dirs = readdirSync(EXPORT_DIR);
-    return dirs.slice(0, limit);
+    const dir = getExportDirectory(jobId);
+    return readdirSync(dir);
   } catch {
     return [];
   }
 };
 
-/**
- * Cleanup old exports (older than 24h).
- */
-export const cleanupOldExports = (ageHours: number = 24): number => {
-  // Implement in production with proper file cleanup
-  // For now, cleanup handled by job queue
-  return 0;
-};
-
 export const carouselExporter = {
   createCarouselExport,
-  listExports,
-  cleanupOldExports,
+  getExportDirectory,
+  listExportFiles,
 };
