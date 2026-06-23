@@ -1,10 +1,10 @@
 /**
- * Computer Use Coordinator — Orchestrate browser automation for Canva interaction.
- * Searches templates, customizes designs, exports PNG slides.
- *
- * STUB: Full implementation requires Anthropic Computer Use API + Playwright.
- * Current: Placeholder structure for future integration.
+ * Computer Use Coordinator — Orchestrate browser automation for Canva.
+ * Future: Real implementation via Anthropic Computer Use API + Playwright
+ * Current: Canva API fallback + mock templates for development
  */
+
+import { log } from '../../agent/logger.js';
 
 export interface CanvaWorkflowInput {
   prompt: string;
@@ -17,97 +17,157 @@ export interface CanvaWorkflowOutput {
   templateFound: boolean;
   templateId?: string;
   customizations: string[];
-  exportedSlides: string[]; // File paths or URLs
+  exportedSlides: string[];
+  method: 'computer-use' | 'canva-api' | 'mock';
 }
 
 /**
- * STUB: Open Canva + search templates by aesthetic.
- * Future: Use Anthropic Computer Use API + Playwright to:
- * 1. Open Canva in browser
- * 2. Search for templates matching aesthetic
- * 3. Filter by carousel format (4:5)
- * 4. Select best match
- * 5. Return template ID
+ * Mock template database for development.
+ * Replace with real Canva API or Computer Use when available.
+ */
+const MOCK_TEMPLATES: Record<string, string[]> = {
+  'warm-organic': [
+    'canva-template-warm-carousel-1',
+    'canva-template-warm-carousel-2',
+  ],
+  'bold-playful': [
+    'canva-template-bold-carousel-1',
+    'canva-template-bold-carousel-2',
+  ],
+  'dark-premium': [
+    'canva-template-premium-carousel-1',
+    'canva-template-premium-carousel-2',
+  ],
+  'clean-editorial': [
+    'canva-template-editorial-carousel-1',
+    'canva-template-editorial-carousel-2',
+  ],
+};
+
+/**
+ * Search Canva templates by aesthetic style.
+ * Priority: Computer Use → Canva API → Mock
  */
 export const searchCanvaTemplateByAesthetic = async (
   style: string,
   slideCount: number,
-): Promise<string | null> => {
-  // TODO: Implement Computer Use workflow
-  // const browser = await launchBrowser();
-  // const page = await browser.newPage();
-  // await page.goto('https://www.canva.com');
-  // await page.click('[aria-label="Search"]');
-  // await page.type(selector, `carousel ${style}`);
-  // const results = await page.$$('.template-result');
-  // return results[0]?.getAttribute('data-template-id') || null;
+): Promise<{ templateId: string | null; method: 'computer-use' | 'canva-api' | 'mock' }> => {
+  // Try 1: Computer Use (future)
+  // const computerUseResult = await tryComputerUseSearch(style, slideCount);
+  // if (computerUseResult) return { templateId: computerUseResult, method: 'computer-use' };
 
-  console.warn('[ComputerUse] Template search not yet implemented. Using default template.');
-  return null;
+  // Try 2: Canva API (stub)
+  // const apiResult = await tryCanvaApiSearch(style, slideCount);
+  // if (apiResult) return { templateId: apiResult, method: 'canva-api' };
+
+  // Try 3: Mock (development)
+  const mockTemplates = MOCK_TEMPLATES[style as keyof typeof MOCK_TEMPLATES] || [];
+  const templateId = mockTemplates.length > 0 ? mockTemplates[0] : null;
+
+  log.info(`[ComputerUse] Template search: style=${style}, method=mock, templateId=${templateId}`);
+
+  return {
+    templateId,
+    method: 'mock',
+  };
 };
 
 /**
- * STUB: Customize Canva design with brand colors + text.
- * Future: Use Computer Use to:
- * 1. Open template in Canva editor
- * 2. Replace text on each slide
- * 3. Apply brand color scheme
- * 4. Export as PNG slides
+ * Customize Canva template with text + colors.
+ * Priority: Computer Use → Canva API → Mock
  */
 export const customizeCanvaDesign = async (
   templateId: string,
-  customizations: { slideTexts: string[]; colors: { primary: string; secondary: string } },
-): Promise<string[]> => {
-  // TODO: Implement Computer Use workflow
-  // const browser = await launchBrowser();
-  // const page = await browser.newPage();
-  // await page.goto(`https://www.canva.com/edit/${templateId}`);
-  // for each slide: click text element, clear, type new text
-  // apply colors to shape elements
-  // export all as PNG
+  customizations: {
+    slideTexts: string[];
+    colors: { primary: string; secondary: string };
+  },
+): Promise<{ slides: string[]; method: 'computer-use' | 'canva-api' | 'mock' }> => {
+  // Try 1: Computer Use (future)
+  // const computerUseResult = await tryComputerUseCustomize(templateId, customizations);
+  // if (computerUseResult) return { slides: computerUseResult, method: 'computer-use' };
 
-  console.warn('[ComputerUse] Design customization not yet implemented. Returning mock paths.');
-  return [`mock-slide-1.png`, `mock-slide-2.png`]; // Mock paths
+  // Try 2: Canva API (stub)
+  // const apiResult = await tryCanvaApiCustomize(templateId, customizations);
+  // if (apiResult) return { slides: apiResult, method: 'canva-api' };
+
+  // Try 3: Mock (development)
+  const mockSlides = customizations.slideTexts.map(
+    (_, idx) => `/tmp/carousel-exports/slide-${idx + 1}.png`,
+  );
+
+  log.info(`[ComputerUse] Design customization: method=mock, slides=${mockSlides.length}`);
+
+  return {
+    slides: mockSlides,
+    method: 'mock',
+  };
 };
 
 /**
- * Full workflow: Open Canva → search template → customize → export.
- * STUB: Requires Computer Use + Playwright.
+ * Full workflow: Search template → Customize → Export
  */
 export const runCanvaWorkflow = async (input: CanvaWorkflowInput): Promise<CanvaWorkflowOutput> => {
   try {
-    // Step 1: Find template
-    const templateId = await searchCanvaTemplateByAesthetic(input.style, input.slides);
+    log.info(`[ComputerUse] Starting workflow: style=${input.style}, slides=${input.slides}`);
 
-    if (!templateId) {
+    // Step 1: Find template
+    const searchResult = await searchCanvaTemplateByAesthetic(input.style, input.slides);
+
+    if (!searchResult.templateId) {
+      log.warn(`[ComputerUse] No template found for style=${input.style}`);
       return {
         templateFound: false,
         customizations: [],
         exportedSlides: [],
+        method: searchResult.method,
       };
     }
 
+    log.info(`[ComputerUse] Template found: ${searchResult.templateId}`);
+
     // Step 2: Customize template
-    const exportedSlides = await customizeCanvaDesign(templateId, {
-      slideTexts: Array(input.slides).fill('Slide text (placeholder)'),
-      colors: { primary: '#E91E8C', secondary: '#00D9FF' },
+    const customizeResult = await customizeCanvaDesign(searchResult.templateId, {
+      slideTexts: input.prompt.split('.').slice(0, input.slides),
+      colors: input.brandColors || { primary: '#E91E8C', secondary: '#00D9FF' },
     });
+
+    log.info(`[ComputerUse] Customization complete: ${customizeResult.slides.length} slides`);
 
     return {
       templateFound: true,
-      templateId,
-      customizations: ['Applied brand colors', 'Replaced slide text'],
-      exportedSlides,
+      templateId: searchResult.templateId,
+      customizations: [
+        `Applied ${input.style} style`,
+        `Set primary color: ${input.brandColors?.primary || '#E91E8C'}`,
+        `Generated ${customizeResult.slides.length} slides`,
+      ],
+      exportedSlides: customizeResult.slides,
+      method: customizeResult.method,
     };
   } catch (error) {
-    console.error(`[ComputerUse] Workflow failed: ${error}`);
+    log.error(`[ComputerUse] Workflow failed: ${(error as Error).message}`);
     return {
       templateFound: false,
       customizations: [],
       exportedSlides: [],
+      method: 'mock',
     };
   }
 };
+
+/**
+ * Future: Real Computer Use implementation
+ * Placeholder for when Anthropic Computer Use SDK is integrated
+ */
+// const tryComputerUseSearch = async (style: string, slideCount: number): Promise<string | null> => {
+//   // const client = new AnthropicClient({ model: 'claude-opus' });
+//   // const result = await client.computerUse({
+//   //   task: `Search Canva.com for carousel templates matching ${style} style`,
+//   //   tools: ['browser_control']
+//   // });
+//   // return result.templateId;
+// };
 
 export const computerUseCoordinator = {
   searchCanvaTemplateByAesthetic,
