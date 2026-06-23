@@ -72,51 +72,27 @@ let thinking = false;
 let navigateFn = () => {};
 
 // ── Render ────────────────────────────────────────────────────────────────────
-const renderWelcome = () => `
-  <div class="chatbot-welcome">
-    <!-- Hero card: fondo claro con texto oscuro, contrasta sobre el panel dark -->
+const renderWelcome = () => {
+  const dismissed = localStorage.getItem('chatbot-welcome-dismissed') === '1';
+  return `
+  <div class="chatbot-welcome ${dismissed ? 'hidden' : ''}">
+    <!-- Dismissible tip card -->
     <div class="chatbot-hero-card">
-      <div class="chatbot-hero-orbs">
-        <span class="chatbot-orb chatbot-orb-1"></span>
-        <span class="chatbot-orb chatbot-orb-2"></span>
-        <span class="chatbot-orb chatbot-orb-3"></span>
+      <button class="chatbot-welcome-close" id="chatbot-welcome-close" aria-label="Cerrar" title="Cerrar tutorial">✕</button>
+      <div class="chatbot-hero-logo-wrap" style="margin-bottom:12px;">
+        <div class="chatbot-hero-logo">${logoSvg(40, 40, 10)}</div>
       </div>
-      <div class="chatbot-hero-logo-wrap">
-        <div class="chatbot-hero-logo">${logoSvg(54, 54, 14)}</div>
-        <div class="chatbot-hero-pulse"></div>
-      </div>
-      <div class="chatbot-hero-eyebrow">
-        <span class="chatbot-status-dot"></span>
-        Asistente IA · en línea
-      </div>
-      <h2 class="chatbot-hero-title">
-        Hola, soy <span class="chatbot-grad">FeedIA</span> <span class="chatbot-sparkle">✦</span>
+      <h2 style="margin:0;font-size:14px;font-weight:700;margin-bottom:6px;">
+        Hola, soy <span class="chatbot-grad">FeedIA</span> ✦
       </h2>
-      <p class="chatbot-hero-sub">
-        Tu agente IA especialista en Instagram. Conozco tu marca, tus métricas y manejo a tu equipo IA.
+      <p style="margin:0;font-size:12px;color:#a5b4fc;line-height:1.4;margin-bottom:8px;">
+        Tu especialista en Instagram. Conozco tu marca, tus métricas y manejo tu equipo IA.
       </p>
-      <div class="chatbot-hero-hint">
-        <span>💡</span> Probá una sugerencia abajo o escribime libre.
+      <div class="chatbot-hero-hint" style="font-size:11px;">
+        <span>💡</span> Probá una sugerencia o escribime libre.
       </div>
     </div>
-
-    <details class="chatbot-team-details">
-      <summary>👥 ¿Quiénes son Nova, Lía, Gard, Luca y Mira?</summary>
-      <div class="chatbot-team-list">
-        ${TEAM_HINT.map(
-          (m) => `
-          <div class="chatbot-team-row">
-            <span class="chatbot-team-emoji">${m.e}</span>
-            <div>
-              <div class="chatbot-team-name">${escapeHtml(m.n)}</div>
-              <div class="chatbot-team-desc">${escapeHtml(m.t)}</div>
-            </div>
-          </div>`,
-        ).join('')}
-        <div class="chatbot-team-foot">Son los agentes IA internos. Vos comandás, ellos ejecutan.</div>
-      </div>
-    </details>
-  </div>`;
+  </div>`;};
 
 const renderMessage = (msg) => {
   const isUser = msg.role === 'user';
@@ -157,6 +133,13 @@ const repaintLog = () => {
   if (!log) return;
   if (!messages.length) {
     log.innerHTML = renderWelcome();
+    // Welcome card dismiss button
+    const closeBtn = log.querySelector('#chatbot-welcome-close');
+    closeBtn?.addEventListener('click', () => {
+      localStorage.setItem('chatbot-welcome-dismissed', '1');
+      const welcomeCard = log.querySelector('.chatbot-welcome');
+      if (welcomeCard) welcomeCard.style.display = 'none';
+    });
     return;
   }
   log.innerHTML = messages.map(renderMessage).join('');
