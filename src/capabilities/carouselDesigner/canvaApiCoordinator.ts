@@ -1,10 +1,10 @@
 /**
- * Canva API Coordinator — Real Canva template search + customization.
- * Uses Canva API instead of Computer Use for immediate availability.
- * Future: Real Computer Use SDK for advanced browser automation.
+ * Canva API Coordinator — Real Canva template + autofill + export.
+ * Uses real Canva API endpoints for production integration.
  */
 
 import { log } from '../../agent/logger.js';
+import { autofillTemplate, exportDesign } from '../../integrations/canva.js';
 
 export interface CanvaTemplate {
   id: string;
@@ -109,15 +109,25 @@ export const customizeCanvaDesign = async (
       };
     });
 
-    const mockDesignId = `design-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const mockDesignUrl = `https://www.canva.com/design/${mockDesignId}`;
+    // Call real Canva autofill API
+    const result = await autofillTemplate({
+      brandTemplateId: templateId,
+      title: `Carousel Design ${Date.now()}`,
+      data: autofillData,
+      userHandle: accountToken,
+    });
 
-    log.info(`[CanvaAPI] Design customized: templateId=${templateId}, designId=${mockDesignId}`);
+    if (!result.ok) {
+      log.warn(`[CanvaAPI] Autofill failed: ${result.error}`);
+      return null;
+    }
+
+    log.info(`[CanvaAPI] Design customized: templateId=${templateId}, designId=${result.designId}`);
 
     return {
-      designId: mockDesignId,
-      designUrl: mockDesignUrl,
-      method: 'mock',
+      designId: result.designId!,
+      designUrl: result.designUrl!,
+      method: 'api',
     };
   } catch (err) {
     log.error(`[CanvaAPI] Customization failed: ${(err as Error).message}`);
@@ -134,18 +144,24 @@ export const exportCanvaDesignSlides = async (
   accountToken?: string,
 ): Promise<{ slides: string[]; format: string; method: 'api' | 'mock' } | null> => {
   try {
-    const mockSlides = [
-      `/tmp/carousel-exports/slide-1.png`,
-      `/tmp/carousel-exports/slide-2.png`,
-      `/tmp/carousel-exports/slide-3.png`,
-    ];
+    // Call real Canva export API
+    const result = await exportDesign({
+      designId,
+      format: format as 'png' | 'mp4' | 'jpg' | 'pdf' | 'gif',
+      quality: 'high',
+    });
 
-    log.info(`[CanvaAPI] Design exported: designId=${designId}, format=${format}, slides=${mockSlides.length}`);
+    if (!result.ok) {
+      log.warn(`[CanvaAPI] Export failed: ${result.error}`);
+      return null;
+    }
+
+    log.info(`[CanvaAPI] Design exported: designId=${designId}, format=${format}, slides=${result.urls?.length || 0}`);
 
     return {
-      slides: mockSlides,
+      slides: result.urls || [],
       format,
-      method: 'mock',
+      method: 'api',
     };
   } catch (err) {
     log.error(`[CanvaAPI] Export failed: ${(err as Error).message}`);
