@@ -168,9 +168,100 @@ export const uploadImageToCanva = async (
   imageBuffer: Buffer,
   filename: string,
   accountToken?: string,
-): Promise<string> => {
-  // This would call canva.uploadAsset() from canva.ts
-  // For now, stub implementation
-  const assetId = `asset-${Date.now()}`;
-  return assetId;
+): Promise<string | null> => {
+  try {
+    // In production, would call canva.uploadAsset() from canva.ts
+    // For now, return mock asset ID
+    const assetId = `asset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    return assetId;
+  } catch (error) {
+    console.error(`Failed to upload image to Canva: ${error}`);
+    return null;
+  }
+};
+
+/**
+ * Download image from URL and upload to Canva in one step.
+ * Used by carousel generator to fetch siluetas/elements.
+ */
+export const downloadAndUploadToCanva = async (
+  imageUrl: string,
+  filename: string,
+  accountToken?: string,
+): Promise<{ assetId: string | null; url: string; filename: string }> => {
+  try {
+    // Step 1: Download image
+    const buffer = await downloadImageFromUrl(imageUrl, {
+      filename,
+      maxSize: 5 * 1024 * 1024, // 5MB
+      timeout: 15000,
+    });
+
+    // Step 2: Upload to Canva
+    const assetId = await uploadImageToCanva(buffer, filename, accountToken);
+
+    return {
+      assetId,
+      url: imageUrl,
+      filename,
+    };
+  } catch (error) {
+    console.error(`Download+Upload failed for ${imageUrl}: ${error}`);
+    return {
+      assetId: null,
+      url: imageUrl,
+      filename,
+    };
+  }
+};
+
+/**
+ * Parse prompt to detect image requests.
+ * Examples: "silueta de persona", "elementos de trabajo", "iconos"
+ */
+export const detectImageRequests = (prompt: string): string[] => {
+  const keywords = [
+    'silueta',
+    'persona',
+    'gente',
+    'elemento',
+    'icono',
+    'ilustración',
+    'dibujo',
+    'imagen',
+    'fondo',
+    'decoración',
+  ];
+
+  const matches: string[] = [];
+  keywords.forEach((keyword) => {
+    if (prompt.toLowerCase().includes(keyword)) {
+      matches.push(keyword);
+    }
+  });
+
+  return matches;
+};
+
+/**
+ * Search for image URLs based on keywords.
+ * Returns placeholder URLs (in production would search Unsplash, Pexels, etc).
+ */
+export const searchImageUrls = async (keywords: string[]): Promise<string[]> => {
+  // In production: search Unsplash API, Pexels API, or similar
+  // For now: return empty (user provides images manually)
+  // Future: integrate with free image APIs
+
+  const mockUrls: Record<string, string> = {
+    silueta: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400',
+    persona: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    gente: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400',
+    icono: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400',
+  };
+
+  const urls = keywords
+    .map((k) => mockUrls[k.toLowerCase()])
+    .filter((url) => url !== undefined);
+
+  return urls.length > 0 ? urls : [];
 };

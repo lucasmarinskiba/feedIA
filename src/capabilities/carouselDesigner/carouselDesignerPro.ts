@@ -2,7 +2,7 @@ import type { Anthropic } from '@anthropic-ai/sdk';
 import { carouselPipeline } from '../quickCarousel/carouselPipeline';
 import { artDirector } from '../creativeDirector/artDirector';
 import { animationEngine } from './animationEngine';
-import { downloadImageFromUrl } from '../../integrations/imageDownloader';
+import { downloadImageFromUrl, downloadAndUploadToCanva, detectImageRequests, searchImageUrls } from '../../integrations/imageDownloader';
 import { canva } from '../../integrations/canva';
 import { generateAnimatedCarousel, isRunwayAvailable } from '../../integrations/runway';
 
@@ -156,6 +156,38 @@ export const designCarouselPinterest = async (
         return { ...slide, imageUrl };
       }),
     );
+
+    // Step 3B: Download + upload images if requested
+    let downloadedImages: Map<number, string> = new Map();
+    try {
+      const imageKeywords = detectImageRequests(input.prompt);
+      if (imageKeywords.length > 0) {
+        const imageUrls = await searchImageUrls(imageKeywords);
+
+        // Download and upload max 3 images (distribute across slides)
+        const imagesToProcess = imageUrls.slice(0, 3);
+        for (let i = 0; i < imagesToProcess.length; i++) {
+          const slideIdx = Math.floor((i / imagesToProcess.length) * enhancedSlides.length);
+          const result = await downloadAndUploadToCanva(
+            imagesToProcess[i],
+            `carousel-slide-${slideIdx + 1}.png`,
+          );
+          if (result.assetId) {
+            downloadedImages.set(slideIdx, result.assetId);
+          }
+        }
+      }
+    } catch (err) {
+      // Silently fail, continue with text-only slides
+    }
+
+    // Apply downloaded images to slides
+    enhancedSlides.forEach((slide, idx) => {
+      if (downloadedImages.has(idx)) {
+        slide.downloadedAssetId = downloadedImages.get(idx);
+        slide.imageUrl = `canva-asset://${downloadedImages.get(idx)}`;
+      }
+    });
 
     // Step 4: Generate animation CSS
     const animationEngine_instance = animationEngine();
