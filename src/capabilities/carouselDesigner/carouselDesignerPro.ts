@@ -4,7 +4,7 @@ import { artDirector } from '../creativeDirector/artDirector';
 import { animationEngine } from './animationEngine';
 import { downloadImageFromUrl } from '../../integrations/imageDownloader';
 import { canva } from '../../integrations/canva';
-import { runway } from '../../integrations/runway';
+import { generateAnimatedCarousel, isRunwayAvailable } from '../../integrations/runway';
 
 export interface CarouselDesignerProInput {
   prompt: string;
@@ -171,14 +171,26 @@ export const designCarouselPinterest = async (
 
     // Step 6: Video export (async, if enabled)
     let mp4Url: string | undefined;
-    if (includeVideo) {
+    if (includeVideo && isRunwayAvailable()) {
       try {
-        // In production, would use Runway API to generate MP4
-        // For now, skip (Phase 4 enhancement)
-        mp4Url = undefined;
+        // Generate MP4 from PNG slides using Runway API
+        const slides = enhancedSlides.map((s) => `carousel-slide-${s.slide}`); // Placeholder paths
+        const timings = animationEngine_instance.generateMP4Timing(enhancedSlides, animations.timeline);
+
+        const result = await generateAnimatedCarousel(slides, timings, {
+          duration: slideCount * 2.5,
+          quality: 'high',
+          musicUrl: input.includeMusic ? 'default' : undefined,
+        });
+
+        if (result) {
+          mp4Url = result.mp4Url;
+        }
       } catch (err) {
-        // Fallback: no video
+        // Fallback: no video, PNG only
       }
+    } else if (includeVideo && !isRunwayAvailable()) {
+      // Runway API not configured, fallback to PNG
     }
 
     // Step 7: Visual QA check
