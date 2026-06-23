@@ -9,6 +9,10 @@ import {
   customizeCanvaDesign as canvaCustomizeDesign,
   exportCanvaDesignSlides,
 } from './canvaApiCoordinator.js';
+import {
+  searchCanvaTemplatesWithBrowser,
+  customizeCanvaViaComputer,
+} from '../../integrations/computerUseSDK.js';
 
 export interface CanvaWorkflowInput {
   prompt: string;
@@ -56,7 +60,21 @@ export const searchCanvaTemplateByAesthetic = async (
   style: string,
   slideCount: number,
 ): Promise<{ templateId: string | null; method: 'computer-use' | 'canva-api' | 'mock' }> => {
-  // Try 1: Canva API (real templates)
+  // Try 1: Computer Use SDK (real browser)
+  try {
+    const result = await searchCanvaTemplatesWithBrowser(style, slideCount);
+    if (result) {
+      log.info(`[ComputerUse] Found template via browser: ${result.templateId}`);
+      return {
+        templateId: result.templateId,
+        method: 'computer-use',
+      };
+    }
+  } catch (err) {
+    log.warn(`[ComputerUse] Browser search failed: ${(err as Error).message}`);
+  }
+
+  // Try 2: Canva API (fallback)
   try {
     const templates = await canvaSearchTemplates(style, '4:5');
     if (templates.length > 0) {
