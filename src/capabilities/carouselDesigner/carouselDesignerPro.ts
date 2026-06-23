@@ -5,6 +5,7 @@ import { animationEngine } from './animationEngine';
 import { downloadImageFromUrl, downloadAndUploadToCanva, detectImageRequests, searchImageUrls } from '../../integrations/imageDownloader';
 import { canva } from '../../integrations/canva';
 import { generateAnimatedCarousel, isRunwayAvailable } from '../../integrations/runway';
+import { validateAesthetic, autoFixAesthetic } from './visualQA';
 
 export interface CarouselDesignerProInput {
   prompt: string;
@@ -226,7 +227,19 @@ export const designCarouselPinterest = async (
     }
 
     // Step 7: Visual QA check
-    const aestheticScore = validateAesthetic(enhancedSlides);
+    const qaResult = validateAesthetic(enhancedSlides);
+    let finalSlides = enhancedSlides;
+
+    // Auto-fix if score low but close to threshold
+    if (qaResult.score < 70 && qaResult.score > 50) {
+      const { slides: fixedSlides, fixes } = autoFixAesthetic(enhancedSlides);
+      finalSlides = fixedSlides;
+      // Re-validate after fixes
+      const revalidated = validateAesthetic(finalSlides);
+      if (revalidated.score >= 70) {
+        // Success: auto-fix brought it above threshold
+      }
+    }
 
     const endTime = Date.now();
     const totalMinutes = (endTime - startTime) / 1000 / 60;
@@ -235,7 +248,7 @@ export const designCarouselPinterest = async (
       id: carouselId,
       originalPrompt: input.prompt,
       style,
-      slides: enhancedSlides,
+      slides: finalSlides,
       animations,
       caption: baseCarousel.caption || { full: '', short: '', cta: '', humanScore: 0 },
       hashtags: baseCarousel.hashtags?.flat || [],
@@ -245,8 +258,8 @@ export const designCarouselPinterest = async (
         mp4Url,
         cssFile,
       },
-      aestheticScore,
-      readyToPublish: aestheticScore > 70,
+      aestheticScore: qaResult.score,
+      readyToPublish: qaResult.score >= 70,
       totalProductionMinutes: totalMinutes,
     };
   } catch (error) {
