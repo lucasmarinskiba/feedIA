@@ -565,3 +565,30 @@ export const briefToPublish = async (brand: BrandProfile, brief: BriefRequest): 
     bloqueadoPorCrisis,
   };
 };
+
+import type { StrategicBrief } from '../strategy/output/strategicBrief.js';
+
+/**
+ * Ejecuta el pipeline briefToPublish a partir de un StrategicBrief generado
+ * por el Content Strategy Engine.
+ */
+export const briefFromStrategy = async (
+  brand: BrandProfile,
+  strategicBrief: StrategicBrief,
+  overrides: Partial<BriefRequest> = {},
+): Promise<BriefOutcome> => {
+  const format: BriefRequest['formato'] =
+    strategicBrief.format === 'reel' || strategicBrief.format === 'carrusel'
+      ? strategicBrief.format
+      : 'carrusel';
+
+  const brief: BriefRequest = {
+    idea: `${strategicBrief.topic}. ${strategicBrief.angle}`,
+    formato: format,
+    plataformas: strategicBrief.platforms,
+    ...overrides,
+  };
+
+  log.info(`[briefFromStrategy] Brief #${strategicBrief.id} → ${format}: ${brief.idea}`);
+  return briefToPublish(brand, brief);
+};

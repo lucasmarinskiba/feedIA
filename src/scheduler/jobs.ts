@@ -212,6 +212,7 @@ export type JobName =
   | 'tiktok-content-producer'
   | 'audio-music-generate'
   | 'audio-sfx-pack-generate'
+  | 'strategy-plan-weekly'
   // ── Sprint 7: Neural Brain + Vector DB ──────────────────────────────
   | 'neural-memory-consolidate'
   | 'neural-learning-sync'
@@ -1108,14 +1109,68 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
     description: 'Ejecuta el pipeline de producción diaria: genera el contenido del día siguiente listo para aprobar.',
     defaultCron: '0 20 * * *', // 8pm — prepara el día siguiente
     handler: async (brand): Promise<unknown> => {
-      const { runTalia } = await import('../agent/talia.js');
-      return runTalia(brand, {
-        goal: `Producir el contenido de Instagram para mañana usando el pipeline_produce_content.
-Primero consultá timing_best_time para elegir el formato adecuado.
-Después generá 1 pieza de contenido con idea fresca basada en las tendencias del nicho "${brand.niche}".
-Al finalizar, devolvé el caption completo, score obtenido y el horario recomendado de publicación.`,
-        maxIterations: 10,
+      const { planNextContent } = await import('../capabilities/strategy/index.js');
+      const { briefFromStrategy } = await import('../capabilities/pipelines/briefToPublish.js');
+
+      const plan = await planNextContent(brand, {
+        windowDays: 1,
+        briefsPerWindow: 1,
+        dryRun: true,
+        competitorHandles: brand.competitors,
       });
+
+      const topBrief = plan.briefs[0];
+      if (!topBrief) {
+        log.warn('[content-pipeline-daily] No se generó ningún brief estratégico');
+        return { ok: false, reason: 'no briefs generated' };
+      }
+
+      log.info(`[content-pipeline-daily] Brief estratégico #${topBrief.id}: ${topBrief.topic} (${topBrief.format})`);
+      const outcome = await briefFromStrategy(brand, topBrief, {
+        scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      });
+
+      return {
+        ok: true,
+        brief: topBrief,
+        pendienteAprobacion: outcome.pendienteAprobacion,
+        tasteScore: outcome.tasteScore,
+        qualityGate: outcome.qualityGate,
+        render: outcome.render,
+        video: outcome.video,
+      };
+    },
+  },
+
+  {
+    name: 'strategy-plan-weekly',
+    description: 'Genera el plan estratégico semanal de contenido usando el Content Strategy Engine.',
+    defaultCron: '0 7 * * 1', // Lunes 7am — plan de la semana
+    handler: async (brand): Promise<unknown> => {
+      const { planNextContent } = await import('../capabilities/strategy/index.js');
+      const plan = await planNextContent(brand, {
+        windowDays: 7,
+        briefsPerWindow: 5,
+        dryRun: true,
+        competitorHandles: brand.competitors,
+      });
+
+      if (plan.briefs.length > 0) {
+        await sendAlert({
+          severity: 'info',
+          title: `🧠 Plan semanal de contenido: ${plan.briefs.length} briefs`,
+          body: [
+            ...plan.insights,
+            '',
+            ...plan.briefs.map(
+              (b, i) =>
+                `${i + 1}. [${b.format}] ${b.topic} — ${b.estimatedEngagement} engagement (confianza ${b.confidence}%) — ${b.bestDay} ${b.bestHour}`,
+            ),
+          ].join('\n'),
+        });
+      }
+
+      return { briefs: plan.briefs.length, insights: plan.insights };
     },
   },
 

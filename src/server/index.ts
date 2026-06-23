@@ -17,6 +17,7 @@ import { voiceRoutes } from './voiceApi.js';
 import { buildGlassBoxRoutes } from './glassboxApi.js';
 import { buildCalendarRoutes } from './calendarApi.js';
 import { buildOnboardingRoutes } from './onboardingApi.js';
+import { buildStrategyRoutes } from './strategyApi.js';
 import { buildCapCutWebhookRoutes } from './capcutWebhookRoute.js';
 import { buildInShotWebhookRoutes } from './inshotWebhookRoute.js';
 import { startAutonomousOS } from '../os/autonomousCore.js';
@@ -228,6 +229,7 @@ export const startDaemon = (opts: DaemonOptions = {}): { stop: () => void } => {
     const extendedRoutes = buildExtendedRoutes(brand);
     const skillsRoutes = buildSkillsRoutes();
     const oauthRoutes = buildOAuthRoutes(brand);
+    const strategyRoutes = buildStrategyRoutes(brand);
     const allRoutes = [
       ...dashboardRoutes,
       ...extendedRoutes,
@@ -242,6 +244,7 @@ export const startDaemon = (opts: DaemonOptions = {}): { stop: () => void } => {
       ...voiceRoutes,
       ...webhookRoutes,
       ...glassboxRoutes,
+      ...strategyRoutes,
       ...authRoutes,
     ];
 
