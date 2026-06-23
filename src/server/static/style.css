@@ -6674,10 +6674,10 @@ input:checked + .toggle-track::after {
 
 @media (max-width: 640px) {
   .chatbot-fab {
-    bottom: calc(var(--bottom-nav-h) + 76px);
-    right: 16px;
-    width: 50px;
-    height: 50px;
+    bottom: 22px;
+    right: 22px;
+    width: 48px;
+    height: 48px;
   }
   .chatbot-panel {
     right: 12px;
