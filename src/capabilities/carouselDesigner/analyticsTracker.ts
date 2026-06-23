@@ -65,7 +65,7 @@ export const getAnalyticsSummary = (): {
   return {
     totalEvents: events.length,
     carouselsGenerated: generated,
-    averageD duration: durations.length > 0 ? durations.reduce((a, b) => a + b) / durations.length : 0,
+    averageDuration: durations.length > 0 ? durations.reduce((a, b) => a + b) / durations.length : 0,
     topStyles: styles,
     errorRate: generated + errors > 0 ? (errors / (generated + errors)) * 100 : 0,
   };
