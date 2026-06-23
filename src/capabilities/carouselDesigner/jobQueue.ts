@@ -1,226 +1,205 @@
 /**
- * Job Queue — In-memory carousel processing with disk persistence (Vercel /tmp fallback).
- * Handles async carousel generation, status tracking, cleanup.
+ * Job Queue — In-memory + disk persistence for Vercel serverless.
+ * Handles async carousel generation with polling.
  */
 
-import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, unlinkSync } from 'fs';
 import { join } from 'path';
-import { randomUUID } from 'crypto';
-
-export interface CarouselJobInput {
-  prompt: string;
-  brandId?: string;
-  style?: 'warm-organic' | 'bold-playful' | 'dark-premium' | 'clean-editorial';
-  slideCount?: number;
-  animationStyle?: 'fade' | 'slideLeft' | 'slideUp' | 'zoom' | 'rotate';
-  includeVideo?: boolean;
-  includeMusic?: boolean;
-}
-
-export interface CarouselJobExports {
-  htmlPreview?: string;
-  slides?: string[]; // File paths or URLs
-  mp4Url?: string;
-  cssFile?: string;
-  zipUrl?: string;
-  zipPath?: string;
-}
 
 export interface CarouselJob {
   id: string;
-  input: CarouselJobInput;
+  prompt: string;
   status: 'queued' | 'running' | 'done' | 'error';
   slides?: any[];
   animations?: any;
-  exports?: CarouselJobExports;
+  exports?: {
+    htmlPreview?: string;
+    slides?: string[];
+    mp4Url?: string;
+    cssFile?: string;
+    zipUrl?: string;
+  };
   aestheticScore?: number;
+  readyToPublish?: boolean;
   createdAt: string;
   startedAt?: string;
   completedAt?: string;
   error?: string;
-  progress?: number; // 0-100
-  log?: string[];
+  progress: number;
+  log: string[];
 }
 
-const JOBS_DIR = process.env.VERCEL ? join('/tmp', 'carousel-jobs') : join(process.cwd(), 'data', 'carousel-jobs');
-const JOBS_INDEX_FILE = join(JOBS_DIR, 'jobs.json');
+const JOBS = new Map<string, CarouselJob>();
+const TEMP_DIR = '/tmp/feedia-carousel-jobs';
 
-// In-memory cache
-const jobs = new Map<string, CarouselJob>();
-
-const ensureDir = (): void => {
-  if (!existsSync(JOBS_DIR)) {
-    mkdirSync(JOBS_DIR, { recursive: true });
-  }
-};
-
-const loadJobsFromDisk = (): void => {
-  ensureDir();
-  if (existsSync(JOBS_INDEX_FILE)) {
-    try {
-      const data = readFileSync(JOBS_INDEX_FILE, 'utf8');
-      const jobsList = JSON.parse(data) as CarouselJob[];
-      jobsList.forEach((job) => jobs.set(job.id, job));
-    } catch {
-      // Ignore corrupted index, start fresh
-    }
-  }
-};
-
-const persistJobsToDisk = (): void => {
-  ensureDir();
+const ensureTempDir = (): void => {
   try {
-    const jobsList = Array.from(jobs.values());
-    writeFileSync(JOBS_INDEX_FILE, JSON.stringify(jobsList, null, 2), 'utf8');
-  } catch {
-    // Silently fail, memory cache still works
+    if (!existsSync(TEMP_DIR)) {
+      const fs = require('fs');
+      fs.mkdirSync(TEMP_DIR, { recursive: true });
+    }
+  } catch (err) {
+    // Fallback
   }
 };
 
-/**
- * Create new carousel job and queue it.
- */
-export const createJob = (input: CarouselJobInput): CarouselJob => {
+const persistJob = (job: CarouselJob): void => {
+  try {
+    ensureTempDir();
+    const filePath = join(TEMP_DIR, `${job.id}.json`);
+    writeFileSync(filePath, JSON.stringify(job), 'utf8');
+  } catch (err) {
+    // Silent fail
+  }
+};
+
+const loadJobFromDisk = (jobId: string): CarouselJob | null => {
+  try {
+    ensureTempDir();
+    const filePath = join(TEMP_DIR, `${jobId}.json`);
+    if (existsSync(filePath)) {
+      const data = readFileSync(filePath, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    // Silent fail
+  }
+  return null;
+};
+
+export const createJob = (prompt: string): CarouselJob => {
   const job: CarouselJob = {
-    id: `carousel-${randomUUID().slice(0, 8)}`,
-    input,
+    id: `carousel-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    prompt,
     status: 'queued',
     createdAt: new Date().toISOString(),
-    log: [],
     progress: 0,
+    log: [`Job created at ${new Date().toISOString()}`],
   };
 
-  jobs.set(job.id, job);
-  persistJobsToDisk();
+  JOBS.set(job.id, job);
+  persistJob(job);
   return job;
 };
 
-/**
- * Get job by ID.
- */
-export const getJob = (jobId: string): CarouselJob | undefined => {
-  return jobs.get(jobId);
+export const getJob = (jobId: string): CarouselJob | null => {
+  let job = JOBS.get(jobId);
+  if (!job) {
+    job = loadJobFromDisk(jobId);
+    if (job) {
+      JOBS.set(jobId, job);
+    }
+  }
+  return job || null;
 };
 
-/**
- * Update job status + progress.
- */
-export const updateJob = (jobId: string, updates: Partial<CarouselJob>): CarouselJob | undefined => {
-  const job = jobs.get(jobId);
-  if (!job) return undefined;
-
-  const updated = { ...job, ...updates };
-  jobs.set(jobId, updated);
-  persistJobsToDisk();
-  return updated;
-};
-
-/**
- * Start processing job (mark as running).
- */
-export const startJob = (jobId: string): CarouselJob | undefined => {
-  return updateJob(jobId, {
-    status: 'running',
-    startedAt: new Date().toISOString(),
-    progress: 5,
-  });
-};
-
-/**
- * Mark job as done with exports.
- */
-export const completeJob = (
-  jobId: string,
-  data: {
-    slides?: any[];
-    animations?: any;
-    exports?: CarouselJobExports;
-    aestheticScore?: number;
-  },
-): CarouselJob | undefined => {
-  return updateJob(jobId, {
-    status: 'done',
-    completedAt: new Date().toISOString(),
-    progress: 100,
-    ...data,
-  });
-};
-
-/**
- * Mark job as failed.
- */
-export const failJob = (jobId: string, error: string): CarouselJob | undefined => {
-  return updateJob(jobId, {
-    status: 'error',
-    error,
-    completedAt: new Date().toISOString(),
-  });
-};
-
-/**
- * Add log entry to job.
- */
-export const addLog = (jobId: string, message: string): void => {
-  const job = jobs.get(jobId);
+export const updateJob = (jobId: string, updates: Partial<CarouselJob>): void => {
+  const job = getJob(jobId);
   if (!job) return;
 
-  if (!job.log) job.log = [];
-  job.log.push(`[${new Date().toISOString()}] ${message}`);
-  persistJobsToDisk();
+  Object.assign(job, updates);
+  JOBS.set(jobId, job);
+  persistJob(job);
 };
 
-/**
- * Update job progress (0-100).
- */
+export const startJob = (jobId: string): void => {
+  const job = getJob(jobId);
+  if (!job) return;
+
+  job.status = 'running';
+  job.startedAt = new Date().toISOString();
+  job.progress = 5;
+  job.log.push(`Job started at ${job.startedAt}`);
+
+  JOBS.set(jobId, job);
+  persistJob(job);
+};
+
+export const completeJob = (
+  jobId: string,
+  slides: any[],
+  animations: any,
+  exports: CarouselJob['exports'],
+  aestheticScore: number,
+): void => {
+  const job = getJob(jobId);
+  if (!job) return;
+
+  job.status = 'done';
+  job.completedAt = new Date().toISOString();
+  job.slides = slides;
+  job.animations = animations;
+  job.exports = exports;
+  job.aestheticScore = aestheticScore;
+  job.readyToPublish = aestheticScore >= 70;
+  job.progress = 100;
+  job.log.push(`Job completed at ${job.completedAt}`);
+
+  JOBS.set(jobId, job);
+  persistJob(job);
+};
+
+export const failJob = (jobId: string, error: string): void => {
+  const job = getJob(jobId);
+  if (!job) return;
+
+  job.status = 'error';
+  job.error = error;
+  job.completedAt = new Date().toISOString();
+  job.progress = 0;
+  job.log.push(`Job failed: ${error}`);
+
+  JOBS.set(jobId, job);
+  persistJob(job);
+};
+
+export const addLog = (jobId: string, message: string): void => {
+  const job = getJob(jobId);
+  if (!job) return;
+
+  job.log.push(`[${new Date().toISOString()}] ${message}`);
+  if (job.log.length > 50) {
+    job.log = job.log.slice(-50);
+  }
+
+  JOBS.set(jobId, job);
+  persistJob(job);
+};
+
 export const updateProgress = (jobId: string, progress: number): void => {
-  const job = jobs.get(jobId);
+  const job = getJob(jobId);
   if (!job) return;
 
   job.progress = Math.min(100, Math.max(0, progress));
-  persistJobsToDisk();
+  JOBS.set(jobId, job);
+  persistJob(job);
 };
 
-/**
- * List recent jobs (last N, optionally filter by status).
- */
-export const listJobs = (limit: number = 20, status?: string): CarouselJob[] => {
-  let result = Array.from(jobs.values());
+export const cleanupOldJobs = (): void => {
+  const now = Date.now();
+  const maxAge = 24 * 60 * 60 * 1000;
 
-  if (status) {
-    result = result.filter((j) => j.status === status);
-  }
+  for (const [jobId, job] of JOBS.entries()) {
+    const createdTime = new Date(job.createdAt).getTime();
+    if (now - createdTime > maxAge) {
+      JOBS.delete(jobId);
 
-  return result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
-};
-
-/**
- * Cleanup old jobs (older than 24h).
- */
-export const cleanupOldJobs = (ageHours: number = 24): number => {
-  const cutoff = Date.now() - ageHours * 60 * 60 * 1000;
-  let removed = 0;
-
-  for (const [id, job] of jobs.entries()) {
-    if (new Date(job.createdAt).getTime() < cutoff) {
-      jobs.delete(id);
-      removed++;
+      try {
+        ensureTempDir();
+        const filePath = join(TEMP_DIR, `${jobId}.json`);
+        if (existsSync(filePath)) {
+          unlinkSync(filePath);
+        }
+      } catch (err) {
+        // Fail silently
+      }
     }
   }
-
-  if (removed > 0) {
-    persistJobsToDisk();
-  }
-
-  return removed;
 };
 
-// Initialize on load
-loadJobsFromDisk();
-
-// Auto-cleanup old jobs every hour
-setInterval(() => {
-  cleanupOldJobs(24);
-}, 60 * 60 * 1000);
+export const listJobs = (): CarouselJob[] => {
+  return Array.from(JOBS.values());
+};
 
 export const jobQueue = {
   createJob,
@@ -231,6 +210,6 @@ export const jobQueue = {
   failJob,
   addLog,
   updateProgress,
-  listJobs,
   cleanupOldJobs,
+  listJobs,
 };
