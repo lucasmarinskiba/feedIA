@@ -148,23 +148,20 @@ const renderShell = (platform) => `
     </div>
 
     <details id="hf-cfg-panel" class="hf-cfg-panel">
-      <summary class="hf-cfg-sum">⚙️ Voz premium (ElevenLabs · opcional)</summary>
+      <summary class="hf-cfg-sum">🔊 Asistente de voz</summary>
       <div class="hf-cfg-body">
-        <p class="hf-cfg-hint">Por default uso la voz nativa del navegador (gratis). Si pegás tu key de <a href="https://elevenlabs.io" target="_blank" rel="noopener">ElevenLabs</a> (plan free 10k chars/mes), respondo con voz mucho más natural multilenguaje.</p>
+        <p class="hf-cfg-hint">FeedIA narra cada acción, guía y relata Computer Use en tiempo real. Elige tu estilo de voz para asistencia personalizada.</p>
         <div class="hf-cfg-row">
-          <input id="hf-el-key" type="password" class="hf-input" placeholder="sk-... (tu API key ElevenLabs)" autocomplete="off" />
-          <select id="hf-el-voice" class="hf-input" style="max-width:280px;">
-            <option value="EXAVITQu4vr4xnSDxMaL">Bella · ES cálida</option>
-            <option value="pNInz6obpgDQGcFmaJgB">Adam · ES masculina</option>
-            <option value="XB0fDUnXU5powFXDhCwa">Charlotte · ES profesional</option>
-            <option value="21m00Tcm4TlvDq8ikWAM">Rachel · ES narrativa</option>
+          <select id="hf-voice-style" class="hf-input" style="width:100%;">
+            <option value="professional">Profesional · Tono ejecutivo</option>
+            <option value="warm">Cálida · Tono amigable</option>
+            <option value="concise">Concisa · Tono directo</option>
+            <option value="narrative">Narrativa · Tono relato</option>
           </select>
         </div>
         <div class="hf-cfg-actions">
-          <button id="hf-el-save" class="hf-go" style="padding:6px 14px;font-size:12px;">Guardar key</button>
-          <button id="hf-el-test" class="hf-iconbtn" style="width:auto;padding:6px 14px;">🎵 Probar voz</button>
-          <button id="hf-el-clear" class="hf-iconbtn" style="width:auto;padding:6px 14px;">🗑 Quitar</button>
-          <span id="hf-el-status" class="hf-cfg-status"></span>
+          <button id="hf-voice-test" class="hf-iconbtn" style="width:auto;padding:6px 14px;">🔊 Probar</button>
+          <span id="hf-voice-status" class="hf-cfg-status"></span>
         </div>
       </div>
     </details>
@@ -607,45 +604,27 @@ export const renderHandsFree = async (container, { navigate } = {}) => {
     renderOutput(container, null);
   });
 
-  // ⚙️ ElevenLabs config
+  // 🔊 Voice Style Selector
   const cfgPanel = container.querySelector('#hf-cfg-panel');
   const cfgBtn = container.querySelector('#hf-cfg');
   cfgBtn?.addEventListener('click', () => { cfgPanel.open = !cfgPanel.open; });
-  const elStatus = container.querySelector('#hf-el-status');
-  const updateElStatusUI = () => {
-    if (!elStatus) return;
-    elStatus.textContent = elevenLabsActive ? '✓ ElevenLabs activo' : '○ usando voz nativa del browser';
-    elStatus.style.color = elevenLabsActive ? '#10F2B0' : '#9CA3AF';
-  };
-  updateElStatusUI();
-  container.querySelector('#hf-el-save')?.addEventListener('click', async (e) => {
-    const key = container.querySelector('#hf-el-key')?.value.trim();
-    const voiceId = container.querySelector('#hf-el-voice')?.value;
-    if (!key) { toast('Pegá tu API key primero', 'warn'); return; }
-    e.target.disabled = true; e.target.textContent = '⏳';
-    try {
-      const r = await fetch('/api/voice/elevenlabs/key', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ apiKey: key, voiceId }) });
-      const j = await r.json();
-      if (j.ok) {
-        await checkElevenLabs();
-        updateElStatusUI();
-        toast('✓ Voz premium guardada', 'ok');
-        container.querySelector('#hf-el-key').value = '';
-        speak(userName ? `Listo ${userName}. Voz premium activa.` : 'Listo. Voz premium activa.');
-      } else toast('Error al guardar', 'err');
-    } catch { toast('Error de red', 'err'); }
-    finally { e.target.disabled = false; e.target.textContent = 'Guardar key'; }
-  });
-  container.querySelector('#hf-el-test')?.addEventListener('click', () => {
-    speak(userName ? `Hola ${userName}, así suena mi voz premium.` : 'Hola, así suena mi voz premium.');
-  });
-  container.querySelector('#hf-el-clear')?.addEventListener('click', async () => {
-    try {
-      await fetch('/api/voice/elevenlabs/key', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ apiKey: '' }) });
-      elevenLabsActive = false;
-      updateElStatusUI();
-      toast('Key removida · usando voz nativa', 'info');
-    } catch {}
+
+  let voiceStyle = localStorage.getItem('feedia-voice-style') || 'professional';
+  const voiceStyleSelect = container.querySelector('#hf-voice-style');
+  if (voiceStyleSelect) {
+    voiceStyleSelect.value = voiceStyle;
+    voiceStyleSelect.addEventListener('change', (e) => {
+      voiceStyle = e.target.value;
+      localStorage.setItem('feedia-voice-style', voiceStyle);
+      toast(`Asistente en modo ${e.target.options[e.target.selectedIndex].text}`, 'ok');
+    });
+  }
+
+  container.querySelector('#hf-voice-test')?.addEventListener('click', () => {
+    const greeting = voiceStyle === 'professional' ? 'Modo profesional activado' :
+                     voiceStyle === 'warm' ? 'Modo cálido y amigable' :
+                     voiceStyle === 'concise' ? 'Modo conciso y directo' : 'Modo narrativa activado';
+    speak(userName ? `Hola ${userName}. ${greeting}.` : greeting);
   });
 
   // Limpia voz al salir de la vista
