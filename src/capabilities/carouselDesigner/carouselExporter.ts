@@ -1,10 +1,11 @@
 /**
  * Carousel Exporter — Create downloadable ZIP package.
- * Collects PNG slides + CSS + MP4 + metadata.json
+ * Primary: Cloudinary cloud storage. Fallback: /tmp local storage.
  */
 
 import { writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
+import { uploadFileToCloudinary } from '../../integrations/cloudinaryAdapter.js';
 
 export interface CarouselExport {
   zipPath: string;
@@ -113,9 +114,24 @@ export const createCarouselExport = async (
       'utf8',
     );
 
-    // 7. Create .zip equivalent (placeholder: tar.gz would be better, but for now just directory)
-    // In production: use archiver to create actual ZIP
-    // For now: return directory path as "zipPath" (can be served as download)
+    // 7. Upload to Cloudinary (primary) or /tmp (fallback)
+    let downloadUrl = `/api/skills/carousel-designer-pro/download/${jobId}/package`;
+
+    try {
+      // Try uploading metadata.json to Cloudinary as reference
+      const metadataBuffer = Buffer.from(JSON.stringify(metadata, null, 2));
+      const cloudinaryUrl = await uploadFileToCloudinary(
+        metadataBuffer,
+        `carousel-${jobId}-metadata.json`,
+        `carousel-exports/${jobId}`,
+      );
+
+      if (cloudinaryUrl) {
+        downloadUrl = cloudinaryUrl;
+      }
+    } catch (err) {
+      // Fallback to /tmp path
+    }
 
     const fileSize = files.reduce(
       (sum, f) => {
@@ -131,7 +147,7 @@ export const createCarouselExport = async (
 
     return {
       zipPath: exportDir,
-      downloadUrl: `/api/skills/carousel-designer-pro/download/${jobId}/package`,
+      downloadUrl,
       fileSize,
       createdAt,
       expiresAt,

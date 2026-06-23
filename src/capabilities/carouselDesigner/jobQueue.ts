@@ -1,10 +1,12 @@
 /**
- * Job Queue — In-memory + disk persistence for Vercel serverless.
+ * Job Queue — In-memory + MongoDB persistence for Vercel serverless.
  * Handles async carousel generation with polling.
+ * Fallback: /tmp if MongoDB unavailable.
  */
 
 import { writeFileSync, readFileSync, existsSync, unlinkSync } from 'fs';
 import { join } from 'path';
+import { saveJobToDb, loadJobFromDb, deleteOldJobs as deleteOldJobsDb } from '../../integrations/mongoDbAdapter.js';
 
 export interface CarouselJob {
   id: string;
@@ -44,12 +46,16 @@ const ensureTempDir = (): void => {
 };
 
 const persistJob = (job: CarouselJob): void => {
+  // Primary: MongoDB
+  void saveJobToDb(job);
+
+  // Fallback: /tmp (for offline mode)
   try {
     ensureTempDir();
     const filePath = join(TEMP_DIR, `${job.id}.json`);
     writeFileSync(filePath, JSON.stringify(job), 'utf8');
   } catch (err) {
-    // Silent fail
+    // Silent fail - in-memory is still available
   }
 };
 
@@ -176,14 +182,19 @@ export const updateProgress = (jobId: string, progress: number): void => {
 };
 
 export const cleanupOldJobs = (): void => {
+  const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
   const now = Date.now();
-  const maxAge = 24 * 60 * 60 * 1000;
 
+  // Cleanup MongoDB
+  void deleteOldJobsDb();
+
+  // Cleanup in-memory cache
   for (const [jobId, job] of JOBS.entries()) {
     const createdTime = new Date(job.createdAt).getTime();
     if (now - createdTime > maxAge) {
       JOBS.delete(jobId);
 
+      // Cleanup /tmp fallback
       try {
         ensureTempDir();
         const filePath = join(TEMP_DIR, `${jobId}.json`);
