@@ -1,10 +1,14 @@
 /**
- * Computer Use Coordinator — Orchestrate browser automation for Canva.
- * Future: Real implementation via Anthropic Computer Use API + Playwright
- * Current: Canva API fallback + mock templates for development
+ * Computer Use Coordinator — Orchestrate Canva automation.
+ * Priority: Canva API (immediate) → Computer Use SDK (future)
  */
 
 import { log } from '../../agent/logger.js';
+import {
+  searchCanvaTemplatesByAesthetic as canvaSearchTemplates,
+  customizeCanvaDesign as canvaCustomizeDesign,
+  exportCanvaDesignSlides,
+} from './canvaApiCoordinator.js';
 
 export interface CanvaWorkflowInput {
   prompt: string;
@@ -46,21 +50,30 @@ const MOCK_TEMPLATES: Record<string, string[]> = {
 
 /**
  * Search Canva templates by aesthetic style.
- * Priority: Computer Use → Canva API → Mock
+ * Priority: Canva API → Computer Use (future) → Mock
  */
 export const searchCanvaTemplateByAesthetic = async (
   style: string,
   slideCount: number,
 ): Promise<{ templateId: string | null; method: 'computer-use' | 'canva-api' | 'mock' }> => {
-  // Try 1: Computer Use (future)
+  // Try 1: Canva API (real templates)
+  try {
+    const templates = await canvaSearchTemplates(style, '4:5');
+    if (templates.length > 0) {
+      return {
+        templateId: templates[0].id,
+        method: 'canva-api',
+      };
+    }
+  } catch (err) {
+    log.warn(`[ComputerUse] Canva API search failed: ${(err as Error).message}`);
+  }
+
+  // Try 2: Computer Use (future)
   // const computerUseResult = await tryComputerUseSearch(style, slideCount);
   // if (computerUseResult) return { templateId: computerUseResult, method: 'computer-use' };
 
-  // Try 2: Canva API (stub)
-  // const apiResult = await tryCanvaApiSearch(style, slideCount);
-  // if (apiResult) return { templateId: apiResult, method: 'canva-api' };
-
-  // Try 3: Mock (development)
+  // Try 3: Mock (fallback)
   const mockTemplates = MOCK_TEMPLATES[style as keyof typeof MOCK_TEMPLATES] || [];
   const templateId = mockTemplates.length > 0 ? mockTemplates[0] : null;
 
@@ -74,7 +87,7 @@ export const searchCanvaTemplateByAesthetic = async (
 
 /**
  * Customize Canva template with text + colors.
- * Priority: Computer Use → Canva API → Mock
+ * Priority: Canva API → Computer Use (future) → Mock
  */
 export const customizeCanvaDesign = async (
   templateId: string,
@@ -83,15 +96,28 @@ export const customizeCanvaDesign = async (
     colors: { primary: string; secondary: string };
   },
 ): Promise<{ slides: string[]; method: 'computer-use' | 'canva-api' | 'mock' }> => {
-  // Try 1: Computer Use (future)
+  // Try 1: Canva API (real customization)
+  try {
+    const result = await canvaCustomizeDesign(templateId, customizations);
+    if (result) {
+      const exportResult = await exportCanvaDesignSlides(result.designId, 'png');
+      if (exportResult?.slides) {
+        log.info(`[ComputerUse] Design customized via API: ${exportResult.slides.length} slides`);
+        return {
+          slides: exportResult.slides,
+          method: 'canva-api',
+        };
+      }
+    }
+  } catch (err) {
+    log.warn(`[ComputerUse] Canva API customization failed: ${(err as Error).message}`);
+  }
+
+  // Try 2: Computer Use (future)
   // const computerUseResult = await tryComputerUseCustomize(templateId, customizations);
   // if (computerUseResult) return { slides: computerUseResult, method: 'computer-use' };
 
-  // Try 2: Canva API (stub)
-  // const apiResult = await tryCanvaApiCustomize(templateId, customizations);
-  // if (apiResult) return { slides: apiResult, method: 'canva-api' };
-
-  // Try 3: Mock (development)
+  // Try 3: Mock (fallback)
   const mockSlides = customizations.slideTexts.map(
     (_, idx) => `/tmp/carousel-exports/slide-${idx + 1}.png`,
   );
