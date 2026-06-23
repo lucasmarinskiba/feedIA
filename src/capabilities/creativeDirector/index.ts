@@ -12,3 +12,4 @@ export {
 } from './instagramCarouselPrinciples.js';
 export { PINTEREST_AESTHETICS, formatAestheticForPrompt, getAestheticByKeywords, type PinterestAesthetic } from './pinterestAesthetics.js';
 export { CREATIVE_DIRECTOR, GRAPHIC_DESIGNER, COPYWRITER_GROWTH, SOCIAL_MEDIA_ANALYST } from './creativePersonas.js';
+export { artDirector, generatePinterestPrompt, generateCarouselArtDirectionPrompt, type PinterestDesignBrief } from './artDirector.js';
