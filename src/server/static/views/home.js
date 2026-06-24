@@ -552,7 +552,7 @@ const renderBrandKitBanner = async (container) => {
   // Insertar banner al tope del home
   const banner = document.createElement('div');
   banner.style.cssText =
-    'margin:14px 16px;padding:14px 18px;border-radius:12px;background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(99,102,241,.08));border:1px solid rgba(168,85,247,.3);display:flex;align-items:center;gap:14px;flex-wrap:wrap;';
+    'margin:14px 16px;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(99,102,241,.08));border:1px solid rgba(168,85,247,.3);display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
   banner.innerHTML = `
     <div style="font-size:32px;">🎨</div>
     <div style="flex:1;min-width:200px;">
