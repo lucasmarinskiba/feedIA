@@ -77,11 +77,11 @@ export const renderApprovals = async (root) => {
         total === 0
           ? '<div class="card" style="text-align:center;padding:36px;"><div style="font-size:42px;margin-bottom:10px;">🎉</div><div class="muted">Nada pendiente. FeedIA está al día.</div></div>'
           : `<div class="col-header"><h3>Pendientes (${total})</h3></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">` +
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">` +
             allItems
               .map(
                 (it) => `
-          <div class="card ws-row" style="aspect-ratio:1;display:flex;flex-direction:column;justify-content:space-between;padding:14px;${it._cua ? 'border-left:3px solid #a855f7;' : ''}">
+          <div class="card ws-row" style="aspect-ratio:1;display:flex;flex-direction:column;justify-content:space-between;padding:10px;${it._cua ? 'border-left:3px solid #a855f7;' : ''}">
             <div style="overflow:hidden;">
               <div class="meta">
                 <span class="tag ${it.kind === 'checkpoint' ? 'warn' : it.kind === 'cua' ? 'accent' : 'info'} tiny">${escape(it.kind)}</span>
