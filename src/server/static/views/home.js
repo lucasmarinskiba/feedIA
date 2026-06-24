@@ -316,16 +316,6 @@ const buildHomeHTML = (identity, dashboard, kpisData, isOffline) => {
       </div>
     </div>
 
-    ${
-      dashboard?.privateMessage
-        ? `
-      <div class="card" style="margin-top:20px;padding:18px;background:var(--bg-card-2);border-left:3px solid var(--accent);">
-        <div class="small muted">Nota privada</div>
-        <p style="margin:6px 0 0;font-style:italic;">${escape(dashboard.privateMessage)}</p>
-      </div>`
-        : ''
-    }
-
     <!-- Aprobaciones embebido (Tablero ya vive arriba, al lado de los KPIs) -->
     <section class="home-embed-section" style="margin-top:24px;">
       <h2 style="font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:8px;">✅ Aprobaciones</h2>
