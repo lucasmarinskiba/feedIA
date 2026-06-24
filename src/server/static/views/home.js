@@ -188,9 +188,9 @@ const buildHomeHTML = (identity, dashboard, kpisData, isOffline) => {
 
     <style>
       #home-connections-banner:empty,#home-usage-widget:empty{display:none;}
-      .home-split{display:grid!important;grid-template-columns:30% 70%!important;gap:18px;align-items:start;margin-bottom:24px;margin-top:-12px;}
+      .home-split{display:grid!important;grid-template-columns:30% 70%!important;gap:18px;align-items:stretch;margin-bottom:24px;margin-top:-12px;}
       .home-split .stats-grid{margin-bottom:0;}
-      .home-split-right{max-height:560px;overflow:auto;}
+      .home-split-right{overflow:auto;}
       @media (max-width: 600px){ .home-split{grid-template-columns:1fr;} .home-split-right{max-height:none;} }
     </style>
 
