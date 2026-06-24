@@ -754,9 +754,9 @@ export const renderImperio = async (root) => {
         color:var(--v2-fg);
       }
 
-      /* Tabs minimal */
-      .v2-tabs{display:flex;gap:2px;padding:4px;background:var(--v2-surface);box-shadow:inset 0 0 0 1px var(--v2-line);border-radius:10px;margin-bottom:24px;}
-      .v2-tab{flex-shrink:1;padding:7px 12px;border-radius:6px;border:0;background:transparent;color:var(--v2-fg-3);font-size:12.5px;font-weight:500;letter-spacing:-0.01em;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s;}
+      /* Tabs grid 6x3 */
+      .v2-tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:12px;background:var(--v2-surface);box-shadow:inset 0 0 0 1px var(--v2-line);border-radius:10px;margin-bottom:24px;}
+      .v2-tab{padding:8px 12px;border-radius:6px;border:1px solid var(--v2-line);background:transparent;color:var(--v2-fg-3);font-size:12.5px;font-weight:500;letter-spacing:-0.01em;cursor:pointer;white-space:normal;text-align:center;transition:background .15s,color .15s,border-color .15s;}
       .v2-tab:hover{background:var(--v2-hover);color:var(--v2-fg);}
       .v2-tab.is-active{background:var(--v2-hover);color:var(--v2-fg);box-shadow:inset 0 0 0 1px var(--v2-line-strong);}
 
