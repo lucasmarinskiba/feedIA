@@ -145,7 +145,7 @@ const buildHomeHTML = (identity, dashboard, kpisData, isOffline) => {
   const themeSecondary = dashboard?.themeColors?.secondary ?? '#E85A2C';
 
   return `
-    <div class="home-greeting" style="padding:16px 20px;background:linear-gradient(135deg,${themePrimary} 0%,${themeSecondary} 100%);border-radius:16px;color:white;margin-bottom:16px;">
+    <div class="home-greeting" style="padding:16px 20px;background:linear-gradient(135deg,${themePrimary} 0%,${themeSecondary} 100%);border-radius:16px;color:white;margin-bottom:8px;">
       <div style="display:flex;gap:14px;align-items:center;">
         <div style="font-size:40px;line-height:1;flex-shrink:0;">${escape(mascotEmoji)}</div>
         <div style="flex:1;min-width:0;">
