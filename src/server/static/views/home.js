@@ -145,7 +145,7 @@ const buildHomeHTML = (identity, dashboard, kpisData, isOffline) => {
   const themeSecondary = dashboard?.themeColors?.secondary ?? '#E85A2C';
 
   return `
-    <div class="home-greeting" style="padding:16px 20px;background:linear-gradient(135deg,${themePrimary} 0%,${themeSecondary} 100%);border-radius:16px;color:white;margin-bottom:8px;">
+    <div class="home-greeting" style="padding:16px 20px;background:linear-gradient(135deg,${themePrimary} 0%,${themeSecondary} 100%);border-radius:16px;color:white;margin-bottom:0;">
       <div style="display:flex;gap:14px;align-items:center;">
         <div style="font-size:40px;line-height:1;flex-shrink:0;">${escape(mascotEmoji)}</div>
         <div style="flex:1;min-width:0;">
@@ -187,7 +187,8 @@ const buildHomeHTML = (identity, dashboard, kpisData, isOffline) => {
     </div>
 
     <style>
-      .home-split{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-bottom:24px;}
+      #home-connections-banner:empty,#home-usage-widget:empty{display:none;}
+      .home-split{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-bottom:24px;margin-top:-12px;}
       .home-split .stats-grid{margin-bottom:0;}
       .home-split-right{max-height:560px;overflow:auto;}
       @media (max-width: 980px){ .home-split{grid-template-columns:1fr;} .home-split-right{max-height:none;} }
