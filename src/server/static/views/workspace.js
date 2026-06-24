@@ -76,7 +76,7 @@ export const renderApprovals = async (root) => {
       ${
         total === 0
           ? '<div class="card" style="text-align:center;padding:36px;"><div style="font-size:42px;margin-bottom:10px;">🎉</div><div class="muted">Nada pendiente. FeedIA está al día.</div></div>'
-          : `<div class="col-header"><h3 style="margin-left:12px;">Pendientes (${total})</h3></div>
+          : `<div class="col-header"><h3 style="margin-left:12px;margin-top:12px;">Pendientes (${total})</h3></div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">` +
             allItems
               .map(
