@@ -76,12 +76,13 @@ export const renderApprovals = async (root) => {
       ${
         total === 0
           ? '<div class="card" style="text-align:center;padding:36px;"><div style="font-size:42px;margin-bottom:10px;">🎉</div><div class="muted">Nada pendiente. FeedIA está al día.</div></div>'
-          : `<div class="col-header"><h3>Pendientes (${total})</h3></div>` +
+          : `<div class="col-header"><h3>Pendientes (${total})</h3></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">` +
             allItems
               .map(
                 (it) => `
-          <div class="card ws-row" ${it._cua ? 'style="border-left:3px solid #a855f7;"' : ''}>
-            <div style="flex:1;min-width:0;">
+          <div class="card ws-row" style="aspect-ratio:1;display:flex;flex-direction:column;justify-content:space-between;padding:14px;${it._cua ? 'border-left:3px solid #a855f7;' : ''}">
+            <div style="overflow:hidden;">
               <div class="meta">
                 <span class="tag ${it.kind === 'checkpoint' ? 'warn' : it.kind === 'cua' ? 'accent' : 'info'} tiny">${escape(it.kind)}</span>
                 <span class="tiny muted">${fmt.rel(it.createdAt)}</span>
@@ -91,15 +92,16 @@ export const renderApprovals = async (root) => {
             </div>
             ${
               it.actionableId
-                ? `<div class="btn-row" style="flex-shrink:0;">
-              <button class="btn primary tiny" data-ap="${escape(it.actionableId)}" data-d="approve" data-cua="${it._cua ? '1' : '0'}">✓ Aprobar</button>
-              <button class="btn ghost tiny" data-ap="${escape(it.actionableId)}" data-d="reject" data-cua="${it._cua ? '1' : '0'}">✗ Rechazar</button>
+                ? `<div style="display:flex;gap:6px;margin-top:10px;">
+              <button class="btn primary tiny" style="flex:1;" data-ap="${escape(it.actionableId)}" data-d="approve" data-cua="${it._cua ? '1' : '0'}">✓</button>
+              <button class="btn ghost tiny" style="flex:1;" data-ap="${escape(it.actionableId)}" data-d="reject" data-cua="${it._cua ? '1' : '0'}">✗</button>
             </div>`
                 : '<span class="tag tiny muted">revisar en su sección</span>'
             }
           </div>`,
               )
               .join('')
+          + `</div>`
       }`;
 
     host.querySelectorAll('[data-ap]').forEach((b) =>
