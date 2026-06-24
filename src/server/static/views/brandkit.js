@@ -161,9 +161,10 @@ const renderShell = (kit = {}) => `
     .bk-emoji{font-size:36px;}
     .bk-title{margin:0;font-size:20px;font-weight:900;color:var(--text-primary,var(--fg));}
     .bk-sub{margin:3px 0 0;font-size:12px;color:var(--text-secondary,var(--fg-2));}
-    .bk-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .bk-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;}
+    @media(max-width:1000px){.bk-grid{grid-template-columns:1fr 1fr;}}
     @media(max-width:640px){.bk-grid{grid-template-columns:1fr;}}
-    .bk-card{padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--card,rgba(255,255,255,.02));display:flex;flex-direction:column;gap:10px;}
+    .bk-card{padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--card,rgba(255,255,255,.02));display:flex;flex-direction:column;gap:8px;}
     .bk-full{grid-column:1/-1;}
     .bk-card-label{font-size:12px;font-weight:700;color:var(--text-secondary,var(--fg-2));letter-spacing:0.5px;}
     .bk-input{background:var(--bg,#0a0a0a);color:var(--text-primary,var(--fg));border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13.5px;font-family:inherit;}
