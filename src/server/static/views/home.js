@@ -158,10 +158,10 @@ const buildHomeHTML = (identity, dashboard, kpisData, isOffline) => {
     </div>
 
     <!-- Banner de conexión IG/TT -->
-    <div id="home-connections-banner" style="margin-bottom:4px;"></div>
+    <div id="home-connections-banner" style="margin-bottom:0;"></div>
 
     <!-- Widget de uso del plan -->
-    <div id="home-usage-widget" style="margin-bottom:4px;"></div>
+    <div id="home-usage-widget" style="margin-bottom:0;"></div>
 
     <!-- 2 columnas: KPIs (período + métricas) a la izquierda, Tablero a la derecha -->
     <div class="home-split">
