@@ -756,7 +756,7 @@ export const renderImperio = async (root) => {
 
       /* Tabs grid 6x3 */
       .v2-tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:12px;background:var(--v2-surface);box-shadow:inset 0 0 0 1px var(--v2-line);border-radius:10px;margin-bottom:24px;}
-      .v2-tab{padding:12px 14px;border-radius:8px;border:1.5px solid var(--v2-line-strong);background:var(--v2-surface-2);color:var(--v2-fg-3);font-size:12.5px;font-weight:500;letter-spacing:-0.01em;cursor:pointer;white-space:normal;text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s,border-color .15s;}
+      .v2-tab{padding:12px 14px;border-radius:8px;border:1.5px solid #444;background:#222;color:var(--v2-fg-3);font-size:12.5px;font-weight:500;letter-spacing:-0.01em;cursor:pointer;white-space:normal;text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s,border-color .15s;}
       .v2-tab:hover{background:var(--v2-hover);color:var(--v2-fg);}
       .v2-tab.is-active{background:var(--v2-hover);color:var(--v2-fg);box-shadow:inset 0 0 0 1px var(--v2-line-strong);}
 
