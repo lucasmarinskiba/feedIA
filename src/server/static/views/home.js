@@ -191,7 +191,7 @@ const buildHomeHTML = (identity, dashboard, kpisData, isOffline) => {
       .home-split{display:grid;grid-template-columns:30% 70%;gap:18px;align-items:start;margin-bottom:24px;margin-top:-12px;}
       .home-split .stats-grid{margin-bottom:0;}
       .home-split-right{max-height:560px;overflow:auto;}
-      @media (max-width: 980px){ .home-split{grid-template-columns:1fr;} .home-split-right{max-height:none;} }
+      @media (max-width: 600px){ .home-split{grid-template-columns:1fr;} .home-split-right{max-height:none;} }
     </style>
 
     ${
