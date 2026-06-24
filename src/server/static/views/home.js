@@ -166,7 +166,7 @@ const buildHomeHTML = (identity, dashboard, kpisData, isOffline) => {
     <!-- 2 columnas: KPIs (período + métricas) a la izquierda, Tablero a la derecha -->
     <div class="home-split">
       <div class="home-split-left">
-        <div class="home-period-bar" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+        <div class="home-period-bar" style="display:flex;align-items:center;gap:4px;margin-bottom:12px;flex-wrap:wrap;">
           <span class="small muted">Período:</span>
           ${[7, 30, 90, 365]
             .map(
@@ -188,7 +188,7 @@ const buildHomeHTML = (identity, dashboard, kpisData, isOffline) => {
 
     <style>
       #home-connections-banner:empty,#home-usage-widget:empty{display:none;}
-      .home-split{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-bottom:24px;margin-top:-12px;}
+      .home-split{display:grid;grid-template-columns:1fr 1.5fr;gap:18px;align-items:start;margin-bottom:24px;margin-top:-12px;}
       .home-split .stats-grid{margin-bottom:0;}
       .home-split-right{max-height:560px;overflow:auto;}
       @media (max-width: 980px){ .home-split{grid-template-columns:1fr;} .home-split-right{max-height:none;} }
