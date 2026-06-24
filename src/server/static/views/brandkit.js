@@ -127,13 +127,13 @@ const renderShell = (kit = {}) => `
 
       <div class="bk-card">
         <div class="bk-card-label">📷 Foto protagonista (vos / producto)</div>
-        ${kit.photo ? `<img src="${escape(kit.photo)}" alt="foto" class="bk-photo-preview" />` : '<div class="bk-photo-empty">Sin foto cargada</div>'}
+        ${kit.photo ? `<img src="${escape(kit.photo)}" alt="foto" class="bk-photo-preview" />` : '<div class="bk-photo-empty">Arrastra una foto aquí<br><span style="font-size:11px;font-style:italic;">o haz clic para seleccionar</span></div>'}
         <input id="bk-photo" type="file" class="bk-file" accept="image/*" />
       </div>
 
       <div class="bk-card">
         <div class="bk-card-label">🏷️ Logo de marca</div>
-        ${kit.logo ? `<img src="${escape(kit.logo)}" alt="logo" class="bk-photo-preview" style="max-height:80px;background:#fff;padding:10px;" />` : '<div class="bk-photo-empty">Sin logo cargado</div>'}
+        ${kit.logo ? `<img src="${escape(kit.logo)}" alt="logo" class="bk-photo-preview" style="max-height:80px;background:#fff;padding:10px;" />` : '<div class="bk-photo-empty">Arrastra logo aquí<br><span style="font-size:11px;font-style:italic;">o haz clic para seleccionar</span></div>'}
         <input id="bk-logo" type="file" class="bk-file" accept="image/*" />
       </div>
 
@@ -161,20 +161,22 @@ const renderShell = (kit = {}) => `
     .bk-emoji{font-size:42px;}
     .bk-title{margin:0;font-size:22px;font-weight:900;color:var(--text-primary,var(--fg));}
     .bk-sub{margin:4px 0 0;font-size:13px;color:var(--text-secondary,var(--fg-2));}
-    .bk-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .bk-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
     @media(max-width:640px){.bk-grid{grid-template-columns:1fr;}}
-    .bk-card{padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--card,rgba(255,255,255,.02));display:flex;flex-direction:column;gap:8px;}
+    .bk-card{padding:18px;border:1px solid var(--border);border-radius:12px;background:var(--card,rgba(255,255,255,.02));display:flex;flex-direction:column;gap:12px;}
     .bk-full{grid-column:1/-1;}
-    .bk-card-label{font-size:11.5px;font-weight:700;color:var(--text-secondary,var(--fg-2));text-transform:uppercase;letter-spacing:1px;}
-    .bk-input{background:var(--bg,#0a0a0a);color:var(--text-primary,var(--fg));border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13.5px;font-family:inherit;}
+    .bk-card-label{font-size:12px;font-weight:700;color:var(--text-secondary,var(--fg-2));letter-spacing:0.5px;}
+    .bk-input{background:var(--bg,#0a0a0a);color:var(--text-primary,var(--fg));border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13.5px;font-family:inherit;}
+    .bk-input:focus{outline:none;border-color:var(--accent,#10F2B0);box-shadow:0 0 0 2px rgba(16,242,176,.1);}
     .bk-input-sm{padding:6px 10px;font-size:12px;}
-    .bk-color-row{display:flex;flex-direction:column;gap:6px;}
-    .bk-color-cell{display:flex;align-items:center;gap:8px;}
-    .bk-color-cell span{font-size:11.5px;width:60px;color:var(--text-tertiary,var(--fg-3));}
-    .bk-color-cell input[type=color]{width:42px;height:32px;padding:0;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer;}
+    .bk-color-row{display:flex;flex-direction:column;gap:10px;}
+    .bk-color-cell{display:flex;align-items:center;gap:12px;}
+    .bk-color-cell span{font-size:12px;font-weight:600;width:50px;color:var(--text-secondary,var(--fg-2));}
+    .bk-color-cell input[type=color]{width:56px;height:56px;padding:2px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;}
     .bk-color-cell .bk-input-sm{flex:1;}
-    .bk-photo-preview{max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border);object-fit:cover;}
-    .bk-photo-empty{font-size:12px;color:var(--text-tertiary,var(--fg-3));font-style:italic;padding:18px;text-align:center;border:1px dashed var(--border);border-radius:8px;}
+    .bk-photo-preview{max-width:100%;max-height:180px;border-radius:10px;border:1px solid var(--border);object-fit:cover;}
+    .bk-photo-empty{font-size:13px;color:var(--text-tertiary,var(--fg-3));padding:32px 16px;text-align:center;border:2px dashed var(--border);border-radius:10px;background:rgba(16,242,176,.03);display:flex;align-items:center;justify-content:center;min-height:120px;flex-direction:column;gap:8px;}
+    .bk-photo-empty::before{content:'📤';font-size:28px;}
     .bk-file{font-size:12px;color:var(--text-secondary,var(--fg-2));}
     .bk-actions{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-top:16px;}
     .bk-btn{padding:10px 22px;border:none;border-radius:10px;font-weight:800;font-size:13.5px;cursor:pointer;font-family:inherit;}
