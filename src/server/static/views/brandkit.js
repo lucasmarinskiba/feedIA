@@ -156,14 +156,14 @@ const renderShell = (kit = {}) => `
   </div>
 
   <style>
-    .bk-shell{max-width:920px;margin:24px auto;padding:0 16px;}
-    .bk-hero{display:flex;gap:16px;align-items:center;margin-bottom:20px;padding:16px;border-radius:14px;background:linear-gradient(135deg,rgba(168,85,247,.12),rgba(99,102,241,.06));}
-    .bk-emoji{font-size:42px;}
-    .bk-title{margin:0;font-size:22px;font-weight:900;color:var(--text-primary,var(--fg));}
-    .bk-sub{margin:4px 0 0;font-size:13px;color:var(--text-secondary,var(--fg-2));}
-    .bk-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+    .bk-shell{max-width:1200px;margin:8px auto;padding:0 16px;}
+    .bk-hero{display:flex;gap:14px;align-items:center;margin-bottom:12px;padding:12px 14px;border-radius:10px;background:linear-gradient(135deg,rgba(168,85,247,.12),rgba(99,102,241,.06));}
+    .bk-emoji{font-size:36px;}
+    .bk-title{margin:0;font-size:20px;font-weight:900;color:var(--text-primary,var(--fg));}
+    .bk-sub{margin:3px 0 0;font-size:12px;color:var(--text-secondary,var(--fg-2));}
+    .bk-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
     @media(max-width:640px){.bk-grid{grid-template-columns:1fr;}}
-    .bk-card{padding:18px;border:1px solid var(--border);border-radius:12px;background:var(--card,rgba(255,255,255,.02));display:flex;flex-direction:column;gap:12px;}
+    .bk-card{padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--card,rgba(255,255,255,.02));display:flex;flex-direction:column;gap:10px;}
     .bk-full{grid-column:1/-1;}
     .bk-card-label{font-size:12px;font-weight:700;color:var(--text-secondary,var(--fg-2));letter-spacing:0.5px;}
     .bk-input{background:var(--bg,#0a0a0a);color:var(--text-primary,var(--fg));border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13.5px;font-family:inherit;}
