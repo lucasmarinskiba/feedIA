@@ -81,7 +81,7 @@ export const renderApprovals = async (root) => {
             allItems
               .map(
                 (it) => `
-          <div class="card ws-row" style="aspect-ratio:1;display:flex;flex-direction:column;justify-content:space-between;padding:10px;${it._cua ? 'border-left:3px solid #a855f7;' : ''}">
+          <div class="card ws-row" style="aspect-ratio:3;display:flex;flex-direction:column;justify-content:space-between;padding:10px;${it._cua ? 'border-left:3px solid #a855f7;' : ''}">
             <div style="overflow:hidden;">
               <div class="meta">
                 <span class="tag ${it.kind === 'checkpoint' ? 'warn' : it.kind === 'cua' ? 'accent' : 'info'} tiny">${escape(it.kind)}</span>
