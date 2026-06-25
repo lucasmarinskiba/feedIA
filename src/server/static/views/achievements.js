@@ -55,6 +55,7 @@ let activeCategory = null;
 let activePlatform = null; // null, 'instagram', 'tiktok', 'general'
 let showOnlyUnlocked = false;
 let lastUnlockedCount = 0;
+let all = []; // All achievements — module-level cache to fix scope issues in callbacks
 
 const getPlatform = (category) => {
   if (!category) return 'general';
@@ -151,7 +152,7 @@ export const renderAchievements = async (container) => {
     apiSafe('/api/achievements/snapshot', EMPTY_SNAPSHOT),
     apiSafe('/api/achievements/next', []),
   ]);
-  const all = Array.isArray(allRes.data) ? allRes.data : [];
+  all = Array.isArray(allRes.data) ? allRes.data : [];
   const unlocked = Array.isArray(unlockedRes.data) ? unlockedRes.data : [];
   const snapshot = snapshotRes.data ?? EMPTY_SNAPSHOT;
   const next = Array.isArray(nextRes.data) ? nextRes.data : [];
@@ -170,7 +171,7 @@ export const renderAchievements = async (container) => {
     <div class="card stat-card">
       <div class="stat-label">Desbloqueados</div>
       <div class="stat-value">${snapshot.totalUnlocked}/${snapshot.totalAvailable}</div>
-      <div class="small muted">${(snapshot.completionPct ?? 0).toFixed(1)}%</div>
+      <div class="small muted">${((snapshot?.completionPct) ?? 0).toFixed(1)}%</div>
     </div>
     <div class="card stat-card">
       <div class="stat-label">Puntos</div>
