@@ -7,6 +7,7 @@ import { toast } from '../lib/toast.js';
 import { getAchievementIcon } from '../js/achievement-icons.js';
 import { getInstagramIcon } from '../js/instagram-icons.js';
 import { getTikTokIcon } from '../js/tiktok-icons.js';
+import { getGeneralIcon } from '../js/general-icons.js';
 
 const EMPTY_SNAPSHOT = {
   totalUnlocked: 0,
@@ -65,7 +66,7 @@ const getIconForAchievement = (id, platform) => {
   platform = platform || 'general';
   if (platform === 'instagram') return getInstagramIcon(id);
   if (platform === 'tiktok') return getTikTokIcon(id);
-  return getAchievementIcon(id);
+  return getGeneralIcon(id);
 };
 
 const playSound = (rarity) => {
