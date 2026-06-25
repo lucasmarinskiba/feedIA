@@ -100,7 +100,7 @@ const showUnlockNotification = (achievement) => {
   playSound(rarity);
 
   // Visual pulse effect
-  const shelf = container.querySelector('#medal-shelf');
+  const shelf = container?.querySelector('#medal-shelf');
   if (shelf) {
     shelf.style.animation = 'none';
     setTimeout(() => {
@@ -344,7 +344,7 @@ export const renderAchievements = async (containerEl) => {
   }
 
   // Listeners — platform & category filters
-  container.querySelector('#cat-filter').addEventListener('click', (e) => {
+  container?.querySelector('#cat-filter')?.addEventListener('click', (e) => {
     const platformBtn = e.target.closest('[data-platform]');
     const catBtn = e.target.closest('[data-cat]');
 
@@ -357,12 +357,12 @@ export const renderAchievements = async (containerEl) => {
     }
   });
 
-  container.querySelector('#only-unlocked').addEventListener('change', (e) => {
+  container?.querySelector('#only-unlocked')?.addEventListener('change', (e) => {
     showOnlyUnlocked = e.target.checked;
     renderAchievements(container);
   });
 
-  container.querySelector('#evaluate-btn').addEventListener('click', async () => {
+  container?.querySelector('#evaluate-btn')?.addEventListener('click', async () => {
     toast('Evaluando achievements...', 'info');
     apiBust('/api/achievements');
     const { data: newUnlocks } = await apiSafe('/api/achievements/evaluate', [], { method: 'POST', body: {} });
