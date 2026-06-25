@@ -162,9 +162,17 @@ const ROUTE_LABELS = {
 };
 
 /* ══════════════════════════════════════════════════════════
-   CORE ELEMENTS
+   CORE ELEMENTS (lazy-evaluated to ensure DOM ready)
    ══════════════════════════════════════════════════════════ */
-const $view = document.querySelector('#view');
+let _$view = null;
+const getView = () => {
+  if (!_$view) _$view = document.querySelector('#view');
+  return _$view;
+};
+Object.defineProperty(window, '$view', {
+  get: getView,
+  configurable: true,
+});
 const $fabMenu = document.querySelector('#fab-menu');
 const $fabBtn = document.querySelector('#fab-btn');
 const $fabBdrop = document.querySelector('#fab-backdrop');
