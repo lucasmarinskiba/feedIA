@@ -60,6 +60,7 @@ let eventSource = null; // Global SSE instance — ensures single connection
 let pollInterval = null; // Cleanup reference
 let reconnectInterval = null; // Cleanup reference
 let container = null; // Module-level reference to container DOM element
+let unlocked = []; // Module-level so click/SSE callbacks can access it
 
 const getPlatform = (category) => {
   if (!category) return 'general';
@@ -162,7 +163,7 @@ export const renderAchievements = async (containerEl) => {
     apiSafe('/api/achievements/next', []),
   ]);
   all = Array.isArray(allRes.data) ? allRes.data : [];
-  const unlocked = Array.isArray(unlockedRes.data) ? unlockedRes.data : [];
+  unlocked = Array.isArray(unlockedRes.data) ? unlockedRes.data : [];
   const snapshot = snapshotRes.data ?? EMPTY_SNAPSHOT;
   const next = Array.isArray(nextRes.data) ? nextRes.data : [];
   const isOffline = !!allRes.error && !!snapshotRes.error;
@@ -315,7 +316,7 @@ export const renderAchievements = async (containerEl) => {
   `;
 
   // Grid
-  const unlockedMap = new Map(unlocked.map((u) => [u.id, u]));
+  // unlockedMap already defined above
   let visible = all;
   if (activePlatform) visible = visible.filter((a) => getPlatform(a.category) === activePlatform);
   if (activeCategory) visible = visible.filter((a) => a.category === activeCategory);
