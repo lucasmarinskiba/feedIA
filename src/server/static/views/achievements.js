@@ -68,7 +68,7 @@ export const renderAchievements = async (container) => {
       <h1>🏆 Logros</h1>
       <p class="muted">Cada paso del camino tiene un trofeo. Coleccionalos.</p>
     </div>
-    <div id="achievements-stats" class="stats-grid" style="margin-bottom:20px;"></div>
+    <div id="achievements-stats" class="stats-grid" style="margin-bottom:20px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;"></div>
     <div class="hook-category-filter" id="cat-filter"></div>
     <div style="margin:10px 0;display:flex;gap:10px;align-items:center;">
       <label class="small"><input type="checkbox" id="only-unlocked"> Solo desbloqueados</label>
