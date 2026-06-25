@@ -4775,4 +4775,20 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       json(res, 200, await fetchTikTokVideos(limit, brandId));
     },
   },
+
+  // ─── Platform Health Check ──────────────────────────────────────────────────
+  {
+    method: 'GET',
+    pattern: '/api/platform/health',
+    handler: async ({ res }) => {
+      const { checkAllPlatforms } = await import('../integrations/platformHealthCheck.js');
+      const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
+      const health = await checkAllPlatforms(brandId);
+      json(res, 200, {
+        timestamp: new Date().toISOString(),
+        platforms: health,
+        allHealthy: health.every((h) => h.status === 'ok'),
+      });
+    },
+  },
 ];
