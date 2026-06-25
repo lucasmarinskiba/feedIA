@@ -5,26 +5,27 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { recordDailySnapshot, getRecentDailyMetrics, getAchievementsSnapshot } from '../capabilities/growth/growthEngine.js';
-import { evaluateAchievements } from '../capabilities/experience/achievementSystem.js';
+import { recordDailySnapshot, getRecentDailyMetrics } from '../capabilities/growth/growthEngine.js';
 import type { BrandProfile } from '../config/types.js';
 
-// Mock brand profile
-const mockBrand: BrandProfile = {
+// Mock brand profile (minimal required fields)
+const mockBrand = {
   id: 'test-brand',
   name: 'Test Brand',
-  country: 'AR',
-  language: 'es',
-  timezone: 'America/Argentina/Buenos_Aires',
-  instagramHandle: '@testbrand',
-  igBusinessId: 'test-ig-id',
-  tiktokHandle: '@testbrand',
-  tiktokOpenId: 'test-tt-id',
-  industry: 'tech',
-  accountType: 'creator',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-};
+  type: 'marca-personal' as const,
+  niche: 'tech',
+  audience: {
+    description: 'Tech enthusiasts',
+    pains: [] as string[],
+    desires: [] as string[],
+    locale: 'es-AR',
+  },
+  voice: {
+    tone: ['professional'],
+    forbidden: [] as string[],
+    referenceQuotes: [] as string[],
+  },
+} as unknown as BrandProfile;
 
 describe('Metrics Flow: Platform Data → Achievements', () => {
   beforeEach(() => {
@@ -189,7 +190,7 @@ describe('Metrics Flow: Platform Data → Achievements', () => {
 
   it('achievement snapshot should include platform milestone counts', () => {
     // Record multiple milestones
-    recordDailySnapshot({
+    const snapshot = recordDailySnapshot({
       date: new Date().toISOString().split('T')[0]!,
       followers: 10000,
       reach24h: 100000,
@@ -200,10 +201,10 @@ describe('Metrics Flow: Platform Data → Achievements', () => {
       instagramFollowers: 9000,
     });
 
-    const snapshot = getAchievementsSnapshot();
+    // Verify data recorded (achievement evaluation happens separately)
     expect(snapshot).toBeDefined();
-    expect(snapshot.totalUnlocked).toBeGreaterThanOrEqual(0);
-    // Unlock status depends on what's configured in DB
+    expect(snapshot.tiktokFollowers).toBe(1000);
+    expect(snapshot.instagramFollowers).toBe(9000);
   });
 });
 

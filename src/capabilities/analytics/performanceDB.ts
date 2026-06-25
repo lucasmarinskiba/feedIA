@@ -28,6 +28,7 @@ export interface PostRecord {
   id: string;
   publishedAt: string; // ISO
   format: ContentFormat;
+  platform?: 'instagram' | 'tiktok'; // platform source
   caption: string;
   hashtags: string[];
   hookText: string; // primera línea del caption
