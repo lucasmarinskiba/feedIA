@@ -34,7 +34,11 @@ export type AchievementCategory =
   | 'ventas' // leads, conversions
   | 'rituales' // streak diario, consistencia
   | 'maestría' // dominio del sistema
-  | 'especiales'; // momentos únicos
+  | 'especiales' // momentos únicos
+  | 'tiktok-crecimiento' // TikTok followers
+  | 'tiktok-engagement' // TikTok likes
+  | 'instagram-crecimiento' // Instagram followers
+  | 'instagram-engagement'; // Instagram likes
 
 export type AchievementRarity = 'común' | 'rara' | 'épica' | 'legendaria' | 'mítica';
 
@@ -87,6 +91,10 @@ const DEFAULT_STORE: AchievementsStore = {
     rituales: 0,
     maestría: 0,
     especiales: 0,
+    'tiktok-crecimiento': 0,
+    'tiktok-engagement': 0,
+    'instagram-crecimiento': 0,
+    'instagram-engagement': 0,
   },
   byRarity: { común: 0, rara: 0, épica: 0, legendaria: 0, mítica: 0 },
 };
@@ -913,6 +921,481 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockSound: 'epic-orchestra',
     unlockAnimation: 'phoenix-rise',
     shareableText: '',
+  },
+
+  // ── TIKTOK CRECIMIENTO ──────────────────────────────────────────────────────
+  {
+    id: 'tt-100-seg',
+    name: 'Primeros 100 en TikTok',
+    description: '100 seguidores en TikTok',
+    category: 'tiktok-crecimiento',
+    rarity: 'común',
+    emoji: '🎵',
+    badgeIcon: 'tiktok-sprout',
+    flavorText: 'TikTok te conoce.',
+    unlockCondition: 'Alcanzar 100 seguidores en TikTok',
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      return (last?.tiktokFollowers ?? 0) >= 100;
+    },
+    points: 15,
+    hidden: false,
+    unlockSound: 'common-chime',
+    unlockAnimation: 'sparkle',
+    shareableText: '100 seguidores en TikTok 🎵',
+  },
+  {
+    id: 'tt-500-seg',
+    name: '500 Seguidores',
+    description: '500 seguidores en TikTok',
+    category: 'tiktok-crecimiento',
+    rarity: 'común',
+    emoji: '🎬',
+    badgeIcon: 'tiktok-grow',
+    flavorText: 'Tu contenido resonó.',
+    unlockCondition: 'Alcanzar 500 seguidores en TikTok',
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      return (last?.tiktokFollowers ?? 0) >= 500;
+    },
+    points: 25,
+    hidden: false,
+    unlockSound: 'common-chime',
+    unlockAnimation: 'sparkle',
+    shareableText: '500 seguidores en TikTok 🎬',
+  },
+  {
+    id: 'tt-1k-seg',
+    name: 'Club TikTok 1K',
+    description: '1.000 seguidores en TikTok',
+    category: 'tiktok-crecimiento',
+    rarity: 'rara',
+    emoji: '🚀',
+    badgeIcon: 'tiktok-rocket',
+    flavorText: 'Mil personas te siguen.',
+    unlockCondition: 'Alcanzar 1.000 seguidores en TikTok',
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      return (last?.tiktokFollowers ?? 0) >= 1000;
+    },
+    points: 50,
+    hidden: false,
+    unlockSound: 'rare-fanfare',
+    unlockAnimation: 'confetti-burst',
+    shareableText: '1K seguidores en TikTok 🚀',
+  },
+  {
+    id: 'tt-2.5k-seg',
+    name: '2.5K TikTokers',
+    description: '2.500 seguidores en TikTok',
+    category: 'tiktok-crecimiento',
+    rarity: 'rara',
+    emoji: '⭐',
+    badgeIcon: 'tiktok-star',
+    flavorText: 'El algoritmo te ama.',
+    unlockCondition: 'Alcanzar 2.500 seguidores en TikTok',
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      return (last?.tiktokFollowers ?? 0) >= 2500;
+    },
+    points: 75,
+    hidden: false,
+    unlockSound: 'rare-fanfare',
+    unlockAnimation: 'confetti-burst',
+    shareableText: '2.5K en TikTok ⭐',
+  },
+  {
+    id: 'tt-5k-seg',
+    name: '5K Viral',
+    description: '5.000 seguidores en TikTok',
+    category: 'tiktok-crecimiento',
+    rarity: 'rara',
+    emoji: '🔥',
+    badgeIcon: 'tiktok-flame',
+    flavorText: 'Tu contenido quema.',
+    unlockCondition: 'Alcanzar 5.000 seguidores en TikTok',
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      return (last?.tiktokFollowers ?? 0) >= 5000;
+    },
+    points: 100,
+    hidden: false,
+    unlockSound: 'rare-fanfare',
+    unlockAnimation: 'confetti-burst',
+    shareableText: '5K en TikTok 🔥',
+  },
+  {
+    id: 'tt-10k-seg',
+    name: 'Creador TikTok 10K',
+    description: '10.000 seguidores en TikTok',
+    category: 'tiktok-crecimiento',
+    rarity: 'épica',
+    emoji: '🏆',
+    badgeIcon: 'tiktok-trophy',
+    flavorText: 'Ya sos creator de verdad.',
+    unlockCondition: 'Alcanzar 10.000 seguidores en TikTok',
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      return (last?.tiktokFollowers ?? 0) >= 10000;
+    },
+    points: 250,
+    hidden: false,
+    unlockSound: 'epic-orchestra',
+    unlockAnimation: 'star-explosion',
+    shareableText: '10K creators en TikTok 🏆',
+  },
+  {
+    id: 'tt-25k-seg',
+    name: '25K Influencer',
+    description: '25.000 seguidores en TikTok',
+    category: 'tiktok-crecimiento',
+    rarity: 'épica',
+    emoji: '👑',
+    badgeIcon: 'tiktok-crown',
+    flavorText: 'Ya sois influencer.',
+    unlockCondition: 'Alcanzar 25.000 seguidores en TikTok',
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      return (last?.tiktokFollowers ?? 0) >= 25000;
+    },
+    points: 400,
+    hidden: false,
+    unlockSound: 'epic-orchestra',
+    unlockAnimation: 'star-explosion',
+    shareableText: '25K influencer en TikTok 👑',
+  },
+  {
+    id: 'tt-50k-seg',
+    name: '50K Star',
+    description: '50.000 seguidores en TikTok',
+    category: 'tiktok-crecimiento',
+    rarity: 'legendaria',
+    emoji: '💫',
+    badgeIcon: 'tiktok-star-burst',
+    flavorText: 'Medio millón de ojos sobre vos.',
+    unlockCondition: 'Alcanzar 50.000 seguidores en TikTok',
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      return (last?.tiktokFollowers ?? 0) >= 50000;
+    },
+    points: 600,
+    hidden: false,
+    unlockSound: 'legendary-choir',
+    unlockAnimation: 'phoenix-rise',
+    shareableText: '50K star en TikTok 💫',
+  },
+  {
+    id: 'tt-100k-seg',
+    name: 'TikTok Celeb 100K',
+    description: '100.000 seguidores en TikTok',
+    category: 'tiktok-crecimiento',
+    rarity: 'legendaria',
+    emoji: '🌟',
+    badgeIcon: 'tiktok-celebrity',
+    flavorText: 'Seis cifras. Sos celebridad.',
+    unlockCondition: 'Alcanzar 100.000 seguidores en TikTok',
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      return (last?.tiktokFollowers ?? 0) >= 100000;
+    },
+    points: 1000,
+    hidden: false,
+    unlockSound: 'legendary-choir',
+    unlockAnimation: 'phoenix-rise',
+    shareableText: '100K celebridad en TikTok 🌟',
+  },
+
+  // ── TIKTOK ENGAGEMENT ───────────────────────────────────────────────────────
+  {
+    id: 'tt-100-likes',
+    name: 'Primeros 100 Likes TT',
+    description: '100 likes totales en TikTok',
+    category: 'tiktok-engagement',
+    rarity: 'común',
+    emoji: '❤️',
+    badgeIcon: 'tiktok-heart',
+    flavorText: 'Primeros corazones en TikTok.',
+    unlockCondition: '100 likes acumulados en TikTok',
+    evaluator: (): boolean => {
+      const posts = getRecentPosts(365);
+      const ttLikes = posts
+        .filter((p) => p.platform === 'tiktok')
+        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      return ttLikes >= 100;
+    },
+    points: 20,
+    hidden: false,
+    unlockSound: 'common-chime',
+    unlockAnimation: 'sparkle',
+    shareableText: '100 likes en TikTok ❤️',
+  },
+  {
+    id: 'tt-1k-likes',
+    name: 'Mil Corazones TT',
+    description: '1.000 likes totales en TikTok',
+    category: 'tiktok-engagement',
+    rarity: 'rara',
+    emoji: '💕',
+    badgeIcon: 'tiktok-hearts',
+    flavorText: 'Tu contenido late fuerte.',
+    unlockCondition: '1.000 likes acumulados en TikTok',
+    evaluator: (): boolean => {
+      const posts = getRecentPosts(365);
+      const ttLikes = posts
+        .filter((p) => p.platform === 'tiktok')
+        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      return ttLikes >= 1000;
+    },
+    points: 80,
+    hidden: false,
+    unlockSound: 'rare-fanfare',
+    unlockAnimation: 'confetti-burst',
+    shareableText: '1K likes en TikTok 💕',
+  },
+  {
+    id: 'tt-10k-likes',
+    name: '10K Viral TT',
+    description: '10.000 likes totales en TikTok',
+    category: 'tiktok-engagement',
+    rarity: 'épica',
+    emoji: '🔥',
+    badgeIcon: 'tiktok-viral',
+    flavorText: 'Tu contenido es viral.',
+    unlockCondition: '10.000 likes acumulados en TikTok',
+    evaluator: (): boolean => {
+      const posts = getRecentPosts(365);
+      const ttLikes = posts
+        .filter((p) => p.platform === 'tiktok')
+        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      return ttLikes >= 10000;
+    },
+    points: 300,
+    hidden: false,
+    unlockSound: 'epic-orchestra',
+    unlockAnimation: 'star-explosion',
+    shareableText: '10K viral en TikTok 🔥',
+  },
+  {
+    id: 'tt-100k-likes',
+    name: '100K Mega Viral',
+    description: '100.000 likes totales en TikTok',
+    category: 'tiktok-engagement',
+    rarity: 'legendaria',
+    emoji: '💎',
+    badgeIcon: 'tiktok-mega',
+    flavorText: 'Cien mil corazones.',
+    unlockCondition: '100.000 likes acumulados en TikTok',
+    evaluator: (): boolean => {
+      const posts = getRecentPosts(365);
+      const ttLikes = posts
+        .filter((p) => p.platform === 'tiktok')
+        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      return ttLikes >= 100000;
+    },
+    points: 800,
+    hidden: false,
+    unlockSound: 'legendary-choir',
+    unlockAnimation: 'phoenix-rise',
+    shareableText: '100K mega viral en TikTok 💎',
+  },
+  {
+    id: 'tt-1m-likes',
+    name: '1M Fenómeno',
+    description: '1 millón de likes totales en TikTok',
+    category: 'tiktok-engagement',
+    rarity: 'mítica',
+    emoji: '👑',
+    badgeIcon: 'tiktok-million',
+    flavorText: 'Un millón de corazones. Sos historia.',
+    unlockCondition: '1.000.000 likes acumulados en TikTok',
+    evaluator: (): boolean => {
+      const posts = getRecentPosts(365);
+      const ttLikes = posts
+        .filter((p) => p.platform === 'tiktok')
+        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      return ttLikes >= 1000000;
+    },
+    points: 2000,
+    hidden: false,
+    unlockSound: 'mythic-revelation',
+    unlockAnimation: 'cosmic-reveal',
+    shareableText: '1M en TikTok 👑',
+  },
+
+  // ── INSTAGRAM CRECIMIENTO ───────────────────────────────────────────────────
+  {
+    id: 'ig-100-seg',
+    name: 'Primeros 100 en Instagram',
+    description: '100 seguidores en Instagram',
+    category: 'instagram-crecimiento',
+    rarity: 'común',
+    emoji: '📸',
+    badgeIcon: 'ig-sprout',
+    flavorText: 'Instagram te conoce.',
+    unlockCondition: 'Alcanzar 100 seguidores en Instagram',
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      return (last?.instagramFollowers ?? 0) >= 100;
+    },
+    points: 15,
+    hidden: false,
+    unlockSound: 'common-chime',
+    unlockAnimation: 'sparkle',
+    shareableText: '100 seguidores en Instagram 📸',
+  },
+  {
+    id: 'ig-1k-seg',
+    name: 'Club Instagram 1K',
+    description: '1.000 seguidores en Instagram',
+    category: 'instagram-crecimiento',
+    rarity: 'rara',
+    emoji: '🚀',
+    badgeIcon: 'ig-rocket',
+    flavorText: 'Mil personas en tu feed.',
+    unlockCondition: 'Alcanzar 1.000 seguidores en Instagram',
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      return (last?.instagramFollowers ?? 0) >= 1000;
+    },
+    points: 50,
+    hidden: false,
+    unlockSound: 'rare-fanfare',
+    unlockAnimation: 'confetti-burst',
+    shareableText: '1K en Instagram 🚀',
+  },
+  {
+    id: 'ig-10k-seg',
+    name: 'Creador Instagram 10K',
+    description: '10.000 seguidores en Instagram',
+    category: 'instagram-crecimiento',
+    rarity: 'épica',
+    emoji: '🏆',
+    badgeIcon: 'ig-trophy',
+    flavorText: 'Sos creador de Instagram.',
+    unlockCondition: 'Alcanzar 10.000 seguidores en Instagram',
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      return (last?.instagramFollowers ?? 0) >= 10000;
+    },
+    points: 250,
+    hidden: false,
+    unlockSound: 'epic-orchestra',
+    unlockAnimation: 'star-explosion',
+    shareableText: '10K creador en Instagram 🏆',
+  },
+  {
+    id: 'ig-100k-seg',
+    name: 'Instagram Celebrity 100K',
+    description: '100.000 seguidores en Instagram',
+    category: 'instagram-crecimiento',
+    rarity: 'legendaria',
+    emoji: '👑',
+    badgeIcon: 'ig-crown',
+    flavorText: 'Seis cifras en Instagram.',
+    unlockCondition: 'Alcanzar 100.000 seguidores en Instagram',
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      return (last?.instagramFollowers ?? 0) >= 100000;
+    },
+    points: 1000,
+    hidden: false,
+    unlockSound: 'legendary-choir',
+    unlockAnimation: 'phoenix-rise',
+    shareableText: '100K en Instagram 👑',
+  },
+
+  // ── INSTAGRAM ENGAGEMENT ────────────────────────────────────────────────────
+  {
+    id: 'ig-100-likes',
+    name: 'Primeros 100 Likes IG',
+    description: '100 likes totales en Instagram',
+    category: 'instagram-engagement',
+    rarity: 'común',
+    emoji: '❤️',
+    badgeIcon: 'ig-heart',
+    flavorText: 'Instagram te quiere.',
+    unlockCondition: '100 likes acumulados en Instagram',
+    evaluator: (): boolean => {
+      const posts = getRecentPosts(365);
+      const igLikes = posts
+        .filter((p) => p.platform === 'instagram')
+        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      return igLikes >= 100;
+    },
+    points: 20,
+    hidden: false,
+    unlockSound: 'common-chime',
+    unlockAnimation: 'sparkle',
+    shareableText: '100 likes en Instagram ❤️',
+  },
+  {
+    id: 'ig-1k-likes',
+    name: 'Mil Corazones IG',
+    description: '1.000 likes totales en Instagram',
+    category: 'instagram-engagement',
+    rarity: 'rara',
+    emoji: '💕',
+    badgeIcon: 'ig-hearts',
+    flavorText: 'Tu feed enamora.',
+    unlockCondition: '1.000 likes acumulados en Instagram',
+    evaluator: (): boolean => {
+      const posts = getRecentPosts(365);
+      const igLikes = posts
+        .filter((p) => p.platform === 'instagram')
+        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      return igLikes >= 1000;
+    },
+    points: 80,
+    hidden: false,
+    unlockSound: 'rare-fanfare',
+    unlockAnimation: 'confetti-burst',
+    shareableText: '1K likes en Instagram 💕',
+  },
+  {
+    id: 'ig-10k-likes',
+    name: '10K Hit IG',
+    description: '10.000 likes totales en Instagram',
+    category: 'instagram-engagement',
+    rarity: 'épica',
+    emoji: '🔥',
+    badgeIcon: 'ig-viral',
+    flavorText: 'Tu contenido es un hit.',
+    unlockCondition: '10.000 likes acumulados en Instagram',
+    evaluator: (): boolean => {
+      const posts = getRecentPosts(365);
+      const igLikes = posts
+        .filter((p) => p.platform === 'instagram')
+        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      return igLikes >= 10000;
+    },
+    points: 300,
+    hidden: false,
+    unlockSound: 'epic-orchestra',
+    unlockAnimation: 'star-explosion',
+    shareableText: '10K hit en Instagram 🔥',
+  },
+  {
+    id: 'ig-100k-likes',
+    name: '100K Sensación',
+    description: '100.000 likes totales en Instagram',
+    category: 'instagram-engagement',
+    rarity: 'legendaria',
+    emoji: '💎',
+    badgeIcon: 'ig-mega',
+    flavorText: 'Cien mil interacciones.',
+    unlockCondition: '100.000 likes acumulados en Instagram',
+    evaluator: (): boolean => {
+      const posts = getRecentPosts(365);
+      const igLikes = posts
+        .filter((p) => p.platform === 'instagram')
+        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      return igLikes >= 100000;
+    },
+    points: 800,
+    hidden: false,
+    unlockSound: 'legendary-choir',
+    unlockAnimation: 'phoenix-rise',
+    shareableText: '100K sensación en Instagram 💎',
   },
 ];
 

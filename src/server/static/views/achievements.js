@@ -33,6 +33,10 @@ const CATEGORY_EMOJI = {
   rituales: '☀️',
   maestría: '🎖️',
   especiales: '✨',
+  'tiktok-crecimiento': '🎵',
+  'tiktok-engagement': '💕',
+  'instagram-crecimiento': '📸',
+  'instagram-engagement': '❤️',
 };
 
 let activeCategory = null;
