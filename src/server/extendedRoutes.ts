@@ -4798,16 +4798,19 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
     pattern: '/api/settings/connections',
     handler: async ({ res }) => {
       const { checkAllPlatforms } = await import('../integrations/platformHealthCheck.js');
+      const { getAllOAuthTokens } = await import('../integrations/oauthStorage.js');
       const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
+
       const health = await checkAllPlatforms(brandId);
+      const tokens = getAllOAuthTokens();
 
       const connections: Record<string, Record<string, unknown>> = {
-        instagram: { connected: false, status: 'unknown' },
-        tiktok: { connected: false, status: 'unknown' },
+        instagram: { connected: !!tokens.instagram, status: tokens.instagram?.status ?? 'disconnected' },
+        tiktok: { connected: !!tokens.tiktok, status: tokens.tiktok?.status ?? 'disconnected' },
       };
 
       for (const h of health) {
-        if (h.platform === 'instagram' && h.status === 'ok') {
+        if (h.platform === 'instagram' && h.status === 'ok' && connections.instagram) {
           connections.instagram = {
             connected: true,
             status: 'ok',
@@ -4815,7 +4818,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
             followers: h.followerCount ?? 0,
             mediaCount: 0,
           };
-        } else if (h.platform === 'tiktok' && h.status === 'ok') {
+        } else if (h.platform === 'tiktok' && h.status === 'ok' && connections.tiktok) {
           connections.tiktok = {
             connected: true,
             status: 'ok',
@@ -4856,8 +4859,67 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       const { service } = body as { service?: string };
       if (!service) return json(res, 400, { error: 'service required' });
 
-      // Mark as disconnected (would also clear credentials in real impl)
+      const { removeOAuthToken } = await import('../integrations/oauthStorage.js');
+      removeOAuthToken(service);
       json(res, 200, { disconnected: true, service });
+    },
+  },
+
+  // ─── OAuth Flow: Instagram ──────────────────────────────────────────────────
+  {
+    method: 'GET',
+    pattern: '/auth/instagram',
+    handler: async ({ res, query }) => {
+      const code = (query as Record<string, string>)?.code;
+      const state = (query as Record<string, string>)?.state;
+
+      if (code) {
+        // Callback from Instagram OAuth
+        const { storeOAuthToken } = await import('../integrations/oauthStorage.js');
+        await storeOAuthToken('instagram', code, state);
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(
+          `<html><body><script>window.close();</script><p>Conectado. Cierra esta ventana.</p></body></html>`,
+        );
+      } else {
+        // Initiate OAuth (redirect to Instagram)
+        const clientId = process.env.META_APP_ID || 'test-client-id';
+        const redirectUri = `${process.env.OAUTH_BASE_URL || 'http://localhost:3000'}/auth/instagram`;
+        const state = Math.random().toString(36).substring(7);
+
+        const authUrl = `https://www.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=instagram_basic,pages_read_engagement,pages_manage_metadata&response_type=code&state=${state}`;
+        res.writeHead(302, { Location: authUrl });
+        res.end();
+      }
+    },
+  },
+
+  // ─── OAuth Flow: TikTok ─────────────────────────────────────────────────────
+  {
+    method: 'GET',
+    pattern: '/auth/tiktok',
+    handler: async ({ res, query }) => {
+      const code = (query as Record<string, string>)?.code;
+      const state = (query as Record<string, string>)?.state;
+
+      if (code) {
+        // Callback from TikTok OAuth
+        const { storeOAuthToken } = await import('../integrations/oauthStorage.js');
+        await storeOAuthToken('tiktok', code, state);
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(
+          `<html><body><script>window.close();</script><p>Conectado. Cierra esta ventana.</p></body></html>`,
+        );
+      } else {
+        // Initiate OAuth (redirect to TikTok)
+        const clientId = process.env.TIKTOK_APP_ID || 'test-client-id';
+        const redirectUri = `${process.env.OAUTH_BASE_URL || 'http://localhost:3000'}/auth/tiktok`;
+        const state = Math.random().toString(36).substring(7);
+
+        const authUrl = `https://www.tiktok.com/oauth/authorize?client_key=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user.info.basic,video.list&response_type=code&state=${state}`;
+        res.writeHead(302, { Location: authUrl });
+        res.end();
+      }
     },
   },
 ];
