@@ -29,7 +29,7 @@ import{apiSafe as d,apiBust as E}from"../lib/api.js";import{escape as a}from"../
     </div>
     <div id="achievements-grid" class="page-grid"></div>
     <div id="next-section" style="margin-top:30px;"></div>
-  `;const[n,r,l,f]=await Promise.all([d("/api/achievements",[]),d("/api/achievements/unlocked",[]),d("/api/achievements/snapshot",b),d("/api/achievements/next",[])]),m=n.data??[],g=r.data??[],i=l.data??b,u=f.data??[];if(!!n.error&&!!l.error&&m.length===0){const e=t.querySelector("#achievements-grid");e&&(e.innerHTML='<div class="empty-state">\u{1F4E1} Sin conexi\xF3n al backend. Los logros se cargar\xE1n cuando el servidor vuelva.</div>');return}document.getElementById("achievements-stats").innerHTML=`
+  `;const[n,r,l,f]=await Promise.all([d("/api/achievements",[]),d("/api/achievements/unlocked",[]),d("/api/achievements/snapshot",b),d("/api/achievements/next",[])]),m=Array.isArray(n.data)?n.data:[],g=Array.isArray(r.data)?r.data:[],i=l.data??b,u=Array.isArray(f.data)?f.data:[];if(!!n.error&&!!l.error&&m.length===0){const e=t.querySelector("#achievements-grid");e&&(e.innerHTML='<div class="empty-state">\u{1F4E1} Sin conexi\xF3n al backend. Los logros se cargar\xE1n cuando el servidor vuelva.</div>');return}document.getElementById("achievements-stats").innerHTML=`
     <div class="card stat-card">
       <div class="stat-label">Desbloqueados</div>
       <div class="stat-value">${i.totalUnlocked}/${i.totalAvailable}</div>

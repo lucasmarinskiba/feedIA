@@ -84,10 +84,10 @@ export const renderAchievements = async (container) => {
     apiSafe('/api/achievements/snapshot', EMPTY_SNAPSHOT),
     apiSafe('/api/achievements/next', []),
   ]);
-  const all = allRes.data ?? [];
-  const unlocked = unlockedRes.data ?? [];
+  const all = Array.isArray(allRes.data) ? allRes.data : [];
+  const unlocked = Array.isArray(unlockedRes.data) ? unlockedRes.data : [];
   const snapshot = snapshotRes.data ?? EMPTY_SNAPSHOT;
-  const next = nextRes.data ?? [];
+  const next = Array.isArray(nextRes.data) ? nextRes.data : [];
   const isOffline = !!allRes.error && !!snapshotRes.error;
 
   if (isOffline && all.length === 0) {
