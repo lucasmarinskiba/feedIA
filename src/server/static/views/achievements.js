@@ -49,8 +49,15 @@ const RARITY_SOUNDS = {
 };
 
 let activeCategory = null;
+let activePlatform = null; // null, 'instagram', 'tiktok', 'general'
 let showOnlyUnlocked = false;
 let lastUnlockedCount = 0;
+
+const getPlatform = (category) => {
+  if (category.includes('instagram')) return 'instagram';
+  if (category.includes('tiktok')) return 'tiktok';
+  return 'general';
+};
 
 const playSound = (rarity) => {
   try {
@@ -258,16 +265,36 @@ export const renderAchievements = async (container) => {
     `;
   }
 
-  // Category filter
-  const cats = [...new Set(all.map((a) => a.category))];
+  // Platform filter (tabs: Instagram | TikTok | General)
+  const platforms = ['instagram', 'tiktok', 'general'];
+  const platformCounts = {};
+  platforms.forEach((p) => {
+    platformCounts[p] = all.filter((a) => getPlatform(a.category) === p).length;
+  });
+
   document.getElementById('cat-filter').innerHTML = `
-    <button class="tab-btn ${!activeCategory ? 'active' : ''}" data-cat="">Todos</button>
-    ${cats.map((c) => `<button class="tab-btn ${activeCategory === c ? 'active' : ''}" data-cat="${escape(c)}">${CATEGORY_EMOJI[c] ?? ''} ${escape(c)}</button>`).join('')}
+    <div style="margin-bottom:12px;">
+      <div class="small" style="color:#9CA3AF;margin-bottom:6px;font-weight:600;">PLATAFORMAS</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+        <button class="tab-btn ${!activePlatform ? 'active' : ''}" data-platform="" style="background:${!activePlatform ? 'rgba(139,92,246,0.2)' : 'transparent'};border:1px solid ${!activePlatform ? '#a78bfa' : '#6B7280'};">Todos (${all.length})</button>
+        <button class="tab-btn" data-platform="instagram" style="background:${activePlatform === 'instagram' ? 'rgba(59,130,246,0.2)' : 'transparent'};border:1px solid ${activePlatform === 'instagram' ? '#93C5FD' : '#6B7280'};">📷 Instagram (${platformCounts.instagram})</button>
+        <button class="tab-btn" data-platform="tiktok" style="background:${activePlatform === 'tiktok' ? 'rgba(0,0,0,0.2)' : 'transparent'};border:1px solid ${activePlatform === 'tiktok' ? '#000' : '#6B7280'};">🎵 TikTok (${platformCounts.tiktok})</button>
+        <button class="tab-btn" data-platform="general" style="background:${activePlatform === 'general' ? 'rgba(168,85,247,0.2)' : 'transparent'};border:1px solid ${activePlatform === 'general' ? '#D8B4FE' : '#6B7280'};">⭐ General (${platformCounts.general})</button>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <div class="small" style="color:#9CA3AF;margin-bottom:6px;font-weight:600;">CATEGORÍAS</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="tab-btn ${!activeCategory ? 'active' : ''}" data-cat="">Todos</button>
+        ${[...new Set(all.map((a) => a.category))].map((c) => `<button class="tab-btn ${activeCategory === c ? 'active' : ''}" data-cat="${escape(c)}">${CATEGORY_EMOJI[c] ?? ''} ${escape(c)}</button>`).join('')}
+      </div>
+    </div>
   `;
 
   // Grid
   const unlockedMap = new Map(unlocked.map((u) => [u.id, u]));
   let visible = all;
+  if (activePlatform) visible = visible.filter((a) => getPlatform(a.category) === activePlatform);
   if (activeCategory) visible = visible.filter((a) => a.category === activeCategory);
   if (showOnlyUnlocked) visible = visible.filter((a) => unlockedMap.has(a.id));
 
@@ -293,12 +320,19 @@ export const renderAchievements = async (container) => {
     `;
   }
 
-  // Listeners
+  // Listeners — platform & category filters
   document.getElementById('cat-filter').addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-cat]');
-    if (!btn) return;
-    activeCategory = btn.dataset.cat || null;
-    renderAchievements(container);
+    const platformBtn = e.target.closest('[data-platform]');
+    const catBtn = e.target.closest('[data-cat]');
+
+    if (platformBtn) {
+      activePlatform = platformBtn.dataset.platform || null;
+      activeCategory = null; // Reset category when changing platform
+      renderAchievements(container);
+    } else if (catBtn) {
+      activeCategory = catBtn.dataset.cat || null;
+      renderAchievements(container);
+    }
   });
 
   document.getElementById('only-unlocked').addEventListener('change', (e) => {
