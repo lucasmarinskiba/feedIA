@@ -451,7 +451,6 @@ export const renderAchievements = async (container) => {
       }
     }
   });
-};
 
 // Initialize last unlocked count
 lastUnlockedCount = EMPTY_SNAPSHOT.totalUnlocked;
