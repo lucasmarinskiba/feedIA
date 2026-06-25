@@ -103,7 +103,7 @@ export const renderAchievements = async (container) => {
     <div class="card stat-card">
       <div class="stat-label">Desbloqueados</div>
       <div class="stat-value">${snapshot.totalUnlocked}/${snapshot.totalAvailable}</div>
-      <div class="small muted">${snapshot.completionPct.toFixed(1)}%</div>
+      <div class="small muted">${(snapshot.completionPct ?? 0).toFixed(1)}%</div>
     </div>
     <div class="card stat-card">
       <div class="stat-label">Puntos</div>

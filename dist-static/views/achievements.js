@@ -33,7 +33,7 @@ import{apiSafe as d,apiBust as E}from"../lib/api.js";import{escape as a}from"../
     <div class="card stat-card">
       <div class="stat-label">Desbloqueados</div>
       <div class="stat-value">${i.totalUnlocked}/${i.totalAvailable}</div>
-      <div class="small muted">${i.completionPct.toFixed(1)}%</div>
+      <div class="small muted">${(i.completionPct??0).toFixed(1)}%</div>
     </div>
     <div class="card stat-card">
       <div class="stat-label">Puntos</div>
