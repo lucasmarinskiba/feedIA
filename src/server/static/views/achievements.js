@@ -144,22 +144,48 @@ export const renderAchievements = async (container) => {
     };
 
     document.getElementById('medal-shelf').innerHTML = `
-      <div style="border-bottom:2px solid rgba(255,255,255,0.1);padding-bottom:12px;margin-bottom:12px;">
-        <h2 style="margin:0 0 12px 0;font-size:18px;">🏅 Repisa de Medallas</h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;">
+      <div style="background:linear-gradient(135deg,rgba(88,28,135,0.1),rgba(200,124,124,0.05));border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:16px;margin-bottom:20px;backdrop-filter:blur(8px);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h2 style="margin:0;font-size:18px;font-weight:600;">🏅 Repisa de Medallas</h2>
+          <span class="badge" style="background:rgba(139,92,246,0.3);color:#a78bfa;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;">${unlocked.length} medallas</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;">
           ${unlockedDefs
             .map(
-              (m) => `
-            <div class="card" style="padding:8px;text-align:center;border:2px solid ${rarity[m.rarity]};cursor:pointer;" title="${escape(m.name)} · ${new Date(m.unlockedAt).toLocaleDateString('es-AR')}">
-              <div style="font-size:32px;margin-bottom:4px;">${escape(m.emoji)}</div>
-              <div class="tiny" style="font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escape(m.name)}</div>
-              <div class="tiny muted" style="margin-top:2px;">${new Date(m.unlockedAt).toLocaleDateString('es-AR')}</div>
+              (m, idx) => `
+            <div class="medal-item" style="padding:12px 8px;text-align:center;border:2px solid ${rarity[m.rarity]};border-radius:8px;cursor:pointer;background:rgba(0,0,0,0.3);transition:all 0.3s ease;animation:slideInUp 0.5s ease-out ${idx * 50}ms;transform:translateY(0);box-shadow:0 4px 12px rgba(0,0,0,0.2);"
+              onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 20px rgba(139,92,246,0.4)';"
+              onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)';"
+              title="${escape(m.name)}&#10;${escape(m.description)}&#10;Desbloqueado: ${new Date(m.unlockedAt).toLocaleDateString('es-AR')}">
+              <div style="font-size:40px;margin-bottom:6px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));">${escape(m.emoji)}</div>
+              <div class="tiny" style="font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e0e0e0;">${escape(m.name)}</div>
+              <div class="tiny muted" style="margin-top:4px;font-size:11px;">${new Date(m.unlockedAt).toLocaleDateString('es-AR')}</div>
             </div>
             `,
             )
             .join('')}
         </div>
       </div>
+      <style>
+        @keyframes slideInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .medal-item {
+          position: relative;
+        }
+        .medal-item::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), transparent);
+          border-radius: 8px;
+          pointer-events: none;
+        }
+      </style>
     `;
   }
 
