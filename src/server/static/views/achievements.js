@@ -59,6 +59,7 @@ let all = []; // All achievements — module-level cache to fix scope issues in 
 let eventSource = null; // Global SSE instance — ensures single connection
 let pollInterval = null; // Cleanup reference
 let reconnectInterval = null; // Cleanup reference
+let container = null; // Module-level reference to container DOM element
 
 const getPlatform = (category) => {
   if (!category) return 'general';
@@ -132,7 +133,8 @@ const renderBadge = (a, unlocked) => {
     </div>`;
 };
 
-export const renderAchievements = async (container) => {
+export const renderAchievements = async (containerEl) => {
+  container = containerEl; // Store in module-level scope for callbacks
   container.innerHTML = `
     <div class="page-header">
       <h1>🏆 Logros</h1>
