@@ -61,6 +61,8 @@ let pollInterval = null; // Cleanup reference
 let reconnectInterval = null; // Cleanup reference
 let container = null; // Module-level reference to container DOM element
 let unlocked = []; // Module-level so click/SSE callbacks can access it
+let next = []; // Module-level
+let snapshot = { ...EMPTY_SNAPSHOT }; // Module-level
 
 const getPlatform = (category) => {
   if (!category) return 'general';
@@ -164,8 +166,8 @@ export const renderAchievements = async (containerEl) => {
   ]);
   all = Array.isArray(allRes.data) ? allRes.data : [];
   unlocked = Array.isArray(unlockedRes.data) ? unlockedRes.data : [];
-  const snapshot = snapshotRes.data ?? EMPTY_SNAPSHOT;
-  const next = Array.isArray(nextRes.data) ? nextRes.data : [];
+  snapshot = snapshotRes.data ?? EMPTY_SNAPSHOT;
+  next = Array.isArray(nextRes.data) ? nextRes.data : [];
   const isOffline = !!allRes.error && !!snapshotRes.error;
 
   if (isOffline && all.length === 0) {
