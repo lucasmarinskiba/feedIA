@@ -4865,6 +4865,16 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
     },
   },
 
+  // ─── Real-Time: SSE Achievements Stream ─────────────────────────────────────
+  {
+    method: 'GET',
+    pattern: '/api/stream/achievements',
+    handler: async ({ res }) => {
+      const { subscribeToAchievementUpdates } = await import('../server/ws-server.js');
+      subscribeToAchievementUpdates(res);
+    },
+  },
+
   // ─── OAuth Flow: Instagram ──────────────────────────────────────────────────
   {
     method: 'GET',

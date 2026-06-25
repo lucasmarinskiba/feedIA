@@ -326,29 +326,40 @@ export const renderAchievements = async (container) => {
     renderAchievements(container);
   });
 
-  // Real-time polling for new achievements (every 30s)
-  const pollInterval = setInterval(async () => {
-    const { data: snapshot } = await apiSafe('/api/achievements/snapshot', EMPTY_SNAPSHOT);
-    const currentCount = snapshot.totalUnlocked ?? 0;
+  // Real-time SSE (Server-Sent Events) for achievements
+  const eventSource = new EventSource('/api/stream/achievements');
 
-    if (currentCount > lastUnlockedCount) {
-      const newCount = currentCount - lastUnlockedCount;
-      // Fetch latest unlocked to show notification
-      const { data: unlockedList } = await apiSafe('/api/achievements/unlocked', []);
-      if (unlockedList && unlockedList.length > 0) {
-        const newest = unlockedList[unlockedList.length - 1];
-        const def = all.find((a) => a.id === newest.achievementId);
-        if (def) {
-          showUnlockNotification(def);
-        }
-      }
-      lastUnlockedCount = currentCount;
+  eventSource.addEventListener('achievement-unlock', (event) => {
+    const data = JSON.parse(event.data);
+    const def = all.find((a) => a.id === data.id);
+    if (def) {
+      showUnlockNotification(def);
+      lastUnlockedCount += 1;
       renderAchievements(container);
     }
-  }, 30000);
+  });
+
+  eventSource.addEventListener('metrics-update', (event) => {
+    const data = JSON.parse(event.data);
+    renderAchievements(container);
+  });
+
+  eventSource.onerror = () => {
+    console.warn('[SSE] Connection lost, falling back to polling');
+    eventSource.close();
+    // Fallback: poll every 30s if SSE fails
+    const pollInterval = setInterval(async () => {
+      const { data: snapshot } = await apiSafe('/api/achievements/snapshot', EMPTY_SNAPSHOT);
+      if ((snapshot.totalUnlocked ?? 0) > lastUnlockedCount) {
+        lastUnlockedCount = snapshot.totalUnlocked ?? 0;
+        renderAchievements(container);
+      }
+    }, 30000);
+    window.addEventListener('beforeunload', () => clearInterval(pollInterval));
+  };
 
   // Cleanup on page unload
-  window.addEventListener('beforeunload', () => clearInterval(pollInterval));
+  window.addEventListener('beforeunload', () => eventSource.close());
 
   container.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-share]');
