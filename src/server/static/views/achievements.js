@@ -62,6 +62,7 @@ const getPlatform = (category) => {
 };
 
 const getIconForAchievement = (id, platform) => {
+  platform = platform || 'general';
   if (platform === 'instagram') return getInstagramIcon(id);
   if (platform === 'tiktok') return getTikTokIcon(id);
   return getAchievementIcon(id);
@@ -335,7 +336,6 @@ export const renderAchievements = async (container) => {
 
     if (platformBtn) {
       activePlatform = platformBtn.dataset.platform || null;
-      activeCategory = null; // Reset category when changing platform
       renderAchievements(container);
     } else if (catBtn) {
       activeCategory = catBtn.dataset.cat || null;
@@ -400,7 +400,37 @@ export const renderAchievements = async (container) => {
         renderAchievements(container);
       }
     }, 30000);
-    window.addEventListener('beforeunload', () => clearInterval(pollInterval));
+
+    // Attempt SSE reconnection every 5 minutes
+    const reconnectInterval = setInterval(() => {
+      console.log('[SSE] Attempting reconnection...');
+      const newEventSource = new EventSource('/api/stream/achievements');
+      newEventSource.onopen = () => {
+        console.log('[SSE] Reconnected!');
+        clearInterval(pollInterval);
+        clearInterval(reconnectInterval);
+        eventSource = newEventSource;
+        // Re-attach listeners
+        newEventSource.addEventListener('achievement-unlock', (event) => {
+          const data = JSON.parse(event.data);
+          const def = all.find((a) => a.id === data.id);
+          if (def) {
+            showUnlockNotification(def);
+            lastUnlockedCount += 1;
+            renderAchievements(container);
+          }
+        });
+        newEventSource.addEventListener('metrics-update', () => {
+          renderAchievements(container);
+        });
+        newEventSource.onerror = eventSource.onerror;
+      };
+    }, 300000); // 5 minutes
+
+    window.addEventListener('beforeunload', () => {
+      clearInterval(pollInterval);
+      clearInterval(reconnectInterval);
+    });
   };
 
   // Cleanup on page unload
