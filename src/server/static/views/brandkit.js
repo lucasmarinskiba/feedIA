@@ -156,7 +156,7 @@ const renderShell = (kit = {}) => `
   </div>
 
   <style>
-    .bk-shell{max-width:100%;margin:0;padding:0 8px;}
+    .bk-shell{width:100vw;margin:0 calc(-50vw + 50%);padding:0 8px;}
     #view{padding:0!important;}
     .bk-hero{display:flex;gap:8px;align-items:center;margin-bottom:6px;padding:6px 8px;border-radius:6px;background:transparent;}
     .bk-emoji{font-size:36px;}
