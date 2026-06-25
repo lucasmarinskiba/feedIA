@@ -57,6 +57,7 @@ let showOnlyUnlocked = false;
 let lastUnlockedCount = 0;
 
 const getPlatform = (category) => {
+  if (!category) return 'general';
   if (category.includes('instagram')) return 'instagram';
   if (category.includes('tiktok')) return 'tiktok';
   return 'general';
@@ -410,6 +411,7 @@ export const renderAchievements = async (container) => {
         console.log('[SSE] Reconnected!');
         clearInterval(pollInterval);
         clearInterval(reconnectInterval);
+        eventSource.close();
         eventSource = newEventSource;
         // Re-attach listeners
         newEventSource.addEventListener('achievement-unlock', (event) => {
