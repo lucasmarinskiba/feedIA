@@ -18,7 +18,7 @@ import './lib/uxPolish.js';
 const _modCache = new Map();
 /* Cache-bust por deploy: cambia este string en cada release para forzar recarga
    de los módulos de vista (browser cachea el JS con max-age). */
-const ASSET_V = '2026-05-29-16';
+const ASSET_V = '2026-06-25-01';
 /* V(path, export) → thunk que resuelve a la función render, cacheado. */
 const V = (path, name) => {
   const url = `${path}?v=${ASSET_V}`;

@@ -168,7 +168,7 @@ export const renderAchievements = async (containerEl) => {
   const isOffline = !!allRes.error && !!snapshotRes.error;
 
   if (isOffline && all.length === 0) {
-    const grid = container.querySelector('#achievements-grid');
+    const grid = container?.querySelector('#achievements-grid');
     if (grid)
       grid.innerHTML =
         '<div class="empty-state">📡 Sin conexión al backend. Los logros se cargarán cuando el servidor vuelva.</div>';
@@ -176,7 +176,7 @@ export const renderAchievements = async (containerEl) => {
   }
 
   // Stats
-  const statEl = container.querySelector('#achievements-stats');
+  const statEl = container?.querySelector('#achievements-stats');
   if (statEl) statEl.innerHTML = `
     <div class="card stat-card">
       <div class="stat-label">Desbloqueados</div>
@@ -207,7 +207,7 @@ export const renderAchievements = async (containerEl) => {
     mítica: { border: '#EF4444', bg: 'linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.08))' },
   };
 
-  const shelfEl = container.querySelector('#medal-shelf');
+  const shelfEl = container?.querySelector('#medal-shelf');
   if (shelfEl) shelfEl.innerHTML = `
     <div style="background:linear-gradient(135deg,rgba(88,28,135,0.1),rgba(200,124,124,0.05));border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:16px;margin-bottom:20px;backdrop-filter:blur(8px);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
@@ -295,7 +295,7 @@ export const renderAchievements = async (containerEl) => {
     platformCounts[p] = all.filter((a) => getPlatform(a.category) === p).length;
   });
 
-  const catEl = container.querySelector('#cat-filter'); if (catEl) catEl.innerHTML = `
+  const catEl = container?.querySelector('#cat-filter'); if (catEl) catEl.innerHTML = `
     <div style="margin-bottom:12px;">
       <div class="small" style="color:#9CA3AF;margin-bottom:6px;font-weight:600;">PLATAFORMAS</div>
       <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
@@ -321,13 +321,13 @@ export const renderAchievements = async (containerEl) => {
   if (activeCategory) visible = visible.filter((a) => a.category === activeCategory);
   if (showOnlyUnlocked) visible = visible.filter((a) => unlockedMap.has(a.id));
 
-  const gridEl = container.querySelector('#achievements-grid'); if (gridEl) gridEl.innerHTML = visible
+  const gridEl = container?.querySelector('#achievements-grid'); if (gridEl) gridEl.innerHTML = visible
     .map((a) => renderBadge(unlockedMap.get(a.id) ?? a, unlockedMap.has(a.id)))
     .join('');
 
   // Next achievements
   if (next.length > 0) {
-    const nextEl = container.querySelector('#next-section'); if (nextEl) nextEl.innerHTML = `
+    const nextEl = container?.querySelector('#next-section'); if (nextEl) nextEl.innerHTML = `
       <h2 style="margin-bottom:10px;">🎯 Próximos a desbloquear</h2>
       <div class="page-grid">${next
         .map(
