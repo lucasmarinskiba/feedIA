@@ -45,6 +45,7 @@ import {
   getDelightMessage,
 } from '../capabilities/experience/homeDashboard.js';
 import {
+  ACHIEVEMENTS,
   evaluateAchievements,
   getAllAchievements,
   getUnlockedAchievements,
@@ -625,7 +626,24 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'POST',
     pattern: '/api/achievements/evaluate',
-    handler: async ({ res }) => json(res, 200, await evaluateAchievements(brand)),
+    handler: async ({ res }) => {
+      const newUnlocks = await evaluateAchievements(brand);
+
+      // Notify SSE clients of new unlocks
+      if (newUnlocks.length > 0) {
+        const { notifyAchievementUnlock } = await import('../server/ws-server.js');
+        const allAchievements = ACHIEVEMENTS;
+
+        for (const unlock of newUnlocks) {
+          const def = allAchievements.find((a) => a.id === unlock.achievementId);
+          if (def) {
+            notifyAchievementUnlock(def);
+          }
+        }
+      }
+
+      json(res, 200, newUnlocks);
+    },
   },
   {
     method: 'GET',
