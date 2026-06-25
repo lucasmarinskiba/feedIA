@@ -73,6 +73,7 @@ export const renderAchievements = async (container) => {
       <p class="muted">Cada paso del camino tiene un trofeo. Coleccionalos.</p>
     </div>
     <div id="achievements-stats" class="stats-grid" style="margin-bottom:20px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;"></div>
+    <div id="medal-shelf" style="margin:30px 0;"></div>
     <div class="hook-category-filter" id="cat-filter"></div>
     <div style="margin:10px 0;display:flex;gap:10px;align-items:center;">
       <label class="small"><input type="checkbox" id="only-unlocked"> Solo desbloqueados</label>
@@ -122,6 +123,45 @@ export const renderAchievements = async (container) => {
       <div class="stat-value" style="font-size:14px;">${snapshot.lastUnlocked ? escape(snapshot.lastUnlocked.name) : '—'}</div>
     </div>
   `;
+
+  // Medal Shelf
+  if (unlocked.length > 0) {
+    const unlockedDefs = unlocked
+      .map((u) => {
+        const def = all.find((a) => a.id === u.id);
+        return def ? { ...def, ...u } : null;
+      })
+      .filter((x) => x !== null)
+      .sort((a, b) => b.unlockedAt.localeCompare(a.unlockedAt))
+      .slice(0, 12); // Show top 12 recent medals
+
+    const rarity = {
+      común: '#9CA3AF',
+      rara: '#3B82F6',
+      épica: '#A855F7',
+      legendaria: '#F59E0B',
+      mítica: '#EF4444',
+    };
+
+    document.getElementById('medal-shelf').innerHTML = `
+      <div style="border-bottom:2px solid rgba(255,255,255,0.1);padding-bottom:12px;margin-bottom:12px;">
+        <h2 style="margin:0 0 12px 0;font-size:18px;">🏅 Repisa de Medallas</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;">
+          ${unlockedDefs
+            .map(
+              (m) => `
+            <div class="card" style="padding:8px;text-align:center;border:2px solid ${rarity[m.rarity]};cursor:pointer;" title="${escape(m.name)} · ${new Date(m.unlockedAt).toLocaleDateString('es-AR')}">
+              <div style="font-size:32px;margin-bottom:4px;">${escape(m.emoji)}</div>
+              <div class="tiny" style="font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escape(m.name)}</div>
+              <div class="tiny muted" style="margin-top:2px;">${new Date(m.unlockedAt).toLocaleDateString('es-AR')}</div>
+            </div>
+            `,
+            )
+            .join('')}
+        </div>
+      </div>
+    `;
+  }
 
   // Category filter
   const cats = [...new Set(all.map((a) => a.category))];
