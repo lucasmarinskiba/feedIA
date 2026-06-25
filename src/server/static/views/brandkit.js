@@ -158,7 +158,7 @@ const renderShell = (kit = {}) => `
   <style>
     .bk-shell{max-width:100%;margin:0;padding:0 8px;}
     #view{padding:0!important;}
-    .bk-hero{display:none;gap:10px;align-items:center;margin-bottom:0;padding:0;border-radius:8px;background:transparent;}
+    .bk-hero{display:flex;gap:8px;align-items:center;margin-bottom:6px;padding:6px 8px;border-radius:6px;background:transparent;}
     .bk-emoji{font-size:36px;}
     .bk-title{margin:0;font-size:20px;font-weight:900;color:var(--text-primary,var(--fg));}
     .bk-sub{margin:3px 0 0;font-size:12px;color:var(--text-secondary,var(--fg-2));}
