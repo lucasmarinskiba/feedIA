@@ -179,11 +179,11 @@ export const renderAchievements = async (container) => {
       .slice(0, 12); // Show top 12 recent medals
 
     const rarityStyles = {
-      común: { border: '#9CA3AF', bg: 'rgba(156,163,175,0.15)', glow: 'rgba(156,163,175,0.3)', hoverGlow: 'rgba(156,163,175,0.5)' },
-      rara: { border: '#3B82F6', bg: 'rgba(59,130,246,0.15)', glow: 'rgba(59,130,246,0.4)', hoverGlow: 'rgba(59,130,246,0.6)' },
-      épica: { border: '#A855F7', bg: 'linear-gradient(135deg,rgba(168,85,247,0.2),rgba(168,85,247,0.1))', glow: 'rgba(168,85,247,0.5)', hoverGlow: 'rgba(168,85,247,0.8)' },
-      legendaria: { border: '#F59E0B', bg: 'linear-gradient(135deg,rgba(245,158,11,0.2),rgba(245,158,11,0.1))', glow: 'rgba(245,158,11,0.5)', hoverGlow: 'rgba(245,158,11,0.8)' },
-      mítica: { border: '#EF4444', bg: 'linear-gradient(135deg,rgba(239,68,68,0.2),rgba(239,68,68,0.1))', glow: 'rgba(239,68,68,0.6)', hoverGlow: 'rgba(239,68,68,0.9)' },
+      común: { border: '#9CA3AF', bg: 'rgba(156,163,175,0.12)' },
+      rara: { border: '#3B82F6', bg: 'rgba(59,130,246,0.12)' },
+      épica: { border: '#A855F7', bg: 'linear-gradient(135deg,rgba(168,85,247,0.15),rgba(168,85,247,0.08))' },
+      legendaria: { border: '#F59E0B', bg: 'linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.08))' },
+      mítica: { border: '#EF4444', bg: 'linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.08))' },
     };
 
     document.getElementById('medal-shelf').innerHTML = `
@@ -198,9 +198,9 @@ export const renderAchievements = async (container) => {
               (m, idx) => {
                 const style = rarityStyles[m.rarity];
                 return `
-            <div class="medal-item" data-rarity="${m.rarity}" style="padding:12px 8px;text-align:center;border:2px solid ${style.border};border-radius:8px;cursor:pointer;background:${style.bg};transition:all 0.3s ease;animation:slideInUp 0.5s ease-out ${idx * 50}ms;transform:translateY(0);box-shadow:0 0 0 0 ${style.glow};"
-              onmouseover="this.style.transform='translateY(-4px)';const s=this.getAttribute('data-rarity');const styles={'común': {hoverGlow:'rgba(156,163,175,0.5)'}, 'rara': {hoverGlow:'rgba(59,130,246,0.6)'}, 'épica': {hoverGlow:'rgba(168,85,247,0.8)'}, 'legendaria': {hoverGlow:'rgba(245,158,11,0.8)'}, 'mítica': {hoverGlow:'rgba(239,68,68,0.9)'}};this.style.boxShadow='0 8px 24px '+styles[s].hoverGlow;"
-              onmouseout="this.style.transform='translateY(0)';const s=this.getAttribute('data-rarity');const styles={'común': {glow:'rgba(156,163,175,0.3)'}, 'rara': {glow:'rgba(59,130,246,0.4)'}, 'épica': {glow:'rgba(168,85,247,0.5)'}, 'legendaria': {glow:'rgba(245,158,11,0.5)'}, 'mítica': {glow:'rgba(239,68,68,0.6)'}};this.style.boxShadow='0 0 0 0 '+styles[s].glow;"
+            <div class="medal-item medal-${m.rarity}" style="padding:12px 8px;text-align:center;border:2px solid ${style.border};border-radius:8px;cursor:pointer;background:${style.bg};transition:all 0.3s ease;animation:slideInUp 0.5s ease-out ${idx * 50}ms;transform:translateY(0);"
+              onmouseover="this.style.transform='translateY(-4px)';this.classList.add('medal-hover');"
+              onmouseout="this.style.transform='translateY(0)';this.classList.remove('medal-hover');"
               title="${escape(m.name)}&#10;${escape(m.description)}&#10;Desbloqueado: ${new Date(m.unlockedAt).toLocaleDateString('es-AR')}">
               <div style="font-size:40px;margin-bottom:6px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));">${escape(m.emoji)}</div>
               <div class="tiny" style="font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e0e0e0;">${escape(m.name)}</div>
@@ -229,6 +229,7 @@ export const renderAchievements = async (container) => {
         }
         .medal-item {
           position: relative;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         .medal-item::before {
           content: '';
@@ -244,6 +245,11 @@ export const renderAchievements = async (container) => {
         .medal-item.unlocking {
           animation: unlock-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
+        .medal-común.medal-hover { box-shadow: 0 8px 20px rgba(156,163,175,0.4); }
+        .medal-rara.medal-hover { box-shadow: 0 8px 20px rgba(59,130,246,0.5); }
+        .medal-épica.medal-hover { box-shadow: 0 8px 24px rgba(168,85,247,0.6); }
+        .medal-legendaria.medal-hover { box-shadow: 0 8px 24px rgba(245,158,11,0.6); }
+        .medal-mítica.medal-hover { box-shadow: 0 8px 28px rgba(239,68,68,0.7); }
       </style>
     `;
   }
