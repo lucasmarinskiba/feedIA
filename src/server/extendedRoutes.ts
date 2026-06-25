@@ -4791,4 +4791,73 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       });
     },
   },
+
+  // ─── Settings: Platform Connections ─────────────────────────────────────────
+  {
+    method: 'GET',
+    pattern: '/api/settings/connections',
+    handler: async ({ res }) => {
+      const { checkAllPlatforms } = await import('../integrations/platformHealthCheck.js');
+      const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
+      const health = await checkAllPlatforms(brandId);
+
+      const connections: Record<string, Record<string, unknown>> = {
+        instagram: { connected: false, status: 'unknown' },
+        tiktok: { connected: false, status: 'unknown' },
+      };
+
+      for (const h of health) {
+        if (h.platform === 'instagram' && h.status === 'ok') {
+          connections.instagram = {
+            connected: true,
+            status: 'ok',
+            username: '@user',
+            followers: h.followerCount ?? 0,
+            mediaCount: 0,
+          };
+        } else if (h.platform === 'tiktok' && h.status === 'ok') {
+          connections.tiktok = {
+            connected: true,
+            status: 'ok',
+            username: '@user',
+            followers: h.followerCount ?? 0,
+            videoCount: 0,
+          };
+        }
+      }
+
+      json(res, 200, connections);
+    },
+  },
+
+  {
+    method: 'POST',
+    pattern: '/api/settings/connect',
+    handler: async ({ body, res }) => {
+      const { service } = body as { service?: string };
+      if (!service) return json(res, 400, { error: 'service required' });
+
+      const oauthUrls: Record<string, string> = {
+        instagram: `${process.env.OAUTH_BASE_URL || 'http://localhost:3000'}/auth/instagram`,
+        tiktok: `${process.env.OAUTH_BASE_URL || 'http://localhost:3000'}/auth/tiktok`,
+      };
+
+      const authUrl = oauthUrls[service];
+      if (!authUrl) return json(res, 400, { error: 'Unknown service' });
+
+      json(res, 200, { authUrl });
+    },
+  },
+
+  {
+    method: 'POST',
+    pattern: '/api/settings/disconnect',
+    handler: async ({ body, res }) => {
+      const { service } = body as { service?: string };
+      if (!service) return json(res, 400, { error: 'service required' });
+
+      // Mark as disconnected (would also clear credentials in real impl)
+      json(res, 200, { disconnected: true, service });
+    },
+  },
 ];
