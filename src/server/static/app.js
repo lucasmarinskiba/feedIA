@@ -164,15 +164,7 @@ const ROUTE_LABELS = {
 /* ══════════════════════════════════════════════════════════
    CORE ELEMENTS (lazy-evaluated to ensure DOM ready)
    ══════════════════════════════════════════════════════════ */
-let _$view = null;
-const getView = () => {
-  if (!_$view) _$view = document.querySelector('#view');
-  return _$view;
-};
-Object.defineProperty(window, '$view', {
-  get: getView,
-  configurable: true,
-});
+const getView = () => document.querySelector('#view');
 const $fabMenu = document.querySelector('#fab-menu');
 const $fabBtn = document.querySelector('#fab-btn');
 const $fabBdrop = document.querySelector('#fab-backdrop');
@@ -190,6 +182,9 @@ let _currentRoute = '';
 const navigate = async (route) => {
   if (!ROUTES[route]) route = 'feed';
   _currentRoute = route;
+
+  /* Update URL hash so browser shows correct route */
+  if (location.hash !== `#${route}`) history.pushState(null, '', `#${route}`);
 
   /* Active state — sidebar + bottom nav (+ a11y aria-current) */
   document.querySelectorAll('[data-route]').forEach((el) => {
@@ -211,7 +206,7 @@ const navigate = async (route) => {
   clearSearchDropdown();
 
   /* Render view — skeleton coherente + scroll al tope (vista fresca arriba) */
-  $view.innerHTML = `<div class="loading-screen" aria-busy="true" aria-label="cargando" style="display:block;padding:4px 2px;">
+  getView().innerHTML = `<div class="loading-screen" aria-busy="true" aria-label="cargando" style="display:block;padding:4px 2px;">
       <div class="skeleton" style="height:34px;width:42%;border-radius:10px;"></div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px;">
         <div class="card" style="padding:18px;"><div class="skeleton" style="height:20px;width:60%"></div><div class="skeleton" style="height:13px;margin-top:10px"></div><div class="skeleton" style="height:13px;width:80%;margin-top:8px"></div></div>
@@ -228,11 +223,11 @@ const navigate = async (route) => {
 
   try {
     const render = await ROUTES[route](); // descarga perezosa del módulo (cacheado)
-    if ($view) await render($view);
-    else console.error('[navigate] $view null — #view not in DOM');
+    if (getView()) await render(getView());
+    else console.error('[navigate] getView() null — #view not in DOM');
     /* Imágenes: lazy + decode async (no bloquean el primer pintado) */
     try {
-      $view.querySelectorAll('img:not([loading])').forEach((i) => {
+      getView().querySelectorAll('img:not([loading])').forEach((i) => {
         i.loading = 'lazy';
         i.decoding = 'async';
       });
@@ -262,8 +257,8 @@ const navigate = async (route) => {
           const mod = await import(loader._path + bust);
           const fnName = Object.keys(mod).find((k) => typeof mod[k] === 'function');
           if (fnName) {
-            $view.innerHTML = '';
-            await mod[fnName]($view);
+            getView().innerHTML = '';
+            await mod[fnName](getView());
             sessionStorage.removeItem(`__retry_${route}`);
             return;
           }
@@ -288,7 +283,7 @@ const navigate = async (route) => {
          </div>`
       : `<button class="btn ghost" style="margin-top:20px;" onclick="navigate('${route}')">↻ Reintentar</button>`;
 
-    $view.innerHTML = `
+    getView().innerHTML = `
       <div style="padding:40px 24px;text-align:center;max-width:560px;margin:0 auto;">
         <div style="font-size:40px;margin-bottom:16px;">${isHtmlError ? '🔄' : '⚠️'}</div>
         <div class="small" style="color:var(--crit);font-weight:700;margin-bottom:8px;">${title}</div>
