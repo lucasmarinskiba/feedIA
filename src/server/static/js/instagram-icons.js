@@ -40,6 +40,10 @@ const INSTAGRAM_ICONS = {
   'default': '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="8" width="48" height="48" rx="12" stroke="currentColor" stroke-width="2"/><circle cx="32" cy="24" r="5" stroke="currentColor" stroke-width="2"/><path d="M22 42c0-5.5 4.5-10 10-10s10 4.5 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
 };
 
+/**
+ * @param {string} achievementId - Achievement ID (e.g., 'ig-100-seg')
+ * @returns {string} SVG markup for Instagram achievement icon
+ */
 export const getInstagramIcon = (achievementId) => {
   return INSTAGRAM_ICONS[achievementId] || INSTAGRAM_ICONS.default;
 };

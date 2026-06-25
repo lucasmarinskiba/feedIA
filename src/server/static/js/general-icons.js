@@ -87,6 +87,10 @@ const GENERAL_ICONS = {
   'default': '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gen_default" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" /><stop offset="100%" style="stop-color:#10B981;stop-opacity:1" /></linearGradient></defs><rect x="10" y="10" width="44" height="44" rx="8" stroke="url(#gen_default)" stroke-width="2"/><circle cx="32" cy="22" r="5" stroke="url(#gen_default)" stroke-width="1.5"/><path d="M20 36c0-6.6 5.4-12 12-12s12 5.4 12 12" stroke="url(#gen_default)" stroke-width="1.5" stroke-linecap="round"/></svg>',
 };
 
+/**
+ * @param {string} achievementId - Achievement ID (e.g., 'primeros-100', 'mil-usd', 'comeback')
+ * @returns {string} SVG markup for general cross-platform achievement icon
+ */
 export const getGeneralIcon = (achievementId) => {
   return GENERAL_ICONS[achievementId] || GENERAL_ICONS.default;
 };

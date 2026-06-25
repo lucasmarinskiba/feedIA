@@ -165,6 +165,12 @@ export const renderAchievements = async (container) => {
     return;
   }
 
+  // Cache platform counts (computed once, reused in renderAchievements)
+  const platformCounts = {};
+  ['instagram', 'tiktok', 'general'].forEach((p) => {
+    platformCounts[p] = all.filter((a) => getPlatform(a.category) === p).length;
+  });
+
   // Stats
   document.getElementById('achievements-stats').innerHTML = `
     <div class="card stat-card">
@@ -208,17 +214,6 @@ export const renderAchievements = async (container) => {
             const isUnlocked = unlockedMap.has(m.id);
             const unlockedData = unlockedMap.get(m.id);
             const style = rarityStyles[m.rarity];
-            const iconColor = isUnlocked
-              ? m.rarity === 'legendaria'
-                ? '#FCD34D'
-                : m.rarity === 'épica'
-                  ? '#D8B4FE'
-                  : m.rarity === 'mítica'
-                    ? '#FCA5A5'
-                    : m.rarity === 'rara'
-                      ? '#93C5FD'
-                      : '#D1D5DB'
-              : '#6B7280';
 
             return `
         <div class="medal-item medal-${m.rarity}" style="padding:12px 8px;text-align:center;border:2px solid ${isUnlocked ? style.border : '#D1D5DB'};border-radius:8px;cursor:pointer;background:${isUnlocked ? style.bg : 'rgba(107,114,128,0.05)'};transition:all 0.3s ease;animation:slideInUp 0.5s ease-out ${idx * 30}ms;transform:translateY(0);opacity:${isUnlocked ? 1 : 0.5};"
@@ -277,11 +272,7 @@ export const renderAchievements = async (container) => {
   }
 
   // Platform filter (tabs: Instagram | TikTok | General)
-  const platforms = ['instagram', 'tiktok', 'general'];
-  const platformCounts = {};
-  platforms.forEach((p) => {
-    platformCounts[p] = all.filter((a) => getPlatform(a.category) === p).length;
-  });
+  // platformCounts computed once at module init, cached & reused here
 
   document.getElementById('cat-filter').innerHTML = `
     <div style="margin-bottom:12px;">

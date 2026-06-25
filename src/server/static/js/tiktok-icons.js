@@ -40,6 +40,10 @@ const TIKTOK_ICONS = {
   'default': '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tt_default" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#00F7EF;stop-opacity:1" /><stop offset="100%" style="stop-color:#FE2C55;stop-opacity:1" /></linearGradient></defs><path d="M30 8v38M44 18v28M18 28v18" stroke="url(#tt_default)" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="32" r="24" fill="none" stroke="url(#tt_default)" stroke-width="2" opacity="0.5"/></svg>',
 };
 
+/**
+ * @param {string} achievementId - Achievement ID (e.g., 'tt-1k-seg', 'tt-100k-likes')
+ * @returns {string} SVG markup for TikTok achievement icon
+ */
 export const getTikTokIcon = (achievementId) => {
   return TIKTOK_ICONS[achievementId] || TIKTOK_ICONS.default;
 };
