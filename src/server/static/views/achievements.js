@@ -39,8 +39,51 @@ const CATEGORY_EMOJI = {
   'instagram-engagement': '❤️',
 };
 
+const RARITY_SOUNDS = {
+  común: 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==',
+  rara: 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==',
+  épica: 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==',
+  legendaria: 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==',
+  mítica: 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==',
+};
+
 let activeCategory = null;
 let showOnlyUnlocked = false;
+let lastUnlockedCount = 0;
+
+const playSound = (rarity) => {
+  try {
+    const audio = new Audio(RARITY_SOUNDS[rarity] ?? RARITY_SOUNDS.común);
+    audio.volume = 0.5;
+    audio.play().catch(() => {}); // Ignore errors (user may have muted browser)
+  } catch (e) {
+    // Silently fail if audio not supported
+  }
+};
+
+const showUnlockNotification = (achievement) => {
+  const rarity = achievement.rarity || 'común';
+  const rarityColor = RARITY_COLORS[rarity];
+
+  // Toast notification
+  toast(
+    `🎉 ${escape(achievement.name)}\n${escape(achievement.description)}`,
+    rarity === 'mítica' ? 'success' : rarity === 'legendaria' ? 'info' : 'default',
+    5000
+  );
+
+  // Play sound
+  playSound(rarity);
+
+  // Visual pulse effect
+  const shelf = document.getElementById('medal-shelf');
+  if (shelf) {
+    shelf.style.animation = 'none';
+    setTimeout(() => {
+      shelf.style.animation = 'pulse 0.6s ease-out';
+    }, 10);
+  }
+};
 
 const renderBadge = (a, unlocked) => {
   const c = RARITY_COLORS[a.rarity] ?? '#9CA3AF';
@@ -171,6 +214,16 @@ export const renderAchievements = async (container) => {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes pulse {
+          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139,92,246,0.7); }
+          50% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(139,92,246,0); }
+          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139,92,246,0); }
+        }
+        @keyframes unlock-bounce {
+          0%, 100% { transform: scale(1) rotate(0deg); }
+          25% { transform: scale(1.1) rotate(-5deg); }
+          75% { transform: scale(1.1) rotate(5deg); }
+        }
         .medal-item {
           position: relative;
         }
@@ -184,6 +237,9 @@ export const renderAchievements = async (container) => {
           background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), transparent);
           border-radius: 8px;
           pointer-events: none;
+        }
+        .medal-item.unlocking {
+          animation: unlock-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
       </style>
     `;
@@ -243,6 +299,13 @@ export const renderAchievements = async (container) => {
     const { data: newUnlocks } = await apiSafe('/api/achievements/evaluate', [], { method: 'POST', body: {} });
     const count = (newUnlocks ?? []).length;
     if (count > 0) {
+      // Show unlock notifications for each new achievement
+      newUnlocks.forEach((unlock) => {
+        const def = all.find((a) => a.id === unlock.achievementId);
+        if (def) {
+          showUnlockNotification(def);
+        }
+      });
       toast(
         `🎉 ${count} nuevo${count > 1 ? 's' : ''} achievement${count > 1 ? 's' : ''} desbloqueado${count > 1 ? 's' : ''}`,
         'success',
@@ -252,6 +315,30 @@ export const renderAchievements = async (container) => {
     }
     renderAchievements(container);
   });
+
+  // Real-time polling for new achievements (every 30s)
+  const pollInterval = setInterval(async () => {
+    const { data: snapshot } = await apiSafe('/api/achievements/snapshot', EMPTY_SNAPSHOT);
+    const currentCount = snapshot.totalUnlocked ?? 0;
+
+    if (currentCount > lastUnlockedCount) {
+      const newCount = currentCount - lastUnlockedCount;
+      // Fetch latest unlocked to show notification
+      const { data: unlockedList } = await apiSafe('/api/achievements/unlocked', []);
+      if (unlockedList && unlockedList.length > 0) {
+        const newest = unlockedList[unlockedList.length - 1];
+        const def = all.find((a) => a.id === newest.achievementId);
+        if (def) {
+          showUnlockNotification(def);
+        }
+      }
+      lastUnlockedCount = currentCount;
+      renderAchievements(container);
+    }
+  }, 30000);
+
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', () => clearInterval(pollInterval));
 
   container.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-share]');
@@ -266,3 +353,6 @@ export const renderAchievements = async (container) => {
     }
   });
 };
+
+// Initialize last unlocked count
+lastUnlockedCount = EMPTY_SNAPSHOT.totalUnlocked;
