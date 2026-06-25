@@ -134,6 +134,10 @@ const renderBadge = (a, unlocked) => {
 };
 
 export const renderAchievements = async (containerEl) => {
+  if (!containerEl) {
+    console.error('[renderAchievements] container is null');
+    return;
+  }
   container = containerEl; // Store in module-level scope for callbacks
   container.innerHTML = `
     <div class="page-header">

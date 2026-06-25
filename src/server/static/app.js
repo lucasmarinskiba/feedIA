@@ -220,7 +220,8 @@ const navigate = async (route) => {
 
   try {
     const render = await ROUTES[route](); // descarga perezosa del módulo (cacheado)
-    await render($view);
+    if ($view) await render($view);
+    else console.error('[navigate] $view null — #view not in DOM');
     /* Imágenes: lazy + decode async (no bloquean el primer pintado) */
     try {
       $view.querySelectorAll('img:not([loading])').forEach((i) => {
