@@ -262,7 +262,7 @@ const buildHomeHTML = (identity, dashboard, kpisData, isOffline) => {
             </div>`,
             )
             .join('')}
-          <a href="#achievements" class="small">Ver todos los logros →</a>
+          <a href="#logros" class="small">Ver todos los logros →</a>
         </div>`
           : ''
       }

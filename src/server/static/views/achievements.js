@@ -56,6 +56,9 @@ let activePlatform = null; // null, 'instagram', 'tiktok', 'general'
 let showOnlyUnlocked = false;
 let lastUnlockedCount = 0;
 let all = []; // All achievements — module-level cache to fix scope issues in callbacks
+let eventSource = null; // Global SSE instance — ensures single connection
+let pollInterval = null; // Cleanup reference
+let reconnectInterval = null; // Cleanup reference
 
 const getPlatform = (category) => {
   if (!category) return 'general';
@@ -96,7 +99,7 @@ const showUnlockNotification = (achievement) => {
   playSound(rarity);
 
   // Visual pulse effect
-  const shelf = document.getElementById('medal-shelf');
+  const shelf = container.querySelector('#medal-shelf');
   if (shelf) {
     shelf.style.animation = 'none';
     setTimeout(() => {
@@ -167,7 +170,8 @@ export const renderAchievements = async (container) => {
   }
 
   // Stats
-  document.getElementById('achievements-stats').innerHTML = `
+  const statEl = container.querySelector('#achievements-stats');
+  if (statEl) statEl.innerHTML = `
     <div class="card stat-card">
       <div class="stat-label">Desbloqueados</div>
       <div class="stat-value">${snapshot.totalUnlocked}/${snapshot.totalAvailable}</div>
@@ -197,7 +201,8 @@ export const renderAchievements = async (container) => {
     mítica: { border: '#EF4444', bg: 'linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.08))' },
   };
 
-  document.getElementById('medal-shelf').innerHTML = `
+  const shelfEl = container.querySelector('#medal-shelf');
+  if (shelfEl) shelfEl.innerHTML = `
     <div style="background:linear-gradient(135deg,rgba(88,28,135,0.1),rgba(200,124,124,0.05));border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:16px;margin-bottom:20px;backdrop-filter:blur(8px);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
         <h2 style="margin:0;font-size:18px;font-weight:600;">🏅 Repisa de Medallas</h2>
@@ -284,7 +289,7 @@ export const renderAchievements = async (container) => {
     platformCounts[p] = all.filter((a) => getPlatform(a.category) === p).length;
   });
 
-  document.getElementById('cat-filter').innerHTML = `
+  const catEl = container.querySelector('#cat-filter'); if (catEl) catEl.innerHTML = `
     <div style="margin-bottom:12px;">
       <div class="small" style="color:#9CA3AF;margin-bottom:6px;font-weight:600;">PLATAFORMAS</div>
       <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
@@ -310,13 +315,13 @@ export const renderAchievements = async (container) => {
   if (activeCategory) visible = visible.filter((a) => a.category === activeCategory);
   if (showOnlyUnlocked) visible = visible.filter((a) => unlockedMap.has(a.id));
 
-  document.getElementById('achievements-grid').innerHTML = visible
+  const gridEl = container.querySelector('#achievements-grid'); if (gridEl) gridEl.innerHTML = visible
     .map((a) => renderBadge(unlockedMap.get(a.id) ?? a, unlockedMap.has(a.id)))
     .join('');
 
   // Next achievements
   if (next.length > 0) {
-    document.getElementById('next-section').innerHTML = `
+    const nextEl = container.querySelector('#next-section'); if (nextEl) nextEl.innerHTML = `
       <h2 style="margin-bottom:10px;">🎯 Próximos a desbloquear</h2>
       <div class="page-grid">${next
         .map(
@@ -333,7 +338,7 @@ export const renderAchievements = async (container) => {
   }
 
   // Listeners — platform & category filters
-  document.getElementById('cat-filter').addEventListener('click', (e) => {
+  container.querySelector('#cat-filter').addEventListener('click', (e) => {
     const platformBtn = e.target.closest('[data-platform]');
     const catBtn = e.target.closest('[data-cat]');
 
@@ -346,12 +351,12 @@ export const renderAchievements = async (container) => {
     }
   });
 
-  document.getElementById('only-unlocked').addEventListener('change', (e) => {
+  container.querySelector('#only-unlocked').addEventListener('change', (e) => {
     showOnlyUnlocked = e.target.checked;
     renderAchievements(container);
   });
 
-  document.getElementById('evaluate-btn').addEventListener('click', async () => {
+  container.querySelector('#evaluate-btn').addEventListener('click', async () => {
     toast('Evaluando achievements...', 'info');
     apiBust('/api/achievements');
     const { data: newUnlocks } = await apiSafe('/api/achievements/evaluate', [], { method: 'POST', body: {} });
@@ -375,7 +380,12 @@ export const renderAchievements = async (container) => {
   });
 
   // Real-time SSE (Server-Sent Events) for achievements
-  const eventSource = new EventSource('/api/stream/achievements');
+  // Close previous connection if exists (prevent duplicates)
+  if (eventSource) {
+    eventSource.close();
+    eventSource = null;
+  }
+  eventSource = new EventSource('/api/stream/achievements');
 
   eventSource.addEventListener('achievement-unlock', (event) => {
     const data = JSON.parse(event.data);
@@ -395,8 +405,12 @@ export const renderAchievements = async (container) => {
   eventSource.onerror = () => {
     console.warn('[SSE] Connection lost, falling back to polling');
     eventSource.close();
+    // Cleanup old intervals
+    if (pollInterval) clearInterval(pollInterval);
+    if (reconnectInterval) clearInterval(reconnectInterval);
+
     // Fallback: poll every 30s if SSE fails
-    const pollInterval = setInterval(async () => {
+    pollInterval = setInterval(async () => {
       const { data: snapshot } = await apiSafe('/api/achievements/snapshot', EMPTY_SNAPSHOT);
       if ((snapshot.totalUnlocked ?? 0) > lastUnlockedCount) {
         lastUnlockedCount = snapshot.totalUnlocked ?? 0;
@@ -405,7 +419,7 @@ export const renderAchievements = async (container) => {
     }, 30000);
 
     // Attempt SSE reconnection every 5 minutes
-    const reconnectInterval = setInterval(() => {
+    reconnectInterval = setInterval(() => {
       console.log('[SSE] Attempting reconnection...');
       const newEventSource = new EventSource('/api/stream/achievements');
       newEventSource.onopen = () => {

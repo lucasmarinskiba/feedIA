@@ -86,7 +86,8 @@ const ROUTES = {
   brujula: V('./views/brujula.js', 'renderBrujula'),
   handsfree: V('./views/handsfree.js', 'renderHandsFree'),
   brandkit: V('./views/brandkit.js', 'renderBrandKit'),
-  achievements: V('./views/achievements.js', 'renderAchievements'),
+  logros: V('./views/achievements.js', 'renderAchievements'),
+  achievements: V('./views/achievements.js', 'renderAchievements'), // Alias
   memorabilia: V('./views/memorabilia.js', 'renderMemorabilia'),
   personalization: V('./views/personalization.js', 'renderPersonalization'),
   rituals: V('./views/rituals.js', 'renderRituals'),
@@ -147,7 +148,8 @@ const ROUTE_LABELS = {
   cliente: 'Modo Cliente · Vista ejecutiva · Solo lectura · Para el dueño de la marca',
   welcome: 'Bienvenida · Onboarding · Empezar acá · Unboxing · Setup inicial',
   home: 'Home · Inicio personalizado · Tu casa · Dashboard · Saludo del día',
-  achievements: 'Logros · Trofeos · Galería · Achievements · Desbloqueos · Coleccionables',
+  logros: 'Logros · Trofeos · Galería · Achievements · Desbloqueos · Coleccionables',
+  achievements: 'Logros · Trofeos · Galería · Achievements · Desbloqueos · Coleccionables', // Alias
   memorabilia: 'Memorabilia · Memorias · Recuerdos · Throwback · Yearbook · Highlight reel',
   personalization: 'Personalización · Tema · Mascot · Voz · Identidad · Apariencia · Setup',
   rituals: 'Rituales · Mañana · Noche · Lunes kickoff · Cierre Viernes · Daily ritual',
