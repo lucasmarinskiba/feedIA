@@ -5,6 +5,8 @@ import { apiSafe, apiBust } from '../lib/api.js';
 import { escape } from '../lib/dom.js';
 import { toast } from '../lib/toast.js';
 import { getAchievementIcon } from '../js/achievement-icons.js';
+import { getInstagramIcon } from '../js/instagram-icons.js';
+import { getTikTokIcon } from '../js/tiktok-icons.js';
 
 const EMPTY_SNAPSHOT = {
   totalUnlocked: 0,
@@ -59,6 +61,12 @@ const getPlatform = (category) => {
   return 'general';
 };
 
+const getIconForAchievement = (id, platform) => {
+  if (platform === 'instagram') return getInstagramIcon(id);
+  if (platform === 'tiktok') return getTikTokIcon(id);
+  return getAchievementIcon(id);
+};
+
 const playSound = (rarity) => {
   try {
     const audio = new Audio(RARITY_SOUNDS[rarity] ?? RARITY_SOUNDS.común);
@@ -104,7 +112,7 @@ const renderBadge = (a, unlocked) => {
         <span class="tag tiny">+${a.points}pts</span>
       </div>
       <div style="display:flex;align-items:center;gap:12px;margin:10px 0;">
-        <div style="width:48px;height:48px;flex-shrink:0;color:${hidden ? '#9CA3AF' : unlocked ? c : '#9CA3AF'};display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));opacity:${unlocked ? 1 : 0.5};${unlocked ? '' : 'filter:grayscale(100%) drop-shadow(0 2px 4px rgba(0,0,0,0.3));'}">${hidden ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' : getAchievementIcon(a.id)}</div>
+        <div style="width:48px;height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center;opacity:${unlocked ? 1 : 0.5};">${hidden ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' : getIconForAchievement(a.id, getPlatform(a.category))}</div>
         <div>
           <h3 style="margin:0;">${hidden ? '???' : escape(a.name)}</h3>
           <div class="small muted">${hidden ? 'Logro oculto' : escape(a.description)}</div>
@@ -214,7 +222,7 @@ export const renderAchievements = async (container) => {
           onmouseover="this.style.transform='translateY(-4px)';this.classList.add('medal-hover');"
           onmouseout="this.style.transform='translateY(0)';this.classList.remove('medal-hover');"
           title="${escape(m.name)}${isUnlocked ? `&#10;✓ Desbloqueado: ${new Date(unlockedData.unlockedAt).toLocaleDateString('es-AR')}` : '&#10;Bloqueado: ' + escape(m.unlockCondition)}">
-          <div style="width:32px;height:32px;margin:0 auto 8px;color:${iconColor};display:flex;align-items:center;justify-content:center;filter:${isUnlocked ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' : 'grayscale(100%) drop-shadow(0 2px 4px rgba(107,114,128,0.4))'};opacity:${isUnlocked ? 1 : 0.6};">${getAchievementIcon(m.id)}</div>
+          <div style="width:32px;height:32px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;filter:${isUnlocked ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' : 'grayscale(100%) drop-shadow(0 2px 4px rgba(107,114,128,0.4))'};opacity:${isUnlocked ? 1 : 0.6};">${getIconForAchievement(m.id, getPlatform(m.category))}</div>
           <div class="tiny" style="font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${isUnlocked ? '#e0e0e0' : '#9CA3AF'};">${escape(m.name)}</div>
           <div class="tiny muted" style="margin-top:4px;font-size:11px;">${isUnlocked ? new Date(unlockedData.unlockedAt).toLocaleDateString('es-AR') : '🔒'}</div>
         </div>
