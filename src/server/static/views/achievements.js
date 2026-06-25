@@ -97,7 +97,7 @@ const renderBadge = (a, unlocked) => {
         <span class="tag tiny">+${a.points}pts</span>
       </div>
       <div style="display:flex;align-items:center;gap:12px;margin:10px 0;">
-        <div style="width:48px;height:48px;flex-shrink:0;color:${hidden ? '#9CA3AF' : c};display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));">${hidden ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' : getAchievementIcon(a.id)}</div>
+        <div style="width:48px;height:48px;flex-shrink:0;color:${hidden ? '#9CA3AF' : unlocked ? c : '#9CA3AF'};display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));opacity:${unlocked ? 1 : 0.5};${unlocked ? '' : 'filter:grayscale(100%) drop-shadow(0 2px 4px rgba(0,0,0,0.3));'}">${hidden ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' : getAchievementIcon(a.id)}</div>
         <div>
           <h3 style="margin:0;">${hidden ? '???' : escape(a.name)}</h3>
           <div class="small muted">${hidden ? 'Logro oculto' : escape(a.description)}</div>
@@ -168,51 +168,54 @@ export const renderAchievements = async (container) => {
     </div>
   `;
 
-  // Medal Shelf
-  if (unlocked.length > 0) {
-    const unlockedDefs = unlocked
-      .map((u) => {
-        const def = all.find((a) => a.id === u.id);
-        return def ? { ...def, ...u } : null;
-      })
-      .filter((x) => x !== null)
-      .sort((a, b) => b.unlockedAt.localeCompare(a.unlockedAt))
-      .slice(0, 12); // Show top 12 recent medals
+  // Medal Shelf — ALL achievements (unlocked=color, locked=gray)
+  const unlockedMap = new Map(unlocked.map((u) => [u.id, u]));
+  const rarityStyles = {
+    común: { border: '#9CA3AF', bg: 'rgba(156,163,175,0.12)' },
+    rara: { border: '#3B82F6', bg: 'rgba(59,130,246,0.12)' },
+    épica: { border: '#A855F7', bg: 'linear-gradient(135deg,rgba(168,85,247,0.15),rgba(168,85,247,0.08))' },
+    legendaria: { border: '#F59E0B', bg: 'linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.08))' },
+    mítica: { border: '#EF4444', bg: 'linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.08))' },
+  };
 
-    const rarityStyles = {
-      común: { border: '#9CA3AF', bg: 'rgba(156,163,175,0.12)' },
-      rara: { border: '#3B82F6', bg: 'rgba(59,130,246,0.12)' },
-      épica: { border: '#A855F7', bg: 'linear-gradient(135deg,rgba(168,85,247,0.15),rgba(168,85,247,0.08))' },
-      legendaria: { border: '#F59E0B', bg: 'linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.08))' },
-      mítica: { border: '#EF4444', bg: 'linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.08))' },
-    };
-
-    document.getElementById('medal-shelf').innerHTML = `
-      <div style="background:linear-gradient(135deg,rgba(88,28,135,0.1),rgba(200,124,124,0.05));border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:16px;margin-bottom:20px;backdrop-filter:blur(8px);">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-          <h2 style="margin:0;font-size:18px;font-weight:600;">🏅 Repisa de Medallas</h2>
-          <span class="badge" style="background:rgba(139,92,246,0.3);color:#a78bfa;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;">${unlocked.length} medallas</span>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;">
-          ${unlockedDefs
-            .map(
-              (m, idx) => {
-                const style = rarityStyles[m.rarity];
-                return `
-            <div class="medal-item medal-${m.rarity}" style="padding:12px 8px;text-align:center;border:2px solid ${style.border};border-radius:8px;cursor:pointer;background:${style.bg};transition:all 0.3s ease;animation:slideInUp 0.5s ease-out ${idx * 50}ms;transform:translateY(0);"
-              onmouseover="this.style.transform='translateY(-4px)';this.classList.add('medal-hover');"
-              onmouseout="this.style.transform='translateY(0)';this.classList.remove('medal-hover');"
-              title="${escape(m.name)}&#10;${escape(m.description)}&#10;Desbloqueado: ${new Date(m.unlockedAt).toLocaleDateString('es-AR')}">
-              <div style="width:32px;height:32px;margin:0 auto 8px;color:${m.rarity === 'legendaria' ? '#FCD34D' : m.rarity === 'épica' ? '#D8B4FE' : m.rarity === 'mítica' ? '#FCA5A5' : m.rarity === 'rara' ? '#93C5FD' : '#D1D5DB'};filter:drop-shadow(0 2px 4px rgba(0,0,0,0.6));">${getAchievementIcon(m.id)}</div>
-              <div class="tiny" style="font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e0e0e0;">${escape(m.name)}</div>
-              <div class="tiny muted" style="margin-top:4px;font-size:11px;">${new Date(m.unlockedAt).toLocaleDateString('es-AR')}</div>
-            </div>
-            `;
-              },
-            )
-            .join('')}
-        </div>
+  document.getElementById('medal-shelf').innerHTML = `
+    <div style="background:linear-gradient(135deg,rgba(88,28,135,0.1),rgba(200,124,124,0.05));border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:16px;margin-bottom:20px;backdrop-filter:blur(8px);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h2 style="margin:0;font-size:18px;font-weight:600;">🏅 Repisa de Medallas</h2>
+        <span class="badge" style="background:rgba(139,92,246,0.3);color:#a78bfa;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;">${unlocked.length}/${all.length}</span>
       </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;">
+        ${all
+          .map((m, idx) => {
+            const isUnlocked = unlockedMap.has(m.id);
+            const unlockedData = unlockedMap.get(m.id);
+            const style = rarityStyles[m.rarity];
+            const iconColor = isUnlocked
+              ? m.rarity === 'legendaria'
+                ? '#FCD34D'
+                : m.rarity === 'épica'
+                  ? '#D8B4FE'
+                  : m.rarity === 'mítica'
+                    ? '#FCA5A5'
+                    : m.rarity === 'rara'
+                      ? '#93C5FD'
+                      : '#D1D5DB'
+              : '#6B7280';
+
+            return `
+        <div class="medal-item medal-${m.rarity}" style="padding:12px 8px;text-align:center;border:2px solid ${isUnlocked ? style.border : '#D1D5DB'};border-radius:8px;cursor:pointer;background:${isUnlocked ? style.bg : 'rgba(107,114,128,0.05)'};transition:all 0.3s ease;animation:slideInUp 0.5s ease-out ${idx * 30}ms;transform:translateY(0);opacity:${isUnlocked ? 1 : 0.5};"
+          onmouseover="this.style.transform='translateY(-4px)';this.classList.add('medal-hover');"
+          onmouseout="this.style.transform='translateY(0)';this.classList.remove('medal-hover');"
+          title="${escape(m.name)}${isUnlocked ? `&#10;✓ Desbloqueado: ${new Date(unlockedData.unlockedAt).toLocaleDateString('es-AR')}` : '&#10;Bloqueado: ' + escape(m.unlockCondition)}">
+          <div style="width:32px;height:32px;margin:0 auto 8px;color:${iconColor};display:flex;align-items:center;justify-content:center;filter:${isUnlocked ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' : 'grayscale(100%) drop-shadow(0 2px 4px rgba(107,114,128,0.4))'};opacity:${isUnlocked ? 1 : 0.6};">${getAchievementIcon(m.id)}</div>
+          <div class="tiny" style="font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${isUnlocked ? '#e0e0e0' : '#9CA3AF'};">${escape(m.name)}</div>
+          <div class="tiny muted" style="margin-top:4px;font-size:11px;">${isUnlocked ? new Date(unlockedData.unlockedAt).toLocaleDateString('es-AR') : '🔒'}</div>
+        </div>
+        `;
+          })
+          .join('')}
+      </div>
+    </div>
       <style>
         @keyframes slideInUp {
           from { opacity: 0; transform: translateY(20px); }
