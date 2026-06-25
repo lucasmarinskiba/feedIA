@@ -1203,14 +1203,22 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
     description:
       'Captura el snapshot diario de seguidores, alcance y engagement para alimentar las predicciones y el dashboard.',
     defaultCron: '0 23 * * *', // 11pm cada día
-    handler: async (_brand): Promise<unknown> => {
+    handler: async (brand): Promise<unknown> => {
       const { fetchAccountInsights } = await import('../integrations/insightsApi.js');
+      const { fetchInstagramProfile, fetchTikTokProfile } = await import('../integrations/platformProfiles.js');
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const acc = await fetchAccountInsights(yesterday);
       if (!acc) {
         log.warn('[Jobs] growth-daily-snapshot: sin datos de Insights, skipping');
         return { ok: false, reason: 'sin datos de Insights' };
       }
+
+      // Fetch platform-specific data
+      const [igProfile, ttProfile] = await Promise.all([
+        fetchInstagramProfile(brand.id),
+        fetchTikTokProfile(brand.id),
+      ]);
+
       const today = new Date().toISOString().split('T')[0]!;
       const summary = getAccountSummary();
       const snapshot = recordDailySnapshot({
@@ -1220,8 +1228,13 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
         engagement24h: Math.round(acc.reach * (summary.avgEngagementRate / 100)),
         postsPublished: 0,
         storiesPublished: 0,
+        // Platform-specific metrics
+        tiktokFollowers: ttProfile.real ? ttProfile.followers : undefined,
+        tiktokEngagement24h: ttProfile.real ? ttProfile.likes : undefined,
+        instagramFollowers: igProfile.real ? igProfile.followers : undefined,
+        instagramTotalLikes: igProfile.real ? igProfile.likes : undefined,
       });
-      log.info(`[Jobs] growth-daily-snapshot: ${acc.followers} seguidores (delta ${snapshot.followersDelta})`);
+      log.info(`[Jobs] growth-daily-snapshot: ${acc.followers} followers | IG: ${igProfile.followers} | TT: ${ttProfile.followers}`);
       return snapshot;
     },
   },
