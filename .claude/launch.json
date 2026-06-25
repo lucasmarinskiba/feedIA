@@ -2,6 +2,13 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "FeedIA Web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000,
+      "autoPort": false
+    },
+    {
       "name": "Iggy Dashboard",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["tsx", "src/cli.ts", "daemon"],

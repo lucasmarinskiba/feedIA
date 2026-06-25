@@ -4,6 +4,7 @@
 import { apiSafe, apiBust } from '../lib/api.js';
 import { escape } from '../lib/dom.js';
 import { toast } from '../lib/toast.js';
+import { getAchievementIcon } from '../js/achievement-icons.js';
 
 const EMPTY_SNAPSHOT = {
   totalUnlocked: 0,
@@ -96,7 +97,7 @@ const renderBadge = (a, unlocked) => {
         <span class="tag tiny">+${a.points}pts</span>
       </div>
       <div style="display:flex;align-items:center;gap:12px;margin:10px 0;">
-        <div style="font-size:42px;line-height:1;">${hidden ? '🔒' : escape(a.emoji)}</div>
+        <div style="width:48px;height:48px;flex-shrink:0;color:${hidden ? '#9CA3AF' : c};display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));">${hidden ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' : getAchievementIcon(a.id)}</div>
         <div>
           <h3 style="margin:0;">${hidden ? '???' : escape(a.name)}</h3>
           <div class="small muted">${hidden ? 'Logro oculto' : escape(a.description)}</div>
@@ -202,7 +203,7 @@ export const renderAchievements = async (container) => {
               onmouseover="this.style.transform='translateY(-4px)';this.classList.add('medal-hover');"
               onmouseout="this.style.transform='translateY(0)';this.classList.remove('medal-hover');"
               title="${escape(m.name)}&#10;${escape(m.description)}&#10;Desbloqueado: ${new Date(m.unlockedAt).toLocaleDateString('es-AR')}">
-              <div style="font-size:40px;margin-bottom:6px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));">${escape(m.emoji)}</div>
+              <div style="width:32px;height:32px;margin:0 auto 8px;color:${m.rarity === 'legendaria' ? '#FCD34D' : m.rarity === 'épica' ? '#D8B4FE' : m.rarity === 'mítica' ? '#FCA5A5' : m.rarity === 'rara' ? '#93C5FD' : '#D1D5DB'};filter:drop-shadow(0 2px 4px rgba(0,0,0,0.6));">${getAchievementIcon(m.id)}</div>
               <div class="tiny" style="font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e0e0e0;">${escape(m.name)}</div>
               <div class="tiny muted" style="margin-top:4px;font-size:11px;">${new Date(m.unlockedAt).toLocaleDateString('es-AR')}</div>
             </div>
