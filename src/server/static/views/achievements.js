@@ -124,7 +124,11 @@ const renderBadge = (a, unlocked) => {
         <span class="tag tiny">+${a.points}pts</span>
       </div>
       <div style="display:flex;align-items:center;gap:12px;margin:10px 0;">
-        <div style="width:48px;height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center;opacity:${unlocked ? 1 : 0.5};">${hidden ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' : getIconForAchievement(a.id, getPlatform(a.category))}</div>
+        <div style="width:48px;height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center;${unlocked ? '' : 'filter:grayscale(1);opacity:0.35;'}">
+          ${hidden
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
+            : getIconForAchievement(a.id, getPlatform(a.category))}
+        </div>
         <div>
           <h3 style="margin:0;">${hidden ? '???' : escape(a.name)}</h3>
           <div class="small muted">${hidden ? 'Logro oculto' : escape(a.description)}</div>
