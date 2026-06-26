@@ -462,7 +462,7 @@ export const renderAchievements = async (containerEl) => {
   };
 
   // Cleanup on page unload
-  window.addEventListener('beforeunload', () => eventSource.close());
+  window.addEventListener('beforeunload', () => eventSource?.close());
 
   container?.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-share]');
