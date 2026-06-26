@@ -63,6 +63,7 @@ let container = null; // Module-level reference to container DOM element
 let unlocked = []; // Module-level so click/SSE callbacks can access it
 let next = []; // Module-level
 let snapshot = { ...EMPTY_SNAPSHOT }; // Module-level
+let _sseWired = false; // Wire SSE + click once per module lifetime
 
 const getPlatform = (category) => {
   if (!category) return 'general';
@@ -463,7 +464,7 @@ export const renderAchievements = async (containerEl) => {
   // Cleanup on page unload
   window.addEventListener('beforeunload', () => eventSource.close());
 
-  container.addEventListener('click', async (e) => {
+  container?.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-share]');
     if (btn) {
       const id = btn.dataset.share;
@@ -476,5 +477,4 @@ export const renderAchievements = async (containerEl) => {
     }
   });
 
-// Initialize last unlocked count
-lastUnlockedCount = EMPTY_SNAPSHOT.totalUnlocked;
+  _sseWired = true;
