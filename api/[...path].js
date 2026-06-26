@@ -1247,6 +1247,15 @@ const innerHandler = async (req, res) => {
         uBody = {};
       }
     }
+    // On /api/auth/me: record active day + check comeback/streaks async
+    if (path === '/api/auth/me' && m === 'GET') {
+      getSessionFromReq(req).then(ctx => {
+        if (!ctx?.user?.id) return;
+        import('./_achievements.js').then(a =>
+          a.onUserLogin(ctx.user.id, ctx.user.lastActiveAt)
+        ).catch(() => {});
+      }).catch(() => {});
+    }
     try {
       if (await handleUsers(req, res, path, m, uBody || {})) return;
     } catch (err) {
@@ -2023,6 +2032,18 @@ const innerHandler = async (req, res) => {
       if (type === 'reel') result = await igPublishReel(videoUrl, caption || '', req);
       else if (type === 'carousel') result = await igPublishCarousel(imageUrls || [imageUrl], caption || '', req);
       else result = await igPublishImage(imageUrl, caption || '', req);
+      // Fire achievement trigger async (never blocks response)
+      if (result?.ok !== false) {
+        getSessionFromReq(req).then(ctx => {
+          if (!ctx?.user?.id) return;
+          const now = new Date();
+          const afterMidnight = now.getHours() < 5;
+          const isFriday13 = now.getDay() === 5 && now.getDate() === 13;
+          import('./_achievements.js').then(a =>
+            a.onPostPublished(ctx.user.id, { afterMidnight, friday13: isFriday13 })
+          ).catch(() => {});
+        }).catch(() => {});
+      }
       return ok(res, result);
     }
     if (platform === 'tiktok') {
@@ -3612,8 +3633,54 @@ Respondé JSON: { "spokenReply": string (corto, para TTS, español rioplatense),
     );
   }
 
-  // ── ACHIEVEMENTS (demo data completo) ───────────────────────────────────
+  // ── ACHIEVEMENTS (real per-user KV store if authenticated, demo otherwise) ──
   if (path.startsWith('/api/achievements')) {
+    const achCtx = await getSessionFromReq(req);
+    const achUserId = achCtx?.user?.id;
+
+    if (achUserId) {
+      // ── AUTHENTICATED: real per-user store ──────────────────────────────
+      const {
+        getAllAchievements, getUnlocked, getSnapshot, getNext,
+        getUnacknowledged, markShared, markAcknowledged, evaluateAchievements,
+        recordActiveDay, onUserLogin,
+      } = await import('./_achievements.js');
+
+      // Track active day on any authenticated achievement request
+      recordActiveDay(achUserId).catch(() => {});
+
+      if (path === '/api/achievements' && m === 'GET') {
+        return ok(res, getAllAchievements());
+      }
+      if (path === '/api/achievements/unlocked' && m === 'GET') {
+        return ok(res, await getUnlocked(achUserId));
+      }
+      if (path === '/api/achievements/snapshot' && m === 'GET') {
+        return ok(res, await getSnapshot(achUserId));
+      }
+      if (path === '/api/achievements/next' && m === 'GET') {
+        return ok(res, await getNext(achUserId));
+      }
+      if (path === '/api/achievements/unacknowledged' && m === 'GET') {
+        return ok(res, await getUnacknowledged(achUserId));
+      }
+      if (path === '/api/achievements/evaluate' && m === 'POST') {
+        const newUnlocks = await evaluateAchievements(achUserId);
+        return ok(res, newUnlocks);
+      }
+      if (path.match(/^\/api\/achievements\/[^/]+\/share$/) && m === 'POST') {
+        const id = path.split('/')[3];
+        return ok(res, { ok: await markShared(achUserId, id) });
+      }
+      if (path.match(/^\/api\/achievements\/[^/]+\/ack$/) && m === 'POST') {
+        const id = path.split('/')[3];
+        return ok(res, { ok: await markAcknowledged(achUserId, id) });
+      }
+      // Any other achievements POST → ok
+      return ok(res, { ok: true });
+    }
+
+    // ── NOT AUTHENTICATED: demo data ────────────────────────────────────
     const DEMO_ACHIEVEMENTS = [
       { id:'primeros-100', name:'Primeros 100', description:'Llegaste a 100 seguidores', category:'crecimiento', rarity:'común', emoji:'🌱', badgeIcon:'sprout', flavorText:'Toda planta empieza por una semilla.', unlockCondition:'Alcanzar 100 seguidores', points:10, hidden:false, unlockSound:'common-chime', unlockAnimation:'sparkle', shareableText:'Acabo de cruzar 100 seguidores 🌱' },
       { id:'club-mil', name:'Club de los Mil', description:'1.000 seguidores reales', category:'crecimiento', rarity:'rara', emoji:'🚀', badgeIcon:'rocket', flavorText:'Mil ojos. Mil corazones. Esto es real.', unlockCondition:'Alcanzar 1.000 seguidores', points:50, hidden:false, unlockSound:'rare-fanfare', unlockAnimation:'confetti-burst', shareableText:'¡1.000 seguidores! 🚀' },

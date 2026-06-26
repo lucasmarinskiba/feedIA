@@ -76,6 +76,21 @@ export const handleGrowth = async (req, res, path, m, body, search) => {
     const platform = path.split('/')[3] === 'tiktok' ? 'tiktok' : 'instagram';
     const snap = await snapshot(platform);
     json(res, 200, snap);
+    // Persist per-user snapshot + trigger achievement evaluation async
+    try {
+      const { getSessionFromReq } = await import('./_users.js');
+      const ctx = await getSessionFromReq(req);
+      if (ctx?.user?.id) {
+        const userId = ctx.user.id;
+        const profile = snap.profile ?? {};
+        const metricSnap = platform === 'instagram'
+          ? { followers: profile.followers ?? 0, totalLikes: profile.likes ?? 0, maxSaves: profile.maxSaves ?? 0, engagementRate: profile.engagementRate ?? 0 }
+          : { followers: profile.followers ?? 0, totalLikes: profile.likes ?? 0 };
+        import('./_achievements.js').then(a =>
+          a.updateMetricSnapshot(userId, platform, metricSnap)
+        ).catch(() => {});
+      }
+    } catch { /* non-blocking */ }
     return true;
   }
 
