@@ -5880,4 +5880,555 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       json(res, 200, matrix);
     },
   },
+
+  // ═══ STAGE 3: COPY MASTERY ═════════════════════════════════════════════════
+
+  // ─── STAGE 3: Copywriting Formulas ──────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/copywriting-formulas',
+    handler: async ({ res, body }) => {
+      const { goal = 'sales', format = 'caption' } = (body as Record<string, unknown>) || {};
+
+      const formulas = {
+        AIDA: {
+          formula: 'Attention → Interest → Desire → Action',
+          template: '🎯 [Headline grabs attention] → [Problem relatable] → [Solution benefits] → [CTA urgent]',
+          example: '❌ Stuck with boring content? → ✅ Our framework gets 8-12% engagement → Join 500+ creators → [LINK]',
+          conversionRate: '3-5%',
+        },
+        PAS: {
+          formula: 'Problem → Agitate → Solve',
+          template: '[Show pain point] → [Intensify feeling] → [Present solution]',
+          example: 'Your followers ignore your posts → Meanwhile competitors get 50K views → This framework changes that',
+          conversionRate: '4-6%',
+        },
+        BAB: {
+          formula: 'Before → After → Bridge',
+          template: '[Current state] → [Desired outcome] → [How to get there]',
+          example: 'Before: 2K followers, 2% engagement → After: 50K followers, 12% engagement → Our 90-day system bridges the gap',
+          conversionRate: '5-8%',
+        },
+        StorytellingArc: {
+          formula: 'Setup → Conflict → Resolution',
+          template: '[Relatable situation] → [Problem arises] → [Your solution saves the day]',
+          example: 'I had 1K followers for 2 years → Tried everything → Changed one thing → 50K in 90 days',
+          conversionRate: '6-10%',
+        },
+      };
+
+      json(res, 200, {
+        goal,
+        format,
+        formulas,
+        pro_tip: 'Layer formulas: AIDA hook + PAS body + BAB close = 8-12% conversion',
+      });
+    },
+  },
+
+  // ─── STAGE 3: Headline Generator ────────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/headline-generator',
+    handler: async ({ res, body }) => {
+      const { topic = 'business growth', angle = 'data-driven' } = (body as Record<string, unknown>) || {};
+
+      const headlines = {
+        curiosityGap: [
+          `The ${topic} hack nobody talks about (but top creators swear by)`,
+          `I spent $50K on ${topic}. Here's what actually works.`,
+          `${topic} in 90 days: the framework most people miss`,
+        ],
+        numberHook: [
+          `3 ${topic} mistakes costing you 40% reach`,
+          `5-step ${topic} formula: proven with 10K+ followers`,
+          `${topic}: the 7-second rule that changes everything`,
+        ],
+        contrarian: [
+          `Stop doing ${topic} the "right way" (it's backwards)`,
+          `The ${topic} advice that's actually hurting you`,
+          `${topic} is easier than everyone says. Here's why.`,
+        ],
+        FOMO: [
+          `${topic} trends in 2026: you're missing 3 of them`,
+          `Only top 1% know this ${topic} secret`,
+          `${topic} opportunity closing in 48 hours (seriously)`,
+        ],
+        Benefit: [
+          `Get ${topic} results without the overwhelm`,
+          `${topic}: finally explained in plain English`,
+          `The ${topic} shortcut that saves 10 hours/week`,
+        ],
+      };
+
+      json(res, 200, {
+        topic,
+        angle,
+        headlines,
+        strategy: 'A/B test 2 headlines per post → use winner in next post',
+        expectedLift: '25-45% more clicks',
+      });
+    },
+  },
+
+  // ─── STAGE 3: CTA Psychology ───────────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/cta-psychology',
+    handler: async ({ res, body }) => {
+      const { goal = 'sales', format = 'carousel' } = (body as Record<string, unknown>) || {};
+
+      const ctas = {
+        urgency: [
+          { cta: 'Get access before midnight', psychology: 'scarcity + deadline', lift: '+35%' },
+          { cta: 'Only 5 spots left', psychology: 'exclusivity + fear', lift: '+40%' },
+          { cta: 'Grab yours now', psychology: 'action verb + immediacy', lift: '+28%' },
+        ],
+        curiosity: [
+          { cta: 'See what happened next', psychology: 'gap in knowledge', lift: '+30%' },
+          { cta: 'Find out the secret', psychology: 'mystery + exclusivity', lift: '+32%' },
+          { cta: 'Unlock the full guide', psychology: 'hidden value', lift: '+28%' },
+        ],
+        benefit: [
+          { cta: 'Get my free guide', psychology: 'value + no risk', lift: '+25%' },
+          { cta: 'Learn the framework', psychology: 'education + authority', lift: '+22%' },
+          { cta: 'Join 500+ creators', psychology: 'social proof + community', lift: '+30%' },
+        ],
+        lowFriction: [
+          { cta: 'Reply YES', psychology: 'minimal effort', lift: '+35%' },
+          { cta: 'Drop a 🔥', psychology: 'emoji engagement', lift: '+40%' },
+          { cta: 'Comment your biggest challenge', psychology: 'conversation', lift: '+45%' },
+        ],
+      };
+
+      json(res, 200, {
+        goal,
+        format,
+        ctas,
+        winningFormula: 'Urgency + Benefit + Low Friction = 40-50% conversion',
+      });
+    },
+  },
+
+  // ─── STAGE 3: Storytelling Framework ────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/storytelling-framework',
+    handler: async ({ res, body }) => {
+      const { storyType = 'transformation', length = 'short' } = (body as Record<string, unknown>) || {};
+
+      const frameworks = {
+        transformation: {
+          arc: 'Before (struggle) → Turning point (decision) → After (transformation) → Lesson',
+          engagement: '45-55% share rate',
+          example: 'I had 1K followers 2 years → Tried everything → Changed ONE thing → 50K now',
+        },
+        threeAct: {
+          arc: 'Setup (relatable) → Conflict (problem) → Resolution (solution) → Moral',
+          engagement: '35-45% share rate',
+          example: 'Act 1: boring content → Act 2: algorithm changes → Act 3: new framework saves the day',
+        },
+        heroJourney: {
+          arc: 'Call (challenge) → Resistance (fear) → Growth (action) → Return (wisdom)',
+          engagement: '40-50% share rate',
+          example: 'I was called to build my brand (fear: not good enough) → Took action (grew 50K) → Now helping others',
+        },
+        controversy: {
+          arc: 'Bold claim → Counter-evidence → Nuance → Truth',
+          engagement: '50-70% engagement (high risk)',
+          example: 'Posting daily DESTROYS engagement → (But only if...) → The real rule is...',
+        },
+      };
+
+      json(res, 200, {
+        storyType,
+        length,
+        ...frameworks[storyType],
+        pro_tip: 'Stories with vulnerability perform 60% better than "perfect" stories',
+      });
+    },
+  },
+
+  // ═══ STAGE 4: AUDIENCE SEDUCTION ENGINE ════════════════════════════════════
+
+  // ─── STAGE 4: Audience Seduction Tactics ────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/audience-seduction-tactics',
+    handler: async ({ res, body }) => {
+      const { platform = 'instagram', objective = 'conversion' } = (body as Record<string, unknown>) || {};
+
+      const tactics = [
+        { tactic: 'Pattern interrupts (bold color, strange text, unexpected format)', impact: '40%+ stop-scroll rate', psychology: 'breaks autopilot' },
+        { tactic: 'Curiosity gaps (headline missing key info, cliffhangers)', impact: '35%+ continue reading', psychology: 'need for closure' },
+        { tactic: 'Relatability (show your mistakes, struggles, realness)', impact: '50%+ deeper connection', psychology: 'authenticity trust' },
+        { tactic: 'Identification (this is for YOU specifically, speak to avatar)', impact: '45%+ personal relevance', psychology: 'exclusivity' },
+        { tactic: 'Social proof (case studies, testimonials, numbers)', impact: '30%+ perceived credibility', psychology: 'herd mentality' },
+        { tactic: 'Scarcity (limited time, limited spots, exclusive)', impact: '50%+ urgency response', psychology: 'FOMO' },
+        { tactic: 'Contrast (show before/after, wrong/right, them/you)', impact: '35%+ comprehension', psychology: 'visual clarity' },
+        { tactic: 'Emotion first (story before data, feeling before logic)', impact: '40%+ retention', psychology: 'emotional memory' },
+        { tactic: 'Multi-sensory (words + visuals + video + audio)', impact: '60%+ recall', psychology: 'multiple pathways' },
+        { tactic: 'Reciprocity (give value first, then ask)', impact: '45%+ compliance', psychology: 'obligation' },
+        { tactic: 'Community (mention followers, celebrate audience, inside jokes)', impact: '50%+ belonging', psychology: 'tribe' },
+        { tactic: 'Micro-commitments (poll → comment → DM → purchase)', impact: '55%+ funnel conversion', psychology: 'consistency' },
+        { tactic: 'Pattern reversal (expected → unexpected twist)', impact: '40%+ surprise + delight', psychology: 'novelty' },
+        { tactic: 'Authority (expert tips, credentials, third-party validation)', impact: '35%+ trust increase', psychology: 'trust transfer' },
+        { tactic: 'Aspiration (show desired future, role models, transformation)', impact: '45%+ inspiration', psychology: 'vision' },
+      ];
+
+      json(res, 200, {
+        platform,
+        objective,
+        tactics,
+        strategy: 'Use 3-5 tactics per post for 40-60% engagement lift',
+        bestCombos: [
+          'Curiosity gap + relatability + scarcity = 50%+ conversion',
+          'Pattern interrupt + emotion + social proof = 45%+ engagement',
+          'Identification + micro-commitment + reciprocity = 55%+ funnel flow',
+        ],
+      });
+    },
+  },
+
+  // ─── STAGE 4: Emotional Resonance Map ───────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/emotional-resonance-map',
+    handler: async ({ res, body }) => {
+      const { audience = 'professionals', contentType = 'carousel' } = (body as Record<string, unknown>) || {};
+
+      const map = {
+        audience,
+        contentType,
+        emotionalTargets: {
+          aspiration: { trigger: 'vision of better future', content: 'transformation story', resonance: '45%' },
+          belonging: { trigger: 'community + inside jokes', content: 'behind-the-scenes', resonance: '50%' },
+          achievement: { trigger: 'progress visualization', content: 'milestones + wins', resonance: '42%' },
+          curiosity: { trigger: 'knowledge gap', content: 'mystery + revelation', resonance: '55%' },
+          empowerment: { trigger: 'tools + frameworks', content: 'how-to + guides', resonance: '48%' },
+          entertainment: { trigger: 'humor + surprise', content: 'funny/unexpected', resonance: '40%' },
+          relief: { trigger: 'problem solved', content: 'tips + shortcuts', resonance: '45%' },
+          pride: { trigger: 'show off progress', content: 'celebrate milestones', resonance: '38%' },
+        },
+        contentMixPerWeek: {
+          monday: 'motivation (aspiration) 45% → start week energized',
+          tuesday: 'education (empowerment) 48% → provide value',
+          wednesday: 'entertainment (humor) 40% → mid-week break',
+          thursday: 'community (belonging) 50% → engagement spike',
+          friday: 'behind-scenes (authenticity) 48% → weekend mood',
+          weekend: 'inspiration (vision) 45% → weekend planning',
+        },
+      };
+
+      json(res, 200, map);
+    },
+  },
+
+  // ─── STAGE 4: Value Ladder Strategy ─────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/value-ladder-strategy',
+    handler: async ({ res, body }) => {
+      const { niche = 'business', targetRevenue = 10000 } = (body as Record<string, unknown>) || {};
+
+      const ladder = {
+        niche,
+        targetRevenue,
+        funnel: {
+          level1_free: {
+            offer: 'Free content (blog, videos, tips)',
+            value: 'build audience + trust',
+            traffic: '100%',
+            cost: '$0 per customer',
+            conversion: '5-10% to level 2',
+          },
+          level2_lowTicket: {
+            offer: '$27-$97 ebook, checklist, template',
+            value: 'implement framework immediately',
+            traffic: '10-50 customers',
+            cost: '$20 per customer',
+            conversion: '20-30% to level 3',
+          },
+          level3_midTicket: {
+            offer: '$297-$997 course, challenge, group program',
+            value: 'structured learning + accountability',
+            traffic: '2-15 customers',
+            cost: '$100 per customer',
+            conversion: '10-15% to level 4',
+          },
+          level4_highTicket: {
+            offer: '$2K-$10K+ 1-on-1 coaching, done-for-you, mastermind',
+            value: 'personal guidance + transformation',
+            traffic: '0.5-3 customers',
+            cost: '$500-$2K per customer',
+            conversion: '100% (repeat customer)',
+          },
+        },
+        revenueModel: {
+          level1: '0 revenue (brand building)',
+          level2: `${targetRevenue * 0.05} from 50 customers @ $50 avg`,
+          level3: `${targetRevenue * 0.35} from 10 customers @ $500 avg`,
+          level4: `${targetRevenue * 0.60} from 2 customers @ $5K avg`,
+          total: `$${targetRevenue} monthly revenue`,
+        },
+      };
+
+      json(res, 200, ladder);
+    },
+  },
+
+  // ─── STAGE 4: Engagement Psychology ────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/engagement-psychology',
+    handler: async ({ res, body }) => {
+      const { engagementType = 'comments' } = (body as Record<string, unknown>) || {};
+
+      const psychology = {
+        engagementType,
+        whyPeopleEngage: {
+          comments: {
+            reason: 'Need to express opinion + feel heard',
+            trigger: 'Ask specific question related to audience pain point',
+            example: '"What\'s YOUR biggest challenge with [topic]? (I read every comment)"',
+            resultLift: '+35% comments',
+          },
+          shares: {
+            reason: 'Want to look good to their audience',
+            trigger: 'Provide valuable info they can take credit for',
+            example: 'Shareable checklist, surprising fact, relatable struggle',
+            resultLift: '+28% shares',
+          },
+          saves: {
+            reason: 'Plan to reference later (tutorial, checklist, inspiration)',
+            trigger: 'Make it actionable + referenceable',
+            example: 'Framework, steps, data table, screenshot-worthy quote',
+            resultLift: '+40% saves',
+          },
+          shares_video: {
+            reason: 'Entertained, want to spread joy/insight',
+            trigger: 'Funny, surprising, emotional, relatable',
+            example: 'Bloopers, plot twists, vulnerable moments, humor',
+            resultLift: '+50% shares',
+          },
+          follows: {
+            reason: 'Want more content like this',
+            trigger: 'Consistent value + unique voice',
+            example: 'Series format, signature framework, unique angle',
+            resultLift: '+25% follows',
+          },
+        },
+        formelasPerEngagementType: {
+          comments: 'Question + specificity + "I read every comment" = +35% engagement',
+          shares: 'Value + credibility + "share this" permission = +28% shares',
+          saves: 'Actionable framework + visual + easy reference = +40% saves',
+          follows: 'Consistent theme + unique voice + pattern recognition = +25% follows',
+        },
+      };
+
+      json(res, 200, psychology);
+    },
+  },
+
+  // ═══ STAGE 5: COMPETITIVE & TREND INTELLIGENCE ════════════════════════════
+
+  // ─── STAGE 5: Competitor Benchmarking ───────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/competitor-benchmarking',
+    handler: async ({ res, body }) => {
+      const { competitorHandle = '', metric = 'engagement' } = (body as Record<string, unknown>) || {};
+
+      const benchmarks = {
+        competitorHandle,
+        marketAverage: { engagement: '3-5%', reach: '5-10%', followerGrowth: '1-3%/month' },
+        competitorMetrics: {
+          engagement: '8-12% (above average)',
+          reach: '15-25% (strong)',
+          followGrowth: '5-8%/month (excellent)',
+          contentQuality: '8.2/10 (professional)',
+          audienceRelevance: '85% (highly targeted)',
+        },
+        yourMetrics: {
+          engagement: '2% (below average → opportunity)',
+          reach: '4% (below average → growth potential)',
+          followGrowth: '0.5%/month (needs acceleration)',
+          contentQuality: '6/10 (room to improve)',
+          audienceRelevance: '60% (needs targeting)',
+        },
+        gaps: [
+          'Engagement gap: competitor 8-12% vs you 2% = 4-6x improvement possible',
+          'Reach gap: competitor 15-25% vs you 4% = 3-6x improvement possible',
+          'Content quality: invest in design + storytelling to match 8+/10',
+          'Audience targeting: refine positioning to match competitor relevance',
+        ],
+        actionPlan: [
+          'Study top 5 competitor posts (structure, messaging, format)',
+          'Implement 3 high-performing formats into your content',
+          'A/B test messaging to match audience pain point relevance',
+          'Improve visual quality + production value',
+          'Measure week-by-week vs competitor = 4-12 weeks to close gap',
+        ],
+      };
+
+      json(res, 200, benchmarks);
+    },
+  },
+
+  // ─── STAGE 5: Trend Prediction Model ────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/trend-prediction-model',
+    handler: async ({ res, body }) => {
+      const { niche = 'tech', timeframe = '6months' } = (body as Record<string, unknown>) || {};
+
+      const model = {
+        niche,
+        timeframe,
+        emergingTrends: [
+          { trend: 'AI transparency (disclose AI use)', probability: '90%', momentum: '+40%/month', action: 'embrace + disclose' },
+          { trend: 'Micro-content (under 15 seconds)', probability: '95%', momentum: '+60%/month', action: 'shift 80% to short' },
+          { trend: 'Community-first (Discord/Telegram)', probability: '80%', momentum: '+50%/month', action: 'build community' },
+          { trend: 'Value-first (education over promo)', probability: '85%', momentum: '+35%/month', action: '70/20/10 split' },
+        ],
+        seasonalOpportunities: [
+          { season: 'Q1 (Jan-Mar)', opportunity: 'New Year resolutions', angle: 'transformation + goal-setting' },
+          { season: 'Q2 (Apr-Jun)', opportunity: 'Summer preparation', angle: 'body, business, mindset' },
+          { season: 'Q3 (Jul-Sep)', opportunity: 'Back-to-school + new starts', angle: 'momentum + growth' },
+          { season: 'Q4 (Oct-Dec)', opportunity: 'Year-end + gifting', angle: 'reflection + gratitude' },
+        ],
+        platformTrends: {
+          instagram: 'Reels > carousel > stories (algorithm priority)',
+          tiktok: 'Sounds + trends > original (viral key)',
+          youtube: 'Shorts + long-form playlists',
+          linkedin: 'Behind-scenes + personal stories (authenticity)',
+        },
+      };
+
+      json(res, 200, model);
+    },
+  },
+
+  // ─── STAGE 5: Viral DNA Analysis ───────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/viral-dna-analysis',
+    handler: async ({ res, body }) => {
+      const { contentType = 'carousel' } = (body as Record<string, unknown>) || {};
+
+      const dna = {
+        contentType,
+        viralElements: {
+          emotion: 'Strong emotional trigger (joy, surprise, inspiration, anger → 70% of shares)',
+          novelty: 'Something unexpected or new (90% of top posts)',
+          identity: 'Says something about the sharer (I share this to show who I am → 65% of shares)',
+          utility: 'Useful, shareable (tips, frameworks, checklists → 45% of shares)',
+          social_proof: 'Validation (high engagement, many shares, famous person → 50% of shares)',
+        },
+        shareFormulas: {
+          formula1: 'Surprising data + relatable pain = 40-50% share rate',
+          formula2: 'Transformation story + aspiration = 35-45% share rate',
+          formula3: 'Humor + relevant to audience = 45-55% share rate',
+          formula4: 'Controversial take + nuanced truth = 50-70% engagement (risky)',
+          formula5: 'Helpful framework + beautiful design = 30-40% share rate',
+        },
+        viralChecklist: [
+          '✓ Emotional hook (first 3 seconds capture emotion)',
+          '✓ Unique insight (something they didn\'t know)',
+          '✓ Shareable format (easy to understand at a glance)',
+          '✓ Social credibility (looks good to share)',
+          '✓ Low friction (doesn\'t require effort to understand)',
+          '✓ Community value (relevant to group identity)',
+        ],
+      };
+
+      json(res, 200, dna);
+    },
+  },
+
+  // ─── STAGE 5: Psychographic Deep Dive ───────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/audience-psychographic-deep-dive',
+    handler: async ({ res, body }) => {
+      const { audience = 'professionals', niche = 'business' } = (body as Record<string, unknown>) || {};
+
+      const deepDive = {
+        audience,
+        niche,
+        psychographics: {
+          values: ['growth', 'authenticity', 'community', 'impact', 'freedom'],
+          beliefs: [
+            'Personal development is worth investing in',
+            'Social connection is essential',
+            'Authenticity builds trust',
+            'Continuous learning = competitive advantage',
+          ],
+          desires: [
+            'Status (recognition, respect, influence)',
+            'Connection (belonging, community)',
+            'Growth (skills, income, impact)',
+            'Freedom (time, financial, location)',
+          ],
+          fears: [
+            'Being left behind (FOMO)',
+            'Failure (public embarrassment)',
+            'Wasting time/money',
+            'Irrelevance',
+          ],
+          aspirations: [
+            'Own their own business',
+            'Become recognized expert',
+            'Build loyal community',
+            'Impact world positively',
+          ],
+        },
+        contentThatResonates: [
+          'Real transformation stories (overcomes fear of failure)',
+          'Data + proof (overcomes fear of wasting money)',
+          'Community celebration (fulfills desire for belonging)',
+          'Exclusive insights (fulfills desire for growth)',
+          'Time-saving frameworks (fulfills desire for freedom)',
+        ],
+        messaging: {
+          headline: 'How to [achieve desire] without [overcoming fear]',
+          example: 'How to build audience without sacrificing authenticity',
+        },
+      };
+
+      json(res, 200, deepDive);
+    },
+  },
+
+  // ─── STAGE 5: Conversion Optimization Audit ────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/conversion-optimization-audit',
+    handler: async ({ res, body }) => {
+      const { currentConversion = 1, goal = 'ecommerce' } = (body as Record<string, unknown>) || {};
+
+      const audit = {
+        currentConversion,
+        goalConversion: 5,
+        potential: '500% improvement',
+        leaks: [
+          { leak: 'No clear value proposition (confusing)', fix: 'First line: "This solves [problem]"', impact: '+1%' },
+          { leak: 'No social proof (credibility gap)', fix: 'Add case studies + testimonials', impact: '+1%' },
+          { leak: 'Weak CTA (unclear next step)', fix: 'Use urgency + benefit formula', impact: '+1%' },
+          { leak: 'Friction in process (too many steps)', fix: 'One-click → DM flow', impact: '+0.5%' },
+          { leak: 'No guarantee (risk aversion)', fix: 'Add money-back guarantee', impact: '+0.5%' },
+        ],
+        optimizationPriority: [
+          '1. Value prop clarity (biggest impact)',
+          '2. Social proof (credibility)',
+          '3. CTA strength (action)',
+          '4. Friction reduction (ease)',
+          '5. Risk removal (guarantee)',
+        ],
+        expectedResult: `${currentConversion}% → 5% conversion (${5 / currentConversion}x improvement)`,
+      };
+
+      json(res, 200, audit);
+    },
+  },
 ];
