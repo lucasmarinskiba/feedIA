@@ -8405,7 +8405,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
           { strategy: 'Series format (recurring content)', lift: '+200% followers', timeline: '30 days' },
           { strategy: 'Niche hashtags (micro-trends)', lift: '+90% reach', timeline: 'Per video' },
         ],
-        90dayTarget: `${currentFollowers * 3}-${currentFollowers * 4} followers (3-4x growth)`,
+        target90days: `${currentFollowers * 3}-${currentFollowers * 4} followers (3-4x growth)`,
       });
     },
   },
@@ -8460,7 +8460,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
           { strategy: 'Carousel with cliffhanger', lift: '+95% swipe-through', timeline: 'Per post' },
           { strategy: 'Engage followers (reply to all)', lift: '+75% algorithm favor', timeline: 'Daily' },
         ],
-        90dayTarget: `${currentFollowers * 2}-${currentFollowers * 2.5} followers (2-2.5x growth)`,
+        target90days: `${currentFollowers * 2}-${currentFollowers * 2.5} followers (2-2.5x growth)`,
       });
     },
   },
@@ -8809,16 +8809,16 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
     handler: async ({ res, body }) => {
       json(res, 200, {
         slideSequence: {
-          1: { role: 'hook', image: '80%', text: '20%', goal: 'Stop scroll' },
-          2: { role: 'context', image: '60%', text: '40%', goal: 'Build curiosity' },
-          3: { role: 'problem', image: '70%', text: '30%', goal: 'Highlight pain' },
-          4: { role: 'solution', image: '50%', text: '50%', goal: 'Introduce framework' },
-          5: { role: 'proof', image: '60%', text: '40%', goal: 'Show evidence' },
-          6: { role: 'expansion', image: '55%', text: '45%', goal: 'Deepen knowledge' },
-          7: { role: 'objection', image: '70%', text: '30%', goal: 'Address doubts' },
-          8: { role: 'authority', image: '60%', text: '40%', goal: 'Build credibility' },
-          9: { role: 'offer', image: '50%', text: '50%', goal: 'Present opportunity' },
-          10: { role: 'cta', image: '30%', text: '70%', goal: 'Drive action' },
+          slide1: { role: 'hook', image: '80%', text: '20%', goal: 'Stop scroll' },
+          slide2: { role: 'context', image: '60%', text: '40%', goal: 'Build curiosity' },
+          slide3: { role: 'problem', image: '70%', text: '30%', goal: 'Highlight pain' },
+          slide4: { role: 'solution', image: '50%', text: '50%', goal: 'Introduce framework' },
+          slide5: { role: 'proof', image: '60%', text: '40%', goal: 'Show evidence' },
+          slide6: { role: 'expansion', image: '55%', text: '45%', goal: 'Deepen knowledge' },
+          slide7: { role: 'objection', image: '70%', text: '30%', goal: 'Address doubts' },
+          slide8: { role: 'authority', image: '60%', text: '40%', goal: 'Build credibility' },
+          slide9: { role: 'offer', image: '50%', text: '50%', goal: 'Present opportunity' },
+          slide10: { role: 'cta', image: '30%', text: '70%', goal: 'Drive action' },
         },
         expectedEngagement: '10-15%',
       });
