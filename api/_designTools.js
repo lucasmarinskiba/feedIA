@@ -368,6 +368,202 @@ const frameStyles = async (imageUrl, { style = 'minimal', color = '#000', thickn
   };
 };
 
+// ── PHASE 2: Layout Templates ────────────────────────────────────────────────
+
+// Hero + centered text overlay on full-bleed image
+const layoutHero = ({ imageUrl, title, subtitle, bgOverlay = 'rgba(0,0,0,0.4)', titleColor = '#fff', subtitleColor = 'rgba(255,255,255,0.8)' }) => {
+  return {
+    layoutType: 'hero',
+    description: 'Full-bleed image + centered text overlay · Pinterest "inspirational"',
+    html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hero Layout</title>
+<style>
+body { margin:0; padding:0; font-family:system-ui,-apple-system,sans-serif; background:#000 }
+.hero { position:relative; width:100%; height:100vh; overflow:hidden }
+.hero-bg { position:absolute; inset:0; background-image:url('${imageUrl}'); background-size:cover; background-position:center; background-repeat:no-repeat }
+.hero-overlay { position:absolute; inset:0; background:${bgOverlay} }
+.hero-content { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:60px 40px; color:white }
+.hero-title { font-size:56px; font-weight:900; margin:0 0 16px; color:${titleColor}; line-height:1.2; max-width:90%; text-shadow:0 2px 10px rgba(0,0,0,0.3) }
+.hero-subtitle { font-size:24px; font-weight:400; margin:0; color:${subtitleColor}; line-height:1.4; max-width:80%; text-shadow:0 1px 4px rgba(0,0,0,0.2) }
+@media(max-width:768px) {
+  .hero-title { font-size:36px }
+  .hero-subtitle { font-size:18px }
+}
+</style></head><body>
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    ${title ? `<h1 class="hero-title">${title}</h1>` : ''}
+    ${subtitle ? `<p class="hero-subtitle">${subtitle}</p>` : ''}
+  </div>
+</div>
+</body></html>`,
+    cssClasses: { container: 'hero', bg: 'hero-bg', overlay: 'hero-overlay', content: 'hero-content', title: 'hero-title', subtitle: 'hero-subtitle' },
+  };
+};
+
+// 3-column grid for tips, benefits, features
+const layoutGrid3 = ({ items = [], bgColor = '#fff', textColor = '#333', accentColor = '#6366f1' }) => {
+  const gridItems = items.slice(0, 3).map((item, i) => `
+    <div class="grid-item">
+      <div class="grid-icon">${item.icon || ['📱', '⚡', '🎯'][i]}</div>
+      <h3 class="grid-title">${item.title || `Item ${i + 1}`}</h3>
+      <p class="grid-text">${item.text || ''}</p>
+    </div>
+  `).join('');
+
+  return {
+    layoutType: 'grid-3col',
+    description: '3-column grid for tips, features, or benefits',
+    html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3-Column Grid</title>
+<style>
+body { margin:0; padding:0; font-family:system-ui,-apple-system,sans-serif; background:${bgColor}; color:${textColor} }
+.grid-container { display:grid; grid-template-columns:repeat(3,1fr); gap:32px; padding:60px 40px; max-width:1200px; margin:0 auto }
+.grid-item { text-align:center; padding:24px }
+.grid-icon { font-size:48px; margin-bottom:16px; display:block }
+.grid-title { font-size:20px; font-weight:700; margin:0 0 12px; color:${accentColor} }
+.grid-text { font-size:14px; line-height:1.6; margin:0; color:rgba(${textColor === '#fff' ? '255,255,255' : '0,0,0'},0.7) }
+@media(max-width:768px) {
+  .grid-container { grid-template-columns:1fr; gap:24px }
+  .grid-icon { font-size:36px }
+}
+</style></head><body>
+<div class="grid-container">
+  ${gridItems}
+</div>
+</body></html>`,
+    cssClasses: { container: 'grid-container', item: 'grid-item', icon: 'grid-icon', title: 'grid-title', text: 'grid-text' },
+  };
+};
+
+// Masonry/Pinterest-style irregular grid
+const layoutMasonry = ({ images = [], bgColor = '#f5f5f5' }) => {
+  const masonryItems = images.slice(0, 6).map((img, i) => `
+    <div class="masonry-item" style="grid-column:span ${i % 3 === 1 ? 2 : 1};grid-row:span ${i % 2 === 0 ? 2 : 1}">
+      <img src="${img}" alt="item ${i}" style="width:100%;height:100%;object-fit:cover;border-radius:12px"/>
+    </div>
+  `).join('');
+
+  return {
+    layoutType: 'masonry',
+    description: 'Pinterest-style masonry grid with varied column/row spans',
+    html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Masonry Layout</title>
+<style>
+body { margin:0; padding:0; background:${bgColor}; font-family:system-ui,-apple-system,sans-serif }
+.masonry-container { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; padding:40px; max-width:1200px; margin:0 auto; auto-rows:200px }
+.masonry-item { border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.1); transition:transform .3s ease }
+.masonry-item:hover { transform:translateY(-4px) }
+@media(max-width:768px) {
+  .masonry-container { grid-template-columns:repeat(2,1fr); gap:12px; auto-rows:150px }
+}
+</style></head><body>
+<div class="masonry-container">
+  ${masonryItems}
+</div>
+</body></html>`,
+    cssClasses: { container: 'masonry-container', item: 'masonry-item' },
+  };
+};
+
+// Asymmetric: main element one side, text opposite
+const layoutAsymmetric = ({ imageUrl, title, text = '', position = 'right', bgColor = '#fff', textColor = '#333', accentBg = '#f0f0f0' }) => {
+  const isRight = position === 'right';
+  return {
+    layoutType: 'asymmetric',
+    description: 'Asymmetric balance: main image one side, text opposite · Modern sophisticated',
+    html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Asymmetric Layout</title>
+<style>
+body { margin:0; padding:0; font-family:system-ui,-apple-system,sans-serif; background:${bgColor}; color:${textColor} }
+.asym-container { display:flex; min-height:100vh; align-items:center }
+.asym-image { flex:1; overflow:hidden; background:${accentBg} }
+.asym-image img { width:100%; height:100%; object-fit:cover }
+.asym-content { flex:1; padding:80px 60px; display:flex; flex-direction:column; justify-content:center; gap:24px }
+.asym-title { font-size:48px; font-weight:900; margin:0; line-height:1.1 }
+.asym-text { font-size:16px; line-height:1.8; margin:0; opacity:0.8; max-width:500px }
+${isRight ? '.asym-image { order:2 } .asym-content { order:1 }' : ''}
+@media(max-width:768px) {
+  .asym-container { flex-direction:column }
+  .asym-image { flex:0 0 50vh }
+  .asym-content { padding:40px 24px }
+  .asym-title { font-size:32px }
+}
+</style></head><body>
+<div class="asym-container">
+  <div class="asym-image"><img src="${imageUrl}" alt="main"/></div>
+  <div class="asym-content">
+    ${title ? `<h1 class="asym-title">${title}</h1>` : ''}
+    ${text ? `<p class="asym-text">${text}</p>` : ''}
+  </div>
+</div>
+</body></html>`,
+    cssClasses: { container: 'asym-container', image: 'asym-image', content: 'asym-content', title: 'asym-title', text: 'asym-text' },
+  };
+};
+
+// Ken Burns: zoom + pan animation
+const layoutKenBurns = ({ imageUrl, title = '', duration = 8 }) => {
+  return {
+    layoutType: 'ken-burns',
+    description: 'Ken Burns effect: slow zoom + pan animation · Cinematic',
+    html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ken Burns Layout</title>
+<style>
+@keyframes kenburns-zoom-pan {
+  0% { transform:scale(1) translate(0,0) }
+  50% { transform:scale(1.05) translate(-2%,-2%) }
+  100% { transform:scale(1.1) translate(-4%,-4%) }
+}
+body { margin:0; padding:0; background:#000 }
+.kenburns-container { position:relative; width:100%; height:100vh; overflow:hidden }
+.kenburns-bg { position:absolute; inset:0; background-image:url('${imageUrl}'); background-size:cover; background-position:center; animation:kenburns-zoom-pan ${duration}s ease-in-out infinite }
+.kenburns-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.3) }
+.kenburns-content { position:absolute; inset:0; display:flex; align-items:flex-end; padding:60px 40px }
+.kenburns-title { font-size:48px; font-weight:900; color:#fff; margin:0; text-shadow:0 2px 12px rgba(0,0,0,0.5); line-height:1.2 }
+</style></head><body>
+<div class="kenburns-container">
+  <div class="kenburns-bg"></div>
+  <div class="kenburns-overlay"></div>
+  <div class="kenburns-content">
+    ${title ? `<h1 class="kenburns-title">${title}</h1>` : ''}
+  </div>
+</div>
+</body></html>`,
+    cssClasses: { container: 'kenburns-container', bg: 'kenburns-bg', overlay: 'kenburns-overlay', content: 'kenburns-content', title: 'kenburns-title' },
+    animationDuration: duration,
+  };
+};
+
+// Generate layout router
+const generateLayout = async ({ layoutType = 'hero', imageUrl = '', images = [], title = '', subtitle = '', text = '', items = [], bgColor, textColor, accentColor, duration = 8 }) => {
+  try {
+    switch (layoutType) {
+      case 'hero':
+        return layoutHero({ imageUrl, title, subtitle });
+      case 'grid-3col':
+        return layoutGrid3({ items, bgColor, textColor, accentColor });
+      case 'masonry':
+        return layoutMasonry({ images, bgColor });
+      case 'asymmetric':
+        return layoutAsymmetric({ imageUrl, title, text, position: 'right', bgColor, textColor });
+      case 'ken-burns':
+        return layoutKenBurns({ imageUrl, title, duration });
+      default:
+        return layoutHero({ imageUrl, title, subtitle });
+    }
+  } catch (err) {
+    return { error: 'layout-error', message: String(err.message) };
+  }
+};
+
 // ── Slide HTML generator (Pinterest Design Patterns from CLAUDE.md) ──────────
 const LAYOUT_PATTERNS = ['left-right', 'full-bleed', 'grid', 'asymmetric'];
 const PALETTE_NAMES = ['warm-organic', 'bold-playful', 'dark-premium', 'clean-editorial'];
@@ -609,6 +805,9 @@ export const handleDesignTools = async (req, res, path, method, body) => {
         blurBg:   { active: Boolean(FAL()), provider: 'fal-ai birefnet + blur' },
         frame:    { active: true, provider: 'SVG + CSS styles' },
       },
+      phase2: {
+        layouts: { active: true, types: ['hero', 'grid-3col', 'masonry', 'asymmetric', 'ken-burns'] },
+      },
     }), true;
   }
 
@@ -635,6 +834,30 @@ export const handleDesignTools = async (req, res, path, method, body) => {
     if (!body?.imageUrl) return json(res, 400, { error: 'imageUrl requerida' }), true;
     const result = await frameStyles(body.imageUrl, { style: body.style || 'minimal', color: body.color || '#000', thickness: body.thickness || 8 });
     return json(res, 200, result), true;
+  }
+
+  // PHASE 2: Layout Templates routes
+  if (path === '/api/design/layout' && method === 'POST') {
+    const { layoutType, imageUrl, images, title, subtitle, text, items, bgColor, textColor, accentColor, duration } = body || {};
+    if (!layoutType) return json(res, 400, { error: 'layoutType requerido (hero|grid-3col|masonry|asymmetric|ken-burns)' }), true;
+    try {
+      const result = await generateLayout({ layoutType, imageUrl, images, title, subtitle, text, items, bgColor, textColor, accentColor, duration });
+      return json(res, result.error ? 422 : 200, result), true;
+    } catch (err) {
+      return json(res, 500, { error: 'layout-gen', message: String(err.message) }), true;
+    }
+  }
+
+  if (path === '/api/design/layouts' && method === 'GET') {
+    return json(res, 200, {
+      available: [
+        { id: 'hero', label: 'Hero + Centered', desc: 'Full-bleed image + centered text overlay · inspirational', requiresImages: 1 },
+        { id: 'grid-3col', label: '3-Column Grid', desc: 'Tips, features, benefits · structured', requiresImages: 0 },
+        { id: 'masonry', label: 'Masonry', desc: 'Pinterest-style irregular grid · visual interest', requiresImages: 6 },
+        { id: 'asymmetric', label: 'Asymmetric', desc: 'Main element one side, text opposite · modern', requiresImages: 1 },
+        { id: 'ken-burns', label: 'Ken Burns', desc: 'Zoom + pan animation · cinematic', requiresImages: 1 },
+      ],
+    }), true;
   }
 
   if (path === '/api/design/remove-bg' && method === 'POST') {

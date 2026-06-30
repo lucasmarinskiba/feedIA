@@ -96,6 +96,7 @@ const CSS = `
 const TABS = [
   { id: 'carousel',   label: '🎠 Carrusel completo', statusKey: 'slideSeries' },
   { id: 'phase1',     label: '✨ Phase 1 Composición', statusKey: 'phase1'     },
+  { id: 'phase2',     label: '🏗️ Phase 2 Layouts',     statusKey: 'phase2'     },
   { id: 'remove-bg',  label: '✂️ Quitar fondo',      statusKey: 'removeBg'   },
   { id: 'upscale',    label: '🔍 Mejorar calidad',    statusKey: 'upscale'    },
   { id: 'palette',    label: '🎨 Paleta de marca',    statusKey: 'palette'    },
@@ -259,6 +260,43 @@ const setupCarousel = () => {
     });
   });
 };
+
+// ── PHASE 2: Layout Templates
+const panelPhase2 = () => `
+  <div class="dis-card">
+    <div class="dis-label">Estado <small>${renderStatus('phase2', 'layouts')}</small></div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">5 plantillas de composición profesionales</p>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Tipo de layout</div>
+    <select class="dis-select" id="p2LayoutType">
+      <option value="hero">🌅 Hero + Centered (full-bleed image + text)</option>
+      <option value="grid-3col">📊 3-Column Grid (tips, features)</option>
+      <option value="masonry">🎨 Masonry (Pinterest-style grid)</option>
+      <option value="asymmetric">⚖️ Asymmetric (modern balanced)</option>
+      <option value="ken-burns">🎬 Ken Burns (zoom + pan animation)</option>
+    </select>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Imagen principal</div>
+    <input class="dis-input" id="p2ImageUrl" placeholder="https://... o arrastrá imagen">
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <input type="file" id="p2ImageFile" accept="image/*" style="display:none">
+      <button class="dis-btn dis-btn-secondary" onclick="document.getElementById('p2ImageFile').click()" style="flex:1">📤 Subir imagen</button>
+    </div>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Contenido</div>
+    <div class="dis-row2">
+      <input class="dis-input" id="p2Title" placeholder="Título">
+      <input class="dis-input" id="p2Subtitle" placeholder="Subtítulo / categoría">
+    </div>
+    <textarea class="dis-input" id="p2Text" rows="2" placeholder="Texto corporal / descripción" style="margin-top:8px;resize:vertical"></textarea>
+  </div>
+  <div class="dis-card">
+    <button class="dis-btn dis-btn-primary" id="p2Btn" style="width:100%">🏗️ Generar layout</button>
+  </div>
+  <div class="dis-result" id="p2Result" style="display:none;gap:12px"></div>`;
 
 // ── PHASE 1: Image Composition
 const panelPhase1 = () => `
@@ -684,6 +722,67 @@ const setupPhase1 = () => {
   });
 };
 
+// ── PHASE 2 tool ──────────────────────────────────────────────────────────────
+const setupPhase2 = () => {
+  const resultDiv = $('#p2Result');
+  const btn = $('#p2Btn');
+  const imageFile = $('#p2ImageFile');
+
+  // Image file upload
+  imageFile?.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = await fileToDataUrl(file);
+    $('#p2ImageUrl').value = url;
+  });
+
+  btn?.addEventListener('click', async () => {
+    const layoutType = $('#p2LayoutType')?.value || 'hero';
+    const imageUrl = $('#p2ImageUrl')?.value;
+    const title = $('#p2Title')?.value;
+    const subtitle = $('#p2Subtitle')?.value;
+    const text = $('#p2Text')?.value;
+
+    if (!imageUrl && layoutType !== 'grid-3col') {
+      toast('Subí una imagen primero', 'warn');
+      return;
+    }
+
+    resultDiv.style.display = 'flex';
+    resultDiv.innerHTML = '<div style="color:var(--text-muted)">Generando layout…</div>';
+
+    const body = { layoutType, imageUrl, title, subtitle, text };
+    const result = await api('/api/design/layout', 'POST', body);
+
+    if (result.error) {
+      resultDiv.innerHTML = `<div class="dis-card"><p style="color:var(--text-muted)">Error: ${result.error}</p></div>`;
+      return;
+    }
+
+    const blobUrl = URL.createObjectURL(new Blob([result.html], { type: 'text/html' }));
+    const safeName = (title || layoutType).slice(0, 30).replace(/\s+/g, '-').toLowerCase();
+
+    resultDiv.innerHTML = `
+      <div class="dis-card">
+        <div class="dis-label">Preview (${result.layoutType})</div>
+        <div class="dis-slide-preview" style="height:500px">
+          <iframe src="${blobUrl}" sandbox="allow-same-origin"></iframe>
+        </div>
+        <div class="dis-btn-row">
+          <button class="dis-btn dis-btn-primary" id="p2Download">⬇️ Descargar HTML</button>
+          <button class="dis-btn dis-btn-secondary" id="p2OpenNew">↗️ Abrir en nueva pestaña</button>
+          <button class="dis-btn dis-btn-secondary" id="p2CopyHtml">📋 Copiar HTML</button>
+        </div>
+      </div>`;
+
+    $('#p2Download')?.addEventListener('click', () => downloadHtml(result.html, `layout-${safeName}.html`));
+    $('#p2OpenNew')?.addEventListener('click', () => window.open(blobUrl, '_blank'));
+    $('#p2CopyHtml')?.addEventListener('click', () => {
+      navigator.clipboard?.writeText(result.html).then(() => toast('HTML copiado ✓'));
+    });
+  });
+};
+
 // ── Slide HTML tool ───────────────────────────────────────────────────────────
 const setupSlideHtml = () => {
   $('#shRun')?.addEventListener('click', async (e) => {
@@ -769,6 +868,7 @@ export const renderDiseñador = async (root) => {
       <div class="dis-body">
         <div class="dis-panel${_activeTab === 'carousel' ? ' active' : ''}" data-panel="carousel">${panelCarousel()}</div>
         <div class="dis-panel${_activeTab === 'phase1' ? ' active' : ''}" data-panel="phase1">${panelPhase1()}</div>
+        <div class="dis-panel${_activeTab === 'phase2' ? ' active' : ''}" data-panel="phase2">${panelPhase2()}</div>
         <div class="dis-panel${_activeTab === 'remove-bg' ? ' active' : ''}" data-panel="remove-bg">${panelRemoveBg()}</div>
         <div class="dis-panel${_activeTab === 'upscale' ? ' active' : ''}" data-panel="upscale">${panelUpscale()}</div>
         <div class="dis-panel${_activeTab === 'palette' ? ' active' : ''}" data-panel="palette">${panelPalette()}</div>
@@ -783,6 +883,7 @@ export const renderDiseñador = async (root) => {
   // Wire up tools
   setupCarousel();
   setupPhase1();
+  setupPhase2();
   setupImageTool({ prefix: 'rb', endpoint: '/api/design/remove-bg' });
   setupImageTool({ prefix: 'up', endpoint: '/api/design/upscale', extraBody: () => ({ scale: Number($('#upScale')?.value || 2) }) });
   setupPalette();
