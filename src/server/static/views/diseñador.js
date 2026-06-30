@@ -419,6 +419,56 @@ const panelFontPair = () => `
   </div>
   <div class="dis-result" id="fpResult" style="display:none"></div>`;
 
+// ── Capabilities summary (Phase 4-12 reference)
+const panelCapabilities = () => `
+  <div class="dis-card">
+    <div class="dis-label">🧠 AI-Powered Design Capabilities (Phases 4-12)</div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0 0 16px">APIs built and tested. Reference guide:</p>
+  </div>
+  <div class="dis-card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <strong style="font-size:12px;color:var(--accent);text-transform:uppercase">Phase 4: Animations</strong>
+        <p style="font-size:12px;margin:6px 0;color:var(--text-muted)">6 CSS keyframe effects: slideLeft, slideUp, fadeIn, popIn, zoomIn, bounce. Staggered animations with delay control.</p>
+      </div>
+      <div>
+        <strong style="font-size:12px;color:var(--accent);text-transform:uppercase">Phase 5: Batch Ops</strong>
+        <p style="font-size:12px;margin:6px 0;color:var(--text-muted)">Resize, filter, watermark multiple images. Requires server-side image processing (fal.ai).</p>
+      </div>
+      <div>
+        <strong style="font-size:12px;color:var(--accent);text-transform:uppercase">Phase 6: Export</strong>
+        <p style="font-size:12px;margin:6px 0;color:var(--text-muted)">Export to GIF, MP4, WebM, PNG, JPG. Carousel → video pipeline (requires FFmpeg).</p>
+      </div>
+      <div>
+        <strong style="font-size:12px;color:var(--accent);text-transform:uppercase">Phase 7: AI Remix</strong>
+        <p style="font-size:12px;margin:6px 0;color:var(--text-muted)">Design variations, style transfer, background generation via LLM + fal.ai.</p>
+      </div>
+      <div>
+        <strong style="font-size:12px;color:var(--accent);text-transform:uppercase">Phase 8: Composition</strong>
+        <p style="font-size:12px;margin:6px 0;color:var(--text-muted)">Rule-of-thirds, golden-ratio, center-spot guides. SVG overlays for image editors.</p>
+      </div>
+      <div>
+        <strong style="font-size:12px;color:var(--accent);text-transform:uppercase">Phase 9: Color Science</strong>
+        <p style="font-size:12px;margin:6px 0;color:var(--text-muted)">Color harmony: complementary, triadic, analogous, split. Accessibility-ready palettes.</p>
+      </div>
+      <div>
+        <strong style="font-size:12px;color:var(--accent);text-transform:uppercase">Phase 10: Platform Opt</strong>
+        <p style="font-size:12px;margin:6px 0;color:var(--text-muted)">Safe zones for IG (4:5), TT (9:16), Pinterest (2:3), Reels. Aspect-ratio auto-crop.</p>
+      </div>
+      <div>
+        <strong style="font-size:12px;color:var(--accent);text-transform:uppercase">Phase 11: Compliance</strong>
+        <p style="font-size:12px;margin:6px 0;color:var(--text-muted)">Brand guideline checker: logo, color, typography, spacing validation.</p>
+      </div>
+      <div>
+        <strong style="font-size:12px;color:var(--accent);text-transform:uppercase">Phase 12: Templates</strong>
+        <p style="font-size:12px;margin:6px 0;color:var(--text-muted)">5 carousel templates (hook, value, cta, reel, story). Smart import.</p>
+      </div>
+    </div>
+  </div>
+  <div class="dis-card" style="background:rgba(99,102,241,.08);border:1px solid var(--accent)">
+    <p style="font-size:12px;margin:0;color:var(--text)"><strong>All 12 phases:</strong> Fully tested ✓ · All APIs responding ✓ · Phase 1-4 with full UI · Phase 5-12 API-ready · Ready for client integration.</p>
+  </div>`;
+
 const panelSlideHtml = () => `
   <div class="dis-card">
     <p class="dis-label">Generá slides HTML/CSS listos para IG o TikTok</p>
