@@ -564,6 +564,196 @@ const generateLayout = async ({ layoutType = 'hero', imageUrl = '', images = [],
   }
 };
 
+// ── PHASE 3: Text Effects (CSS-only, no deps) ──────────────────────────────
+
+// Gradient text: linear gradient applied to text via background-clip
+const textGradient = ({ text = 'Sample Text', angle = 45, colors = ['#ff0000', '#0000ff'], fontSize = 48, fontWeight = 900 }) => {
+  const gradientStr = `${angle}deg, ${colors.join(', ')}`;
+  return {
+    effectType: 'gradient',
+    description: `Text with linear gradient (${angle}° between colors)`,
+    html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+body { margin:0; padding:60px 40px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; min-height:100vh }
+.gradient-text {
+  font-size:${fontSize}px;
+  font-weight:${fontWeight};
+  background:linear-gradient(${gradientStr});
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  margin:0;
+  line-height:1.2;
+}
+</style></head><body>
+<h1 class="gradient-text">${text}</h1>
+</body></html>`,
+    css: `background:linear-gradient(${gradientStr}); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;`,
+    colors,
+    angle,
+  };
+};
+
+// Outline/stroke text
+const textOutline = ({ text = 'Sample Text', outlineColor = '#000', outlineWidth = 2, fillColor = '#fff', fontSize = 48, fontWeight = 900 }) => {
+  return {
+    effectType: 'outline',
+    description: `Stroked text (outline effect via text-shadow layering)`,
+    html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+body { margin:0; padding:60px 40px; background:#222; display:flex; align-items:center; justify-content:center; min-height:100vh }
+.outline-text {
+  font-size:${fontSize}px;
+  font-weight:${fontWeight};
+  color:${fillColor};
+  margin:0;
+  line-height:1.2;
+  text-shadow:
+    -${outlineWidth}px -${outlineWidth}px 0 ${outlineColor},
+    0px -${outlineWidth}px 0 ${outlineColor},
+    ${outlineWidth}px -${outlineWidth}px 0 ${outlineColor},
+    -${outlineWidth}px 0px 0 ${outlineColor},
+    ${outlineWidth}px 0px 0 ${outlineColor},
+    -${outlineWidth}px ${outlineWidth}px 0 ${outlineColor},
+    0px ${outlineWidth}px 0 ${outlineColor},
+    ${outlineWidth}px ${outlineWidth}px 0 ${outlineColor};
+}
+</style></head><body>
+<h1 class="outline-text">${text}</h1>
+</body></html>`,
+    css: `color:${fillColor}; text-shadow: -${outlineWidth}px -${outlineWidth}px 0 ${outlineColor}, ... (8 layers for full stroke);`,
+    outlineColor,
+    outlineWidth,
+    fillColor,
+  };
+};
+
+// Glow/shadow effect
+const textGlow = ({ text = 'Sample Text', glowColor = '#00d9ff', glowSize = 20, fontSize = 48, fontWeight = 900, bgColor = '#000' }) => {
+  return {
+    effectType: 'glow',
+    description: `Neon glow effect (text + shadow + filter)`,
+    html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+body { margin:0; padding:60px 40px; background:${bgColor}; display:flex; align-items:center; justify-content:center; min-height:100vh }
+.glow-text {
+  font-size:${fontSize}px;
+  font-weight:${fontWeight};
+  color:${glowColor};
+  margin:0;
+  line-height:1.2;
+  text-shadow:
+    0 0 ${glowSize}px ${glowColor},
+    0 0 ${glowSize * 2}px ${glowColor},
+    0 0 ${glowSize * 3}px ${glowColor};
+  filter:drop-shadow(0 0 ${glowSize}px ${glowColor});
+}
+</style></head><body>
+<h1 class="glow-text">${text}</h1>
+</body></html>`,
+    css: `color:${glowColor}; text-shadow: 0 0 ${glowSize}px ${glowColor}, ...; filter: drop-shadow(0 0 ${glowSize}px ${glowColor});`,
+    glowColor,
+    glowSize,
+  };
+};
+
+// Drop cap: first letter large and floated
+const textDropCap = ({ text = 'Lorem ipsum dolor sit amet', letterColor = '#6366f1', fontSize = 48, lineHeight = 1.6 }) => {
+  const firstLetter = text.charAt(0);
+  const restText = text.slice(1);
+  const dropCapSize = Math.round(fontSize * 3.5);
+  return {
+    effectType: 'drop-cap',
+    description: 'Drop cap: first letter oversized and floated',
+    html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+body { margin:0; padding:40px; background:#f9f9f9; font-family:system-ui,-apple-system,sans-serif }
+.drop-cap-container { max-width:600px }
+.drop-cap-letter {
+  float:left;
+  font-size:${dropCapSize}px;
+  font-weight:900;
+  color:${letterColor};
+  line-height:1;
+  padding-right:8px;
+  padding-top:3px;
+}
+.drop-cap-text {
+  font-size:${fontSize}px;
+  line-height:${lineHeight};
+  color:#333;
+  margin:0;
+}
+</style></head><body>
+<div class="drop-cap-container">
+  <div class="drop-cap-letter">${firstLetter}</div>
+  <p class="drop-cap-text">${restText}</p>
+</div>
+</body></html>`,
+    css: `::first-letter { float:left; font-size:${dropCapSize}px; ... }`,
+    letterColor,
+  };
+};
+
+// Curved text via SVG path (advanced typographic effect)
+const textCurved = ({ text = 'CURVED TEXT', radius = 100, direction = 'up', textColor = '#333' }) => {
+  const id = `path-${Math.random().toString(36).slice(2, 8)}`;
+  const pathD = direction === 'up'
+    ? `M ${radius},${radius} A ${radius},${radius} 0 0,1 ${radius * 2},${radius}`
+    : `M ${radius * 2},${radius} A ${radius},${radius} 0 0,1 ${radius},${radius}`;
+
+  return {
+    effectType: 'curved',
+    description: `Text following curved path (advanced SVG)`,
+    html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+body { margin:0; padding:60px 40px; background:#fff; display:flex; align-items:center; justify-content:center; min-height:100vh }
+svg { max-width:100%; height:auto }
+</style></head><body>
+<svg viewBox="0 0 ${radius * 2.5} ${radius * 2.5}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <path id="${id}" d="${pathD}" fill="none"/>
+  </defs>
+  <text font-size="24" font-weight="700" letter-spacing="2" fill="${textColor}">
+    <textPath href="#${id}" startOffset="50%" text-anchor="middle">
+      ${text}
+    </textPath>
+  </text>
+</svg>
+</body></html>`,
+    textColor,
+    radius,
+    direction,
+  };
+};
+
+// Text effect generator router
+const generateTextEffect = async ({ effectType = 'gradient', text = '', ...options }) => {
+  try {
+    switch (effectType) {
+      case 'gradient':
+        return textGradient({ text, ...options });
+      case 'outline':
+        return textOutline({ text, ...options });
+      case 'glow':
+        return textGlow({ text, ...options });
+      case 'drop-cap':
+        return textDropCap({ text, ...options });
+      case 'curved':
+        return textCurved({ text, ...options });
+      default:
+        return textGradient({ text, ...options });
+    }
+  } catch (err) {
+    return { error: 'text-effect-error', message: String(err.message) };
+  }
+};
+
 // ── Slide HTML generator (Pinterest Design Patterns from CLAUDE.md) ──────────
 const LAYOUT_PATTERNS = ['left-right', 'full-bleed', 'grid', 'asymmetric'];
 const PALETTE_NAMES = ['warm-organic', 'bold-playful', 'dark-premium', 'clean-editorial'];
@@ -808,6 +998,9 @@ export const handleDesignTools = async (req, res, path, method, body) => {
       phase2: {
         layouts: { active: true, types: ['hero', 'grid-3col', 'masonry', 'asymmetric', 'ken-burns'] },
       },
+      phase3: {
+        textEffects: { active: true, types: ['gradient', 'outline', 'glow', 'drop-cap', 'curved'] },
+      },
     }), true;
   }
 
@@ -834,6 +1027,31 @@ export const handleDesignTools = async (req, res, path, method, body) => {
     if (!body?.imageUrl) return json(res, 400, { error: 'imageUrl requerida' }), true;
     const result = await frameStyles(body.imageUrl, { style: body.style || 'minimal', color: body.color || '#000', thickness: body.thickness || 8 });
     return json(res, 200, result), true;
+  }
+
+  // PHASE 3: Text Effects routes
+  if (path === '/api/design/text-effect' && method === 'POST') {
+    const { effectType, text } = body || {};
+    if (!text) return json(res, 400, { error: 'text requerido' }), true;
+    if (!effectType) return json(res, 400, { error: 'effectType requerido (gradient|outline|glow|drop-cap|curved)' }), true;
+    try {
+      const result = await generateTextEffect({ effectType, text, ...body });
+      return json(res, result.error ? 422 : 200, result), true;
+    } catch (err) {
+      return json(res, 500, { error: 'text-effect-gen', message: String(err.message) }), true;
+    }
+  }
+
+  if (path === '/api/design/text-effects' && method === 'GET') {
+    return json(res, 200, {
+      available: [
+        { id: 'gradient', label: 'Gradient Text', desc: 'Linear gradient applied to text via background-clip', params: ['angle', 'colors'] },
+        { id: 'outline', label: 'Outline/Stroke', desc: 'Text with stroke outline via text-shadow layering', params: ['outlineColor', 'outlineWidth'] },
+        { id: 'glow', label: 'Neon Glow', desc: 'Glowing text with multiple shadows + filter', params: ['glowColor', 'glowSize'] },
+        { id: 'drop-cap', label: 'Drop Cap', desc: 'Oversized first letter floated left', params: ['letterColor'] },
+        { id: 'curved', label: 'Curved Text', desc: 'Text following SVG path (advanced)', params: ['radius', 'direction'] },
+      ],
+    }), true;
   }
 
   // PHASE 2: Layout Templates routes

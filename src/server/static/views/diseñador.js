@@ -97,6 +97,7 @@ const TABS = [
   { id: 'carousel',   label: '🎠 Carrusel completo', statusKey: 'slideSeries' },
   { id: 'phase1',     label: '✨ Phase 1 Composición', statusKey: 'phase1'     },
   { id: 'phase2',     label: '🏗️ Phase 2 Layouts',     statusKey: 'phase2'     },
+  { id: 'phase3',     label: '🔤 Phase 3 Text FX',     statusKey: 'phase3'     },
   { id: 'remove-bg',  label: '✂️ Quitar fondo',      statusKey: 'removeBg'   },
   { id: 'upscale',    label: '🔍 Mejorar calidad',    statusKey: 'upscale'    },
   { id: 'palette',    label: '🎨 Paleta de marca',    statusKey: 'palette'    },
@@ -260,6 +261,32 @@ const setupCarousel = () => {
     });
   });
 };
+
+// ── PHASE 3: Text Effects
+const panelPhase3 = () => `
+  <div class="dis-card">
+    <div class="dis-label">Estado <small>${renderStatus('phase3', 'textEffects')}</small></div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">5 efectos tipográficos CSS-only (sin dependencias)</p>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Efecto de texto</div>
+    <select class="dis-select" id="p3EffectType">
+      <option value="gradient">✨ Gradient Text (linear gradient)</option>
+      <option value="outline">🎯 Outline/Stroke (texto con borde)</option>
+      <option value="glow">💫 Neon Glow (efecto brillante)</option>
+      <option value="drop-cap">📖 Drop Cap (primera letra grande)</option>
+      <option value="curved">🌀 Curved Text (texto en curva SVG)</option>
+    </select>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Texto para efecto</div>
+    <textarea class="dis-input" id="p3Text" rows="2" placeholder="Escribí el texto que querés aplicar el efecto…" style="resize:vertical">Sample Text Effect</textarea>
+  </div>
+  <div class="dis-card">
+    <div id="p3Options" style="display:flex;flex-direction:column;gap:12px"></div>
+    <button class="dis-btn dis-btn-primary" id="p3Btn" style="width:100%;margin-top:12px">🔤 Generar efecto</button>
+  </div>
+  <div class="dis-result" id="p3Result" style="display:none;gap:12px"></div>`;
 
 // ── PHASE 2: Layout Templates
 const panelPhase2 = () => `
@@ -783,6 +810,122 @@ const setupPhase2 = () => {
   });
 };
 
+// ── PHASE 3 tool ──────────────────────────────────────────────────────────────
+const setupPhase3 = () => {
+  const effectType = $('#p3EffectType');
+  const textInput = $('#p3Text');
+  const optionsDiv = $('#p3Options');
+  const btn = $('#p3Btn');
+  const resultDiv = $('#p3Result');
+
+  const renderOptions = () => {
+    const type = effectType?.value || 'gradient';
+    optionsDiv.innerHTML = '';
+
+    switch (type) {
+      case 'gradient':
+        optionsDiv.innerHTML = `
+          <div><div class="dis-label">Ángulo</div><input class="dis-input" id="p3Angle" type="number" value="45" min="0" max="360" style="width:100%"></div>
+          <div><div class="dis-label">Color 1</div><input class="dis-input" id="p3Color1" type="text" value="#ff0000" placeholder="#HEX" style="width:100%"></div>
+          <div><div class="dis-label">Color 2</div><input class="dis-input" id="p3Color2" type="text" value="#0000ff" placeholder="#HEX" style="width:100%"></div>
+          <div><div class="dis-label">Tamaño fuente (px)</div><input class="dis-input" id="p3FontSize" type="number" value="48" min="20" style="width:100%"></div>`;
+        break;
+      case 'outline':
+        optionsDiv.innerHTML = `
+          <div><div class="dis-label">Color contorno</div><input class="dis-input" id="p3OutlineColor" type="text" value="#000" placeholder="#HEX" style="width:100%"></div>
+          <div><div class="dis-label">Ancho contorno (px)</div><input class="dis-input" id="p3OutlineWidth" type="number" value="2" min="1" style="width:100%"></div>
+          <div><div class="dis-label">Color relleno</div><input class="dis-input" id="p3FillColor" type="text" value="#fff" placeholder="#HEX" style="width:100%"></div>`;
+        break;
+      case 'glow':
+        optionsDiv.innerHTML = `
+          <div><div class="dis-label">Color glow</div><input class="dis-input" id="p3GlowColor" type="text" value="#00d9ff" placeholder="#HEX" style="width:100%"></div>
+          <div><div class="dis-label">Tamaño glow (px)</div><input class="dis-input" id="p3GlowSize" type="number" value="20" min="5" style="width:100%"></div>
+          <div><div class="dis-label">Fondo</div><input class="dis-input" id="p3GlowBg" type="text" value="#000" placeholder="#HEX" style="width:100%"></div>`;
+        break;
+      case 'drop-cap':
+        optionsDiv.innerHTML = `
+          <div><div class="dis-label">Color primera letra</div><input class="dis-input" id="p3CapColor" type="text" value="#6366f1" placeholder="#HEX" style="width:100%"></div>
+          <div><div class="dis-label">Tamaño fuente cuerpo (px)</div><input class="dis-input" id="p3CapFontSize" type="number" value="18" min="12" style="width:100%"></div>`;
+        break;
+      case 'curved':
+        optionsDiv.innerHTML = `
+          <div><div class="dis-label">Radio (px)</div><input class="dis-input" id="p3Radius" type="number" value="100" min="50" style="width:100%"></div>
+          <div><div class="dis-label">Dirección</div><select class="dis-select" id="p3Direction" style="width:100%"><option value="up">Arriba</option><option value="down">Abajo</option></select></div>
+          <div><div class="dis-label">Color texto</div><input class="dis-input" id="p3CurvedColor" type="text" value="#333" placeholder="#HEX" style="width:100%"></div>`;
+        break;
+    }
+  };
+
+  effectType?.addEventListener('change', renderOptions);
+  renderOptions();
+
+  btn?.addEventListener('click', async () => {
+    const text = textInput?.value;
+    const type = effectType?.value;
+
+    if (!text) { toast('Escribí el texto para aplicar el efecto', 'warn'); return; }
+
+    const body = { effectType: type, text };
+
+    // Gather effect-specific options
+    if (type === 'gradient') {
+      body.angle = Number($('#p3Angle')?.value || 45);
+      body.colors = [$('#p3Color1')?.value || '#ff0000', $('#p3Color2')?.value || '#0000ff'];
+      body.fontSize = Number($('#p3FontSize')?.value || 48);
+    } else if (type === 'outline') {
+      body.outlineColor = $('#p3OutlineColor')?.value || '#000';
+      body.outlineWidth = Number($('#p3OutlineWidth')?.value || 2);
+      body.fillColor = $('#p3FillColor')?.value || '#fff';
+    } else if (type === 'glow') {
+      body.glowColor = $('#p3GlowColor')?.value || '#00d9ff';
+      body.glowSize = Number($('#p3GlowSize')?.value || 20);
+      body.bgColor = $('#p3GlowBg')?.value || '#000';
+    } else if (type === 'drop-cap') {
+      body.letterColor = $('#p3CapColor')?.value || '#6366f1';
+      body.fontSize = Number($('#p3CapFontSize')?.value || 18);
+    } else if (type === 'curved') {
+      body.radius = Number($('#p3Radius')?.value || 100);
+      body.direction = $('#p3Direction')?.value || 'up';
+      body.textColor = $('#p3CurvedColor')?.value || '#333';
+    }
+
+    resultDiv.style.display = 'flex';
+    resultDiv.innerHTML = '<div style="color:var(--text-muted)">Generando efecto de texto…</div>';
+
+    const result = await api('/api/design/text-effect', 'POST', body);
+
+    if (result.error) {
+      resultDiv.innerHTML = `<div class="dis-card"><p style="color:var(--text-muted)">Error: ${result.error}</p></div>`;
+      return;
+    }
+
+    const blobUrl = URL.createObjectURL(new Blob([result.html], { type: 'text/html' }));
+    const safeName = type;
+
+    resultDiv.innerHTML = `
+      <div class="dis-card">
+        <div class="dis-label">Preview (${result.effectType})</div>
+        <div class="dis-slide-preview" style="height:400px">
+          <iframe src="${blobUrl}" sandbox="allow-same-origin"></iframe>
+        </div>
+        <div class="dis-btn-row">
+          <button class="dis-btn dis-btn-primary" id="p3Download">⬇️ Descargar HTML</button>
+          <button class="dis-btn dis-btn-secondary" id="p3OpenNew">↗️ Abrir en nueva pestaña</button>
+          <button class="dis-btn dis-btn-secondary" id="p3CopyHtml">📋 Copiar HTML</button>
+        </div>
+        <div style="background:var(--surface);border-radius:8px;padding:12px;margin-top:8px;font-family:monospace;font-size:11px;color:var(--text);overflow-x:auto">
+          <strong>CSS:</strong><br>${result.css?.replace(/;/g, ';<br>') || 'N/A'}
+        </div>
+      </div>`;
+
+    $('#p3Download')?.addEventListener('click', () => downloadHtml(result.html, `text-fx-${safeName}.html`));
+    $('#p3OpenNew')?.addEventListener('click', () => window.open(blobUrl, '_blank'));
+    $('#p3CopyHtml')?.addEventListener('click', () => {
+      navigator.clipboard?.writeText(result.html).then(() => toast('HTML copiado ✓'));
+    });
+  });
+};
+
 // ── Slide HTML tool ───────────────────────────────────────────────────────────
 const setupSlideHtml = () => {
   $('#shRun')?.addEventListener('click', async (e) => {
@@ -869,6 +1012,7 @@ export const renderDiseñador = async (root) => {
         <div class="dis-panel${_activeTab === 'carousel' ? ' active' : ''}" data-panel="carousel">${panelCarousel()}</div>
         <div class="dis-panel${_activeTab === 'phase1' ? ' active' : ''}" data-panel="phase1">${panelPhase1()}</div>
         <div class="dis-panel${_activeTab === 'phase2' ? ' active' : ''}" data-panel="phase2">${panelPhase2()}</div>
+        <div class="dis-panel${_activeTab === 'phase3' ? ' active' : ''}" data-panel="phase3">${panelPhase3()}</div>
         <div class="dis-panel${_activeTab === 'remove-bg' ? ' active' : ''}" data-panel="remove-bg">${panelRemoveBg()}</div>
         <div class="dis-panel${_activeTab === 'upscale' ? ' active' : ''}" data-panel="upscale">${panelUpscale()}</div>
         <div class="dis-panel${_activeTab === 'palette' ? ' active' : ''}" data-panel="palette">${panelPalette()}</div>
@@ -884,6 +1028,7 @@ export const renderDiseñador = async (root) => {
   setupCarousel();
   setupPhase1();
   setupPhase2();
+  setupPhase3();
   setupImageTool({ prefix: 'rb', endpoint: '/api/design/remove-bg' });
   setupImageTool({ prefix: 'up', endpoint: '/api/design/upscale', extraBody: () => ({ scale: Number($('#upScale')?.value || 2) }) });
   setupPalette();
