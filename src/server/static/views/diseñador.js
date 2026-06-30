@@ -98,6 +98,14 @@ const TABS = [
   { id: 'phase1',     label: '✨ Phase 1 Composición', statusKey: 'phase1'     },
   { id: 'phase2',     label: '🏗️ Phase 2 Layouts',     statusKey: 'phase2'     },
   { id: 'phase3',     label: '🔤 Phase 3 Text FX',     statusKey: 'phase3'     },
+  { id: 'phase5',     label: '📦 Phase 5 Batch Ops',   statusKey: 'phase5'     },
+  { id: 'phase6',     label: '🎬 Phase 6 Export',      statusKey: 'phase6'     },
+  { id: 'phase7',     label: '🤖 Phase 7 AI Remix',    statusKey: 'phase7'     },
+  { id: 'phase8',     label: '🎯 Phase 8 Guides',      statusKey: 'phase8'     },
+  { id: 'phase9',     label: '🌈 Phase 9 Color',       statusKey: 'phase9'     },
+  { id: 'phase10',    label: '📱 Phase 10 Platform',   statusKey: 'phase10'    },
+  { id: 'phase11',    label: '✅ Phase 11 Brand',      statusKey: 'phase11'    },
+  { id: 'phase12',    label: '📚 Phase 12 Templates',  statusKey: 'phase12'    },
   { id: 'remove-bg',  label: '✂️ Quitar fondo',      statusKey: 'removeBg'   },
   { id: 'upscale',    label: '🔍 Mejorar calidad',    statusKey: 'upscale'    },
   { id: 'palette',    label: '🎨 Paleta de marca',    statusKey: 'palette'    },
@@ -132,6 +140,205 @@ const renderStatus = (key, subkey = null) => {
     ? `<span class="dis-status-dot dis-status-ok"></span>${s.provider || 'activo'}`
     : `<span class="dis-status-dot dis-status-off"></span>sin proveedor`;
 };
+
+// ── PHASE 5: Batch Operations ─────────────────────────────────────────────────
+const panelPhase5 = () => `
+  <div class="dis-card">
+    <div class="dis-label">Estado <small>${renderStatus('phase5')}</small></div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">Operaciones en lote: resize, filter, watermark en múltiples imágenes</p>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Tipo de operación</div>
+    <select class="dis-select" id="p5OpType">
+      <option value="resize">Redimensionar (ancho × altura)</option>
+      <option value="filter">Filtro (blur, grayscale, sepia, saturate)</option>
+      <option value="watermark">Agregar marca de agua</option>
+    </select>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">URLs de imágenes (una por línea)</div>
+    <textarea class="dis-input" id="p5ImageUrls" rows="4" placeholder="https://...\nhttps://...\nhttps://..." style="resize:vertical;font-family:monospace;font-size:12px"></textarea>
+  </div>
+  <div class="dis-card" id="p5Options"></div>
+  <div class="dis-btn-row">
+    <button class="dis-btn dis-btn-primary" id="p5Btn" style="flex:1">📦 Procesar lote</button>
+  </div>
+  <div class="dis-result" id="p5Result" style="display:none;gap:12px"></div>`;
+
+// ── PHASE 6: Export Formats ───────────────────────────────────────────────────
+const panelPhase6 = () => `
+  <div class="dis-card">
+    <div class="dis-label">Estado <small>${renderStatus('phase6')}</small></div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">Exportar carrusel a múltiples formatos: MP4, GIF, WebM, PNG, JPG</p>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Formato de exportación</div>
+    <select class="dis-select" id="p6Format">
+      <option value="mp4">🎬 MP4 video (H.264)</option>
+      <option value="gif">🎞️ GIF animado</option>
+      <option value="webm">📹 WebM video</option>
+      <option value="png">🖼️ PNG (primera slide)</option>
+      <option value="jpg">📷 JPG (primera slide)</option>
+    </select>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Duración por slide (seg)</div>
+    <input class="dis-input" id="p6Duration" type="number" value="2" min="0.5" max="10" step="0.5" />
+  </div>
+  <div class="dis-card" id="p6Options"></div>
+  <div class="dis-label">Datos de carrusel (JSON)</div>
+    <textarea class="dis-input" id="p6CarouselJson" rows="3" placeholder='{"slides":[{"html":"..."}]}' style="resize:vertical;font-family:monospace;font-size:12px"></textarea>
+  <div class="dis-btn-row">
+    <button class="dis-btn dis-btn-primary" id="p6Btn" style="flex:1">🎬 Exportar</button>
+  </div>
+  <div class="dis-result" id="p6Result" style="display:none;gap:12px"></div>`;
+
+// ── PHASE 7: AI Remix ─────────────────────────────────────────────────────────
+const panelPhase7 = () => `
+  <div class="dis-card">
+    <div class="dis-label">Estado <small>${renderStatus('phase7')}</small></div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">AI remixing: variaciones de diseño, style-transfer, generación de fondo</p>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Tipo de remix</div>
+    <select class="dis-select" id="p7RemixType">
+      <option value="variation">🔄 Generar variación de diseño</option>
+      <option value="style-transfer">🎨 Style-transfer (cambiar estilo)</option>
+      <option value="bg-gen">🌅 Generar fondo con IA</option>
+      <option value="palette-adapt">🌈 Adaptar a paleta diferente</option>
+    </select>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Descripción / Prompt</div>
+    <textarea class="dis-input" id="p7Prompt" rows="3" placeholder="Describe qué remix querés..." style="resize:vertical"></textarea>
+  </div>
+  <div class="dis-card" id="p7Options"></div>
+  <div class="dis-btn-row">
+    <button class="dis-btn dis-btn-primary" id="p7Btn" style="flex:1">🤖 Generar remix</button>
+  </div>
+  <div class="dis-result" id="p7Result" style="display:none;gap:12px"></div>`;
+
+// ── PHASE 8: Composition Guides ───────────────────────────────────────────────
+const panelPhase8 = () => `
+  <div class="dis-card">
+    <div class="dis-label">Estado <small>${renderStatus('phase8')}</small></div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">Guías de composición: rule of thirds, golden ratio, simetría</p>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Tipo de guía</div>
+    <select class="dis-select" id="p8GuideType">
+      <option value="rule-of-thirds">🎯 Regla de tercios</option>
+      <option value="golden-ratio">✨ Razón dorada</option>
+      <option value="center-symmetry">🔄 Simetría central</option>
+      <option value="fibonacci">🐚 Espiral Fibonacci</option>
+    </select>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Imagen para analizar</div>
+    <input class="dis-input" id="p8ImageUrl" placeholder="https://... o arrastrá imagen">
+    <input type="file" id="p8ImageFile" accept="image/*" style="display:none">
+    <button class="dis-btn dis-btn-secondary" onclick="document.getElementById('p8ImageFile').click()" style="margin-top:8px;width:100%">📤 Subir imagen</button>
+  </div>
+  <div class="dis-btn-row">
+    <button class="dis-btn dis-btn-primary" id="p8Btn" style="flex:1">🎯 Mostrar guía</button>
+  </div>
+  <div class="dis-result" id="p8Result" style="display:none;gap:12px"></div>`;
+
+// ── PHASE 9: Color Science ────────────────────────────────────────────────────
+const panelPhase9 = () => `
+  <div class="dis-card">
+    <div class="dis-label">Estado <small>${renderStatus('phase9')}</small></div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">Ciencia del color: armonías, gradientes, conversión HSL/HEX</p>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Tipo de análisis</div>
+    <select class="dis-select" id="p9AnalysisType">
+      <option value="harmony">🌈 Generar armonía de color</option>
+      <option value="gradient">🔄 Crear gradiente</option>
+      <option value="contrast">🔲 Verificar contraste WCAG</option>
+      <option value="temperature">🌡️ Temperatura de color</option>
+    </select>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Color base (HEX)</div>
+    <input class="dis-input" id="p9Color" type="text" placeholder="#FF5733" value="#FF5733" />
+  </div>
+  <div class="dis-card" id="p9Options"></div>
+  <div class="dis-btn-row">
+    <button class="dis-btn dis-btn-primary" id="p9Btn" style="flex:1">🌈 Analizar color</button>
+  </div>
+  <div class="dis-result" id="p9Result" style="display:none;gap:12px"></div>`;
+
+// ── PHASE 10: Platform Optimization ───────────────────────────────────────────
+const panelPhase10 = () => `
+  <div class="dis-card">
+    <div class="dis-label">Estado <small>${renderStatus('phase10')}</small></div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">Optimización por plataforma: safe zones, specs, watermark</p>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Plataforma destino</div>
+    <select class="dis-select" id="p10Platform">
+      <option value="instagram-feed">📷 Instagram Feed (1080×1350)</option>
+      <option value="instagram-story">📹 Instagram Story (1080×1920)</option>
+      <option value="instagram-reel">🎬 Instagram Reel (1080×1920)</option>
+      <option value="tiktok">🎵 TikTok (1080×1920)</option>
+      <option value="pinterest">📌 Pinterest (1000×1500)</option>
+    </select>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">HTML de slide (para optimizar)</div>
+    <textarea class="dis-input" id="p10Html" rows="4" placeholder="<div>...</div>" style="resize:vertical;font-family:monospace;font-size:12px"></textarea>
+  </div>
+  <div class="dis-btn-row">
+    <button class="dis-btn dis-btn-primary" id="p10Btn" style="flex:1">📱 Optimizar</button>
+  </div>
+  <div class="dis-result" id="p10Result" style="display:none;gap:12px"></div>`;
+
+// ── PHASE 11: Brand Compliance ────────────────────────────────────────────────
+const panelPhase11 = () => `
+  <div class="dis-card">
+    <div class="dis-label">Estado <small>${renderStatus('phase11')}</small></div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">Cumplimiento de marca: verificar guías, agregar watermark</p>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Tipo de verificación</div>
+    <select class="dis-select" id="p11CheckType">
+      <option value="guideline-check">✅ Verificar guías de marca</option>
+      <option value="add-watermark">🏷️ Agregar watermark</option>
+      <option value="font-check">✍️ Verificar tipografía</option>
+      <option value="color-check">🎨 Verificar paleta</option>
+    </select>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">HTML a verificar</div>
+    <textarea class="dis-input" id="p11Html" rows="3" placeholder="<div>...</div>" style="resize:vertical;font-family:monospace;font-size:12px"></textarea>
+  </div>
+  <div class="dis-card" id="p11Options"></div>
+  <div class="dis-btn-row">
+    <button class="dis-btn dis-btn-primary" id="p11Btn" style="flex:1">✅ Verificar</button>
+  </div>
+  <div class="dis-result" id="p11Result" style="display:none;gap:12px"></div>`;
+
+// ── PHASE 12: Template Library ────────────────────────────────────────────────
+const panelPhase12 = () => `
+  <div class="dis-card">
+    <div class="dis-label">Estado <small>${renderStatus('phase12')}</small></div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">Biblioteca de plantillas: explorar, importar, guardar diseños</p>
+  </div>
+  <div class="dis-card">
+    <div class="dis-label">Acción</div>
+    <select class="dis-select" id="p12Action">
+      <option value="list">📚 Explorar plantillas</option>
+      <option value="search">🔍 Buscar plantilla</option>
+      <option value="save">💾 Guardar como plantilla</option>
+      <option value="import">📥 Importar plantilla</option>
+    </select>
+  </div>
+  <div class="dis-card" id="p12Options"></div>
+  <div class="dis-btn-row">
+    <button class="dis-btn dis-btn-primary" id="p12Btn" style="flex:1">📚 Ejecutar</button>
+  </div>
+  <div class="dis-result" id="p12Result" style="display:none;gap:12px"></div>`;
 
 // ── Carousel panel ────────────────────────────────────────────────────────────
 const panelCarousel = () => `
@@ -976,6 +1183,382 @@ const setupPhase3 = () => {
   });
 };
 
+// ── PHASE 5 tool ──────────────────────────────────────────────────────────────
+const setupPhase5 = () => {
+  const opTypeSelect = $('#p5OpType');
+  const optionsDiv = $('#p5Options');
+  const btn = $('#p5Btn');
+  const resultDiv = $('#p5Result');
+
+  const renderOptions = () => {
+    const type = opTypeSelect?.value || 'resize';
+    optionsDiv.innerHTML = '';
+    switch (type) {
+      case 'resize':
+        optionsDiv.innerHTML = `
+          <div class="dis-row2">
+            <div><div class="dis-label">Ancho (px)</div><input class="dis-input" id="p5Width" type="number" value="1080" min="100" /></div>
+            <div><div class="dis-label">Alto (px)</div><input class="dis-input" id="p5Height" type="number" value="1350" min="100" /></div>
+          </div>`;
+        break;
+      case 'filter':
+        optionsDiv.innerHTML = `
+          <div><div class="dis-label">Tipo de filtro</div>
+          <select class="dis-select" id="p5Filter">
+            <option value="blur">Blur</option>
+            <option value="grayscale">Escala de grises</option>
+            <option value="sepia">Sepia</option>
+            <option value="saturate">Saturado</option>
+          </select></div>`;
+        break;
+      case 'watermark':
+        optionsDiv.innerHTML = `
+          <div><div class="dis-label">Texto de watermark</div><input class="dis-input" id="p5WatermarkText" placeholder="© 2024" /></div>
+          <div><div class="dis-label">Posición</div><select class="dis-select" id="p5WatermarkPos"><option value="bottom-right">Abajo der</option><option value="bottom-left">Abajo izq</option><option value="top-right">Arriba der</option><option value="center">Centro</option></select></div>`;
+        break;
+    }
+  };
+
+  opTypeSelect?.addEventListener('change', renderOptions);
+  renderOptions();
+
+  btn?.addEventListener('click', async () => {
+    const urls = ($('#p5ImageUrls')?.value || '').split('\n').map(u => u.trim()).filter(Boolean);
+    if (!urls.length) { toast('Pegá al menos una URL de imagen', 'warn'); return; }
+
+    resultDiv.style.display = 'flex';
+    resultDiv.innerHTML = '<div style="color:var(--text-muted)">Procesando lote…</div>';
+
+    const body = { imageUrls: urls, operationType: opTypeSelect?.value || 'resize' };
+    if (body.operationType === 'resize') {
+      body.width = Number($('#p5Width')?.value || 1080);
+      body.height = Number($('#p5Height')?.value || 1350);
+    } else if (body.operationType === 'filter') {
+      body.filterType = $('#p5Filter')?.value || 'blur';
+    } else if (body.operationType === 'watermark') {
+      body.watermarkText = $('#p5WatermarkText')?.value || '© 2024';
+      body.position = $('#p5WatermarkPos')?.value || 'bottom-right';
+    }
+
+    const result = await api('/api/design/batch-ops', 'POST', body);
+    if (result.error) {
+      resultDiv.innerHTML = `<div class="dis-card"><p style="color:var(--text-muted)">Error: ${result.error}</p></div>`;
+      return;
+    }
+
+    const resultsHtml = (result.results || []).map((r, i) => `
+      <div class="dis-card">
+        <div class="dis-label">Imagen ${i + 1}</div>
+        ${r.outputUrl ? `<img src="${r.outputUrl}" style="max-width:100%;border-radius:12px;max-height:200px"/>` : ''}
+        <p style="font-size:12px;color:var(--text-muted);margin:6px 0">Status: ${r.status || 'ok'}</p>
+      </div>
+    `).join('');
+
+    resultDiv.innerHTML = `<div class="dis-card"><div class="dis-label">✅ ${urls.length} imágenes procesadas</div></div>${resultsHtml}`;
+  });
+};
+
+// ── PHASE 6 tool ──────────────────────────────────────────────────────────────
+const setupPhase6 = () => {
+  const formatSelect = $('#p6Format');
+  const btn = $('#p6Btn');
+  const resultDiv = $('#p6Result');
+
+  btn?.addEventListener('click', async () => {
+    const format = formatSelect?.value || 'mp4';
+    const carouselJson = $('#p6CarouselJson')?.value || '{}';
+    const duration = Number($('#p6Duration')?.value || 2);
+
+    if (!carouselJson.trim()) { toast('Pegá datos del carrusel (JSON)', 'warn'); return; }
+
+    resultDiv.style.display = 'flex';
+    resultDiv.innerHTML = '<div style="color:var(--text-muted)">Exportando…</div>';
+
+    try {
+      const carousel = JSON.parse(carouselJson);
+      const body = { format, carousel, slideDuration: duration };
+      const result = await api('/api/design/export', 'POST', body);
+
+      if (result.error) {
+        resultDiv.innerHTML = `<div class="dis-card"><p style="color:var(--text-muted)">Error: ${result.error}</p></div>`;
+        return;
+      }
+
+      resultDiv.innerHTML = `
+        <div class="dis-card">
+          <div class="dis-label">✅ Exportado a ${format.toUpperCase()}</div>
+          <p style="font-size:12px;color:var(--text-muted);margin:8px 0">URL: ${result.url || 'generando…'}</p>
+          ${result.url ? `<button class="dis-btn dis-btn-primary" onclick="window.open('${result.url}')">⬇️ Descargar</button>` : ''}
+        </div>`;
+    } catch (e) {
+      resultDiv.innerHTML = `<div class="dis-card"><p style="color:var(--text-muted)">Error JSON: ${e.message}</p></div>`;
+    }
+  });
+};
+
+// ── PHASE 7 tool ──────────────────────────────────────────────────────────────
+const setupPhase7 = () => {
+  const remixTypeSelect = $('#p7RemixType');
+  const btn = $('#p7Btn');
+  const resultDiv = $('#p7Result');
+
+  btn?.addEventListener('click', async () => {
+    const remixType = remixTypeSelect?.value || 'variation';
+    const prompt = $('#p7Prompt')?.value?.trim();
+
+    if (!prompt) { toast('Escribí un prompt para el remix', 'warn'); return; }
+
+    resultDiv.style.display = 'flex';
+    resultDiv.innerHTML = '<div style="color:var(--text-muted)">Generando remix con IA…</div>';
+
+    const body = { remixType, prompt };
+    const result = await api('/api/design/remix', 'POST', body);
+
+    if (result.error) {
+      resultDiv.innerHTML = `<div class="dis-card"><p style="color:var(--text-muted)">Error: ${result.error}</p></div>`;
+      return;
+    }
+
+    const blobUrl = result.html ? URL.createObjectURL(new Blob([result.html], { type: 'text/html' })) : null;
+    resultDiv.innerHTML = `
+      <div class="dis-card">
+        <div class="dis-label">✅ Remix ${remixType}</div>
+        ${blobUrl ? `<div class="dis-slide-preview" style="height:400px"><iframe src="${blobUrl}" sandbox="allow-same-origin"></iframe></div>` : ''}
+        ${result.description ? `<p style="font-size:12px;color:var(--text-muted);margin:8px 0">${result.description}</p>` : ''}
+      </div>`;
+  });
+};
+
+// ── PHASE 8 tool ──────────────────────────────────────────────────────────────
+const setupPhase8 = () => {
+  const imageFile = $('#p8ImageFile');
+  const btn = $('#p8Btn');
+  const resultDiv = $('#p8Result');
+
+  imageFile?.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = await fileToDataUrl(file);
+      $('#p8ImageUrl').value = url;
+    }
+  });
+
+  btn?.addEventListener('click', async () => {
+    const imageUrl = $('#p8ImageUrl')?.value?.trim();
+    const guideType = $('#p8GuideType')?.value || 'rule-of-thirds';
+
+    if (!imageUrl) { toast('Subí una imagen primero', 'warn'); return; }
+
+    resultDiv.style.display = 'flex';
+    resultDiv.innerHTML = '<div style="color:var(--text-muted)">Analizando composición…</div>';
+
+    const body = { imageUrl, guideType };
+    const result = await api('/api/design/composition-guide', 'POST', body);
+
+    if (result.error) {
+      resultDiv.innerHTML = `<div class="dis-card"><p style="color:var(--text-muted)">Error: ${result.error}</p></div>`;
+      return;
+    }
+
+    resultDiv.innerHTML = `
+      <div class="dis-card">
+        <div class="dis-label">🎯 Guía ${guideType}</div>
+        ${result.svgOverlay ? `<svg style="max-width:100%;border-radius:12px;background:#000">${result.svgOverlay}</svg>` : ''}
+        <p style="font-size:12px;color:var(--text-muted);margin:8px 0">${result.analysis || 'Análisis completado'}</p>
+      </div>`;
+  });
+};
+
+// ── PHASE 9 tool ──────────────────────────────────────────────────────────────
+const setupPhase9 = () => {
+  const analysisTypeSelect = $('#p9AnalysisType');
+  const optionsDiv = $('#p9Options');
+  const btn = $('#p9Btn');
+  const resultDiv = $('#p9Result');
+
+  const renderOptions = () => {
+    const type = analysisTypeSelect?.value || 'harmony';
+    optionsDiv.innerHTML = '';
+    switch (type) {
+      case 'harmony':
+        optionsDiv.innerHTML = `<div><div class="dis-label">Tipo armonía</div><select class="dis-select" id="p9HarmonyType"><option value="complementary">Complementario</option><option value="analogous">Análogo</option><option value="triadic">Tríada</option></select></div>`;
+        break;
+      case 'gradient':
+        optionsDiv.innerHTML = `<div><div class="dis-label">Color destino</div><input class="dis-input" id="p9EndColor" type="text" placeholder="#000000" value="#000000" /></div>`;
+        break;
+      case 'contrast':
+        optionsDiv.innerHTML = `<div><div class="dis-label">Color de texto</div><input class="dis-input" id="p9TextColor" type="text" placeholder="#FFFFFF" value="#FFFFFF" /></div>`;
+        break;
+    }
+  };
+
+  analysisTypeSelect?.addEventListener('change', renderOptions);
+  renderOptions();
+
+  btn?.addEventListener('click', async () => {
+    const analysisType = analysisTypeSelect?.value || 'harmony';
+    const baseColor = $('#p9Color')?.value?.trim() || '#FF5733';
+
+    resultDiv.style.display = 'flex';
+    resultDiv.innerHTML = '<div style="color:var(--text-muted)">Analizando color…</div>';
+
+    const body = { analysisType, baseColor };
+    if (analysisType === 'harmony') {
+      body.harmonyType = $('#p9HarmonyType')?.value || 'complementary';
+    } else if (analysisType === 'gradient') {
+      body.endColor = $('#p9EndColor')?.value || '#000000';
+    } else if (analysisType === 'contrast') {
+      body.textColor = $('#p9TextColor')?.value || '#FFFFFF';
+    }
+
+    const result = await api('/api/design/color-science', 'POST', body);
+
+    if (result.error) {
+      resultDiv.innerHTML = `<div class="dis-card"><p style="color:var(--text-muted)">Error: ${result.error}</p></div>`;
+      return;
+    }
+
+    const colorsHtml = (result.colors || []).map(c => `<div style="display:flex;align-items:center;gap:8px;font-size:12px"><div style="width:40px;height:40px;border-radius:8px;background:${c};border:1px solid var(--border)"></div><span style="font-family:monospace">${c}</span></div>`).join('');
+
+    resultDiv.innerHTML = `
+      <div class="dis-card">
+        <div class="dis-label">🌈 Análisis ${analysisType}</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin:8px 0">${colorsHtml}</div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px">${result.analysis || 'Análisis completado'}</p>
+      </div>`;
+  });
+};
+
+// ── PHASE 10 tool ─────────────────────────────────────────────────────────────
+const setupPhase10 = () => {
+  const btn = $('#p10Btn');
+  const resultDiv = $('#p10Result');
+
+  btn?.addEventListener('click', async () => {
+    const platform = $('#p10Platform')?.value || 'instagram-feed';
+    const html = $('#p10Html')?.value?.trim();
+
+    if (!html) { toast('Pegá HTML del slide', 'warn'); return; }
+
+    resultDiv.style.display = 'flex';
+    resultDiv.innerHTML = '<div style="color:var(--text-muted)">Optimizando…</div>';
+
+    const body = { platform, html };
+    const result = await api('/api/design/platform-optimize', 'POST', body);
+
+    if (result.error) {
+      resultDiv.innerHTML = `<div class="dis-card"><p style="color:var(--text-muted)">Error: ${result.error}</p></div>`;
+      return;
+    }
+
+    resultDiv.innerHTML = `
+      <div class="dis-card">
+        <div class="dis-label">✅ Optimizado para ${platform}</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:8px 0">Safe zone: ${result.safeZone || 'detectado'}</p>
+        <div style="background:var(--surface);border-radius:8px;padding:12px;font-family:monospace;font-size:11px;overflow-x:auto;color:var(--text)">${result.css || ''}</div>
+      </div>`;
+  });
+};
+
+// ── PHASE 11 tool ─────────────────────────────────────────────────────────────
+const setupPhase11 = () => {
+  const checkTypeSelect = $('#p11CheckType');
+  const optionsDiv = $('#p11Options');
+  const btn = $('#p11Btn');
+  const resultDiv = $('#p11Result');
+
+  const renderOptions = () => {
+    const type = checkTypeSelect?.value || 'guideline-check';
+    optionsDiv.innerHTML = '';
+    if (type === 'add-watermark') {
+      optionsDiv.innerHTML = `<div><div class="dis-label">Texto watermark</div><input class="dis-input" id="p11WatermarkText" placeholder="© Mi Marca" /></div>`;
+    }
+  };
+
+  checkTypeSelect?.addEventListener('change', renderOptions);
+  renderOptions();
+
+  btn?.addEventListener('click', async () => {
+    const checkType = checkTypeSelect?.value || 'guideline-check';
+    const html = $('#p11Html')?.value?.trim();
+
+    if (!html) { toast('Pegá HTML para verificar', 'warn'); return; }
+
+    resultDiv.style.display = 'flex';
+    resultDiv.innerHTML = '<div style="color:var(--text-muted)">Verificando…</div>';
+
+    const body = { checkType, html };
+    if (checkType === 'add-watermark') {
+      body.watermarkText = $('#p11WatermarkText')?.value || '© Marca';
+    }
+
+    const result = await api('/api/design/brand-compliance', 'POST', body);
+
+    if (result.error) {
+      resultDiv.innerHTML = `<div class="dis-card"><p style="color:var(--text-muted)">Error: ${result.error}</p></div>`;
+      return;
+    }
+
+    const issuesHtml = (result.issues || []).map(i => `<li style="font-size:12px;color:var(--text-muted)">${i}</li>`).join('');
+    resultDiv.innerHTML = `
+      <div class="dis-card">
+        <div class="dis-label">✅ Verificación ${checkType}</div>
+        ${issuesHtml ? `<ul style="margin:8px 0;padding-left:20px">${issuesHtml}</ul>` : '<p style="font-size:12px;color:#22c55e">Sin problemas detectados ✓</p>'}
+      </div>`;
+  });
+};
+
+// ── PHASE 12 tool ─────────────────────────────────────────────────────────────
+const setupPhase12 = () => {
+  const actionSelect = $('#p12Action');
+  const optionsDiv = $('#p12Options');
+  const btn = $('#p12Btn');
+  const resultDiv = $('#p12Result');
+
+  const renderOptions = () => {
+    const action = actionSelect?.value || 'list';
+    optionsDiv.innerHTML = '';
+    if (action === 'search' || action === 'save') {
+      optionsDiv.innerHTML = `<div><input class="dis-input" id="p12Query" placeholder="${action === 'search' ? 'Buscar plantilla…' : 'Nombre de plantilla…'}" /></div>`;
+    } else if (action === 'import') {
+      optionsDiv.innerHTML = `<div><input class="dis-input" id="p12ImportUrl" placeholder="URL de plantilla…" /></div>`;
+    }
+  };
+
+  actionSelect?.addEventListener('change', renderOptions);
+  renderOptions();
+
+  btn?.addEventListener('click', async () => {
+    const action = actionSelect?.value || 'list';
+
+    resultDiv.style.display = 'flex';
+    resultDiv.innerHTML = '<div style="color:var(--text-muted)">Procesando…</div>';
+
+    const body = { action };
+    if (action === 'search' || action === 'save') {
+      body.query = $('#p12Query')?.value?.trim() || '';
+    } else if (action === 'import') {
+      body.url = $('#p12ImportUrl')?.value?.trim() || '';
+    }
+
+    const result = await api('/api/design/template-library', 'POST', body);
+
+    if (result.error) {
+      resultDiv.innerHTML = `<div class="dis-card"><p style="color:var(--text-muted)">Error: ${result.error}</p></div>`;
+      return;
+    }
+
+    const templatesHtml = (result.templates || []).map(t => `
+      <div class="dis-card">
+        <div class="dis-label">${t.name || 'Plantilla'}</div>
+        <p style="font-size:12px;color:var(--text-muted)">${t.description || 'Sin descripción'}</p>
+      </div>
+    `).join('');
+
+    resultDiv.innerHTML = `<div class="dis-card"><div class="dis-label">📚 ${result.count || 0} plantillas</div></div>${templatesHtml}`;
+  });
+};
+
 // ── Slide HTML tool ───────────────────────────────────────────────────────────
 const setupSlideHtml = () => {
   $('#shRun')?.addEventListener('click', async (e) => {
@@ -1063,6 +1646,14 @@ export const renderDiseñador = async (root) => {
         <div class="dis-panel${_activeTab === 'phase1' ? ' active' : ''}" data-panel="phase1">${panelPhase1()}</div>
         <div class="dis-panel${_activeTab === 'phase2' ? ' active' : ''}" data-panel="phase2">${panelPhase2()}</div>
         <div class="dis-panel${_activeTab === 'phase3' ? ' active' : ''}" data-panel="phase3">${panelPhase3()}</div>
+        <div class="dis-panel${_activeTab === 'phase5' ? ' active' : ''}" data-panel="phase5">${panelPhase5()}</div>
+        <div class="dis-panel${_activeTab === 'phase6' ? ' active' : ''}" data-panel="phase6">${panelPhase6()}</div>
+        <div class="dis-panel${_activeTab === 'phase7' ? ' active' : ''}" data-panel="phase7">${panelPhase7()}</div>
+        <div class="dis-panel${_activeTab === 'phase8' ? ' active' : ''}" data-panel="phase8">${panelPhase8()}</div>
+        <div class="dis-panel${_activeTab === 'phase9' ? ' active' : ''}" data-panel="phase9">${panelPhase9()}</div>
+        <div class="dis-panel${_activeTab === 'phase10' ? ' active' : ''}" data-panel="phase10">${panelPhase10()}</div>
+        <div class="dis-panel${_activeTab === 'phase11' ? ' active' : ''}" data-panel="phase11">${panelPhase11()}</div>
+        <div class="dis-panel${_activeTab === 'phase12' ? ' active' : ''}" data-panel="phase12">${panelPhase12()}</div>
         <div class="dis-panel${_activeTab === 'remove-bg' ? ' active' : ''}" data-panel="remove-bg">${panelRemoveBg()}</div>
         <div class="dis-panel${_activeTab === 'upscale' ? ' active' : ''}" data-panel="upscale">${panelUpscale()}</div>
         <div class="dis-panel${_activeTab === 'palette' ? ' active' : ''}" data-panel="palette">${panelPalette()}</div>
@@ -1079,6 +1670,14 @@ export const renderDiseñador = async (root) => {
   setupPhase1();
   setupPhase2();
   setupPhase3();
+  setupPhase5();
+  setupPhase6();
+  setupPhase7();
+  setupPhase8();
+  setupPhase9();
+  setupPhase10();
+  setupPhase11();
+  setupPhase12();
   setupImageTool({ prefix: 'rb', endpoint: '/api/design/remove-bg' });
   setupImageTool({ prefix: 'up', endpoint: '/api/design/upscale', extraBody: () => ({ scale: Number($('#upScale')?.value || 2) }) });
   setupPalette();
