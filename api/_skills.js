@@ -437,6 +437,7 @@ const handleSkills = async (req, res, pathName, method, body, searchParams) => {
       outputTokens: 2000,
     });
     await recordUsage(gPost.userId, 'image', slideCount);
+    import('./_achievements.js').then(a => a.onWorkflowExecuted(gPost.userId)).catch(() => {});
     return true;
   }
 

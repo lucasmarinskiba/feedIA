@@ -69,6 +69,8 @@ import { handleBrandStudio } from './_brandStudio.js';
 import { handleCarouselRules } from './_carouselViralRules.js';
 import { handleAutopilotCreate } from './_autopilotCreate.js';
 import { handleCanvaConnect } from './_canvaConnect.js';
+import { handleDesignTools } from './_designTools.js';
+import { handleVisionLoop } from './_visionLoop.js';
 import { handlePromptLibrary } from './_promptLibrary.js';
 import { handleNicheIntelligence } from './_nicheIntelligence.js';
 import { handleGstack } from './_gstack.js';
@@ -415,6 +417,42 @@ const innerHandler = async (req, res) => {
       if (await handleCanvasSpecs(req, res, path, m)) return;
     } catch (err) {
       return json(res, 500, { error: 'canvas-specs', message: String(err) });
+    }
+  }
+
+  // ── Vision Loop (see-decide-act, spy, extract, verify CU steps) ─────────────
+  if (path.startsWith('/api/vision')) {
+    let vlBody = req.body;
+    if (vlBody === undefined && m === 'POST') {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        vlBody = raw ? JSON.parse(raw) : {};
+      } catch { vlBody = {}; }
+    }
+    try {
+      if (await handleVisionLoop(req, res, path, m, vlBody || {})) return;
+    } catch (err) {
+      return json(res, 500, { error: 'vision-loop', message: String(err) });
+    }
+  }
+
+  // ── Design Tools (remove-bg, upscale, palette, font-pair, slide-html) ────────
+  if (path.startsWith('/api/design')) {
+    let dtBody = req.body;
+    if (dtBody === undefined && m === 'POST') {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        dtBody = raw ? JSON.parse(raw) : {};
+      } catch { dtBody = {}; }
+    }
+    try {
+      if (await handleDesignTools(req, res, path, m, dtBody || {})) return;
+    } catch (err) {
+      return json(res, 500, { error: 'design-tools', message: String(err) });
     }
   }
 
@@ -3255,6 +3293,9 @@ Predicciones HONESTAS para cuenta de 1,000-10,000 seguidores. JSON:
       }
     }
 
+    if (bjScope && bjScope !== 'anon') {
+      import('./_achievements.js').then(a => a.onWorkflowExecuted(bjScope)).catch(() => {});
+    }
     return ok(res, plan);
   }
 

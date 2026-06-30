@@ -93,7 +93,12 @@ const apiCall = async (scope, path, opts = {}) => {
     headers: { Authorization: `Bearer ${t.accessToken}`, 'Content-Type': 'application/json', ...(opts.headers || {}) },
   });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) return { error: 'canva-api', status: r.status, message: JSON.stringify(j).slice(0, 200) };
+  if (!r.ok) {
+    const msg = JSON.stringify(j).slice(0, 300);
+    const orgDisabled = r.status === 403 && (msg.includes('organization') || msg.includes('org') || msg.includes('disabled'));
+    if (orgDisabled) return { error: 'org-disabled', status: 403, message: 'El admin de tu organización Canva deshabilitó el acceso a apps. Ir a Canva → Configuración → Aplicaciones → activar acceso de desarrolladores. O usá una cuenta personal.' };
+    return { error: 'canva-api', status: r.status, message: msg };
+  }
   return j;
 };
 

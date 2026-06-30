@@ -512,6 +512,14 @@ export const handleAutopilotCreate = async (req, res, path, m, body, ctx = {}) =
         autoPublish: Boolean(body?.autoPublish),
         scope: ctx.userId || 'anon',
       });
+      if (ctx.userId) {
+        import('./_achievements.js').then(a => {
+          a.onWorkflowExecuted(ctx.userId).catch(() => {});
+          if (result?.status === 'published') {
+            a.onPostPublished(ctx.userId, {}).catch(() => {});
+          }
+        }).catch(() => {});
+      }
       return json(200, { ok: true, ...result });
     } catch (e) {
       return json(500, { ok: false, error: String(e?.message || e).slice(0, 300) });

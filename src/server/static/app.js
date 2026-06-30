@@ -93,6 +93,8 @@ const ROUTES = {
   community: V('./views/communityHub.js', 'renderCommunityHub'),
   taskboard: V('./views/taskboard.js', 'renderTaskboard'),
   'canva-runner': V('./views/canvaRunner.js', 'renderCanvaRunner'),
+  diseñador: V('./views/diseñador.js', 'renderDiseñador'),
+  visión: V('./views/visión.js', 'renderVisión'),
   replay: V('./views/replayLog.js', 'renderReplayLog'),
   'scores-history': V('./views/scoresHistory.js', 'renderScoresHistory'),
   'studio-manager': V('./views/studioManager.js', 'renderStudioManager'),
@@ -159,6 +161,8 @@ const ROUTE_LABELS = {
   'studio-manager':
     'Studio Manager · CU Brain · Master Brain · Queue · A/B Tests · DMs · Hashtags · Trending · Competidores',
   admin: 'Admin · Monitoreo · Métricas · Logs · Observabilidad · Sistema',
+  diseñador: 'Diseñador IA · Quitar fondo · Remove background · Upscale · Paleta · Tipografías · Slide HTML · Canva · Diseño gráfico · Instagram · TikTok',
+  visión: 'Visión IA · Computer Vision · Spy competidor · Analizar pantalla · Extraer métricas · Loop see-act · Verificar paso · Competencia · Screenshot',
 };
 
 /* ══════════════════════════════════════════════════════════

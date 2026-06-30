@@ -163,17 +163,28 @@ export const renderAchievements = async (containerEl) => {
     <div id="next-section" style="margin-top:30px;"></div>
   `;
 
-  const [allRes, unlockedRes, snapshotRes, nextRes] = await Promise.all([
+  const [allRes, unlockedRes, snapshotRes, nextRes, unackedRes] = await Promise.all([
     apiSafe('/api/achievements', []),
     apiSafe('/api/achievements/unlocked', []),
     apiSafe('/api/achievements/snapshot', EMPTY_SNAPSHOT),
     apiSafe('/api/achievements/next', []),
+    apiSafe('/api/achievements/unacknowledged', []),
   ]);
   all = Array.isArray(allRes.data) ? allRes.data : [];
   unlocked = Array.isArray(unlockedRes.data) ? unlockedRes.data : [];
   snapshot = snapshotRes.data ?? EMPTY_SNAPSHOT;
   next = Array.isArray(nextRes.data) ? nextRes.data : [];
+  lastUnlockedCount = unlocked.length;
   const isOffline = !!allRes.error && !!snapshotRes.error;
+
+  // Show toast + ACK for any achievements unlocked since last visit
+  const unacked = Array.isArray(unackedRes.data) ? unackedRes.data : [];
+  if (unacked.length > 0) {
+    for (const u of unacked) {
+      showUnlockNotification(u);
+      apiSafe(`/api/achievements/${u.id}/ack`, null, { method: 'POST', body: {} });
+    }
+  }
 
   if (isOffline && all.length === 0) {
     const grid = container?.querySelector('#achievements-grid');
@@ -423,11 +434,15 @@ export const renderAchievements = async (containerEl) => {
     if (pollInterval) clearInterval(pollInterval);
     if (reconnectInterval) clearInterval(reconnectInterval);
 
-    // Fallback: poll every 30s if SSE fails
+    // Fallback: poll every 30s — check unacknowledged to show toasts
     pollInterval = setInterval(async () => {
-      const { data: snapshot } = await apiSafe('/api/achievements/snapshot', EMPTY_SNAPSHOT);
-      if ((snapshot.totalUnlocked ?? 0) > lastUnlockedCount) {
-        lastUnlockedCount = snapshot.totalUnlocked ?? 0;
+      const { data: unacked } = await apiSafe('/api/achievements/unacknowledged', []);
+      if (Array.isArray(unacked) && unacked.length > 0) {
+        for (const u of unacked) {
+          showUnlockNotification(u);
+          apiSafe(`/api/achievements/${u.id}/ack`, null, { method: 'POST', body: {} });
+        }
+        apiBust('/api/achievements');
         renderAchievements(container);
       }
     }, 30000);

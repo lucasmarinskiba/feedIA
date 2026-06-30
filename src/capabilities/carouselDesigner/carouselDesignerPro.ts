@@ -1,5 +1,5 @@
 import type { Anthropic } from '@anthropic-ai/sdk';
-import { carouselPipeline } from '../quickCarousel/carouselPipeline';
+import { createQuickCarousel } from '../quickCarousel/quickCarousel';
 import { artDirector } from '../creativeDirector/artDirector';
 import { animationEngine } from './animationEngine';
 import { downloadImageFromUrl, downloadAndUploadToCanva, detectImageRequests, searchImageUrls } from '../../integrations/imageDownloader';
@@ -93,15 +93,11 @@ export const designCarouselPinterest = async (
 
   try {
     // Step 1: Generate base carousel using existing pipeline
-    const baseCarousel = await carouselPipeline(
-      {
-        prompt: input.prompt,
-        slideCount,
-        tone: 'Pinterest-inspired, innovative, zero-corporate',
-      },
-      brand,
-      client,
-    );
+    const baseCarousel = await createQuickCarousel(brand, {
+      prompt: input.prompt,
+      slideCount,
+      tone: 'Pinterest-inspired, innovative, zero-corporate',
+    });
 
     // Step 2: Enhance with Pinterest aesthetics
     const pinterestSlides = baseCarousel.slides.map((slide: any, idx: number) => {

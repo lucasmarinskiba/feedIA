@@ -232,6 +232,9 @@ export const handleCommunityEngine = async (req, res, path, m, body, ctx = {}) =
         senderHandle: body?.senderHandle || '',
         archetypeOverride: body?.archetype || null,
       });
+      if (ctx.userId) {
+        import('./_achievements.js').then(a => a.onDmReplied(ctx.userId)).catch(() => {});
+      }
       return json(200, { ok: true, ...result });
     } catch (e) {
       return json(500, { ok: false, error: String(e?.message || e).slice(0, 200) });
