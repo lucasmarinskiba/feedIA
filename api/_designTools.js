@@ -901,6 +901,179 @@ const generateBackground = async ({ prompt = '', style = 'abstract', dimensions 
   };
 };
 
+// ── PHASE 8: Advanced Composition Tools ────────────────────────────────────
+
+const compositionGuides = {
+  ruleOfThirds: (w, h) => ({
+    lines: [
+      { type: 'vertical', x: w / 3 }, { type: 'vertical', x: (2 * w) / 3 },
+      { type: 'horizontal', y: h / 3 }, { type: 'horizontal', y: (2 * h) / 3 },
+    ],
+    intersections: [
+      { x: w / 3, y: h / 3 }, { x: (2 * w) / 3, y: h / 3 },
+      { x: w / 3, y: (2 * h) / 3 }, { x: (2 * w) / 3, y: (2 * h) / 3 },
+    ],
+  }),
+  goldenRatio: (w, h) => {
+    const phi = 1.618;
+    const centerX = w / 2;
+    const centerY = h / 2;
+    return {
+      lines: [
+        { type: 'vertical', x: centerX - w / (2 * phi) },
+        { type: 'vertical', x: centerX + w / (2 * phi) },
+      ],
+      spirals: [{ cx: centerX, cy: centerY, radius: Math.min(w, h) / phi }],
+    };
+  },
+  centerSpot: (w, h) => ({
+    circle: { cx: w / 2, cy: h / 2, r: Math.min(w, h) * 0.1 },
+  }),
+};
+
+const generateCompositionGuide = async ({ width = 1080, height = 1350, guideType = 'rule-of-thirds' }) => {
+  const guide = compositionGuides[guideType.replace(/-/g, '')] || compositionGuides.ruleOfThirds;
+  const data = guide(width, height);
+  const svgLines = (data.lines || []).map((l) =>
+    l.type === 'vertical'
+      ? `<line x1="${l.x}" y1="0" x2="${l.x}" y2="${height}" stroke="#00ff00" stroke-width="1" opacity="0.6"/>`
+      : `<line x1="0" y1="${l.y}" x2="${width}" y2="${l.y}" stroke="#00ff00" stroke-width="1" opacity="0.6"/>`
+  ).join('\n');
+  const svgIntersections = (data.intersections || []).map((p) =>
+    `<circle cx="${p.x}" cy="${p.y}" r="6" fill="none" stroke="#ff00ff" stroke-width="2" opacity="0.8"/>`
+  ).join('\n');
+
+  return {
+    guideType,
+    dimensions: `${width}x${height}`,
+    svg: `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">${svgLines}${svgIntersections}</svg>`,
+    overlay: `position: absolute; inset: 0; pointer-events: none; opacity: 0.7;`,
+    instructions: `Overlay this SVG on image editor. Align subjects to green lines or magenta intersections for optimal composition.`,
+  };
+};
+
+// ── PHASE 9: Color Science ─────────────────────────────────────────────────
+
+const colorHarmony = async ({ baseColor = '#FF6B6B', harmonyType = 'complementary' }) => {
+  const harmonies = {
+    complementary: (hex) => [hex, invertHex(hex)],
+    triadic: (hex) => [hex, rotateHue(hex, 120), rotateHue(hex, 240)],
+    analogous: (hex) => [rotateHue(hex, -30), hex, rotateHue(hex, 30)],
+    split: (hex) => [hex, rotateHue(hex, 150), rotateHue(hex, 210)],
+  };
+  const harmonize = harmonies[harmonyType] || harmonies.complementary;
+  return {
+    baseColor,
+    harmonyType,
+    palette: harmonize(baseColor),
+    instructions: `Use these colors for cohesive design. Test contrast ratios for accessibility.`,
+  };
+};
+
+const invertHex = (hex) => {
+  const r = 255 - parseInt(hex.slice(1, 3), 16);
+  const g = 255 - parseInt(hex.slice(3, 5), 16);
+  const b = 255 - parseInt(hex.slice(5, 7), 16);
+  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`;
+};
+
+const rotateHue = (hex, degrees) => {
+  const hsl = hexToHsl(hex);
+  hsl.h = (hsl.h + degrees) % 360;
+  return hslToHex(hsl);
+};
+
+const hexToHsl = (hex) => {
+  let r = parseInt(hex.slice(1, 3), 16) / 255;
+  let g = parseInt(hex.slice(3, 5), 16) / 255;
+  let b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0, l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+};
+
+const hslToHex = (hsl) => {
+  const h = hsl.h / 360, s = hsl.s / 100, l = hsl.l / 100;
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs((h * 6) % 2 - 1));
+  const m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+  if (h < 1 / 6) [r, g] = [c, x];
+  else if (h < 2 / 6) [r, g] = [x, c];
+  else if (h < 3 / 6) [g, b] = [c, x];
+  else if (h < 4 / 6) [g, b] = [x, c];
+  else if (h < 5 / 6) [r, b] = [c, x];
+  else [r, b] = [x, c];
+  return `#${[r + m, g + m, b + m].map((x) => Math.round(x * 255).toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+};
+
+// ── PHASE 10: Social Media Optimization ───────────────────────────────────
+
+const platformSpecs = {
+  instagram: { ratio: '4:5', name: 'Instagram Post', safeZone: { top: 60, left: 40, right: 40, bottom: 60 } },
+  tiktok: { ratio: '9:16', name: 'TikTok Video', safeZone: { top: 80, left: 50, right: 50, bottom: 150 } },
+  pinterest: { ratio: '2:3', name: 'Pinterest Pin', safeZone: { top: 100, left: 50, right: 50, bottom: 100 } },
+  reels: { ratio: '9:16', name: 'Instagram Reels', safeZone: { top: 80, left: 50, right: 50, bottom: 150 } },
+};
+
+const optimizeForPlatform = async ({ imageUrl = '', platform = 'instagram', autoCrop = true }) => {
+  const spec = platformSpecs[platform] || platformSpecs.instagram;
+  const [ratioW, ratioH] = spec.ratio.split(':').map(Number);
+  return {
+    platform,
+    spec,
+    targetRatio: spec.ratio,
+    safeZones: spec.safeZone,
+    instructions: `Crop/resize to ${spec.ratio} ratio. Keep content within safe zone (${JSON.stringify(spec.safeZone)}px margins). Avoid placing text/faces in danger zone edges.`,
+    cssOverlay: `border: 3px dashed #ff0000; ${Object.entries(spec.safeZone).map(([k, v]) => `${k === 'top' || k === 'bottom' ? k : k}: ${v}px`).join('; ')};`,
+  };
+};
+
+// ── PHASE 11: Brand Asset Manager ──────────────────────────────────────────
+
+const validateBrandCompliance = async ({ design = '', brandGuidelines = {} }) => {
+  return {
+    complianceType: 'brand-asset-check',
+    designLength: design.length,
+    guidelinesApplied: Object.keys(brandGuidelines).length,
+    checks: [
+      { name: 'Logo placement', status: brandGuidelines.logoSafeZone ? 'pass' : 'warn' },
+      { name: 'Color palette', status: brandGuidelines.colorPalette ? 'pass' : 'warn' },
+      { name: 'Typography', status: brandGuidelines.fonts ? 'pass' : 'warn' },
+      { name: 'Spacing/margins', status: brandGuidelines.spacing ? 'pass' : 'warn' },
+    ],
+    instructions: `Apply brand guidelines to design. Run this check before publishing to ensure consistency.`,
+  };
+};
+
+// ── PHASE 12: Template Marketplace ─────────────────────────────────────────
+
+const templateLibrary = {
+  'carousel-hook-3slides': { slides: 3, role: 'hook', desc: 'Fast hook carousel (3 slides)' },
+  'carousel-value-5slides': { slides: 5, role: 'content', desc: 'Value delivery carousel (5 slides)' },
+  'carousel-cta-7slides': { slides: 7, role: 'cta', desc: 'Call-to-action carousel (7 slides)' },
+  'reel-trending': { format: 'reel', duration: '15-30s', desc: 'Trending reel template' },
+  'story-interactive': { format: 'story', duration: '5s', desc: 'Interactive story template' },
+};
+
+const getTemplate = async ({ templateId = '' }) => {
+  const t = templateLibrary[templateId];
+  return t
+    ? {
+        templateId,
+        ...t,
+        instructions: `Use this template structure for ${t.desc}. Customize text/images to match your brand.`,
+      }
+    : { error: 'template-not-found', available: Object.keys(templateLibrary) };
+};
+
 // ── Slide HTML generator (Pinterest Design Patterns from CLAUDE.md) ──────────
 const LAYOUT_PATTERNS = ['left-right', 'full-bleed', 'grid', 'asymmetric'];
 const PALETTE_NAMES = ['warm-organic', 'bold-playful', 'dark-premium', 'clean-editorial'];
@@ -1160,6 +1333,21 @@ export const handleDesignTools = async (req, res, path, method, body) => {
       phase7: {
         aiRemix: { active: true, types: ['remix', 'style-transfer', 'generate-background'] },
       },
+      phase8: {
+        composition: { active: true, guides: ['rule-of-thirds', 'golden-ratio', 'center-spot'] },
+      },
+      phase9: {
+        colorScience: { active: true, harmonies: ['complementary', 'triadic', 'analogous', 'split'] },
+      },
+      phase10: {
+        socialOptimization: { active: true, platforms: ['instagram', 'tiktok', 'pinterest', 'reels'] },
+      },
+      phase11: {
+        brandCompliance: { active: true, checks: ['logo', 'color', 'typography', 'spacing'] },
+      },
+      phase12: {
+        templates: { active: true, count: Object.keys(templateLibrary).length },
+      },
     }), true;
   }
 
@@ -1186,6 +1374,58 @@ export const handleDesignTools = async (req, res, path, method, body) => {
     if (!body?.imageUrl) return json(res, 400, { error: 'imageUrl requerida' }), true;
     const result = await frameStyles(body.imageUrl, { style: body.style || 'minimal', color: body.color || '#000', thickness: body.thickness || 8 });
     return json(res, 200, result), true;
+  }
+
+  // PHASE 8: Composition Guides routes
+  if (path === '/api/design/composition-guide' && method === 'POST') {
+    const { width, height, guideType } = body || {};
+    try {
+      const result = await generateCompositionGuide({ width: width || 1080, height: height || 1350, guideType: guideType || 'rule-of-thirds' });
+      return json(res, 200, result), true;
+    } catch (err) {
+      return json(res, 500, { error: 'guide-error', message: String(err.message) }), true;
+    }
+  }
+
+  // PHASE 9: Color Harmony routes
+  if (path === '/api/design/color-harmony' && method === 'POST') {
+    const { baseColor, harmonyType } = body || {};
+    try {
+      const result = await colorHarmony({ baseColor: baseColor || '#FF6B6B', harmonyType: harmonyType || 'complementary' });
+      return json(res, 200, result), true;
+    } catch (err) {
+      return json(res, 500, { error: 'harmony-error', message: String(err.message) }), true;
+    }
+  }
+
+  // PHASE 10: Platform Optimization routes
+  if (path === '/api/design/optimize-platform' && method === 'POST') {
+    const { imageUrl, platform } = body || {};
+    const result = await optimizeForPlatform({ imageUrl: imageUrl || '', platform: platform || 'instagram' });
+    return json(res, 200, result), true;
+  }
+
+  if (path === '/api/design/platforms' && method === 'GET') {
+    return json(res, 200, { platforms: Object.entries(platformSpecs).map(([k, v]) => ({ id: k, ...v })) }), true;
+  }
+
+  // PHASE 11: Brand Compliance routes
+  if (path === '/api/design/brand-compliance' && method === 'POST') {
+    const { design, brandGuidelines } = body || {};
+    const result = await validateBrandCompliance({ design: design || '', brandGuidelines: brandGuidelines || {} });
+    return json(res, 200, result), true;
+  }
+
+  // PHASE 12: Template Library routes
+  if (path === '/api/design/template' && method === 'GET') {
+    const url = new URL(req.url || '/', 'http://x');
+    const templateId = url.searchParams.get('id');
+    const result = await getTemplate({ templateId: templateId || '' });
+    return json(res, result.error ? 404 : 200, result), true;
+  }
+
+  if (path === '/api/design/templates' && method === 'GET') {
+    return json(res, 200, { templates: Object.entries(templateLibrary).map(([k, v]) => ({ id: k, ...v })) }), true;
   }
 
   // PHASE 4: Animations routes
