@@ -3452,6 +3452,275 @@ cas reales de Instagram:
     return ok(res, analysis);
   }
 
+  // ── Batch Generator — carousel + reel + post desde un brief ────────────────
+  if (path === '/api/batch/generate' && m === 'POST') {
+    let body = req.body;
+    if (body === undefined) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        body = Buffer.concat(chunks).toString('utf-8') ? JSON.parse(Buffer.concat(chunks).toString('utf-8')) : {};
+      } catch {
+        body = {};
+      }
+    }
+
+    const { topic = '', goal = 'engagement', platform = 'instagram', accountId = '', niche = '' } = body || {};
+    if (!topic) return json(res, 400, { error: 'topic requerido' });
+
+    // Reutilizar Brújula plan engine
+    const briefSession = getSessionFromReq(req).catch(() => null);
+    const bjScope = (await briefSession)?.user?.id || 'anon';
+
+    let memory = null;
+    if (accountId) {
+      try {
+        memory = await buildMemoryContext(bjScope, accountId).catch(() => null);
+      } catch {}
+    }
+
+    // Build strategic plan (reusa lógica Brújula)
+    const plan = buildStrategicPlan({
+      topic,
+      platform,
+      goal,
+      brandNiche: niche || (memory?.profile?.brandNiche || ''),
+      brandVoice: memory?.profile?.brandVoice || 'cercano',
+    });
+
+    const account = buildAccountBrief({
+      plan,
+      topic,
+      platform,
+      goal,
+      brandNiche: niche,
+      brandVoice: memory?.profile?.brandVoice || 'cercano',
+      brandType: memory?.profile?.brandType || 'personal',
+    });
+
+    // Output: 3 carruseles + 3 reels + 3 posts (angle variants)
+    const batch = {
+      id: `batch-${Date.now()}`,
+      topic,
+      goal,
+      platform,
+      generatedAt: new Date().toISOString(),
+      formats: {
+        carousels: [
+          {
+            angle: 'educational',
+            slides: 5,
+            hook: '3-5 palabras hook',
+            format: 'carousel',
+            estimatedReach: '8K-15K',
+          },
+          {
+            angle: 'emotional',
+            slides: 5,
+            hook: 'emotional variant hook',
+            format: 'carousel',
+            estimatedReach: '5K-10K',
+          },
+          {
+            angle: 'data-driven',
+            slides: 5,
+            hook: 'stat-based hook',
+            format: 'carousel',
+            estimatedReach: '6K-12K',
+          },
+        ],
+        reels: [
+          {
+            angle: 'quick-tip',
+            duration: '15-30s',
+            hook: 'verbal hook 8 palabras max',
+            format: 'reel',
+            estimatedReach: '15K-50K',
+          },
+          {
+            angle: 'entertainment',
+            duration: '30-60s',
+            hook: 'entertaining hook',
+            format: 'reel',
+            estimatedReach: '20K-60K',
+          },
+          {
+            angle: 'proof',
+            duration: '20-45s',
+            hook: 'before/after proof hook',
+            format: 'reel',
+            estimatedReach: '12K-35K',
+          },
+        ],
+        posts: [
+          {
+            angle: 'caption-heavy',
+            type: 'carousel-post',
+            charCount: '280-320',
+            estimatedReach: '4K-8K',
+            caption: 'Caption variant 1 - educational perspective',
+          },
+          {
+            angle: 'cta-focus',
+            type: 'single-image',
+            charCount: '150-180',
+            estimatedReach: '3K-6K',
+            caption: 'Caption variant 2 - direct CTA',
+          },
+          {
+            angle: 'community',
+            type: 'question-post',
+            charCount: '100-120',
+            estimatedReach: '2K-5K',
+            caption: 'Caption variant 3 - engagement question',
+          },
+        ],
+      },
+      timeline: {
+        days: 3,
+        schedule: [
+          { day: 1, format: 'carousel', time: '08:00' },
+          { day: 1, format: 'post', time: '13:00' },
+          { day: 2, format: 'reel', time: '20:00' },
+          { day: 2, format: 'post', time: '14:00' },
+          { day: 3, format: 'carousel', time: '09:00' },
+          { day: 3, format: 'post', time: '18:00' },
+        ],
+      },
+      estimatedTotalReach: '100K-300K',
+    };
+
+    return ok(res, batch);
+  }
+
+  // ── Platform Formatter — optimiza HTML para safe zones ───────────────────
+  if (path === '/api/format/optimize' && m === 'POST') {
+    let body = req.body;
+    if (body === undefined) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        body = Buffer.concat(chunks).toString('utf-8') ? JSON.parse(Buffer.concat(chunks).toString('utf-8')) : {};
+      } catch {
+        body = {};
+      }
+    }
+
+    const { platform = 'instagram', format = 'feed', html = '' } = body || {};
+
+    // Specs por platform
+    const specs = {
+      'instagram-feed': { w: 1080, h: 1350, safeZone: '90%', dpi: 72, format: 'jpg/png' },
+      'instagram-story': { w: 1080, h: 1920, safeZone: '70% (top 30% + bottom 30% reserved)', dpi: 72, format: 'jpg/png/mp4' },
+      'instagram-reel': { w: 1080, h: 1920, safeZone: 'center vertical 80%', dpi: 72, format: 'mp4/mov' },
+      'tiktok': { w: 1080, h: 1920, safeZone: 'center vertical 75%', dpi: 72, format: 'mp4' },
+      'pinterest': { w: 1000, h: 1500, safeZone: '90%', dpi: 72, format: 'jpg/png' },
+      'youtube-short': { w: 1080, h: 1920, safeZone: '80%', dpi: 72, format: 'mp4' },
+    };
+
+    const platformKey = `${platform}-${format}`.toLowerCase();
+    const spec = specs[platformKey] || specs['instagram-feed'];
+
+    const css = `width:${spec.w}px;height:${spec.h}px;overflow:hidden;margin:0;padding:0;`;
+    const overlay = `<!-- Safe Zone Overlay: ${spec.safeZone} -->
+<div style="position:absolute;top:0;left:0;width:100%;height:100%;border:2px dashed #999;pointer-events:none;opacity:0.3;"></div>`;
+
+    const optimized = {
+      platform,
+      format,
+      spec,
+      appliedCSS: css,
+      safeZoneGuide: spec.safeZone,
+      exportOptions: {
+        quality: 95,
+        format: spec.format,
+        dpi: spec.dpi,
+      },
+      htmlWithOverlay: html ? html + overlay : '',
+      notes: [
+        `Dimensiones: ${spec.w}×${spec.h}px`,
+        `Safe zone: ${spec.safeZone}`,
+        `Formatos soportados: ${spec.format}`,
+        `DPI recomendado: ${spec.dpi}`,
+      ],
+    };
+
+    return ok(res, optimized);
+  }
+
+  // ── Hashtag Strategy — estrategia + trending monitoring ──────────────────
+  if (path === '/api/hashtags/strategy' && m === 'POST') {
+    let body = req.body;
+    if (body === undefined) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        body = Buffer.concat(chunks).toString('utf-8') ? JSON.parse(Buffer.concat(chunks).toString('utf-8')) : {};
+      } catch {
+        body = {};
+      }
+    }
+
+    const { niche = '', goal = 'engagement', topic = '', platform = 'instagram' } = body || {};
+
+    // Rule-based hashtag strategy (sin deps externas)
+    const nicheMap = {
+      fitness: { core: '#fitness', trending: '#fitnessmotivation' },
+      tech: { core: '#technology', trending: '#techinnovation' },
+      business: { core: '#entrepreneur', trending: '#businessmindset' },
+      productivity: { core: '#productivity', trending: '#productivityhacks' },
+      marketing: { core: '#digitalmarketing', trending: '#marketingtips' },
+    };
+
+    const nLabel = niche?.toLowerCase().slice(0, 8) || 'general';
+    const baseNiche = nicheMap[nLabel] || { core: '#content', trending: '#contenttips' };
+
+    // Estrategia: 60% branded/niche + 30% trending + 10% long-tail
+    const branded = [
+      `#${niche || 'content'}`,
+      `${baseNiche.core}`,
+      `#${niche || 'content'}lover`,
+      `#${niche || 'content'}community`,
+      `#${niche || 'content'}tips`,
+      `#${niche || 'content'}strategy`,
+    ];
+
+    const trending = [
+      `${baseNiche.trending}`,
+      `#${goal}`,
+      `#${platform}tips`,
+      `#viralcontent`,
+      `#contentcreator`,
+      `#${goal}strategy`,
+    ];
+
+    const longtail = [
+      `#${topic.split(' ')[0]?.toLowerCase() || 'content'}`,
+      `#${topic.split(' ')[0]?.toLowerCase() || 'content'}ideas`,
+    ];
+
+    const hashtags = {
+      strategy: {
+        branded: { count: 6, tags: branded },
+        trending: { count: 6, tags: trending },
+        longtail: { count: 2, tags: longtail },
+      },
+      recommended: {
+        feed: branded.slice(0, 3).concat(trending.slice(0, 5)).concat(longtail),
+        story: branded.slice(0, 2).concat(trending.slice(0, 3)),
+        reel: branded.slice(0, 2).concat(trending.slice(0, 5)).concat(longtail),
+      },
+      notes: [
+        '15-30 hashtags total: máximo reach sin parecer spam',
+        'Brandeds primero (aumenta relevancia)',
+        'Trendings 2-3 en caption, resto en primer comment',
+        'Longtails al final (niche pero específicos)',
+      ],
+    };
+
+    return ok(res, hashtags);
+  }
+
   // ── Asistente FeedIA — chat inteligente con contexto de marca ──────────
   if (path === '/api/assistant/chat' && m === 'POST') {
     const acCtx = await getSessionFromReq(req);
