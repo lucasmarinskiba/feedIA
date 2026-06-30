@@ -5576,4 +5576,308 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       json(res, 200, forecast);
     },
   },
+
+  // ═══ SMM AI EVOLUTION: STAGE 1 (PSYCHOLOGY) & STAGE 2 (STRATEGY) ═════════════
+
+  // ─── STAGE 1: Persuasion Matrix (Cialdini 6 Principles) ──────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/persuasion-matrix',
+    handler: async ({ res, body }) => {
+      const { platform = 'instagram', goal = 'engagement' } = (body as Record<string, unknown>) || {};
+
+      const matrix = {
+        reciprocity: {
+          principle: 'give value first → expect return',
+          triggers: ['free guides', 'templates', 'exclusive tips'],
+          platform_tactics: {
+            instagram: 'carousel with 5 free tips → DM link for full guide',
+            tiktok: 'free 30-sec hack → full method in link',
+          },
+          conversion_lift: '25-35%',
+        },
+        commitment: {
+          principle: 'small yes → bigger yes',
+          triggers: ['quiz', 'poll', 'micro-commitments'],
+          platform_tactics: {
+            instagram: 'story poll → DM follow-up with relevant offer',
+            tiktok: 'comment-to-unlock → DM exclusive content',
+          },
+          conversion_lift: '18-22%',
+        },
+        social_proof: {
+          principle: 'others validate → safer for me',
+          triggers: ['testimonials', 'case studies', 'user-generated content', 'review counts'],
+          platform_tactics: {
+            instagram: '10K followers badge + customer quotes',
+            tiktok: 'duets with customers + trending sounds',
+          },
+          conversion_lift: '30-40%',
+        },
+        authority: {
+          principle: 'expert says → I believe',
+          triggers: ['credentials', 'data', 'third-party validation'],
+          platform_tactics: {
+            instagram: 'cite studies + show credentials',
+            tiktok: 'share before/after data + certifications',
+          },
+          conversion_lift: '22-28%',
+        },
+        liking: {
+          principle: 'I like you → I trust you',
+          triggers: ['similarity', 'compliments', 'attractiveness', 'cooperation'],
+          platform_tactics: {
+            instagram: 'show personality + celebrate followers',
+            tiktok: 'relatable humor + fan shoutouts',
+          },
+          conversion_lift: '20-26%',
+        },
+        scarcity: {
+          principle: 'limited = valuable',
+          triggers: ['limited time', 'limited spots', 'exclusive access'],
+          platform_tactics: {
+            instagram: '"only 10 spots left" + countdown',
+            tiktok: '"only 48 hours" urgency + link',
+          },
+          conversion_lift: '35-50%',
+        },
+      };
+
+      json(res, 200, {
+        platform,
+        goal,
+        matrix,
+        strategy: 'Layer 2-3 principles per content piece for 40-60% conversion lift',
+      });
+    },
+  },
+
+  // ─── STAGE 1: Neuromarketing Profile ────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/neuromarketing-profile',
+    handler: async ({ res, body }) => {
+      const { audience = 'professionals', niche = 'tech' } = (body as Record<string, unknown>) || {};
+
+      const profile = {
+        audience,
+        niche,
+        neurolinguisticHotButtons: {
+          visual: ['before/after', 'aesthetics', 'color psychology', 'composition'],
+          auditory: ['success stories', 'podcast interviews', 'verbal cues', 'tone'],
+          kinesthetic: ['feeling of progress', 'tangible results', 'hands-on learning', 'experience'],
+        },
+        emotionalTriggers: [
+          { emotion: 'FOMO (fear of missing out)', activation: 'scarcity + social proof', impact: '45%' },
+          { emotion: 'Achievement', activation: 'progress visualization', impact: '38%' },
+          { emotion: 'Belonging', activation: 'community + inside jokes', impact: '42%' },
+          { emotion: 'Curiosity', activation: 'gaps + mysteries + cliffhangers', impact: '50%' },
+          { emotion: 'Aspiration', activation: 'role models + transformation', impact: '40%' },
+        ],
+        decisionFramework: {
+          rational: 'data + ROI + logic (tech audiences: 60%)',
+          emotional: 'story + feeling + identity (all audiences: 40%)',
+          rule: '60% rational + 40% emotional for maximum persuasion',
+        },
+        contentPreferences: {
+          primary: 'educational + data-driven (60%)',
+          secondary: 'inspirational + story-based (25%)',
+          tertiary: 'entertainment + humor (15%)',
+        },
+      };
+
+      json(res, 200, profile);
+    },
+  },
+
+  // ─── STAGE 1: Psychological Anchors ─────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/psychological-anchors',
+    handler: async ({ res, body }) => {
+      const { productType = 'service', pricePoint = 'premium' } = (body as Record<string, unknown>) || {};
+
+      const anchors = {
+        pricingPsychology: {
+          highPrice: { anchor: '$997', perception: 'premium + valuable', messaging: 'investment in transformation' },
+          midPrice: { anchor: '$297', perception: 'fair + accessible', messaging: 'proven solution' },
+          lowPrice: { anchor: '$47', perception: 'impulse-friendly', messaging: 'low-risk try' },
+          freeFreemium: { anchor: 'free', perception: 'accessible', messaging: 'entry point to ecosystem' },
+        },
+        anchoringTactics: {
+          strategy1: 'Show high price first → discount to actual = perceived value 40% higher',
+          strategy2: 'Compare to competitor price → you are 30% cheaper = best value',
+          strategy3: 'Show cost of NOT solving problem → price becomes trivial',
+          strategy4: 'Bundle products → perceived value 60% higher than sum of parts',
+        },
+        psychologicalMinutiae: [
+          'Price ending in .99 vs .00 = 30% more sales (perceived as "deal")',
+          'Show original price + crossed out = perceived savings activate urgency',
+          'Payment plan (3×$99) feels cheaper than $297 (60% vs 40% conversion)',
+          'Scarcity anchor ("only 5 left") + price = 50% conversion lift',
+        ],
+      };
+
+      json(res, 200, anchors);
+    },
+  },
+
+  // ─── STAGE 2: 90-Day Strategic Plan ─────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/strategic-90day-plan',
+    handler: async ({ res, body }) => {
+      const { niche = 'tech', currentFollowers = 5000, goal = 'engagement' } = (body as Record<string, unknown>) || {};
+
+      const plan = {
+        niche,
+        currentState: { followers: currentFollowers, goal },
+        timeline: '90 days',
+        phases: {
+          month1: {
+            focus: 'Foundation + Audience Understanding',
+            milestones: [
+              'Complete audience psychographic deep-dive',
+              'Define 5 content pillars + messaging framework',
+              'Establish posting cadence + optimal times',
+              'Launch 2-week content batching',
+            ],
+            targets: { reach: '+20%', engagement: '+15%', followers: '+500' },
+          },
+          month2: {
+            focus: 'Content Optimization + Engagement Acceleration',
+            milestones: [
+              'Test 3 content formats (video, carousel, stories)',
+              'Implement Cialdini principles in 70% of content',
+              'Launch community challenges (UGC)',
+              'Begin A/B testing copy + visuals',
+            ],
+            targets: { reach: '+50%', engagement: '+35%', followers: '+1200' },
+          },
+          month3: {
+            focus: 'Conversion Funnel + Monetization',
+            milestones: [
+              'Build value ladder (free→$49→$297→$997)',
+              'Launch low-ticket offer ($47)',
+              'Optimize landing page + sales messaging',
+              'Analyze data + refine strategy',
+            ],
+            targets: { reach: '+100%', engagement: '+60%', followers: '+2000', conversions: '+25 sales' },
+          },
+        },
+        expectedResults: {
+          followers: `${currentFollowers + 3700}+ (73% growth)`,
+          engagement: '50%+ increase',
+          reach: '100%+ increase',
+          revenue: '$1,175+ (25 × $47)',
+        },
+      };
+
+      json(res, 200, plan);
+    },
+  },
+
+  // ─── STAGE 2: Competitive Analysis ──────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/competitive-analysis',
+    handler: async ({ res, body }) => {
+      const { niche = 'fitness', competitors = [] } = (body as Record<string, unknown>) || {};
+
+      const analysis = {
+        niche,
+        competitiveLandscape: {
+          leader: { name: 'Top competitor', followers: '500K', engagement: '8-12%', strategy: 'educational + transformation' },
+          strong: { name: 'Strong player', followers: '150K', engagement: '5-7%', strategy: 'entertainment + motivation' },
+          emerging: { name: 'Emerging voice', followers: '25K', engagement: '12-18%', strategy: 'niche + community' },
+        },
+        yourPosition: {
+          analysis: 'Emerging → opportunity to capture specific niche',
+          gap: 'Leaders focus on broad appeal. Gap = hyper-specific niche deep expertise.',
+          opportunity: 'Own micro-niche + become authority faster than competing with leaders',
+        },
+        winningStrategy: [
+          'Go deep NOT wide: compete on expertise, not followers',
+          'Underserved audience: pick 10% of leader audience + own them 100%',
+          'Higher engagement: small loyal audience > large passive audience',
+          'Faster growth: niche players 3× faster growth than generalists',
+        ],
+      };
+
+      json(res, 200, analysis);
+    },
+  },
+
+  // ─── STAGE 2: Niche Domination Strategy ─────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/niche-domination',
+    handler: async ({ res, body }) => {
+      const { niche = 'personal-finance', angle = 'young-professionals' } = (body as Record<string, unknown>) || {};
+
+      const domination = {
+        niche,
+        targetMicroNiche: angle,
+        dominationStrategy: {
+          phase1_establishment: [
+            'Become visible expert (80 posts on one narrow topic)',
+            'Build reputation through depth (not breadth)',
+            'Create signature framework/methodology',
+            'Become the go-to for this specific angle',
+          ],
+          phase2_authority: [
+            'Guest appearances on 5 major podcasts in niche',
+            'Collaborate with 3 complementary creators',
+            'Launch signature product/course',
+            'Become quoted authority on this angle',
+          ],
+          phase3_monopoly: [
+            'Own the conversation (50%+ search results for angle)',
+            'Affiliate partnerships in niche (multiple revenue streams)',
+            'Community (Discord/Slack) owned by you',
+            'Become acquisition target for larger brands',
+          ],
+        },
+        uniqueAngle: {
+          description: 'What makes you different from leader',
+          example: 'Leader: "Finance for everyone". You: "Finance for young professionals without startup backgrounds"',
+          advantage: 'Own specific audience 100% vs competing with leader on general audience',
+        },
+        timeline: '90 days for establishment → 6 months for authority → 12 months for monopoly',
+      };
+
+      json(res, 200, domination);
+    },
+  },
+
+  // ─── STAGE 2: Risk-Opportunity Matrix ───────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/risk-opportunity-matrix',
+    handler: async ({ res, body }) => {
+      const { strategy = 'viral-content', budget = 'medium' } = (body as Record<string, unknown>) || {};
+
+      const matrix = {
+        strategy,
+        budget,
+        opportunities: [
+          { opportunity: 'Viral content push', potential: '+500% reach', timeframe: '2-4 weeks', effort: 'high', risk: 'medium' },
+          { opportunity: 'Niche authority (deep)', potential: '+200% engagement', timeframe: '6+ months', effort: 'medium', risk: 'low' },
+          { opportunity: 'Community building (Discord)', potential: 'high retention + LTV', timeframe: '3+ months', effort: 'high', risk: 'medium' },
+          { opportunity: 'Affiliate partnerships', potential: '+$5K/month revenue', timeframe: '1 month', effort: 'low', risk: 'low' },
+          { opportunity: 'Own digital product', potential: '+$10K/month revenue', timeframe: '3 months', effort: 'high', risk: 'high' },
+        ],
+        riskMitigation: {
+          viralRisk: 'Test on 10% of audience first. If works, scale.',
+          authorityRisk: 'Takes time but low failure risk. Compound growth.',
+          communityRisk: 'Need active moderation. Start small (100 members).',
+          affiliateRisk: 'Only promote products you trust. Reputation > commission.',
+          productRisk: 'Validate market demand before building. Presell strategy.',
+        },
+        recommendation: 'Combine 3 strategies: niche authority (base) + community (retention) + affiliate (cash flow)',
+      };
+
+      json(res, 200, matrix);
+    },
+  },
 ];
