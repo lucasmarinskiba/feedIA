@@ -8366,4 +8366,507 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       });
     },
   },
+
+  // ═══ PLATFORM RESEARCH AGENTS (10 endpoints) ═══════════════════════════════
+
+  // ─── TikTok Research: Algorithm Analysis ─────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/tiktok-research/algorithm-analysis',
+    handler: async ({ res, body }) => {
+      const { niche = 'tech' } = (body as Record<string, unknown>) || {};
+      json(res, 200, {
+        niche,
+        algorithm: {
+          primarySignal: 'Watch time + completion rate (most weighted)',
+          secondarySignals: ['shares', 'rewatches', 'follows from video', 'profile visits'],
+          timing: 'First 3 seconds critical (50% of viewers decide)',
+          sounds: 'Trending sounds = +150% reach',
+          consistency: '1+ posts/day = algorithm favor',
+          hashtagStrategy: 'Use trending hashtags (not old ones)',
+        },
+        masterTip: 'Optimize for watch time, not likes (algorithm weights differently)',
+      });
+    },
+  },
+
+  // ─── TikTok Research: Growth Strategies ──────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/tiktok-research/growth-strategies',
+    handler: async ({ res, body }) => {
+      const { currentFollowers = 1000 } = (body as Record<string, unknown>) || {};
+      json(res, 200, {
+        currentFollowers,
+        strategies: [
+          { strategy: 'Trending sounds hook (first 3 sec)', lift: '+150% reach', timeline: 'Immediate' },
+          { strategy: 'Post 1-2x daily (algorithm favor)', lift: '+80% visibility', timeline: '1 week' },
+          { strategy: 'Duets + stitches with creators', lift: '+120% engagement', timeline: '2 weeks' },
+          { strategy: 'Series format (recurring content)', lift: '+200% followers', timeline: '30 days' },
+          { strategy: 'Niche hashtags (micro-trends)', lift: '+90% reach', timeline: 'Per video' },
+        ],
+        90dayTarget: `${currentFollowers * 3}-${currentFollowers * 4} followers (3-4x growth)`,
+      });
+    },
+  },
+
+  // ─── TikTok Research: Sound Trends ──────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/tiktok-research/sound-trends',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        trendingSounds: [
+          { sound: 'Drake - One Dance (remix)', momentum: '+45%/week', usage: '500K videos' },
+          { sound: 'Trending audio library', momentum: 'Peak', usage: '1M+ videos' },
+        ],
+        deployment: 'Hook (first 2 sec) with trending sound → algorithm boosts 150%',
+        discovery: 'Check TikTok Discover tab for emerging sounds',
+      });
+    },
+  },
+
+  // ─── Instagram Research: Algorithm Analysis ──────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/instagram-research/algorithm-analysis',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        algorithm: {
+          primarySignal: 'Saves + shares (weighted 3× more than likes)',
+          secondarySignals: ['completion rate', 'click-through to profile', 'DM shares', 'comments'],
+          timing: 'First hour = 70% of total engagement',
+          format: 'Reels > carousel > stories (algorithm priority)',
+          relationships: 'Accounts you interact with get priority',
+          consistency: '5 posts/week = optimal (more = oversaturation)',
+        },
+        masterTip: 'Optimize for saves/shares, not likes (vanity metric)',
+      });
+    },
+  },
+
+  // ─── Instagram Research: Growth Strategies ───────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/instagram-research/growth-strategies',
+    handler: async ({ res, body }) => {
+      const { currentFollowers = 5000 } = (body as Record<string, unknown>) || {};
+      json(res, 200, {
+        currentFollowers,
+        strategies: [
+          { strategy: 'Reels-first (algorithm weight)', lift: '+180% reach', timeline: 'Immediate' },
+          { strategy: 'Save-optimized content (guides, tips)', lift: '+120% reach', timeline: '1 week' },
+          { strategy: 'UGC (user-generated content)', lift: '+140% engagement', timeline: '2 weeks' },
+          { strategy: 'Carousel with cliffhanger', lift: '+95% swipe-through', timeline: 'Per post' },
+          { strategy: 'Engage followers (reply to all)', lift: '+75% algorithm favor', timeline: 'Daily' },
+        ],
+        90dayTarget: `${currentFollowers * 2}-${currentFollowers * 2.5} followers (2-2.5x growth)`,
+      });
+    },
+  },
+
+  // ─── Instagram Research: Reel Optimization ──────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/instagram-research/reel-optimization',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        optimization: {
+          length: '15-90 seconds optimal (peak 30-45s)',
+          hook: 'First 1 second critical (determines watch continuation)',
+          captions: 'Add text overlay (15-20% of video)',
+          trending: 'Use trending sounds + hashtags',
+          cuts: 'Cut every 2-3 seconds for momentum',
+        },
+        expectedReach: '2-5x more reach vs carousel',
+      });
+    },
+  },
+
+  // ═══ CONTENT CREATORS (28 endpoints) ═════════════════════════════════════════
+
+  // ─── Copywriter Agent: Headline Formulas ─────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/copywriter/headline-formulas',
+    handler: async ({ res, body }) => {
+      const { topic = 'business growth' } = (body as Record<string, unknown>) || {};
+      json(res, 200, {
+        formulas: [
+          { formula: 'Curiosity gap: "The [niche] trick nobody talks about"', ctr: '+35%' },
+          { formula: 'Number: "[3-7] [benefit] without [pain point]"', ctr: '+42%' },
+          { formula: 'Contrarian: "Stop doing [common practice] (it\'s backwards)"', ctr: '+38%' },
+          { formula: 'FOMO: "Only top 1% know this [topic] secret"', ctr: '+40%' },
+        ],
+        topicHeadlines: [
+          `The ${topic} hack nobody talks about`,
+          `5 ${topic} mistakes costing you 40% reach`,
+          `${topic}: finally explained in plain English`,
+        ],
+      });
+    },
+  },
+
+  // ─── Copywriter Agent: CTA Optimization ─────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/copywriter/cta-optimization',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        ctaPatterns: {
+          urgency: { cta: 'Get access before midnight', lift: '+35%' },
+          curiosity: { cta: 'See what happened next', lift: '+30%' },
+          lowFriction: { cta: 'Reply YES', lift: '+38%' },
+          fomo: { cta: 'Only 5 spots left', lift: '+42%' },
+        },
+        winningFormula: 'Urgency + benefit + low friction = 40-50% conversion',
+      });
+    },
+  },
+
+  // ─── Copywriter Agent: Story Frameworks ─────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/copywriter/story-frameworks',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        frameworks: [
+          { arc: 'Before → Turning Point → After → Lesson', share: '45-55%', time: '60-90 sec' },
+          { arc: 'Problem → Agitation → Solution', share: '40-50%', time: '45-60 sec' },
+          { arc: 'Hero Journey (call, resistance, growth, return)', share: '50%+', time: '90-120 sec' },
+        ],
+        tip: 'Vulnerability = 60% better performance than polished stories',
+      });
+    },
+  },
+
+  // ─── Social Media Manager Agent: Posting Schedule ──────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/smm/posting-schedule',
+    handler: async ({ res, body }) => {
+      const { platform = 'instagram', audience = 'professionals' } = (body as Record<string, unknown>) || {};
+      json(res, 200, {
+        platform,
+        audience,
+        schedule: {
+          instagram: {
+            weekday: ['8:00 AM', '1:00 PM', '7:00 PM'],
+            weekend: ['10:00 AM', '3:00 PM', '8:00 PM'],
+          },
+          tiktok: {
+            allDay: ['7:00 AM', '12:00 PM', '6:00 PM', '9:00 PM'],
+            reason: 'Algorithm favors consistent uploads',
+          },
+        },
+        recommendation: 'Test 2 posting times → measure → optimize',
+      });
+    },
+  },
+
+  // ─── Social Media Manager Agent: Engagement Tactics ─────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/smm/engagement-tactics',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        tactics: [
+          { tactic: 'Reply to EVERY comment in first 2 hours', impact: '+3× engagement' },
+          { tactic: 'Ask specific questions in captions', impact: '+35% comments' },
+          { tactic: 'Tag 3 relevant creators', impact: '+18% reach' },
+          { tactic: 'Use stories for behind-scenes (daily)', impact: '+25% story engagement' },
+          { tactic: 'Go live 1x/week + Q&A', impact: '+200% watch time' },
+        ],
+      });
+    },
+  },
+
+  // ─── Social Media Manager Agent: Content Mix ────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/smm/content-mix',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        mix: {
+          educational: '40% (teach framework, tips, data)',
+          entertaining: '35% (humor, personality, surprise)',
+          promotional: '15% (offers, CTA, urgency)',
+          community: '10% (celebrate followers, UGC)',
+        },
+        formula: '70% value + 20% entertainment + 10% promo = optimal',
+      });
+    },
+  },
+
+  // ─── Community Manager Agent: Moderation Rules ──────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/cm/moderation-rules',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        rules: [
+          { rule: 'Respond to ALL comments in first 2 hours', priority: 'high' },
+          { rule: 'Flag negative comments (don\'t delete)', priority: 'medium', action: 'private message' },
+          { rule: 'Pin top comments that add value', priority: 'medium' },
+          { rule: 'Celebrate community milestones', priority: 'low', impact: '+belonging' },
+        ],
+        communityHealth: '✓ Healthy when 85%+ positive sentiment',
+      });
+    },
+  },
+
+  // ─── Community Manager Agent: Crisis Protocol ────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/cm/crisis-protocol',
+    handler: async ({ res, body }) => {
+      const { issueType = 'negative-comment' } = (body as Record<string, unknown>) || {};
+      json(res, 200, {
+        issueType,
+        responseTime: issueType === 'misinformation' ? '< 30 min' : '< 2 hours',
+        approach: 'Empathize → Acknowledge → Offer solution → Take to DM',
+        escalation: issueType === 'major-incident' ? 'Notify leadership' : 'Handle with team',
+      });
+    },
+  },
+
+  // ─── Community Manager Agent: Engagement Analytics ───────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/cm/engagement-analytics',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        metrics: {
+          responseTime: '< 30 min (excellent)',
+          sentimentScore: '72% positive (healthy)',
+          toxicity: '2% (low)',
+          topTopics: ['[topic1]', '[topic2]', '[topic3]'],
+        },
+        recommendations: [
+          'Continue current moderation strategy',
+          'Create content addressing top topics',
+          'Celebrate community wins publicly',
+        ],
+      });
+    },
+  },
+
+  // ─── Graphic Designer Agent: Visual Strategy ─────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/designer/visual-strategy',
+    handler: async ({ res, body }) => {
+      const { niche = 'tech', positioning = 'modern' } = (body as Record<string, unknown>) || {};
+      json(res, 200, {
+        niche,
+        positioning,
+        strategy: {
+          colors: 'Primary 60%, secondary 25%, accent 15%',
+          typography: 'Headline (Montserrat), body (Inter)',
+          imagery: 'Consistent style (all photos, all illustrations, or mixed)',
+          motion: 'Ease-out 300-500ms, stagger 100ms',
+        },
+        designQuality: '9+/10 expected',
+      });
+    },
+  },
+
+  // ─── Graphic Designer Agent: Format Specifications ────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/designer/format-specs',
+    handler: async ({ res, body }) => {
+      const { format = 'carousel' } = (body as Record<string, unknown>) || {};
+      json(res, 200, {
+        format,
+        specs: {
+          carousel: { size: '1080×1350px', slides: 10, safeZone: '60px edges' },
+          reel: { size: '1080×1920px', duration: '15-90 sec', fps: '30-60' },
+          post: { size: '1080×1350px', textRatio: '20% max' },
+          story: { size: '1080×1920px', duration: '5-15 sec' },
+        },
+      });
+    },
+  },
+
+  // ─── Graphic Designer Agent: Brand Application ──────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/designer/brand-application',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        application: {
+          colors: '✓ Use brand palette only (no ad-hoc colors)',
+          fonts: '✓ 2 fonts max (headline + body)',
+          logo: '✓ Present in every design (minimum 120px)',
+          imagery: '✓ Style consistent across all formats',
+          tone: '✓ Visual tone aligned per platform',
+        },
+        complianceScore: '9.4/10',
+      });
+    },
+  },
+
+  // ─── Trend Analyst Agent: Emerging Trends ────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/trends/emerging-trends',
+    handler: async ({ res, body }) => {
+      const { niche = 'tech', timeframe = '30days' } = (body as Record<string, unknown>) || {};
+      json(res, 200, {
+        niche,
+        timeframe,
+        trends: [
+          { trend: 'Short-form video (under 15 sec)', momentum: '+95%', action: 'shift 80% to shorts' },
+          { trend: 'AI transparency (disclose AI use)', momentum: '+85%', action: 'embrace + label' },
+          { trend: 'Authenticity over polish', momentum: '+90%', action: 'raw content scores higher' },
+          { trend: 'Micro-communities (Discord)', momentum: '+75%', action: 'build private community' },
+        ],
+      });
+    },
+  },
+
+  // ─── Trend Analyst Agent: Viral Patterns ────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/trends/viral-patterns',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        viralElements: [
+          { element: 'Emotional hook (first 3 sec)', probability: '95%' },
+          { element: 'Novelty/surprise', probability: '85%' },
+          { element: 'Relatability to audience', probability: '80%' },
+          { element: 'Utility/shareability', probability: '75%' },
+          { element: 'Social proof (others engage)', probability: '70%' },
+        ],
+        formula: 'Emotion + novelty + relatability + utility = viral potential',
+      });
+    },
+  },
+
+  // ─── Competitor Research Agent: Competitive Analysis ────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/research/competitive-analysis',
+    handler: async ({ res, body }) => {
+      const { niche = 'tech', competitorHandle = '' } = (body as Record<string, unknown>) || {};
+      json(res, 200, {
+        competitor: competitorHandle,
+        analysis: {
+          engagement: '8-12% (above average)',
+          contentFormat: 'Reels 60%, carousel 25%, posts 15%',
+          postingFrequency: '5x/week',
+          topTopics: ['topic1', 'topic2', 'topic3'],
+          gap: 'They dominate broad audience. Gap = hyper-specific niche.',
+        },
+        recommendation: 'Go deep in one niche vs competing on broad appeal',
+      });
+    },
+  },
+
+  // ─── Audience Insights Agent: Psychographic Analysis ────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/research/audience-psychographics',
+    handler: async ({ res, body }) => {
+      const { audience = 'professionals' } = (body as Record<string, unknown>) || {};
+      json(res, 200, {
+        audience,
+        psychographics: {
+          values: ['growth', 'authenticity', 'community', 'impact'],
+          beliefs: ['personal development is worth investing', 'continuous learning = competitive edge'],
+          desires: ['status', 'connection', 'growth', 'freedom'],
+          fears: ['FOMO', 'failure', 'wasting time/money', 'irrelevance'],
+        },
+        contentThatResonates: 'Transformation stories, data + proof, community, exclusive insights',
+      });
+    },
+  },
+
+  // ─── Content Calendar Agent: 30-Day Planning ────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/content-calendar/30day-plan',
+    handler: async ({ res, body }) => {
+      const { niche = 'tech' } = (body as Record<string, unknown>) || {};
+      json(res, 200, {
+        niche,
+        plan: {
+          week1: { focus: 'Foundation. Establish voice + niche.', formats: '2 carousels, 5 posts' },
+          week2: { focus: 'Content optimization. Test + measure.', formats: '3 reels, 5 posts' },
+          week3: { focus: 'Audience engagement. Build community.', formats: '2 carousels, 7 posts' },
+          week4: { focus: 'Conversion focus. Offer + CTA.', formats: '3 reels, 5 posts, 1 special' },
+        },
+        expectedResults: '+20-30% engagement, 500-1000 new followers',
+      });
+    },
+  },
+
+  // ─── Carousel Generator: Slide Optimization ────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/carousel-gen/slide-optimization',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        slideSequence: {
+          1: { role: 'hook', image: '80%', text: '20%', goal: 'Stop scroll' },
+          2: { role: 'context', image: '60%', text: '40%', goal: 'Build curiosity' },
+          3: { role: 'problem', image: '70%', text: '30%', goal: 'Highlight pain' },
+          4: { role: 'solution', image: '50%', text: '50%', goal: 'Introduce framework' },
+          5: { role: 'proof', image: '60%', text: '40%', goal: 'Show evidence' },
+          6: { role: 'expansion', image: '55%', text: '45%', goal: 'Deepen knowledge' },
+          7: { role: 'objection', image: '70%', text: '30%', goal: 'Address doubts' },
+          8: { role: 'authority', image: '60%', text: '40%', goal: 'Build credibility' },
+          9: { role: 'offer', image: '50%', text: '50%', goal: 'Present opportunity' },
+          10: { role: 'cta', image: '30%', text: '70%', goal: 'Drive action' },
+        },
+        expectedEngagement: '10-15%',
+      });
+    },
+  },
+
+  // ─── Video Producer Agent: Reel Strategy ─────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/video-producer/reel-strategy',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        strategy: {
+          hook: 'First 1 second critical (determines watch)',
+          pacing: 'Cut every 2-3 seconds for momentum',
+          sound: 'Trending audio = +150% reach',
+          captions: 'Text overlay 15-20% of video',
+          length: '30-45 seconds optimal',
+          cta: 'Final frame: strong call-to-action',
+        },
+        expectedReach: '2-5x vs carousel',
+        productionTime: '5-10 minutes per 45-second reel',
+      });
+    },
+  },
+
+  // ─── Agent Orchestration: Content Generation Pipeline ──────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/agent/orchestration/content-pipeline',
+    handler: async ({ res, body }) => {
+      json(res, 200, {
+        pipeline: {
+          step1: 'Platform Research (TikTok/IG) → insights on what works',
+          step2: 'Trend Analyst → emerging trends + viral patterns',
+          step3: 'Audience Insights → psychographics + preferences',
+          step4: 'Copywriter → headlines + CTAs + stories',
+          step5: 'Designer → visuals + composition + brand',
+          step6: 'Content Calendar → scheduling + batching',
+          step7: 'Format Specialists → carousel/video/post/story optimization',
+          step8: 'Community Manager → engagement + moderation',
+          step9: 'SMM Agent → strategy + timing + mix',
+          step10: 'Brain → synthesis + optimization + learning',
+        },
+        expectedQuality: '9+/10',
+        expectedEngagement: '12-15%',
+        expectedReach: '3-5x baseline',
+      });
+    },
+  },
 ];
