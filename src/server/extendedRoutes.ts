@@ -4950,4 +4950,103 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       }
     },
   },
+
+  // ─── Organic Content: Batch Generator ───────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/batch/generate',
+    handler: async ({ res, body }) => {
+      const { topic = '', goal = 'engagement', platform = 'instagram', niche = '' } = (body as Record<string, unknown>) || {};
+      if (!topic) return json(res, 400, { error: 'topic requerido' });
+
+      const batch = {
+        id: `batch-${Date.now()}`,
+        topic,
+        goal,
+        platform,
+        generatedAt: new Date().toISOString(),
+        formats: {
+          carousels: [
+            { angle: 'educational', slides: 5, hook: '3-5 palabras hook', format: 'carousel', estimatedReach: '8K-15K' },
+            { angle: 'emotional', slides: 5, hook: 'emotional variant hook', format: 'carousel', estimatedReach: '5K-10K' },
+            { angle: 'data-driven', slides: 5, hook: 'stat-based hook', format: 'carousel', estimatedReach: '6K-12K' },
+          ],
+          reels: [
+            { angle: 'quick-tip', duration: '15-30s', hook: 'verbal hook 8 palabras max', format: 'reel', estimatedReach: '15K-50K' },
+            { angle: 'entertainment', duration: '30-60s', hook: 'entertaining hook', format: 'reel', estimatedReach: '20K-60K' },
+            { angle: 'proof', duration: '20-45s', hook: 'before/after proof hook', format: 'reel', estimatedReach: '12K-35K' },
+          ],
+          posts: [
+            { angle: 'caption-heavy', type: 'carousel-post', charCount: '280-320', estimatedReach: '4K-8K', caption: 'Caption variant 1 - educational' },
+            { angle: 'cta-focus', type: 'single-image', charCount: '150-180', estimatedReach: '3K-6K', caption: 'Caption variant 2 - direct CTA' },
+            { angle: 'community', type: 'question-post', charCount: '100-120', estimatedReach: '2K-5K', caption: 'Caption variant 3 - engagement' },
+          ],
+        },
+        estimatedTotalReach: '100K-300K',
+      };
+      json(res, 200, batch);
+    },
+  },
+
+  // ─── Organic Content: Platform Formatter ─────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/format/optimize',
+    handler: async ({ res, body }) => {
+      const { platform = 'instagram', format = 'feed' } = (body as Record<string, unknown>) || {};
+
+      const specs: Record<string, Record<string, unknown>> = {
+        'instagram-feed': { w: 1080, h: 1350, safeZone: '90%', format: 'jpg/png' },
+        'instagram-story': { w: 1080, h: 1920, safeZone: '70% (top/bottom reserved)', format: 'jpg/png/mp4' },
+        'instagram-reel': { w: 1080, h: 1920, safeZone: 'center vertical 80%', format: 'mp4' },
+        'tiktok': { w: 1080, h: 1920, safeZone: 'center vertical 75%', format: 'mp4' },
+        'pinterest': { w: 1000, h: 1500, safeZone: '90%', format: 'jpg/png' },
+      };
+
+      const key = `${platform}-${format}`.toLowerCase();
+      const spec = specs[key] || specs['instagram-feed'];
+
+      json(res, 200, {
+        platform,
+        format,
+        spec,
+        safeZoneGuide: spec.safeZone,
+        exportOptions: { quality: 95, format: spec.format, dpi: 72 },
+      });
+    },
+  },
+
+  // ─── Organic Content: Hashtag Strategy ───────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/hashtags/strategy',
+    handler: async ({ res, body }) => {
+      const { niche = '', goal = 'engagement', topic = '' } = (body as Record<string, unknown>) || {};
+
+      const branded = [
+        `#${niche || 'content'}`,
+        `#${niche || 'content'}lover`,
+        `#${niche || 'content'}community`,
+        `#${niche || 'content'}tips`,
+      ];
+
+      const trending = [`#${goal}`, '#contentcreator', '#viralcontent', `#${goal}strategy`];
+
+      const longtail = [
+        `#${topic.split(' ')[0]?.toLowerCase() || 'content'}`,
+        `#${topic.split(' ')[0]?.toLowerCase() || 'content'}ideas`,
+      ];
+
+      json(res, 200, {
+        strategy: {
+          branded: { count: 4, tags: branded },
+          trending: { count: 4, tags: trending },
+          longtail: { count: 2, tags: longtail },
+        },
+        recommended: {
+          feed: branded.slice(0, 2).concat(trending.slice(0, 3)).concat(longtail),
+        },
+      });
+    },
+  },
 ];
