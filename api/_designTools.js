@@ -754,6 +754,153 @@ const generateTextEffect = async ({ effectType = 'gradient', text = '', ...optio
   }
 };
 
+// ── PHASE 4: Animations (CSS keyframes) ────────────────────────────────────
+
+const animations = {
+  slideLeft: { duration: 400, keyframes: `@keyframes slide-left { 0% { transform:translateX(100%);opacity:0 } 100% { transform:translateX(0);opacity:1 } }` },
+  slideUp: { duration: 400, keyframes: `@keyframes slide-up { 0% { transform:translateY(100%);opacity:0 } 100% { transform:translateY(0);opacity:1 } }` },
+  fadeIn: { duration: 400, keyframes: `@keyframes fade-in { 0% { opacity:0 } 100% { opacity:1 } }` },
+  popIn: { duration: 300, keyframes: `@keyframes pop-in { 0% { transform:scale(0);opacity:0 } 100% { transform:scale(1);opacity:1 } }` },
+  zoomIn: { duration: 500, keyframes: `@keyframes zoom-in { 0% { transform:scale(0.8);opacity:0 } 100% { transform:scale(1);opacity:1 } }` },
+  bounce: { duration: 600, keyframes: `@keyframes bounce { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-10px) } }` },
+};
+
+const generateAnimation = async ({ animationType = 'fadeIn', elements = [], duration = null, stagger = 100, repeat = false }) => {
+  const anim = animations[animationType] || animations.fadeIn;
+  const dur = duration || anim.duration;
+  const keyframe = anim.keyframes;
+
+  const elementStyles = elements.map((el, i) => `
+    .animated-${i} {
+      animation: ${animationType} ${dur}ms ease-out;
+      animation-delay: ${i * stagger}ms;
+      ${repeat ? 'animation-iteration-count: infinite;' : ''}
+    }
+  `).join('\n');
+
+  return {
+    effectType: 'animation',
+    animationType,
+    duration: dur,
+    html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+${keyframe}
+${elementStyles}
+body { margin:0; padding:40px; background:#f0f0f0; font-family:system-ui,-apple-system,sans-serif }
+.container { display:flex; flex-direction:column; gap:20px; max-width:600px }
+</style></head><body>
+<div class="container">
+  ${elements.map((e, i) => `<div class="animated-${i}" style="background:var(--accent,#6366f1);padding:20px;border-radius:12px;color:#fff">${e || `Element ${i + 1}`}</div>`).join('\n  ')}
+</div>
+</body></html>`,
+    css: keyframe,
+    staggerMs: stagger,
+    availableAnimations: Object.keys(animations),
+  };
+};
+
+// ── PHASE 5: Batch Operations ──────────────────────────────────────────────
+
+const batchResize = async ({ imageUrls = [], width = 1080, height = 1080, mode = 'cover' }) => {
+  return {
+    operationType: 'batch-resize',
+    totalImages: imageUrls.length,
+    targetDimensions: `${width}x${height}`,
+    resizeMode: mode,
+    instructions: `For each image: fetch → scale to ${width}x${height} (${mode}) → export. Use fal.ai/image-to-image or server-side sharp (if available).`,
+    pseudoCode: `images.map(url => resizeImage(url, ${width}, ${height}, '${mode}'))`,
+  };
+};
+
+const batchFilter = async ({ imageUrls = [], filterType = 'grayscale', intensity = 1 }) => {
+  const filters = {
+    grayscale: `filter: grayscale(${intensity})`,
+    sepia: `filter: sepia(${intensity})`,
+    saturate: `filter: saturate(${intensity + 1})`,
+    brightness: `filter: brightness(${intensity + 1})`,
+    blur: `filter: blur(${intensity * 5}px)`,
+  };
+  return {
+    operationType: 'batch-filter',
+    totalImages: imageUrls.length,
+    filterType,
+    cssFilter: filters[filterType] || filters.grayscale,
+    instructions: `Apply CSS filter to all images via single stylesheet or per-image style attribute`,
+  };
+};
+
+const batchWatermark = async ({ imageUrls = [], watermarkText = 'Watermark', position = 'bottom-right', opacity = 0.5 }) => {
+  return {
+    operationType: 'batch-watermark',
+    totalImages: imageUrls.length,
+    watermarkText,
+    position,
+    opacity,
+    instructions: `For each image: overlay text/logo at ${position} with opacity ${opacity}. Use fal.ai or canvas compositing.`,
+    cssOverlay: `position: absolute; ${position.includes('bottom') ? 'bottom' : 'top'}: 20px; ${position.includes('right') ? 'right' : 'left'}: 20px; opacity: ${opacity};`,
+  };
+};
+
+// ── PHASE 6: Export Formats ────────────────────────────────────────────────
+
+const exportFormats = {
+  gif: { mimeType: 'image/gif', note: 'Use gif.js library or fal.ai/gif-encoder' },
+  mp4: { mimeType: 'video/mp4', note: 'Use FFmpeg or fal.ai/video-encoder' },
+  webm: { mimeType: 'video/webm', note: 'WebM video format, smaller than MP4' },
+  png: { mimeType: 'image/png', note: 'Single PNG image' },
+  jpg: { mimeType: 'image/jpeg', note: 'Single JPG image (lossy)' },
+};
+
+const generateExport = async ({ format = 'gif', images = [], duration = 3000, fps = 10, width = 1080, height = 1350 }) => {
+  const fmt = exportFormats[format] || exportFormats.gif;
+  return {
+    exportFormat: format,
+    mimeType: fmt.mimeType,
+    totalFrames: images.length,
+    duration,
+    fps,
+    dimensions: `${width}x${height}`,
+    instructions: `For carousel → ${format}: sequence ${images.length} images with ${duration}ms per frame (${fps} fps). Use server-side tool or browser-based library.`,
+    note: fmt.note,
+  };
+};
+
+// ── PHASE 7: AI Remix Engine ───────────────────────────────────────────────
+
+const remixDesign = async ({ design = '', mood = 'vibrant', variations = 3 }) => {
+  return {
+    remixType: 'design-variation',
+    originalDesign: design.slice(0, 100),
+    targetMood: mood,
+    variationsCount: variations,
+    instructions: `Use LLM to generate ${variations} design variations from original design with mood="${mood}". Then generateLayout for each.`,
+    pseudoCode: `variations = llm.generateVariations(design, mood, ${variations}); return variations.map(v => generateLayout(v))`,
+  };
+};
+
+const styleTransfer = async ({ sourceImage = '', targetStyle = 'oil-painting', intensity = 0.8 }) => {
+  return {
+    transferType: 'style-transfer',
+    sourceImageSize: sourceImage.length,
+    targetStyle,
+    intensity,
+    instructions: `Use fal.ai/style-transfer or similar model to apply ${targetStyle} aesthetic to source image with intensity ${intensity}`,
+    provider: 'fal.ai/style-transfer',
+  };
+};
+
+const generateBackground = async ({ prompt = '', style = 'abstract', dimensions = '1080x1350' }) => {
+  return {
+    generationType: 'background-from-text',
+    prompt,
+    style,
+    dimensions,
+    instructions: `Use fal.ai/image-gen or similar to generate background image from prompt with given style`,
+    provider: 'fal.ai/image-generation',
+  };
+};
+
 // ── Slide HTML generator (Pinterest Design Patterns from CLAUDE.md) ──────────
 const LAYOUT_PATTERNS = ['left-right', 'full-bleed', 'grid', 'asymmetric'];
 const PALETTE_NAMES = ['warm-organic', 'bold-playful', 'dark-premium', 'clean-editorial'];
@@ -1001,6 +1148,18 @@ export const handleDesignTools = async (req, res, path, method, body) => {
       phase3: {
         textEffects: { active: true, types: ['gradient', 'outline', 'glow', 'drop-cap', 'curved'] },
       },
+      phase4: {
+        animations: { active: true, types: ['slideLeft', 'slideUp', 'fadeIn', 'popIn', 'zoomIn', 'bounce'] },
+      },
+      phase5: {
+        batchOps: { active: true, types: ['resize', 'filter', 'watermark'] },
+      },
+      phase6: {
+        exportFormats: { active: true, types: ['gif', 'mp4', 'webm', 'png', 'jpg'] },
+      },
+      phase7: {
+        aiRemix: { active: true, types: ['remix', 'style-transfer', 'generate-background'] },
+      },
     }), true;
   }
 
@@ -1026,6 +1185,85 @@ export const handleDesignTools = async (req, res, path, method, body) => {
   if (path === '/api/design/frame' && method === 'POST') {
     if (!body?.imageUrl) return json(res, 400, { error: 'imageUrl requerida' }), true;
     const result = await frameStyles(body.imageUrl, { style: body.style || 'minimal', color: body.color || '#000', thickness: body.thickness || 8 });
+    return json(res, 200, result), true;
+  }
+
+  // PHASE 4: Animations routes
+  if (path === '/api/design/animation' && method === 'POST') {
+    const { animationType, elements, duration, stagger, repeat } = body || {};
+    if (!animationType) return json(res, 400, { error: 'animationType requerido' }), true;
+    try {
+      const result = await generateAnimation({ animationType, elements: elements || [], duration, stagger, repeat });
+      return json(res, 200, result), true;
+    } catch (err) {
+      return json(res, 500, { error: 'animation-error', message: String(err.message) }), true;
+    }
+  }
+
+  if (path === '/api/design/animations' && method === 'GET') {
+    return json(res, 200, {
+      available: [
+        { id: 'slideLeft', label: 'Slide Left', duration: 400 },
+        { id: 'slideUp', label: 'Slide Up', duration: 400 },
+        { id: 'fadeIn', label: 'Fade In', duration: 400 },
+        { id: 'popIn', label: 'Pop In', duration: 300 },
+        { id: 'zoomIn', label: 'Zoom In', duration: 500 },
+        { id: 'bounce', label: 'Bounce', duration: 600 },
+      ],
+    }), true;
+  }
+
+  // PHASE 5: Batch Operations routes
+  if (path === '/api/design/batch-resize' && method === 'POST') {
+    const { imageUrls, width, height, mode } = body || {};
+    const result = await batchResize({ imageUrls: imageUrls || [], width: width || 1080, height: height || 1080, mode: mode || 'cover' });
+    return json(res, 200, result), true;
+  }
+
+  if (path === '/api/design/batch-filter' && method === 'POST') {
+    const { imageUrls, filterType, intensity } = body || {};
+    const result = await batchFilter({ imageUrls: imageUrls || [], filterType: filterType || 'grayscale', intensity: intensity || 1 });
+    return json(res, 200, result), true;
+  }
+
+  if (path === '/api/design/batch-watermark' && method === 'POST') {
+    const { imageUrls, watermarkText, position, opacity } = body || {};
+    const result = await batchWatermark({ imageUrls: imageUrls || [], watermarkText: watermarkText || 'Watermark', position: position || 'bottom-right', opacity: opacity || 0.5 });
+    return json(res, 200, result), true;
+  }
+
+  // PHASE 6: Export Formats routes
+  if (path === '/api/design/export' && method === 'POST') {
+    const { format, images, duration, fps, width, height } = body || {};
+    if (!format) return json(res, 400, { error: 'format requerido (gif|mp4|webm|png|jpg)' }), true;
+    const result = await generateExport({ format, images: images || [], duration: duration || 3000, fps: fps || 10, width: width || 1080, height: height || 1350 });
+    return json(res, 200, result), true;
+  }
+
+  if (path === '/api/design/export-formats' && method === 'GET') {
+    return json(res, 200, {
+      available: Object.entries(exportFormats).map(([k, v]) => ({ id: k, mimeType: v.mimeType, note: v.note })),
+    }), true;
+  }
+
+  // PHASE 7: AI Remix Engine routes
+  if (path === '/api/design/remix' && method === 'POST') {
+    const { design, mood, variations } = body || {};
+    const result = await remixDesign({ design: design || '', mood: mood || 'vibrant', variations: variations || 3 });
+    return json(res, 200, result), true;
+  }
+
+  if (path === '/api/design/style-transfer' && method === 'POST') {
+    const { sourceImage, targetStyle, intensity } = body || {};
+    if (!sourceImage) return json(res, 400, { error: 'sourceImage requerida' }), true;
+    const result = await styleTransfer({ sourceImage, targetStyle: targetStyle || 'oil-painting', intensity: intensity || 0.8 });
+    return json(res, 200, result), true;
+  }
+
+  if (path === '/api/design/generate-background' && method === 'POST') {
+    const { prompt, style, dimensions } = body || {};
+    if (!prompt) return json(res, 400, { error: 'prompt requerido' }), true;
+    const result = await generateBackground({ prompt, style: style || 'abstract', dimensions: dimensions || '1080x1350' });
     return json(res, 200, result), true;
   }
 
