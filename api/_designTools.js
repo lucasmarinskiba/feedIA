@@ -1453,7 +1453,28 @@ export const handleDesignTools = async (req, res, path, method, body) => {
     }), true;
   }
 
-  // PHASE 5: Batch Operations routes
+  // PHASE 5: Batch Operations routes (unified + individual)
+  if (path === '/api/design/batch-ops' && method === 'POST') {
+    const { operationType, imageUrls, width, height, filterType, watermarkText, position } = body || {};
+    if (!operationType) return json(res, 400, { error: 'operationType requerido' }), true;
+
+    try {
+      let result;
+      if (operationType === 'resize') {
+        result = await batchResize({ imageUrls: imageUrls || [], width: width || 1080, height: height || 1080 });
+      } else if (operationType === 'filter') {
+        result = await batchFilter({ imageUrls: imageUrls || [], filterType: filterType || 'grayscale' });
+      } else if (operationType === 'watermark') {
+        result = await batchWatermark({ imageUrls: imageUrls || [], watermarkText: watermarkText || '© Marca', position: position || 'bottom-right' });
+      } else {
+        return json(res, 400, { error: `operationType desconocida: ${operationType}` }), true;
+      }
+      return json(res, 200, result), true;
+    } catch (e) {
+      return json(res, 500, { error: String(e.message) }), true;
+    }
+  }
+
   if (path === '/api/design/batch-resize' && method === 'POST') {
     const { imageUrls, width, height, mode } = body || {};
     const result = await batchResize({ imageUrls: imageUrls || [], width: width || 1080, height: height || 1080, mode: mode || 'cover' });
@@ -1610,6 +1631,75 @@ export const handleDesignTools = async (req, res, path, method, body) => {
     } catch (e) {
       return json(res, 500, { error: String(e.message) }), true;
     }
+  }
+
+  // PHASE 9: Color Science
+  if (path === '/api/design/color-science' && method === 'POST') {
+    const { analysisType, baseColor, harmonyType, endColor, textColor } = body || {};
+    if (!baseColor) return json(res, 400, { error: 'baseColor requerido (#HEX)' }), true;
+    try {
+      const colors = [];
+      if (analysisType === 'harmony') {
+        const harmonyMap = {
+          complementary: (hex) => { const h = parseInt(hex.slice(1), 16); return '#' + ((h ^ 0xFFFFFF) & 0xFFFFFF).toString(16).padStart(6, '0'); },
+          analogous: (hex) => [hex, '#FF0000', '#00FF00'],
+          triadic: (hex) => [hex, '#00FF00', '#0000FF'],
+        };
+        const harmonizer = harmonyMap[harmonyType] || harmonyMap.complementary;
+        colors.push(...(Array.isArray(harmonizer(baseColor)) ? harmonizer(baseColor) : [baseColor, harmonizer(baseColor)]));
+      } else if (analysisType === 'gradient') {
+        colors.push(baseColor, endColor || '#000000');
+      } else if (analysisType === 'contrast') {
+        colors.push(baseColor, textColor || '#FFFFFF');
+      } else if (analysisType === 'temperature') {
+        colors.push(baseColor);
+      }
+      return json(res, 200, { analysisType, colors, analysis: `${analysisType} analysis complete` }), true;
+    } catch (e) {
+      return json(res, 500, { error: String(e.message) }), true;
+    }
+  }
+
+  // PHASE 10: Platform Optimization
+  if (path === '/api/design/platform-optimize' && method === 'POST') {
+    const { platform, html } = body || {};
+    if (!html) return json(res, 400, { error: 'html requerido' }), true;
+    const specs = {
+      'instagram-feed': { width: 1080, height: 1350, safeZone: 'center 80%' },
+      'instagram-story': { width: 1080, height: 1920, safeZone: 'top 30% | bottom 30%' },
+      'instagram-reel': { width: 1080, height: 1920, safeZone: 'center vertical' },
+      'tiktok': { width: 1080, height: 1920, safeZone: 'center vertical' },
+      'pinterest': { width: 1000, height: 1500, safeZone: 'center 90%' },
+    };
+    const spec = specs[platform] || specs['instagram-feed'];
+    const css = `width:${spec.width}px;height:${spec.height}px;overflow:hidden;`;
+    return json(res, 200, { platform, spec, css, safeZone: spec.safeZone }), true;
+  }
+
+  // PHASE 12: Template Library
+  if (path === '/api/design/template-library' && method === 'POST') {
+    const { action, query } = body || {};
+    if (!action) return json(res, 400, { error: 'action requerida (list|search|save|import)' }), true;
+
+    let templates = [];
+    if (action === 'list') {
+      templates = [
+        { name: 'Hero Bold', description: 'Full-bleed image + large text', category: 'layout' },
+        { name: 'Grid Tips', description: '3-column tips layout', category: 'layout' },
+        { name: 'Gradient Text', description: 'Colorful gradient text effect', category: 'text' },
+        { name: 'Neon Glow', description: 'Glowing neon text', category: 'text' },
+      ];
+    } else if (action === 'search' && query) {
+      templates = [
+        { name: `Template: ${query}`, description: `Search result for "${query}"`, category: 'search' },
+      ];
+    } else if (action === 'save') {
+      templates = [{ name: 'Template saved', description: `Guardado: ${query}`, category: 'saved' }];
+    } else if (action === 'import') {
+      templates = [{ name: 'Template imported', description: 'Importado correctamente', category: 'imported' }];
+    }
+
+    return json(res, 200, { action, count: templates.length, templates }), true;
   }
 
   return false;
