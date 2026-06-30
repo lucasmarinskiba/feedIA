@@ -6431,4 +6431,580 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       json(res, 200, audit);
     },
   },
+
+  // ─── BENCHMARK: Industry Standards ──────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/smm/industry-benchmarks',
+    handler: async ({ res, body }) => {
+      const { niche = 'tech', followers = 10000, engagement = 5 } = (body as Record<string, unknown>) || {};
+
+      const benchmarks = {
+        niche,
+        yourMetrics: { followers, engagement },
+        industryAverages: { engagement: 3.5, reach: 8, followGrowth: 2.5 },
+        topPerformers: { engagement: 12, reach: 25, followGrowth: 8 },
+        yourPercentile: {
+          engagement: engagement > 12 ? '95th' : engagement > 7 ? '75th' : engagement > 3.5 ? '50th' : '25th',
+          reach: 'varies by format',
+          growth: 'if 2.5%/month = 50th percentile',
+        },
+        gaps: [
+          { metric: 'Engagement gap', current: engagement, industry: 3.5, top: 12, gap: `${12 - engagement}x to top` },
+          { metric: 'Reach potential', current: 8, industry: 8, top: 25, gap: '3x improvement possible' },
+          { metric: 'Growth rate', current: 2.5, industry: 2.5, top: 8, gap: '3x faster growth possible' },
+        ],
+        recommendations: [
+          `Focus on engagement (biggest gap = biggest leverage)`,
+          `Study top performers in ${niche} (reverse engineer their strategy)`,
+          `Test 3 high-engagement formats (shorts, carousels, UGC)`,
+          `Implement 2-3 persuasion tactics per post`,
+        ],
+      };
+
+      json(res, 200, benchmarks);
+    },
+  },
+
+  // ═══ STAGE 6: BRAND MASTERY (MASTERS-LEVEL) ═════════════════════════════════
+
+  // ─── STAGE 6: Brand Architecture ────────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/brand/architecture',
+    handler: async ({ res, body }) => {
+      const { niche = 'tech', positioning = 'innovator' } = (body as Record<string, unknown>) || {};
+
+      const archetypes = {
+        innovator: { values: ['progress', 'disruption', 'boldness'], personality: 'forward-thinking, experimental, cutting-edge' },
+        mentor: { values: ['wisdom', 'authority', 'guidance'], personality: 'knowledgeable, patient, trustworthy' },
+        hero: { values: ['courage', 'transformation', 'triumph'], personality: 'bold, inspiring, powerful' },
+        lover: { values: ['connection', 'authenticity', 'passion'], personality: 'warm, intimate, empathetic' },
+        explorer: { values: ['discovery', 'adventure', 'freedom'], personality: 'curious, daring, independent' },
+      };
+
+      const arch = archetypes[positioning] || archetypes.innovator;
+
+      json(res, 200, {
+        niche,
+        positioning,
+        archetype: arch,
+        mission: `To [solve X problem] through [unique approach] for [target audience]`,
+        vision: '3-year vision of market position + impact',
+        brandPromise: 'What you deliver + stand for',
+        differentiators: [
+          'Speed (vs competitors)',
+          'Authenticity (vs polished)',
+          'Community (vs solo)',
+          'Results (vs theory)',
+        ],
+      });
+    },
+  },
+
+  // ─── STAGE 6: Color System ──────────────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/brand/color-system',
+    handler: async ({ res, body }) => {
+      const { brandArchetype = 'innovator', primaryColor = '#0066FF' } = (body as Record<string, unknown>) || {};
+
+      const colorSystem = {
+        brandArchetype,
+        primaryColor,
+        colorHierarchy: {
+          primary: { color: primaryColor, usage: '60% of design', psychology: 'brand recognition + trust' },
+          secondary: { color: '#FF6B35', usage: '25% of design', psychology: 'accent + energy' },
+          accent: { color: '#00D9FF', usage: '10% of design', psychology: 'highlights + CTAs' },
+          neutral: { color: '#F5F5F5', usage: 'backgrounds + text', psychology: 'balance + clarity' },
+        },
+        colorRules: [
+          'Max 3 colors per carousel slide (primary + secondary + accent)',
+          'Contrast ratio ≥ 4.5:1 for text (WCAG AA)',
+          'Never use pure black (#000) or pure white (#FFF) - use #1A1A1A and #F5F5F5',
+          'Maintain color consistency across all platforms (IG, TikTok, YouTube)',
+        ],
+        colorMeanings: {
+          primary: 'Trust, brand identity, stability',
+          secondary: 'Energy, transformation, urgency',
+          accent: 'Action, highlights, curiosity',
+        },
+      };
+
+      json(res, 200, colorSystem);
+    },
+  },
+
+  // ─── STAGE 6: Typography System ─────────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/brand/typography-system',
+    handler: async ({ res, body }) => {
+      const { headlineFont = 'Montserrat', bodyFont = 'Inter' } = (body as Record<string, unknown>) || {};
+
+      const typography = {
+        headlineFont,
+        bodyFont,
+        fontPairing: {
+          headline: { font: headlineFont, weight: '700-900', size: '28-48px', usage: 'hook, titles, emphasis' },
+          body: { font: bodyFont, weight: '400-500', size: '14-18px', usage: 'description, paragraphs' },
+          accent: { font: 'Poppins', weight: '600', size: '12-16px', usage: 'labels, CTAs, highlights' },
+        },
+        sizingRules: {
+          carousel: {
+            headline: '32-40px bold (max 8 words, 2 lines)',
+            body: '16px regular (max 80 chars/line)',
+            cta: '14px bold (uppercase, max 4 words)',
+          },
+          video: {
+            headline: '48px bold (on-screen text, 2.5 sec min)',
+            cta: '32px bold (final frame)',
+          },
+          post: {
+            headline: '28px bold (caption hook)',
+            body: '16px regular (max 150 words)',
+            hashtags: '12px light (separate line)',
+          },
+        },
+        fontRules: [
+          'Never mix more than 2 fonts per design (headline + body)',
+          'Font weight: bold for hierarchy, regular for body',
+          'Line height: 1.4-1.6 for readability',
+          'Letter spacing: +2-5% for luxury, 0% for tech',
+        ],
+      };
+
+      json(res, 200, typography);
+    },
+  },
+
+  // ─── STAGE 6: Design Language ───────────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/brand/design-language',
+    handler: async ({ res, body }) => {
+      const { style = 'modern', brandArchetype = 'innovator' } = (body as Record<string, unknown>) || {};
+
+      const designLanguages = {
+        modern: {
+          shapes: 'Angular, geometric, minimalist',
+          spacing: 'Clean, white space oriented (20%+ empty)',
+          borders: 'Thin lines (1-2px), sharp corners or slight rounded (4px)',
+          shadows: 'Subtle elevation (0 2px 8px rgba)',
+          textures: 'None - pure color blocks',
+          complexity: 'Low - one clear focal point',
+        },
+        luxury: {
+          shapes: 'Organic, curves, gold accents',
+          spacing: 'Generous white space (25%+)',
+          borders: 'Thick lines (3-4px), rounded corners (16px)',
+          shadows: 'Soft, warm shadows (0 4px 16px rgba(0,0,0,0.1))',
+          textures: 'Subtle (marble, linen, silk)',
+          complexity: 'Refined - sophisticated balance',
+        },
+        playful: {
+          shapes: 'Rounded, dynamic, varied sizes',
+          spacing: 'Energetic, tighter (15% empty)',
+          borders: 'Bold, colorful, thick (4-6px)',
+          shadows: 'Bold, fun (0 8px 16px rgba)',
+          textures: 'Fun patterns, gradients',
+          complexity: 'High - multiple elements, movement',
+        },
+      };
+
+      json(res, 200, {
+        style,
+        brandArchetype,
+        ...designLanguages[style],
+        implementationGuide: [
+          'Apply consistently across all 12 carousel slides',
+          'Maintain style in video backgrounds + graphics',
+          'Use same shapes + spacing in post layouts',
+          'Never mix styles (modern + luxury = confused brand)',
+        ],
+      });
+    },
+  },
+
+  // ─── STAGE 6: Visual Consistency Framework ──────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/brand/visual-consistency',
+    handler: async ({ res, body }) => {
+      const { format = 'carousel' } = (body as Record<string, unknown>) || {};
+
+      const frameworks = {
+        carousel: {
+          aspectRatio: '1080×1350px',
+          gridSystem: '12-column grid (80px per column)',
+          margins: 'Safe zone: 60px from edges',
+          spacing: '20px between elements',
+          textPlacement: 'Headline top-third, body center, CTA bottom-third',
+          colorRule: 'Primary 60%, secondary 25%, accent 15%',
+        },
+        video: {
+          aspectRatio: '1080×1920px (TikTok/Reels)',
+          gridSystem: '4-row safe zones (top 15%, mid 70%, bottom 15%)',
+          textPlacement: 'Avoid edges (120px safe zone)',
+          colorGrading: 'Consistent saturation (50-80%), warmth (+10-15K)',
+          motionRule: 'Easing: ease-out, duration: 300-500ms',
+        },
+        post: {
+          aspectRatio: '1080×1350px (IG feed)',
+          gridSystem: 'Image 70%, text 30% overlay',
+          spacing: 'Padding: 40px all sides',
+          colorRule: 'Image dominant color + primary accent',
+          readability: 'WCAG AA compliant (4.5:1 contrast)',
+        },
+      };
+
+      json(res, 200, frameworks[format] || frameworks.carousel);
+    },
+  },
+
+  // ─── STAGE 6: Guidelines Generator ──────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/brand/guidelines-generator',
+    handler: async ({ res, body }) => {
+      const { brandName = 'Brand', archetype = 'innovator' } = (body as Record<string, unknown>) || {};
+
+      const guidelines = {
+        brandName,
+        sections: [
+          {
+            section: 'Logo Usage',
+            rules: [
+              'Minimum size: 120px wide (web), 1cm (print)',
+              'Clear space: 20px around logo',
+              'Never rotate, skew, or distort',
+              'Never change colors (except B&W)',
+              'Never remove or rearrange elements',
+            ],
+          },
+          {
+            section: 'Color Palette',
+            rules: [
+              'Primary: #0066FF (60% of design)',
+              'Secondary: #FF6B35 (25% of design)',
+              'Accent: #00D9FF (10% of design)',
+              'Neutral: #F5F5F5 (backgrounds)',
+              'Text: #1A1A1A on light, #FFF on dark',
+            ],
+          },
+          {
+            section: 'Typography',
+            rules: [
+              'Headlines: Montserrat Bold 700-900',
+              'Body: Inter Regular 400-500',
+              'Minimum size: 12px (never smaller)',
+              'Line height: 1.4-1.6 for readability',
+            ],
+          },
+          {
+            section: 'Photography',
+            rules: [
+              'Style: Consistent (no mixing stock + professional)',
+              'Color grading: Warm tones (+10K), 70% saturation',
+              'People: Show real faces (avoid generic stock)',
+              'Diversity: Represent audience accurately',
+            ],
+          },
+          {
+            section: 'Voice & Tone',
+            rules: [
+              'Voice: Professional yet approachable',
+              'Tone: Varies by platform (IG: friendly, LinkedIn: formal)',
+              'Language: Clear, no jargon (unless audience expert)',
+              'Personality: Consistent across all touchpoints',
+            ],
+          },
+        ],
+        doAndDonts: {
+          do: [
+            'Maintain consistent spacing (20px grid)',
+            'Use brand colors religiously',
+            'Follow typography hierarchy',
+            'Keep designs clean + focused',
+          ],
+          dont: [
+            'Mix fonts (never 3+ fonts)',
+            'Use off-brand colors or gradients',
+            'Crowd designs (maintain 20%+ white space)',
+            'Change brand personality per post',
+          ],
+        },
+        format: 'PDF guideline downloadable (15-20 pages)',
+      };
+
+      json(res, 200, guidelines);
+    },
+  },
+
+  // ─── STAGE 6: Carousel Harmony Rules ────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/brand/carousel-harmony-rules',
+    handler: async ({ res, body }) => {
+      const { slideCount = 5 } = (body as Record<string, unknown>) || {};
+
+      const harmony = {
+        slideCount,
+        slideSequence: {
+          1: { role: 'hook', rhythm: 'bold', emphasis: 'maximum', textRatio: '20%' },
+          2: { role: 'content', rhythm: 'medium', emphasis: 'secondary', textRatio: '30%' },
+          3: { role: 'content', rhythm: 'medium', emphasis: 'secondary', textRatio: '30%' },
+          4: { role: 'insight', rhythm: 'medium', emphasis: 'building', textRatio: '35%' },
+          5: { role: 'cta', rhythm: 'urgent', emphasis: 'maximum', textRatio: '25%' },
+        },
+        colorHarmony: [
+          'Slide 1: Primary + accent (high contrast)',
+          'Slides 2-4: Primary + secondary (balanced)',
+          'Slide 5: Primary + accent (urgency)',
+        ],
+        visualRhythm: [
+          'Slide 1: Image-heavy (80% visual)',
+          'Slides 2-4: Balanced (60% visual, 40% text)',
+          'Slide 5: Text-heavy (50% visual, 50% text)',
+        ],
+        consistencyChecks: [
+          '✓ All slides use same font families',
+          '✓ All slides use brand color palette',
+          '✓ All slides have same spacing (20px grid)',
+          '✓ All slides maintain same design language',
+          '✓ Typography hierarchy consistent (H1 > H2 > body)',
+        ],
+      };
+
+      json(res, 200, harmony);
+    },
+  },
+
+  // ─── STAGE 6: Video Style Guide ────────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/brand/video-style-guide',
+    handler: async ({ res, body }) => {
+      const { platform = 'tiktok' } = (body as Record<string, unknown>) || {};
+
+      const videoGuides = {
+        tiktok: {
+          aspectRatio: '1080×1920px (full screen)',
+          frameRate: '30fps (standard), 60fps (smooth motion)',
+          colorGrading: {
+            saturation: '70-80% (vibrant but not oversaturated)',
+            contrast: '+10-15% (punchy)',
+            warmth: '+5-10K (friendly)',
+            lut: 'Apply brand color LUT consistently',
+          },
+          textOnScreen: {
+            font: 'Bold san-serif (Montserrat, Poppins)',
+            size: '48-64px (readable at phone size)',
+            placement: 'Safe zone: 200px from edges',
+            duration: '2.5-3 seconds per text card',
+            animation: 'Pop-in (scale 0→1, 200ms)',
+          },
+          motionPrinciples: {
+            easing: 'ease-out (natural deceleration)',
+            duration: '300-500ms (snappy)',
+            stagger: '100-150ms between elements',
+            rotation: '2-3 degrees max (subtle)',
+          },
+          audioBranding: {
+            music: 'Consistent genre (upbeat, trending sounds)',
+            voiceOver: 'Clear, energetic tone (2.5-3s per sentence)',
+            sfx: 'Punchy (pop, whoosh) for emphasis',
+          },
+        },
+        instagram_reel: {
+          aspectRatio: '1080×1920px',
+          frameRate: '30fps',
+          colorGrading: {
+            saturation: '60-70% (sophisticated)',
+            contrast: '+5% (refined)',
+            warmth: '0-5K (neutral)',
+          },
+          safeZone: '150px from edges',
+          pacing: 'Slightly slower than TikTok (3-4s per scene)',
+        },
+      };
+
+      json(res, 200, videoGuides[platform] || videoGuides.tiktok);
+    },
+  },
+
+  // ─── STAGE 6: Post Format Standards ─────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/brand/post-format-standards',
+    handler: async ({ res, body }) => {
+      const { feedStyle = 'balanced' } = (body as Record<string, unknown>) || {};
+
+      const standards = {
+        feedStyle,
+        imageComposition: {
+          aspectRatio: '1080×1350px (IG feed standard)',
+          textOverlay: 'Max 20% of image real estate',
+          colorScheme: 'Primary color dominant (60%), accent (15%)',
+          focusArea: 'Center subject (safe from crops)',
+        },
+        captionStructure: {
+          hook: 'First line: curiosity gap or question (max 12 words)',
+          body: 'Main message (50-80 words, break into 3 paragraphs)',
+          cta: 'Last line: "Reply [X]" or "Link in bio"',
+          hashtags: 'Bottom line: 15-30 hashtags (separate line)',
+          total: 'Max 150 words before CTA',
+        },
+        feedHarmony: {
+          layout: '70% single image, 20% carousel, 10% video',
+          colorBalance: 'Alternating primary + secondary (visual rhythm)',
+          contentMix: '60% value, 25% entertainment, 15% promo',
+          postSpacing: 'Every 3rd day for growth (max 5/week)',
+        },
+        readability: {
+          contrast: 'WCAG AA minimum (4.5:1 for text)',
+          fontSize: 'Min 12px (readable at thumb distance)',
+          lineHeight: '1.5x for captions (breathing room)',
+        },
+      };
+
+      json(res, 200, standards);
+    },
+  },
+
+  // ─── STAGE 6: Brand Voice & Tone Matrix ────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/brand/voice-tone-matrix',
+    handler: async ({ res, body }) => {
+      const { platform = 'instagram', emotion = 'inspiring' } = (body as Record<string, unknown>) || {};
+
+      const matrix = {
+        platform,
+        emotion,
+        brandVoice: {
+          personality: 'Confident, approachable, authentic',
+          vocabulary: 'Clear, no jargon (unless necessary)',
+          pace: 'Conversational (short sentences)',
+          confidence: 'Assert expertise without arrogance',
+        },
+        platformTones: {
+          instagram: {
+            tone: 'Friendly, inspiring, relatable',
+            style: 'Stories, personal touches, emojis',
+            formality: 'Casual (you/we language)',
+            vulnerability: 'Show struggles (authenticity)',
+          },
+          tiktok: {
+            tone: 'Playful, energetic, bold',
+            style: 'Trendy, humor, pop-culture refs',
+            formality: 'Very casual (slang OK if brand)',
+            vulnerability: 'Lean into mistakes (entertainment)',
+          },
+          linkedin: {
+            tone: 'Authoritative, professional, insightful',
+            style: 'Data, frameworks, thought leadership',
+            formality: 'Professional (business casual)',
+            vulnerability: 'Measured, strategic vulnerability',
+          },
+        },
+        emotionalMacros: {
+          inspiring: 'Use transformation stories, aspirational language',
+          educational: 'Use frameworks, data, clear steps',
+          entertaining: 'Use humor, unexpected angles, personality',
+          urgent: 'Use scarcity, limited time, action verbs',
+        },
+      };
+
+      json(res, 200, matrix);
+    },
+  },
+
+  // ─── STAGE 6: Icon System ───────────────────────────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/brand/icon-system',
+    handler: async ({ res, body }) => {
+      const { style = 'outline' } = (body as Record<string, unknown>) || {};
+
+      const iconSystem = {
+        style,
+        gridSize: '24px base (multiples: 16, 24, 32, 48, 64)',
+        strokeWidth: '2px (outline), 3px (bold)',
+        colorRules: {
+          primary: 'Brand primary color (60%)',
+          secondary: 'Brand secondary color (25%)',
+          neutral: 'Gray (#999999) for inactive',
+        },
+        roundness: {
+          corners: '4px for modern, 8px for playful',
+          curves: 'Consistent across all icons',
+        },
+        usageRules: [
+          'Never stretch or squash (maintain 1:1 ratio)',
+          'Minimum size: 16px (never smaller)',
+          'Padding: 4px around icon (breathing room)',
+          'Consistent stroke width across system',
+          'Use same outline weight as brand',
+        ],
+        commonIcons: [
+          'Arrow (direction indicators)',
+          'Heart (save/like)',
+          'Share (distribution)',
+          'Comment (engagement)',
+          'Plus (add/expand)',
+          'Settings (options)',
+        ],
+      };
+
+      json(res, 200, iconSystem);
+    },
+  },
+
+  // ─── STAGE 6: Accessibility & Compliance Audit ──────────────────────────────
+  {
+    method: 'POST',
+    pattern: '/api/brand/accessibility-audit',
+    handler: async ({ res, body }) => {
+      const { contentType = 'carousel' } = (body as Record<string, unknown>) || {};
+
+      const audit = {
+        contentType,
+        wcagCompliance: {
+          contrastRatio: {
+            standard: 'WCAG AA (4.5:1 for text, 3:1 for large text)',
+            check: 'Text vs background contrast ≥ 4.5:1',
+            fail: 'Will lose readers, violate accessibility law',
+          },
+          textSize: {
+            minimum: '12px (readable at arm\'s length)',
+            recommended: '14-18px (comfortable)',
+            check: 'All text passes readability test',
+          },
+          colorBlindness: {
+            check: 'Not relying on color alone to convey meaning',
+            test: 'Run through colorblindness simulator',
+            example: 'Red + green = use text labels too',
+          },
+        },
+        inclusiveDesign: [
+          '✓ No flashing (photosensitivity safety)',
+          '✓ Captions for all video content',
+          '✓ Alt text for all images (describe, don\'t repeat)',
+          '✓ Readable fonts (avoid script, italic-only)',
+          '✓ Sufficient spacing (20px+ for touch targets)',
+          '✓ High contrast text (4.5:1 minimum)',
+        ],
+        implementationChecklist: [
+          'Run WAVE accessibility audit',
+          'Test with colorblind viewer',
+          'Zoom to 200% and verify layout holds',
+          'Use screen reader to verify structure',
+          'Check keyboard navigation (tab order)',
+        ],
+      };
+
+      json(res, 200, audit);
+    },
+  },
 ];
