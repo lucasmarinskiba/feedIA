@@ -87,7 +87,7 @@ export const handleMessage = async (
     platform: msg.platform,
     type: msg.type,
     brandNiche: brand.niche,
-    brandTone: brand.tone,
+    brandTone: brand.voice?.tone,
     maxChars: msg.type === 'comment' ? 300 : 1000,
   });
 

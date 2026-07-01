@@ -186,7 +186,7 @@ Sin frases genéricas de IA. JSON puro.`,
       {
         role: 'user',
         content: `Marca: ${brand.name}
-Tono: ${brand.toneOfVoice ?? 'cercano profesional'}
+Tono: ${brand.voice?.toneOfVoice ?? 'cercano profesional'}
 Tema: ${topic}
 
 Contenido base:

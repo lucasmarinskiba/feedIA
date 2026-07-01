@@ -415,7 +415,7 @@ export const generateAdCreative = async (
 Producto: ${product}
 Formato: ${format}
 Objetivo: ${objective}
-Tono de marca: ${brand.toneOfVoice ?? 'profesional y cercano'}
+Tono de marca: ${brand.voice?.toneOfVoice ?? 'profesional y cercano'}
 
 Reglas estrictas:
 - Headline: máx 40 caracteres, gancho de ATENCIÓN

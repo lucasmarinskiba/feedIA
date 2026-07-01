@@ -249,18 +249,24 @@ export const consultCanvaSpecialist = async (brief: DesignBrief): Promise<CanvaD
 
   // Pattern lookup
   const patternKey = `${brief.format}-${brief.contentType}`.toLowerCase().replace(/-_/g, '-');
-  let spec = designPatterns[patternKey];
+  let spec: CanvaDesignSpec = designPatterns[patternKey];
 
   // Fallback: generic pattern
   if (!spec) {
-    spec = designPatterns['carousel-value'] || Object.values(designPatterns)[0];
+    const fallback = designPatterns['carousel-value'] || Object.values(designPatterns)[0];
+    spec = fallback as CanvaDesignSpec;
     log.warn(`[Canva Specialist] Pattern '${patternKey}' not found, using fallback`);
   }
 
   // Brand override (if brand provided)
-  if (brief.brand?.colors?.primary) {
-    spec.colorPalette.primary = brief.brand.colors.primary;
-    spec.colorPalette.secondary = brief.brand.colors.secondary || spec.colorPalette.secondary;
+  if (brief.brand?.type === 'empresa') {
+    // Corporate brands use darker, professional colors
+    spec.colorPalette.primary = '#001F3F'; // Navy
+    spec.colorPalette.secondary = '#E6D5B8'; // Soft gold
+  } else if (brief.brand?.niche === 'tech') {
+    // Tech brands use modern, vibrant colors
+    spec.colorPalette.primary = '#00D9FF'; // Cyan
+    spec.colorPalette.secondary = '#E91E8C'; // Magenta
   }
 
   // Tone adjustment (brand voice affects typography)

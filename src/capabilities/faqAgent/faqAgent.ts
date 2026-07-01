@@ -120,7 +120,7 @@ Para cada FAQ:
   "category": "precios|envíos|devoluciones|contacto|horarios|productos|soporte",
   "question": "pregunta canónica",
   "variants": ["otra forma de preguntar lo mismo", "variante 2"],
-  "answer": "respuesta completa y amigable (50-150 palabras, tono ${brand.toneOfVoice ?? 'cercano'})",
+  "answer": "respuesta completa y amigable (50-150 palabras, tono ${brand.voice?.toneOfVoice ?? 'cercano'})",
   "shortAnswer": "versión muy corta para comentarios (máx 150 chars)",
   "requiresHuman": false,
   "tags": ["tag1", "tag2"]
@@ -212,7 +212,7 @@ export const answerQuestion = async (
     max_tokens: 600,
     thinking: { type: 'adaptive' },
     system: `Eres el agente de atención al cliente de ${brand.name}.
-Respondes en el tono de la marca: ${brand.toneOfVoice ?? 'cercano y profesional'}.
+Respondes en el tono de la marca: ${brand.voice?.toneOfVoice ?? 'cercano y profesional'}.
 REGLAS:
 - Nunca suenes a bot o template
 - Si no sabes la respuesta, di que la consultarás y escala

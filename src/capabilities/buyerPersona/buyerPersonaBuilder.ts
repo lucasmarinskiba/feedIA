@@ -190,7 +190,7 @@ Cada persona es un arquetipo real, no genérico.`,
 
 Industria: ${brand.industryCategory ?? 'general'}
 Descripción: ${brand.description ?? 'No especificada'}
-Tono de marca: ${brand.toneOfVoice ?? 'profesional cercano'}
+Tono de marca: ${brand.voice?.toneOfVoice ?? 'profesional cercano'}
 ${
   audit
     ? `

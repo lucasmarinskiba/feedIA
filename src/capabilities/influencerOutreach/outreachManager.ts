@@ -217,7 +217,7 @@ export const composeOutreachMessage = async (
         content: `Redacta mensaje de outreach para ${influencer.handle}:
 
 Marca: ${brand.name} | Industria: ${brand.industryCategory ?? 'general'}
-Tono de marca: ${brand.toneOfVoice ?? 'profesional cercano'}
+Tono de marca: ${brand.voice?.toneOfVoice ?? 'profesional cercano'}
 
 Influencer:
 - Followers: ${influencer.followers.toLocaleString()}

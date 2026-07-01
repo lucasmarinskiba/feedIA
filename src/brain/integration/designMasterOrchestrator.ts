@@ -85,7 +85,7 @@ export const orchestrateDesignWorkflow = async (
     format: workflow.format,
     platform: workflow.platform,
     topic: workflow.instruction,
-    tone: workflow.brand?.tone || ['professional'],
+    tone: workflow.brand?.voice?.tone || ['professional'],
     contentType: 'value', // default, can refine
     brand: workflow.brand,
   };
@@ -122,7 +122,7 @@ export const orchestrateDesignWorkflow = async (
     const studioContext: StudioContext = {
       topic: workflow.instruction,
       brand: workflow.brand,
-      tone: workflow.brand?.tone || ['professional'],
+      tone: workflow.brand?.voice?.tone || ['professional'],
       contentType: 'value',
     };
 

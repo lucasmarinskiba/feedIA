@@ -189,7 +189,7 @@ Devuelves JSON puro, sin texto extra.`,
           content: `Genera ${batch.length} publicaciones para el calendario de ${brand.name}:
 
 Industria: ${brand.industryCategory ?? 'general'}
-Tono: ${brand.toneOfVoice ?? 'profesional cercano'}
+Tono: ${brand.voice?.toneOfVoice ?? 'profesional cercano'}
 ${cfg.campaignThemes.length ? `Temas de campaña del mes: ${cfg.campaignThemes.join(', ')}` : ''}
 
 Publicaciones requeridas:

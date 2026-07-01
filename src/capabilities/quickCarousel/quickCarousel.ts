@@ -121,7 +121,7 @@ Devuelves JSON puro.`,
         content: `Refina este prompt en brief completo de carrusel para ${brand.name}:
 
 Industria: ${brand.industryCategory ?? 'general'}
-Tono base: ${brand.toneOfVoice ?? 'cercano profesional'}
+Tono base: ${brand.voice?.toneOfVoice ?? 'cercano profesional'}
 ${input.tone ? `Tono override: ${input.tone}` : ''}
 ${input.targetAudience ? `Audiencia override: ${input.targetAudience}` : ''}
 ${input.goal ? `Objetivo: ${input.goal}` : 'Objetivo: deducir del prompt'}

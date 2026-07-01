@@ -95,7 +95,7 @@ Devuelves JSON puro.`,
 Prompt: "${input.prompt}"
 Objetivo: ${goal}
 Industria: ${brand.industryCategory ?? 'general'}
-Tono: ${brand.toneOfVoice ?? 'cercano profesional'}
+Tono: ${brand.voice?.toneOfVoice ?? 'cercano profesional'}
 ${input.includeInteractive !== false ? 'Incluir 1-2 stickers interactivos (poll, quiz, question, countdown)' : ''}
 ${input.linkUrl ? `Incluir 1 frame con link: ${input.linkUrl}` : ''}
 

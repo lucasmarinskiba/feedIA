@@ -125,7 +125,7 @@ Devuelves JSON puro.`,
         content: `Optimiza el perfil completo de ${brand.name}:
 
 Industria: ${brand.industryCategory ?? 'general'}
-Tono: ${brand.toneOfVoice ?? 'cercano profesional'}
+Tono: ${brand.voice?.toneOfVoice ?? 'cercano profesional'}
 ${context?.primaryGoal ? `Objetivo principal: ${context.primaryGoal}` : 'Objetivo: leads + autoridad'}
 ${context?.currentBio ? `Bio actual: "${context.currentBio}"` : ''}
 ${context?.keyDifferentiator ? `Diferenciador clave: ${context.keyDifferentiator}` : ''}

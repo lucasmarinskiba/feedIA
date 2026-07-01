@@ -138,7 +138,7 @@ REGLAS ABSOLUTAS:
         role: 'user',
         content: `Escribe copy AIDA para:
 
-Marca: ${brand.name} | Tono: ${brand.toneOfVoice ?? 'profesional cercano'}
+Marca: ${brand.name} | Tono: ${brand.voice?.toneOfVoice ?? 'profesional cercano'}
 Producto: ${req.product}
 Característica: ${req.feature}
 Beneficio real: ${req.benefit}
@@ -201,7 +201,7 @@ REGLAS: Sin palabras de IA. Límite ${maxChars} chars en assembled. JSON puro.`,
         role: 'user',
         content: `Escribe copy PAS para:
 
-Marca: ${brand.name} | Tono: ${brand.toneOfVoice ?? 'directo y empático'}
+Marca: ${brand.name} | Tono: ${brand.voice?.toneOfVoice ?? 'directo y empático'}
 Producto: ${req.product}
 Beneficio: ${req.benefit}
 Audiencia: ${req.audience}
@@ -299,7 +299,7 @@ Cada slide debe tener una sola idea. Los carruseles se leen en 15 segundos — c
         content: `Crea un guión de carrusel de ${slideCount} slides para ${brand.name}:
 
 Tema: ${topic}
-Tono: ${brand.toneOfVoice ?? 'educativo y cercano'}
+Tono: ${brand.voice?.toneOfVoice ?? 'educativo y cercano'}
 
 Reglas:
 - Slide 1: Hook obligatorio. Máx 10 palabras. Dolor o promesa específica.
