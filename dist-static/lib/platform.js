@@ -1,12 +1,114 @@
-const o="feedia.platform";let a="general";try{a=localStorage.getItem(o)||"general"}catch{}export const PLATFORMS={instagram:{id:"instagram",label:"Instagram",emoji:"\u{1F4F7}",accent:"linear-gradient(135deg,#f09433,#e6683c,#dc2743,#bc1888)"},tiktok:{id:"tiktok",label:"TikTok",emoji:"\u{1F3B5}",accent:"linear-gradient(135deg,#25F4EE,#000,#FE2C55)"},general:{id:"general",label:"Sala",emoji:"\u{1F451}",accent:"linear-gradient(135deg,#6366f1,#a855f7,#ec4899)"}},getPlatform=()=>a,setPlatform=t=>{if(!(!PLATFORMS[t]||t===a)){a=t;try{localStorage.setItem(o,t)}catch{}i(),window.dispatchEvent(new CustomEvent("feedia:platform",{detail:{platform:t}}))}};const i=()=>{document.querySelectorAll("[data-platform]").forEach(t=>{const e=t.dataset.platform,l=!e||e==="both"||e===a;t.style.display=l?"":"none"}),document.querySelectorAll(".side-nav .nav-group-label").forEach(t=>{let e=!1,l=t.nextElementSibling;for(;l&&!l.classList.contains("nav-group-label");){if(l.classList.contains("nav-item")&&l.style.display!=="none"){e=!0;break}l=l.nextElementSibling}t.style.display=e?"":"none"}),document.querySelectorAll(".plat-pill").forEach(t=>{t.classList.toggle("active",t.dataset.plat===a)}),document.body.classList.toggle("platform-tiktok",a==="tiktok"),document.body.classList.toggle("platform-instagram",a==="instagram"),document.body.classList.toggle("platform-general",a==="general")};export const initPlatformSwitcher=()=>{if(!document.getElementById("plat-style")){const e=document.createElement("style");e.id="plat-style",e.textContent=r,document.head.appendChild(e)}const t=document.getElementById("platform-switcher");t&&!t.dataset.mounted&&(t.dataset.mounted="1",t.innerHTML=`
+/* ══════════════════════════════════════════════════════════════════════════════
+   platform.js — Switcher Instagram / TikTok
+   ──────────────────────────────────────────────────────────────────────────────
+   Estado global de plataforma activa. Filtra nav items por data-platform
+   (instagram | tiktok | both). Emite evento 'feedia:platform' al cambiar.
+   Persistido en localStorage. Las vistas Studio leen getPlatform() para ajustar
+   estrategia (TikTok = 9:16, hook 0-2s, sonido, completion; IG = reel/carrusel/story).
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+const KEY = 'feedia.platform';
+let current = 'general';
+try {
+  current = localStorage.getItem(KEY) || 'general';
+} catch {
+  /* noop */
+}
+
+export const PLATFORMS = {
+  instagram: {
+    id: 'instagram',
+    label: 'Instagram',
+    emoji: '📷',
+    accent: 'linear-gradient(135deg,#f09433,#e6683c,#dc2743,#bc1888)',
+  },
+  tiktok: { id: 'tiktok', label: 'TikTok', emoji: '🎵', accent: 'linear-gradient(135deg,#25F4EE,#000,#FE2C55)' },
+  general: { id: 'general', label: 'Sala', emoji: '👑', accent: 'linear-gradient(135deg,#6366f1,#a855f7,#ec4899)' },
+};
+
+export const getPlatform = () => current;
+
+export const setPlatform = (p) => {
+  if (!PLATFORMS[p] || p === current) return;
+  current = p;
+  try {
+    localStorage.setItem(KEY, p);
+  } catch {
+    /* noop */
+  }
+  applyVisibility();
+  window.dispatchEvent(new CustomEvent('feedia:platform', { detail: { platform: p } }));
+};
+
+/* Oculta nav items que no son de la plataforma activa.
+   data-platform="tiktok" → solo TikTok. "instagram" → solo IG. ausente/"both" → siempre. */
+const applyVisibility = () => {
+  document.querySelectorAll('[data-platform]').forEach((el) => {
+    const tag = el.dataset.platform;
+    const show = !tag || tag === 'both' || tag === current;
+    el.style.display = show ? '' : 'none';
+  });
+  // Ocultar labels de grupo cuyos items quedaron todos ocultos
+  document.querySelectorAll('.side-nav .nav-group-label').forEach((label) => {
+    let anyVisible = false;
+    let n = label.nextElementSibling;
+    while (n && !n.classList.contains('nav-group-label')) {
+      if (n.classList.contains('nav-item') && n.style.display !== 'none') {
+        anyVisible = true;
+        break;
+      }
+      n = n.nextElementSibling;
+    }
+    label.style.display = anyVisible ? '' : 'none';
+  });
+  // Marcar pills activos
+  document.querySelectorAll('.plat-pill').forEach((pill) => {
+    pill.classList.toggle('active', pill.dataset.plat === current);
+  });
+  // Clase en body para CSS condicional
+  document.body.classList.toggle('platform-tiktok', current === 'tiktok');
+  document.body.classList.toggle('platform-instagram', current === 'instagram');
+  document.body.classList.toggle('platform-general', current === 'general');
+};
+
+export const initPlatformSwitcher = () => {
+  // Inyectar estilos
+  if (!document.getElementById('plat-style')) {
+    const st = document.createElement('style');
+    st.id = 'plat-style';
+    st.textContent = PLAT_STYLES;
+    document.head.appendChild(st);
+  }
+
+  // Montar barra horizontal arriba del topbar (si existe contenedor)
+  const host = document.getElementById('platform-switcher');
+  if (host && !host.dataset.mounted) {
+    host.dataset.mounted = '1';
+    host.innerHTML = `
       <div class="plat-bar" role="tablist" aria-label="Plataforma">
-        ${Object.values(PLATFORMS).map(e=>`
-          <button class="plat-pill ${e.id===a?"active":""}" data-plat="${e.id}" role="tab" aria-selected="${e.id===a}" title="${e.label}">
-            <span class="plat-pill-emoji">${e.emoji}</span>
-            <span class="plat-pill-label">${e.label}</span>
-          </button>`).join("")}
-        <span class="plat-bar-hint">Cambia qu\xE9 red administr\xE1s</span>
-      </div>`,t.querySelectorAll(".plat-pill").forEach(e=>{e.addEventListener("click",()=>setPlatform(e.dataset.plat))})),i(),window.addEventListener("hashchange",()=>setTimeout(i,30))};const r=`
+        ${Object.values(PLATFORMS)
+          .map(
+            (p) => `
+          <button class="plat-pill ${p.id === current ? 'active' : ''}" data-plat="${p.id}" role="tab" aria-selected="${p.id === current}" title="${p.label}">
+            <span class="plat-pill-emoji">${p.emoji}</span>
+            <span class="plat-pill-label">${p.label}</span>
+          </button>`,
+          )
+          .join('')}
+        <span class="plat-bar-hint">Cambia qué red administrás</span>
+      </div>`;
+    host.querySelectorAll('.plat-pill').forEach((pill) => {
+      pill.addEventListener('click', () => setPlatform(pill.dataset.plat));
+    });
+  }
+
+  applyVisibility();
+
+  // Re-aplicar tras navegación (nav puede re-renderizar)
+  window.addEventListener('hashchange', () => setTimeout(applyVisibility, 30));
+};
+
+const PLAT_STYLES = `
 #platform-switcher { width: 100%; box-sizing: border-box; }
 .plat-bar {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px;
