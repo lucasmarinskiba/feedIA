@@ -1653,7 +1653,11 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'GET',
     pattern: '/api/growth/dashboard',
-    handler: ({ res }) => json(res, 200, buildGrowthDashboard(brand)),
+    handler: async ({ res }) => {
+      const response = buildGrowthDashboard(brand);
+      const enriched = await withExpertGuidance('imperio', response);
+      json(res, 200, enriched);
+    },
   },
   {
     method: 'GET',
@@ -2429,7 +2433,9 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         dryRun: b.dryRun ?? false,
         maxTotalCost: b.maxCost ?? 5.0,
       });
-      json(res, 200, { results, count: results.length });
+      const response = { results, count: results.length };
+      const enriched = await withExpertGuidance('forge', response);
+      json(res, 200, enriched);
     },
   },
 
@@ -2449,7 +2455,9 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       }
       const result = await runBrainAwareCu(brand, b);
       const { summarizeSession } = await import('../capabilities/computerUse/brainAwareCu.js');
-      json(res, 200, { result, summary: summarizeSession(result) });
+      const response = { result, summary: summarizeSession(result) };
+      const enriched = await withExpertGuidance('cuToolbox', response);
+      json(res, 200, enriched);
     },
   },
   {
@@ -3223,7 +3231,11 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'GET',
     pattern: '/api/consumption/quality/dashboard',
-    handler: ({ res }) => json(res, 200, buildQualityDashboard()),
+    handler: async ({ res }) => {
+      const response = buildQualityDashboard();
+      const enriched = await withExpertGuidance('inteligencia', response);
+      json(res, 200, enriched);
+    },
   },
   {
     method: 'GET',
