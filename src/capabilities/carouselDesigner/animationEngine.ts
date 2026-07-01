@@ -49,7 +49,7 @@ export const animationEngine = () => {
 
     let cumulativeDelay = 0;
 
-    slides.forEach((slide, idx) => {
+    slides.forEach((slide: any, idx: any) => {
       const animationType = slide.animation?.type || defaultAnimationStyle;
       const duration = slide.animation?.duration || 2500;
       const delay = slide.animation?.delay || 0;
