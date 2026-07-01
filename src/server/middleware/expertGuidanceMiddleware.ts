@@ -13,6 +13,7 @@
 
 import { log } from '../../agent/logger.js';
 import { salaToolsAPI } from '../../brain/integration/salaToolsMaster.js';
+import { getGuidanceWithCache } from './expertGuidanceCache.js';
 
 export interface ExpertEnrichedResponse {
   data: unknown;
@@ -36,17 +37,17 @@ export const withExpertGuidance = async (
   responseData: unknown,
 ): Promise<ExpertEnrichedResponse> => {
   try {
-    // Get expert guidance for this tool
-    const toolGetter = salaToolsAPI[toolName as keyof typeof salaToolsAPI];
+    // Get expert guidance for this tool (cached)
+    const guidance = await getGuidanceWithCache(toolName).catch((error) => {
+      log.warn(`[Expert Middleware] Failed to get guidance for ${toolName}: ${error}`);
+      return null;
+    });
 
-    if (!toolGetter) {
-      log.warn(`[Expert Middleware] Unknown tool: ${toolName}`);
+    if (!guidance) {
       return {
         data: responseData,
       };
     }
-
-    const guidance = await toolGetter();
 
     return {
       data: responseData,
