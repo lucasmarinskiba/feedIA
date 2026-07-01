@@ -75,7 +75,7 @@ export const calendarEventsWithExperts = async (_brandId: string): Promise<unkno
 
   // Extract expert recommendations for calendar specifically
   const recommendations = await getExpertRecommendations('calendar', 3);
-  enriched.data.expertTips = recommendations;
+  (enriched.data as Record<string, unknown>).expertTips = recommendations;
 
   return enriched;
   // enriched.data.expertTips will include:

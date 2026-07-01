@@ -8,7 +8,7 @@
  * → { slides: [...], guidance: [...], reasoning: [...] }
  */
 
-import type { RequestHandler } from './http.js';
+import type { RouteHandler } from './http.js';
 import type { BrandProfile } from '../config/types.js';
 import {
   enrichCarouselDesigner,
@@ -34,7 +34,7 @@ export const getInsights = (workflowId: string): Record<string, unknown> | null 
 
 // ── API handlers ──────────────────────────────────────────────────────
 
-export const studioInsightsHandler: RequestHandler = async ({ req, res, _user, brand }) => {
+export const studioInsightsHandler: RouteHandler = async ({ req, res, _user, brand }) => {
   const url = new URL(req.url || '/', 'http://localhost');
   const format = url.pathname.split('/').pop() || 'carousel';
   const platform = url.searchParams.get('platform') || 'instagram';
