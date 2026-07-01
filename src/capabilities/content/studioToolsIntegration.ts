@@ -43,7 +43,7 @@ export const createCarouselWithBrainGuidance = async (
       tone: brand?.voice?.tone || ['professional'],
     },
     async (t, b) => {
-      const job = await runCarouselFactory(b, { topic: t, mode: 'quick' });
+      const job = await runCarouselFactory(b, { topic: t });
       return { jobId: job.id, format: 'carousel' };
     },
   );

@@ -41,7 +41,7 @@ export const enhanceCarouselCreation = async (
     {
       topic: config.topic,
       brand: config.brand,
-      tone: config.tone || config.brand?.tone || ['professional'],
+      tone: config.tone || config.brand?.voice?.tone || ['professional'],
       contentType: 'value',
     },
     config.slideCount || 10,

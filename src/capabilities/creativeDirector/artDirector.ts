@@ -24,6 +24,8 @@ export const generatePinterestPrompt = (
   brand?: unknown,
   designBrief?: PinterestDesignBrief,
 ): string => {
+  // Type brand as BrandProfile if provided
+  const brandProfile = brand as any;
   const style = designBrief?.style || 'bold-playful';
   const aesthetic = PINTEREST_AESTHETICS.find((a) => a.id === style);
 
@@ -50,12 +52,12 @@ Patrón de layout: ${designBrief.pattern}
 
   // Brand context (if available)
   const brandContext =
-    brand
+    brandProfile
       ? `
 Marca del usuario:
-- Niche: ${brand.niche || 'Creadores de contenido'}
-- Nombre: ${brand.name || 'Brand'}
-- Público: ${brand.audience?.description || 'General audience'}`
+- Niche: ${brandProfile.niche || 'Creadores de contenido'}
+- Nombre: ${brandProfile.name || 'Brand'}
+- Público: ${brandProfile.audience?.description || 'General audience'}`
       : '';
 
   // Construct prompt following Pinterest standards
@@ -123,13 +125,13 @@ GUÍAS DE DISEÑO VISUAL:
 ${aesthetic ? formatAestheticForPrompt(aesthetic) : ''}
 
 ${
-  brand
+  brandProfile
     ? `
 CONTEXTO DE MARCA:
-- Nombre: ${brand.name}
-- Nicho: ${brand.niche}
-- Público: ${brand.audience?.description || 'Variado'}
-- Tipo: ${brand.type || 'Marca'}
+- Nombre: ${brandProfile.name}
+- Nicho: ${brandProfile.niche}
+- Público: ${brandProfile.audience?.description || 'Variado'}
+- Tipo: ${brandProfile.type || 'Marca'}
 `
     : ''
 }
