@@ -128,7 +128,7 @@ export const studioInsightsHandler: RouteHandler = async ({ req, res }) => {
 
 // ── Integration with extendedRoutes ────────────────────────────────
 
-export const registerStudioInsightsRoutes = (routes: Array<{ method: string; pattern: string; handler: RequestHandler }>): void => {
+export const registerStudioInsightsRoutes = (routes: Array<{ method: string; pattern: string; handler: RouteHandler }>): void => {
   routes.push({
     method: 'GET',
     pattern: '/api/studio/insights/:format',

@@ -20,7 +20,6 @@ import {
   enrichTikTokPhoto,
   enrichTikTokScript,
 } from '../studioTools/canvaInsightsInjector.js';
-import type { CarouselResult } from './carouselFactory.js';
 
 // ── Enhance Carousel creation ────────────────────────────────────────
 
@@ -33,8 +32,8 @@ export interface EnhancedCarouselConfig {
 
 export const enhanceCarouselCreation = async (
   config: EnhancedCarouselConfig,
-  createCarouselFn: (topic: string, brand: BrandProfile) => Promise<CarouselResult>,
-): Promise<CarouselResult & { designGuidance?: unknown }> => {
+  createCarouselFn: (topic: string, brand: BrandProfile) => Promise<unknown>,
+): Promise<unknown> => {
   log.info(`[Studio Enhancer] Carousel: ${config.topic}`);
 
   // 1. Get Canva guidance
@@ -52,10 +51,11 @@ export const enhanceCarouselCreation = async (
   const carousel = await createCarouselFn(config.topic, config.brand);
 
   // 3. Enhance with guidance
-  log.info(`[Studio Enhancer] Applied design guidance to ${carousel.slides.length} slides`);
+  const slideCount = (carousel as any)?.slides?.length || 0;
+  log.info(`[Studio Enhancer] Applied design guidance to ${slideCount} slides`);
 
   return {
-    ...carousel,
+    ...(carousel as Record<string, unknown>),
     designGuidance: guidance,
   };
 };
@@ -87,7 +87,7 @@ export const enhanceReelCreation = async (
   log.info(`[Studio Enhancer] Applied reel motion + audio guidance`);
 
   return {
-    ...reel,
+    ...(reel as Record<string, unknown>),
     reelGuidance: guidance,
   };
 };

@@ -40,15 +40,11 @@ export const createCarouselWithBrainGuidance = async (
       topic,
       brand,
       slideCount,
-      tone: brand?.voice?.tone?.[0] || 'professional',
+      tone: brand?.voice?.tone || ['professional'],
     },
     async (t, b) => {
-      const jobId = await runCarouselFactory({
-        brand: b,
-        slides: t,
-        mode: 'quick',
-      });
-      return { jobId, format: 'carousel' };
+      const job = await runCarouselFactory(b, { topic: t, mode: 'quick' });
+      return { jobId: job.id, format: 'carousel' };
     },
   );
 
