@@ -8,24 +8,24 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { recordDailySnapshot, getRecentDailyMetrics } from '../capabilities/growth/growthEngine.js';
 import type { BrandProfile } from '../config/types.js';
 
-// Mock brand profile (minimal required fields)
-const mockBrand = {
-  id: 'test-brand',
-  name: 'Test Brand',
-  type: 'marca-personal' as const,
-  niche: 'tech',
-  audience: {
-    description: 'Tech enthusiasts',
-    pains: [] as string[],
-    desires: [] as string[],
-    locale: 'es-AR',
-  },
-  voice: {
-    tone: ['professional'],
-    forbidden: [] as string[],
-    referenceQuotes: [] as string[],
-  },
-} as unknown as BrandProfile;
+// Mock brand profile (minimal required fields) - currently unused
+// const _mockBrand = {
+//   id: 'test-brand',
+//   name: 'Test Brand',
+//   type: 'marca-personal' as const,
+//   niche: 'tech',
+//   audience: {
+//     description: 'Tech enthusiasts',
+//     pains: [] as string[],
+//     desires: [] as string[],
+//     locale: 'es-AR',
+//   },
+//   voice: {
+//     tone: ['professional'],
+//     forbidden: [] as string[],
+//     referenceQuotes: [] as string[],
+//   },
+// } as unknown as BrandProfile;
 
 describe('Metrics Flow: Platform Data → Achievements', () => {
   beforeEach(() => {

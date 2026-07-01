@@ -36,9 +36,7 @@ const buildRunwayPrompt = (input: VideoProductionInput): string => {
   return parts.join(' ');
 };
 
-const buildHeyGenScript = (input: VideoProductionInput): string => {
-  return `${input.script.hookVisual}. ${input.script.caption}. ${input.script.cta}`;
-};
+const buildHeyGenScript = (input: VideoProductionInput): string => `${input.script.hookVisual}. ${input.script.caption}. ${input.script.cta}`;
 
 const produceWithRunway = async (input: VideoProductionInput): Promise<ProducedVideo> => {
   const prompt = buildRunwayPrompt(input);

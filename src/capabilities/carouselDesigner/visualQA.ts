@@ -15,7 +15,7 @@ export interface QAResult {
  * Validate carousel slides against Pinterest aesthetic standards.
  * Returns score + issues found.
  */
-export const validateAesthetic = (slides: any[], threshold: number = 70): QAResult => {
+export const validateAesthetic = (slides: unknown[], threshold: number = 70): QAResult => {
   const issues: string[] = [];
   const warnings: string[] = [];
   let scoreDeduction = 0;
@@ -126,12 +126,12 @@ export const requireAestheticPass = (result: QAResult, threshold: number = 70): 
  * Returns modified slides + list of fixes applied.
  */
 export const autoFixAesthetic = (
-  slides: any[],
-): { slides: any[]; fixes: string[] } => {
+  slides: unknown[],
+): { slides: unknown[]; fixes: string[] } => {
   const fixes: string[] = [];
   const fixed = JSON.parse(JSON.stringify(slides)); // Deep copy
 
-  fixed.forEach((slide: any, idx: number) => {
+  fixed.forEach((slide: unknown, idx: number) => {
     // Fix 1: Headline size out of range
     const headlineSize = slide.typography?.headline?.size || 32;
     if (headlineSize < 28) {

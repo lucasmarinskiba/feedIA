@@ -16,9 +16,7 @@ export interface MessageWithCache {
   cache?: boolean;
 }
 
-export const optimizeCuPlan = (actions: any[]) => {
-  return { strategy: { mode: 'sequential' }, batches: [], totalEstimatedMs: 0, savingsMs: 0, savingsPercent: 0 };
-};
+export const optimizeCuPlan = (actions: unknown[]) => ({ strategy: { mode: 'sequential' }, batches: [], totalEstimatedMs: 0, savingsMs: 0, savingsPercent: 0 });
 
 export const compressScreenshot = (screenshot: string): string => screenshot;
 export const pruneMessageHistory = (messages: MessageWithCache[]): MessageWithCache[] => messages;

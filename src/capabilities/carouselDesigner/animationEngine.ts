@@ -35,7 +35,7 @@ export const animationEngine = () => {
    * Generates CSS keyframes + timing array for MP4 generation.
    */
   const buildAnimationTimeline = (
-    slides: any[],
+    slides: unknown[],
     totalDuration: number,
     defaultAnimationStyle: 'fade' | 'slideLeft' | 'slideUp' | 'zoom' | 'rotate',
   ): AnimationTimeline => {
@@ -95,8 +95,6 @@ export const animationEngine = () => {
     keyframeId: string,
     easing: string,
   ): string => {
-    const easeFunc = easing || 'ease-out';
-
     switch (type) {
       case 'fade':
         return `
@@ -146,7 +144,7 @@ export const animationEngine = () => {
   /**
    * Generate complete CSS with slide classes and animations.
    */
-  const generateCSS = (allKeyframes: string, slides: any[], timeline: any[]): string => {
+  const generateCSS = (allKeyframes: string, slides: unknown[], timeline: unknown[]): string => {
     const slideCSS = slides
       .map((slide, idx) => {
         const timingInfo = timeline[idx];
@@ -207,21 +205,19 @@ ${slideCSS}
    * Used to render video with proper slide timings.
    */
   const generateMP4Timing = (
-    slides: any[],
-    timeline: any[],
+    slides: unknown[],
+    timeline: unknown[],
   ): Array<{
     slideIndex: number;
     startTime: number;
     duration: number;
     transition: string;
-  }> => {
-    return timeline.map((timing, idx) => ({
+  }> => timeline.map((timing, idx) => ({
       slideIndex: timing.slideId,
       startTime: timing.delay / 1000, // Convert to seconds
       duration: timing.duration / 1000,
       transition: timing.animation,
     }));
-  };
 
   return {
     buildAnimationTimeline,

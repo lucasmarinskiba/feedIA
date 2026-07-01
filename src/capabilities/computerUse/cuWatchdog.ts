@@ -95,13 +95,11 @@ export const isCancelled = (sessionId: string): boolean => {
   return wd?.cancelled ?? false;
 };
 
-export const listActiveWatchdogs = (): Array<{ sessionId: string; elapsedMs: number; cancelled: boolean }> => {
-  return [...activeWatchdogs.values()].map((wd) => ({
+export const listActiveWatchdogs = (): Array<{ sessionId: string; elapsedMs: number; cancelled: boolean }> => [...activeWatchdogs.values()].map((wd) => ({
     sessionId: wd.sessionId,
     elapsedMs: Date.now() - wd.startedAt,
     cancelled: wd.cancelled,
   }));
-};
 
 // ── Helpers para wrappear acciones con timeout ────────────────────────────────
 

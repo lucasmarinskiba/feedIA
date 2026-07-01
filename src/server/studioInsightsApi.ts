@@ -30,13 +30,11 @@ export const cacheInsights = (workflowId: string, insights: Record<string, unkno
   setTimeout(() => insightsCache.delete(workflowId), 30 * 60 * 1000);
 };
 
-export const getInsights = (workflowId: string): Record<string, unknown> | null => {
-  return insightsCache.get(workflowId) || null;
-};
+export const getInsights = (workflowId: string): Record<string, unknown> | null => insightsCache.get(workflowId) || null;
 
 // ── API handlers ──────────────────────────────────────────────────────
 
-export const studioInsightsHandler: RequestHandler = async ({ req, res, user, brand }) => {
+export const studioInsightsHandler: RequestHandler = async ({ req, res, _user, brand }) => {
   const url = new URL(req.url || '/', 'http://localhost');
   const format = url.pathname.split('/').pop() || 'carousel';
   const platform = url.searchParams.get('platform') || 'instagram';

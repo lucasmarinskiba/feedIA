@@ -57,8 +57,7 @@ const downloadWithTimeout = async (
   maxSize: number,
   timeout: number,
   userAgent: string,
-): Promise<Buffer> => {
-  return new Promise((resolve, reject) => {
+): Promise<Buffer> => new Promise((resolve, reject) => {
     const url = new URL(urlString);
     const isHttps = url.protocol === 'https:';
     const client = isHttps ? https : http;
@@ -123,7 +122,6 @@ const downloadWithTimeout = async (
 
     request.on('error', reject);
   });
-};
 
 /**
  * Check if hostname is private/loopback IP.

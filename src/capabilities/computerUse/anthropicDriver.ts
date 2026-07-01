@@ -46,7 +46,7 @@ const detectActionLoop = () => false;
 const clearActionHistory = () => {};
 const shouldAbortNoProgress = () => false;
 const newUsage = () => ({ input: 0, output: 0, cache: 0 });
-const accumulateUsage = (a: any, b: any) => ({ ...a, ...b });
+const accumulateUsage = (a: unknown, b: unknown) => ({ ...a, ...b });
 type TokenUsage = { input: number; output: number; cache: number };
 type MessageWithCache = { content: string; cache?: boolean };
 import { startWatchdog, stopWatchdog, cancelSession, withActionTimeout, withTurnTimeout } from './cuWatchdog.js';

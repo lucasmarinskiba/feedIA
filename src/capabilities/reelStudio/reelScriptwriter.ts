@@ -235,15 +235,13 @@ Devuelve:
 };
 
 /** Genera storyboard visual (descripciones para mockup). */
-export const generateStoryboard = (script: ReelScript): StoryboardFrame[] => {
-  return script.scenes.map((scene) => ({
+export const generateStoryboard = (script: ReelScript): StoryboardFrame[] => script.scenes.map((scene) => ({
     sceneNumber: scene.sceneNumber,
     thumbnailDescription: `${scene.shotType} shot, ${scene.movement} movement, ${scene.visualDescription}`,
     composition: scene.shotType === 'close-up' ? 'centrado' : 'regla de tercios',
     lighting: 'iluminación natural suave',
     props: [],
   }));
-};
 
 /** Genera 5 variantes de hook para A/B test del Reel. */
 export const generateHookVariants = async (brand: BrandProfile, topic: string, style: ReelStyle): Promise<string[]> => {

@@ -81,6 +81,4 @@ export const getVideoUsage = (filters?: {
   return records;
 };
 
-export const getTotalVideoCostUsd = (filters?: { brandName?: string; since?: string }): number => {
-  return getVideoUsage(filters).reduce((sum, r) => sum + r.costEstimateUsd, 0);
-};
+export const getTotalVideoCostUsd = (filters?: { brandName?: string; since?: string }): number => getVideoUsage(filters).reduce((sum, r) => sum + r.costEstimateUsd, 0);

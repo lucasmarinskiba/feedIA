@@ -21,7 +21,7 @@ export interface PinterestDesignBrief {
  */
 export const generatePinterestPrompt = (
   topic: string,
-  brand?: any,
+  brand?: unknown,
   designBrief?: PinterestDesignBrief,
 ): string => {
   const style = designBrief?.style || 'bold-playful';
@@ -106,7 +106,7 @@ export const generateCarouselArtDirectionPrompt = (
   topic: string,
   style: 'warm-organic' | 'bold-playful' | 'dark-premium' | 'clean-editorial',
   slideCount: number,
-  brand?: any,
+  brand?: unknown,
 ): string => {
   const aesthetic = PINTEREST_AESTHETICS.find((a) => a.id === style);
 

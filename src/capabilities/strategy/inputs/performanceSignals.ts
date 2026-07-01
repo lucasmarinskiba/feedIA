@@ -39,6 +39,4 @@ export const getWinningFormat = (): string | undefined => {
   return patterns.bestFormats[0]?.format;
 };
 
-export const getWinningTopics = (limit = 5): string[] => {
-  return extractPatterns().topTopics.slice(0, limit).map((t) => t.topic);
-};
+export const getWinningTopics = (limit = 5): string[] => extractPatterns().topTopics.slice(0, limit).map((t) => t.topic);

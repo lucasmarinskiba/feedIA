@@ -117,11 +117,9 @@ export const EXTERNAL_APIS: Record<string, ExternalAPI> = {
 /**
  * Get enabled APIs for a category, sorted by priority.
  */
-export const getAPIsByCategory = (category: ExternalAPI['category']): ExternalAPI[] => {
-  return Object.values(EXTERNAL_APIS)
+export const getAPIsByCategory = (category: ExternalAPI['category']): ExternalAPI[] => Object.values(EXTERNAL_APIS)
     .filter((api) => api.enabled && api.category === category)
     .sort((a, b) => a.priority - b.priority);
-};
 
 /**
  * Get next API in fallback chain.

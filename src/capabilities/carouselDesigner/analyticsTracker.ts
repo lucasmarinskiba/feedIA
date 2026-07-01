@@ -9,7 +9,7 @@ export interface AnalyticsEvent {
   timestamp: string;
   jobId?: string;
   userId?: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 const events: AnalyticsEvent[] = [];
@@ -74,8 +74,7 @@ export const getAnalyticsSummary = (): {
 /**
  * Export analytics to JSON.
  */
-export const exportAnalytics = (): string => {
-  return JSON.stringify(
+export const exportAnalytics = (): string => JSON.stringify(
     {
       exportDate: new Date().toISOString(),
       summary: getAnalyticsSummary(),
@@ -84,7 +83,6 @@ export const exportAnalytics = (): string => {
     null,
     2,
   );
-};
 
 export const analyticsTracker = {
   trackEvent,

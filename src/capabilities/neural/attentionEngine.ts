@@ -70,9 +70,7 @@ export const selectTopTask = (requests: AttentionRequest[]): AttentionScore | un
   return ranked[0];
 };
 
-export const shouldSwitchFocus = (currentTaskScore: number, newTaskScore: number, threshold = 15): boolean => {
-  return newTaskScore - currentTaskScore > threshold;
-};
+export const shouldSwitchFocus = (currentTaskScore: number, newTaskScore: number, threshold = 15): boolean => newTaskScore - currentTaskScore > threshold;
 
 export interface FocusWindow {
   taskId: string;

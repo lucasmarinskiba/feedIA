@@ -30,10 +30,10 @@ export interface CRMContextResult {
 }
 
 // Stub para HubSpot/Salesforce
-const fetchFromHubSpot = async (_identifier: string): Promise<CRMContact | null> => {
+const fetchFromHubSpot = async (_identifier: string): Promise<CRMContact | null> => 
   // TODO: implementar integración HubSpot
-  return null;
-};
+   null
+;
 
 const fetchFromNotion = async (identifier: string): Promise<CRMContact | null> => {
   if (!env.crm?.provider || env.crm.provider !== 'notion' || !env.crm.apiKey) {
@@ -79,9 +79,7 @@ const fetchFromNotion = async (identifier: string): Promise<CRMContact | null> =
       return ms?.map((t) => t.name ?? '').filter(Boolean) ?? [];
     };
 
-    const getEmail = (key: string): string | undefined => {
-      return (props[key]?.email as string | undefined) ?? undefined;
-    };
+    const getEmail = (key: string): string | undefined => (props[key]?.email as string | undefined) ?? undefined;
 
     return CRMContactSchema.parse({
       id: page.id,

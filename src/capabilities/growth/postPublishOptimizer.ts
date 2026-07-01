@@ -163,9 +163,7 @@ export const runPostOptimizationRound = (window: OptimizationWindow = '48h'): Op
   return reviews;
 };
 
-export const getQueuedVariants = (limit = 10): OptimizerStore['queuedVariants'] => {
-  return loadStore().queuedVariants.slice(-limit).reverse();
-};
+export const getQueuedVariants = (limit = 10): OptimizerStore['queuedVariants'] => loadStore().queuedVariants.slice(-limit).reverse();
 
 export const getOptimizationStats = (): {
   totalReviews: number;

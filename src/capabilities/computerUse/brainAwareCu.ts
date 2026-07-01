@@ -294,11 +294,9 @@ export const runBrainAwareCu = async (brand: BrandProfile, input: BrainAwareCuIn
 };
 
 /** Conveniencia: extrae snapshots/screenshots de los events para preview. */
-export const extractScreenshots = (result: BrainAwareCuResult): string[] => {
-  return result.events
+export const extractScreenshots = (result: BrainAwareCuResult): string[] => result.events
     .filter((e) => e.kind === 'screenshot')
     .map((e) => (e as { kind: 'screenshot'; dataUri: string }).dataUri);
-};
 
 /** Telemetría de una sesión brain-aware. */
 export const summarizeSession = (

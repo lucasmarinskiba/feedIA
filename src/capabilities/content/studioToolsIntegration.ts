@@ -86,10 +86,10 @@ export const createTikTokVideoWithBrainGuidance = async (
 
   const result = await enhanceTikTokVideo(
     { topic, brand },
-    async (t, b) => {
+    async (t, b) => 
       // TODO: Call actual TikTok video creator
-      return { topic: t, format: 'tiktok-video', status: 'planned' };
-    },
+       ({ topic: t, format: 'tiktok-video', status: 'planned' })
+    ,
   );
 
   const validation = await validateStudioOutput(result, 'tiktok-video');
@@ -109,10 +109,10 @@ export const createTikTokPhotoWithBrainGuidance = async (
 
   const result = await enhanceTikTokPhoto(
     { description, brand },
-    async (d, b) => {
+    async (d, b) => 
       // TODO: Call actual TikTok photo creator
-      return { description: d, format: 'tiktok-photo', status: 'planned' };
-    },
+       ({ description: d, format: 'tiktok-photo', status: 'planned' })
+    ,
   );
 
   const validation = await validateStudioOutput(result, 'tiktok-photo');
@@ -132,10 +132,10 @@ export const createTikTokScriptWithBrainGuidance = async (
 
   const result = await enhanceTikTokScript(
     { topic, brand },
-    async (t, b) => {
+    async (t, b) => 
       // TODO: Call actual TikTok script creator
-      return { topic: t, format: 'tiktok-script', status: 'planned' };
-    },
+       ({ topic: t, format: 'tiktok-script', status: 'planned' })
+    ,
   );
 
   const validation = await validateStudioOutput(result, 'tiktok-script');
@@ -155,10 +155,10 @@ export const createStoryWithBrainGuidance = async (
 
   const result = await enhanceStoryCreation(
     { idea, brand },
-    async (i, b) => {
+    async (i, b) => 
       // TODO: Call actual Story creator
-      return { idea: i, format: 'story', status: 'planned' };
-    },
+       ({ idea: i, format: 'story', status: 'planned' })
+    ,
   );
 
   const validation = await validateStudioOutput(result, 'story');

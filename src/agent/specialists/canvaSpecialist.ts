@@ -285,8 +285,7 @@ export interface CanvaAction {
   params?: Record<string, unknown>;
 }
 
-export const specToCanvaActions = (spec: CanvaDesignSpec): CanvaAction[] => {
-  return [
+export const specToCanvaActions = (spec: CanvaDesignSpec): CanvaAction[] => [
     {
       type: 'create',
       instruction: `Create new design: ${spec.dimensions.width}×${spec.dimensions.height}`,
@@ -315,7 +314,6 @@ export const specToCanvaActions = (spec: CanvaDesignSpec): CanvaAction[] => {
       params: { format: 'png', quality: 95 },
     },
   ];
-};
 
 // ── Studio tool helpers (non-CU fallback) ──────────────────────────────────
 
@@ -330,20 +328,16 @@ export const generateCarouselInsight = (spec: CanvaDesignSpec, slideIndex: numbe
   );
 };
 
-export const generateReelInsight = (spec: CanvaDesignSpec): string => {
-  return (
+export const generateReelInsight = (spec: CanvaDesignSpec): string => (
     `Reel strategy: ${spec.animation.style} entrance (${spec.animation.duration}ms). ` +
     `Hook text: ${spec.typography.headline.size}px bold. ` +
     `Sound: trending audio paired with ${spec.imagery.mood} visuals. ` +
     `CTA at 1.5s mark.`
   );
-};
 
-export const generateTikTokInsight = (spec: CanvaDesignSpec): string => {
-  return (
+export const generateTikTokInsight = (spec: CanvaDesignSpec): string => (
     `TikTok format (9:16): ${spec.layout.pattern}. ` +
     `Hook: ${spec.typography.headline.size}px, top 1/3. ` +
     `Trending stickers + sound. ` +
     `Enter animation: ${spec.animation.style} (${spec.animation.duration}ms).`
   );
-};

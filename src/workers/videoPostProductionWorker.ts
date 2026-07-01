@@ -30,9 +30,7 @@ export interface VideoPostProductionPayload {
   webhookReturnUrl?: string;
 }
 
-const parsePayload = (job: Job<FeediaJob>): VideoPostProductionPayload => {
-  return job.data.payload as unknown as VideoPostProductionPayload;
-};
+const parsePayload = (job: Job<FeediaJob>): VideoPostProductionPayload => job.data.payload as unknown as VideoPostProductionPayload;
 
 const runPostProduction = async (payload: VideoPostProductionPayload) => {
   const { provider, requestId, videoUrl, audioUrl, recipe, brandName, title, durationSec, webhookReturnUrl } = payload;
@@ -115,6 +113,4 @@ export const processVideoPostProduction = async (job: Job<FeediaJob>): Promise<{
   return { ok: result.ok, refinedUrl, provider: payload.provider, error: result.error };
 };
 
-export const startVideoPostProductionWorker = (): ReturnType<typeof createWorker> => {
-  return createWorker('videoPostProduction', processVideoPostProduction);
-};
+export const startVideoPostProductionWorker = (): ReturnType<typeof createWorker> => createWorker('videoPostProduction', processVideoPostProduction);

@@ -120,17 +120,11 @@ export const fetchTikTokSounds = async (opts?: {
   return filtered.slice(0, opts?.limit ?? 10);
 };
 
-export const getTrendingHashtags = async (limit = 10): Promise<TikTokTrend[]> => {
-  return fetchTikTokTrends({ type: 'hashtag', limit });
-};
+export const getTrendingHashtags = async (limit = 10): Promise<TikTokTrend[]> => fetchTikTokTrends({ type: 'hashtag', limit });
 
-export const getTrendingSounds = async (limit = 10): Promise<TikTokSoundTrend[]> => {
-  return fetchTikTokSounds({ limit });
-};
+export const getTrendingSounds = async (limit = 10): Promise<TikTokSoundTrend[]> => fetchTikTokSounds({ limit });
 
-export const getTrendingChallenges = async (limit = 10): Promise<TikTokTrend[]> => {
-  return fetchTikTokTrends({ type: 'challenge', limit });
-};
+export const getTrendingChallenges = async (limit = 10): Promise<TikTokTrend[]> => fetchTikTokTrends({ type: 'challenge', limit });
 
 export interface TrendRecommendation {
   contentAngle: string;

@@ -21,8 +21,8 @@ export interface CarouselExport {
  */
 export const createCarouselExport = async (
   jobId: string,
-  slides: any[],
-  animations: { css: string; timeline: any[] },
+  slides: unknown[],
+  animations: { css: string; timeline: unknown[] },
   mp4Url?: string,
 ): Promise<CarouselExport> => {
   const exportDir = `/tmp/carousel-exports/${jobId}`;
@@ -160,7 +160,7 @@ export const createCarouselExport = async (
 /**
  * Generate HTML5 preview with inline CSS animations.
  */
-const generateHTMLPreview = (slides: any[], css: string): string => {
+const generateHTMLPreview = (slides: unknown[], css: string): string => {
   const slidesHTML = slides
     .map(
       (slide, idx) => `
@@ -219,9 +219,7 @@ const generateHTMLPreview = (slides: any[], css: string): string => {
  * Get export directory for downloading.
  * Used by download endpoint to serve files.
  */
-export const getExportDirectory = (jobId: string): string => {
-  return `/tmp/carousel-exports/${jobId}`;
-};
+export const getExportDirectory = (jobId: string): string => `/tmp/carousel-exports/${jobId}`;
 
 /**
  * List files in export directory.

@@ -81,7 +81,7 @@ export interface CarouselDesignerProOutput {
  */
 export const designCarouselPinterest = async (
   input: CarouselDesignerProInput,
-  brand?: any,
+  brand?: unknown,
   client?: Anthropic,
 ): Promise<CarouselDesignerProOutput> => {
   const startTime = Date.now();
@@ -100,7 +100,7 @@ export const designCarouselPinterest = async (
     });
 
     // Step 2: Enhance with Pinterest aesthetics
-    const pinterestSlides = baseCarousel.slides.map((slide: any, idx: number) => {
+    const pinterestSlides = baseCarousel.slides.map((slide: unknown, idx: number) => {
       const pinterestPattern = getPinterestPattern(idx, slideCount);
       const palette = getPinterestPalette(style);
       const textAnim = getTextAnimation(animationStyle, idx);
@@ -156,7 +156,7 @@ export const designCarouselPinterest = async (
     );
 
     // Step 3B: Download + upload images if requested
-    let downloadedImages: Map<number, string> = new Map();
+    const downloadedImages: Map<number, string> = new Map();
     try {
       const imageKeywords = detectImageRequests(input.prompt);
       if (imageKeywords.length > 0) {
@@ -344,7 +344,7 @@ const getTextAnimation = (
 /**
  * Generate HTML5 preview with CSS animations.
  */
-const generateHTMLPreview = (slides: PinterestSlide[], animations: any): string => {
+const generateHTMLPreview = (slides: PinterestSlide[], animations: unknown): string => {
   const slidesHTML = slides
     .map(
       (slide, idx) => `

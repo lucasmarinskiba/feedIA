@@ -12,8 +12,8 @@ export interface CarouselJob {
   id: string;
   prompt: string;
   status: 'queued' | 'running' | 'done' | 'error';
-  slides?: any[];
-  animations?: any;
+  slides?: unknown[];
+  animations?: unknown;
   exports?: {
     htmlPreview?: string;
     slides?: string[];
@@ -123,8 +123,8 @@ export const startJob = (jobId: string): void => {
 
 export const completeJob = (
   jobId: string,
-  slides: any[],
-  animations: any,
+  slides: unknown[],
+  animations: unknown,
   exports: CarouselJob['exports'],
   aestheticScore: number,
 ): void => {
@@ -208,9 +208,7 @@ export const cleanupOldJobs = (): void => {
   }
 };
 
-export const listJobs = (): CarouselJob[] => {
-  return Array.from(JOBS.values());
-};
+export const listJobs = (): CarouselJob[] => Array.from(JOBS.values());
 
 export const jobQueue = {
   createJob,

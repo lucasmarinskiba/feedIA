@@ -11,7 +11,7 @@ export const notifyWebhook = async (
   webhookUrl: string,
   jobId: string,
   status: 'done' | 'error',
-  data?: any,
+  data?: unknown,
 ): Promise<boolean> => {
   if (!webhookUrl) return false;
 
