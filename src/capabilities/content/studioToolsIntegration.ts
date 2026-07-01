@@ -19,7 +19,7 @@ import {
   enhanceStoryCreation,
   validateStudioOutput,
 } from './studioToolEnhancer.js';
-import { createCarrusel } from './carouselFactory.js';
+import { runCarouselFactory } from './carouselFactory.js';
 import { createReel } from './reel.js';
 
 // Re-export enhanced versions for use throughout codebase
@@ -40,9 +40,16 @@ export const createCarouselWithBrainGuidance = async (
       topic,
       brand,
       slideCount,
-      tone: brand?.tone,
+      tone: brand?.voice?.tone?.[0] || 'professional',
     },
-    (t, b) => createCarrusel(b, t, 'medio'),
+    async (t, b) => {
+      const jobId = await runCarouselFactory({
+        brand: b,
+        slides: t,
+        mode: 'quick',
+      });
+      return { jobId, format: 'carousel' };
+    },
   );
 
   // Validate output

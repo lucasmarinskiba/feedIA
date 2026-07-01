@@ -34,7 +34,7 @@ export const getInsights = (workflowId: string): Record<string, unknown> | null 
 
 // ── API handlers ──────────────────────────────────────────────────────
 
-export const studioInsightsHandler: RouteHandler = async ({ req, res, _user, brand }) => {
+export const studioInsightsHandler: RouteHandler = async ({ req, res }) => {
   const url = new URL(req.url || '/', 'http://localhost');
   const format = url.pathname.split('/').pop() || 'carousel';
   const platform = url.searchParams.get('platform') || 'instagram';
@@ -52,10 +52,20 @@ export const studioInsightsHandler: RouteHandler = async ({ req, res, _user, bra
   }
 
   // Generate fresh insights
+  // Default brand profile (no user context in this endpoint)
+  const defaultBrand: BrandProfile = {
+    id: 'default',
+    name: 'Brand',
+    type: 'marca-personal',
+    niche: 'general',
+    audience: { description: 'Audience', pains: [], desires: [], locale: 'es-AR' },
+    voice: { tone: ['professional'], forbidden: [], referenceQuotes: [] },
+  };
+
   const context: StudioContext = {
     topic,
-    brand: brand as BrandProfile,
-    tone: (brand as BrandProfile)?.tone || ['professional'],
+    brand: defaultBrand,
+    tone: defaultBrand.voice?.tone || ['professional'],
     contentType: 'value',
   };
 
