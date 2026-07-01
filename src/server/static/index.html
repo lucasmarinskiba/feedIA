@@ -1171,5 +1171,26 @@
     <!-- ═══ SCRIPTS ═══ -->
     <script type="module" src="/app.js?v=2026-05-29-16"></script>
     <script type="module" src="/views/siamese.js?v=1"></script>
+
+    <!-- Debug Feed visibility (development) -->
+    <script>
+      window.debugFeed = () => {
+        const feedBtn = document.querySelector('[data-route="feed"]');
+        if (!feedBtn) { console.error('❌ Feed button NOT FOUND'); return; }
+        const computed = window.getComputedStyle(feedBtn);
+        const rect = feedBtn.getBoundingClientRect();
+        console.log('Feed Debug:', {
+          found: true,
+          display: computed.display,
+          visibility: computed.visibility,
+          opacity: computed.opacity,
+          position: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+          visible: rect.width > 0 && rect.height > 0,
+          classes: feedBtn.className,
+        });
+      };
+      setTimeout(debugFeed, 500);
+      setTimeout(debugFeed, 2000);
+    </script>
   </body>
 </html>
