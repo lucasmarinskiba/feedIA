@@ -70,7 +70,6 @@ const downloadWithTimeout = async (
           Accept: 'image/*',
         },
         timeout,
-        maxRedirects: 5,
       },
       (response) => {
         // Check status
@@ -135,7 +134,9 @@ const isPrivateIP = (hostname: string): boolean => {
   // Parse as IPv4
   const ipMatch = hostname.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
   if (ipMatch) {
-    const [, a, b, c, d] = ipMatch.map(Number);
+    const nums = ipMatch.slice(1).map(Number);
+    const a = nums[0] ?? 0;
+    const b = nums[1] ?? 0;
 
     // 127.0.0.0/8 (loopback)
     if (a === 127) return true;

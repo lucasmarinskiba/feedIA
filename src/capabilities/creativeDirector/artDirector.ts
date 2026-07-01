@@ -50,12 +50,12 @@ Patrón de layout: ${designBrief.pattern}
 
   // Brand context (if available)
   const brandContext =
-    brand && brand.palette
+    brand
       ? `
 Marca del usuario:
-- Colores de marca: ${brand.palette?.primary}, ${brand.palette?.secondary}
-- Tipografía: ${brand.typography || 'Sin serif, moderno'}
-- Público: ${brand.niche || 'Creadores de contenido'}`
+- Niche: ${brand.niche || 'Creadores de contenido'}
+- Nombre: ${brand.name || 'Brand'}
+- Público: ${brand.audience?.description || 'General audience'}`
       : '';
 
   // Construct prompt following Pinterest standards
@@ -128,8 +128,8 @@ ${
 CONTEXTO DE MARCA:
 - Nombre: ${brand.name}
 - Nicho: ${brand.niche}
-- Paleta primaria: ${brand.palette?.primary}
-- Público: ${brand.audience || 'Variado'}
+- Público: ${brand.audience?.description || 'Variado'}
+- Tipo: ${brand.type || 'Marca'}
 `
     : ''
 }
