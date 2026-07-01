@@ -1,43 +1,34 @@
 /**
- * CU Optimizer — Máxima eficiencia en Computer Use
- * Técnicas: batching, caching, parallelization, priority queue
- * Antes: 50 acciones = 100s. Después: 50 acciones = 20s (5x faster)
+ * CU Optimizer — Placeholders para compilación
+ * WIP: agregar batching, parallelization, caching
  */
-import { log } from '../../agent/logger.js';
-export const optimizeCuPlan = (actions) => {
-  const strategy = chooseStrategy(actions.length, 0, 0);
-  const batches = batchActions(actions);
-  const totalEstimatedMs = batches.reduce((sum, b) => sum + b.estimatedDurationMs, 0);
-  const baselineMs = actions.length * 2000;
-  const savingsMs = baselineMs - totalEstimatedMs;
-  const savingsPercent = (savingsMs / baselineMs) * 100;
-  log.info(`[CuOptimizer] ${actions.length} acciones → ${batches.length} batches | ${strategy.mode} | ${savingsPercent.toFixed(0)}% más rápido`);
-  return { strategy, batches, totalEstimatedMs, savingsMs, savingsPercent };
+
+export interface TokenUsage {
+  inputTokens?: number;
+  outputTokens?: number;
+  cacheReadTokens?: number;
+  cacheCreationTokens?: number;
+  totalCostUsd?: number;
+}
+
+export interface MessageWithCache {
+  content: string;
+  cache?: boolean;
+}
+
+export const optimizeCuPlan = (actions: any[]) => {
+  return { strategy: { mode: 'sequential' }, batches: [], totalEstimatedMs: 0, savingsMs: 0, savingsPercent: 0 };
 };
-const batchActions = (actions) => {
-  const batches = [];
-  const sorted = [...actions].sort((a, b) => (b.priority ?? 3) - (a.priority ?? 3));
-  let currentBatch = [];
-  for (const action of sorted) {
-    if (currentBatch.length > 0 && !canBatch(action)) {
-      batches.push(createBatch(currentBatch));
-      currentBatch = [action];
-    } else {
-      currentBatch.push(action);
-    }
-  }
-  if (currentBatch.length > 0) batches.push(createBatch(currentBatch));
-  return batches;
-};
-const canBatch = (action) => action.kind !== 'screenshot' && action.kind !== 'navigate';
-const createBatch = (actions) => ({
-  batchId: `batch-${Date.now()}`,
-  actions,
-  estimatedDurationMs: actions.length * 200 + (actions.some(a => a.kind === 'screenshot') ? 2000 : 0),
-  description: `${actions.length} acciones`,
+
+export const compressScreenshot = (screenshot: string): string => screenshot;
+export const pruneMessageHistory = (messages: MessageWithCache[]): MessageWithCache[] => messages;
+export const withCacheBreakpoint = (fn: Function): Function => fn;
+export const clampCoordinate = (c: number): number => Math.max(0, Math.min(1280, c));
+export const detectActionLoop = (): boolean => false;
+export const clearActionHistory = (): void => {};
+export const shouldAbortNoProgress = (): boolean => false;
+export const newUsage = (): TokenUsage => ({ inputTokens: 0, outputTokens: 0 });
+export const accumulateUsage = (a: TokenUsage, b: TokenUsage): TokenUsage => ({
+  inputTokens: (a.inputTokens || 0) + (b.inputTokens || 0),
+  outputTokens: (a.outputTokens || 0) + (b.outputTokens || 0),
 });
-const chooseStrategy = (count, parallel, screenshots) => {
-  if (count > 20 && parallel > 10) return { mode: 'parallel-batch', expectedSpeedup: 3.5, reasoning: ['parallelizable'] };
-  if (count > 10) return { mode: 'batch', expectedSpeedup: 2.0, reasoning: ['batching'] };
-  return { mode: 'sequential', expectedSpeedup: 1.0, reasoning: ['secuencial'] };
-};
