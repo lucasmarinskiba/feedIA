@@ -13,6 +13,7 @@
 import type { BrandProfile } from '../config/types.js';
 import { json, type RouteDefinition } from './http.js';
 import { saveBrandProfile, getActiveBrandId } from '../config/accounts.js';
+import { withExpertGuidance } from './middleware/expertGuidanceMiddleware.js';
 
 // ── Experience ──────────────────────────────────────────────────────────────
 import {
@@ -517,8 +518,11 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'GET',
     pattern: '/api/home/dashboard',
-    handler: async ({ req, res, query }) =>
-      json(res, 200, await buildHomeDashboard(userIdFrom(req), brand, asString(query['lastVisit']) || undefined)),
+    handler: async ({ req, res, query }) => {
+      const response = await buildHomeDashboard(userIdFrom(req), brand, asString(query['lastVisit']) || undefined);
+      const enriched = await withExpertGuidance('home', response);
+      json(res, 200, enriched);
+    },
   },
   {
     method: 'GET',
@@ -1575,16 +1579,15 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'GET',
     pattern: '/api/calendar/events',
-    handler: ({ res, query }) =>
-      json(
-        res,
-        200,
-        listEvents({
-          from: query['from'] as string | undefined,
-          to: query['to'] as string | undefined,
-          type: query['type'] as NonNullable<Parameters<typeof listEvents>[0]>['type'],
-        }),
-      ),
+    handler: async ({ res, query }) => {
+      const response = listEvents({
+        from: query['from'] as string | undefined,
+        to: query['to'] as string | undefined,
+        type: query['type'] as NonNullable<Parameters<typeof listEvents>[0]>['type'],
+      });
+      const enriched = await withExpertGuidance('calendar', response);
+      json(res, 200, enriched);
+    },
   },
   {
     method: 'GET',
@@ -3427,11 +3430,14 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'GET',
     pattern: '/api/intelligence/competitors',
-    handler: ({ res }) =>
-      json(res, 200, {
+    handler: async ({ res }) => {
+      const response = {
         competitors: [],
         message: 'Sin competidores configurados. El Estratega Diferencial los usará cuando estén cargados.',
-      }),
+      };
+      const enriched = await withExpertGuidance('inteligencia', response);
+      json(res, 200, enriched);
+    },
   },
   {
     method: 'POST',
