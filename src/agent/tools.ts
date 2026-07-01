@@ -74,6 +74,7 @@ import {
   ensureBrandKit,
   type BrandKitAssetType,
 } from '../capabilities/brandkit/index.js';
+import { designMasterToolSpec, handleDesignMasterTool } from './tools/designMasterTool.js';
 import {
   ensureBrandStrategy,
   updateBrandStrategy,
@@ -13029,6 +13030,10 @@ tools.push(
       return { ok: true, actions: result.actions, experiments: result.experimentsLaunched };
     },
   ),
+  {
+    spec: designMasterToolSpec as Tool,
+    handler: async (input, brand) => handleDesignMasterTool({ ...input, brand } as Parameters<typeof handleDesignMasterTool>[0]),
+  },
 );
 
 export const toolSpecs = (): Tool[] => tools.map((t) => t.spec);
