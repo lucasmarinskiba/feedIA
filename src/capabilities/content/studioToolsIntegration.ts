@@ -289,4 +289,30 @@ export const studioToolsAPI = {
   story: createStoryWithBrainGuidance,
 };
 
-log.info('[Studio Integration] All studio tools initialized with brain guidance + Phase 10-12');
+// ── Phase 16: Content Coherence Validation ────────────────────
+
+export const validateWeeklyContentCoherence = async (
+  contentPieces: Array<{type: 'carousel' | 'video' | 'story' | 'reel'; data: any}>,
+  brand?: BrandProfile,
+): Promise<any> => {
+  const {validateWeeklyCoherence} = await import('./contentCoherenceValidator.js');
+
+  const posts = contentPieces.map((piece) => ({
+    type: piece.type,
+    topic: piece.data.topic || 'Untitled',
+    emotion: piece.data.emotion || 'curiosity',
+    fonts: piece.data.fonts || [brand?.fonts?.headline || 'Poppins'],
+    colors: piece.data.colors || [brand?.colors?.primary || '#E91E8C'],
+    tone: brand?.voice?.tone?.[0] || 'professional',
+    cta: piece.data.cta || 'Follow',
+  }));
+
+  const coherence = validateWeeklyCoherence(posts);
+  log.info(`[Integration] Weekly coherence: ${coherence.coherence.overallCoherence}/100`);
+
+  return coherence;
+};
+
+// ── Complete Unified API ────────────────────────────────────────
+
+log.info('[Studio Integration] All engines initialized: Phase 10-16 complete');
