@@ -350,4 +350,239 @@ export const designPatternWorkflow = {
   contentStrategy: 'Identify pain → Create prompt → Organize → Document → Improve',
 };
 
+// ── REAL CAROUSEL DESIGN PATTERNS ──────────────────────────────────────────
+
+export const carouselDesignPatterns = {
+  // Pattern 1: GOOD NEWS ANNOUNCEMENT (Celebration)
+
+  goodNewsAnnouncement: {
+    name: 'Good News Announcement Card',
+    description: 'Person celebrating milestone/achievement with WhatsApp card',
+    template: `
+Design celebration carousel for good news (approval, promotion, win):
+
+VISUAL:
+- Person on couch/chair, happy/excited reaction
+- Patterned background (light, busy pattern with icons)
+- Green WhatsApp card overlay with announcement copy
+- Card positioned center/bottom
+- Warm, welcoming color palette
+- Natural, authentic expression (not forced smile)
+
+COPY STRUCTURE:
+- Headline: The achievement/good news
+- WhatsApp card: Short, exclamatory message
+- Subheading: "Ese mensaje que cambia todo" (that message that changes everything)
+
+EXAMPLES:
+"¡Aprobaron el crédito!"
+"¡Conseguí el trabajo!"
+"¡Me aumentaron el sueldo!"
+"¡Nació mi hijo!"
+"¡Se aprobó el proyecto!"
+
+EMOTION TRIGGERS:
+- Joy (celebration)
+- Recognition (audience celebrates with them)
+- Hope (good things happen)
+- Relatability (everyone wants this news)
+
+PSYCHOLOGY:
+Celebrating wins builds brand loyalty. Audience aspires to same wins.
+
+USE CASE:
+- Personal brand milestones
+- Customer success stories
+- Team celebrations
+- Achievement announcements
+    `,
+  },
+
+  // Pattern 2: LIFE MILESTONE (Couples/Family)
+
+  lifeMilestoneCouple: {
+    name: 'Life Milestone Couple Celebration',
+    description: 'Overhead view of couple at table + WhatsApp card for milestone',
+    template: `
+Design life milestone carousel (moving, engagement, anniversary, project launch):
+
+VISUAL:
+- Overhead/aerial view of 2+ people at table
+- Natural setting (home, restaurant, workspace)
+- Props around them (objects related to milestone)
+- Patterned light background
+- Green WhatsApp card with copy
+- Emoji reactions below card (❤️ 😍 😂 🙌)
+- Warm, intimate framing
+
+COPY STRUCTURE:
+- WhatsApp message: Short, emotional announcement
+- Subheading: "Ese mensaje que cambia todo"
+- Support emojis showing emotional resonance
+
+EXAMPLES:
+"¡Nos mudamos!" (Moving)
+"¡Nos casamos!" (Wedding)
+"¡Aniversario de 10 años!" (Anniversary)
+"¡Nuestro negocio llegó a 1M!" (Business milestone)
+"¡Somos oficialmente familia!" (Adoption/pregnancy)
+
+EMOTION TRIGGERS:
+- Connection (shared moment)
+- Celebration (infectious joy)
+- Aspiration (audience wants same)
+- Solidarity (community celebrates together)
+
+PSYCHOLOGY:
+Shared milestones create community. Audience invests emotionally in couple's journey.
+
+USE CASE:
+- Relationship brands
+- Couples workshops/courses
+- Community building
+- Testimonial/success stories
+    `,
+  },
+
+  // Pattern 3: SUSTAINABLE/MISSION-DRIVEN (Product + Purpose)
+
+  sustainableBrandMessage: {
+    name: 'Sustainable Brand Mission Card',
+    description: 'Product + minimal aesthetic + environmental/purpose messaging',
+    template: `
+Design mission-driven carousel (sustainability, social impact, purpose):
+
+VISUAL:
+- Product hero shot (tote bag, eco product, etc)
+- Minimal, natural color palette (cream, green, earth tones)
+- Green or earth-tone background (solid or subtle pattern)
+- Product positioned asymmetrically
+- Clean, minimalist aesthetic
+- High production quality (premium feel)
+
+COPY STRUCTURE:
+- Main question: "O que faz uma marca ser [sustainable/purpose-driven]?"
+- Secondary: "E o que fizemos para [brand] ser parte desse movimiento"
+- Connect product to bigger mission/impact
+
+EXAMPLES:
+"O que faz uma marca ser sustentável? E o que fizemos para a Nudaé ser parte desse movimiento"
+"Por qué elegimos materiales eco-friendly? El impacto que queremos tener"
+"¿Qué significa realmente responsabilidad social? Nuestro compromiso"
+
+EMOTION TRIGGERS:
+- Purpose (brand with values)
+- Trust (transparency)
+- Responsibility (doing good)
+- Premium (high-quality + conscious)
+
+PSYCHOLOGY:
+Modern consumers want values-aligned brands. Mission messaging builds loyalty.
+
+USE CASE:
+- Eco-friendly brands
+- Social enterprises
+- Conscious consumption messaging
+- Brand values/mission communication
+    `,
+  },
+
+  // Pattern 4: CALL TO ACTION / OPPORTUNITY (Motivational)
+
+  opportunityMotivation: {
+    name: 'Opportunity Mindset CTA',
+    description: 'Relatable person + motivational message about taking action',
+    template: `
+Design opportunity/mindset carousel (motivation, agency, empowerment):
+
+VISUAL:
+- Young person in casual pose (sitting, relaxed, thinking)
+- Real, relatable setting (not too staged)
+- Warm lighting
+- Copy overlay in contrasting color
+- Minimalist, focused framing
+
+COPY STRUCTURE:
+- Headline: Reframe waiting/fear as action
+- Call to action: Create opportunity now
+- Tone: Empowering, not pushy
+
+EXAMPLES:
+"No esperes, crea tu oportunidad"
+"Dejar de esperar es el primer paso"
+"Tu oportunidad está esperándote, úsala"
+"No hay mejor momento que hoy"
+
+EMOTION TRIGGERS:
+- Empowerment (you have agency)
+- Urgency (act now)
+- Possibility (opportunity exists)
+- Maturity (take responsibility)
+
+PSYCHOLOGY:
+Agency (belief you control outcomes) drives action. Reframe fear as opportunity.
+
+USE CASE:
+- Coaching/personal development
+- Startup/entrepreneurship
+- Career advancement
+- Motivational content
+- Course promotions
+    `,
+  },
+
+  // Pattern 5: COMPETITIVE ADVANTAGE (Philosophy + Challenge)
+
+  competitivePhilosophy: {
+    name: 'Competitive Advantage Philosophy',
+    description: 'Philosophical imagery + competitive messaging + reality check',
+    template: `
+Design competitive advantage carousel (reality check, agency, professionalism):
+
+VISUAL:
+- Philosophical imagery (statue, wise figure, aspirational)
+- Person with laptop/work tools (creating, thinking, building)
+- Dark/dramatic background for contrast
+- Red/orange highlights on key copy words
+- Professional, serious tone
+- Message positioned dramatically
+
+COPY STRUCTURE:
+- Opening: Competitive reality (they have X)
+- Challenge: Do you have it too?
+- Subtext: Urgency + agency (take action)
+- Tone: Philosophical, reality-check, slightly provocative
+
+EXAMPLES:
+"Tu competencia ya tiene agencia. ¿Y tú, sigues improvisando?"
+"Ellos contrataron especialista. ¿Tú sigues solo/a?"
+"Tu competidor invirtió en marca. ¿Vos en qué?"
+"Tienen equipo profesional. ¿Vos sigues haciendo todo?"
+
+EMOTION TRIGGERS:
+- Competitive tension (healthy pressure)
+- Reality check (truth-telling)
+- Possibility (solution exists)
+- Urgency (act now before too late)
+- Agency (you can change this)
+
+PSYCHOLOGY:
+Competitive messaging motivates without guilt. Frames action as professional necessity.
+
+USE CASE:
+- B2B services (agency, consulting)
+- Premium positioning
+- Team/hiring services
+- Business development
+- Reality-check messaging (wake-up call)
+
+DESIGN RULES:
+- Use dramatic lighting/colors
+- Red/orange accents for emphasis
+- Philosophical imagery = wisdom + professionalism
+- Challenge tone (not shame)
+    `,
+  },
+};
+
 export default designPatternPrompts;
