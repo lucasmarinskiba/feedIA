@@ -1652,6 +1652,64 @@ export const foundationalConcepts = {
     criticalInsight: 'BRANDING FIRST → VISUAL SECOND. Visual derives from Brand essence.',
     whyMatters: 'If you design visual without clear branding, you\'ll confuse audience. If you define branding without visual identity, you\'ll be forgettable.',
   },
+
+  strategyVsTactics: {
+    name: 'Strategy vs Tactics (Trends Trap)',
+    problem: 'Chasing trends = most energy-robbing trap',
+    solution: 'Build strategy FIRST, then tactics second',
+    trapToAvoid: 'Buscar tendencias no es trabajar (searching trends is not working)',
+    realIssue: 'Es la trampa que más energía nos roba (is the trap stealing most energy)',
+    keyInsight: 'Trends change. Strategy endures. Spend energy on strategy.',
+  },
+
+  contentPurposeMatrix: {
+    name: 'Content Purpose by Format',
+    reels: {
+      purpose: 'Reach NEW people',
+      strategy: 'Discovery, algorithm, growth',
+      use: 'When you need new followers',
+    },
+    carouseles: {
+      purpose: 'Keep EXISTING followers engaged',
+      strategy: 'Nurture, education, deep content',
+      use: 'When you need to retain audience',
+    },
+    stories: {
+      purpose: 'Connect with followers + build community',
+      strategy: 'Relationships, intimacy, real-time',
+      use: 'When you need loyalty + engagement',
+    },
+    keyPoint: 'Different format = Different goal. Pick format based on strategy, not trend.',
+  },
+
+  authenticityFormula: {
+    name: 'Authenticity Converts (UCC + Ads)',
+    problem: 'Need content that converts',
+    requirement: 'But feels real (se sienta real)',
+    formula: 'UCC (User-Generated Content) + ADS',
+    psychology: 'Que parezca una amiga recomendando algo (looks like friend recommending)',
+    why: 'Authentic recommendations convert better than obvious ads',
+    strategy: 'Combine UCC aesthetic with paid reach',
+  },
+
+  objectionsToAddress: {
+    name: 'Entrepreneur Investment Objections',
+    objection1: {
+      barrier: 'No tengo presupuesto (no budget)',
+      reframe: 'Investment → ROI conversation',
+      copy: 'Start small. Test ROI. Scale wins.',
+    },
+    objection2: {
+      barrier: 'No sé si es necesario (necessity doubt)',
+      reframe: 'Competitors are doing it → you fall behind',
+      copy: 'Every day you wait, market changes.',
+    },
+    objection3: {
+      barrier: 'No estoy listo aún (readiness excuse)',
+      reframe: 'Ready is a myth. Launch → Learn → Improve',
+      copy: 'You never feel ready. Start now.',
+    },
+  },
 };
 
 export default designPatternPrompts;
