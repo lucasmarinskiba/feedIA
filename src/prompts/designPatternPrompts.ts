@@ -583,6 +583,235 @@ DESIGN RULES:
 - Challenge tone (not shame)
     `,
   },
-};
+
+  // ── TIER-BASED OFFERING + PHILOSOPHICAL IMAGERY ──────────────────────────
+
+  philosopherServiceTiers: {
+    name: 'Philosopher + Service Tiers (Premium Positioning)',
+    description: 'Classical sculpture + modern tools + tiered service cards',
+    template: `
+Design premium service tier carousel (timeless + modern, scalable):
+
+VISUAL:
+- Classical philosopher/statue imagery (ancient, wisdom, timeless)
+- Modern tool in hand (laptop, phone, notebook)
+- Warm background (red, cream, gold tones)
+- Dark overlay service tier cards (side-by-side comparison)
+- Contrast: Ancient statue + contemporary tool = premium positioning
+
+TIER CARDS STRUCTURE:
+- Tier Name: Micro, Nano, Mega, etc (use catchy names)
+- Deliverables: Concrete list (e.g., "12 statics, 4 dynamics, copywriting")
+- Arrow/indicator pointing to next tier
+
+COPY STRATEGY:
+- Headline: Philosophical framing (timeless approach)
+- Subheading: Modern application (contemporary solution)
+- Tier details: Specific, measurable deliverables
+- Each tier = complete solution at that level
+
+EXAMPLES OF TIER NAMES:
+- Micro, Nano (lightweight)
+- Base, Pro, Premium (standard naming)
+- Sage, Philosopher, Oracle (philosophical)
+- Starter, Growth, Scale (business language)
+
+EMOTION TRIGGERS:
+- Premium positioning (classical imagery = authority)
+- Wisdom (philosophy = intelligent approach)
+- Accessibility (multiple tiers for all budgets)
+- Clarity (concrete deliverables listed)
+- Trust (timeless + modern = proven + innovative)
+
+PSYCHOLOGY:
+Classical imagery signals expertise + credibility. Tiers reduce decision anxiety (choose your level).
+
+USE CASE:
+- Premium service offerings
+- Course/coaching programs
+- Subscription services
+- B2B service pricing
+- Portfolio positioning
+
+DESIGN RULES:
+- Use warm tones (red, gold, cream) for premium feel
+- Classical sculpture = authority, wisdom
+- Modern tool = innovation, contemporary
+- Tier cards: High contrast, easy scanning
+- Left-to-right reading (upgrade path)
+    `,
+  },
+
+  // ── VR/IMMERSION METAPHOR + CONTENT ABUNDANCE ──────────────────────────
+
+  vrImmersionBrand: {
+    name: 'VR Immersion Metaphor (Tech-Forward Experience)',
+    description: 'VR headset + content cards floating = immersive brand experience',
+    template: `
+Design immersion/transformation carousel (tech metaphor, aspirational):
+
+VISUAL:
+- Person wearing VR headset (immersive technology)
+- Social media content cards floating/cascading around person
+- Bold, dramatic background (red, purple, dark colors)
+- Cards show diverse content: posts, videos, feeds, stories
+- Person centered, content swirling around (energy, abundance)
+- Tech-forward, dynamic aesthetic
+
+COPY STRATEGY:
+- Problem statement: "Weak Social Media Presence"
+- Solution frame: Full immersion/transformation into brand strategy
+- Message: Not just posts, but complete brand experience
+- Tone: Aspirational, tech-savvy, forward-thinking
+
+EXAMPLES:
+"Your presence isn't weak, it's not immersive enough"
+"It's not about more posts, it's about immersive storytelling"
+"Weak presence = missing the full brand experience"
+"Transform passive followers into immersed community"
+
+EMOTION TRIGGERS:
+- Future-thinking (VR = next-gen)
+- Abundance (content flowing)
+- Transformation (weak → immersive)
+- Innovation (tech metaphor)
+- Possibility (endless content shown)
+
+PSYCHOLOGY:
+VR as metaphor = abstract concept made visual. Immersion language = commitment + engagement.
+
+USE CASE:
+- Tech-forward brands
+- Digital transformation services
+- Content strategy agencies
+- Social media management
+- Brand experience positioning
+
+DESIGN RULES:
+- VR headset = symbolic gateway to experience
+- Cards around person = content abundance
+- Bold background colors (red, purple) for drama
+- Dynamic positioning (cards not static)
+- Modern, energetic aesthetic (not corporate)
+    `,
+  },
+
+  // ── PORTFOLIO CASCADE + MOCKUPS (Expertise Display) ─────────────────────
+
+  portfolioCascade: {
+    name: 'Portfolio Cascade (Expertise + Options)',
+    description: 'Multiple phone mockups/content cards cascading = service range',
+    template: `
+Design portfolio showcase carousel (display expertise, multiple services):
+
+VISUAL:
+- Hand holding/arranging multiple phones/screens
+- Each phone shows different service: Instagram posts, reels, stories, etc
+- Phones arranged in cascading pattern (dynamic, not aligned)
+- Clean, light background (blue, white, minimal)
+- Brand name + CTA positioned prominently
+- Professional mockup style
+
+COPY STRATEGY:
+- Headline: Service category ("Social Media Post Design")
+- Subheading: Transformation promise ("Transform Your Presence")
+- CTA: Clear action (DM, visit link, book call)
+- Tone: Professional, inviting, collaborative ("let work together")
+
+LAYOUT:
+- Multiple mockups = multiple capabilities shown
+- Each phone = different content type/service
+- Cascading arrangement = energy + possibility
+- Hand as human touch (personal service)
+
+EXAMPLES:
+"Social Media Post Design - Let's work together"
+"Content Strategy Portfolio - Every post matters"
+"Reel Production - Transform your feed"
+"Story Creation - Keep them engaged"
+
+EMOTION TRIGGERS:
+- Expertise (portfolio displayed)
+- Choice (multiple options shown)
+- Professional quality (mockup aesthetic)
+- Invitation ("let work together")
+- Possibility (many services available)
+
+PSYCHOLOGY:
+Portfolio display = social proof + capability demonstration. Multiple options reduce friction.
+
+USE CASE:
+- Creative agencies
+- Freelance designers/content creators
+- Social media management services
+- Portfolio presentation
+- Service menu display
+
+DESIGN RULES:
+- Clean, minimal background
+- Professional mockup quality
+- Dynamic cascading (not rigid grid)
+- Hand adds human touch
+- Each phone clearly shows different service
+- Clear brand identity + CTA
+    `,
+  },
+
+  // ── INVESTMENT REFRAMING (ROI Psychology) ───────────────────────────────
+
+  investmentNotCost: {
+    name: 'Investment Reframing (ROI Psychology)',
+    description: 'Cost vs Investment messaging + product mockup integration',
+    template: `
+Design investment/ROI carousel (reframe marketing spend):
+
+VISUAL:
+- Bold, high-contrast typography (orange + black, or bold complementary)
+- Product mockup or smartphone integrated with message
+- Minimal aesthetic (not cluttered)
+- Clean background (white, light neutral)
+- Message and imagery merged (not separate)
+
+COPY STRATEGY:
+- Headline reframe: "Not a COST, an INVESTMENT"
+- Emphasis words in color (COST, INVESTMENT, GREAT)
+- Subtext: ROI-focused language
+- Tone: Business-minded, strategic, confident
+
+EXAMPLES:
+"GREAT MARKETING IS NOT A COST IT'S AN INVESTMENT"
+"Social Media Strategy = Business Growth, Not Expense"
+"Good Design Isn't Cheap, It's Profitable"
+"Brand Investment = Long-Term Revenue"
+"Marketing Budget = Competitive Advantage Fund"
+
+EMOTION TRIGGERS:
+- Business acumen (ROI language)
+- Confidence (strategic positioning)
+- Permission to spend (investment = smart money)
+- Long-term thinking (not short-term cost)
+- Smart decision-making (invest in yourself)
+
+PSYCHOLOGY:
+Reframing cost as investment removes guilt about spending. ROI language appeals to decision-makers.
+
+USE CASE:
+- Premium pricing positioning
+- B2B service sales
+- Course/coaching promotion
+- Agency positioning
+- Financial/business services
+- Luxury brand messaging
+
+DESIGN RULES:
+- High contrast typography (boldness = authority)
+- Emphasis words in brand color (draws eye)
+- Minimal design (message clarity)
+- Product integrated (not floating separately)
+- Clean, professional aesthetic
+- ROI/business language (not emotional)
+    `,
+  },
+});
 
 export default designPatternPrompts;
