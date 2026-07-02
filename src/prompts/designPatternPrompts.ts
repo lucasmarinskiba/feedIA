@@ -344,10 +344,256 @@ Last Updated: [Date]
   },
 };
 
+// ── STRATEGIC BUSINESS POSITIONING PATTERNS ────────────────────────────────
+
+export const strategicPatterns = {
+  // Pattern 1: EVOLUTION COMPARISON (Capability Gap)
+
+  designerEvolution: {
+    name: 'Designer Evolution (Quality Gap)',
+    description: 'Before/After visual showing capability gap (simple vs detailed)',
+    template: `
+Design capability/quality carousel (show transformation power):
+
+VISUAL:
+- Split screen: Left = low-quality version (pixel art, simple, outdated)
+- Right = high-quality version (realistic, detailed, modern)
+- Visual evolution shows capability gap clearly
+- Labels: "NORMAL" vs "CREATIVE" (or "BASIC" vs "PREMIUM")
+- Light background, clean layout
+- Purple or color accent on "premium" side
+
+COPY STRATEGY:
+- Headline: What strong presence looks like
+- Problem: Current quality level
+- Solution: Professional design transforms everything
+- Tone: Aspirational, inspiring, empowering
+
+EXAMPLES:
+"MAKE YOUR ONLINE PRESENCE STRONG WITH FINE GRAPHICS"
+"From Basic to Bold: Design That Stands Out"
+"Good Isn't Enough: Great Design Wins"
+"Low-Res vs High-Impact: Choose Better"
+
+EMOTION TRIGGERS:
+- Aspiration (want the better version)
+- Recognition (see yourself in "before")
+- Empowerment (transformation is possible)
+- Quality consciousness (design matters)
+
+PSYCHOLOGY:
+Visual gap makes transformation undeniable. Before/after is powerful proof.
+
+USE CASE:
+- Design agencies
+- Quality-focused positioning
+- Capability showcases
+- Transformation stories
+- Upgrade messaging
+    `,
+  },
+
+  // Pattern 2: SPEED METAPHOR (Slow → Fast)
+
+  speedBoostMetaphor: {
+    name: 'Speed Boost Metaphor (Momentum)',
+    description: 'Slow animal → speed vehicle = transform sluggish business',
+    template: `
+Design momentum/speed carousel (overcome slowness, build velocity):
+
+VISUAL:
+- Slow animal (turtle, sloth) on fast vehicle (skateboard, surfboard)
+- Motion lines, energy effects
+- Bright, energetic background (blue, electric colors)
+- Brand logo/name prominently
+- Dynamic composition (feels fast even static)
+
+COPY STRATEGY:
+- Problem: "Your business is moving slow"
+- Solution: "Give it a BOOST"
+- Tone: Energetic, action-oriented, confident
+- CTA: Transform, accelerate, move
+
+EXAMPLES:
+"To your slow moving Business, Give a Boost"
+"Your growth isn't moving. Let's accelerate it."
+"Business running slow? Time for a speed upgrade"
+"Stuck in slow mode? We boost you to fast"
+
+EMOTION TRIGGERS:
+- Urgency (slow is dangerous)
+- Possibility (transformation available now)
+- Energy (excitement about speed)
+- Momentum (movement feels good)
+
+PSYCHOLOGY:
+Speed metaphor = growth momentum. Slow business = competitive liability.
+
+USE CASE:
+- Marketing agencies
+- Business growth services
+- Sales acceleration
+- Performance optimization
+- Transformation messaging
+    `,
+  },
+
+  // Pattern 3: DIRECTION/STRATEGY (Signpost Pathways)
+
+  strategySignpost: {
+    name: 'Strategy Signpost (Multiple Paths)',
+    description: 'Signpost with multiple directions = strategy guides path',
+    template: `
+Design strategy-first carousel (direction, clarity, planning):
+
+VISUAL:
+- Central signpost with 5+ directional arms
+- Each arm labeled with strategy element
+- Blue + minimal aesthetic
+- Pink/purple accent lines connecting elements
+- Clean, organized layout
+- Brand identity prominent
+
+SIGNPOST DIRECTIONS (Example):
+- Entender (Understand needs)
+- Conectar (Connect with audience)
+- Alinhar (Align brand + goals)
+- Ganhar (Win market share)
+- Compartilhar (Share value)
+
+COPY STRATEGY:
+- Main headline: "Smart technology begins with STRATEGY"
+- Subheadline: "Strategy that generates RESULTS"
+- Message: Technology follows strategy, not vice versa
+- Tone: Professional, strategic, results-focused
+
+EXAMPLES:
+"Inteligência começa com ESTRATÉGIA"
+"Every growth path requires strategy first"
+"Technology without strategy = wasted money"
+"Smart brands plan. Then execute."
+
+EMOTION TRIGGERS:
+- Clarity (know which direction)
+- Trust (organized approach)
+- Professional confidence (strategy-led)
+- Results orientation (action toward goals)
+
+PSYCHOLOGY:
+Signpost = clarity. Multiple paths = options + control. Strategy = wisdom.
+
+USE CASE:
+- Consulting/strategy services
+- Business advisory
+- Digital transformation
+- Rebranding/repositioning
+- Strategic planning services
+    `,
+  },
+
+  // Pattern 4: COMPREHENSIVE SOLUTION (All Directions)
+
+  directionCompass: {
+    name: 'Direction Compass (Full-Circle Growth)',
+    description: 'Compass with all directions covered = comprehensive solution',
+    template: `
+Design comprehensive positioning carousel (all angles covered):
+
+VISUAL:
+- Central compass/signpost pointing in 3-4 directions
+- Each direction = service/capability (Audience, Presence, Strategy, etc)
+- Neon glow effects (electric blue, bright accents)
+- Dark/midnight blue background
+- Lightning/energy effects around compass
+- Modern, tech-forward aesthetic
+
+COMPASS DIRECTIONS (Example):
+- Audience Engagement
+- Digital Presence
+- Ad Strategies
+- Brand Direction
+
+COPY STRATEGY:
+- Headline: "Every Direction for YOUR BRAND"
+- Subheadline: "Full-circle growth with [brand]"
+- Message: We handle everything (no gaps, complete solution)
+- Tone: Comprehensive, confident, complete
+
+EXAMPLES:
+"Every Direction for YOUR BRAND"
+"All angles. One partner. Complete growth."
+"Audiences, Presence, Strategy - All directions covered"
+"Full-circle brand growth"
+
+EMOTION TRIGGERS:
+- Relief (everything covered)
+- Confidence (complete solution)
+- Possibility (growth on all fronts)
+- Partnership (we handle it all)
+
+PSYCHOLOGY:
+Compass = guidance. All directions = no gaps. Full-circle = complete transformation.
+
+USE CASE:
+- Full-service agencies
+- Comprehensive marketing solutions
+- B2B service positioning
+- Enterprise solutions
+- One-stop-shop messaging
+    `,
+  },
+
+  // Pattern 5: HAND GESTURE (Human Support)
+
+  handLiftingSupport: {
+    name: 'Hand Lifting (Active Support)',
+    description: 'Hand lifting/supporting = we help you rise',
+    template: `
+Design support/partnership carousel (empowerment, lifting up):
+
+VISUAL:
+- Hand gesture: Lifting, supporting, pushing up (skateboard, business, goal)
+- Warm, supportive framing
+- Clean background (white, light blue, neutral)
+- Clear subject (hand + object being lifted)
+- Human touch (not corporate, personal support)
+
+COPY STRATEGY:
+- Main message: "LET US BOOST YOUR [SALES/GROWTH/PRESENCE]"
+- Implied: We're here to lift you up
+- Tone: Supportive, empowering, partnership
+- CTA: Work with us, let us help
+
+EXAMPLES:
+"LET US BOOST YOUR SALES"
+"We lift up your business"
+"Let us support your growth"
+"Your success matters to us"
+
+EMOTION TRIGGERS:
+- Support (not alone)
+- Empowerment (can achieve more with help)
+- Partnership (we're in this together)
+- Confidence (expert hands lifting you)
+
+PSYCHOLOGY:
+Hand = human connection. Lifting = active support. Gesture = emotional warmth.
+
+USE CASE:
+- Service-based businesses
+- Coaching/consulting
+- Partnership/collaboration messaging
+- Customer success stories
+- Team/people-focused brands
+    `,
+  },
+};
+
 export const designPatternWorkflow = {
   photoEditing: 'Lightroom Mobile (edit) → Snapseed (retouch) → CapCut (arrange)',
   videoCreation: 'Canva (sketch/idea) → CapCut (assembly) → Snapseed (polish photos)',
   contentStrategy: 'Identify pain → Create prompt → Organize → Document → Improve',
+  strategyFirst: 'Strategy → Direction → Technology → Execution → Results',
 };
 
 // ── REAL CAROUSEL DESIGN PATTERNS ──────────────────────────────────────────
