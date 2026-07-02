@@ -591,6 +591,267 @@ USE CASE:
 
 // ── AGENCY/SERVICE POSITIONING PATTERNS ────────────────────────────────────
 
+// ── FINAL SERVICE/EDUCATION POSITIONING PATTERNS ────────────────────────────
+
+export const finalPatterns = {
+  // Pattern 1: PERFECT FIT (Alignment/Precision)
+
+  perfectFitAlignment: {
+    name: 'Perfect Fit (Alignment + Expertise)',
+    description: 'Puzzle pieces fitting perfectly = service alignment with needs',
+    template: `
+Design perfect fit/alignment carousel (precision, matching, expertise):
+
+VISUAL:
+- Bold typography with arrow/movement elements
+- Service icons/labels (editing, strategy, creative services)
+- Puzzle pieces at bottom (perfect fit concept)
+- Each puzzle labeled: "Your Idea", "Our [Service]", "Your Idea"
+- Purple or brand color emphasis
+- Clean, confident aesthetic
+
+COPY STRATEGY:
+- Main: "WE JUST FIT"
+- Subtext: Perfect alignment, expertise match
+- Tone: Confident, precise, professional
+- Message: We understand exactly what you need
+
+EXAMPLES:
+"We Just Fit"
+"Perfect alignment with your needs"
+"We get your vision. Exactly."
+"Precision meets creativity"
+
+EMOTION TRIGGERS:
+- Relief (finally, someone understands)
+- Confidence (expert fit)
+- Precision (exact match)
+- Partnership (they get us)
+
+PSYCHOLOGY:
+Puzzle fit = perfect alignment. Reduces decision anxiety.
+
+USE CASE:
+- Service agencies (editing, creative, strategy)
+- Specialist positioning
+- Precision/expertise focus
+- Custom service offering
+    `,
+  },
+
+  // Pattern 2: MOOD/PAIN RECOGNITION (Empathy + Solution)
+
+  moodPainRecognition: {
+    name: 'Mood/Pain Recognition (Empathy → Relief)',
+    description: 'Show frustration, recognize pain, offer immediate solution',
+    template: `
+Design empathy carousel (recognize pain, offer relief, solution):
+
+VISUAL:
+- Person with authentic frustrated/stressed expression
+- Thought clouds/pain points hovering around
+- Product/solution shown below or beside
+- Light background with accent colors
+- Emotional authenticity (not fake happiness)
+- Solution clearly positioned as relief
+
+PAIN POINTS (Examples):
+- Too many interruptions?
+- Drowning in tasks?
+- Running out of time?
+- Too many tools?
+- No visibility?
+
+COPY STRUCTURE:
+- Recognition: "Your workday has [pain]"
+- Empathy: "It doesn't have to be this way"
+- Solution: "[Product] brings everything together"
+- Features: List 4 key benefits
+- CTA: Take action
+
+EMOTION TRIGGERS:
+- Recognition (they see my pain)
+- Empathy (they understand)
+- Hope (solution exists)
+- Relief (can change this)
+
+PSYCHOLOGY:
+Pain recognition + empathy → trust. Solution → action.
+
+USE CASE:
+- Productivity software
+- Work management tools
+- B2B SaaS
+- Workflow optimization
+- Pain-point marketing
+    `,
+  },
+
+  // Pattern 3: IMPOSSIBILITY STATEMENT (Can't → Can)
+
+  impossibilityStatement: {
+    name: 'Impossibility Statement (Problem = Impossible)',
+    description: '"Can\'t scale [problem]" → solution makes it possible',
+    template: `
+Design impossibility/solution carousel (reframe impossible as possible):
+
+VISUAL:
+- Person with stress/confusion expression
+- Stressed body language (hand on face, overwhelm)
+- Grid background (order, structure coming)
+- Clean, professional aesthetic
+- Color: Purple, blue, professional palette
+
+COPY STRUCTURE:
+- Headline: "You Can't [verb] [problem noun]"
+- Reason: "Because [root cause stays unaddressed]"
+- Solution: "[Our service] fixes the root cause"
+- CTA: "Structure/Organize/Fix with [brand]"
+
+EXAMPLES:
+"You Can't Scale Confusion"
+"You Can't Grow Without Structure"
+"You Can't Compete Without Strategy"
+"You Can't Succeed Without Systems"
+
+IMPOSSIBILITY STATEMENT LOGIC:
+- Problem: Disorganized operations
+- Impossibility: Can't scale confusion
+- Root cause: Operations stay unstructured
+- Solution: Implement structure with our system
+
+EMOTION TRIGGERS:
+- Reality check (harsh truth)
+- Empowerment (but you CAN fix this)
+- Agency (take control)
+- Professional growth (become structured)
+
+PSYCHOLOGY:
+Impossibility statement → reframes problem as solvable. Action becomes necessary.
+
+USE CASE:
+- Operations/workflow tools
+- Business process improvement
+- Consulting services
+- Structure/organization focus
+- B2B positioning
+    `,
+  },
+
+  // Pattern 4: UNIFIED SYSTEM (Connection + Synergy)
+
+  unifiedSystemConnection: {
+    name: 'Unified System (All Connected)',
+    description: 'Team around table = every action connects, synergy',
+    template: `
+Design unified system carousel (connection, synergy, together):
+
+VISUAL:
+- Overhead view of team around table/circle
+- All people equally positioned (no hierarchy)
+- Devices/laptops visible (digital connection)
+- Purple/gradient color aesthetic
+- Circular arrangement (unity, cycles, connection)
+- Connected visual elements (lines, flows between people)
+
+COPY STRATEGY:
+- Main: "From first interaction to long-term growth"
+- Subheadline: "Unified system where every action connects"
+- Message: Each step builds on previous, creates momentum
+- Tone: Visionary, connected, growth-focused
+
+EXAMPLES:
+"Every action connects. Every step drives the next."
+"One system. Total connection. Unlimited growth."
+"From meeting to momentum"
+"Unified platform. Connected growth."
+
+FEATURES (List 3-4):
+- All-in-one workspace
+- Connected workflows
+- Smart integration
+- Growth analytics
+
+EMOTION TRIGGERS:
+- Unity (together, not fragmented)
+- Progress (each step drives next)
+- Vision (long-term growth)
+- Connection (everything linked)
+
+PSYCHOLOGY:
+Connected system = momentum. Circular arrangement = equality + inclusion.
+
+USE CASE:
+- CRM/workflow platforms
+- Team collaboration tools
+- Business growth software
+- End-to-end solutions
+- Platform positioning
+    `,
+  },
+
+  // Pattern 5: CAREER PROGRESSION (Hand Support + Stairs)
+
+  careerProgressionSupport: {
+    name: 'Career Progression (Hand + Stairs = Support + Growth)',
+    description: 'Hand holding device + stairs = guidance up the ladder',
+    template: `
+Design career progression carousel (education → growth → jobs):
+
+VISUAL:
+- Hand holding laptop/device (support, guidance)
+- Person climbing stairs (progression, steps, effort)
+- Blue/gradient background (growth, possibility)
+- Clean, professional aesthetic
+- Upward movement (visual ascent)
+- Human element (hand = personal guidance)
+
+COPY STRATEGY:
+- Main: "Learn. Build. Grow."
+- Subheadline: "We turn learning into career growth"
+- Details: Path components (basics → advanced)
+- Support: Mentorship, real projects, job-ready
+- Target: Students, freshers, career-changers
+
+STRUCTURE:
+Line 1: "WE TURN [input] INTO [outcome]"
+Line 2: Program structure (from X to Y)
+Line 3: What's included (mentor, projects, skills)
+Line 4: Result (job-ready, career growth)
+
+EXAMPLES:
+"Learn → Build → Grow"
+"From Basics to Advanced Career Growth"
+"Mentorship Drives Career Success"
+"Real Projects. Real Skills. Real Jobs."
+
+COMPONENTS TO HIGHLIGHT:
+- From Basics to Advanced
+- Mentor Support
+- Real Projects
+- Job-Ready Skills
+- Career Guidance
+
+EMOTION TRIGGERS:
+- Support (guided journey, not alone)
+- Progress (visible steps up)
+- Possibility (anyone can climb)
+- Career (professional growth)
+
+PSYCHOLOGY:
+Hand = personal touch + care. Stairs = achievable progression (not cliff jump).
+
+USE CASE:
+- Education/training programs
+- Career counseling
+- Mentorship platforms
+- Skills bootcamps
+- Job preparation courses
+- Career transition services
+    `,
+  },
+};
+
 export const agencyPatterns = {
   // Pattern 1: MOUNTAIN SUMMIT (Achievement Journey)
 
