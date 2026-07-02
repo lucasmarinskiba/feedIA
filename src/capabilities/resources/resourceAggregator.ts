@@ -106,6 +106,19 @@ const resources = {
   research: [
     { id: 'underconsideration', name: 'UnderConsideration', url: 'https://underconsideration.com', isPaid: false, quality: 95, recommendedFor: ['branding', 'research'] },
     { id: 'fontsinuse', name: 'Fonts In Use', url: 'https://fontsinuse.com', isPaid: false, quality: 94, recommendedFor: ['typography', 'research'] },
+    { id: 'thedieline', name: 'TheDieLine', url: 'https://thedieline.com', isPaid: false, quality: 94, recommendedFor: ['packaging', 'branding'] },
+    { id: 'loggos', name: 'Loggos.co', url: 'https://loggos.co', isPaid: false, quality: 91, recommendedFor: ['logos', 'branding'] },
+    { id: 'inspirationgrid', name: 'The Inspiration Grid', url: 'https://theinspirationgrid.com', isPaid: false, quality: 92, recommendedFor: ['design', 'branding'] },
+  ],
+
+  photoEditing: [
+    { id: 'lightroom-mobile', name: 'Lightroom Mobile', url: 'https://adobe.com/products/lightroom', isPaid: false, quality: 92, recommendedFor: ['product-photos', 'mobile-editing'] },
+    { id: 'snapseed', name: 'Snapseed', url: 'https://snapseed.online', isPaid: false, quality: 88, recommendedFor: ['retouching', 'mobile'] },
+  ],
+
+  tools: [
+    { id: 'whatthefont', name: 'What The Font', url: 'https://whatthefont.com', isPaid: false, quality: 96, recommendedFor: ['typography', 'font-identification'] },
+    { id: 'hypic', name: 'Hypic', url: 'https://hypic.app', isPaid: false, quality: 88, recommendedFor: ['text-effects', 'mobile-editing'] },
   ],
 };
 
@@ -120,4 +133,4 @@ export const getFreeResources = () => {
   return allResources.filter((r) => !r.isPaid).sort((a, b) => b.quality - a.quality);
 };
 
-log.info('[Phase 23] Resource Aggregator ✅ (30+ resources)');
+log.info('[Phase 23-25] Resource Aggregator ✅ (95+ resources: images, fonts, design, video, color, mockups, illustrations, inspiration, research, photo editing, tools)');
