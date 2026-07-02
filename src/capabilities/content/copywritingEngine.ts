@@ -26,7 +26,7 @@ export interface SlideCopy {
 
 export const generateCarouselCopy = async (
   brief: CopyBrief,
-  brand?: BrandProfile,
+  _brand?: BrandProfile,
 ): Promise<SlideCopy[]> => {
   log.info(`[Copywriting] Generating ${brief.slideCount} slides: ${brief.topic}`);
 

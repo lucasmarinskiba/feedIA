@@ -21,6 +21,8 @@ import {
 } from './studioToolEnhancer.js';
 import { runCarouselFactory } from './carouselFactory.js';
 import { createReel } from './reel.js';
+import { generateCarouselContent, type CarouselBrief } from './carouselContentOrchestrator.js';
+import { generateVideoContent, type VideoBrief } from './videoContentOrchestrator.js';
 
 // Re-export enhanced versions for use throughout codebase
 
@@ -170,15 +172,66 @@ export const createStoryWithBrainGuidance = async (
   return result;
 };
 
+// ── Phase 10: Carousel Content Generation ────────────────────────────
+
+export const generateCarousel = async (
+  topic: string,
+  brand: BrandProfile,
+  slideCount: number = 10,
+  emotion: 'fear' | 'hope' | 'joy' | 'anger' | 'curiosity' = 'curiosity',
+): Promise<any> => {
+  log.info(`[Studio Integration] Generating carousel: ${topic}`);
+
+  const brief: CarouselBrief = {
+    topic,
+    slideCount,
+    emotion,
+    audience: brand?.audience?.primary,
+  };
+
+  const carousel = await generateCarouselContent(brief, brand);
+  log.info(`[Studio Integration] ✓ Carousel: ${carousel.slideCount} slides, score=${carousel.metadata.engagementScore}`);
+
+  return carousel;
+};
+
+// ── Phase 11: Video Content Generation ────────────────────────────
+
+export const generateVideo = async (
+  topic: string,
+  brand: BrandProfile,
+  duration: 15 | 30 | 45 | 60 = 30,
+  platform: 'tiktok' | 'reel' | 'youtube-short' | 'instagram-story' = 'tiktok',
+  emotion: 'fear' | 'hope' | 'joy' | 'anger' | 'curiosity' = 'curiosity',
+): Promise<any> => {
+  log.info(`[Studio Integration] Generating ${duration}s ${platform} video: ${topic}`);
+
+  const brief: VideoBrief = {
+    topic,
+    duration,
+    platform,
+    tone: brand?.voice?.tone || ['professional'],
+    emotionalHook: emotion,
+    audience: brand?.audience?.primary,
+  };
+
+  const video = await generateVideoContent(brief, brand);
+  log.info(`[Studio Integration] ✓ Video: ${duration}s, retention_score=${video.metadata.retentionScore}`);
+
+  return video;
+};
+
 // ── Export unified API ────────────────────────────────────────────────
 
 export const studioToolsAPI = {
   carousel: createCarouselWithBrainGuidance,
+  carouselGenerate: generateCarousel,
   reel: createReelWithBrainGuidance,
   tiktokVideo: createTikTokVideoWithBrainGuidance,
+  videoGenerate: generateVideo,
   tiktokPhoto: createTikTokPhotoWithBrainGuidance,
   tiktokScript: createTikTokScriptWithBrainGuidance,
   story: createStoryWithBrainGuidance,
 };
 
-log.info('[Studio Integration] All studio tools initialized with brain guidance');
+log.info('[Studio Integration] All studio tools initialized with brain guidance + Phase 10-11');
