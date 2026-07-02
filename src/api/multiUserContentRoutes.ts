@@ -273,6 +273,219 @@ router.get('/:userId/philosophy/brief', (req: Request, res: Response) => {
   });
 });
 
-log.info('[Phase 24-25] Multi-User Content Pipeline ✅ (Philosophy-first branding)');
+// ── PHASE 26: DESIGN PATTERN LIBRARY ENDPOINTS ──────────────────────────────
+
+/**
+ * GET /api/multi-user/:userId/patterns/available
+ * List all available carousel patterns (inverted, message, storytelling)
+ */
+router.get('/:userId/patterns/available', (req: Request, res: Response) => {
+  const patterns = {
+    inverted: [
+      'productWontPattern',
+      'characterPunchlinePattern',
+      'beforeDuringAfterInverted',
+      'fastFactsInverted'
+    ],
+    advancedMessage: [
+      'beforeDuringAfter',
+      'misconceptionFlip',
+      'accumulationStrategy',
+      'objectionLadder',
+      'contrastStory',
+      'frameworkReveal',
+      'patternInterrupt',
+      'proofProgression',
+      'speedVsQuality',
+      'authorityChallenge'
+    ],
+    storytelling: [
+      'herosJourney',
+      'problemAgitationSolution',
+      'beforeDuringAfter',
+      'curiosityLoop',
+      'teachingStory'
+    ],
+  };
+
+  res.json({
+    status: 'success',
+    data: patterns,
+    message: 'All carousel patterns available (Phase 26)',
+  });
+});
+
+/**
+ * POST /api/multi-user/:userId/patterns/generate
+ * Generate carousel brief from selected pattern + industry + messaging
+ */
+router.post('/:userId/patterns/generate', (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const { patternType, patternName, industry, messaging, format } = req.body;
+
+    log.info(`[Phase 26] Generating carousel: ${patternName} for ${industry}`);
+
+    // Pattern brief template
+    const brief = {
+      userId,
+      pattern: patternName,
+      category: patternType,
+      industry,
+      format: format || 'carousel',
+      slides: 5,
+      messageFramework: messaging || 'Adaptable to any message',
+      structure: 'Problem → Error → Proof → System → Wisdom (Inverted) OR Hook → Connect → Reveal → Deliver → Invite (Forward)',
+      psychology: 'Multi-layer engagement. Forces swipes. Shareability high.',
+      timestamp: new Date().toISOString(),
+      readyFor: ['Instagram Carousel', 'Instagram Reel', 'TikTok', 'LinkedIn', 'Email'],
+      nextStep: 'Use brief to generate visual assets + copy with LLM'
+    };
+
+    res.json({
+      status: 'success',
+      data: brief,
+      message: 'Carousel brief generated. Ready for asset + copy generation.',
+    });
+  } catch (error) {
+    log.error(`[Phase 26] Pattern generation failed: ${error}`);
+    res.status(500).json({ error: 'Pattern generation failed', details: String(error) });
+  }
+});
+
+/**
+ * GET /api/multi-user/:userId/patterns/:patternName/template
+ * Get full template for specific pattern
+ */
+router.get('/:userId/patterns/:patternName/template', (req: Request, res: Response) => {
+  const { patternName } = req.params;
+
+  const templates: Record<string, any> = {
+    productWontPattern: {
+      slides: [
+        { slide: 1, type: 'Punchline', example: '[PRODUCT] won\'t [SOLVE PROBLEM]' },
+        { slide: 2, type: 'Error ID', example: 'EL ERROR: [PRODUCT] = [FALSE SOLUTION]' },
+        { slide: 3, type: 'Proof', example: 'Formulas: + [X] ≠ + [Y]' },
+        { slide: 4, type: 'System', example: 'Puzzle: [Component 1] + [Component 2] + [Component 3]...' },
+        { slide: 5, type: 'Wisdom', example: 'Tu [PRODUCT] es [ROLE], no [WRONG ROLE]' }
+      ]
+    },
+    invertedCarousel: {
+      structure: 'Punchline (funny) → Error (frustration) → Proof (data) → System (solution) → Wisdom (context)',
+      shareability: 'Slide 1 (meme) + Slide 5 (quote) both independently shareable'
+    },
+    herosJourney: {
+      acts: [
+        { act: 1, title: 'Ordinary World', duration: '5-10%' },
+        { act: 2, title: 'The Call', duration: '10-15%' },
+        { act: 3, title: 'Resistance & Journey', duration: '60-70%' },
+        { act: 4, title: 'Transformation', duration: '10-15%' },
+        { act: 5, title: 'Return Changed', duration: '5-10%' }
+      ]
+    },
+    beforeDuringAfter: {
+      structure: 'Before (pain) → During (process) → After (transformation)',
+      psychology: 'Emotional arc forces completion. Relatability high.'
+    }
+  };
+
+  const template = templates[patternName];
+
+  if (!template) {
+    return res.status(404).json({ error: `Pattern ${patternName} not found` });
+  }
+
+  res.json({
+    status: 'success',
+    data: template,
+    message: `Template for ${patternName}`,
+  });
+});
+
+/**
+ * POST /api/multi-user/:userId/patterns/batch-generate
+ * Generate multiple carousel briefs at once (for multi-carousel campaigns)
+ */
+router.post('/:userId/patterns/batch-generate', (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const { patterns } = req.body; // Array of {patternName, industry, messaging}
+
+    log.info(`[Phase 26] Batch generating ${patterns.length} carousels`);
+
+    const briefs = patterns.map((p: any, idx: number) => ({
+      index: idx + 1,
+      pattern: p.patternName,
+      industry: p.industry,
+      messaging: p.messaging,
+      slides: 5,
+      status: 'ready for generation'
+    }));
+
+    res.json({
+      status: 'success',
+      data: { briefs, totalCarousels: patterns.length },
+      message: 'Batch carousel briefs generated. Ready for asset generation.',
+    });
+  } catch (error) {
+    log.error(`[Phase 26] Batch generation failed: ${error}`);
+    res.status(500).json({ error: 'Batch generation failed', details: String(error) });
+  }
+});
+
+/**
+ * GET /api/multi-user/:userId/patterns/platform/:platform
+ * Get platform-specific storytelling recommendations
+ */
+router.get('/:userId/patterns/platform/:platform', (req: Request, res: Response) => {
+  const { platform } = req.params;
+
+  const platformGuides: Record<string, any> = {
+    'instagram-carousel': {
+      format: '5 slides',
+      pacing: 'User controls (can swipe fast or slow)',
+      structure: 'Hook → Build (2-3 slides) → Reveal → CTA',
+      recommendation: 'Each slide answers question from previous'
+    },
+    'instagram-reel': {
+      duration: '15-60 seconds',
+      timing: '0-3s hook, 3-45s build, 45-60s end',
+      recommendation: 'Audio-first, fast cuts, captions'
+    },
+    'instagram-story': {
+      frames: '4-5',
+      pacing: 'Rapid fire, escalating urgency',
+      recommendation: 'One swipe = one beat'
+    },
+    'tiktok': {
+      duration: '15-60 seconds',
+      timing: '0-3s unmissable hook, 3-15s pattern interrupt, 15-45s deliver',
+      recommendation: 'Sound-first, subtitles mandatory'
+    },
+    'linkedin': {
+      length: '1-3 paragraphs',
+      structure: 'Hook → Body → Proof → CTA',
+      recommendation: 'Business language + personal touch'
+    },
+    'email': {
+      structure: 'Subject (hook) → Body (story) → Proof → CTA',
+      recommendation: 'Conversational, clear value'
+    }
+  };
+
+  const guide = platformGuides[platform];
+
+  if (!guide) {
+    return res.status(404).json({ error: `Platform ${platform} not found` });
+  }
+
+  res.json({
+    status: 'success',
+    data: guide,
+    message: `Storytelling guide for ${platform}`
+  });
+});
+
+log.info('[Phase 24-26] Multi-User Content Pipeline ✅ (Philosophy-first branding + Design Pattern Library)');
 
 export default router;

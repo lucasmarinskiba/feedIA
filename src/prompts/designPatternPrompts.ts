@@ -1712,4 +1712,307 @@ export const foundationalConcepts = {
   },
 };
 
+// ── PHASE 26: INVERTED CAROUSEL PATTERNS (Punchline First) ──────────────────
+
+export const invertedCarouselPatterns = {
+  // Pattern 1: Product/Object + "Won't" Statement
+  productWontPattern: {
+    name: 'Product Won\'t Pattern (Punchline First)',
+    description: 'Beautiful product → bold claim it won\'t solve problem → reveal system',
+    slides: [
+      { slide: 1, type: 'Punchline', example: 'Este café no te hará productivo', purpose: 'Stop scroll, curiosity hook' },
+      { slide: 2, type: 'Error ID', example: 'EL ERROR: Beber café = Ser productivo', purpose: 'Validate frustration' },
+      { slide: 3, type: 'Proof', example: 'Formulas: + cafeína ≠ + energía', purpose: 'Build credibility' },
+      { slide: 4, type: 'System', example: 'Puzzle: Sueño + Café + Agua + Nutrición + Movimiento', purpose: 'Explain real solution' },
+      { slide: 5, type: 'Context', example: 'Tu café es ALIADO, no solución', purpose: 'Wisdom + permission' }
+    ],
+    adaptableFor: ['Coffee', 'Phone', 'Gym membership', 'Course', 'Book', 'Furniture', 'Tool', 'App', 'Service', 'Product', 'Experience'],
+    shareability: 'Slide 1 (meme) + Slide 5 (quote) both shareable independently'
+  },
+
+  // Pattern 2: Monkey/Character + Message
+  characterPunchlinePattern: {
+    name: 'Character Punchline (Mascot Humor First)',
+    description: 'Funny character + bold statement → explain why → reveal system',
+    examples: [
+      { object: 'Monkey', statement: 'Publicar solo en redes no es vender', industry: 'Social media' },
+      { object: 'Turtle', statement: 'Un curso no te hace experto', industry: 'Education' },
+      { object: 'Person', statement: 'Una silla no arregla tu postura', industry: 'Wellness' }
+    ],
+    structure: 'Punchline (funny) → Error (frustration) → Proof (data) → System (solution) → Wisdom (context)',
+    viralMechanic: 'Slide 1 gets shared as meme. Reverse-reading forces full carousel swipes.'
+  },
+
+  // Pattern 3: Before-During-After (Inverted)
+  beforeDuringAfterInverted: {
+    name: 'Before-During-After (Backwards Read)',
+    description: 'Show "after" state first as punchline, then reveal journey backwards',
+    structure: [
+      { slide: 1, visual: 'Success state (happy person/results)', text: 'Así quieres estar...' },
+      { slide: 2, visual: 'Emotional moment (realization, breakthrough)', text: 'Hasta que descubriste que...' },
+      { slide: 3, visual: 'Process (effort, multiple steps)', text: 'Entonces comenzaste...' },
+      { slide: 4, visual: 'Root frustration', text: 'Porque estabas...' },
+      { slide: 5, visual: 'Before state (stuck)', text: 'Y todo empezó aquí' }
+    ]
+  },
+
+  // Pattern 4: Fast Facts (Quick Debunk)
+  fastFactsInverted: {
+    name: 'Fast Facts Inverted (Myth Busting)',
+    description: 'Open with punchline myth, then systematically debunk',
+    examples: [
+      { myth: 'Más followers = Más ventas', truth: 'Engagement quality matters' },
+      { myth: 'Publicar mucho = Vender mucho', truth: 'Strategy matters' },
+      { myth: 'Hermosa foto = Conversión', truth: 'Copy + psychology matter' }
+    ]
+  }
+};
+
+// ── PHASE 26: ADVANCED CAROUSEL MESSAGE PATTERNS ──────────────────────────
+
+export const advancedMessagePatterns = {
+  beforeDuringAfter: {
+    name: 'Before-During-After Journey',
+    slides: ['Before (pain)', 'During (process)', 'After (transformation)'],
+    psychology: 'Emotional arc forces completion. Relatability high.',
+    shareability: 'Before/After extremely shareable'
+  },
+
+  misconceptionFlip: {
+    name: 'Misconception Flip',
+    slides: ['False Belief', 'Where it comes from', 'The trap', 'What\'s actually true', 'New path'],
+    psychology: 'Personal revelation = high engagement',
+    shareability: '"I believed this too" moment'
+  },
+
+  accumulationStrategy: {
+    name: 'Small Act × Time = Big Result',
+    formula: '1 small action × 365 days = Transformation',
+    slides: ['Tiny act', 'Repetition over time', 'Math proof', 'Transformation', 'You can start today'],
+    examples: ['1L water/day = Health', '5min/day = Expertise', '1 client/week = Business']
+  },
+
+  objectionLadder: {
+    name: 'Escalating Objections',
+    layers: ['Surface objection', 'Second layer', 'Third layer', 'Real fear', 'Permission forward'],
+    psychology: 'Addresses multiple resistance levels',
+    examples: ['Too expensive → Necessity doubt → Fear of failure']
+  },
+
+  contrastStory: {
+    name: 'Two People, Opposite Paths',
+    split: ['Person A (right path)', 'Person B (wrong path)'],
+    result: 'Side-by-side comparison after time period',
+    cta: 'Which person are YOU?'
+  },
+
+  frameworkReveal: {
+    name: 'Framework Explanation',
+    slides: ['Problem (complexity)', 'Framework introduced', 'Component 1', 'Components 2-3', 'Full system working'],
+    psychology: 'Naming = memorability. Framework = scalability.'
+  },
+
+  patternInterrupt: {
+    name: 'Expectation → Twist → Lesson',
+    structure: ['Set expectation', 'Surprise twist', 'Why did this happen', 'The lesson', 'How YOU apply this'],
+    psychology: 'Surprise = stop scroll + attention spike'
+  },
+
+  proofProgression: {
+    name: 'Escalating Credibility Evidence',
+    progression: ['Bold claim', 'Proof #1 (soft)', 'Proof #2 (stronger)', 'Proof #3 (strongest)', 'You can be next'],
+    psychology: 'Accumulation = undeniable credibility'
+  },
+
+  speedVsQuality: {
+    name: 'False Choice Revelation',
+    structure: ['The dilemma', 'Speed path results', 'Quality path results', 'The twist (false choice)', 'Real path (both)'],
+    psychology: 'Reframes limiting belief. Empowers action.'
+  },
+
+  authorityChallenge: {
+    name: 'Question Expert Wisdom',
+    structure: ['Conventional wisdom', 'What if they\'re wrong?', 'Evidence against', 'What\'s actually true', 'Think differently'],
+    psychology: 'Permission to question = empowerment'
+  }
+};
+
+// ── PHASE 26: CROSS-FORMAT STORYTELLING TEMPLATES ───────────────────────
+
+export const storytellingTemplates = {
+  herosJourney: {
+    name: 'Hero\'s Journey (5-Act Story)',
+    acts: [
+      { act: 1, title: 'Ordinary World', duration: '5-10%', emotion: 'Relatability' },
+      { act: 2, title: 'The Call', duration: '10-15%', emotion: 'Crisis/Realization' },
+      { act: 3, title: 'Resistance & Journey', duration: '60-70%', emotion: 'Hope + Struggle' },
+      { act: 4, title: 'The Transformation', duration: '10-15%', emotion: 'Breakthrough' },
+      { act: 5, title: 'Return Changed', duration: '5-10%', emotion: 'Wisdom + Invitation' }
+    ],
+    adaptation: 'Product story (customer as hero), service story, founder story, learning story, health story'
+  },
+
+  problemAgitationSolution: {
+    name: 'PAS Framework',
+    sections: [
+      { section: 'Problem', duration: '30-40%', action: 'Identify pain clearly' },
+      { section: 'Agitation', duration: '30-40%', action: 'Amplify emotionally' },
+      { section: 'Solution', duration: '20-30%', action: 'Reveal path forward' }
+    ],
+    timing: { video: '10s problem, 10s agitation, 10s solution', carousel: '2 slides problem, 2 agitation, 1 solution' }
+  },
+
+  beforeDuringAfter: {
+    name: 'Timeline Narrative',
+    parts: [
+      { part: 'Before', emotion: 'Frustration/stuck', duration: 'Brief' },
+      { part: 'During', emotion: 'Hope + struggle', duration: 'Extended' },
+      { part: 'After', emotion: 'Joy/relief', duration: 'Celebration' }
+    ]
+  },
+
+  curiosityLoop: {
+    name: 'Question-Answer Cycle',
+    cycle: [
+      { stage: 'Hook', duration: 'First 3s', purpose: 'Stop scroll' },
+      { stage: 'Setup', duration: '10-15s', purpose: 'Build context' },
+      { stage: 'Build', duration: '20-30s', purpose: 'Tension increase' },
+      { stage: 'Payoff', duration: '10-15s', purpose: 'Answer + satisfaction' }
+    ]
+  },
+
+  teachingStory: {
+    name: 'Educational Narrative Arc',
+    components: [
+      { component: 'Premise', duration: '5-10%', action: 'Introduce topic' },
+      { component: 'Context', duration: '10-15%', action: 'Why it matters' },
+      { component: 'Teaching', duration: '60-70%', action: 'Step-by-step breakdown' },
+      { component: 'Application', duration: '10-15%', action: 'Try this now' }
+    ]
+  }
+};
+
+// ── PHASE 26: PLATFORM-SPECIFIC STORYTELLING ─────────────────────────────
+
+export const platformStoryTiming = {
+  instagramCarousel: {
+    format: '5 slides',
+    timing: 'User controls pace (can swipe fast or slow)',
+    structure: 'Hook → Build (2-3 slides) → Reveal/Deliver → CTA',
+    typography: 'Bold + readable on mobile',
+    recommendation: 'Each slide answers question from previous slide'
+  },
+
+  instagramReel: {
+    format: '15-60 seconds',
+    timing: {
+      first: '0-3s: Unmissable hook (trending audio)',
+      middle: '3-45s: Build curiosity + deliver value',
+      end: '45-60s: Memorable ending'
+    },
+    format: 'Fast cuts, text overlays, captions',
+    recommendation: 'Audio-first design'
+  },
+
+  instagramStory: {
+    format: '4-5 frames',
+    timing: 'One swipe = one beat',
+    pacing: 'Rapid fire, escalating urgency',
+    structure: 'Hook → Quick clips/images → Deliver → Offer → CTA',
+    tools: 'Emojis, stickers, text overlays, urgency',
+    recommendation: 'Time limits + swipe-up CTAs'
+  },
+
+  tikTok: {
+    format: '15-60 seconds',
+    timing: {
+      hook: '0-3s (MUST happen)',
+      build: '3-15s (Pattern interrupt)',
+      deliver: '15-45s (Teach/show/amuse)',
+      end: '45-60s (Memorable, challenge or question)'
+    },
+    recommendation: 'Sound-first, subtitles mandatory'
+  },
+
+  youtubeShort: {
+    format: '15-60 seconds',
+    recommendation: 'Similar TikTok, can be extracted from longer videos',
+    tools: 'Thumbnail + first frame critical'
+  },
+
+  linkedInPost: {
+    hook: 'Provocative statement or question',
+    body: 'Story or insight',
+    proof: 'Stats, example, case study',
+    cta: 'Engagement ask (comment, share, DM)',
+    length: '1-3 paragraphs (mobile reading)',
+    recommendation: 'Business language + personal touch'
+  },
+
+  blogPost: {
+    subjectLine: 'Hook',
+    firstParagraph: 'Grab attention',
+    middle: 'Build case',
+    keySection: 'Main insight',
+    ctaSection: 'Clear next step'
+  },
+
+  email: {
+    subject: 'Hook',
+    body: 'Story',
+    proof: 'Evidence',
+    cta: 'Action'
+  }
+};
+
+// ── PHASE 26: 150+ INDUSTRY ADAPTATIONS (Compact) ──────────────────────
+
+export const industryAdaptations = {
+  products: ['Phone', 'Laptop', 'Camera', 'Headphones', 'Watch', 'Shoes', 'Clothing', 'Makeup', 'Furniture', 'Tool', 'Gadget'],
+  services: ['Gym', 'Therapy', 'Coaching', 'Consulting', 'Education', 'Travel', 'Beauty', 'Medical', 'Law', 'Finance'],
+  experiences: ['Course', 'Book', 'Podcast', 'Retreat', 'Conference', 'Workshop', 'Program', 'Event'],
+  tools: ['Software', 'App', 'Platform', 'Plugin', 'Template', 'Framework', 'Automation', 'AI'],
+  food: ['Coffee', 'Protein', 'Supplements', 'Vitamins', 'Diet plan', 'Detox', 'Juice', 'Snack', 'Beverage'],
+  health: ['Gym', 'Sauna', 'Stretching', 'Sleep gadget', 'Meditation app', 'Fitness tracker', 'Nutrition'],
+  business: ['Logo', 'Website', 'SEO', 'Ads', 'Analytics', 'CRM', 'Email marketing', 'Automation'],
+  lifestyle: ['Car', 'House', 'Furniture', 'Decoration', 'Gadget', 'Fashion', 'Accessories', 'Travel gear'],
+  digital: ['Followers', 'Views', 'Likes', 'Subscribers', 'Rankings', 'Traffic', 'Downloads', 'Engagement'],
+
+  patternRule: 'Use INVERTED structure for ALL industries: Punchline (funny/bold) → Error (frustration) → Proof (data) → System (solution) → Wisdom (context)'
+};
+
+// ── UNIVERSAL MASTER FORMULA (All Patterns) ─────────────────────────────
+
+export const universalStoryFormula = {
+  grab: {
+    duration: '3 seconds / Slide 1',
+    purpose: 'Stop scroll',
+    tactics: ['Emotional hook', 'Curiosity spike', 'Visual surprise', 'Bold statement']
+  },
+
+  connect: {
+    duration: 'Middle section',
+    purpose: 'Make them care',
+    tactics: ['Character relatable', 'Show struggle/effort', 'Emotional: build investment']
+  },
+
+  reveal: {
+    duration: 'Build to peak',
+    purpose: 'Force continuation',
+    tactics: ['Tension increase', 'Surprise or insight', 'Visual dynamic']
+  },
+
+  deliver: {
+    duration: 'Payoff moment',
+    purpose: 'Memorable takeaway',
+    tactics: ['Answer question', 'Satisfying conclusion', 'Emotional relief/joy/wisdom']
+  },
+
+  invite: {
+    duration: 'Final CTA',
+    purpose: 'Engagement/conversion',
+    tactics: ['Permission to act', 'Clear next step', 'Emotional empowerment']
+  }
+};
+
 export default designPatternPrompts;
