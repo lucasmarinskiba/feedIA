@@ -1,12 +1,14 @@
 /**
- * Phase 21: Multi-User Branding Engine
+ * Phase 21-25: Multi-User Branding Engine (Enhanced)
  *
  * Per-account brand profiles + personalized pattern libraries
- * Every user gets own: colors, fonts, visual style, messaging tone
- * Adapts generators to each account's aesthetic + objectives
+ * Philosophy-first: Define brand essence, derive visual identity
+ * 20 premium fonts, typography validation, design patterns
  */
 
 import { log } from '../../agent/logger.js';
+import { validateTypography, fontPairingsByNiche, premiumFonts } from './typographySystem.js';
+import { BrandPhilosophy } from './brandPhilosophyEngine.js';
 
 export interface UserBrandProfile {
   userId: string;
@@ -14,6 +16,7 @@ export interface UserBrandProfile {
   industry: string;
   audience: string;
   objective: string;
+  philosophy?: BrandPhilosophy;
   primaryColors: string[];
   secondaryColors: string[];
   accentColors: string[];
@@ -27,6 +30,12 @@ export interface UserBrandProfile {
   learnedLayouts: string[];
   learnedCopyPatterns: string[];
   topContentTypes: string[];
+  typographyChecklist?: {
+    readableOnMobile: boolean;
+    matchesNicheEnergy: boolean;
+    sufficientContrast: boolean;
+    enoughReadingTime: boolean;
+  };
   averageEngagement: number;
   averageRetention: number;
   createdAt: string;
@@ -41,18 +50,24 @@ export const createUserBrandProfile = (
 ): UserBrandProfile => {
   log.info(`[Phase 21] Brand profile: ${userId}`);
 
+  // Validate fonts against 20 premium fonts
+  const validFonts = premiumFonts.map((f) => f.name);
+  const headlineFont = data.headlineFont && validFonts.includes(data.headlineFont) ? data.headlineFont : 'Outfit';
+  const bodyFont = data.bodyFont && validFonts.includes(data.bodyFont) ? data.bodyFont : 'DM Sans';
+
   const profile: UserBrandProfile = {
     userId,
     accountName: data.accountName || `Account ${userId.slice(0, 8)}`,
     industry: data.industry || 'general',
     audience: data.audience || 'general',
     objective: data.objective || 'growth',
+    philosophy: data.philosophy,
     primaryColors: data.primaryColors || ['#E91E8C', '#00D9FF'],
     secondaryColors: data.secondaryColors || ['#FFFFFF', '#1A1A1A'],
     accentColors: data.accentColors || ['#FF6B6B'],
     backgroundStyle: data.backgroundStyle || 'image-heavy',
-    headlineFont: data.headlineFont || 'Poppins',
-    bodyFont: data.bodyFont || 'Inter',
+    headlineFont,
+    bodyFont,
     accentFont: data.accentFont,
     tone: data.tone || ['professional', 'friendly'],
     voiceKeywords: data.voiceKeywords || ['authentic', 'bold'],
@@ -60,6 +75,7 @@ export const createUserBrandProfile = (
     learnedLayouts: [],
     learnedCopyPatterns: [],
     topContentTypes: ['carousel', 'reel'],
+    typographyChecklist: data.typographyChecklist,
     averageEngagement: 0,
     averageRetention: 0,
     createdAt: new Date().toISOString(),
@@ -102,4 +118,16 @@ export const getPersonalizedGeneratorSettings = (userId: string): any => {
   };
 };
 
-log.info('[Phase 21] Multi-User Branding Engine ✅');
+export const getAvailableFonts = (): string[] => {
+  return premiumFonts.map((f) => f.name);
+};
+
+export const getFontsByCategory = (category: 'headline' | 'body' | 'display' | 'accent' | 'monospace' | 'script'): string[] => {
+  return premiumFonts.filter((f) => f.category === category).map((f) => f.name);
+};
+
+export const getFontPairings = (niche: string): any => {
+  return fontPairingsByNiche[niche] || fontPairingsByNiche['tech'];
+};
+
+log.info('[Phase 21-25] Multi-User Branding Engine ✅ (20 premium fonts, philosophy-first)');
