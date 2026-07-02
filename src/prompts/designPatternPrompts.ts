@@ -2015,4 +2015,294 @@ export const universalStoryFormula = {
   }
 };
 
+// ── PHASE 27: VISUAL GENIUS PATTERNS (Car/Hero Images + Genius Techniques) ──
+
+export const visualGeniusPatterns = {
+  // 4 PATTERNS FROM CAR/HERO IMAGES
+
+  productHeroNegation: {
+    name: 'Product Hero + Negation Statement',
+    description: 'Product (phone/car) + "No necesitas..." statement. Permission messaging.',
+    template: `
+VISUAL:
+- Product: [Bright color: orange/red/vibrant] (hero shot)
+- Person: [Optional - minimalist or absent]
+- Background: [Solid light color - beige/cream]
+- Text: [Bold statement negating assumption]
+
+COPY STRUCTURE:
+"No necesitas [OLD BELIEF] para [OUTCOME]"
+Examples:
+- "No necesitas ser viral para vender"
+- "No necesitas equipo grande para crecer"
+- "No necesitas presupuesto alto para empezar"
+
+PSYCHOLOGY:
+Permission-based messaging. Removes barrier. Empowerment through simplification.
+
+ADAPTATIONS:
+- Product: iPhone, laptop, car, furniture, tool
+- Service: Coaching, consulting, marketing, design
+- Business: Startup, agency, store, platform
+    `,
+    psychology: 'Removes objections via permission language',
+    shareability: 'High (empowering message)'
+  },
+
+  isolationMetaphor: {
+    name: 'Isolation Metaphor (Solitude → Support)',
+    description: 'Visual contradiction: isolated image + "not alone" message. Metaphor inversion.',
+    template: `
+VISUAL:
+- Person/subject: [Isolated, alone, minimal background]
+- Visual metaphor: [Astronaut, alone in space, island, etc]
+- Color: [Contrasting accent: orange/red primary]
+- Text: [Negation + solution]
+
+COPY STRUCTURE:
+"No tienes que [STRUGGLE] todo solo"
+"Elevamos tu [IMPACT/GROWTH]"
+
+Examples:
+- "No tienes que hacerlo todo solo"
+- "No estás solo en esto"
+- "No tienes que cargar el peso solo"
+
+PSYCHOLOGY:
+Visual contradiction creates cognitive interest. Metaphor = safe entry to real message.
+Vulnerability → trust building.
+
+ADAPTATIONS:
+- Service offering: Coaching, agency, consultant, team builder
+- Support: Therapy, mentorship, community, tribe
+- Business: Partnership, collaboration, network
+    `,
+    psychology: 'Metaphor inversion = memorable. Isolation visual + solidarity message.',
+    shareability: 'High (vulnerable + hopeful)'
+  },
+
+  overheadCar: {
+    name: 'Overhead Car (Directional Metaphor)',
+    description: 'Overhead view of car/vehicle + directional/movement text. Metaphor: driving growth.',
+    template: `
+VISUAL:
+- Product: [Car/vehicle overhead view - red/orange]
+- Angle: [Diagonal composition - creates movement]
+- Background: [Clean - white/light with stripe]
+- Text positioning: [Overlapping composition, large typography]
+
+COPY STRUCTURE:
+"STEER YOUR [THING] TO [OUTCOME]"
+"DRIVING YOUR [BUSINESS] [DIRECTION]"
+
+Examples:
+- "Steer your brand to the next level"
+- "Driving your business beyond limits"
+- "Navigate your success with us"
+
+PSYCHOLOGY:
+Directional metaphor (driving = control, movement, progress).
+Overhead view = strategic perspective + accessibility (seeing whole picture).
+
+ADAPTATIONS:
+- Service: Marketing, consulting, strategy, coaching
+- Business growth: Scaling, acceleration, direction, momentum
+- Journey metaphor: Career, learning, transformation
+    `,
+    psychology: 'Driving metaphor = agency + momentum. Overhead view = strategy perspective.',
+    shareability: 'Medium (aspirational)'
+  },
+
+  drivingBeyondLimits: {
+    name: 'Driving Metaphor (Action + Transcendence)',
+    description: 'Car + "beyond limits" text. Action verb + boundary-breaking outcome.',
+    template: `
+VISUAL:
+- Car: [Dynamic angle - action pose]
+- Color: [Monochromatic accent - orange/red]
+- Text: [Bold action verb + transcendence outcome]
+
+COPY STRUCTURE:
+"DRIVING YOUR [OBJECT] BEYOND [LIMIT]"
+
+Examples:
+- "Driving your business beyond limits"
+- "Taking you beyond competition"
+- "Pushing past boundaries"
+
+PSYCHOLOGY:
+Action verb (driving) + transcendence (beyond limits) = growth narrative.
+Car = motion + control. Combined = ambitious trajectory.
+
+ADAPTATIONS:
+- Ambition: Scaling, growth, transformation, excellence
+- Breaking barriers: Innovation, disruption, breakthrough
+- Performance: Speed, acceleration, momentum
+    `,
+    psychology: 'Driving = active control. Beyond = aspirational growth.',
+    shareability: 'Medium (action-oriented, ambitious)'
+  },
+
+  // 6 GENIUS PATTERNS (Psychology + Technique)
+
+  typographyPhysicalLayer: {
+    name: 'Typography Overlays Subject (Physical Interaction)',
+    description: 'Text overlaps person/object like it\'s part of composition. Not floating - embedded.',
+    template: `
+VISUAL:
+- Subject: [B&W or muted color for contrast]
+- Text: [Large bold typography in accent color]
+- Positioning: [Overlaps subject\'s body - chest, shoulders, center]
+- No background clutter: [Clean, focused, high contrast]
+
+COPY:
+Bold single statement overlaid on person
+
+PSYCHOLOGY:
+Text becomes part of person\'s identity, not separate decoration.
+Merging text + subject = ownership, embodiment, belief.
+
+ADAPTATIONS:
+- Fashion: Brand name overlaps model\'s chest
+- Coaching: Service name overlaps coach\'s shoulders
+- Music: Album title overlaps artist\'s body
+- Sport: Achievement text overlaps athlete
+- Business: Company name overlaps founder
+    `,
+    psychology: 'Text merging = embodied messaging, not external promotion',
+    shareability: 'High (bold, personal)'
+  },
+
+  productAsCanvas: {
+    name: 'Product Surface as Text Canvas (Overhead Integration)',
+    description: 'Product (table/surface) becomes readable canvas. Text floats ON product.',
+    template: `
+VISUAL:
+- Product: [Overhead view - fills 60% slide]
+- Text: [Bold typography floats ON surface]
+- Real elements: [Billiard balls, objects positioned strategically]
+- Info boxes: [Colored rectangles with details scattered]
+- Texture: [Wood, felt, fabric - real-world material visible]
+
+PSYCHOLOGY:
+Product surface = readable space. Text + objects merge into one design.
+Not "text over image" but "text as part of surface."
+
+ADAPTATIONS:
+- Pool table → Pool hall event (billiards setup)
+- Coffee table → Café booking (cups, napkins)
+- Yoga mat → Fitness class (exercise setup)
+- Dinner table → Restaurant reservation (place settings)
+- Game board → Gaming tournament (game pieces)
+    `,
+    psychology: 'Product becomes usable canvas. Text integration = functional design.',
+    shareability: 'High (clever integration, memorable)'
+  },
+
+  surealGeometryReal: {
+    name: 'Surreal Geometry + Real Product (Impossible Perspective)',
+    description: 'Geometric person (sphere head) + real product overhead. Perspective collision.',
+    template: `
+VISUAL:
+- Real product: [Overhead view - car, bike, device]
+- Geometric person: [Sphere head, minimal features, silhouette]
+- Positioning: [Person appears above/beside product - impossible angle]
+- Color: [Monochromatic + single accent]
+- Text fills negative space: [Bold typography]
+
+PSYCHOLOGY:
+Impossible perspective = surreal, memorable, eye-catching.
+Geometric abstraction + photorealism = tension = attention.
+
+ADAPTATIONS:
+- Car shop: Geometric driver + car overhead
+- Tech store: Sphere-head hacker + laptop overhead
+- Fashion: Abstract silhouette + handbag overhead
+- Pet service: Geometric poodle + dog overhead
+- Furniture: Geometric sitter + chair overhead
+    `,
+    psychology: 'Impossible perspective = surreal magnetism. Collision = memorability.',
+    shareability: 'High (surreal, shareable)'
+  },
+
+  floatingInformationArchitecture: {
+    name: 'Floating Information (Data as Visual Elements)',
+    description: 'Person center + info boxes drift organically around. Data = design.',
+    template: `
+VISUAL:
+- Person/subject: [Professional pose, B&W center]
+- Main text: [Large overlays center]
+- Floating boxes: [Colored rectangles - red/blue - drift around subject]
+- Each box: [Date, location, time, detail]
+- Layout: [Organic drift, no grid alignment]
+
+PSYCHOLOGY:
+Information floats like ephemeral elements. Not labels/annotations - they\'re part of visual.
+Scattered = dynamic, organic, natural.
+
+ADAPTATIONS:
+- Concert tour: Person + floating tour dates/cities
+- Medical: Doctor + floating appointment times/locations
+- Author: Writer + floating book event locations
+- Business: Founder + floating milestone dates
+- Trainer: Coach + floating class schedules
+    `,
+    psychology: 'Information as design element, not annotation. Floating = dynamism.',
+    shareability: 'High (information + visual merge)'
+  },
+
+  monochromeAccentColor: {
+    name: 'Monochrome + Single Accent (Maximum Contrast)',
+    description: 'B&W main image + ONE bold color only. Simplicity = impact.',
+    template: `
+VISUAL:
+- Main image: [B&W or muted, high contrast]
+- Accent color: [Single bold color ONLY: red OR blue OR neon]
+- Typography: [Large, overlaid in accent color]
+- Supporting text: [Also accent color, minimal]
+- Background: [Clean white/light, no clutter]
+
+PSYCHOLOGY:
+One color choice = maximum visual impact, clarity, premium feel.
+Simplification = sophistication. Contrast = readability.
+
+ADAPTATIONS:
+- Fashion: Red text on B&W model
+- Finance: Blue text on B&W coins/money
+- Tech: Neon green text on B&W device
+- Sport: Red text on B&W athlete
+- Luxury: Gold text on B&W product
+    `,
+    psychology: 'Single color decision = premium sophistication. Extreme contrast = clarity.',
+    shareability: 'High (clean, professional)'
+  },
+
+  doubleExposureLayered: {
+    name: 'Double Exposure + Layered Typography (Merging Subjects)',
+    description: 'Multiple people merged + text overlays both. Intimacy + mystery.',
+    template: `
+VISUAL:
+- Multiple subjects: [2-3 people merged/overlapped seamlessly]
+- Texture background: [Subtle grain/lines, beige/tan]
+- Large typography: [Overlays both merged figures]
+- Elegant script: [Secondary fancy font layer]
+- UI elements: [Integrated - music player, controls, etc.]
+
+PSYCHOLOGY:
+Merging = partnership, intimacy, collaboration.
+Double exposure = mystique, connection, unity.
+Layering = complexity within simplicity.
+
+ADAPTATIONS:
+- Music: Two singers merged + song title
+- Business: Two entrepreneurs merged + company name
+- Relationship: Couple merged + partnership name
+- Team: Multiple people merged + team name
+- Book: Co-authors merged + title
+    `,
+    psychology: 'Merging = belonging + unity. Double exposure = intimacy.',
+    shareability: 'High (mysterious, relatable)'
+  }
+};
+
 export default designPatternPrompts;
