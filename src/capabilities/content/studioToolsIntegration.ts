@@ -23,6 +23,11 @@ import { runCarouselFactory } from './carouselFactory.js';
 import { createReel } from './reel.js';
 import { generateCarouselContent, type CarouselBrief } from './carouselContentOrchestrator.js';
 import { generateVideoContent, type VideoBrief } from './videoContentOrchestrator.js';
+import {
+  enrichCarouselWithEmotionAndHumor,
+  enrichVideoWithEmotionAndHumor,
+  type Emotion,
+} from './emotionHumorOrchestrator.js';
 
 // Re-export enhanced versions for use throughout codebase
 
@@ -221,17 +226,67 @@ export const generateVideo = async (
   return video;
 };
 
+// ── Phase 12: Emotion + Humor Layer ────────────────────────────
+
+export const enrichCarouselWithPsychology = async (
+  carouselSlides: Array<{number: number; headline: string; body: string}>,
+  topic: string,
+  emotion: Emotion,
+  brand?: BrandProfile,
+): Promise<any> => {
+  log.info(`[Studio Integration] Enriching carousel with ${emotion} emotion + humor`);
+
+  const enriched = await enrichCarouselWithEmotionAndHumor(
+    carouselSlides,
+    topic,
+    emotion,
+    brand,
+  );
+
+  const avgScore = Math.round(
+    enriched.reduce((sum, e) => sum + e.enriched.score.overallEngagement, 0) / enriched.length,
+  );
+
+  log.info(`[Studio Integration] ✓ Carousel enriched: avg_engagement=${avgScore}/100`);
+
+  return enriched;
+};
+
+export const enrichVideoWithPsychology = async (
+  videoScript: {hook: string; scenes: Array<{second: number; voiceover: string}>; cta: string},
+  topic: string,
+  emotion: Emotion,
+  brand?: BrandProfile,
+): Promise<any> => {
+  log.info(`[Studio Integration] Enriching video with ${emotion} emotion + humor`);
+
+  const enriched = await enrichVideoWithEmotionAndHumor(
+    videoScript,
+    topic,
+    emotion,
+    brand,
+  );
+
+  log.info(
+    `[Studio Integration] ✓ Video enriched: hook=${enriched.hook.score.overallEngagement}, cta=${enriched.cta.score.overallEngagement}`,
+  );
+
+  return enriched;
+};
+
 // ── Export unified API ────────────────────────────────────────────────
 
 export const studioToolsAPI = {
   carousel: createCarouselWithBrainGuidance,
   carouselGenerate: generateCarousel,
+  carouselEnrichPsychology: enrichCarouselWithPsychology,
   reel: createReelWithBrainGuidance,
   tiktokVideo: createTikTokVideoWithBrainGuidance,
   videoGenerate: generateVideo,
+  videoEnrichPsychology: enrichVideoWithPsychology,
   tiktokPhoto: createTikTokPhotoWithBrainGuidance,
   tiktokScript: createTikTokScriptWithBrainGuidance,
   story: createStoryWithBrainGuidance,
 };
 
-log.info('[Studio Integration] All studio tools initialized with brain guidance + Phase 10-11');
+log.info('[Studio Integration] All studio tools initialized with brain guidance + Phase 10-12');
