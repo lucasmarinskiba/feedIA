@@ -1590,8 +1590,8 @@ DESIGN RULES:
 - Clean, professional aesthetic
 - ROI/business language (not emotional)
     `,
-  },
-});
+  }
+};
 
 // ── FOUNDATIONAL CONCEPTS (User Education) ────────────────────────────────
 
@@ -2302,6 +2302,901 @@ ADAPTATIONS:
     `,
     psychology: 'Merging = belonging + unity. Double exposure = intimacy.',
     shareability: 'High (mysterious, relatable)'
+  },
+
+  // ── PHASE 28: AUTO/MECHANIC PATTERNS ────────────────────────────────────────
+
+  speedBlurredMechanic: {
+    name: 'Speed Blurred Motion (Mechanic Hero)',
+    description: 'Mechanic on bike/vehicle with motion blur. Speed = expertise.',
+    template: `
+VISUAL:
+- Mechanic: [Professional uniform, red/orange accent]
+- Vehicle: [Bike/moto, front angle, sharp focus]
+- Motion blur: [Background streaked, 30% opacity red gradient]
+- Lighting: [Hot spot on mechanic, cold background]
+- Text overlay: [Large bold headline, white stroke for contrast]
+
+COPY (5-8 WORDS):
+"Tu auto en manos de expertos" (Your car in expert hands)
+"Reparación que no te frena" (Repair that won't slow you)
+"Velocidad y precisión garantizada" (Speed and precision guaranteed)
+
+PSYCHOLOGY:
+Motion = speed = efficiency. Mechanic confidence = trust. Red = action, energy.
+
+ADAPTATIONS:
+- Car shop: "Cambios de aceite express"
+- Brake service: "Frenadas de confianza"
+- Transmission: "Velocidades sin demora"
+- Suspension: "Manejo suave garantizado"
+- Electrical: "Chispas de precisión"
+- Tire service: "Agarre en cada ruta"
+    `,
+    psychology: 'Blur effect = speed perception. Mechanic hero = trust + authority.',
+    shareability: 'High (dynamic, viral motion)'
+  },
+
+  beforeAfterEngine: {
+    name: 'Before-After Engine (Visual Transformation)',
+    description: 'Stock engine vs tuned engine side-by-side. Visible transformation.',
+    template: `
+VISUAL:
+- Left half: [Original engine, muted grays, tired look]
+- Right half: [Tuned engine, vibrant reds/golds, shiny parts highlighted]
+- Center divider: [Thin white line or arrow pointing right]
+- Typography: [BEFORE | AFTER in large white type]
+- Overlay: [Performance specs (+HP, +Torque labels)]
+
+COPY (HEADLINE):
+"Stock vs Optimizado" (Stock vs Optimized)
+"Rendimiento +40%" (Performance +40%)
+"Tu motor dormido vs despierto" (Your sleepy motor vs awake)
+
+PSYCHOLOGY:
+Before-after = transformation proof. Visual = credibility. Metrics = trust.
+
+ADAPTATIONS:
+- Tuning shop: "400 HP sin modificación"
+- Detailing: "Sucio vs impecable"
+- Paint: "Oxidado vs espejo"
+- Interior: "Gastado vs nuevo"
+- Suspension: "Tieso vs suave"
+- Electrónico: "Lento vs instantáneo"
+    `,
+    psychology: 'Before-after = cognitive closure. Proof in image form = high credibility.',
+    shareability: 'Very high (transformation porn)'
+  },
+
+  partDissectionGrid: {
+    name: 'Part Dissection Grid (Component Breakdown)',
+    description: '3x3 grid showing disassembled car parts. Educational + impressive.',
+    template: `
+VISUAL:
+- Black marble/dark background
+- 9 slides (3x3): Each slide isolated component (engine, turbo, exhaust, spark plugs, etc)
+- Each part: [Close-up shot, isolated, neon accent line around it]
+- Neon color: [Cyan/electric blue, consistent]
+- Icon/label: [Part name + one spec, white text]
+- Layout: [Clean grid, even spacing]
+
+COPY (MINIMAL):
+"SORPRESAS DESGRACADAVEIS" (Ugly surprises)
+"LO QUE NO VES" (What you don't see)
+"Componentes que importan" (Components that matter)
+
+PSYCHOLOGY:
+Dissection = transparency + education. Grid = organized expertise. Neon = modern, technical.
+
+ADAPTATIONS:
+- Mechanics: "Diagnóstico completo"
+- Auto parts: "Catálogo visual"
+- Electric: "Sistema eléctrico desarmado"
+- Suspension: "Geometría de precisión"
+- Brakes: "Componentes de frenada"
+    `,
+    psychology: 'Transparency = trust. Grid = organized authority. Neon = modern tech vibes.',
+    shareability: 'High (educational, shareable content)'
+  },
+
+  professionalMechanicHero: {
+    name: 'Professional Mechanic Portrait (Expertise Hero)',
+    description: 'Portrait of mechanic with tools/credentials visible. Trust builder.',
+    template: `
+VISUAL:
+- Mechanic: [Professional pose, clean uniform, confident expression]
+- Background: [Garage/workshop blurred, warm lighting]
+- Credentials: [Floating boxes: certifications, years experience, specializations]
+- Tools: [1-2 key tools visible in hand or beside]
+- Color: [Warm tones, garage aesthetic, orange/red accents]
+
+COPY (CREDENTIAL STACK):
+"10 años de experiencia"
+"Certificado en [SPECIALIZATION]"
+"Más de 1000 autos reparados"
+"Garantía en cada trabajo"
+
+PSYCHOLOGY:
+Person = trust + humanity. Credentials = authority. Experience visible = credibility.
+
+ADAPTATIONS:
+- Brake specialist: "Experto en sistemas ABS"
+- Electrical: "Máster en electricidad automotriz"
+- Transmission: "Especialista en cambios automáticos"
+- Suspension: "Alineador certificado"
+- Paint: "Pintor profesional con garantía"
+    `,
+    psychology: 'Face = immediate trust. Credentials = authority. Floating data = authority pyramid.',
+    shareability: 'Medium-high (personal, credible)'
+  },
+
+  shockFactorDiagnosis: {
+    name: 'Shock Factor Diagnosis (Discovery Moment)',
+    description: 'Mechanic discovering problem. Surprise + solution messaging.',
+    template: `
+VISUAL:
+- Mechanic: [Surprised/concerned expression, pointing at problem]
+- Problem area: [Close-up highlighted in red circle]
+- Damage visible: [Rust, worn part, broken component]
+- Text: ["ENCUENTRAMOS...", "EL PROBLEMA"]
+- Color: [Red background or red accent, urgent feeling]
+
+COPY (REVELATION):
+"Encuentramos lo que nadie ve"
+"El error que te cuesta dinero"
+"Lo que falta en tu mantenimiento"
+
+PSYCHOLOGY:
+Shock = attention capture. Discovery = engagement hook. Problem visualization = motivation to act.
+
+ADAPTATIONS:
+- Corrosion specialist: "Óxido invisible que avanza"
+- Belt service: "Correa que está fallando"
+- Coolant: "Líquido contaminado"
+- Filter: "Aire que respira sucio"
+    `,
+    psychology: 'Shock = capture attention. Problem visibility = motivation to solve. Red = urgency.',
+    shareability: 'High (wow moment, shareable discovery)'
+  },
+
+  serviceStackingChecklist: {
+    name: 'Service Stacking (Multiple Services Checklist)',
+    description: 'Carousel showing multiple service options. Solution abundance.',
+    template: `
+VISUAL:
+- Left: [Professional checkboxes, clean design]
+- Each service: [Icon + name + checkmark]
+- Services shown: [Oil change, filters, brakes, suspension, etc]
+- Right: [Pricing or savings highlight]
+- Color: [Green checkmarks, red pricing highlight]
+
+COPY (SERVICE LIST):
+✓ Cambio de aceite
+✓ Filtros (aire, combustible, cabina)
+✓ Pastillas de freno
+✓ Rotación de llantas
+✓ Diagnóstico completo
+
+PSYCHOLOGY:
+Abundance = perceived value. Checklist = organized expertise. Visual = scannable.
+
+ADAPTATIONS:
+- Tire shop: "Toda la gama de neumáticos"
+- Battery: "Baterías por marca/modelo"
+- Accessories: "Catálogo completo"
+    `,
+    psychology: 'Abundance = high-value offer. Checklist = organized, trustworthy.',
+    shareability: 'Medium (informational, useful)'
+  },
+
+  colorBlockingCar: {
+    name: 'Color Blocking Car (Brand Identity)',
+    description: 'Bold solid color background + car hero shot. Premium aesthetic.',
+    template: `
+VISUAL:
+- Background: [Single bold color: red OR black OR orange]
+- Car: [Professional side angle shot, centered, clean]
+- Text: [Large bold white type, top/bottom]
+- Minimal: [No clutter, focus entirely on car]
+
+COPY (BRAND POSITIONING):
+"Especialistas en velocidad"
+"Tu auto merece más"
+"Rendimiento premium"
+
+PSYCHOLOGY:
+Color psychology: Red=action/energy, Black=premium/power, Orange=enthusiasm.
+Minimal = sophistication. Car hero = pride.
+
+ADAPTATIONS:
+- Tuning shop: Red background
+- Luxury repair: Black background
+- Young/energy: Orange background
+- Custom shop: Gradient background
+    `,
+    psychology: 'Bold color = brand recognition. Minimal = premium. Car hero = aspiration.',
+    shareability: 'High (clean, brandable)'
+  },
+
+  carouselPreviewMockup: {
+    name: 'Carousel Preview Mockup (Meta Pattern)',
+    description: 'Phone mockup showing carousel, then actual carousel follows.',
+    template: `
+VISUAL:
+- Phone: [Left 40%, showing carousel UI with slide indicators]
+- Slides previewed: [4 thumbnails visible in mockup]
+- Actual slides: [Right 60%, showing expanded versions]
+- CTA: [Bold "RESERVA" or "AGENDA" button]
+
+COPY (MOCKUP INSIDE):
+"Mira nuestros servicios"
+"Elige tu horario"
+"Reserva en 30 segundos"
+
+PSYCHOLOGY:
+Mockup = transparency, showing actual experience. Carousel preview = scanability.
+Meta (carousel about carousel) = engagement.
+
+ADAPTATIONS:
+- Shop booking: "Agenda tu cita aquí"
+- Service selection: "Elige servicio"
+- Fleet options: "Selecciona tu vehículo"
+    `,
+    psychology: 'Transparency = trust. Meta carousel = novelty + engagement.',
+    shareability: 'Medium (innovative, unique format)'
+  },
+
+  testimonialTrust: {
+    name: 'Testimonial + Trust (Social Proof)',
+    description: 'Customer face + quote + results. Third-party credibility.',
+    template: `
+VISUAL:
+- Customer: [Smiling face, real person, professional photo]
+- Background: [Garage or with car visible]
+- Quote: [In speech bubble or overlay, white text]
+- Results: [Before-after metrics OR satisfaction rating]
+
+COPY (TESTIMONIAL):
+"Llevé mi auto a [Shop] y quedé impresionado"
+"Reparación rápida, precio justo, garantía real"
+"Meses después, sigue andando impecable"
+Rating: ⭐⭐⭐⭐⭐
+
+PSYCHOLOGY:
+Face = trust. Real customer = authenticity. Results = proof. Star rating = codified credibility.
+
+ADAPTATIONS:
+- Fleet customer: "Mis 5 autos en excelente estado"
+- Dealership: "Clientes que vuelven"
+- Specialist: "Expertos que recomiendo"
+    `,
+    psychology: 'Face + results = high credibility. Third-party voice = authentic trust.',
+    shareability: 'Very high (social proof, relatable)'
+  },
+
+  ctaIntegration: {
+    name: 'Call-to-Action Integration (Close Pattern)',
+    description: 'Product/service showcase → Clear, frictionless CTA.',
+    template: `
+VISUAL:
+- Service preview: [3-4 slides showing services/vehicles]
+- CTA slide: [Bold headline + contact options]
+- Buttons: [WhatsApp, Call, Website link, visible]
+- Color: [Brand color for CTA, stands out]
+
+COPY (CTA VARIATIONS):
+"Reserva online en 30 segundos"
+"Llama ahora: +56 912345678"
+"Mensaje por WhatsApp"
+"Agendar cita gratuita"
+
+PSYCHOLOGY:
+Multiple contact options = low friction. Clear urgency = conversion. Simplification = action.
+
+ADAPTATIONS:
+- Dealership: "Prueba de manejo"
+- Service: "Diagnóstico gratis"
+- Parts: "Cotización sin compromiso"
+    `,
+    psychology: 'Multiple CTAs = choice. Low friction = conversion. Urgency = action.',
+    shareability: 'Low (conversion-focused, not social)'
+  },
+
+  // ── PHASE 28: LOGISTICS/TRANSPORT PATTERNS ──────────────────────────────────
+
+  convenienceHookDelivery: {
+    name: 'Convenience Hook (No Need Pattern)',
+    description: 'User doesn\'t need to do X because service handles it.',
+    template: `
+VISUAL:
+- Slide 1: [Person at home, relaxed, phone in hand]
+- Slide 2: [App screen showing tracking]
+- Slide 3: [Courier arriving with package]
+- Slide 4: [Speed metric ("En 15 minutos")]
+- Slide 5: [CTA button, bold]
+
+COPY (PROBLEM ERASURE):
+"Tú no necesitas buscar"
+"Nosotros entregamos a tu puerta"
+"Mientras tú trabajas, nos encargamos"
+"En [TIME] llegamos"
+
+PSYCHOLOGY:
+Problem erasure = relief. Convenience = value. Speed metrics = proof.
+
+ADAPTATIONS:
+- Restaurant delivery: "No cocines hoy"
+- Grocery: "No vayas al mercado"
+- Pharmacy: "No esperes en fila"
+- Parts delivery: "Consigue partes al instante"
+- B2B: "Entrega mientras produces"
+    `,
+    psychology: 'Problem erasure = emotional relief. Convenience = premium positioning.',
+    shareability: 'High (relatable, useful)'
+  },
+
+  geographicCoverageHero: {
+    name: 'Geographic Coverage (Nationwide Trust)',
+    description: 'Landmarks + vehicle showcase. "We reach everywhere."',
+    template: `
+VISUAL:
+- Slide 1: [Landmark #1 + courier photo]
+- Slide 2: [Service guarantee text]
+- Slide 3: [National map with coverage points]
+- Slide 4: [Vehicle fleet showcase]
+- Slide 5: [CTA with regional claim]
+
+COPY (GEOGRAPHY BUILDS TRUST):
+"A encomenda, en el destino cierto"
+"Nós chegamos a todo [PAÍS]"
+"Confianza en cada región"
+"Landmarks: São Paulo → Rio → Brasília"
+
+PSYCHOLOGY:
+Geography = local knowledge. Landmarks = city awareness. National scale = authority.
+
+ADAPTATIONS:
+- International: "Puerta a puerta en 50 países"
+- Regional specialist: "Expertos en [REGION]"
+- Bi-national: "Colombia ↔ Venezuela"
+    `,
+    psychology: 'Geography = local trust. Landmarks = place awareness. National = authority.',
+    shareability: 'Medium (informational, regional interest)'
+  },
+
+  solutionStackingLogistics: {
+    name: 'Solution Stacking (Multi-Service Flex)',
+    description: 'Show multiple services, pricing, options. Abundance principle.',
+    template: `
+VISUAL:
+- Slide 1: [Promo price highlight]
+- Slide 2: ["Necesitas urgencia?" permission]
+- Slide 3: [Service type showcase (movings/storage/express)]
+- Slide 4: [Payment options (card/credit/cash)]
+- Slide 5: [Educational tip or bonus]
+
+COPY (OBJECTION HANDLERS):
+"Tenemos solución para todo"
+"Presupuesto flexible según necesidad"
+"Pago sin estrés: tarjeta, efectivo, crédito"
+"5 tips para empacar mejor"
+
+PSYCHOLOGY:
+Abundance = high value. Objection handling = confidence. Education = trust.
+
+ADAPTATIONS:
+- Movers: "Tamaños desde estudio hasta caseron"
+- Freight: "Micro, pequeño, mediano, grande"
+- Distribution: "Local, regional, nacional"
+    `,
+    psychology: 'Abundance = high-value perception. Flexibility = trust. Education = authority.',
+    shareability: 'Medium-high (informational, useful)'
+  },
+
+  valueTriangleLogistics: {
+    name: 'Value Triangle (Price + Speed + Trust)',
+    description: 'Messaging balances three value pillars visually.',
+    template: `
+VISUAL:
+- Slide 1: [Speed claim: "Envío seguro y rápido"]
+- Slide 2: [Price comparison or savings math]
+- Slide 3: [Multi-modal vehicles (truck + van + bike)]
+- Slide 4: [Professional guarantee text]
+- Slide 5: [Coverage + CTA]
+
+COPY (TRIPLE POSITIONING):
+"Melhor preço"
+"Mejor servicio"
+"Garantía en cada entrega"
+
+PSYCHOLOGY:
+Triangle = balance. Three pillars = comprehensive value. B2B professional = authority.
+
+ADAPTATIONS:
+- Courier: "Rápido, económico, confiable"
+- Freight: "Capacidad, velocidad, seguridad"
+- Distribution: "Cobertura, precio, exactitud"
+    `,
+    psychology: 'Triangle = complete value proposition. Three pillars = comprehensive.',
+    shareability: 'Medium (B2B professional tone)'
+  },
+
+  surealDeliveryFantasy: {
+    name: 'Surreal Delivery (Impossible Scenarios)',
+    description: 'Product delivers in impossible/surreal location. Viral potential.',
+    template: `
+VISUAL:
+- Slide 1: [Surreal scenario: hot air balloon, underwater, space, mountain top]
+- Slide 2: [Product magically appears in crazy place]
+- Slide 3: [Speed hero courier on vehicle, motion blur]
+- Slide 4: ["Fastest delivery" data visual]
+- Slide 5: [CTA in bold colors]
+
+COPY (IMPOSSIBILITY MARKETING):
+"Pedir lo imposible"
+"Entregamos donde sea"
+"Ni en la montaña te frenamos"
+"Speed that defies physics"
+
+PSYCHOLOGY:
+Impossibility = viral (meme potential). Surprise = engagement. Hyperbole = memorable.
+
+ADAPTATIONS:
+- Food: "Burger en la montaña"
+- Pharmacy: "Medicina en la playa"
+- Flower: "Rosas desde las nubes"
+- Tech: "Gadget desde el espacio"
+- B2B: "Piezas industriales a cualquier lugar"
+    `,
+    psychology: 'Impossibility = viral, shareable. Hyperbole = memorable, entertaining.',
+    shareability: 'Very high (meme-worthy, surreal)'
+  },
+
+  problemErasureLogistics: {
+    name: 'Problem Erasure (Generic Template)',
+    description: 'Fill-in-the-blank: "You don\'t need to X anymore."',
+    template: `
+VISUAL:
+- Slide 1: [Pain state visualization - waiting, stress, chaos]
+- Slide 2: [Old solution fails - outdated, slow]
+- Slide 3: [New solution - clean, modern, fast]
+- Slide 4: [Metric proof - time saved, cost reduced]
+- Slide 5: [Permission slide - "Puedes confiar en nosotros"]
+
+COPY TEMPLATE:
+"No necesitas [OLD PAIN]"
+"Porque nosotros [NEW SOLUTION]"
+"En [TIME/METRIC] llegamos"
+"Confía en quien entiende"
+
+PSYCHOLOGY:
+Problem erasure = emotional relief. Before-after narrative = satisfaction. Permission = trust.
+
+ADAPTATIONS:
+- "No busques frete en 10 transportadoras"
+- "No esperes 3 días para tu paquete"
+- "No pierdes control de tu envío"
+- "No pagas sorpresas en destino"
+    `,
+    psychology: 'Problem erasure = relief + emotional connection. Narrative satisfaction.',
+    shareability: 'High (relatable, problem-focused)'
+  },
+
+  specialistHeroLogistics: {
+    name: 'Specialist Professional (Credentials Hero)',
+    description: 'Driver/operator portrait with credentials floating. B2B authority.',
+    template: `
+VISUAL:
+- Slide 1: [Professional operator portrait, with vehicle]
+- Slide 2: [Credentials: "15 años experiencia"]
+- Slide 3: [Equipment/tech showcase - GPS, temperature control, etc]
+- Slide 4: [Success case - "X entregas completadas"]
+- Slide 5: [Trust handoff - "Tu carga en buenas manos"]
+
+COPY (AUTHORITY BUILD):
+"Experto en carga especializada"
+"Transporte de alto valor"
+"Rastreamiento 24/7"
+"Asegurado al 100%"
+
+PSYCHOLOGY:
+Face = immediate trust. Credentials = authority. Experience = proof. Equipment = professionalism.
+
+ADAPTATIONS:
+- Auto transport: "Piloto experto en vehículos de lujo"
+- Cold chain: "Especialista en refrigeración"
+- High-value: "Seguridad máxima"
+    `,
+    psychology: 'Face + credentials = high credibility. Professional equipment = trust.',
+    shareability: 'Medium (B2B professional)'
+  },
+
+  speedEscalation: {
+    name: 'Speed Escalation (Tiered Options)',
+    description: 'Show speed progression: slow → fast → express. Urgency ladder.',
+    template: `
+VISUAL:
+- Slide 1: [Standard option - truck, "48 horas"]
+- Slide 2: [Express option - van, "24 horas"]
+- Slide 3: [Ultra-fast option - bike/moto, "2 horas"]
+- Slide 4: [Speed hero with motion blur, "Fastest delivery"]
+- Slide 5: [CTA: "Elige tu velocidad"]
+
+COPY (ESCALATION):
+"48 horas: Económico"
+"24 horas: Express"
+"4 horas: Urgencia"
+"2 horas: Supersónico"
+
+PSYCHOLOGY:
+Escalation = urgency ladder. User sees options without reading. Price ∝ speed.
+
+ADAPTATIONS:
+- Tiered shipping: Every layer has pricing
+- Same-day: Hourly breakdowns
+- On-demand: Real-time pricing
+    `,
+    psychology: 'Escalation = urgency ladder. User chooses based on need + budget.',
+    shareability: 'Medium (informational, comparative)'
+  },
+
+  geographicCoverageReveal: {
+    name: 'Geographic Coverage Reveal (Expansion Map)',
+    description: 'Map shows expanding coverage. Narrative of growth.',
+    template: `
+VISUAL:
+- Slide 1: [City spotlight - "Comenzamos en São Paulo"]
+- Slide 2: [Regional expansion - map showing growth vector]
+- Slide 3: [National scale - truck on highway, expansive vista]
+- Slide 4: [International reach - plane, ship, ports visible]
+- Slide 5: ["Entregamos en todo [REGION/PAÍS]" + CTA]
+
+COPY (GROWTH NARRATIVE):
+"2018: Uma cidade"
+"2020: Três estados"
+"2023: Todo Brasil"
+"2024: América Latina"
+
+PSYCHOLOGY:
+Expansion = company growth visible + authority building. Map = aspirational. Timeline = proof.
+
+ADAPTATIONS:
+- "Ahora llegamos al Nordeste"
+- "Expansión a Perú, Chile, Colombia"
+- "50 ciudades, 10,000+ entregas"
+    `,
+    psychology: 'Geographic expansion = growth credibility. Timeline = proof of market fit.',
+    shareability: 'Medium (company-focused, achievement-oriented)'
+  },
+
+  objectionLadderLogistics: {
+    name: 'Objection Ladder (Addressing Doubts)',
+    description: 'Start with common objection, climb to proof + permission.',
+    template: `
+VISUAL:
+- Slide 1: [State objection: "¿Frete caro?"]
+- Slide 2: [Solution intro with flexibility message]
+- Slide 3: [Proof #1 - pricing example or comparison]
+- Slide 4: [Proof #2 - case study or testimonial]
+- Slide 5: [Permission - "Mereces flete justo"]
+
+COPY (OBJECTION STACK):
+"¿Frete muy caro?"
+"Tenemos flexibilidad"
+"Desde $5.90 por paquete"
+"Mira este caso: 50% ahorro"
+"Puedes contar con nosotros"
+
+PSYCHOLOGY:
+Objection = vulnerability opening. Addressing it = confidence. Proof ladder = credibility climb.
+
+ADAPTATIONS:
+- "¿Tarda mucho?" → Proof: "En 2 horas llegamos"
+- "¿Se daña?" → Proof: "100% seguro o reembolso"
+- "¿Qué horario?" → Proof: "Flexible, 24/7"
+    `,
+    psychology: 'Objection addressing = confidence. Proof ladder = credibility build.',
+    shareability: 'High (problem-solving focused)'
+  },
+
+  // ── PHASE 29: STRATEGIC FORMULAS (Multi-Industry) ───────────────────────────
+
+  strategicIdentityFormula: {
+    name: 'Strategic Identity Formula (Branding Foundation)',
+    description: 'Find brand essence before designing. 5-step discovery process.',
+    template: `
+SLIDE 1: IDENTIDAD NUCLEAR
+"¿Quién eres REALMENTE?"
+Visual: Formulario/worksheet design (Paint-style retro)
+Copy: Haz estas preguntas:
+- ¿Cuál es tu misión principal?
+- ¿Qué problema SOLO tú resuelves?
+- ¿Quién es tu cliente ideal? (edad, ingresos, dolor)
+- ¿Qué valores NO negocías?
+
+SLIDE 2: DIRECCIÓN VISUAL
+"Define tu estética antes de crear"
+Visual: Color palette swatches + typography samples
+Copy: Decide:
+- Colores primarios (máx 3)
+- Tipografía (headlines, body, accent)
+- Elementos visuales (geometric? organic? surreal?)
+- Tono visual: premium/playful/professional/surreal?
+
+SLIDE 3: VOZ Y TONO
+"Cómo hablas con tu audiencia"
+Visual: Speech bubble with voice tone examples
+Copy: Define:
+- ¿Formal o casual?
+- ¿Educativo o entretenido?
+- ¿Empático o directo?
+- Ejemplos: "Yo soy quien dice..." / "Mi marca nunca dice..."
+
+SLIDE 4: DIFERENCIADORES (LO QUE NO HACES)
+"Define por lo que rechazas"
+Visual: X marks (anti-patterns) vs check marks (your way)
+Copy: Anti-patterns específicas:
+- "NO usamos imágenes stock genéricas"
+- "NO copiamos competencia"
+- "NO hablamos en corporativo"
+- "SIEMPRE priorizamos..."
+
+SLIDE 5: GUÍA DE APLICACIÓN
+"Cómo usar todo esto en carruseles"
+Visual: Brand guide preview (system design)
+Copy: Checkpoints:
+- "Cada slide respeta estos colores"
+- "Tipografía principal: [FONT]"
+- "Voz es siempre: [TONE]"
+- "Compartir si pases: identidad check ✓"
+
+ADAPTATIONS BY USER TYPE:
+- Emprendedor: Emphasis on "solving one specific problem"
+- Empresario B2B: Emphasis on "enterprise positioning + trust metrics"
+- Developer: Emphasis on "technical precision + documentation"
+- Profesional independent: Emphasis on "personal brand + credibility stacking"
+- Creator/influencer: Emphasis on "personality authenticity + audience connection"
+- E-commerce: Emphasis on "product excellence + customer experience"
+- Agency: Emphasis on "system scalability + client success stories"
+    `,
+    psychology: 'Identity before aesthetics. Foundation before building. Rejection defines inclusion.',
+    shareability: 'High (framework-based, educational)'
+  },
+
+  templateReusabilityFormula: {
+    name: 'Template Reusability Formula (Design Systems)',
+    description: '5 slides to show "design once, use forever" power.',
+    template: `
+SLIDE 1: ESTRUCTURA BASE UNIVERSAL
+"Un carrusel estructura que funciona para TODO"
+Visual: 5-slide template grid
+Copy: Template structure:
+- Slide 1: Hook (problema o intriga)
+- Slide 2: Desarrollo (contexto)
+- Slide 3: Enseñanza (tu expertise)
+- Slide 4: Prueba (resultado o caso)
+- Slide 5: CTA (acción clara)
+
+SLIDE 2: VARIABLES POR INDUSTRIA
+"Misma estructura, contenido diferente"
+Visual: 3-column comparison (product vs service vs creator)
+Copy: Examples:
+- Product: Hook product benefit → show features → proof photos → testimonial → Buy now
+- Service: Hook solution promise → explain process → show expertise → case study → Book now
+- Creator: Hook personal story → share lesson → teaching content → audience testimonial → Follow now
+
+SLIDE 3: COPY HOOKS POR AUDIENCIA
+"Hooks que funcionan para cada público"
+Visual: Chat bubbles with different hook types
+Copy: Hook templates:
+- Entrepreneur: "Ganamos $X usando este sistema..."
+- B2B: "5 empresas dejaron de perder dinero cuando..."
+- Desarrollador: "Este código reduce latencia 70%..."
+- Professional: "Mis clientes transformaron su negocio..."
+
+SLIDE 4: ELEMENTOS VISUALES PRE-ARMADOS
+"Elementos listos para usar"
+Visual: Icon library, shape library, color swatches
+Copy: Pre-built components:
+- Icon library (50+ por categoría)
+- Shape/frame templates
+- Color palettes (5 opciones)
+- Typography combos (10 pairings)
+- Background patterns (15 styles)
+
+SLIDE 5: GENERACIÓN ONE-CLICK
+"De idea a carrusel en 5 minutos"
+Visual: Timeline: Idea → Select template → Fill variables → Generate → Publish
+Copy: Workflow:
+"1. Elige template base"
+"2. Ingresa tu industria + audiencia"
+"3. Selecciona copy hook"
+"4. Elige visual style"
+"5. Genera carrusel automático"
+CTA: "Prueba generador gratis"
+
+ADAPTATIONS BY USER TYPE:
+- Emprendedor startup: Speed is priority ("5 min carrusel")
+- Empresario legacy: System is priority ("Consistencia en 50 carruseles")
+- Developer: Technical is priority ("API integration + batch export")
+- Independent pro: Personalization is priority ("Flexible, not cookie-cutter")
+- Creator: Authenticity is priority ("My voice, not template voice")
+    `,
+    psychology: 'Templates = speed + confidence. Pre-built = reduced friction. One-click = adoption.',
+    shareability: 'Very high (tool-focused, efficiency-driven)'
+  },
+
+  hookErrorActionResultCta: {
+    name: 'Hook → Error → Action → Result → CTA Formula',
+    description: 'Classic 5-slide persuasion structure (credibility climbing).',
+    template: `
+SLIDE 1: GANCHO CON PROMESA
+Visual: Bold typography + problem visualization
+Copy template: "[OUTCOME] en [TIMEFRAME]"
+Examples:
+- "+40% ventas en 30 días"
+- "Tu auto +100HP sin dinero"
+- "Entrega garantizada en 2 horas"
+Psychology: Promise creates curiosity. Metric creates believability.
+
+SLIDE 2: EL ERROR COMÚN
+Visual: X mark or frustrated person
+Copy template: "EL ERROR: la mayoría [WRONG BELIEF]"
+Examples:
+- "EL ERROR: Creen que dinero = ventas"
+- "EL ERROR: Piensan que más potencia = mejor rendimiento"
+- "EL ERROR: Asumen que caro = mejor servicio"
+Psychology: Validation of pain. The audience recognizes their mistake. Trust builds.
+
+SLIDE 3: ACCIONES TÉCNICAS
+Visual: Step-by-step numbered (1, 2, 3, etc)
+Copy template: "PASO 1: [TECHNICAL ACTION]"
+Examples:
+- "PASO 1: Estructura tu hook como pregunta"
+- "PASO 1: Diagnostica el problema raíz"
+- "PASO 1: Optimiza el ruteo del envío"
+Psychology: Concrete, actionable steps. Transparency = expertise. Simplification = accessibility.
+
+SLIDE 4: RESULTADO + BENEFICIO
+Visual: Before-after or success celebration
+Copy template: "Cuando aplicaste esto [METRIC] + [EMOTION]"
+Examples:
+- "Cuando hiciste esto: +$50k + confianza recuperada"
+- "Resultado: auto ronronea + manejo suave"
+- "Beneficio: clientes contentos + rentabilidad +30%"
+Psychology: Result proves system works. Emotion = memory encoding.
+
+SLIDE 5: CTA CLARA
+Visual: Action button or next step
+Copy template: "[ACTION VERB] + [SPECIFIC NEXT STEP]"
+Examples:
+- "Descarga la checklist gratuita"
+- "Agenda diagnóstico sin costo"
+- "Contáctanos para presupuesto gratis"
+Psychology: Low friction. Clear action. Permission to move forward.
+
+ADAPTATIONS BY USER TYPE:
+- Emprendedor: Emphasis on speed/ROI metrics
+- Empresario: Emphasis on system/scalability
+- Developer: Emphasis on technical precision
+- Profesional: Emphasis on expertise/credentials
+- Creator: Emphasis on personal journey/authenticity
+- E-commerce: Emphasis on product benefits/proof
+- Service provider: Emphasis on process/results
+    `,
+    psychology: 'Promise-validation-proof escalation. Credibility climbs slide by slide. High conversion.',
+    shareability: 'Very high (educational, proven formula)'
+  },
+
+  questionAnswerDetailApplicationCta: {
+    name: 'Question → Answer → Detail → Application → CTA Formula',
+    description: '5-slide problem-solving structure (audience engagement).',
+    template: `
+SLIDE 1: LA PREGUNTA QUE MÁS TE HACEN
+Visual: Large question mark or thought bubble
+Copy template: "¿ [QUESTION YOUR IDEAL CLIENT ASKS] ?"
+Examples:
+- "¿Cómo hago para vender más sin invertir más?"
+- "¿Dónde encuentro mecánico confiable?"
+- "¿Cómo envío urgente sin pagar caro?"
+Psychology: Immediate relevance. The audience sees their exact question.
+
+SLIDE 2: RESPUESTA DIRECTA (SIN AMBIGÜEDAD)
+Visual: Bold type, simple background, no confusion
+Copy template: "[DIRECT ANSWER IN 1 SENTENCE]"
+Examples:
+- "Respuesta: Usa copy que vende solo"
+- "Respuesta: Busca certificaciones + reviews"
+- "Respuesta: Servicio express con pricing flexible"
+Psychology: Clarity = trust. Direct answer = respect for time.
+
+SLIDE 3: EL DETALLE ESTRATÉGICO
+Visual: Breakdown diagram or insider view
+Copy template: "Lo que NO te cuenta la mayoría: [STRATEGIC DETAIL]"
+Examples:
+- "Lo que NOT dicen: El copy correcto vale 3x más que el anuncio"
+- "Lo que omiten: Certificación ISO = 40% más confianza"
+- "Lo que esconden: Consolidar envíos = 50% menos costo"
+Psychology: Insider knowledge = authority. Non-obvious wisdom = shareable.
+
+SLIDE 4: APLICACIÓN PRÁCTICA HOY
+Visual: Walkthrough or checklist
+Copy template: "Empieza HOY con esto:"
+Examples:
+- "Escribe 3 headlines usando esta fórmula"
+- "Pide referencias a 3 mecánicos"
+- "Consolidalos para cotización grupal"
+Psychology: Actionable today = immediate value. No waiting = engagement.
+
+SLIDE 5: CTA + INFORMACIÓN
+Visual: Link/button + contact options
+Copy template: "[ACTION] para [SPECIFIC OUTCOME]"
+Examples:
+- "Descarga template de copy → enlace en bio"
+- "Llama para diagnóstico gratis → 👆 en conversaciones"
+- "Contacta para cotización → WhatsApp"
+Psychology: Multiple contact options = choice. Specific outcome = clarity.
+
+ADAPTATIONS BY USER TYPE:
+- Emprendedor: Emphasis on "do it yourself today"
+- Empresario: Emphasis on "scale this system"
+- Developer: Emphasis on "technical implementation"
+- Profesional: Emphasis on "credibility markers"
+- Creator: Emphasis on "audience engagement"
+    `,
+    psychology: 'Audience question = instant relevance. Direct answer = respect. Application = value.',
+    shareability: 'Very high (Q&A format = natural sharing)'
+  },
+
+  numericTitleResourceBonusCtaFormula: {
+    name: 'Numeric Title → Resources → Bonus → CTA Formula',
+    description: '4-5 slide listicle structure (high engagement, quick scans).',
+    template: `
+SLIDE 1: TÍTULO NUMÉRICO IMPACTANTE
+Visual: Large number + icon/visual
+Copy template: "[NUMBER] [RESOURCE TYPE] que cambian todo"
+Examples:
+- "5 recursos de Canva que NO conocías"
+- "7 pasos para diagnosticar autos"
+- "10 tips para empacar sin daños"
+Psychology: Number = specificity. Listicles = scannable = high shares.
+
+SLIDE 2-4: RECURSO POR LÁMINA
+Visual: Resource icon/preview + name + one-line benefit
+Copy template: "[#] [RESOURCE NAME]: [ONE-LINE BENEFIT]"
+Examples:
+- "1. Mockups 3D: Muestra producto fotorrealista en segundos"
+- "2. Font pairing tool: Tipografía correcta = diseño premium"
+- "3. Color palette generator: Colores armoniosos automáticamente"
+Psychology: Each resource is independent but part of collection. Scanning = satisfaction.
+
+SLIDE 5 (OPTIONAL): BONUS TRACK
+Visual: Gold star or "surprise" indicator
+Copy template: "BONUS: [UNEXPECTED EXTRA VALUE]"
+Examples:
+- "BONUS: Template gratuita de embudo (no esperable)"
+- "BONUS: Access 12 meses a biblioteca privada"
+- "BONUS: Llamada de 30 min con experto"
+Psychology: Surprise bonus = delight. Unexpected = memorable. Share-worthy.
+
+FINAL SLIDE: CTA + GUARDADO
+Visual: Save button or screenshot reminder
+Copy template: "Guarda esto 📌 + acceso a [ADDITIONAL RESOURCE]"
+Examples:
+- "Guarda este carousel → Acceso a 20 templates más en bio"
+- "Salva para referencia → Enlace a la planilla completa"
+- "Screenshot y comparte → Gana acceso VIP"
+Psychology: Save = retention. Sharing = network effect.
+
+ADAPTATIONS BY USER TYPE:
+- Emprendedor startup: "5 herramientas de growth gratis"
+- Empresario: "7 sistemas de escalabilidad probados"
+- Developer: "10 librerías que aceleran desarrollo"
+- Profesional: "5 certificaciones que valen X sueldo"
+- Creator: "10 formatos de contenido que explotan"
+    `,
+    psychology: 'Numbers = specificity. Lists = scannable. Resources = immediately useful. Bonus = delight.',
+    shareability: 'Very high (listicle format is native-shareable)'
   }
 };
 
