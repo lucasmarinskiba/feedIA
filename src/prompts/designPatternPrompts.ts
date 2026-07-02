@@ -1593,4 +1593,65 @@ DESIGN RULES:
   },
 });
 
+// ── FOUNDATIONAL CONCEPTS (User Education) ────────────────────────────────
+
+export const foundationalConcepts = {
+  visualIdentityDefinition: {
+    name: 'Visual Identity Definition',
+    definition: '"Face of your brand" — All graphic elements people see',
+    components: ['Logo', 'Color palette', 'Typography', 'Iconography', 'Textures'],
+    function: 'Make brand recognizable + aesthetically attractive',
+    metaphor: 'Clothing + hairstyle of a person (appearance)',
+    whatItIs: 'Tools/graphics that make immediate visual impression',
+    whatItIsNot: 'The emotional feeling or personality behind brand',
+  },
+
+  brandingDefinition: {
+    name: 'Branding Definition',
+    definition: '"Soul of your business" — Strategic perception management',
+    components: ['Values', 'Purpose', 'Tone of voice', 'Customer experience', 'Company culture'],
+    function: 'Build emotional connection + trust with audience',
+    metaphor: 'Personality, values, feelings of a person (essence)',
+    whatItIs: 'Strategy that creates emotional connection',
+    whatItIsNot: 'Just visual design or logo',
+  },
+
+  keyDifference: {
+    name: 'Visual Identity vs Branding',
+    visualIdentity: {
+      label: 'Visual Identity',
+      seeing: 'What you see (visual)',
+      tools: 'Graphic tools',
+      timeframe: 'First impression (immediate)',
+      example: 'Logo, colors, fonts, layout',
+    },
+    branding: {
+      label: 'Branding',
+      seeing: 'What you feel (emotional)',
+      strategy: 'Integral strategy',
+      timeframe: 'Long-term impression (relationship)',
+      example: 'Values, voice, experience, culture',
+    },
+  },
+
+  businessNeedsBoth: {
+    name: 'Both Visual Identity AND Branding Required',
+    visualIdentityOnly: 'Incomplete tool. Attracts eyes. Won\'t retain trust or loyalty.',
+    brandingOnly: 'Hard to remember. Strong values without recognizable face.',
+    together: 'Complete strategy. Attracts → Engages → Retains → Scales',
+    outcome: 'Invest in both = Assure future + scalability of business',
+  },
+
+  userEducationFramework: {
+    order: [
+      '1. Define your BRANDING (soul, values, personality, purpose)',
+      '2. Design your VISUAL IDENTITY (face, colors, typography, graphics)',
+      '3. Align both: Visual expresses Branding',
+      '4. Generate content: All content reflects both visual + brand',
+    ],
+    criticalInsight: 'BRANDING FIRST → VISUAL SECOND. Visual derives from Brand essence.',
+    whyMatters: 'If you design visual without clear branding, you\'ll confuse audience. If you define branding without visual identity, you\'ll be forgettable.',
+  },
+};
+
 export default designPatternPrompts;
