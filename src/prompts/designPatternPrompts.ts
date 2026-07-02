@@ -589,11 +589,283 @@ USE CASE:
   },
 };
 
+// ── AGENCY/SERVICE POSITIONING PATTERNS ────────────────────────────────────
+
+export const agencyPatterns = {
+  // Pattern 1: MOUNTAIN SUMMIT (Achievement Journey)
+
+  mountainSummitDelivery: {
+    name: 'Mountain Summit (Achievement + Services)',
+    description: 'Climbers reaching peak = journey + multiple capabilities displayed',
+    template: `
+Design achievement/multi-service carousel (climbers, summit, journey):
+
+VISUAL:
+- Mountain/peak with climbers reaching top
+- Flag at summit: "WE DELIVER" (confidence, arrival)
+- Service icons positioned around mountain (3-4 services)
+- Blue background (power, trust, achievement)
+- Climbers in action (effort, journey, progression)
+- Glow effects at peak (success, arrival)
+
+SERVICE ICONS (Example):
+- Social Media Marketing
+- Search Engine Optimization
+- Content Creation
+- Brand Strategy
+
+COPY STRATEGY:
+- Headline: Service category + achievement promise
+- Subheading: "Smart solutions. Real results."
+- Message: We deliver across multiple capabilities
+- Tone: Confident, results-oriented, multi-faceted
+
+EXAMPLES:
+"Our Digital Services - Smart solutions Real results"
+"Climb to success with our services"
+"Peak performance across all channels"
+"Multiple services, one summit"
+
+EMOTION TRIGGERS:
+- Achievement (mountain top = success)
+- Journey (climbing = effort leads to results)
+- Capability (multiple icons = full-service)
+- Confidence (flag planted = we deliver)
+
+PSYCHOLOGY:
+Mountain = journey + achievement. Multiple services = complete solution.
+
+USE CASE:
+- Full-service agencies
+- Multi-capability positioning
+- Results-driven messaging
+- B2B service showcases
+    `,
+  },
+
+  // Pattern 2: HANDSHAKE PARTNERSHIP (Legacy Building)
+
+  handshakePartnership: {
+    name: 'Handshake Partnership (Collaboration + Legacy)',
+    description: 'Two professionals collaborating = partnership, legacy-focused',
+    template: `
+Design partnership/collaboration carousel (handshake, relationship):
+
+VISUAL:
+- Two professionals shaking hands (collaboration, agreement)
+- Overhead view (intimate, equal partnership)
+- Branded chairs (brand color emphasis, red/accent)
+- Clean, minimal background (white/light)
+- Professional attire (serious partnership)
+- Direct eye contact/connection
+
+COPY STRUCTURE:
+- Opening quote: "Your Vision. Our Strategy. Digital Success."
+- Body: What partnership looks like
+- Closing CTA: Transform ideas into impact
+- Subtext: Build digital legacies (long-term focus)
+
+EXAMPLES:
+"Your Vision. Our Strategy. Digital Success."
+"We don't just market. We build legacies."
+"Partnership that delivers."
+"Ideas + Strategy = Impact"
+"We Turn Ideas Into Impact"
+
+EMOTION TRIGGERS:
+- Trust (handshake = agreement, trust)
+- Partnership (two people, equals)
+- Legacy (long-term, lasting impact)
+- Collaboration (together, not alone)
+
+PSYCHOLOGY:
+Handshake = trust + agreement. Legacy = purpose beyond transaction.
+
+USE CASE:
+- Consulting/agency positioning
+- Partnership messaging
+- Trust-building
+- B2B relationship focus
+- Long-term strategy services
+    `,
+  },
+
+  // Pattern 3: PUZZLE + KEY (Solution/Access)
+
+  puzzleKeySolution: {
+    name: 'Puzzle + Key (Solution + Unlock)',
+    description: 'Puzzle piece + key inserted = problem solved + access gained',
+    template: `
+Design solution/unlock carousel (puzzle + key = complete picture):
+
+VISUAL:
+- Puzzle piece (3D, elegant, glowing)
+- Key inserted into puzzle (solution element)
+- Glow effects (activation, unlock, tech-forward)
+- Two color variations: Blue (trust) or Purple (premium)
+- Minimal background (white/light with pattern)
+- Tech-elegant aesthetic (not corporate)
+
+COPY STRATEGY:
+- Main headline: "UNLOCK your FUTURE"
+- Subheadline: Strategic + creative + data-driven approach
+- Message: Branding + strategy = unlimited opportunities
+- Tone: Visionary, comprehensive, future-focused
+
+EXAMPLES:
+"UNLOCK your FUTURE"
+"The key to your business growth"
+"Puzzle solved. Potential unlocked."
+"Your solution is waiting"
+"Strategy unlocks opportunity"
+
+DETAILS (Optional):
+- Strong branding unlocks clarity
+- Smart digital strategies unlock growth
+- Data-driven insights unlock opportunity
+- Creative solutions unlock potential
+
+EMOTION TRIGGERS:
+- Completion (puzzle solved)
+- Access (key unlocks possibilities)
+- Future (unlimited potential)
+- Solution (answer provided)
+
+PSYCHOLOGY:
+Puzzle + Key = complete picture + access granted. Unlock = empowerment.
+
+USE CASE:
+- Strategic consulting
+- Digital transformation
+- Growth services
+- Opportunity positioning
+- Future-focused messaging
+    `,
+  },
+
+  // Pattern 4: BINOCULARS/VISION (Clarity + Perspective)
+
+  binocularsVision: {
+    name: 'Binoculars Vision (Clarity + Perspective)',
+    description: 'Binoculars = see clearly, have perspective, design vision',
+    template: `
+Design vision/clarity carousel (binoculars = see opportunities):
+
+VISUAL:
+- Binoculars prominently featured (3D, brand color: purple, blue, etc)
+- Minimal white/light background
+- Grid pattern or subtle geometric elements
+- Clean, professional aesthetic
+- Binoculars positioned bottom-right or center
+- Brand logo at top
+
+COPY STRATEGY:
+- Main headline: "LET'S DESIGN YOUR VISION!"
+- Subheadline: Genius approach, creative solutions, full perspective
+- Message: Clear sight leads to better design decisions
+- Tone: Confident, creative, visionary
+
+EXAMPLES:
+"LET'S DESIGN YOUR VISION!"
+"See Your Future Clearly"
+"Perspective Changes Everything"
+"Vision + Genius = Success"
+"We Design Your Tomorrow"
+
+BRAND POSITIONING (Example):
+"The Art of Genius" (Genivison positioning)
+- Creative + strategic + clear sight
+
+CTA:
+- "Reach US" or "Let's Start"
+- Contact information prominent
+
+EMOTION TRIGGERS:
+- Clarity (see clearly with binoculars)
+- Perspective (wider view, bigger picture)
+- Vision (future-focused, design-led)
+- Genius (creative excellence)
+
+PSYCHOLOGY:
+Binoculars = clarity + perspective. Vision = purpose + direction.
+
+USE CASE:
+- Creative agencies
+- Brand design services
+- Strategic consulting
+- Innovation positioning
+- Future-focused brands
+    `,
+  },
+
+  // Pattern 5: "UNLOCK" REPEATED POSITIONING (Versatile Pattern)
+
+  unlockPositioning: {
+    name: '"Unlock" Positioning (Versatile Framework)',
+    description: 'Repeating "UNLOCK" pattern with variations = consistency + impact',
+    template: `
+Design "UNLOCK" carousel series (consistent, repeating positioning):
+
+CORE MESSAGING:
+"UNLOCK your [NOUN]"
+- UNLOCK your FUTURE
+- UNLOCK your POTENTIAL
+- UNLOCK your GROWTH
+- UNLOCK your VISION
+- UNLOCK your SUCCESS
+
+VISUAL VARIATIONS (Pick one per slide):
+1. Puzzle + Key (solution metaphor)
+2. Binoculars (vision metaphor)
+3. Lock opening (literal unlock)
+4. Door opening (access metaphor)
+5. Light bulb (idea metaphor)
+
+COLOR PALETTE OPTIONS:
+- Blue: Trust, tech, delivery
+- Purple: Premium, creativity, innovation
+- Red: Energy, urgency, transformation
+- Green: Growth, opportunity, nature
+
+COPY STRUCTURE (Each slide):
+- Headline: "UNLOCK your [benefit]"
+- Subheadline: How your future transforms
+- Body: Strategic + creative + data-driven approach
+- CTA: Contact, learn more, start
+
+SERIES EXAMPLES:
+Slide 1: UNLOCK your FUTURE (puzzle + key, blue)
+Slide 2: UNLOCK your GROWTH (binoculars, purple)
+Slide 3: UNLOCK your VISION (light bulb, cyan)
+Slide 4: UNLOCK your POTENTIAL (door opening, green)
+Slide 5: UNLOCK your SUCCESS (combined elements, brand color)
+
+EMOTION TRIGGERS:
+- Hope (unlock = new possibilities)
+- Capability (we have the key)
+- Future (tomorrow is waiting)
+- Empowerment (you control this)
+- Possibility (potential unlimited)
+
+PSYCHOLOGY:
+"Unlock" = agency + hope. Repetition = brand reinforcement.
+
+USE CASE:
+- Multi-slide carousel campaigns
+- Campaign consistency
+- Repeated brand messaging
+- Growth/transformation services
+- Versatile positioning across niches
+    `,
+  },
+};
+
 export const designPatternWorkflow = {
   photoEditing: 'Lightroom Mobile (edit) → Snapseed (retouch) → CapCut (arrange)',
   videoCreation: 'Canva (sketch/idea) → CapCut (assembly) → Snapseed (polish photos)',
   contentStrategy: 'Identify pain → Create prompt → Organize → Document → Improve',
   strategyFirst: 'Strategy → Direction → Technology → Execution → Results',
+  agencyFramework: 'Mountain (deliver multi-services) → Handshake (partner) → Puzzle (solve) → Binoculars (see clearly) → Unlock (future)',
 };
 
 // ── REAL CAROUSEL DESIGN PATTERNS ──────────────────────────────────────────
