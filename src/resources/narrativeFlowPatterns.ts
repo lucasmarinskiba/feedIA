@@ -309,6 +309,48 @@ export const flowPatterns: CarouselFlowPattern[] = [
     ],
     industryFit: ['education', 'school-recovery', 'financial-collection', 'school-management'],
     psychologyFlow: 'Problem recognition (1) → Hope + possibility (2-3) → Empowerment + action (4)'
+  },
+  {
+    id: 'domain-transfer-5slide',
+    name: 'Domain Transfer 5-Slide (Complex Concept via Familiar Analogy)',
+    slides: 5,
+    flow: [
+      'Analogy intro hook: "Te explicando [COMPLEX] na linguagem do [FAMILIAR_DOMAIN]"',
+      'Implicit learning: "Seu [FAMILIAR_ENTITY] te ensinou tudo que precisa saber"',
+      'Benefit/reward question: "E o prêmio?" → Answer with benefit clarity',
+      'Practical example: "E na prática?" → Concrete scenario showing principle in action',
+      'Misconception clarifier + expert teaser CTA'
+    ],
+    retention: [
+      { slideNumber: 1, mechanic: 'Accessibility through analogy (complex → familiar)' },
+      { slideNumber: 2, mechanic: 'Authority reframing (you already know this)' },
+      { slideNumber: 3, mechanic: 'Reward anticipation (keeps momentum)' },
+      { slideNumber: 4, mechanic: 'Clarity through concrete scenario' },
+      { slideNumber: 5, mechanic: 'Misconception handling + expert trust + soft CTA' }
+    ],
+    industryFit: ['financial-education', 'complex-products', 'abstract-concepts', 'consulting'],
+    psychologyFlow: 'Accessibility (1) → Recognition (2) → Reward (3) → Clarity (4) → Trust + action (5)'
+  },
+  {
+    id: 'consortium-education-5slide',
+    name: 'Consortium/Complex Financial Product 5-Slide (Specific Example)',
+    slides: 5,
+    flow: [
+      'Hook: "Te explicando consórcio na linguagem do futebol"',
+      'Learning transfer: "Seu clube te ensinou tudo que precisa saber sobre consórcio"',
+      'Benefit question: "E o prêmio?" + "Você não recebe dinheiro, recebe poder de compra"',
+      'Practical example: "E na prática? O consórcio é um grupo que joga junto..."',
+      'Misconception + expert CTA: "Você só não percebeu isso antes, vem que explica"'
+    ],
+    retention: [
+      { slideNumber: 1, mechanic: 'Football analogy = accessible entry point' },
+      { slideNumber: 2, mechanic: 'Club example = familiar proof of principle' },
+      { slideNumber: 3, mechanic: 'Benefit clarity (reframes money ≠ buying power)' },
+      { slideNumber: 4, mechanic: 'Concrete bolão example = makes abstract concrete' },
+      { slideNumber: 5, mechanic: 'Light teaser (not salesy) + expert invitation' }
+    ],
+    industryFit: ['financial-products', 'consortium', 'savings-plans', 'group-financing'],
+    psychologyFlow: 'Familiarity (1-2) → Benefit clarity (3) → Practical understanding (4) → Soft conversion (5)'
   }
 ];
 

@@ -444,6 +444,85 @@ export const copyPatterns: CopyPattern[] = [
     whenToUse: 'Final slide in myth-busting series, close the narrative with truth + benefits + CTA',
     powerWords: ['VERDADE', 'Possível', 'Necessário', 'Garante', 'Transformar'],
     emotionTriggers: ['empowerment', 'hope', 'action', 'partnership']
+  },
+  {
+    id: 'domain-transfer-analogy-hook',
+    name: 'Domain Transfer Analogy Hook',
+    type: 'hook',
+    tone: 'informal',
+    template: 'Te explicando [COMPLEX_CONCEPT] na linguagem do [FAMILIAR_DOMAIN]',
+    examples: [
+      'Te explicando consórcio na linguagem do futebol',
+      'Te explicando investimento na linguagem da sua casa',
+      'Te explicando imposto na linguagem do seu carro',
+      'Te explicando seguros na linguagem do futebol'
+    ],
+    psychology: 'Learning transfer - complex topics become accessible through familiar domain analogy',
+    whenToUse: 'First slide, complex financial/abstract concept education',
+    powerWords: ['Te explicando', 'Na linguagem do', '[FAMILIAR_THING]'],
+    emotionTriggers: ['recognition', 'anticipation', 'accessibility']
+  },
+  {
+    id: 'implicit-learning-reframe',
+    name: 'Implicit Learning Reframe (Already Know This)',
+    type: 'education',
+    tone: 'formal',
+    template: 'O seu [FAMILIAR_ENTITY/PERSON] te ensinou tudo que você precisa saber sobre [COMPLEX_CONCEPT].\n\n[EXPLANATION of how familiar entity demonstrates the principle]',
+    examples: [
+      'O seu clube do coração te ensinou tudo que você precisa saber sobre consórcio.\n\nTodo ano você vê seu clube montando elenco, contratando jogador, renovando, planejando temporada.',
+      'Seu banco te ensinou tudo que você precisa saber sobre juros compostos.\n\nVocê vê rendimento crescendo mês a mês na poupança.'
+    ],
+    psychology: 'Authority through existing knowledge - not teaching new concept, but reframing what they already know',
+    whenToUse: 'Mid-carousel, connect familiar knowledge to abstract concept',
+    powerWords: ['Te ensinou', 'Tudo que você precisa saber', 'Você vê'],
+    emotionTriggers: ['recognition', 'authority', 'confidence']
+  },
+  {
+    id: 'practical-example-transition',
+    name: 'Practical Example Transition',
+    type: 'education',
+    tone: 'casual',
+    template: 'E na prática?\n\n[CONCRETE_SCENARIO with real people/numbers/situations demonstrating principle]',
+    examples: [
+      'E na prática?\n\nO consórcio é um grupo que joga junto. Imagine o famoso bolão, cada participante contribui uma cota todo mês. Todo mês alguém do grupo é contemplado e recebe crédito pra comprar o bem.',
+      'E na prática?\n\nSua mãe investe 1000 reais por mês. Depois de 5 anos tem 60k + rendimento. Isso é juros compostos em ação.'
+    ],
+    psychology: 'Theory → concrete application reduces cognitive gap',
+    whenToUse: 'Mid-to-late carousel, show theory in action',
+    powerWords: ['E na prática', 'Imagine', 'Cada', 'Todo mês'],
+    emotionTriggers: ['clarity', 'relatability', 'actionability']
+  },
+  {
+    id: 'misconception-clarifier',
+    name: 'Misconception Clarifier (Not X, Actually Y)',
+    type: 'education',
+    tone: 'formal',
+    template: 'Você não recebe [EXPECTED], recebe [ACTUAL_BENEFIT].',
+    examples: [
+      'Você não recebe dinheiro na conta, recebe poder de compra.',
+      'Você não recebe juros fixos, recebe juros progressivos.',
+      'Você não recebe promessa, recebe garantia legal.'
+    ],
+    psychology: 'Handles objections preemptively, clarifies value without being defensive',
+    whenToUse: 'Reality check slide, clarify misconceptions about benefit',
+    powerWords: ['Você não recebe', 'Recebe', 'Poder de'],
+    emotionTriggers: ['clarification', 'relief', 'trust']
+  },
+  {
+    id: 'expert-teaser-cta',
+    name: 'Expert Teaser CTA',
+    type: 'cta',
+    tone: 'punchy',
+    template: 'Você só não percebeu isso antes, vem que [EXPERT] explica',
+    examples: [
+      'Você só não percebeu isso antes, vem que a Baz explica',
+      'Você só não sabia disso, vem que nosso especialista explica',
+      'Você nunca tinha visto assim, deixa que a gente mostra'
+    ],
+    psychology: 'Light teaser (not pushy), position expert as guide/revealer',
+    whenToUse: 'Final slide, soft CTA that invites expert guidance',
+    powerWords: ['Você só não', 'Vem que', 'Explica', 'Mostra'],
+    emotionTriggers: ['curiosity', 'trust-in-expert', 'discovery']
   }
 ];
 
