@@ -3197,6 +3197,410 @@ ADAPTATIONS BY USER TYPE:
     `,
     psychology: 'Numbers = specificity. Lists = scannable. Resources = immediately useful. Bonus = delight.',
     shareability: 'Very high (listicle format is native-shareable)'
+  },
+
+  // ── PHASE 30: VISUAL INTELLIGENCE + PORTABLE SYSTEMS ────────────────────────
+
+  errorVisualShock: {
+    name: 'Error Visual Shock (Consequence Messaging)',
+    description: 'B&W shocked faces + colored accent + "this destroys your brand" messaging.',
+    template: `
+VISUAL:
+- Background: Black (dark, serious)
+- People: 2-3 faces B&W, expressing shock/concern/frustration
+- Accent color: Purple, neon, or brand color (thin outlines, small icons)
+- Typography: Large white + accent color mixed
+- Overlay: Small icons (broken heart, X mark, warning) in accent color
+- Layout: People left/center, text right, unbalanced (creates tension)
+
+COPY (CONSEQUENCES):
+"El [ERROR VISUAL] que baja automáticamente la calidad de tu marca"
+"...y pierdes [SPECIFIC CONSEQUENCE]"
+- Loses sales
+- Loses trust
+- Loses audience
+- Looks unprofessional
+- Confuses customers
+
+EXAMPLES:
+"El uso inconsistente de colores que confunde a clientes"
+"El logo pixelado que baja automáticamente tu credibilidad"
+"La tipografía courrier que parece 1995 (y pierdes ventas)"
+
+PSYCHOLOGY:
+Shock = attention capture. Consequence = motivation. B&W + color = visual contrast = memorable.
+Emotional + stakes = high shareability.
+
+ADAPTATIONS:
+- Brand: "El branding inconsistente que pierde confianza"
+- Design: "El spacing incorrecto que cansa la vista"
+- Content: "El copy vago que confunde a audiencia"
+- Product: "El empaque genérico que no diferencia"
+    `,
+    psychology: 'Shock + consequence = motivation to fix. Visual contrast = memorability.',
+    shareability: 'Very high (anxiety-driven, relatable problem)'
+  },
+
+  carouselConsistencySystem: {
+    name: 'Carousel Consistency System (Branded Framework)',
+    description: 'Fixed color palette + varied layouts + unified person/product integration.',
+    template: `
+VISUAL SYSTEM:
+- Color palette: 3-4 fixed colors (e.g., yellow/green/cream/black)
+- Layout variations: 5+ different compositional patterns
+- Person integration: Consistent person across slides (brand ambassador feel)
+- Product/mockup: Featured differently each slide (not repetitive)
+- Shapes: Consistent geometric style (wavy, rounded, angular)
+
+STRUCTURE:
+Slide 1: Person + headline (primary introduction)
+Slide 2: Product/service + benefit text (feature highlight)
+Slide 3: Problem state (relatable)
+Slide 4: Solution explanation (step-by-step or visual)
+Slide 5: CTA + social proof (closing)
+
+COPY PATTERN:
+- Slide 1: Conversational question or hook
+- Slide 2: Feature + benefit mashup
+- Slide 3: Customer pain point (not YOUR problem, theirs)
+- Slide 4: HOW system works (teach, don't sell)
+- Slide 5: "Do this now" + proof
+
+PSYCHOLOGY:
+Consistency = brand recognition. Variety = no fatigue. Person = trust + humanity.
+Repeated elements = subliminal cohesion.
+
+ADAPTATIONS:
+- Product launch: Consistent product + varied use cases
+- Personal brand: Same person + different topics/services
+- Agency: Consistent look + different client work
+- Service: Same service + varied problem scenarios
+    `,
+    psychology: 'Consistency = recognition. Variety = engagement. Person = trust.',
+    shareability: 'High (professional, branded, trustworthy)'
+  },
+
+  questionHookService: {
+    name: 'Question Hook (Service Positioning)',
+    description: '"Why hire MY service?" Question opens, carousel answers with proof.',
+    template: `
+SLIDE 1: THE QUESTION
+Visual: Person headshot, thoughtful expression
+Copy template: "Por qué contratar [MI SERVICIO]?"
+Examples:
+- "Por qué contratar o meu serviço de social media?"
+- "¿Por qué elegir MY agencia de diseño?"
+- "¿Por qué mi coaching es diferente?"
+
+PSYCHOLOGY:
+Question = immediate engagement. Audience MUST answer. Carousel then proves.
+
+SLIDES 2-4: PROOF LAYERS
+Slide 2: Authenticity + philosophy
+Slide 3: Results or methodology showcase
+Slide 4: Social proof + personality
+
+COPY PROGRESSION:
+- Slide 1: Question (creates cognitive gap)
+- Slide 2: "Lee la leyenda y entienda cómo..." (invitation to discover)
+- Slide 3: "Entenda mejor..." (deeper understanding)
+- Slide 4: Metrics + proof ("97 clientes felices")
+
+VISUAL TECHNIQUES:
+- Magnifying glass icon (looking deeper)
+- Timeline dates embedded (accountability)
+- Metrics visible but humble (not bragging)
+- Personality-driven (real person, not corporate)
+- Thought bubbles or speech elements (dialogue feel)
+
+ADAPTATIONS:
+- Agency: "Por qué somos diferentes"
+- Freelancer: "¿Por qué elegir mi servicio?"
+- Coach: "¿Por qué mi método funciona?"
+- Product: "¿Por qué este producto?"
+    `,
+    psychology: 'Question = cognitive engagement. Carousel answers = satisfaction. Proof = conversion.',
+    shareability: 'High (question format is inherently engaging)'
+  },
+
+  portableSystemsFraming: {
+    name: 'Portable Systems Framing (Immediately Usable)',
+    description: 'Carousel teaches framework user can apply TODAY in their work.',
+    template: `
+POSITIONING:
+"These aren't tutorials. They're PORTABLE SYSTEMS."
+"Each carousel should feel like: 'Oh... I can use this in my work next time.'"
+
+STRUCTURE (5 slides):
+Slide 1: System name + hook ("How to FRAME your vertical")
+Slide 2: Zone 1 visual guide (technical, "here's why this works")
+Slide 3: Zone 2 visual guide (alternative, "or this also works")
+Slide 4: Real-world application example
+Slide 5: "Use this next time" permission + reminder
+
+COPY CHARACTERISTICS:
+- Practical, not theoretical
+- "You can use this TODAY"
+- Step-by-step, but integrated (not rigid list)
+- Example-heavy, principle-light
+- Immediately applicable to user's work
+
+VISUAL GUIDANCE:
+- Zone-based framing (show phone vertical optimization)
+- Before-after or comparison layout
+- Real photos from diverse industries (shows portability)
+- Minimal text, maximum visual teaching
+- Iconic labels (Zone 1: Text-heavy | Zone 2: Image-heavy)
+
+PSYCHOLOGY:
+Portable = low friction. "I can use this" = immediate value. Systems = replicable = confidence.
+
+ADAPTATIONS:
+- Design: "How to compose a thumbnail"
+- Writing: "How to structure an email hook"
+- Video: "How to frame a scene"
+- Business: "How to structure a pitch"
+    `,
+    psychology: 'Portability = low friction + immediate utility. Systems = replicable confidence.',
+    shareability: 'Very high (immediately useful, shareable framework)'
+  },
+
+  patternRecognitionStory: {
+    name: 'Pattern Recognition Story (NOT Transformation Porn)',
+    description: 'Help reader locate themselves in timeline. NOT "look how far I\'ve come" flex.',
+    template: `
+POSITIONING:
+"These aren't 'look how far I've come' posts."
+"They're pattern recognition stories that help the reader locate themselves in the timeline."
+"Reader finds themselves. Reader sees progression possibility. Reader feels understood."
+
+STRUCTURE (5 slides):
+Slide 1: Starting point (vulnerable, real, relatable)
+Slide 2: First small insight (recognition moment for reader)
+Slide 3: Turning point (where reader might be NOW)
+Slide 4: Current understanding (wisdom earned, not bragging)
+Slide 5: "You're here, and you can get there too" (permission, not hierarchy)
+
+COPY PATTERN:
+- Slide 1: "I used to [BELIEF/BEHAVIOR]"
+- Slide 2: "Then I realized [INSIGHT]"
+- Slide 3: "Most people get stuck here [COMMON TRAP]"
+- Slide 4: "But if you understand [PRINCIPLE], you move forward"
+- Slide 5: "You might be in one of these stages. That's normal."
+
+VISUAL APPROACH:
+- Timeline-based (past → present, not finished → perfect)
+- Person visible in each photo (shows humanity, not just achievement)
+- Imperfect moments valued (not polished, curated highlight reel)
+- Reader positioning (arrows, markers, "You are here" elements)
+
+PSYCHOLOGY:
+Reader self-location > creator glorification. Relatability > achievement. Growth = journey.
+
+ADAPTATIONS:
+- Business growth: "My scaling journey (and where you might be)"
+- Personal brand: "My learning progression"
+- Skill development: "How I became [EXPERTISE]"
+- Mental health: "My healing journey (recognize yourself here)"
+    `,
+    psychology: 'Self-location > bragging. Relatability = trust. Timeline = possibility.',
+    shareability: 'Very high (deeply relatable, non-aggressive, educational)'
+  },
+
+  timelineIntegrationPattern: {
+    name: 'Timeline Integration (Dated Progress Narrative)',
+    description: 'Visible dates/calendar elements + progress layers. Builds urgency + accountability.',
+    template: `
+VISUAL STRUCTURE:
+- Background: Consistent grid/calendar aesthetic
+- Dates visible: "19 de Dezembro", "20", "26", "27" (progress markers)
+- Progression shown: Earlier dates → later dates (future visible)
+- Color coding: Date highlight, event highlight (visual hierarchy)
+- Icons/elements: Integration of date markers with content visuals
+
+COPY INTEGRATION:
+"Reunião de alinhamento: Opus estúdio" (date + event + person/brand)
+"Produção de conteúdo" (date + activity)
+Metrics at key dates: "19 de Dezembro - 97 posts"
+
+PSYCHOLOGY:
+Visible timeline = accountability. Future dates = urgency (limited time). Progress visible = motivation.
+Calendar aesthetic = "I have a system" positioning.
+
+ADAPTATIONS:
+- Content calendar: Show production dates + publish dates
+- Course delivery: Lesson dates embedded + progress tracking
+- Product launch: Pre-launch → launch day → post-launch progress
+- Personal brand: Content calendar transparency + deliverable dates
+- Event promotion: Countdown calendar + building hype
+    `,
+    psychology: 'Timeline visibility = accountability + urgency. Dates = progress tangibility.',
+    shareability: 'Medium (informational, systematic, professional)'
+  },
+
+  zoneBasedFraming: {
+    name: 'Zone-Based Visual Framing (Vertical Optimization)',
+    description: 'Define visual hierarchy zones. Zone 1 (text-heavy) vs Zone 2 (image-heavy).',
+    template: `
+CONCEPT:
+"How to FRAME your vertical for maximum impact"
+Each carousel teaches zone-based composition for vertical video/stories.
+
+ZONE SYSTEM:
+Zone 1: Upper 40% (text real estate, headlines, hooks)
+Zone 2: Middle 40% (visual anchor, product/person)
+Zone 3: Lower 20% (CTA, secondary info, interactive prompt)
+
+SLIDE STRUCTURE:
+Slide 1: "Here's how to frame content vertically"
+Slide 2: Zone 1 focus - "This is where you put your hook" (text-heavy example)
+Slide 3: Zone 2 focus - "This is where product lives" (image-heavy example)
+Slide 4: Zone 3 focus - "This is your call-to-action zone"
+Slide 5: Real-world mashup (all zones working together)
+
+COPY:
+- Minimal text (visual-first teaching)
+- Each zone labeled with purpose
+- Examples from different industries (shows portability)
+- "Use this template next time you shoot vertical"
+
+VISUAL GUIDANCE:
+- Phone frame overlay (shows vertical orientation)
+- Zone divisions marked (lines, color sections)
+- Example content positioned correctly in zones
+- Before (unoptimized) vs After (optimized) comparison
+
+PSYCHOLOGY:
+Zones = structure = confidence. Visual teaching = faster learning. Immediately applicable.
+
+ADAPTATIONS:
+- Video creation: Zone-based shot composition
+- Story design: Zone-based layout planning
+- Reel editing: Zone-based timing + visual placement
+- Thumbnail design: Zone-based hierarchy for phone preview
+    `,
+    psychology: 'Zones = structure + confidence. Visual teaching = speed. Immediately useful.',
+    shareability: 'High (technical but accessible, immediately useful)'
+  },
+
+  humbleMetricsIntegration: {
+    name: 'Humble Metrics (Social Proof Without Bragging)',
+    description: 'Numbers visible but embedded naturally. Proof without arrogance.',
+    template: `
+POSITIONING:
+Numbers ≠ bragging. Numbers = proof of process.
+"97 clients", "222 posts created", "55 testimonials" shown, not shouted.
+
+PLACEMENT STRATEGY:
+- Embedded in story (not featured)
+- Context provided (what metrics mean, not raw numbers)
+- Comparison avoided (not "better than")
+- Process emphasized ("how we got here", not "look how big")
+
+COPY INTEGRATION:
+"97 clientes confían en nuestro proceso"
+"222 carruseles publicados, 55 clientes satisfechos"
+"Desde que comenzamos: X, Y, Z" (journey-focused, not achievement-focused)
+
+VISUAL APPROACH:
+- Small icons or badges (97, 222, 55)
+- Integrated into design (not highlighted boxes)
+- Surrounded by context (who, what, why, not just numbers)
+- Narrative feel (numbers tell a story, don't brag)
+
+PSYCHOLOGY:
+Humble = trustworthy. Context = credible. Process = relatable.
+Bragging = repels. Embedding = attracts.
+
+ADAPTATIONS:
+- Agency: Clients served + projects delivered (integrated narrative)
+- Creator: Followers + engagement metrics (shown as byproduct, not goal)
+- Product: Users + growth (framed as community, not conquest)
+- Professional: Cases handled + success rate (embedded in teaching)
+    `,
+    psychology: 'Humble metrics = trust. Bragging = distrust. Embedded = authentic.',
+    shareability: 'High (relatable, non-aggressive, credible)'
+  },
+
+  personalityQuestionMashup: {
+    name: 'Personality + Question Mashup (Authentic Inquiry)',
+    description: 'Real person headshot + genuine question in thought bubble. NOT rhetorical.',
+    template: `
+VISUAL:
+- Headshot: Real person, authentic expression (not stock photo)
+- Thought bubble: Genuine question (looks slightly confused, curious, thoughtful)
+- Background: Clean, brand-colored (minimal distraction)
+- Icons: Small personality markers (glasses, magnifying glass, lightbulb)
+- Overall: Feels like "real person wondering about real problem"
+
+COPY (THE QUESTION):
+"Por que contratar o meu serviço?" (genuine inquiry, not rhetorical)
+"¿Cómo construyo auténtica?" (real confusion, relatable)
+"What's different about my method?" (honest self-questioning)
+
+KEY DISTINCTION:
+NOT: "Guess why my service is amazing?" (rhetorical, annoying)
+YES: "Why SHOULD you hire me? Let me show you..." (genuine, inviting)
+
+PSYCHOLOGY:
+Authentic question = lowered defenses. Person + question = humanizes brand.
+Thought bubble = internal dialogue (reader sees themselves thinking same Q).
+
+FOLLOW-UP STRUCTURE:
+Slide 1: Question + authentic person
+Slide 2: "Here's why..." (start answering)
+Slide 3: Proof or deep-dive
+Slide 4: Application or case study
+Slide 5: "Now YOU'RE ready to [hire/learn/buy]"
+
+ADAPTATIONS:
+- Service: "Why should you hire ME?"
+- Product: "Why is THIS different?"
+- Course: "What makes my teaching unique?"
+- Personal brand: "What can I teach you?"
+    `,
+    psychology: 'Authentic question = lowered defenses. Person = humanized. Thought bubble = identification.',
+    shareability: 'High (relatable, non-corporate, inviting)'
+  },
+
+  authenticityFirstPositioning: {
+    name: 'Authenticity First (Real Problem, Real Solution)',
+    description: 'Lead with genuine confusion/struggle. Solution secondary to relatability.',
+    template: `
+POSITIONING:
+"Authenticity > Perfection. Real struggle > polished facade."
+
+STRUCTURE (5 slides):
+Slide 1: Real person in real struggle (vulnerable opening)
+Slide 2: Real confusion or misconception (audience recognition moment)
+Slide 3: How confusion trapped them (consequence, not judgment)
+Slide 4: What actually solved it (simple, unglamorous solution)
+Slide 5: "If you're struggling here, try this" (permission, not prescription)
+
+COPY TONE:
+- Conversational, not corporate
+- Honest about difficulty (not toxic positivity)
+- Solution is practical, not magical
+- Emphasis on process, not outcome
+
+VISUAL APPROACH:
+- Imperfect moments valued (not retouched, filtered, polished)
+- Person visible being REAL (not just success photo)
+- Behind-the-scenes feel (workshop, desk, real environment)
+- Casual composition (not perfectly framed)
+
+PSYCHOLOGY:
+Authenticity = vulnerability = trust. Imperfection = relatability.
+Real problem + real solution = credible.
+
+ADAPTATIONS:
+- Business: "How I actually built this (unglamorous version)"
+- Skill: "What really helped me learn this"
+- Health: "Real talk about my struggle"
+- Personal brand: "The messy middle of my journey"
+    `,
+    psychology: 'Authenticity > perfection. Vulnerability = trust. Real = relatable.',
+    shareability: 'Very high (non-corporate, deeply relatable, shareable vulnerability)'
   }
 };
 
