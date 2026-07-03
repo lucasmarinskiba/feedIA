@@ -12,6 +12,10 @@ import { log } from '../agent/logger.js';
 import { generateSmartCarousel, type CarouselBrief } from '../capabilities/content/smartCarouselGenerator.js';
 import { generateSmartVideo, type VideoBrief } from '../capabilities/content/smartVideoGenerator.js';
 import { pinterestPatternLibrary, selectColorPalette, selectNarrativeStructure } from '../capabilities/content/pinterestPatternEncoder.js';
+import {
+  generateCarouselWithAgents,
+  generateVideoWithAgents,
+} from './agentIntegrationLayer.js';
 
 const router = Router();
 
@@ -98,7 +102,11 @@ router.post('/carousel/generate', async (req: Request, res: Response) => {
       brief.emotion = 'curiosity'; // Default
     }
 
-    // Generate
+    // Generate with agent reasoning layer
+    log.info('[Extended Routes] Using agent reasoning layer for carousel');
+    const { plan, content } = await generateCarouselWithAgents(brief);
+
+    // Also generate using original smart carousel for comparison/validation
     const carousel = await generateSmartCarousel(brief);
 
     log.info(
@@ -107,8 +115,12 @@ router.post('/carousel/generate', async (req: Request, res: Response) => {
 
     res.json({
       status: 'success',
-      data: carousel,
-      message: `Generated ${carousel.slideCount}-slide carousel (Pinterest-optimized)`,
+      data: {
+        ...carousel,
+        agentPlan: plan,
+        agentGeneratedContent: content,
+      },
+      message: `Generated ${carousel.slideCount}-slide carousel (Agent-reasoned + Pinterest-optimized)`,
     });
   } catch (error) {
     log.error(`[Extended Routes] Carousel generation failed: ${error}`);
@@ -154,7 +166,11 @@ router.post('/video/generate', async (req: Request, res: Response) => {
       brief.emotion = 'curiosity'; // Default
     }
 
-    // Generate
+    // Generate with agent reasoning layer
+    log.info('[Extended Routes] Using agent reasoning layer for video');
+    const { plan, content } = await generateVideoWithAgents(brief);
+
+    // Also generate using original smart video for comparison/validation
     const video = await generateSmartVideo(brief);
 
     log.info(
@@ -163,8 +179,12 @@ router.post('/video/generate', async (req: Request, res: Response) => {
 
     res.json({
       status: 'success',
-      data: video,
-      message: `Generated ${video.duration}s ${video.platform} video script (Pinterest-optimized)`,
+      data: {
+        ...video,
+        agentPlan: plan,
+        agentGeneratedContent: content,
+      },
+      message: `Generated ${video.duration}s ${video.platform} video script (Agent-reasoned + Pinterest-optimized)`,
     });
   } catch (error) {
     log.error(`[Extended Routes] Video generation failed: ${error}`);
