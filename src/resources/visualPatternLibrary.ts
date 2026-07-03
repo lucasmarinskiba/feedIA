@@ -79,6 +79,30 @@ export const visualPatterns: VisualPattern[] = [];
 
 export const layoutTemplates: LayoutTemplate[] = [
   {
+    id: 'numbered-benefits',
+    type: 'Numbered Benefits (1,2,3,4,5)',
+    description: 'Big bold numbers + benefit callout per slide',
+    visualGuide: 'Number 60% bg, photo 70%, benefit text bold',
+    bestFor: ['fitness', 'gym', 'training', 'education', 'motivation'],
+    colorPalettes: ['neon-yellow', 'lime-green', 'orange-black']
+  },
+  {
+    id: 'product-checklist-grid',
+    type: 'Product + Checklist Grid',
+    description: 'Product hero + feature checkboxes + benefit proof',
+    visualGuide: '3-slide: product hero | feature checklist | lifestyle use',
+    bestFor: ['equipment', 'tech', 'fitness-products', 'e-commerce'],
+    colorPalettes: ['orange-black', 'lime-green']
+  },
+  {
+    id: 'motivational-split',
+    type: 'Motivational Split (Headline + Action)',
+    description: 'Bold headline 50% + person 50%, strong copy',
+    visualGuide: 'Text left (bold uppercase), person right (confident pose)',
+    bestFor: ['fitness', 'motivation', 'coaching', 'personal-training'],
+    colorPalettes: ['neon-yellow', 'orange-black']
+  },
+  {
     id: 'hero-list',
     type: 'Hero Photo + List Overlay',
     description: 'Person photo with bulleted benefits floating',

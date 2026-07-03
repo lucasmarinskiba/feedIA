@@ -70,6 +70,32 @@ export const toolLibrary: Tool[] = [
     pros: ['High-quality images', 'Style consistency', 'Fast iteration'],
     cons: ['Discord-only', 'Limited control', 'Paid'],
     alternatives: ['DALL-E', 'Stable Diffusion', 'Adobe Firefly']
+  },
+  {
+    id: 'strava',
+    name: 'Strava',
+    category: 'analytics',
+    capability: ['fitness-tracking', 'community-engagement', 'performance-metrics'],
+    useCase: 'Track fitness content engagement, community proof, leaderboard integration',
+    platform: 'web/mobile',
+    apiAvailable: true,
+    integratedWithFeedIA: false,
+    pros: ['Large fitness community', 'Real performance data', 'Social integration'],
+    cons: ['Limited to fitness domain', 'API rate limits'],
+    alternatives: ['Fitbit', 'Apple Health', 'Garmin Connect']
+  },
+  {
+    id: 'adobe-firefly',
+    name: 'Adobe Firefly',
+    category: 'ai-generation',
+    capability: ['image-generation', 'text-effects', 'background-removal'],
+    useCase: 'Generate fitness-themed visuals, edit workout photos, create backgrounds',
+    platform: 'web',
+    apiAvailable: true,
+    integratedWithFeedIA: false,
+    pros: ['Adobe suite integration', 'Fast generation', 'Ethical AI'],
+    cons: ['Requires subscription', 'Web-based'],
+    alternatives: ['Midjourney', 'DALL-E', 'Stable Diffusion']
   }
 ];
 

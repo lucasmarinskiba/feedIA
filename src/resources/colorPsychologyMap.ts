@@ -65,6 +65,54 @@ export const colorPalettes: ColorPalette[] = [
     psychology: 'Trust, stability, sky/water connection (adventure)',
     accessibilityRatio: 8.58,
     examples: ['TrikatPro', 'tech-brands', 'premium-bikes']
+  },
+  {
+    id: 'orange-black-modern',
+    name: 'Orange/Black (Modern Fitness)',
+    primary: '#FF6600',
+    secondary: '#000000',
+    accent: '#FFFFFF',
+    emotion: ['energetic', 'modern', 'premium', 'powerful', 'action'],
+    industries: ['fitness', 'gym', 'equipment', 'coaching', 'tech'],
+    psychology: 'Energy + sophistication, modern innovation, power',
+    accessibilityRatio: 11.3,
+    examples: ['OM GYM', 'modern-equipment-brands', 'fitness-studios']
+  },
+  {
+    id: 'yellow-black-motivation',
+    name: 'Yellow/Black (Bold Motivation)',
+    primary: '#FFFF00',
+    secondary: '#000000',
+    accent: '#FFFFFF',
+    emotion: ['energetic', 'urgent', 'bold', 'motivational', 'confident'],
+    industries: ['fitness', 'personal-training', 'motivation', 'coaching', 'sports'],
+    psychology: 'Maximum contrast, attention, energy, confidence',
+    accessibilityRatio: 19.56,
+    examples: ['Fitness coaches', 'motivation-brands', 'action-gyms']
+  },
+  {
+    id: 'lime-modern-eco',
+    name: 'Lime Green/Black (Eco-Modern)',
+    primary: '#00FF00',
+    secondary: '#000000',
+    accent: '#FFFFFF',
+    emotion: ['modern', 'eco', 'energetic', 'tech-forward', 'innovative'],
+    industries: ['equipment', 'tech-fitness', 'modern-gym', 'sustainability', 'innovation'],
+    psychology: 'Technology + nature, modernity, efficiency',
+    accessibilityRatio: 19.56,
+    examples: ['Adjustable dumbbells', 'modern-equipment', 'smart-fitness']
+  },
+  {
+    id: 'yellow-purple-energetic',
+    name: 'Yellow/Purple (Energetic & Bold)',
+    primary: '#FFFF00',
+    secondary: '#8B00FF',
+    accent: '#FFFFFF',
+    emotion: ['energetic', 'playful', 'youthful', 'bold', 'engaging'],
+    industries: ['fitness', 'young-audience', 'motivation', 'lifestyle', 'sports'],
+    psychology: 'High contrast, youth energy, playful but serious',
+    accessibilityRatio: 15.2,
+    examples: ['Fitness motivation carousel', 'youth-gyms', 'workout-influencers']
   }
 ];
 
@@ -97,6 +145,41 @@ export const colorRecommendations: ColorRecommendation[] = [
     situation: 'education',
     suggestedPalette: 'blue-trust',
     reasoning: 'Trust + technical positioning for high-end products'
+  },
+  {
+    industry: 'fitness',
+    emotion: 'energetic',
+    situation: 'motivation',
+    suggestedPalette: 'yellow-black-motivation',
+    reasoning: 'Maximum contrast grabs attention, bold energizes viewers'
+  },
+  {
+    industry: 'fitness',
+    emotion: 'powerful',
+    situation: 'promo',
+    suggestedPalette: 'orange-black-modern',
+    reasoning: 'Modern premium feel, sophisticated energy, strong presence'
+  },
+  {
+    industry: 'gym',
+    emotion: 'bold',
+    situation: 'coaching',
+    suggestedPalette: 'yellow-black-motivation',
+    reasoning: 'Confidence-building, motivational energy, attention-grabbing'
+  },
+  {
+    industry: 'equipment',
+    emotion: 'modern',
+    situation: 'product',
+    suggestedPalette: 'lime-modern-eco',
+    reasoning: 'Tech-forward feeling, modern/innovative positioning'
+  },
+  {
+    industry: 'personal-training',
+    emotion: 'energetic',
+    situation: 'motivation',
+    suggestedPalette: 'yellow-purple-energetic',
+    reasoning: 'Youth + energy, playful yet powerful, engaging community'
   }
 ];
 

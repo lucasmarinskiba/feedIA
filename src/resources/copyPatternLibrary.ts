@@ -71,6 +71,39 @@ export const copyPatterns: CopyPattern[] = [
     powerWords: ['Pedale', 'Explore', 'Vive', 'Descubre'],
     emotionTriggers: ['aspiration', 'belonging', 'adventure']
   },
+  {
+    id: 'hook-motivation',
+    name: 'Motivation/Urgency Hook',
+    type: 'hook',
+    tone: 'urgent',
+    template: '[ACTION_VERB] [BOLD_OUTCOME]',
+    examples: [
+      'START STRONG TRAIN STRONGER',
+      'NO ONE CARES WORK HARDER',
+      'Desafío os límites',
+      'GREATNESS DOESN\'T TAKE BREAKS'
+    ],
+    psychology: 'Activates drive, competitive spirit, action bias',
+    whenToUse: 'Fitness/motivation carousels, first slide hook',
+    powerWords: ['START', 'TRAIN', 'STRONGER', 'WORK', 'HARDER', 'NO ONE', 'PUSH'],
+    emotionTriggers: ['empowerment', 'urgency', 'challenge', 'pride']
+  },
+  {
+    id: 'hook-numbered-list',
+    name: 'Numbered Benefits Hook',
+    type: 'hook',
+    tone: 'punchy',
+    template: '[NUMBER] [BENEFIT_TYPE] to [OUTCOME]',
+    examples: [
+      '4 Ways to GET THE MOST OUT OF YOUR WORKOUTS',
+      '3 Reasons to TRAIN TOGETHER',
+      '5 Tips para DOMINAR el gym'
+    ],
+    psychology: 'Curiosity + promise of structure/clarity',
+    whenToUse: 'Multi-slide education carousels, numbered structure',
+    powerWords: ['Ways', 'Reasons', 'Tips', 'Steps', 'Secrets'],
+    emotionTriggers: ['curiosity', 'clarity', 'anticipation']
+  },
 
   // EDUCATION PATTERNS
   {
@@ -140,6 +173,93 @@ export const copyPatterns: CopyPattern[] = [
     whenToUse: 'Product showcase slides',
     powerWords: ['Limitado', 'Antes', 'Exclusivo'],
     emotionTriggers: ['value', 'urgency']
+  },
+  {
+    id: 'feature-checklist',
+    name: 'Feature Checklist',
+    type: 'education',
+    tone: 'casual',
+    template: '✓ [FEATURE]\n✓ [FEATURE]\n✓ [FEATURE]\n✓ [FEATURE]',
+    examples: [
+      '✓ Electric\n✓ Suitable for rehabilitation\n✓ Light weight\n✓ Quiet (< 40 dB)',
+      '✓ Smooth operation\n✓ Adjustable weight\n✓ Compact design\n✓ Easy to assemble'
+    ],
+    psychology: 'Clarity, scannability, confidence building',
+    whenToUse: 'Product feature slides, equipment carousels',
+    powerWords: ['Suitable', 'Smooth', 'Adjustable', 'Compact', 'Electric'],
+    emotionTriggers: ['clarity', 'confidence', 'trust']
+  },
+  {
+    id: 'benefit-replacement',
+    name: 'Benefit Replacement (What Replaces)',
+    type: 'education',
+    tone: 'casual',
+    template: '[NUMBER] MINUTES A DAY WILL REPLACE:\n• [ACTIVITY1]\n• [ACTIVITY2]\n• [ACTIVITY3]',
+    examples: [
+      '30 MINUTES A DAY WILL REPLACE:\n• Jogging for 2 hours\n• Swimming for 1 hour\n• Cycling 3 kilometers'
+    ],
+    psychology: 'Time efficiency, value justification',
+    whenToUse: 'Product carousel, efficiency-focused messaging',
+    powerWords: ['WILL REPLACE', 'MINUTES', 'EQUIVALENT'],
+    emotionTriggers: ['efficiency', 'value', 'convenience']
+  },
+  {
+    id: 'community-motivation',
+    name: 'Community Motivation',
+    type: 'social-proof',
+    tone: 'punchy',
+    template: '[ACTION] TOGETHER [OUTCOME] TOGETHER',
+    examples: [
+      'TRAIN TOGETHER WIN TOGETHER',
+      'Grow together, achieve together',
+      'Community over isolation'
+    ],
+    psychology: 'Belonging, shared purpose, mutual support',
+    whenToUse: 'Gym/coaching carousels, community-building',
+    powerWords: ['TOGETHER', 'COMMUNITY', 'COLLECTIVE', 'TEAM'],
+    emotionTriggers: ['belonging', 'power', 'support']
+  },
+  {
+    id: 'why-choose-format',
+    name: 'Why Choose This (Circular Format)',
+    type: 'education',
+    tone: 'casual',
+    template: 'WHY CHOOSE THIS?\n◦ [REASON1]\n◦ [REASON2]\n◦ [REASON3]',
+    examples: [
+      'WHY CHOOSE THIS?\n◦ Space-saving design\n◦ Adjustable weight system\n◦ Easy to assemble'
+    ],
+    psychology: 'Justification, clarity, decision-making support',
+    whenToUse: 'Product comparison, feature emphasis slides',
+    powerWords: ['CHOOSE', 'ADVANTAGE', 'BENEFIT', 'REASON'],
+    emotionTriggers: ['clarity', 'confidence']
+  },
+  {
+    id: 'coach-introduction',
+    name: 'Coach/Expert Introduction',
+    type: 'social-proof',
+    tone: 'informal',
+    template: 'Meet [COACH_NAME]\n[TITLE/SPECIALTY]\n[BRIEF_CREDENTIAL]',
+    examples: [
+      'Meet Coach MIKE\nStrength Specialist\nWith 20+ years in the field'
+    ],
+    psychology: 'Authority building, personal connection, trust',
+    whenToUse: 'Personal training carousels, expert introduction',
+    powerWords: ['COACH', 'SPECIALIST', 'EXPERT', 'CERTIFIED'],
+    emotionTriggers: ['trust', 'authority', 'familiarity']
+  },
+  {
+    id: 'transformation-proof',
+    name: 'Transformation/Results Proof',
+    type: 'social-proof',
+    tone: 'intimate',
+    template: 'I Lost [RESULT] in [TIMEFRAME]\n"[TESTIMONIAL]"\n- [PERSON_NAME]',
+    examples: [
+      'I Lost 15lbs in 8 Weeks\n"This program changed my life. I\'m stronger, healthier, and confident."\n- Sarah T.'
+    ],
+    psychology: 'Relatability, proof of results, aspiration',
+    whenToUse: 'Transformation carousels, case study slides',
+    powerWords: ['Lost', 'Gained', 'Transformed', 'Achieved'],
+    emotionTriggers: ['hope', 'aspiration', 'confidence']
   }
 ];
 
