@@ -341,6 +341,66 @@ export const copyPatterns: CopyPattern[] = [
     whenToUse: 'Brand positioning, belief-challenging carousels, myth-busting series',
     powerWords: ['Ao contrário', 'Na verdade', 'Surpreendentemente', 'Engano'],
     emotionTriggers: ['surprise', 'reconsideration', 'enlightenment']
+  },
+  {
+    id: 'price-shock-hook',
+    name: 'Price Shock Hook (Cost Assumption Challenge)',
+    type: 'hook',
+    tone: 'urgent',
+    template: 'Quanto custa um [PROFESSIONAL] de R$ [SALARY] para [CONTEXT]?\nVocê acha que custa [GUESS]?',
+    examples: [
+      'Quanto custa um profissional CLT de R$ 4.000 para a sua clínica? Você acha que custa 4 mil?',
+      'Quanto custa um freelancer de R$ 2.000 para seu e-commerce?',
+      'Quanto custa um operador de R$ 3.000 para sua loja?'
+    ],
+    psychology: 'Price assumption challenge, hidden cost revelation, attention-grabbing',
+    whenToUse: 'First slide, cost/hiring educational carousel, hidden cost revelation',
+    powerWords: ['Quanto custa', 'Você acha que', 'Para', 'Realmente'],
+    emotionTriggers: ['surprise', 'cost-awareness', 'curiosity']
+  },
+  {
+    id: 'fear-identification-reality',
+    name: 'Fear Identification + Reality Reveal',
+    type: 'hook',
+    tone: 'formal',
+    template: 'O problema não é [WRONG_ASSUMPTION].\nO problema é [REAL_ISSUE]: [FEAR_EMOTION], [CONSEQUENCE1] e [CONSEQUENCE2].',
+    examples: [
+      'O problema não é escolher CLT. O problema é escolher no medo, sem calcular margem e sem entender risco.',
+      'O problema não é escolher freelancer. O problema é escolher por preço, sem entender qualidade e sem avaliar risco.',
+      'O problema não é contratar. O problema é contratar no medo, sem calcular ROI e sem entender impacto.'
+    ],
+    psychology: 'Emotional root cause identification, repositioning problem, trust building (company understands real issue)',
+    whenToUse: 'Mid-carousel myth-busting, emotional resonance, positioning as solution',
+    powerWords: ['O problema não é', 'O problema é', 'No medo', 'Sem entender', 'Sem calcular'],
+    emotionTriggers: ['recognition', 'relief', 'trust']
+  },
+  {
+    id: 'structured-comparison-consequences',
+    name: 'Structured Comparison with Consequences',
+    type: 'education',
+    tone: 'formal',
+    template: 'Agora compare com outros modelos:\n• [OPTION1]\n• [OPTION2]\n• [OPTION3]\n\nCada um tem:\n• [CONSEQUENCE1]\n• [CONSEQUENCE2]\n• [CONSEQUENCE3]\n• [CONSEQUENCE4]',
+    examples: [
+      'Agora compare com outros modelos:\n• Autônomo (CPF)\n• PJ\n• Sócio de Serviço\n\nCada um tem:\n• Estrutura diferente\n• Impacto tributário diferente\n• Risco trabalhista diferente\n• Impacto direto na lucratividade'
+    ],
+    psychology: 'Systematic comparison, consequence clarity, empowerment through options',
+    whenToUse: 'Comparison carousel, decision-making clarity, option evaluation',
+    powerWords: ['Compare', 'Modelos', 'Cada um tem', 'Diferente', 'Impacto'],
+    emotionTriggers: ['clarity', 'empowerment', 'decision-readiness']
+  },
+  {
+    id: 'calculation-reality-check',
+    name: 'Calculation Reality Check (Specific Numbers + Impact)',
+    type: 'education',
+    tone: 'formal',
+    template: 'Vamos fazer a conta real:\n[SALARY/COST]: R$ [AMOUNT]\n• [EXPENSE1]\n• [EXPENSE2]\n• [EXPENSE3]\n• [EXPENSE4]\n\n[REALITY_CHECK]: [HIDDEN_COST]. E isso impacta diretamente [OUTCOME].',
+    examples: [
+      'Vamos fazer a conta real:\nSalário: R$ 4.000\n• INSS patronal\n• FGTS\n• Férias + 1/3\n• 13º salário\n• Possíveis adicionais\n\nO custo anual não é 4 mil por mês. É muito mais. E isso impacta diretamente sua margem.'
+    ],
+    psychology: 'Credibility through specific numbers, consequence clarity, ROI consciousness',
+    whenToUse: 'Cost breakdown slides, financial reality education, consequence messaging',
+    powerWords: ['Conta real', 'Não é', 'É muito mais', 'Impacta diretamente'],
+    emotionTriggers: ['revelation', 'credibility', 'concern']
   }
 ];
 

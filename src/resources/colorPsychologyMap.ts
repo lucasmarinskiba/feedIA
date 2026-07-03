@@ -149,6 +149,42 @@ export const colorPalettes: ColorPalette[] = [
     psychology: 'Modern, innovative, breaks from traditional finance aesthetic, attention',
     accessibilityRatio: 14.3,
     examples: ['Modern accounting services', 'Fintech', 'Digital tax services']
+  },
+  {
+    id: 'yellow-gold-elegant',
+    name: 'Yellow/Gold Elegant (Cost Education)',
+    primary: '#FFD700',
+    secondary: '#000000',
+    accent: '#FFFFFF',
+    emotion: ['premium', 'attention', 'value', 'luxury', 'wealth'],
+    industries: ['finance', 'hiring', 'cost-education', 'premium-services', 'consulting'],
+    psychology: 'Gold = value/wealth, yellow = attention, together = premium cost positioning',
+    accessibilityRatio: 13.5,
+    examples: ['Cost revelation carousels', 'Hiring education', 'Premium consulting']
+  },
+  {
+    id: 'dark-blue-gold',
+    name: 'Dark Blue/Gold (Premium Finance Consulting)',
+    primary: '#003366',
+    secondary: '#FFD700',
+    accent: '#FFFFFF',
+    emotion: ['premium', 'trust', 'sophisticated', 'professional', 'exclusive'],
+    industries: ['finance', 'consulting', 'premium-services', 'corporate', 'accounting'],
+    psychology: 'Dark blue = trust/stability, gold = premium/value, combined = exclusive expertise',
+    accessibilityRatio: 11.8,
+    examples: ['Premium finance consulting', 'Executive coaching', 'Strategic accounting']
+  },
+  {
+    id: 'black-gold',
+    name: 'Black/Gold (Luxury Finance)',
+    primary: '#000000',
+    secondary: '#FFD700',
+    accent: '#FFFFFF',
+    emotion: ['luxury', 'exclusive', 'premium', 'sophisticated', 'powerful'],
+    industries: ['finance', 'wealth-management', 'consulting', 'premium-services'],
+    psychology: 'Black + gold = luxury/exclusivity, high contrast = premium positioning',
+    accessibilityRatio: 15.4,
+    examples: ['Luxury finance services', 'Wealth management', 'Executive consulting']
   }
 ];
 
@@ -244,6 +280,20 @@ export const colorRecommendations: ColorRecommendation[] = [
     situation: 'warning',
     suggestedPalette: 'professional-blue',
     reasoning: 'Trust-building while communicating urgency/caution'
+  },
+  {
+    industry: 'hiring',
+    emotion: 'attention',
+    situation: 'cost-revelation',
+    suggestedPalette: 'yellow-gold-elegant',
+    reasoning: 'Luxury + cost focus, premium positioning while revealing expenses'
+  },
+  {
+    industry: 'finance',
+    emotion: 'premium',
+    situation: 'consulting',
+    suggestedPalette: 'dark-blue-gold',
+    reasoning: 'Premium + trust, elegant cost education'
   }
 ];
 

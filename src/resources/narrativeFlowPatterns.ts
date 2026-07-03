@@ -233,6 +233,44 @@ export const flowPatterns: CarouselFlowPattern[] = [
     ],
     industryFit: ['accounting', 'finance', 'consulting', 'professional-services'],
     psychologyFlow: 'Dissonance (1) → Evidence (2-3) → Belief shift (4) → Action (5)'
+  },
+  {
+    id: 'cost-revelation-4slide',
+    name: 'Cost Revelation 4-Slide (Hidden Cost Journey)',
+    slides: 4,
+    flow: [
+      'Price shock hook (Quanto custa...? Você acha que custa...?)',
+      'Fear identification + myth-bust (O problema não é... O problema é...)',
+      'Structured comparison (Options + consequences listed)',
+      'Calculation reality check (Specific numbers + impact on bottom line)'
+    ],
+    retention: [
+      { slideNumber: 1, mechanic: 'Price assumption challenge (stops scroll, activates curiosity)' },
+      { slideNumber: 2, mechanic: 'Fear naming (emotional recognition: "eu sou assim")' },
+      { slideNumber: 3, mechanic: 'Option clarity (empowerment through comparison)' },
+      { slideNumber: 4, mechanic: 'Reality wake-up (specific numbers prove hidden cost)' }
+    ],
+    industryFit: ['finance', 'accounting', 'hiring', 'consulting', 'business-services', 'cost-optimization'],
+    psychologyFlow: 'Price shock (1) → Emotion recognition (2) → Empowerment (3) → Reality acceptance (4)'
+  },
+  {
+    id: 'hiring-cost-education-4slide',
+    name: 'Hiring Cost Education 4-Slide (Adaptable Template)',
+    slides: 4,
+    flow: [
+      '[ROLE] hiring cost assumption challenge',
+      'Real problem identification (fear, lack of calculation)',
+      'Comparison of hiring models (CLT vs Autônomo vs PJ vs Service)',
+      'Specific breakdown (salary + taxes + benefits + consequences)'
+    ],
+    retention: [
+      { slideNumber: 1, mechanic: 'Shock value (actual cost >> perceived cost)' },
+      { slideNumber: 2, mechanic: 'Emotional resonance (recognizing own behavior)' },
+      { slideNumber: 3, mechanic: 'Decision clarity (systematized options)' },
+      { slideNumber: 4, mechanic: 'Actionability (specific numbers + impact statement)' }
+    ],
+    industryFit: ['hiring', 'consulting', 'business-services', 'accounting', 'human-resources'],
+    psychologyFlow: 'Cost awareness (1) → Self-recognition (2) → Decision framework (3) → Action readiness (4)'
   }
 ];
 

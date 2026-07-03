@@ -111,12 +111,28 @@ export const layoutTemplates: LayoutTemplate[] = [
     colorPalettes: ['professional-blue', 'green-accents']
   },
   {
+    id: 'money-stack-shock',
+    type: 'Money Stack (Cost Visual Shock)',
+    description: 'Stack of bills/currency, close-up, emphasizing quantity',
+    visualGuide: 'Stack 70% of frame, clean background 30%, top-down angle',
+    bestFor: ['finance', 'cost-education', 'hiring', 'budget', 'price-revelation'],
+    colorPalettes: ['yellow-gold', 'professional-blue']
+  },
+  {
     id: 'calculator-professional',
     type: 'Calculator/Numbers (Technical Credibility)',
     description: 'Large calculator or numbers, person interacting',
     visualGuide: 'Calculator/numbers 60%, person 40%, white/minimal background',
     bestFor: ['accounting', 'finance', 'tax', 'numbers', 'precision'],
     colorPalettes: ['dark-blue-white', 'professional-blue']
+  },
+  {
+    id: 'gradient-dark-gold',
+    type: 'Gradient Dark/Gold (Premium Finance)',
+    description: 'Dark to gold gradient background, elegant typography hierarchy',
+    visualGuide: 'Gradient 100%, vertical line divider, text centered',
+    bestFor: ['finance', 'premium-services', 'consulting', 'cost-education'],
+    colorPalettes: ['dark-blue-gold', 'black-gold']
   },
   {
     id: 'motivational-split',
