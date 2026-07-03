@@ -3601,6 +3601,374 @@ ADAPTATIONS:
     `,
     psychology: 'Authenticity > perfection. Vulnerability = trust. Real = relatable.',
     shareability: 'Very high (non-corporate, deeply relatable, shareable vulnerability)'
+  },
+
+  // ── PHASE 31: INSTAGRAM ALGORITHM INTELLIGENCE (2026) ─────────────────────
+
+  nicheClaritySignal: {
+    name: 'Niche Clarity Signal (Algorithm Amplification)',
+    description: 'Clear niche positioning = algorithm understands who to show content to.',
+    template: `
+ALGO INSIGHT:
+"The clearer your niche, the easier Instagram understands who to recommend you to."
+
+Algorithm analyzes: likes, comments, saves, shares, watch time.
+If signals are MIXED (fitness + fashion + business), algo gets confused = lower reach.
+If signals are CLEAR (only fitness content + fitness interactions), algo AMPLIFIES.
+
+CONTENT STRATEGY:
+Slide 1: Define niche boundary ("I help [X] achieve [Y] without [Z]")
+Slide 2: Show what you DON'T do (explicit non-niche content)
+Slide 3: Prove niche clarity (3-5 recent posts all focused on niche)
+Slide 4: Show audience alignment (comments from people IN niche)
+Slide 5: "Pick your niche now" permission + CTA
+
+COPY FRAMEWORK:
+"I help [NICHE PERSON] do [SPECIFIC GOAL]"
+- NOT: "I help everyone with everything"
+- NOT: "I do design + marketing + coaching"
+- YES: "I help personal trainers build online fitness communities"
+
+VISUAL SIGNAL:
+- Each slide clearly niche-focused
+- Repeated visual elements (same color palette, same person, same setting = cohesion)
+- Audience interaction visible (comments from niche members)
+- No content drift (no random travel photos, food photos, unrelated topics)
+
+PSYCHOLOGY:
+Clarity = algorithm confidence = amplification.
+Niche + consistent signals = Instagram sees pattern = recommends widely within that niche.
+
+ADAPTATIONS:
+- Personal brand: "Personal trainer → online fitness" (clear narrow niche)
+- Product: "Eco-friendly water bottles → hiking community" (specific audience)
+- Service: "Content creation → coaches specifically" (niche service)
+    `,
+    psychology: 'Clarity = confidence. Mixed signals = confusion. Algo amplifies clear niches.',
+    shareability: 'High (educational, strategic positioning)'
+  },
+
+  creatorUserRelationship: {
+    name: 'Creator-User Relationship Signal (Community Depth)',
+    description: 'Algo prioritizes accounts with frequent interactions. Build relationships, not reach.',
+    template: `
+ALGO INSIGHT:
+"Algorithm prioritizes content from people you interact with most."
+Signals: comments, reactions, tags, saves, shares.
+NOT: follower count.
+
+STRATEGY: Depth over breadth.
+
+STRUCTURE (5 slides):
+Slide 1: "It's not about reaching everyone"
+Slide 2: "It's about deepening relationships with YOUR people"
+Slide 3: "Interactions that matter" (comment, save, share, tag)
+Slide 4: "How to encourage depth" (ask questions, tag collaborators, create community moments)
+Slide 5: "Your real audience size = repeat interactors" (find your 50-100 core people)
+
+COPY POSITIONING:
+"Don't chase 1M followers. Build 100 people who comment on everything."
+"100 engaged followers > 1M ghost followers."
+"Algorithm rewards accounts with deep community, not big audiences."
+
+VISUAL APPROACH:
+- Show comment threads (real interactions, visible)
+- Highlight saves + shares (not just likes)
+- Feature replies to comments (creator engagement visible)
+- Tag collaborators/community members (shows relationship)
+
+PSYCHOLOGY:
+Depth = algorithmic confidence. Repeated interactions = pattern. Algo sees this = amplifies.
+Follower count = vanity. Interaction depth = algorithm signal.
+
+ADAPTATIONS:
+- Creator: "Build 1000 true fans, not 100k fake fans"
+- Brand: "5000 engaged customers > 50k inactive followers"
+- Coach: "50 committed students > 500 browser students"
+    `,
+    psychology: 'Depth signals = algo amplification. Interactions > followers.',
+    shareability: 'Very high (counter-narrative to follower obsession)'
+  },
+
+  recencyOptimization: {
+    name: 'Recency Optimization (Timing + Freshness)',
+    description: 'Recent content ranks higher. Timing + consistency = algorithm advantage.',
+    template: `
+ALGO INSIGHT:
+"Instagram prioritizes recent content, but YOUR posting consistency matters."
+Recent = higher initial reach.
+Consistent posting = algo learns to show your content to followers at right time.
+
+STRATEGY: Frequency + timing alignment.
+
+STRUCTURE (5 slides):
+Slide 1: "Recency is your algorithm advantage"
+Slide 2: "Post when your audience is online" (analyze when YOUR followers engage most)
+Slide 3: "Consistency > perfection" (weekly posting > random bursts)
+Slide 4: "First 24-48 hours = critical window" (early engagement boosts algorithm)
+Slide 5: "Set posting calendar" (planning beats spontaneity for algo)
+
+COPY:
+"A mediocre post published when your audience is online > perfect post at wrong time"
+"Consistency = algorithm prediction = better reach"
+"First engagement (first 2 hours) signals algo to boost content"
+
+DATA TO TRACK:
+- When your audience is most active (Instagram Insights)
+- Your engagement rates by hour/day
+- Which posts got engagement in first 2 hours
+- Your natural posting rhythm
+
+VISUAL STRATEGY:
+- Show posting calendar (visual proof of consistency)
+- Highlight early engagement (comments/saves in first hours)
+- Compare timing impact (same content, different times = different reach)
+
+PSYCHOLOGY:
+Recency = freshness signal. Consistency = predictability. Algo optimizes for both.
+
+ADAPTATIONS:
+- B2B: "Post when your industry is working (9am-5pm)"
+- Creator: "Post when your niche is scrolling (evenings + weekends)"
+- E-commerce: "Post when shopping behavior peaks (Friday-Sunday)"
+    `,
+    psychology: 'Recency + consistency = algo confidence. Early engagement = amplification trigger.',
+    shareability: 'High (actionable, data-driven strategy)'
+  },
+
+  sessionDurationOptimization: {
+    name: 'Session Duration Optimization (Content Pacing)',
+    description: 'Longer sessions = algo shows variety. Design content that keeps user scrolling.',
+    template: `
+ALGO INSIGHT:
+"Instagram wants to maximize session duration."
+- If user has 2-minute session: algo shows your BEST content first (high-value moments)
+- If user has 20-minute session: algo shows variety (keeps engagement high)
+
+YOUR ROLE: Design content that extends session duration.
+
+CONTENT STRATEGY:
+Slide 1: "Hook in first 0.5 seconds" (stop scroll instantly)
+Slide 2: "First 3 seconds = headline job" (must stop scroll)
+Slide 3: "Middle engagement" (sustain attention, build curiosity)
+Slide 4: "End with micro-commitment" (like, save, comment, share)
+Slide 5: "Series design" (multi-part content keeps users coming back)
+
+COPY FRAMEWORK:
+"Create carousel series, not one-off posts"
+"Each carousel = one session value-add"
+"Comments section = extend session (create conversation)"
+
+VISUAL TIMING:
+- Slide 1 (Reel/Carousel): Unmissable hook (0-3 seconds)
+- Slide 2-3: Building tension + curiosity (keep scrolling)
+- Slide 4-5: Payoff + reason to engage (comment, save, share)
+
+PSYCHOLOGY:
+Session length = algo priority. Longer sessions = more ads viewed = Instagram profit.
+Your content either extends or cuts session short.
+
+ADAPTATIONS:
+- Entertainment: "Create cliffhanger carousels (forces next post view)"
+- Education: "Series format (keeps students returning)"
+- Product: "Carousel storytelling (product journey forces scroll)"
+    `,
+    psychology: 'Session duration = algo priority. Content pacing = engagement extension.',
+    shareability: 'Medium-high (strategic, educational, immediately useful)'
+  },
+
+  originalityRewardSignal: {
+    name: 'Originality Reward (Anti-Copy Penalty)',
+    description: 'Instagram rewards original content. Copies penalized + tagged. Build original.',
+    template: `
+ALGO INSIGHT:
+"Instagram actively penalizes content copies."
+- Copies: ZERO recommendation (ghost penalized)
+- Copies: Tagged with link to original
+- Original: Amplified + prioritized
+- Repost limit: 10+ reposts in 30 days = 1 month ghost (no reach)
+
+STRATEGY: Original-first mindset.
+
+STRUCTURE (5 slides):
+Slide 1: "Copying costs you" (explain penalty)
+Slide 2: "Instagram tracks originality" (how detection works)
+Slide 3: "Significant modification isn't copy" (remixes + adaptations OK)
+Slide 4: "Original content examples" (inspiration sources, not direct copies)
+Slide 5: "Build original habit" (daily original content challenge)
+
+COPY POSITIONING:
+"Copy = 0 reach. Original = amplified."
+"Remix + adapt = OK. Direct copy = penalized."
+"10 reposts/month = shadow ban for 30 days"
+
+CONTENT FRAMEWORK:
+- Original: You create from scratch (high reward)
+- Remix: You adapt + modify significantly (medium reward)
+- Repost: You share + credit original (low reward + tagged)
+- Copy: You duplicate without credit (PENALIZED)
+
+VISUAL APPROACH:
+- Show original content creation process
+- Show remixing examples (before → after with YOUR spin)
+- Avoid: Direct copies, generic trends without adaptation
+
+PSYCHOLOGY:
+Originality = platform value. Copies = waste of server space. Algo prioritizes unique.
+
+ADAPTATIONS:
+- Creator: "Your voice > trending sounds (when original)"
+- Designer: "Your style > design trends copied"
+- Writer: "Your perspective > trending topic topic"
+    `,
+    psychology: 'Originality = reward. Copies = penalize. Algo values unique content.',
+    shareability: 'High (counter-trend advice, strategic edge)'
+  },
+
+  exploreTabRecommendations: {
+    name: 'Explore Tab Recommendations (Discovery Algorithm)',
+    description: 'Explore shows accounts based on interaction history. Optimize for discovery.',
+    template: `
+ALGO INSIGHT:
+"Explore tab recommendations = not based on followers."
+"Based on: Your interaction history + similar accounts' content"
+
+Algorithm asks: "What has this user interacted with? Who else makes similar content? Show them."
+
+STRATEGY: Get into Explore by optimizing interaction signals.
+
+STRUCTURE (5 slides):
+Slide 1: "Explore tab = discovery goldmine"
+Slide 2: "Explore shows accounts YOU DON'T FOLLOW"
+Slide 3: "But it's based on YOUR interests" (what you interact with)
+Slide 4: "To appear in Explore: match niche + create quality" (algo matches similar accounts)
+Slide 5: "Explore reach = exponential growth potential" (new audience, not current followers)
+
+COPY:
+"Explore tab users don't know you yet"
+"They're already interested in YOUR niche (because they interact with similar content)"
+"Explore = best place to find new audience without ads"
+
+CONTENT OPTIMIZATION:
+- Use hashtags wisely (helps algo categorize + recommend)
+- Create content for YOUR niche (algo matches similar interests)
+- Quality signals (saves, shares, comments) = Explore eligibility
+- Avoid: Trending sounds without niche alignment (confuses recommendation)
+
+VISUAL STRATEGY:
+- Design specifically for Explore discovery (thumbnail appeal + clarity)
+- First 3 seconds = unmissable (Explore users don't know you, need instant hook)
+- Clear visual hook (what's the niche? immediately visible)
+
+PSYCHOLOGY:
+Explore = cold-to-warm audience. They don't know you but have matching interests.
+Recommendation = algo confidence in content quality.
+
+ADAPTATIONS:
+- New creators: "Explore is your growth engine (before large follower base)"
+- Niche brands: "Explore finds exact audience (interest matching)"
+- Educators: "Explore finds students already interested in topic"
+    `,
+    psychology: 'Explore = algorithmic discovery. Interest-matching = recommendation.',
+    shareability: 'High (growth strategy, educational, actionable)'
+  },
+
+  firstImpressionOptimization: {
+    name: 'First Impression Optimization (Short Session Design)',
+    description: 'Users with short sessions see your BEST content first. Design for instant impact.',
+    template: `
+ALGO INSIGHT:
+"Short session users see highest-quality content first (algo prioritizes impact)."
+"This means: Your BEST content must be immediately recognizable."
+
+STRATEGY: First impression = make or break.
+
+STRUCTURE (5 slides):
+Slide 1: "Your first 3 seconds = critical"
+Slide 2: "For short-session users, this IS your only chance"
+Slide 3: "Design your BEST posts for maximum impact" (visual + copy clarity)
+Slide 4: "Hook strategy: What stops scroll instantly?" (shock, question, surprise, beauty)
+Slide 5: "Test your hooks" (which content gets instant saves/comments?)
+
+COPY FRAMEWORK:
+"In 3 seconds, the user must understand:"
+- What content is this?
+- Why should I care?
+- What happens if I interact?
+
+VISUAL RULES (3-SECOND TEST):
+- Headline readable in thumbnail
+- Main visual = unmissable (bold, clear, contrasting)
+- Action clear (what should user do?)
+- Niche obvious (who is this for?)
+
+EXAMPLES:
+- Question hook: "¿Qué error estás cometiendo?" (immediate curiosity)
+- Contrast hook: "BEFORE | AFTER" (visual impact)
+- Benefit hook: "This saves 5 hours per week" (value immediately clear)
+
+PSYCHOLOGY:
+First impression = algorithm signal. If short-session user engages = content is HIGH QUALITY.
+Algo then shows to longer-session users as well.
+
+ADAPTATIONS:
+- Entertainment: "Shocking opening (0-1 second)"
+- Education: "Clear value statement (0-2 seconds)"
+- Product: "Beautiful hero shot (0-1 second)"
+    `,
+    psychology: 'First impression = quality signal. Short session = only chance. Make it count.',
+    shareability: 'Very high (actionable, universally useful)'
+  },
+
+  communitySignalValue: {
+    name: 'Community Signal Value (Beyond Likes)',
+    description: 'Comments + saves + shares > likes. Design for community depth.',
+    template: `
+ALGO INSIGHT:
+"Instagram algorithm weighs signals differently:"
+- Like: +1 signal
+- Save: +3 signals (user wants to return to it)
+- Share: +5 signals (user wants others to see it)
+- Comment: +7 signals (user invested thought in response)
+- Comment reply: +10 signals (creates conversation thread)
+
+STRATEGY: Design for saves, shares, comments > likes.
+
+STRUCTURE (5 slides):
+Slide 1: "Not all engagement is equal"
+Slide 2: "Saves = intent (user plans to return)"
+Slide 3: "Shares = trust (user endorses to friends)"
+Slide 4: "Comments = investment (user thinks + responds)"
+Slide 5: "Reply to comments = community depth (extend conversation)"
+
+COPY CALLS TO ACTION:
+- For saves: "Save this for next time"
+- For shares: "Share this with someone who needs it"
+- For comments: "What's YOUR [question]?"
+- For replies: "[Tag person] - what do you think?"
+
+DESIGN STRATEGY:
+- End with question (forces comment)
+- Include "save-worthy" value (bookmarking incentive)
+- Create controversy gently (sharing incentive)
+- Tag collaborators (creates reply threads)
+
+VISUAL APPROACH:
+- Show comment count prominently (social proof)
+- Design for screenshot (share-worthy moments)
+- End with visual cliffhanger (forces comment for explanation)
+
+PSYCHOLOGY:
+Deeper engagement = user investment. Investment = algorithm signal.
+Community = stickiness = long-term reach.
+
+ADAPTATIONS:
+- Creator: "Ask audience questions (drive comments)"
+- Educator: "Save-worthy templates + checklists"
+- Brand: "Shareable insights (industry knowledge)"
+    `,
+    psychology: 'Comments > likes. Shares > comments. Community depth = algo priority.',
+    shareability: 'Very high (counter-intuitive, valuable insight)'
   }
 };
 
