@@ -401,6 +401,49 @@ export const copyPatterns: CopyPattern[] = [
     whenToUse: 'Cost breakdown slides, financial reality education, consequence messaging',
     powerWords: ['Conta real', 'Não é', 'É muito mais', 'Impacta diretamente'],
     emotionTriggers: ['revelation', 'credibility', 'concern']
+  },
+  {
+    id: 'myth-series-numbered',
+    name: 'Myth Series Intro (Set-Up for Multiple Myths)',
+    type: 'hook',
+    tone: 'formal',
+    template: '[CATEGORY/TOPIC]: [PROBLEM_AREA]\nMITOS que prejudicam [OUTCOME]\n\nCom acompanhamento especializado, sua [CONTEXT] garante:\n1. [BENEFIT1]\n2. [BENEFIT2]\n3. [BENEFIT3]',
+    examples: [
+      'MITOS que prejudicam a saúde financeira da sua escola\n\nCom acompanhamento especializado, sua escola garante:\n1. Redução da inadimplência\n2. Maior segurança financeira\n3. Mais tranquilidade para focar no ensino'
+    ],
+    psychology: 'Series introduction, problem naming, benefit preview, credibility setup',
+    whenToUse: 'First slide in myth-busting series, establish expertise + benefits',
+    powerWords: ['MITOS', 'prejudicam', 'Acompanhamento especializado', 'Garante'],
+    emotionTriggers: ['recognition', 'hope', 'authority']
+  },
+  {
+    id: 'myth-challenge-reality',
+    name: 'Myth Challenge + Reality Reframe',
+    type: 'education',
+    tone: 'formal',
+    template: 'MITO #[NUMBER]\n"[FALSE_BELIEF]"\n\nRealidade: [HOW_IT_ACTUALLY_WORKS_CORRECTLY]\n\n[COMPANY] [HOW_WE_SOLVE_THE_REAL_PROBLEM]',
+    examples: [
+      'MITO #01\n"Depois de muito tempo não dá para recuperar"\n\nRealidade: Mesmo mensalidades antigas podem ser recuperadas com instrumentos jurídicos e administrativos corretos.\n\nA BURDA Assessoria atua com estratégias seguras e eficazes para resgatar valores de meses e até anos anteriores.',
+      'MITO #02\n"Cobrança sempre desgasta a relação com os pais"\n\nRealidade: Quando a cobrança é feita com técnica, respeito e humanização, ela fortalece a transparência e mantém o vínculo com as famílias.\n\nNa BURDA Assessoria, preservamos a relação de confiança entre escola e responsáveis.'
+    ],
+    psychology: 'Directly challenges false beliefs, provides proof of reality, positions company as solution specialist',
+    whenToUse: 'Mid-carousel myth-busting slides (2-3 myths in series)',
+    powerWords: ['MITO', 'Realidade', 'Mesmo', 'Quando', 'Preservamos'],
+    emotionTriggers: ['revelation', 'relief', 'trust']
+  },
+  {
+    id: 'truth-resolution-benefits',
+    name: 'Truth Conclusion + Benefits + Transformation CTA',
+    type: 'cta',
+    tone: 'inspirational',
+    template: 'VERDADE\n[AFFIRMATION] e necessário\n\nCom acompanhamento especializado, sua [CONTEXT] garante:\n1. [BENEFIT1]\n2. [BENEFIT2]\n3. [BENEFIT3]\n\nConte com [COMPANY] para transformar mitos em soluções.',
+    examples: [
+      'VERDADE\nRecuperar é possível e necessário\n\nCom acompanhamento especializado, sua escola garante:\n1. Redução da inadimplência\n2. Maior segurança financeira\n3. Mais tranquilidade para focar no ensino\n\nConte com a BURDA Assessoria para transformar mitos em soluções.'
+    ],
+    psychology: 'Resolution after myth-busting, empowerment, benefits restatement, call to partnership',
+    whenToUse: 'Final slide in myth-busting series, close the narrative with truth + benefits + CTA',
+    powerWords: ['VERDADE', 'Possível', 'Necessário', 'Garante', 'Transformar'],
+    emotionTriggers: ['empowerment', 'hope', 'action', 'partnership']
   }
 ];
 

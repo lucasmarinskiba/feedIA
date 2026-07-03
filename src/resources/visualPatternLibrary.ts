@@ -135,6 +135,22 @@ export const layoutTemplates: LayoutTemplate[] = [
     colorPalettes: ['dark-blue-gold', 'black-gold']
   },
   {
+    id: 'card-myth-series',
+    type: 'Card Layout with Rounded Corners (Myth Series)',
+    description: 'Rounded rectangle card, organized typography, line dividers between sections',
+    visualGuide: 'Card 80% of frame, padding 20px, rounded corners 16px, line dividers 2px',
+    bestFor: ['myth-busting', 'education', 'professional-services', 'q&a-format'],
+    colorPalettes: ['dark-blue-white', 'professional-blue', 'dark-blue-gold']
+  },
+  {
+    id: 'yellow-truth-breakthrough',
+    type: 'Yellow Background (Truth/Breakthrough)',
+    description: 'Solid yellow background, bold dark text, celebratory feeling',
+    visualGuide: 'Full yellow background (100%), text dark navy, high contrast, bold typography',
+    bestFor: ['truth-reveals', 'breakthrough-moments', 'affirmations', 'benefits-summary'],
+    colorPalettes: ['yellow-gold-elegant', 'yellow-dark-blue']
+  },
+  {
     id: 'motivational-split',
     type: 'Motivational Split (Headline + Action)',
     description: 'Bold headline 50% + person 50%, strong copy',

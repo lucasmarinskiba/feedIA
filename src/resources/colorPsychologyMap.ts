@@ -185,6 +185,30 @@ export const colorPalettes: ColorPalette[] = [
     psychology: 'Black + gold = luxury/exclusivity, high contrast = premium positioning',
     accessibilityRatio: 15.4,
     examples: ['Luxury finance services', 'Wealth management', 'Executive consulting']
+  },
+  {
+    id: 'dark-blue-white-myth',
+    name: 'Dark Blue/White (Myth-Busting Professional)',
+    primary: '#3A4A5C',
+    secondary: '#FFFFFF',
+    accent: '#FFD700',
+    emotion: ['professional', 'trustworthy', 'serious', 'authoritative', 'educational'],
+    industries: ['education', 'consulting', 'professional-services', 'accounting'],
+    psychology: 'Dark blue = trust/professionalism, white = clarity, gold accent = truth/revelation',
+    accessibilityRatio: 11.2,
+    examples: ['BURDA Assessoria', 'School financial services', 'Educational consulting']
+  },
+  {
+    id: 'yellow-dark-blue',
+    name: 'Yellow/Dark Blue (Truth + Trust Combination)',
+    primary: '#FFD700',
+    secondary: '#3A4A5C',
+    accent: '#FFFFFF',
+    emotion: ['breakthrough', 'hope', 'trust', 'clarity', 'empowerment'],
+    industries: ['education', 'consulting', 'truth-reveals', 'transformation-messaging'],
+    psychology: 'Yellow = breakthrough/truth, dark blue = trust/professional, combined = authoritative hope',
+    accessibilityRatio: 13.8,
+    examples: ['Truth slides in myth-busting', 'Breakthrough affirmations', 'Transformation CTAs']
   }
 ];
 

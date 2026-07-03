@@ -271,6 +271,44 @@ export const flowPatterns: CarouselFlowPattern[] = [
     ],
     industryFit: ['hiring', 'consulting', 'business-services', 'accounting', 'human-resources'],
     psychologyFlow: 'Cost awareness (1) → Self-recognition (2) → Decision framework (3) → Action readiness (4)'
+  },
+  {
+    id: 'myth-busting-4slide-series',
+    name: 'Myth-Busting 4-Slide Series (Intro → Myth 1 → Myth 2 → Truth)',
+    slides: 4,
+    flow: [
+      'Myth-busting intro: Set up problem area + preview benefits',
+      'MYTH #01: Quote false belief + reality reframe + solution positioning',
+      'MYTH #02: Quote another false belief + reality reframe + solution positioning',
+      'TRUTH: Affirmation + benefits recap + transformation CTA'
+    ],
+    retention: [
+      { slideNumber: 1, mechanic: 'Authority setup (we understand your concerns)' },
+      { slideNumber: 2, mechanic: 'Myth challenge (false belief directly challenged)' },
+      { slideNumber: 3, mechanic: 'Relatability (another common false belief addressed)' },
+      { slideNumber: 4, mechanic: 'Empowerment (truth + benefits + partnership invitation)' }
+    ],
+    industryFit: ['consulting', 'education', 'accounting', 'professional-services', 'financial-advising'],
+    psychologyFlow: 'Authority (1) → Myth challenge (2-3) → Reality reframe → Belief shift → Empowerment (4)'
+  },
+  {
+    id: 'school-recovery-4slide',
+    name: 'School Financial Recovery 4-Slide (Education Services)',
+    slides: 4,
+    flow: [
+      'Problem intro: "MITOS que prejudicam a saúde financeira da sua escola"',
+      'MYTH #01: "Depois de muito tempo não dá para recuperar" → Reality: Antigos débitos podem ser recuperados',
+      'MYTH #02: "Cobrança desgasta relação com pais" → Reality: Cobrança com respeito fortalece relação',
+      'TRUTH: "Recuperar é possível e necessário" + Benefits + Partnership CTA'
+    ],
+    retention: [
+      { slideNumber: 1, mechanic: 'Problem naming (school financial health)' },
+      { slideNumber: 2, mechanic: 'Hope activation (recovery is possible)' },
+      { slideNumber: 3, mechanic: 'Relationship preservation (cobrança = professional + humanized)' },
+      { slideNumber: 4, mechanic: 'Transformation (myths → solutions → action)' }
+    ],
+    industryFit: ['education', 'school-recovery', 'financial-collection', 'school-management'],
+    psychologyFlow: 'Problem recognition (1) → Hope + possibility (2-3) → Empowerment + action (4)'
   }
 ];
 
