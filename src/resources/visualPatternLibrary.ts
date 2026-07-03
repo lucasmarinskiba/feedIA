@@ -95,6 +95,30 @@ export const layoutTemplates: LayoutTemplate[] = [
     colorPalettes: ['orange-black', 'lime-green']
   },
   {
+    id: 'hand-holding-money',
+    type: 'Hand Holding Money/Asset',
+    description: 'Close-up: hand + cash/coins/document, professional lighting',
+    visualGuide: 'Hand centered, object in focus (60%), soft background, top-down perspective',
+    bestFor: ['finance', 'accounting', 'banking', 'investment', 'savings'],
+    colorPalettes: ['professional-blue', 'dark-blue-white']
+  },
+  {
+    id: 'money-tree-growth',
+    type: 'Growing Money Tree (Growth Metaphor)',
+    description: 'Tree/plant with coins growing, hand holding base',
+    visualGuide: 'Plant 70%, hand holding base 30%, organic composition',
+    bestFor: ['finance', 'investment', 'growth', 'wealth', 'savings'],
+    colorPalettes: ['professional-blue', 'green-accents']
+  },
+  {
+    id: 'calculator-professional',
+    type: 'Calculator/Numbers (Technical Credibility)',
+    description: 'Large calculator or numbers, person interacting',
+    visualGuide: 'Calculator/numbers 60%, person 40%, white/minimal background',
+    bestFor: ['accounting', 'finance', 'tax', 'numbers', 'precision'],
+    colorPalettes: ['dark-blue-white', 'professional-blue']
+  },
+  {
     id: 'motivational-split',
     type: 'Motivational Split (Headline + Action)',
     description: 'Bold headline 50% + person 50%, strong copy',

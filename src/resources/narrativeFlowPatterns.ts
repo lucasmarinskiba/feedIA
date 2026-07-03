@@ -161,6 +161,78 @@ export const flowPatterns: CarouselFlowPattern[] = [
     ],
     industryFit: ['personal-training', 'coaching', 'gym-studios', 'fitness-community'],
     psychologyFlow: 'Trust (1) → Proof (2-3) → Belonging (4) → Understanding (5-7) → Social proof (8) → Action (9)'
+  },
+  {
+    id: 'finance-education-3slide',
+    name: 'Finance Education 3-Slide (Question → Explanation → Service)',
+    slides: 3,
+    flow: [
+      'Educational question hook (Qual a diferença?)',
+      'Concept explanation + visual metaphor (tree/money)',
+      'Service offering + CTA (nossa ajuda)'
+    ],
+    retention: [
+      { slideNumber: 1, mechanic: 'Curiosity (what is the difference?)' },
+      { slideNumber: 2, mechanic: 'Visual learning + clarity' },
+      { slideNumber: 3, mechanic: 'Service positioning + trust' }
+    ],
+    industryFit: ['finance', 'accounting', 'tax', 'corporate-education'],
+    psychologyFlow: 'Curiosity (1) → Education (2) → Trust + Action (3)'
+  },
+  {
+    id: 'finance-benefit-promotion-4slide',
+    name: 'Finance Benefit Promotion 4-Slide (Outcome → How → Why → CTA)',
+    slides: 4,
+    flow: [
+      'Benefit outcome headline (Maximize seu faturamento)',
+      'Service/strategy explanation (estratégias digitais)',
+      'Targeted benefit (para a sua empresa)',
+      'Contact/booking CTA + money visual'
+    ],
+    retention: [
+      { slideNumber: 1, mechanic: 'Benefit clarity (what do I gain?)' },
+      { slideNumber: 2, mechanic: 'Method transparency' },
+      { slideNumber: 3, mechanic: 'Relevance/personalization' },
+      { slideNumber: 4, mechanic: 'Urgency + access' }
+    ],
+    industryFit: ['finance', 'accounting-services', 'corporate-consulting', 'business-growth'],
+    psychologyFlow: 'Desire (1) → Understanding (2-3) → Action (4)'
+  },
+  {
+    id: 'finance-risk-awareness-2slide',
+    name: 'Risk Awareness 2-Slide (Warning → Prevention)',
+    slides: 2,
+    flow: [
+      'Risk warning headline (Cheque seu boleto ANTES de PAGAR)',
+      'Prevention guidance + support offer'
+    ],
+    retention: [
+      { slideNumber: 1, mechanic: 'Loss aversion activation (avoid fraud)' },
+      { slideNumber: 2, mechanic: 'Trust-building solution + help' }
+    ],
+    industryFit: ['finance', 'fraud-prevention', 'corporate-security', 'tax-compliance'],
+    psychologyFlow: 'Risk alert (1) → Prevention + trust (2)'
+  },
+  {
+    id: 'finance-myth-busting-5slide',
+    name: 'Myth-Busting 5-Slide (Belief Challenge → Reality)',
+    slides: 5,
+    flow: [
+      'Myth-busting hook (Ao contrário do que pensa...)',
+      'Challenge belief 1 + proof',
+      'Challenge belief 2 + proof',
+      'New reality/what they actually do',
+      'Service/expertise CTA'
+    ],
+    retention: [
+      { slideNumber: 1, mechanic: 'Cognitive dissonance (captures attention)' },
+      { slideNumber: 2, mechanic: 'Evidence 1 (builds credibility)' },
+      { slideNumber: 3, mechanic: 'Evidence 2 (reinforces)' },
+      { slideNumber: 4, mechanic: 'Repositioning (establishes new belief)' },
+      { slideNumber: 5, mechanic: 'Action (prove it with service)' }
+    ],
+    industryFit: ['accounting', 'finance', 'consulting', 'professional-services'],
+    psychologyFlow: 'Dissonance (1) → Evidence (2-3) → Belief shift (4) → Action (5)'
   }
 ];
 

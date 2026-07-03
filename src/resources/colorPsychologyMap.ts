@@ -113,6 +113,42 @@ export const colorPalettes: ColorPalette[] = [
     psychology: 'High contrast, youth energy, playful but serious',
     accessibilityRatio: 15.2,
     examples: ['Fitness motivation carousel', 'youth-gyms', 'workout-influencers']
+  },
+  {
+    id: 'professional-blue',
+    name: 'Professional Blue (Trust & Finance)',
+    primary: '#0066CC',
+    secondary: '#FFFFFF',
+    accent: '#003366',
+    emotion: ['trust', 'professional', 'secure', 'corporate', 'credible'],
+    industries: ['finance', 'accounting', 'banking', 'corporate', 'legal'],
+    psychology: 'Trust, stability, professionalism, authority',
+    accessibilityRatio: 10.5,
+    examples: ['Razzão Contabilidad', 'Guia-se Digital', 'Finance services']
+  },
+  {
+    id: 'dark-blue-white',
+    name: 'Dark Blue/White (Technical Clarity)',
+    primary: '#003366',
+    secondary: '#FFFFFF',
+    accent: '#0066CC',
+    emotion: ['technical', 'clear', 'serious', 'precise', 'trustworthy'],
+    industries: ['accounting', 'finance', 'tax', 'corporate', 'numbers'],
+    psychology: 'Precision, clarity, technical competence, minimalism',
+    accessibilityRatio: 12.6,
+    examples: ['Tax/accounting services', 'Technical finance']
+  },
+  {
+    id: 'purple-modern-finance',
+    name: 'Purple Modern (Contemporary Finance)',
+    primary: '#8B00FF',
+    secondary: '#FFFFFF',
+    accent: '#000000',
+    emotion: ['modern', 'innovative', 'attention-seeking', 'confident', 'forward-thinking'],
+    industries: ['finance', 'fintech', 'digital-finance', 'startups', 'modern-services'],
+    psychology: 'Modern, innovative, breaks from traditional finance aesthetic, attention',
+    accessibilityRatio: 14.3,
+    examples: ['Modern accounting services', 'Fintech', 'Digital tax services']
   }
 ];
 
@@ -180,6 +216,34 @@ export const colorRecommendations: ColorRecommendation[] = [
     situation: 'motivation',
     suggestedPalette: 'yellow-purple-energetic',
     reasoning: 'Youth + energy, playful yet powerful, engaging community'
+  },
+  {
+    industry: 'finance',
+    emotion: 'trust',
+    situation: 'education',
+    suggestedPalette: 'professional-blue',
+    reasoning: 'Trust + professionalism, authority positioning'
+  },
+  {
+    industry: 'accounting',
+    emotion: 'technical',
+    situation: 'service',
+    suggestedPalette: 'dark-blue-white',
+    reasoning: 'Precision + clarity, minimalist technical feel'
+  },
+  {
+    industry: 'fintech',
+    emotion: 'modern',
+    situation: 'promotion',
+    suggestedPalette: 'purple-modern-finance',
+    reasoning: 'Modern + innovative, breaks traditional finance aesthetic'
+  },
+  {
+    industry: 'finance',
+    emotion: 'urgent',
+    situation: 'warning',
+    suggestedPalette: 'professional-blue',
+    reasoning: 'Trust-building while communicating urgency/caution'
   }
 ];
 

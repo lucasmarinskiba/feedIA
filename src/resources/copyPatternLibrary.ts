@@ -260,6 +260,87 @@ export const copyPatterns: CopyPattern[] = [
     whenToUse: 'Transformation carousels, case study slides',
     powerWords: ['Lost', 'Gained', 'Transformed', 'Achieved'],
     emotionTriggers: ['hope', 'aspiration', 'confidence']
+  },
+  {
+    id: 'finance-question-hook',
+    name: 'Finance Educational Question',
+    type: 'hook',
+    tone: 'formal',
+    template: '[CONCEPT1] & [CONCEPT2]:\nQual a diferença?',
+    examples: [
+      'Faturamento & Lucro: Qual a diferença?',
+      'Imposto & Taxa: O que muda?',
+      'Investimento & Poupança: Qual escolher?'
+    ],
+    psychology: 'Curiosity + education positioning, builds trust (explaining complex topics)',
+    whenToUse: 'First slide, finance education carousels',
+    powerWords: ['Qual', 'Diferença', 'Como', 'Por quê'],
+    emotionTriggers: ['curiosity', 'clarity-seeking', 'education']
+  },
+  {
+    id: 'benefit-outcome-headline',
+    name: 'Benefit/Outcome Headline (Finance)',
+    type: 'hook',
+    tone: 'urgent',
+    template: '[ACTION_VERB] seu [OUTCOME]',
+    examples: [
+      'Maximize seu faturamento',
+      'Recupere seus impostos',
+      'Proteja seu patrimônio',
+      'Reduza seus custos'
+    ],
+    psychology: 'Direct outcome promise, action bias, benefit-focused',
+    whenToUse: 'Service promotion, financial benefit messaging',
+    powerWords: ['Maximize', 'Recupere', 'Reduza', 'Aumente'],
+    emotionTriggers: ['opportunity', 'gain', 'action']
+  },
+  {
+    id: 'risk-avoidance-warning',
+    name: 'Risk Avoidance / Prevention Warning',
+    type: 'cta',
+    tone: 'urgent',
+    template: '[ACTION] ANTES de [RISKY_ACTION]!',
+    examples: [
+      'Cheque seu boleto ANTES de PAGAR!',
+      'Verifique seus documentos ANTES de assinar!',
+      'Consulte um contador ANTES de declarar!'
+    ],
+    psychology: 'Loss aversion, prevention focus, error avoidance',
+    whenToUse: 'Risk/fraud prevention messaging, educational safety alerts',
+    powerWords: ['Cheque', 'Verifique', 'Consulte', 'ANTES', 'CUIDADO'],
+    emotionTriggers: ['caution', 'prevention', 'safety']
+  },
+  {
+    id: 'qa-educational-service',
+    name: 'Q&A Educational Service Offering',
+    type: 'education',
+    tone: 'informal',
+    template: '[QUESTION]?\nConte com a nossa ajuda e saiba como funciona o que pode acontecer',
+    examples: [
+      'Como fazer a restituição do Imposto de Renda?\nConte com a nossa ajuda',
+      'Como abrir uma empresa?\nNós orientamos passo a passo',
+      'Como reduzir meus impostos?\nConsulte conosco'
+    ],
+    psychology: 'Invites engagement, positions company as helper/guide',
+    whenToUse: 'Service promotion, educational sales, Q&A slides',
+    powerWords: ['Como', 'Conte conosco', 'Saiba', 'Ajuda'],
+    emotionTriggers: ['trust', 'support', 'clarity']
+  },
+  {
+    id: 'myth-busting-belief',
+    name: 'Myth-Busting / Belief Challenge',
+    type: 'hook',
+    tone: 'punchy',
+    template: 'Ao contrário do que pensa\n[BELIEF_CHANGE]\n[NEW_REALITY]',
+    examples: [
+      'Ao contrário do que pensa\nContador\nNão é uma calculadora',
+      'Ao contrário do que pensa\nSucessor não precisa ser parente',
+      'Ao contrário do que pensa\nPME pode crescer exponencialmente'
+    ],
+    psychology: 'Cognitive dissonance drives engagement, repositioning, educational surprise',
+    whenToUse: 'Brand positioning, belief-challenging carousels, myth-busting series',
+    powerWords: ['Ao contrário', 'Na verdade', 'Surpreendentemente', 'Engano'],
+    emotionTriggers: ['surprise', 'reconsideration', 'enlightenment']
   }
 ];
 
