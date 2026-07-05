@@ -32,16 +32,16 @@ class FeedIABrain {
     this.trainingDataPath = path.join(process.cwd(), 'src', 'training_data');
     this.config = {
       domains: [],
-      totalTechniques: 180,
-      totalPrompts: 11150,
-      totalVariations: 21500,
-      totalIdeas: 6750,
+      totalTechniques: 185,
+      totalPrompts: 11300,
+      totalVariations: 22000,
+      totalIdeas: 7000,
       lastUpdated: new Date().toISOString(),
     };
   }
 
   /**
-   * Load all 22 training data files from batches 1-25
+   * Load all 23 training data files from batches 1-26
    */
   async loadTrainingData(): Promise<void> {
     const files = [
@@ -67,6 +67,7 @@ class FeedIABrain {
       'FEEDIA_FITNESS_ADVANCED_BATCH23_FINAL_300.md',
       'FEEDIA_FITNESS_RUNNER_BOXING_BATCH24_300.md',
       'FEEDIA_MULTISPORT_ATHLETIC_BATCH25_300.md',
+      'FEEDIA_ULTIMATE_SPORTS_BATCH26_300.md',
     ];
 
     for (const file of files) {
