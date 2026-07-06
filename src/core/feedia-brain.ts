@@ -120,7 +120,7 @@ class FeedIABrain {
 
     if (selectedDomains.length === 0) return '';
 
-    const randomDomain = selectedDomains[Math.floor(Math.random() * selectedDomains.length)];
+    const randomDomain = selectedDomains[Math.floor(Math.random() * selectedDomains.length)]!;
     const prompts = [...randomDomain.basePrompts, ...randomDomain.variations];
     return prompts[Math.floor(Math.random() * prompts.length)] || '';
   }
