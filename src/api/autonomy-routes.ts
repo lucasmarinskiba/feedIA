@@ -49,7 +49,7 @@ router.post('/generate', async (req, res) => {
       totalTimeMs: result.totalTimeMs,
     });
 
-    res.json({
+    return res.json({
       success: true,
       result,
     });
@@ -83,7 +83,7 @@ router.post('/carousels', async (req, res) => {
       batchSize: count,
     });
 
-    res.json({
+    return res.json({
       success: result.status === 'success',
       result,
     });
@@ -117,7 +117,7 @@ router.post('/reels', async (req, res) => {
       batchSize: count,
     });
 
-    res.json({
+    return res.json({
       success: result.status === 'success',
       result,
     });
@@ -151,7 +151,7 @@ router.post('/stories', async (req, res) => {
       batchSize: count,
     });
 
-    res.json({
+    return res.json({
       success: result.status === 'success',
       result,
     });

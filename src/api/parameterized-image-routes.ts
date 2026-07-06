@@ -91,7 +91,7 @@ router.post('/upload-images', upload.array('images', 10), async (req: Request, r
       },
     };
 
-    res.json(response);
+    return res.json(response);
   } catch (error) {
     log.error('[ParameterizedRoutes] Upload error', error);
     res.status(500).json({ error: 'Image processing failed' });
@@ -118,7 +118,7 @@ router.post('/match-prompts', async (req: Request, res: Response) => {
 
     const matched = await matchDescriptionsToPrompts(imageDescriptions, objective, occasion);
 
-    res.json({
+    return res.json({
       status: 'success',
       matched,
       count: matched.length,
@@ -189,7 +189,7 @@ router.post('/generate-content', async (req: Request, res: Response) => {
       contentType,
     );
 
-    res.json({
+    return res.json({
       status: 'success',
       contentType,
       variants: contentVariants,

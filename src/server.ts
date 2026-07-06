@@ -18,10 +18,29 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req: Request, res: Response, next) => {
   const mockBrand: BrandProfile = {
     name: process.env.BRAND_NAME || 'FeedIA',
+    type: 'empresa',
     niche: process.env.BRAND_NICHE || 'instagram-growth',
-    targetAudience: process.env.BRAND_AUDIENCE || 'creators',
-    aesthetic: 'modern-minimalist',
-    tone: 'professional-creative',
+    audience: {
+      description: process.env.BRAND_AUDIENCE || 'creators',
+      pains: [],
+      desires: [],
+      locale: 'es-AR',
+    },
+    voice: {
+      tone: ['professional', 'creative'],
+      forbidden: [],
+      referenceQuotes: [],
+    },
+    visual: {
+      palette: [],
+      typography: [],
+      style: 'minimalista',
+      mood: 'profesional',
+    },
+    goals: {
+      primary: 'engagement',
+      metricsToWatch: [],
+    },
   };
   (req as any).brand = mockBrand;
   next();

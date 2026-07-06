@@ -142,7 +142,7 @@ class LLMLoadBalancer {
     }
 
     // Round-robin with cost awareness
-    const selected = available[0];
+    const selected = available[0]!;
     log.info('[LoadBalancer] provider selected', {
       provider: selected.name,
       available: available.length,

@@ -150,6 +150,15 @@ class FeedIABrain {
   }
 
   /**
+   * Get prompts by batch ID
+   */
+  getPromptsByBatch(batchId: string): string[] {
+    const batch = this.config.domains.find(d => d.domain.toLowerCase().includes(batchId.toLowerCase()));
+    if (!batch) return [];
+    return [...batch.basePrompts, ...batch.variations];
+  }
+
+  /**
    * System status report
    */
   getStatus(): FeedIABrainConfig {

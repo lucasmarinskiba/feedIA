@@ -9,7 +9,7 @@ const router = Router();
 // ── Health ─────────────────────────────────────────────────────────────
 
 router.get('/health', (req: Request, res: Response) => {
-  res.json({
+  return res.json({
     status: 'ok',
     service: 'prompt-generation',
     batches: ['28-construction', '29-nano-banana'],
@@ -72,7 +72,7 @@ router.post('/generate-variations', async (req: Request, res: Response) => {
       metrics: metrics as any,
     });
 
-    res.json({
+    return res.json({
       status: 'success',
       data: {
         prompts,
@@ -141,7 +141,7 @@ router.post('/batch-generate', async (req: Request, res: Response) => {
       metrics: metrics as any,
     });
 
-    res.json({
+    return res.json({
       status: 'success',
       data: {
         batchId,
@@ -175,7 +175,7 @@ router.get('/optimized-config', async (req: Request, res: Response) => {
 
     const config = await feedbackLoop.getOptimizedConfig();
 
-    res.json({
+    return res.json({
       status: 'success',
       data: config,
       message: 'Optimized config based on previous batch metrics',
@@ -210,7 +210,7 @@ router.get('/metrics/:batchId', async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       data: metrics,
       batchId,

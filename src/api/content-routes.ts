@@ -32,7 +32,7 @@ router.post('/carousel', async (req, res) => {
       slides: content.prompts.length,
     });
 
-    res.json({
+    return res.json({
       success: true,
       content,
     });
@@ -72,7 +72,7 @@ router.post('/reel', async (req, res) => {
       scenes: content.prompts.length,
     });
 
-    res.json({
+    return res.json({
       success: true,
       content,
     });
@@ -112,7 +112,7 @@ router.post('/story', async (req, res) => {
       frames: content.prompts.length,
     });
 
-    res.json({
+    return res.json({
       success: true,
       content,
     });
@@ -150,7 +150,7 @@ router.post('/post', async (req, res) => {
       contentId: content.id,
     });
 
-    res.json({
+    return res.json({
       success: true,
       content,
     });
