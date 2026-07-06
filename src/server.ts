@@ -36,6 +36,13 @@ app.use((req: Request, res: Response, next) => {
       typography: [],
       style: 'minimalista',
       mood: 'profesional',
+      photographyStyle: 'natural',
+      compositionRules: [],
+      allowedIconography: [],
+      forbiddenIconography: [],
+      moodboardUrls: [],
+      density: 'medium',
+      imageTextRatio: 'balanced',
     },
     goals: {
       primary: 'engagement',

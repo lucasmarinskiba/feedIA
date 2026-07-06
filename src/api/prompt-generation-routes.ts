@@ -33,7 +33,7 @@ router.get('/health', (req: Request, res: Response) => {
  *
  * Response: Array of GeneratedPrompt objects + metrics
  */
-router.post('/generate-variations', async (req: Request, res: Response) => {
+router.post('/generate-variations', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const request: PromptGenerationRequest = req.body;
@@ -105,7 +105,7 @@ router.post('/generate-variations', async (req: Request, res: Response) => {
  *
  * Response: Array of all generated prompts + batch metrics
  */
-router.post('/batch-generate', async (req: Request, res: Response) => {
+router.post('/batch-generate', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { baseIds, style, variationsPerBase = 10 } = req.body;
@@ -168,7 +168,7 @@ router.post('/batch-generate', async (req: Request, res: Response) => {
  *
  * Returns: { style, temperature, maxTokens, occasionWeights, ... }
  */
-router.get('/optimized-config', async (req: Request, res: Response) => {
+router.get('/optimized-config', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const feedbackLoop = new FeedbackLoop(brand);
@@ -195,7 +195,7 @@ router.get('/optimized-config', async (req: Request, res: Response) => {
  * GET /api/prompts/metrics/:batchId
  * Retrieve metrics for a specific batch
  */
-router.get('/metrics/:batchId', async (req: Request, res: Response) => {
+router.get('/metrics/:batchId', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { batchId } = req.params;

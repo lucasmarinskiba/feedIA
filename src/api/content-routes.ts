@@ -9,7 +9,7 @@ const router = Router();
 /**
  * POST /api/content/carousel — Generate carousel content with prompts
  */
-router.post('/carousel', async (req, res) => {
+router.post('/carousel', async (req, res): Promise<void> => {
   try {
     const { brand, occasion, category, count } = req.body;
 
@@ -49,7 +49,7 @@ router.post('/carousel', async (req, res) => {
 /**
  * POST /api/content/reel — Generate reel content with prompts
  */
-router.post('/reel', async (req, res) => {
+router.post('/reel', async (req, res): Promise<void> => {
   try {
     const { brand, occasion, category, count } = req.body;
 
@@ -89,7 +89,7 @@ router.post('/reel', async (req, res) => {
 /**
  * POST /api/content/story — Generate story content with prompts
  */
-router.post('/story', async (req, res) => {
+router.post('/story', async (req, res): Promise<void> => {
   try {
     const { brand, occasion, category } = req.body;
 
@@ -129,7 +129,7 @@ router.post('/story', async (req, res) => {
 /**
  * POST /api/content/post — Generate single post content with prompt
  */
-router.post('/post', async (req, res) => {
+router.post('/post', async (req, res): Promise<void> => {
   try {
     const { brand, occasion, category } = req.body;
 
