@@ -25,7 +25,11 @@ interface ExpansionResult {
   tokens_used: number;
 }
 
-const TONE_OPTIONS = ['emotional', 'entertaining', 'polemic', 'education', 'humor', 'debate'];
+const TONE_OPTIONS_6 = ['emotional', 'entertaining', 'polemic', 'education', 'humor', 'debate'];
+const TONE_OPTIONS_12 = [
+  'emotional', 'entertaining', 'polemic', 'education', 'humor', 'debate',
+  'aspirational', 'introspective', 'energetic', 'calm', 'authoritative', 'playful'
+];
 
 /**
  * Generate prompt variations via Claude API
@@ -33,7 +37,7 @@ const TONE_OPTIONS = ['emotional', 'entertaining', 'polemic', 'education', 'humo
 async function expandPrompt(
   basePromptId: string,
   basePromptText: string,
-  tones: string[] = TONE_OPTIONS
+  tones: string[] = TONE_OPTIONS_6
 ): Promise<ExpandedPrompt[]> {
   try {
     const prompt = `
@@ -219,4 +223,36 @@ async function getExpansionStatus(): Promise<Record<string, any>> {
   }
 }
 
-export { expandPrompt, expandAndStore, expandBatch, getExpansionStatus };
+/**
+ * Super-expand: Single prompt → 12 variations (instead of 6)
+ * For scaling video/image/stories: 3,450 → 41,400 per library
+ */
+async function superExpandAndStore(
+  basePromptId: string,
+  basePromptText: string
+): Promise<ExpansionResult> {
+  const variations = await expandPrompt(basePromptId, basePromptText, TONE_OPTIONS_12);
+
+  let stored = 0;
+  for (const variation of variations) {
+    const success = feedIADatabase.storeVariation(variation);
+    if (success) stored++;
+  }
+
+  return {
+    base_prompt_id: basePromptId,
+    variations_generated: variations.length,
+    variations: variations.slice(0, 3),
+    tokens_used: 0,
+  };
+}
+
+export {
+  expandPrompt,
+  expandAndStore,
+  superExpandAndStore,
+  expandBatch,
+  getExpansionStatus,
+  TONE_OPTIONS_6,
+  TONE_OPTIONS_12,
+};

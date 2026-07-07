@@ -177,11 +177,13 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/image-upload/parameterize — combine image + prompt + parameters`);
   console.log(`   GET  /api/image-upload/status — database statistics`);
   console.log(`💾 Database: feedia.db (SQLite). Schema: prompts, variations, images, content, analytics, brand_profiles`);
-  console.log(`🚀 Prompt Expansion Endpoints (LLM-powered: 3,450 → 34,500+):`);
+  console.log(`🚀 Prompt Expansion Endpoints (LLM-powered: 3,450 → 315,840+):`);
   console.log(`   POST /api/prompts/expand-single — expand 1 prompt → 6 variations`);
+  console.log(`   POST /api/prompts/super-expand — expand 1 prompt → 12 variations (2x, scaling)`);
   console.log(`   POST /api/prompts/expand-batch — expand entire batch (queued job, ~10s per prompt)`);
   console.log(`   GET  /api/prompts/expansion-status — library stats + progress`);
   console.log(`   GET  /api/prompts/expansion-info — strategy + capacity info`);
+  console.log(`   📊 Scaling Math: Video 3,450×12=41,400 + Image 12,870×12=154,440 + Stories 10,000×12=120,000 = 315,840 total`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
   console.log(`   GET  /api/autonomy/database/stats`);

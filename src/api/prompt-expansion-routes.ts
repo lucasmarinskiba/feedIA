@@ -5,7 +5,12 @@
 
 import { Router, Request, Response } from 'express';
 import { log } from '../agent/logger.js';
-import { expandAndStore, expandBatch, getExpansionStatus } from '../services/prompt-expander.js';
+import {
+  expandAndStore,
+  superExpandAndStore,
+  expandBatch,
+  getExpansionStatus,
+} from '../services/prompt-expander.js';
 import type { BrandProfile } from '../config/types.js';
 
 const router = Router();
@@ -37,6 +42,38 @@ router.post('/expand-single', async (req: Request, res: Response) => {
   } catch (error) {
     log.error('[PromptExpansion] Single expansion error', error);
     res.status(500).json({ error: 'Expansion failed' });
+  }
+});
+
+/**
+ * POST /api/prompts/super-expand
+ * Super-expand single prompt: 1 prompt → 12 variations (2x standard)
+ * For scaling: video/image/stories 3,450 → 41,400 per library
+ */
+router.post('/super-expand', async (req: Request, res: Response) => {
+  try {
+    const brand = (req as any).brand as BrandProfile;
+    const { promptId, promptText } = req.body;
+
+    if (!promptId || !promptText) {
+      return res.status(400).json({ error: 'promptId and promptText required' });
+    }
+
+    log.info('[PromptExpansion] Super-expand requested', { promptId });
+
+    const result = await superExpandAndStore(promptId, promptText);
+
+    res.json({
+      status: 'success',
+      expansion: result,
+      message: '12 variations generated (2x standard: emotional, entertaining, polemic, education, humor, debate + aspirational, introspective, energetic, calm, authoritative, playful)',
+      scalingInfo: '3,450 base × 12 = 41,400 total prompts per library',
+      brand: brand?.name,
+      metadata: { expandedAt: new Date().toISOString() },
+    });
+  } catch (error) {
+    log.error('[PromptExpansion] Super-expand error', error);
+    res.status(500).json({ error: 'Super-expand failed' });
   }
 });
 
