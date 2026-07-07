@@ -14,7 +14,9 @@ import batchWorkerRoutes from './api/batch-worker-routes.js';
 import qualityExpansionRoutes from './api/quality-expansion-routes.js';
 import consistencyLockRoutes from './api/consistency-lock-routes.js';
 import footballMemeRoutes from './api/football-meme-routes.js';
+import adminDashboardRoutes from './api/admin-dashboard-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
+import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
 import type { BrandProfile } from './config/types.js';
 
@@ -123,6 +125,9 @@ app.use('/api/consistency', consistencyLockRoutes);
 // Mount football meme routes (@433 style viral designs)
 app.use('/api/football', footballMemeRoutes);
 
+// Mount admin dashboard (monitoring + metrics + optimization)
+app.use('/api/admin', adminDashboardRoutes);
+
 // Error handler
 app.use((err: any, req: Request, res: Response) => {
   log.error('[Server] error', { error: err.message });
@@ -137,8 +142,12 @@ app.listen(PORT, async () => {
   try {
     await feedIADatabase.initialize();
     log.info('[Database] initialized', { path: './feedia.db' });
+
+    // Initialize agent orchestrator
+    feedIAOrchestrator.initializeAgents();
+    log.info('[Orchestrator] agents initialized');
   } catch (error) {
-    log.error('[Database] initialization failed', error);
+    log.error('[Database/Orchestrator] initialization failed', error);
   }
 
   log.info('[Server] started', { port: PORT });
@@ -221,6 +230,20 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/football/batch-generate — generate multiple football memes`);
   console.log(`   GET  /api/football/categories — list categories + templates`);
   console.log(`   GET  /api/football/health — service status`);
+  console.log(`🧠 Backend Professional + Agents:`);
+  console.log(`   → Orchestrator: Coordinate 6 specialized agents (content-gen, quality-val, consistency, refinement, analytics, batch-processor)`);
+  console.log(`   → Neural Embeddings: Semantic search, similarity matching, pattern clustering (text + image)`);
+  console.log(`   → Analytics Engine: Metrics, trends, optimization recommendations, health reports`);
+  console.log(`   → Cache Manager: LRU eviction, TTL support, hit-rate tracking (5 caches)`);
+  console.log(`📊 Admin Dashboard Endpoints (System Monitoring):`);
+  console.log(`   GET  /api/admin/health — system health report`);
+  console.log(`   GET  /api/admin/agents — agent metrics + specialization`);
+  console.log(`   GET  /api/admin/metrics — detailed performance metrics`);
+  console.log(`   GET  /api/admin/recommendations — optimization recommendations`);
+  console.log(`   GET  /api/admin/cache — cache performance (hit rates, evictions)`);
+  console.log(`   GET  /api/admin/errors — recent errors + issues`);
+  console.log(`   GET  /api/admin/trends — metrics trends over time`);
+  console.log(`   GET  /api/admin/summary — executive summary`);
   console.log(`   📊 Scaling Math: Video 3,450×12=41,400 + Image 12,870×12=154,440 + Stories 10,000×12=120,000 + Football 2,000×12=24,000 + Hooks 1,000×12=12,000 = 352,840 total`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
