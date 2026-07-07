@@ -9,6 +9,7 @@ import videoBatch9293Routes from './api/video-batch-92-93-routes.js';
 import videoBatch95Routes from './api/video-batch-95-routes.js';
 import videoBatch96Routes from './api/video-batch-96-routes.js';
 import imageUploadRoutes from './api/image-upload-handler.js';
+import promptExpansionRoutes from './api/prompt-expansion-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIADatabase } from './db/database.js';
 import type { BrandProfile } from './config/types.js';
@@ -103,6 +104,9 @@ app.use('/api/video', videoBatch96Routes);
 // Mount image upload routes (feature extraction + prompt matching + parameterization)
 app.use('/api/image-upload', imageUploadRoutes);
 
+// Mount prompt expansion routes (LLM-powered variation generation: 3,450 → 34,500+)
+app.use('/api/prompts', promptExpansionRoutes);
+
 // Error handler
 app.use((err: any, req: Request, res: Response) => {
   log.error('[Server] error', { error: err.message });
@@ -173,6 +177,11 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/image-upload/parameterize — combine image + prompt + parameters`);
   console.log(`   GET  /api/image-upload/status — database statistics`);
   console.log(`💾 Database: feedia.db (SQLite). Schema: prompts, variations, images, content, analytics, brand_profiles`);
+  console.log(`🚀 Prompt Expansion Endpoints (LLM-powered: 3,450 → 34,500+):`);
+  console.log(`   POST /api/prompts/expand-single — expand 1 prompt → 6 variations`);
+  console.log(`   POST /api/prompts/expand-batch — expand entire batch (queued job, ~10s per prompt)`);
+  console.log(`   GET  /api/prompts/expansion-status — library stats + progress`);
+  console.log(`   GET  /api/prompts/expansion-info — strategy + capacity info`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
   console.log(`   GET  /api/autonomy/database/stats`);

@@ -236,6 +236,24 @@ class FeedIADatabase {
   }
 
   /**
+   * Get all prompts in a batch (for expansion)
+   */
+  getPromptsByBatch(batchId: string): PromptRecord[] {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM prompts
+        WHERE batch_id = ?
+        ORDER BY id ASC
+      `);
+
+      return stmt.all(batchId) as PromptRecord[];
+    } catch (error) {
+      log.error('[Database] Get batch prompts failed', { batchId, error });
+      return [];
+    }
+  }
+
+  /**
    * Get library statistics
    */
   getStats(): Record<string, any> {
