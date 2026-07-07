@@ -10,6 +10,8 @@ import videoBatch95Routes from './api/video-batch-95-routes.js';
 import videoBatch96Routes from './api/video-batch-96-routes.js';
 import imageUploadRoutes from './api/image-upload-handler.js';
 import promptExpansionRoutes from './api/prompt-expansion-routes.js';
+import batchWorkerRoutes from './api/batch-worker-routes.js';
+import qualityExpansionRoutes from './api/quality-expansion-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIADatabase } from './db/database.js';
 import type { BrandProfile } from './config/types.js';
@@ -104,8 +106,14 @@ app.use('/api/video', videoBatch96Routes);
 // Mount image upload routes (feature extraction + prompt matching + parameterization)
 app.use('/api/image-upload', imageUploadRoutes);
 
-// Mount prompt expansion routes (LLM-powered variation generation: 3,450 → 34,500+)
+// Mount prompt expansion routes (LLM-powered variation generation: 3,450 → 315,840)
 app.use('/api/prompts', promptExpansionRoutes);
+
+// Mount batch worker routes (Queue-based expansion with progress tracking)
+app.use('/api/batch', batchWorkerRoutes);
+
+// Mount quality expansion routes (Validate + refine + expand pipeline)
+app.use('/api/quality', qualityExpansionRoutes);
 
 // Error handler
 app.use((err: any, req: Request, res: Response) => {
@@ -183,6 +191,17 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/prompts/expand-batch — expand entire batch (queued job, ~10s per prompt)`);
   console.log(`   GET  /api/prompts/expansion-status — library stats + progress`);
   console.log(`   GET  /api/prompts/expansion-info — strategy + capacity info`);
+  console.log(`📦 Batch Worker Endpoints (Queue + Quality Validation):`);
+  console.log(`   POST /api/batch/expand-all — queue all batches (video/image/stories)`);
+  console.log(`   POST /api/batch/expand-batch — queue specific batch`);
+  console.log(`   GET  /api/batch/status/:jobId — job progress + ETA`);
+  console.log(`   GET  /api/batch/jobs — list active/completed jobs`);
+  console.log(`   GET  /api/batch/health — worker health check`);
+  console.log(`✨ Quality Control Endpoints (Validation + Refinement + Cinematography):`);
+  console.log(`   POST /api/quality/expand-refine — expand + validate + refine in one step`);
+  console.log(`   POST /api/quality/validate — quality check (ortografia, faces, products, environments)`);
+  console.log(`   POST /api/quality/refine — refine prompt (inject cinematography + artistic standards)`);
+  console.log(`   GET  /api/quality/standards — all standards + patterns applied`);
   console.log(`   📊 Scaling Math: Video 3,450×12=41,400 + Image 12,870×12=154,440 + Stories 10,000×12=120,000 = 315,840 total`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
