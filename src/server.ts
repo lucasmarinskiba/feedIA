@@ -18,6 +18,7 @@ import adminDashboardRoutes from './api/admin-dashboard-routes.js';
 import creativityRoutes from './api/creativity-routes.js';
 import facialIdentityRoutes from './api/facial-identity-routes.js';
 import resolutionQualityRoutes from './api/resolution-quality-routes.js';
+import masterGenerateRoutes from './api/master-generate-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -139,6 +140,9 @@ app.use('/api/identity', facialIdentityRoutes);
 
 // Mount resolution/quality routes (max IG/TikTok resolution, zero quality loss)
 app.use('/api/resolution', resolutionQualityRoutes);
+
+// Mount master pipeline (single-call: quality + refinement + ocurrencia + identity + consistency + resolution)
+app.use('/api/master', masterGenerateRoutes);
 
 // Error handler
 app.use((err: any, req: Request, res: Response) => {
@@ -277,6 +281,11 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/resolution/upscale-strategy — AI upscale recommendation for low-res source`);
   console.log(`   GET  /api/resolution/best/:platform/:contentType — max quality spec for format`);
   console.log(`   → Auto-applied: Every refined prompt now locks resolution/bitrate (IG reels 1080x1920@8000kbps, TikTok HD 1080x1920@16000kbps)`);
+  console.log(`🎯 MASTER PIPELINE Endpoints (Single-Call Full Guarantee):`);
+  console.log(`   POST /api/master/generate — one prompt through ALL systems (quality+cinematography+ocurrencia+identity+consistency+resolution)`);
+  console.log(`   POST /api/master/generate-carousel — full 2-10 frame carousel, one call`);
+  console.log(`   GET  /api/master/health — pipeline stages + usage guide`);
+  console.log(`   → THIS IS THE RECOMMENDED ENTRY POINT for all new content generation`);
   console.log(`   📊 Scaling Math: Video 3,450×12=41,400 + Image 12,870×12=154,440 + Stories 10,000×12=120,000 + Football 2,000×12=24,000 + Hooks 1,000×12=12,000 = 352,840 total`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
