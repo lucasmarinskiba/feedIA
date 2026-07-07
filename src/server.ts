@@ -12,6 +12,7 @@ import imageUploadRoutes from './api/image-upload-handler.js';
 import promptExpansionRoutes from './api/prompt-expansion-routes.js';
 import batchWorkerRoutes from './api/batch-worker-routes.js';
 import qualityExpansionRoutes from './api/quality-expansion-routes.js';
+import consistencyLockRoutes from './api/consistency-lock-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIADatabase } from './db/database.js';
 import type { BrandProfile } from './config/types.js';
@@ -115,6 +116,9 @@ app.use('/api/batch', batchWorkerRoutes);
 // Mount quality expansion routes (Validate + refine + expand pipeline)
 app.use('/api/quality', qualityExpansionRoutes);
 
+// Mount consistency lock routes (Character/product/environment stability across carousel frames)
+app.use('/api/consistency', consistencyLockRoutes);
+
 // Error handler
 app.use((err: any, req: Request, res: Response) => {
   log.error('[Server] error', { error: err.message });
@@ -202,6 +206,12 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/quality/validate — quality check (ortografia, faces, products, environments)`);
   console.log(`   POST /api/quality/refine — refine prompt (inject cinematography + artistic standards)`);
   console.log(`   GET  /api/quality/standards — all standards + patterns applied`);
+  console.log(`🔒 Consistency Lock Endpoints (Character/Product/Environment Stability):`);
+  console.log(`   POST /api/consistency/create-lock — create locks for carousel series`);
+  console.log(`   POST /api/consistency/generate-prompts — generate locked carousel prompts`);
+  console.log(`   POST /api/consistency/validate — validate carousel consistency`);
+  console.log(`   POST /api/consistency/suggest-improvements — get suggestions for better consistency`);
+  console.log(`   GET  /api/consistency/lock/:seriesId — get lock details`);
   console.log(`   📊 Scaling Math: Video 3,450×12=41,400 + Image 12,870×12=154,440 + Stories 10,000×12=120,000 = 315,840 total`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
