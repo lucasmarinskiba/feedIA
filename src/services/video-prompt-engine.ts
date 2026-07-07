@@ -7,7 +7,7 @@
 import { log } from '../agent/logger.js';
 
 interface VideoPromptParams {
-  category: 'emotional' | 'narrative' | 'transformation' | 'lifestyle' | 'technical' | 'vertical-engagement' | 'documentary-minimalism' | 'travel-vlogging' | 'continuous-macro' | 'luxury-food' | 'luxury-product' | 'modular-review' | 'urban-action';
+  category: 'emotional' | 'narrative' | 'transformation' | 'lifestyle' | 'technical' | 'vertical-engagement' | 'documentary-minimalism' | 'travel-vlogging' | 'continuous-macro' | 'luxury-food' | 'luxury-product' | 'modular-review' | 'urban-action' | 'daily-life-montage' | 'ugc-reel' | 'transformation-narrative' | 'action-sequence' | 'location-montage' | 'soft-sell-pets' | 'soft-sell-lifestyle' | 'soft-sell-services' | 'soft-sell-brand' | 'soft-sell-cause';
   product?: string;
   persona?: string;
   location?: string;
@@ -18,6 +18,9 @@ interface VideoPromptParams {
   specs?: string;
   engagementType?: 'emotional' | 'entertainment' | 'polemic' | 'education' | 'humor' | 'debate';
   userImage?: string;
+  problem?: string;
+  solution?: string;
+  softSellStrategy?: 'problem-shown' | 'solution-enabled' | 'transformation' | 'brand-subtle';
 }
 
 interface VideoPromptTemplate {
@@ -48,7 +51,9 @@ class VideoPromptEngine {
     batch91: { name: 'Advanced Emotional + Technical', total: 550 },
     batch92: { name: 'Vertical Engagement TikTok/Instagram', total: 700 },
     batch93: { name: 'Ultra-Detailed Reference Patterns', total: 650 },
-    total: 2450,
+    batch95: { name: 'UGC + Location-Based + User-Image', total: 500 },
+    batch96: { name: 'Soft-Sell Marketing (Problem→Solution)', total: 500 },
+    total: 3450,
   };
 
   constructor() {

@@ -6,6 +6,8 @@ import autonomyRoutes from './api/autonomy-routes.js';
 import parameterizedImageRoutes from './api/parameterized-image-routes.js';
 import videoParameterizedRoutes from './api/video-parameterized-routes.js';
 import videoBatch9293Routes from './api/video-batch-92-93-routes.js';
+import videoBatch95Routes from './api/video-batch-95-routes.js';
+import videoBatch96Routes from './api/video-batch-96-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import type { BrandProfile } from './config/types.js';
 
@@ -90,6 +92,12 @@ app.use('/api/video', videoParameterizedRoutes);
 // Mount video batch 92-93 routes (1,350 prompts, vertical engagement + reference patterns)
 app.use('/api/video', videoBatch9293Routes);
 
+// Mount video batch 95 routes (500 prompts, UGC + location-based)
+app.use('/api/video', videoBatch95Routes);
+
+// Mount video batch 96 routes (500 prompts, soft-sell marketing)
+app.use('/api/video', videoBatch96Routes);
+
 // Error handler
 app.use((err: any, req: Request, res: Response) => {
   log.error('[Server] error', { error: err.message });
@@ -131,13 +139,22 @@ app.listen(PORT, () => {
   console.log(`   GET  /api/video/library-status — 1,100 video prompt library info`);
   console.log(`🎬 Video Batch 92-93 Endpoints (VERTICAL + REFERENCE PATTERNS: 1,350 PROMPTS):`);
   console.log(`   POST /api/video/batch-92/generate — vertical engagement (9:16, ≤15sec)`);
-  console.log(`   POST /api/video/batch-92/batch-generate — batch vertical prompts`);
-  console.log(`   GET  /api/video/batch-92/engagement-types — list 6 engagement types (700 prompts)`);
   console.log(`   POST /api/video/batch-93/generate — ultra-detailed reference patterns`);
-  console.log(`   POST /api/video/batch-93/batch-generate — batch reference patterns`);
-  console.log(`   GET  /api/video/batch-93/reference-patterns — list 7 patterns (650 prompts)`);
-  console.log(`   GET  /api/video/batches-92-93/status — full status (1,350 prompts)`);
-  console.log(`🎬 Video Library Total: BATCH 90-91 (1,100) + BATCH 92-93 (1,350) = 2,450 PROMPTS`);
+  console.log(`🎬 Video Batch 95 Endpoints (UGC + LOCATION-BASED: 500 PROMPTS):`);
+  console.log(`   POST /api/video/batch-95/daily-life-montage — café/office/home/shop`);
+  console.log(`   POST /api/video/batch-95/ugc-reel — authentic phone vlog, character-locked`);
+  console.log(`   POST /api/video/batch-95/transformation-narrative — eye-reflection, glow-up`);
+  console.log(`   POST /api/video/batch-95/action-sequence — western/parkour/sports/fantasy`);
+  console.log(`   POST /api/video/batch-95/location-montage — snow/desert/beach/city/indoor`);
+  console.log(`   GET  /api/video/batch-95/categories — list all categories`);
+  console.log(`🎬 Video Batch 96 Endpoints (SOFT-SELL MARKETING: 500 PROMPTS):`);
+  console.log(`   POST /api/video/batch-96/pets — pet/animal soft-sell`);
+  console.log(`   POST /api/video/batch-96/lifestyle — lifestyle product soft-sell`);
+  console.log(`   POST /api/video/batch-96/services — service provider soft-sell`);
+  console.log(`   POST /api/video/batch-96/brand-positioning — brand/culture positioning`);
+  console.log(`   POST /api/video/batch-96/cause-driven — NGO/cause/social-impact marketing`);
+  console.log(`   GET  /api/video/batch-96/categories — list soft-sell categories`);
+  console.log(`🎬 Video Library Total: BATCH 90-91 (1,100) + BATCH 92-93 (1,350) + BATCH 95-96 (1,000) = 3,450 PROMPTS`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
   console.log(`   GET  /api/autonomy/database/stats`);
