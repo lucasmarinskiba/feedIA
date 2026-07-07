@@ -5,6 +5,7 @@ import contentRoutes from './api/content-routes.js';
 import autonomyRoutes from './api/autonomy-routes.js';
 import parameterizedImageRoutes from './api/parameterized-image-routes.js';
 import videoParameterizedRoutes from './api/video-parameterized-routes.js';
+import videoBatch9293Routes from './api/video-batch-92-93-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import type { BrandProfile } from './config/types.js';
 
@@ -86,6 +87,9 @@ app.use('/api/parameterized', parameterizedImageRoutes);
 // Mount video parameterized routes (1,100 video prompts, Batch 90-91)
 app.use('/api/video', videoParameterizedRoutes);
 
+// Mount video batch 92-93 routes (1,350 prompts, vertical engagement + reference patterns)
+app.use('/api/video', videoBatch9293Routes);
+
 // Error handler
 app.use((err: any, req: Request, res: Response) => {
   log.error('[Server] error', { error: err.message });
@@ -125,6 +129,15 @@ app.listen(PORT, () => {
   console.log(`   POST /api/video/batch-expand — expand 1 prompt → 10 variations`);
   console.log(`   GET  /api/video/templates — list all templates`);
   console.log(`   GET  /api/video/library-status — 1,100 video prompt library info`);
+  console.log(`🎬 Video Batch 92-93 Endpoints (VERTICAL + REFERENCE PATTERNS: 1,350 PROMPTS):`);
+  console.log(`   POST /api/video/batch-92/generate — vertical engagement (9:16, ≤15sec)`);
+  console.log(`   POST /api/video/batch-92/batch-generate — batch vertical prompts`);
+  console.log(`   GET  /api/video/batch-92/engagement-types — list 6 engagement types (700 prompts)`);
+  console.log(`   POST /api/video/batch-93/generate — ultra-detailed reference patterns`);
+  console.log(`   POST /api/video/batch-93/batch-generate — batch reference patterns`);
+  console.log(`   GET  /api/video/batch-93/reference-patterns — list 7 patterns (650 prompts)`);
+  console.log(`   GET  /api/video/batches-92-93/status — full status (1,350 prompts)`);
+  console.log(`🎬 Video Library Total: BATCH 90-91 (1,100) + BATCH 92-93 (1,350) = 2,450 PROMPTS`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
   console.log(`   GET  /api/autonomy/database/stats`);

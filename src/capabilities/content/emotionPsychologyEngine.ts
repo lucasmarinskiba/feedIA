@@ -28,55 +28,55 @@ export interface EmotionMap {
 
 export const hookFormulas: Record<Emotion, string[]> = {
   fear: [
-    'Stop! [problem] is silently destroying your [goal]. Here's why...',
-    '⚠️ Most [audience] make this critical mistake... (you probably are too)',
-    'WAIT. Before you [common action], you NEED to know this...',
-    'If you're doing [X], you're doing it wrong. [Consequence] waiting...',
+    "Stop! [problem] is silently destroying your [goal]. Here's why...",
+    "⚠️ Most [audience] make this critical mistake... (you probably are too)",
+    "WAIT. Before you [common action], you NEED to know this...",
+    "If you're doing [X], you're doing it wrong. [Consequence] waiting...",
   ],
   hope: [
-    'What if [desired outcome] was actually possible? Here's proof...',
-    '✨ [audience] just discovered a way to [result]. Here's how...',
-    'Imagine [best-case scenario]. Not fantasy. Real. Watch...',
-    'The secret to [goal]: nobody talks about this one thing...',
+    "What if [desired outcome] was actually possible? Here's proof...",
+    "✨ [audience] just discovered a way to [result]. Here's how...",
+    "Imagine [best-case scenario]. Not fantasy. Real. Watch...",
+    "The secret to [goal]: nobody talks about this one thing...",
   ],
   joy: [
-    '😂 POV: You just discovered the [thing] hack that changes everything',
+    "😂 POV: You just discovered the [thing] hack that changes everything",
     "Wait till you see this. You're gonna laugh AND win.",
-    'No way this is this simple... but it IS. Proof →',
-    '🎉 [audience] just pulled off [result]. The method is *chef's kiss*',
+    "No way this is this simple... but it IS. Proof →",
+    "🎉 [audience] just pulled off [result]. The method is *chef's kiss*",
   ],
   anger: [
     "🔥 They don't want you to know this about [topic]...",
-    'STOP. They've been LYING to you about [topic].',
-    'Basta. Here's what the [industry] doesn't want you to see...',
-    'This [industry] SECRET is finally exposed. [consequence]...',
+    "STOP. They've been LYING to you about [topic].",
+    "Basta. Here's what the [industry] doesn't want you to see...",
+    "This [industry] SECRET is finally exposed. [consequence]...",
   ],
   curiosity: [
-    '👀 [topic] hack that literally nobody talks about (watch till end)',
-    'This [thing] is so [adjective], even [authority] doesn't know...',
-    '❓ What [audience] gets wrong about [topic] (you too probably)',
-    'The #1 [goal] method everyone misses. It's so [adjective]...',
+    "👀 [topic] hack that literally nobody talks about (watch till end)",
+    "This [thing] is so [adjective], even [authority] doesn't know...",
+    "❓ What [audience] gets wrong about [topic] (you too probably)",
+    "The #1 [goal] method everyone misses. It's so [adjective]...",
   ],
 };
 
 // ── Pattern Interrupts ────────────────────────────────────────────────
 
 export const patternInterrupts: Record<Emotion, string[]> = {
-  fear: ['But here's the catch...', 'The twist nobody sees coming...', 'That's when [bad thing] hits...'],
-  hope: ['Then this one thing changed everything...', 'The breakthrough moment...', 'That's when it clicked...'],
-  joy: ['The punchline:', 'But wait, it gets better...', 'Here's the best part...'],
-  anger: ['The REAL reason...', 'What actually happened...', 'The truth they hide...'],
-  curiosity: ['Nope, it's actually...', 'Plot twist:', 'But here's the secret...'],
+  fear: ["But here's the catch...", "The twist nobody sees coming...", "That's when [bad thing] hits..."],
+  hope: ["Then this one thing changed everything...", "The breakthrough moment...", "That's when it clicked..."],
+  joy: ["The punchline:", "But wait, it gets better...", "Here's the best part..."],
+  anger: ["The REAL reason...", "What actually happened...", "The truth they hide..."],
+  curiosity: ["Nope, it's actually...", "Plot twist:", "But here's the secret..."],
 };
 
 // ── Emotional Keywords ────────────────────────────────────────────────
 
 export const emotionalKeywords: Record<Emotion, string[]> = {
-  fear: ['danger', 'mistake', 'avoid', 'warning', 'disaster', 'fail', 'lose', 'risk', 'trap'],
-  hope: ['possible', 'breakthrough', 'achieve', 'win', 'success', 'future', 'better', 'transform'],
-  joy: ['love', 'laugh', 'celebrate', 'amazing', 'incredible', 'perfect', 'vibe', 'energy'],
-  anger: ['unfair', 'lie', 'exposed', 'truth', 'justice', 'action', 'demand', 'finally'],
-  curiosity: ['secret', 'discover', 'unknown', 'hidden', 'reveal', 'uncover', 'mystery', 'wait'],
+  fear: ["danger", "mistake", "avoid", "warning", "disaster", "fail", "lose", "risk", "trap"],
+  hope: ["possible", "breakthrough", "achieve", "win", "success", "future", "better", "transform"],
+  joy: ["love", "laugh", "celebrate", "amazing", "incredible", "perfect", "vibe", "energy"],
+  anger: ["unfair", "lie", "exposed", "truth", "justice", "action", "demand", "finally"],
+  curiosity: ["secret", "discover", "unknown", "hidden", "reveal", "uncover", "mystery", "wait"],
 };
 
 // ── Map emotion to psychological triggers ────────────────────────────

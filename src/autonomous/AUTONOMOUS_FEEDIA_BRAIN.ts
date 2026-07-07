@@ -204,7 +204,7 @@ class GrowthSpecialist {
     };
   }
 
-  async identifyVirality Triggers(personality: AccountPersonality): Promise<string[]> {
+  async identifyViralityTriggers(personality: AccountPersonality): Promise<string[]> {
     // What makes content go viral in this account's niche?
     // Extract: triggers, patterns, angles
 
@@ -409,7 +409,7 @@ class AutonomousFeedIABrain {
 
     const opportunities = await this.growthSpecialist.detectGrowthOpportunities(this.accountPersonality);
     const schedule = await this.growthSpecialist.optimizePostingSchedule(this.accountPersonality);
-    const triggers = await this.growthSpecialist.identifyVirality Triggers(this.accountPersonality);
+    const triggers = await this.growthSpecialist.identifyViralityTriggers(this.accountPersonality);
 
     console.log('[Autonomous] Weekly optimizations:', {
       opportunities,

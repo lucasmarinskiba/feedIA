@@ -26,19 +26,19 @@ export interface HumorMap {
 
 export const comedyStyles = {
   dry: {
-    name: 'Deadpan / Dry Wit',
-    markers: ['understated', 'matter-of-fact', 'unexpected juxtaposition'],
+    name: "Deadpan / Dry Wit",
+    markers: ["understated", "matter-of-fact", "unexpected juxtaposition"],
     examples: [
-      'We tried productivity apps. Spoiler: we're still lazy.',
-      'This marketing strategy is simple. Spoiler: nothing works.',
+      "We tried productivity apps. Spoiler: we're still lazy.",
+      "This marketing strategy is simple. Spoiler: nothing works.",
     ],
   },
   absurd: {
-    name: 'Absurdist Humor',
-    markers: ['exaggeration', 'surreal logic', 'emoji chaos'],
+    name: "Absurdist Humor",
+    markers: ["exaggeration", "surreal logic", "emoji chaos"],
     examples: [
       "Your boss: 'let's synergize our paradigm' | Translation: nobody knows",
-      '🎯 Goal: be productive. Reality: doom-scroll for 3 hours. (Same energy)',
+      "🎯 Goal: be productive. Reality: doom-scroll for 3 hours. (Same energy)",
     ],
   },
   relatable: {
@@ -46,22 +46,22 @@ export const comedyStyles = {
     markers: ['self-aware fail', 'we-all-know-this', 'validating struggle'],
     examples: [
       "If you've done this, raise your hand. (I see you from 2025)",
-      'POV: You're reading this instead of doing your actual work.',
+      "POV: You're reading this instead of doing your actual work.",
     ],
   },
   dark: {
-    name: 'Dark / Sarcasm-Heavy',
-    markers: ['ironic observations', 'tragic humor', 'cynical twist'],
+    name: "Dark / Sarcasm-Heavy",
+    markers: ["ironic observations", "tragic humor", "cynical twist"],
     examples: [
-      'Capitalism: Hustle so you can afford to rest someday.',
+      "Capitalism: Hustle so you can afford to rest someday.",
       "They said 'follow your passion.' I did. Now I'm broke and passionate.",
     ],
   },
-  'pun-heavy': {
-    name: 'Wordplay / Puns',
-    markers: ['double meaning', 'sound-alike', 'clever twist'],
+  "pun-heavy": {
+    name: "Wordplay / Puns",
+    markers: ["double meaning", "sound-alike", "clever twist"],
     examples: [
-      'We're not saying the system is broken. We're saying it's *fractured*.',
+      "We're not saying the system is broken. We're saying it's *fractured*.",
       "This tool? It's *literally* a game-changer. (It's a game).",
     ],
   },
@@ -73,7 +73,7 @@ export const humorFormulas: Record<string, string[]> = {
   // Punchline structure: Setup → Twist
   punchline: [
     '[Setup about common belief]. [Unexpected truth]. Plot twist.',
-    'Everyone does [X]. Everyone fails at [Y]. You're not alone.',
+    "Everyone does [X]. Everyone fails at [Y]. You're not alone.",
     'I tried [X]. Spoiler: [embarrassing result].',
   ],
 
@@ -98,7 +98,7 @@ export const humorFormulas: Record<string, string[]> = {
   // Relatable fail structure
   relatable: [
     "POV: You're [specific situation]. Yeah, we've all been there.",
-    'If this is you, stop. (Actually, keep going. I'm entertained).',
+    "If this is you, stop. (Actually, keep going. I'm entertained).",
   ],
 };
 
@@ -141,7 +141,7 @@ const addEmoji = (text: string, count: number): string => {
 
 const addRelatable = (text: string, formulas: string[]): string => {
   const formula = formulas[Math.floor(Math.random() * formulas.length)];
-  const relatableMarkers = ['(relatable)', '(same energy)', '(we've all been there)'];
+  const relatableMarkers = ["(relatable)", "(same energy)", "(we've all been there)"];
   const marker = relatableMarkers[Math.floor(Math.random() * relatableMarkers.length)];
 
   return `${text} ${marker}`;
@@ -205,11 +205,11 @@ const selectHumorType = (index: number, total: number): HumorPoint['type'] => {
 
 const generateHumorLine = (_topic: string, _style: keyof typeof comedyStyles): string => {
   const lines = [
-    '(We're all thinking it, someone had to say it)',
-    '(Yes, this works. Somehow.)',
-    '(Spoiler: everyone messes this up)',
-    '(POV: you're reading this at 2am)',
-    '(This part never gets old)',
+    "(We're all thinking it, someone had to say it)",
+    "(Yes, this works. Somehow.)",
+    "(Spoiler: everyone messes this up)",
+    "(POV: you're reading this at 2am)",
+    "(This part never gets old)",
   ];
 
   return lines[Math.floor(Math.random() * lines.length)];

@@ -7,7 +7,7 @@
 import { log } from '../agent/logger.js';
 
 interface VideoPromptParams {
-  category: 'emotional' | 'narrative' | 'transformation' | 'lifestyle' | 'technical';
+  category: 'emotional' | 'narrative' | 'transformation' | 'lifestyle' | 'technical' | 'vertical-engagement' | 'documentary-minimalism' | 'travel-vlogging' | 'continuous-macro' | 'luxury-food' | 'luxury-product' | 'modular-review' | 'urban-action';
   product?: string;
   persona?: string;
   location?: string;
@@ -16,6 +16,8 @@ interface VideoPromptParams {
   culturalContext?: string;
   emotionalArc?: string;
   specs?: string;
+  engagementType?: 'emotional' | 'entertainment' | 'polemic' | 'education' | 'humor' | 'debate';
+  userImage?: string;
 }
 
 interface VideoPromptTemplate {
@@ -44,7 +46,9 @@ class VideoPromptEngine {
   private libraryStatus = {
     batch90: { name: 'Parametrized Basic Structures', total: 550 },
     batch91: { name: 'Advanced Emotional + Technical', total: 550 },
-    total: 1100,
+    batch92: { name: 'Vertical Engagement TikTok/Instagram', total: 700 },
+    batch93: { name: 'Ultra-Detailed Reference Patterns', total: 650 },
+    total: 2450,
   };
 
   constructor() {
@@ -180,7 +184,171 @@ SPECS: [TECHNICAL_SPECS]
       optionalParams: ['product', 'tone'],
     });
 
-    log.info('[VideoPromptEngine] Initialized with 5 master templates (1,100 prompts available)');
+    // ===== BATCH 92: VERTICAL ENGAGEMENT (9:16, 15 SEC MAX) =====
+
+    // BATCH 92 - EMOTIONAL ENGAGEMENT
+    this.templates.set('VE-EMO-001', {
+      id: 'VE-EMO-001',
+      name: 'Vertical Emotional Hook (TikTok/Reels)',
+      category: 'vertical-engagement',
+      baseTemplate: `
+FORMATO: 9:16 (vertical)
+DURACION: [DURATION] seg (max 15)
+ENGAGEMENT: EMOTIONAL
+
+HOOK (0-2s):
+- Reacción visual instantánea de [PERSONA]
+- Emoción clave: [EMOTION_TYPE]
+
+DESARROLLO (2-10s):
+- Contexto o narrativa sobre [PRODUCT]
+- Uso/aplicación mostrado en detalle
+
+PAYOFF (10-15s):
+- Momento de satisfacción o revelación
+- [CALL_TO_ACTION]
+
+AUDIO: [AUDIO_MOOD]
+SPECS: [TECHNICAL_SPECS]
+      `,
+      placeholders: ['DURATION', 'PERSONA', 'EMOTION_TYPE', 'PRODUCT', 'CALL_TO_ACTION', 'AUDIO_MOOD', 'TECHNICAL_SPECS'],
+      requiredParams: ['persona', 'product', 'duration'],
+      optionalParams: ['tone', 'specs', 'engagementType'],
+    });
+
+    // BATCH 92 - ENTERTAINMENT ENGAGEMENT
+    this.templates.set('VE-ENT-001', {
+      id: 'VE-ENT-001',
+      name: 'Vertical Entertainment Moment (Comedy/Trend)',
+      category: 'vertical-engagement',
+      baseTemplate: `
+FORMATO: 9:16 (vertical)
+DURACION: [DURATION] seg (max 15)
+ENGAGEMENT: ENTERTAINMENT
+
+SETUP (0-3s):
+- Situación relatable o absurda con [PERSONA]
+- Visual sorprendente o trend-aligned
+
+TWIST (3-10s):
+- Giro cómico o inesperado
+- [PRODUCT] integrado naturalmente
+
+PUNCHLINE (10-15s):
+- Remate viral-friendly
+- [CALL_TO_ACTION]
+
+MUSICA: [TRENDING_AUDIO]
+SPECS: [TECHNICAL_SPECS]
+      `,
+      placeholders: ['DURATION', 'PERSONA', 'PRODUCT', 'CALL_TO_ACTION', 'TRENDING_AUDIO', 'TECHNICAL_SPECS'],
+      requiredParams: ['persona', 'product', 'duration'],
+      optionalParams: ['tone', 'specs', 'engagementType'],
+    });
+
+    // ===== BATCH 93: ULTRA-DETAILED REFERENCE PATTERNS =====
+
+    // BATCH 93 - DOCUMENTARY MINIMALISM (MiniDV 2000s)
+    this.templates.set('B93-DOC-001', {
+      id: 'B93-DOC-001',
+      name: 'Documentary Minimalism (MiniDV 2000s aesthetic)',
+      category: 'documentary-minimalism',
+      baseTemplate: `
+FORMATO: 9:16 (vertical)
+DURACION: [DURATION] seg
+AESTHETIC: MiniDV 2000s handheld
+
+PERSONAJE BLOQUEADO: [PERSONA]
+"[PERSONAJE_NAME] aparece en TODAS las tomas. Identidad 100% consistente."
+
+LINEA DE TIEMPO ([DURATION] seg):
+[TIMELINE_BREAKDOWN]
+
+CARACTERISTICAS TECNICAS:
+- Micro-tremores de camarita
+- Enfoques imperfectos (handheld autofocus)
+- Grano visible
+- Luz natural/overhead fluoresente
+- SIN CORTES (tomas largas)
+
+AUDIO: Sonido ambiente natural + voz de [PERSONA]
+SPECS: [TECHNICAL_SPECS]
+      `,
+      placeholders: ['DURATION', 'PERSONA', 'PERSONAJE_NAME', 'TIMELINE_BREAKDOWN', 'TECHNICAL_SPECS'],
+      requiredParams: ['persona', 'duration'],
+      optionalParams: ['location', 'tone', 'specs'],
+    });
+
+    // BATCH 93 - TRAVEL VLOGGING
+    this.templates.set('B93-TRAV-001', {
+      id: 'B93-TRAV-001',
+      name: 'Travel Vlogging (Smartphone handheld + cultural sensory)',
+      category: 'travel-vlogging',
+      baseTemplate: `
+FORMATO: 9:16 (vertical)
+DURACION: [DURATION] seg
+AESTHETIC: Vlog travel smartphone
+
+LOCACION: [LOCATION]
+PERSONAJE VIAJERO: [PERSONA]
+
+EXPERIENCIA SENSORIAL:
+- Sabores de [FOOD_ITEM]
+- Texturas de [TEXTURE]
+- Sonidos de [AMBIENT_SOUND]
+
+MOVIMIENTO:
+- Caminar descubierto
+- Close-ups de detalle cultural
+- POV caminando
+
+LINEA NARRATIVA:
+[STORY_ARC]
+
+AUDIO: Voz en off casual + sonido ambiente + musica de fondo
+SPECS: [TECHNICAL_SPECS]
+      `,
+      placeholders: ['DURATION', 'LOCATION', 'PERSONA', 'FOOD_ITEM', 'TEXTURE', 'AMBIENT_SOUND', 'STORY_ARC', 'TECHNICAL_SPECS'],
+      requiredParams: ['location', 'persona', 'duration'],
+      optionalParams: ['tone', 'specs', 'culturalContext'],
+    });
+
+    // BATCH 93 - CONTINUOUS MACRO CINEMA (no cuts, orbits)
+    this.templates.set('B93-MACRO-001', {
+      id: 'B93-MACRO-001',
+      name: 'Continuous Macro Cinema (No cuts, smooth orbits)',
+      category: 'continuous-macro',
+      baseTemplate: `
+FORMATO: 9:16 (vertical)
+DURACION: [DURATION] seg
+AESTHETIC: Macro cinematografico SIN CORTES
+
+SUJETO MACRO: [MACRO_SUBJECT]
+"Orbita suave alrededor de [MACRO_SUBJECT]. Una sola toma continua."
+
+MOVIMIENTO DE CAMARA:
+- Orbita horizontal lenta: 360° en [DURATION] seg
+- O FPV descent: acercamiento continuo
+- Velocidad: [CAMERA_SPEED]
+
+ILUMINACION:
+- Luz direccional 45°
+- Bokeh artificial o natural background
+
+DETALLE VISUAL:
+[VISUAL_DETAIL]
+
+LINEA DE TIEMPO:
+- 0:00-[DURATION]: [MACRO_ACTION]
+
+SPECS: [TECHNICAL_SPECS]
+      `,
+      placeholders: ['DURATION', 'MACRO_SUBJECT', 'CAMERA_SPEED', 'VISUAL_DETAIL', 'MACRO_ACTION', 'TECHNICAL_SPECS'],
+      requiredParams: ['duration'],
+      optionalParams: ['product', 'tone', 'specs'],
+    });
+
+    log.info('[VideoPromptEngine] Initialized with 8 master templates (2,450 prompts available - Batch 90-93)');
   }
 
   /**
@@ -245,10 +413,17 @@ SPECS: [TECHNICAL_SPECS]
    * Get library status
    */
   getLibraryStatus(): object {
+    const categories = {
+      batch90: ['emotional', 'narrative', 'transformation', 'lifestyle', 'technical'],
+      batch9192: ['emotional', 'narrative', 'transformation', 'lifestyle', 'technical'],
+      batch92: ['vertical-engagement'],
+      batch93: ['documentary-minimalism', 'travel-vlogging', 'continuous-macro', 'luxury-food', 'luxury-product', 'modular-review', 'urban-action'],
+    };
     return {
       batches: this.libraryStatus,
       templatesLoaded: this.templates.size,
-      categories: ['emotional', 'narrative', 'transformation', 'lifestyle', 'technical'],
+      categoriesByBatch: categories,
+      allCategories: ['emotional', 'narrative', 'transformation', 'lifestyle', 'technical', 'vertical-engagement', 'documentary-minimalism', 'travel-vlogging', 'continuous-macro', 'luxury-food', 'luxury-product', 'modular-review', 'urban-action'],
     };
   }
 
