@@ -8,7 +8,9 @@ import videoParameterizedRoutes from './api/video-parameterized-routes.js';
 import videoBatch9293Routes from './api/video-batch-92-93-routes.js';
 import videoBatch95Routes from './api/video-batch-95-routes.js';
 import videoBatch96Routes from './api/video-batch-96-routes.js';
+import imageUploadRoutes from './api/image-upload-handler.js';
 import { scalingLayer } from './api/scaling-layer.js';
+import { feedIADatabase } from './db/database.js';
 import type { BrandProfile } from './config/types.js';
 
 const app: Express = express();
@@ -98,6 +100,9 @@ app.use('/api/video', videoBatch95Routes);
 // Mount video batch 96 routes (500 prompts, soft-sell marketing)
 app.use('/api/video', videoBatch96Routes);
 
+// Mount image upload routes (feature extraction + prompt matching + parameterization)
+app.use('/api/image-upload', imageUploadRoutes);
+
 // Error handler
 app.use((err: any, req: Request, res: Response) => {
   log.error('[Server] error', { error: err.message });
@@ -107,8 +112,15 @@ app.use((err: any, req: Request, res: Response) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
+// Initialize database + start server
+app.listen(PORT, async () => {
+  try {
+    await feedIADatabase.initialize();
+    log.info('[Database] initialized', { path: './feedia.db' });
+  } catch (error) {
+    log.error('[Database] initialization failed', error);
+  }
+
   log.info('[Server] started', { port: PORT });
   console.log(`✅ FeedIA Autonomous Generator running on http://localhost:${PORT}`);
   console.log(`📊 Batches: 28-61 base (6,770) + 62-95 parameterized (6,100) = 12,870 total`);
@@ -155,6 +167,12 @@ app.listen(PORT, () => {
   console.log(`   POST /api/video/batch-96/cause-driven — NGO/cause/social-impact marketing`);
   console.log(`   GET  /api/video/batch-96/categories — list soft-sell categories`);
   console.log(`🎬 Video Library Total: BATCH 90-91 (1,100) + BATCH 92-93 (1,350) + BATCH 95-96 (1,000) = 3,450 PROMPTS`);
+  console.log(`🖼️  Image Upload & Parameterization Endpoints:`);
+  console.log(`   POST /api/image-upload/upload — upload image, extract features`);
+  console.log(`   POST /api/image-upload/match-prompts — find matching prompts for image`);
+  console.log(`   POST /api/image-upload/parameterize — combine image + prompt + parameters`);
+  console.log(`   GET  /api/image-upload/status — database statistics`);
+  console.log(`💾 Database: feedia.db (SQLite). Schema: prompts, variations, images, content, analytics, brand_profiles`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
   console.log(`   GET  /api/autonomy/database/stats`);
