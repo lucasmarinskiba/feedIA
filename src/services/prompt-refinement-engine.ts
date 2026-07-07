@@ -8,6 +8,7 @@ import { log } from '../agent/logger.js';
 import { qualityValidator } from './quality-validator.js';
 import { trainingDataLoader } from './training-data-loader.js';
 import { creativityWitEngine } from './creativity-wit-engine.js';
+import { resolutionQualityEngine } from './resolution-quality-engine.js';
 
 interface RefinementResult {
   originalPrompt: string;
@@ -23,7 +24,11 @@ class PromptRefinementEngine {
   /**
    * Refine prompt based on quality validation + artistic standards
    */
-  async refinePrompt(basePrompt: string): Promise<RefinementResult> {
+  async refinePrompt(
+    basePrompt: string,
+    targetPlatform: 'instagram' | 'tiktok' = 'instagram',
+    contentType: 'image' | 'video' | 'carousel' = 'carousel'
+  ): Promise<RefinementResult> {
     // Step 1: Validate original
     const originalValidation = await qualityValidator.validatePrompt(basePrompt);
     const changes: string[] = [];
@@ -82,7 +87,12 @@ class PromptRefinementEngine {
       changes.push(`Injected creative twist: ${witBoost.twistApplied.twistType}`);
     }
 
-    // Step 7: Validate refined
+    // Step 7: Lock resolution/quality specs (never lose quality, max platform resolution)
+    const qualityInstructions = resolutionQualityEngine.generateQualityInstructions(targetPlatform, contentType);
+    refinedPrompt = `${refinedPrompt}\n\n${qualityInstructions}`;
+    changes.push(`Locked resolution/bitrate specs for ${targetPlatform} ${contentType}`);
+
+    // Step 8: Validate refined
     const refinedValidation = await qualityValidator.validatePrompt(refinedPrompt);
     const qualityImprovement = refinedValidation.score - originalValidation.score;
 

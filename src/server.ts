@@ -17,6 +17,7 @@ import footballMemeRoutes from './api/football-meme-routes.js';
 import adminDashboardRoutes from './api/admin-dashboard-routes.js';
 import creativityRoutes from './api/creativity-routes.js';
 import facialIdentityRoutes from './api/facial-identity-routes.js';
+import resolutionQualityRoutes from './api/resolution-quality-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -135,6 +136,9 @@ app.use('/api/creativity', creativityRoutes);
 
 // Mount facial identity preservation routes (real face features locked from source photo)
 app.use('/api/identity', facialIdentityRoutes);
+
+// Mount resolution/quality routes (max IG/TikTok resolution, zero quality loss)
+app.use('/api/resolution', resolutionQualityRoutes);
 
 // Error handler
 app.use((err: any, req: Request, res: Response) => {
@@ -266,6 +270,13 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/identity/lock-and-inject — combined lock + inject in one call`);
   console.log(`   GET  /api/identity/lock/:lockId — retrieve lock details`);
   console.log(`   → Guarantee: Uploaded person's real face shape/eyes/nose/lips/marks preserved, not idealized/invented`);
+  console.log(`📐 Resolution & Quality Endpoints (Max IG/TikTok Resolution, Zero Quality Loss):`);
+  console.log(`   GET  /api/resolution/specs/:platform — full spec table (instagram/tiktok)`);
+  console.log(`   POST /api/resolution/inject-instructions — inject quality lock into prompt`);
+  console.log(`   POST /api/resolution/validate — check asset specs vs platform requirements`);
+  console.log(`   POST /api/resolution/upscale-strategy — AI upscale recommendation for low-res source`);
+  console.log(`   GET  /api/resolution/best/:platform/:contentType — max quality spec for format`);
+  console.log(`   → Auto-applied: Every refined prompt now locks resolution/bitrate (IG reels 1080x1920@8000kbps, TikTok HD 1080x1920@16000kbps)`);
   console.log(`   📊 Scaling Math: Video 3,450×12=41,400 + Image 12,870×12=154,440 + Stories 10,000×12=120,000 + Football 2,000×12=24,000 + Hooks 1,000×12=12,000 = 352,840 total`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
