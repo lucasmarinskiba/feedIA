@@ -9,7 +9,7 @@ const router = Router();
 /**
  * POST /api/autonomy/generate — Full autonomous generation (all formats)
  */
-router.post('/generate', async (req, res): Promise<void> => {
+router.post('/generate', async (req, res) => {
   try {
     const { brand, occasion, carouselCount = 1, reelCount = 1, storyCount = 3 } = req.body;
 
@@ -66,7 +66,7 @@ router.post('/generate', async (req, res): Promise<void> => {
 /**
  * POST /api/autonomy/carousels — Batch carousel generation
  */
-router.post('/carousels', async (req, res): Promise<void> => {
+router.post('/carousels', async (req, res) => {
   try {
     const { brand, occasion, count = 1 } = req.body;
 
@@ -100,7 +100,7 @@ router.post('/carousels', async (req, res): Promise<void> => {
 /**
  * POST /api/autonomy/reels — Batch reel generation
  */
-router.post('/reels', async (req, res): Promise<void> => {
+router.post('/reels', async (req, res) => {
   try {
     const { brand, occasion, count = 1 } = req.body;
 
@@ -134,7 +134,7 @@ router.post('/reels', async (req, res): Promise<void> => {
 /**
  * POST /api/autonomy/stories — Batch story generation
  */
-router.post('/stories', async (req, res): Promise<void> => {
+router.post('/stories', async (req, res) => {
   try {
     const { brand, occasion, count = 3 } = req.body;
 
@@ -190,7 +190,7 @@ router.get('/status', (req, res) => {
 /**
  * POST /api/database/sync — Sync FeedIA Brain → Database
  */
-router.post('/database/sync', async (req, res): Promise<void> => {
+router.post('/database/sync', async (req, res) => {
   try {
     log.info('[DatabaseAPI] sync initiated');
 
@@ -214,7 +214,7 @@ router.post('/database/sync', async (req, res): Promise<void> => {
 /**
  * GET /api/database/stats — Get database statistics
  */
-router.get('/database/stats', async (req, res): Promise<void> => {
+router.get('/database/stats', async (req, res) => {
   try {
     const stats = await promptDb.getBatchStats();
 
@@ -235,7 +235,7 @@ router.get('/database/stats', async (req, res): Promise<void> => {
 /**
  * GET /api/database/performance/:batchId — Batch performance metrics
  */
-router.get('/database/performance/:batchId', async (req, res): Promise<void> => {
+router.get('/database/performance/:batchId', async (req, res) => {
   try {
     const batchId = parseInt(req.params.batchId);
 

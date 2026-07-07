@@ -9,7 +9,7 @@ const router = Router();
 /**
  * POST /api/content/carousel — Generate carousel content with prompts
  */
-router.post('/carousel', async (req, res): Promise<void> => {
+router.post('/carousel', async (req, res) => {
   try {
     const { brand, occasion, category, count } = req.body;
 
@@ -32,7 +32,7 @@ router.post('/carousel', async (req, res): Promise<void> => {
       slides: content.prompts.length,
     });
 
-    return res.json({
+    res.json({
       success: true,
       content,
     });
@@ -49,7 +49,7 @@ router.post('/carousel', async (req, res): Promise<void> => {
 /**
  * POST /api/content/reel — Generate reel content with prompts
  */
-router.post('/reel', async (req, res): Promise<void> => {
+router.post('/reel', async (req, res) => {
   try {
     const { brand, occasion, category, count } = req.body;
 
@@ -72,7 +72,7 @@ router.post('/reel', async (req, res): Promise<void> => {
       scenes: content.prompts.length,
     });
 
-    return res.json({
+    res.json({
       success: true,
       content,
     });
@@ -89,7 +89,7 @@ router.post('/reel', async (req, res): Promise<void> => {
 /**
  * POST /api/content/story — Generate story content with prompts
  */
-router.post('/story', async (req, res): Promise<void> => {
+router.post('/story', async (req, res) => {
   try {
     const { brand, occasion, category } = req.body;
 
@@ -112,7 +112,7 @@ router.post('/story', async (req, res): Promise<void> => {
       frames: content.prompts.length,
     });
 
-    return res.json({
+    res.json({
       success: true,
       content,
     });
@@ -129,7 +129,7 @@ router.post('/story', async (req, res): Promise<void> => {
 /**
  * POST /api/content/post — Generate single post content with prompt
  */
-router.post('/post', async (req, res): Promise<void> => {
+router.post('/post', async (req, res) => {
   try {
     const { brand, occasion, category } = req.body;
 
@@ -150,7 +150,7 @@ router.post('/post', async (req, res): Promise<void> => {
       contentId: content.id,
     });
 
-    return res.json({
+    res.json({
       success: true,
       content,
     });

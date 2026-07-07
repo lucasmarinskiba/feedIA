@@ -48,7 +48,7 @@ interface GeneratedContent {
  * POST /api/parameterized/upload-images
  * User uploads images → system analyzes + matches to prompts
  */
-router.post('/upload-images', upload.array('images', 10), async (req: Request, res: Response): Promise<void> => {
+router.post('/upload-images', upload.array('images', 10), async (req: Request, res: Response) => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { objective, contentType = 'carousel', domain, occasion, batchIds } = req.body as ParameterizedPromptRequest;
@@ -102,7 +102,7 @@ router.post('/upload-images', upload.array('images', 10), async (req: Request, r
  * POST /api/parameterized/match-prompts
  * Direct prompt matching from parameterized library
  */
-router.post('/match-prompts', async (req: Request, res: Response): Promise<void> => {
+router.post('/match-prompts', async (req: Request, res: Response) => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { imageDescriptions, objective, contentType = 'carousel', occasion } = req.body;
@@ -118,7 +118,7 @@ router.post('/match-prompts', async (req: Request, res: Response): Promise<void>
 
     const matched = await matchDescriptionsToPrompts(imageDescriptions, objective, occasion);
 
-    return res.json({
+    res.json({
       status: 'success',
       matched,
       count: matched.length,
@@ -154,7 +154,7 @@ router.get('/library-status', (req: Request, res: Response) => {
  * POST /api/parameterized/generate-content
  * Full pipeline: images → matched prompts → generated content
  */
-router.post('/generate-content', async (req: Request, res: Response): Promise<void> => {
+router.post('/generate-content', async (req: Request, res: Response) => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const {
@@ -189,7 +189,7 @@ router.post('/generate-content', async (req: Request, res: Response): Promise<vo
       contentType,
     );
 
-    return res.json({
+    res.json({
       status: 'success',
       contentType,
       variants: contentVariants,
