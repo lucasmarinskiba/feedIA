@@ -5,6 +5,8 @@
  */
 
 import { feediaBrain } from '../core/feedia-brain';
+import { masterContentPipeline } from '../services/master-content-pipeline.js';
+import { consistencyLockManager } from '../services/consistency-lock.js';
 
 interface CarouselSlide {
   slide_number: number;
@@ -12,6 +14,8 @@ interface CarouselSlide {
   content: string;
   prompt: string;
   compositionalIdeas: string[];
+  qualityScore?: number;
+  witScore?: number;
 }
 
 interface CarouselPlan {
@@ -20,17 +24,26 @@ interface CarouselPlan {
   slides: CarouselSlide[];
   totalSlides: number;
   estimatedLength: string;
+  consistencySeriesId?: string;
 }
 
 class BrujulaCarouselIntegration {
   /**
    * Generate carousel plan from domain + brief
+   * Every slide prompt is run through the Master Content Pipeline (quality +
+   * cinematography + ocurrencia + resolution lock) and all slides share one
+   * consistency lock so character/product/environment stay stable across the carousel.
    */
-  generateCarouselPlan(domain: string, brief: string, slideCount: number = 10): CarouselPlan {
-    const slides: CarouselSlide[] = [];
+  async generateCarouselPlan(
+    domain: string,
+    brief: string,
+    slideCount: number = 10,
+    platform: 'instagram' | 'tiktok' = 'instagram'
+  ): Promise<CarouselPlan> {
+    const rawSlides: Omit<CarouselSlide, 'qualityScore' | 'witScore'>[] = [];
 
     // Slide 1: Hook (capture attention)
-    slides.push({
+    rawSlides.push({
       slide_number: 1,
       type: 'hook',
       content: brief,
@@ -41,7 +54,7 @@ class BrujulaCarouselIntegration {
     // Slides 2-7: Product/Value Showcase (50% of carousel)
     const showcaseCount = Math.floor(slideCount * 0.5);
     for (let i = 0; i < showcaseCount - 1; i++) {
-      slides.push({
+      rawSlides.push({
         slide_number: i + 2,
         type: 'showcase',
         content: `Feature/Benefit ${i + 1}`,
@@ -53,8 +66,8 @@ class BrujulaCarouselIntegration {
     // Slides 8-9: Interactive/Engagement
     const interactiveCount = Math.floor(slideCount * 0.2);
     for (let i = 0; i < interactiveCount; i++) {
-      slides.push({
-        slide_number: slides.length + 1,
+      rawSlides.push({
+        slide_number: rawSlides.length + 1,
         type: 'interactive',
         content: 'Poll/Question/Engagement Hook',
         prompt: feediaBrain.getRandomPrompt(domain),
@@ -63,13 +76,41 @@ class BrujulaCarouselIntegration {
     }
 
     // Slide 10: CTA (close/convert)
-    slides.push({
-      slide_number: slides.length + 1,
+    rawSlides.push({
+      slide_number: rawSlides.length + 1,
       type: 'cta',
       content: 'Call To Action — Order/Follow/Click',
       prompt: feediaBrain.getRandomPrompt(domain),
       compositionalIdeas: feediaBrain.getCompositionIdeas(domain, 2),
     });
+
+    // One consistency lock for the whole carousel — environment stays locked
+    // (character/product locks require a description; domain doubles as environment context)
+    const seriesLock = consistencyLockManager.createSeriesLock(
+      rawSlides.length,
+      undefined,
+      undefined,
+      consistencyLockManager.createEnvironmentLock(`domain: ${domain}, brief: ${brief}`)
+    );
+
+    const slides: CarouselSlide[] = [];
+    for (const raw of rawSlides) {
+      const result = await masterContentPipeline.processContent({
+        basePrompt: raw.prompt,
+        platform,
+        contentType: 'carousel',
+        consistencySeriesId: seriesLock.seriesId,
+        frameNumber: raw.slide_number,
+        frameCount: rawSlides.length,
+      });
+
+      slides.push({
+        ...raw,
+        prompt: result.finalPrompt,
+        qualityScore: result.qualityScore,
+        witScore: result.witScore,
+      });
+    }
 
     return {
       title: `${domain} Carousel`,
@@ -77,18 +118,21 @@ class BrujulaCarouselIntegration {
       slides,
       totalSlides: slides.length,
       estimatedLength: `${slides.length}-slide carousel for ${domain} domain`,
+      consistencySeriesId: seriesLock.seriesId,
     };
   }
 
   /**
    * Generate multi-format carousel (feed square, stories vertical, reels 9:16)
    */
-  generateMultiFormatCarousel(domain: string, brief: string): Record<string, CarouselPlan> {
-    return {
-      feed_square: this.generateCarouselPlan(domain, brief, 8),
-      stories_vertical: this.generateCarouselPlan(domain, brief, 10),
-      reels_9_16: this.generateCarouselPlan(domain, brief, 12),
-    };
+  async generateMultiFormatCarousel(domain: string, brief: string): Promise<Record<string, CarouselPlan>> {
+    const [feed_square, stories_vertical, reels_9_16] = await Promise.all([
+      this.generateCarouselPlan(domain, brief, 8, 'instagram'),
+      this.generateCarouselPlan(domain, brief, 10, 'instagram'),
+      this.generateCarouselPlan(domain, brief, 12, 'tiktok'),
+    ]);
+
+    return { feed_square, stories_vertical, reels_9_16 };
   }
 
   /**
@@ -99,13 +143,14 @@ class BrujulaCarouselIntegration {
     const optimized = { ...plan };
 
     // If hook has low engagement, replace prompt variation
-    if (feedbackMetrics.hook_engagement < 0.3) {
-      optimized.slides[0].prompt = feediaBrain.getRandomPrompt(plan.domain);
+    const hookSlide = optimized.slides[0];
+    if (hookSlide && (feedbackMetrics.hook_engagement ?? 1) < 0.3) {
+      hookSlide.prompt = feediaBrain.getRandomPrompt(plan.domain);
     }
 
     // If CTA has low conversion, refresh composition
     const ctaSlide = optimized.slides.find(s => s.type === 'cta');
-    if (ctaSlide && feedbackMetrics.cta_conversion < 0.1) {
+    if (ctaSlide && (feedbackMetrics.cta_conversion ?? 1) < 0.1) {
       ctaSlide.compositionalIdeas = feediaBrain.getCompositionIdeas(plan.domain, 3);
     }
 

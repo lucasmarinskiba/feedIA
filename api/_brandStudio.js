@@ -138,12 +138,18 @@ export const buildBrandPrompt = ({
   const isCarousel = templateKey === 'carrusel';
   const viralHint = isCarousel ? '\n\n' + carouselRulesPromptText(parseInt(mergedVars.slides, 10) || 5) : '';
 
-  const prompt =
-    fill(tpl.template, mergedVars) +
-    specHint +
-    elementsHint +
-    viralHint +
-    ' La persona de la foto debe mantenerse fiel (misma cara, mismo aspecto). No deformar rostros. Texto sin errores de ortografía.';
+  // Guarantee string — mismos principios que el pipeline TS (facial-identity,
+  // resolution-quality, creativity-wit) pero inline para no romper el bundle
+  // serverless de este archivo (JS plano, sin cross-import a src/).
+  const qualityGuarantee =
+    ` Máxima resolución posible (mínimo ${spec?.canvas?.w || 1080}x${spec?.canvas?.h || 1350}px, ${spec?.aspect || '4:5'}),` +
+    ' sin artefactos de compresión, exportación limpia en una sola pasada.' +
+    ' La persona de la foto debe mantenerse fiel: misma forma de cara, mismos ojos, nariz, labios, marcas distintivas — no idealizar ni inventar rasgos nuevos.' +
+    ' No deformar rostros, manos, productos ni fondos/ambientes.' +
+    ' Texto sin errores de ortografía.' +
+    ' Diseño con ocurrencia genuina: evitar clichés genéricos (ej. "vive ríe ama", "hustle"), buscar un ángulo o giro visual inesperado que sorprenda, no una composición predecible.';
+
+  const prompt = fill(tpl.template, mergedVars) + specHint + elementsHint + viralHint + qualityGuarantee;
 
   return { prompt, templateKey, vars: mergedVars, spec };
 };
