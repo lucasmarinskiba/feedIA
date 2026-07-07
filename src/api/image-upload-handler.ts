@@ -52,6 +52,8 @@ const upload = multer({
 function extractImageFeatures(imagePath: string): Record<string, any> {
   // Placeholder: basic feature extraction
   // TODO: Integrate with CLIP embeddings or vision API
+  // TODO: For facial landmarks (faceShape/eyeShape/etc), integrate MediaPipe Face Mesh
+  //       or Face++ API — see facial-identity-preservation.ts extractFacialLandmarks()
   return {
     person: {
       detected: true,
@@ -152,6 +154,9 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
         embedding_dimension: embedding.length,
       },
       next_step: 'Call POST /api/image-upload/match-prompts to find matching prompts',
+      facial_identity_note: features.person?.detected
+        ? 'Person detected. If generating content FROM this photo (not just matching), call POST /api/identity/lock with this imageId to preserve exact facial features across all generated frames.'
+        : undefined,
       brand: brand?.name,
       metadata: {
         uploadedAt: new Date().toISOString(),
