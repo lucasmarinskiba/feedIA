@@ -13,6 +13,7 @@ import promptExpansionRoutes from './api/prompt-expansion-routes.js';
 import batchWorkerRoutes from './api/batch-worker-routes.js';
 import qualityExpansionRoutes from './api/quality-expansion-routes.js';
 import consistencyLockRoutes from './api/consistency-lock-routes.js';
+import footballMemeRoutes from './api/football-meme-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIADatabase } from './db/database.js';
 import type { BrandProfile } from './config/types.js';
@@ -119,6 +120,9 @@ app.use('/api/quality', qualityExpansionRoutes);
 // Mount consistency lock routes (Character/product/environment stability across carousel frames)
 app.use('/api/consistency', consistencyLockRoutes);
 
+// Mount football meme routes (@433 style viral designs)
+app.use('/api/football', footballMemeRoutes);
+
 // Error handler
 app.use((err: any, req: Request, res: Response) => {
   log.error('[Server] error', { error: err.message });
@@ -212,7 +216,12 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/consistency/validate — validate carousel consistency`);
   console.log(`   POST /api/consistency/suggest-improvements — get suggestions for better consistency`);
   console.log(`   GET  /api/consistency/lock/:seriesId — get lock details`);
-  console.log(`   📊 Scaling Math: Video 3,450×12=41,400 + Image 12,870×12=154,440 + Stories 10,000×12=120,000 = 315,840 total`);
+  console.log(`⚽ Football Meme Endpoints (@433 Style Viral Designs):`);
+  console.log(`   POST /api/football/generate — generate single football meme (2,000 templates)`);
+  console.log(`   POST /api/football/batch-generate — generate multiple football memes`);
+  console.log(`   GET  /api/football/categories — list categories + templates`);
+  console.log(`   GET  /api/football/health — service status`);
+  console.log(`   📊 Scaling Math: Video 3,450×12=41,400 + Image 12,870×12=154,440 + Stories 10,000×12=120,000 + Football 2,000×12=24,000 + Hooks 1,000×12=12,000 = 352,840 total`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
   console.log(`   GET  /api/autonomy/database/stats`);
