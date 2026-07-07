@@ -7,6 +7,7 @@
 import { log } from '../agent/logger.js';
 import { qualityValidator } from './quality-validator.js';
 import { trainingDataLoader } from './training-data-loader.js';
+import { creativityWitEngine } from './creativity-wit-engine.js';
 
 interface RefinementResult {
   originalPrompt: string;
@@ -14,6 +15,8 @@ interface RefinementResult {
   changes: string[];
   qualityScoreImprovement: number; // delta: refined_score - original_score
   appliedPatterns: string[];
+  witScore?: number;
+  twistApplied?: string;
 }
 
 class PromptRefinementEngine {
@@ -69,7 +72,17 @@ class PromptRefinementEngine {
     refinedPrompt = this.enhanceArtisticQuality(refinedPrompt, artisticStandards);
     changes.push('Enhanced artistic quality standards');
 
-    // Step 6: Validate refined
+    // Step 6: Ocurrencia pass — ensure genuine wit, no clichés, unexpected twist
+    const witBoost = await creativityWitEngine.boostWit(refinedPrompt);
+    refinedPrompt = witBoost.enhancedPrompt;
+    if (witBoost.clichesRemoved.length > 0) {
+      changes.push(`Removed ${witBoost.clichesRemoved.length} cliché(s), replaced with fresh angle`);
+    }
+    if (witBoost.twistApplied) {
+      changes.push(`Injected creative twist: ${witBoost.twistApplied.twistType}`);
+    }
+
+    // Step 7: Validate refined
     const refinedValidation = await qualityValidator.validatePrompt(refinedPrompt);
     const qualityImprovement = refinedValidation.score - originalValidation.score;
 
@@ -78,6 +91,7 @@ class PromptRefinementEngine {
       refinedScore: refinedValidation.score,
       improvement: qualityImprovement,
       changesApplied: changes.length,
+      witScore: witBoost.analysis.witScore,
     });
 
     return {
@@ -86,6 +100,8 @@ class PromptRefinementEngine {
       changes,
       qualityScoreImprovement: qualityImprovement,
       appliedPatterns,
+      witScore: Math.round((witBoost.analysis.witScore + witBoost.analysis.originalityScore) / 2),
+      twistApplied: witBoost.twistApplied?.twistType,
     };
   }
 

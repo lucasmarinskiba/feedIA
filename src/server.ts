@@ -15,6 +15,7 @@ import qualityExpansionRoutes from './api/quality-expansion-routes.js';
 import consistencyLockRoutes from './api/consistency-lock-routes.js';
 import footballMemeRoutes from './api/football-meme-routes.js';
 import adminDashboardRoutes from './api/admin-dashboard-routes.js';
+import creativityRoutes from './api/creativity-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -127,6 +128,9 @@ app.use('/api/football', footballMemeRoutes);
 
 // Mount admin dashboard (monitoring + metrics + optimization)
 app.use('/api/admin', adminDashboardRoutes);
+
+// Mount creativity/ocurrencia routes (wit analysis + twist injection + cliché removal)
+app.use('/api/creativity', creativityRoutes);
 
 // Error handler
 app.use((err: any, req: Request, res: Response) => {
@@ -244,6 +248,13 @@ app.listen(PORT, async () => {
   console.log(`   GET  /api/admin/errors — recent errors + issues`);
   console.log(`   GET  /api/admin/trends — metrics trends over time`);
   console.log(`   GET  /api/admin/summary — executive summary`);
+  console.log(`🎭 Creativity/Ocurrencia Endpoints (Wit + Originality Guarantee):`);
+  console.log(`   POST /api/creativity/analyze — score wit + originality, detect clichés`);
+  console.log(`   POST /api/creativity/boost — full pipeline: remove clichés + inject twist`);
+  console.log(`   POST /api/creativity/inject-twist — apply specific creative twist technique`);
+  console.log(`   GET  /api/creativity/twist-techniques — list 10 twist techniques`);
+  console.log(`   GET  /api/creativity/suggest/:contentType — suggested twists by format`);
+  console.log(`   → Auto-applied: Every refined prompt now passes through ocurrencia check`);
   console.log(`   📊 Scaling Math: Video 3,450×12=41,400 + Image 12,870×12=154,440 + Stories 10,000×12=120,000 + Football 2,000×12=24,000 + Hooks 1,000×12=12,000 = 352,840 total`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
