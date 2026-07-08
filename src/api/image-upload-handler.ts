@@ -10,6 +10,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { log } from '../agent/logger.js';
 import { feedIADatabase } from '../db/database.js';
+import { analyzeImageFeatures, generateRealImageEmbeddingViaCaption, isGeminiConfigured } from '../services/gemini-vision-client.js';
 import type { BrandProfile } from '../config/types.js';
 
 const router = Router();
@@ -46,14 +47,20 @@ const upload = multer({
 });
 
 /**
- * Extract image features (placeholder for ML model integration)
- * In production: use CLIP, MediaPipe, or similar for real feature extraction
+ * Extract image features via real Gemini vision analysis (person/scene/
+ * emotion/palette/quality). Falls back to a neutral placeholder if
+ * GEMINI_API_KEY is unset or the call fails — never throws, upload always
+ * succeeds even without the real model configured.
  */
-function extractImageFeatures(imagePath: string): Record<string, any> {
-  // Placeholder: basic feature extraction
-  // TODO: Integrate with CLIP embeddings or vision API
-  // TODO: For facial landmarks (faceShape/eyeShape/etc), integrate MediaPipe Face Mesh
-  //       or Face++ API — see facial-identity-preservation.ts extractFacialLandmarks()
+async function extractImageFeatures(imagePath: string): Promise<Record<string, any>> {
+  const real = isGeminiConfigured() ? await analyzeImageFeatures(imagePath) : null;
+
+  if (real) {
+    log.info('[ImageUpload] Real Gemini vision analysis used', { imagePath });
+    return real;
+  }
+
+  log.warn('[ImageUpload] Falling back to placeholder features (GEMINI_API_KEY unset or call failed)', { imagePath });
   return {
     person: {
       detected: true,
@@ -86,11 +93,25 @@ function extractImageFeatures(imagePath: string): Record<string, any> {
 }
 
 /**
- * Generate image embedding (placeholder)
- * TODO: Integrate with CLIP or similar model for vector embeddings
+ * Generate a real image embedding via caption-then-embed (Gemini vision
+ * describes the image, then the real text-embedding-004 model embeds that
+ * description — see gemini-vision-client.ts for why this isn't true CLIP but
+ * is real model output). Falls back to a random placeholder vector (matching
+ * dimensionality) when GEMINI_API_KEY is unset or the call fails.
  */
-function generateImageEmbedding(imagePath: string): number[] {
-  // Placeholder: random embedding (512D vector)
+async function generateImageEmbedding(imagePath: string): Promise<number[]> {
+  const real = isGeminiConfigured() ? await generateRealImageEmbeddingViaCaption(imagePath) : null;
+
+  if (real) {
+    log.info('[ImageUpload] Real embedding generated via caption-then-embed', {
+      imagePath,
+      dimension: real.embedding.length,
+      caption: real.caption.slice(0, 80),
+    });
+    return real.embedding;
+  }
+
+  log.warn('[ImageUpload] Falling back to placeholder embedding (GEMINI_API_KEY unset or call failed)', { imagePath });
   return Array(512)
     .fill(0)
     .map(() => Math.random() - 0.5);
@@ -123,8 +144,10 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
 
     const imagePath = req.file.path;
     const imageHash = crypto.createHash('md5').update(fs.readFileSync(imagePath)).digest('hex');
-    const features = extractImageFeatures(imagePath);
-    const embedding = generateImageEmbedding(imagePath);
+    const [features, embedding] = await Promise.all([
+      extractImageFeatures(imagePath),
+      generateImageEmbedding(imagePath),
+    ]);
     const imageId = crypto.randomUUID();
 
     // Store image in database

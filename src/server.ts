@@ -299,6 +299,9 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/strategy/script — scene-by-scene guion (hook/build/CTA pacing)`);
   console.log(`   POST /api/strategy/script/batch — scripts for multiple topics in one call`);
   console.log(`   📊 Scaling Math: Video 3,450×12=41,400 + Image 12,870×12=154,440 + Stories 10,000×12=120,000 + Football 2,000×12=24,000 + Hooks 1,000×12=12,000 = 352,840 total`);
+  console.log(`🔬 Real Model Integration Status:`);
+  console.log(`   Gemini Vision + Embeddings (facial landmarks, image features, text/image embeddings): ${process.env.GEMINI_API_KEY ? '✅ configured' : '⚠️  GEMINI_API_KEY not set — falling back to placeholders'}`);
+  console.log(`   FAL Clarity Upscaler (real AI upscaling): ${process.env.FAL_KEY ? '✅ configured' : '⚠️  FAL_KEY not set — upscale strategy only, cannot execute'}`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
   console.log(`   GET  /api/autonomy/database/stats`);

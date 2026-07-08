@@ -11,6 +11,7 @@
  */
 
 import { log } from '../agent/logger.js';
+import { analyzeFacialFeatures, isGeminiConfigured } from './gemini-vision-client.js';
 
 interface FacialLandmarks {
   faceShape: string; // oval, round, square, heart, diamond, oblong
@@ -53,44 +54,49 @@ class FacialIdentityPreservationService {
   private identityLocks: Map<string, IdentityLock> = new Map();
 
   /**
-   * Extract facial landmarks from uploaded image
-   * Production: integrate with MediaPipe Face Mesh, dlib, or Face++ API
-   * for real 468-point facial landmark detection
+   * Extract facial landmarks from uploaded image.
+   * Real path: calls Gemini vision (gemini-vision-client.ts) to actually
+   * analyze the photo's face shape/eyes/nose/lips/marks/etc. Falls back to
+   * manually-supplied imageFeatures, then to generic defaults, if
+   * GEMINI_API_KEY is unset or the call fails — never throws.
    */
   async extractFacialLandmarks(
     imagePath: string,
     imageFeatures?: Record<string, any>
-  ): Promise<FacialLandmarks> {
-    // Placeholder extraction (production: real vision model call)
-    // Structure mirrors what MediaPipe/Face++ would return
+  ): Promise<{ landmarks: FacialLandmarks; modelConfidence: number | null }> {
+    const realAnalysis = isGeminiConfigured() ? await analyzeFacialFeatures(imagePath) : null;
+
+    const source = realAnalysis ?? imageFeatures ?? {};
+
     const landmarks: FacialLandmarks = {
-      faceShape: imageFeatures?.faceShape || 'oval',
-      eyeShape: imageFeatures?.eyeShape || 'almond',
-      eyeColor: imageFeatures?.eyeColor || 'brown',
-      eyeSpacing: imageFeatures?.eyeSpacing || 'average',
-      eyebrowShape: imageFeatures?.eyebrowShape || 'arched',
-      noseShape: imageFeatures?.noseShape || 'straight',
-      lipShape: imageFeatures?.lipShape || 'full',
-      jawline: imageFeatures?.jawline || 'soft',
-      cheekbones: imageFeatures?.cheekbones || 'average',
-      skinTone: imageFeatures?.skinTone || 'medium',
-      skinTexture: imageFeatures?.skinTexture || 'smooth',
-      distinguishingMarks: imageFeatures?.distinguishingMarks || [],
-      facialHair: imageFeatures?.facialHair || null,
-      hairColor: imageFeatures?.hairColor || 'brown',
-      hairTexture: imageFeatures?.hairTexture || 'straight',
-      hairLength: imageFeatures?.hairLength || 'medium',
-      estimatedAge: imageFeatures?.estimatedAge || '25-35',
-      estimatedGender: imageFeatures?.estimatedGender || 'unspecified',
+      faceShape: source.faceShape || 'oval',
+      eyeShape: source.eyeShape || 'almond',
+      eyeColor: source.eyeColor || 'brown',
+      eyeSpacing: source.eyeSpacing || 'average',
+      eyebrowShape: source.eyebrowShape || 'arched',
+      noseShape: source.noseShape || 'straight',
+      lipShape: source.lipShape || 'full',
+      jawline: source.jawline || 'soft',
+      cheekbones: source.cheekbones || 'average',
+      skinTone: source.skinTone || 'medium',
+      skinTexture: source.skinTexture || 'smooth',
+      distinguishingMarks: source.distinguishingMarks || [],
+      facialHair: source.facialHair || null,
+      hairColor: source.hairColor || 'brown',
+      hairTexture: source.hairTexture || 'straight',
+      hairLength: source.hairLength || 'medium',
+      estimatedAge: source.estimatedAge || '25-35',
+      estimatedGender: source.estimatedGender || 'unspecified',
     };
 
     log.info('[FacialIdentity] Landmarks extracted', {
       imagePath,
       faceShape: landmarks.faceShape,
       distinguishingMarksCount: landmarks.distinguishingMarks.length,
+      source: realAnalysis ? 'gemini-vision (real)' : imageFeatures ? 'manual-features' : 'default-placeholder',
     });
 
-    return landmarks;
+    return { landmarks, modelConfidence: realAnalysis?.confidence ?? null };
   }
 
   /**
@@ -101,11 +107,12 @@ class FacialIdentityPreservationService {
     sourceImagePath: string,
     imageFeatures?: Record<string, any>
   ): Promise<IdentityLock> {
-    const landmarks = await this.extractFacialLandmarks(sourceImagePath, imageFeatures);
+    const { landmarks, modelConfidence } = await this.extractFacialLandmarks(sourceImagePath, imageFeatures);
 
-    // Confidence based on how many features were actually detected vs defaulted
+    // Prefer the vision model's own confidence when real analysis ran;
+    // otherwise fall back to the old heuristic (more manual features supplied = more confident)
     const detectedCount = imageFeatures ? Object.keys(imageFeatures).length : 0;
-    const confidenceScore = Math.min(100, 40 + detectedCount * 5);
+    const confidenceScore = modelConfidence ?? Math.min(100, 40 + detectedCount * 5);
 
     const lockId = `identity-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 

@@ -5,6 +5,7 @@
  */
 
 import { log } from '../agent/logger.js';
+import { performRealUpscale, performMultiPassUpscale, isUpscaleConfigured, type UpscaleResult } from './real-upscale-service.js';
 
 interface ResolutionSpec {
   platform: 'instagram' | 'tiktok';
@@ -273,7 +274,7 @@ ${spec.recommendedBitrateKbps > 0 ? `- Bitrate: ${spec.recommendedBitrateKbps}kb
   }
 
   /**
-   * Get upscale recommendation
+   * Get upscale recommendation (strategy only — no API call)
    */
   getUpscaleStrategy(currentWidth: number, currentHeight: number, targetWidth: number, targetHeight: number): Record<string, any> {
     const scaleFactor = Math.max(targetWidth / currentWidth, targetHeight / currentHeight);
@@ -287,9 +288,44 @@ ${spec.recommendedBitrateKbps > 0 ? `- Bitrate: ${spec.recommendedBitrateKbps}kb
     return {
       scaleFactor: Math.round(scaleFactor * 100) / 100,
       method,
-      tool: 'Real-ESRGAN or GFPGAN (for faces — pairs with facial-identity-preservation.ts to avoid feature drift during upscale)',
+      tool: isUpscaleConfigured()
+        ? 'fal-clarity-upscaler (real, configured — call executeUpscale() to run it)'
+        : 'fal-clarity-upscaler (FAL_KEY not set — strategy only, cannot execute)',
       warning: scaleFactor > 4 ? 'Extreme upscale — quality ceiling limited, consider regenerating at higher native resolution instead' : null,
     };
+  }
+
+  /**
+   * Actually execute the upscale via FAL's clarity-upscaler (real API call —
+   * see real-upscale-service.ts). Auto-selects single-pass vs multi-pass
+   * based on the required scale factor. Returns null if FAL_KEY is unset or
+   * the call fails — caller should fall back to the source resolution and
+   * flag it via validateQuality().
+   */
+  async executeUpscale(
+    imageUrl: string,
+    currentWidth: number,
+    currentHeight: number,
+    targetWidth: number,
+    targetHeight: number
+  ): Promise<UpscaleResult | null> {
+    const scaleFactor = Math.max(targetWidth / currentWidth, targetHeight / currentHeight);
+
+    if (scaleFactor <= 1) {
+      log.info('[ResolutionQuality] No upscale needed', { scaleFactor });
+      return null;
+    }
+
+    const result =
+      scaleFactor > 4
+        ? await performMultiPassUpscale(imageUrl)
+        : await performRealUpscale(imageUrl, scaleFactor > 2 ? 4 : 2);
+
+    if (!result) {
+      log.warn('[ResolutionQuality] Real upscale unavailable (FAL_KEY unset or call failed)', { imageUrl });
+    }
+
+    return result;
   }
 }
 

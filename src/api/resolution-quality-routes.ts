@@ -17,8 +17,9 @@ router.get('/specs/:platform', async (req: Request, res: Response) => {
   try {
     const { platform } = req.params;
 
-    if (!['instagram', 'tiktok'].includes(platform)) {
-      return res.status(400).json({ error: 'platform must be instagram or tiktok' });
+    if (!['instagram', 'tiktok'].includes(String(platform))) {
+      res.status(400).json({ error: 'platform must be instagram or tiktok' });
+      return;
     }
 
     const specs = resolutionQualityEngine.getAllSpecsForPlatform(platform as 'instagram' | 'tiktok');
@@ -45,7 +46,8 @@ router.post('/inject-instructions', async (req: Request, res: Response) => {
     const { platform, contentType, prompt } = req.body;
 
     if (!platform || !contentType) {
-      return res.status(400).json({ error: 'platform and contentType required' });
+      res.status(400).json({ error: 'platform and contentType required' });
+      return;
     }
 
     const instructions = resolutionQualityEngine.generateQualityInstructions(
@@ -79,7 +81,8 @@ router.post('/validate', async (req: Request, res: Response) => {
     const { platform, contentType, width, height, bitrateKbps, fileSizeMB } = req.body;
 
     if (!platform || !contentType || !width || !height) {
-      return res.status(400).json({ error: 'platform, contentType, width, height required' });
+      res.status(400).json({ error: 'platform, contentType, width, height required' });
+      return;
     }
 
     const result = resolutionQualityEngine.validateQuality(
@@ -112,7 +115,8 @@ router.post('/upscale-strategy', async (req: Request, res: Response) => {
     const { currentWidth, currentHeight, targetWidth, targetHeight } = req.body;
 
     if (!currentWidth || !currentHeight || !targetWidth || !targetHeight) {
-      return res.status(400).json({ error: 'currentWidth, currentHeight, targetWidth, targetHeight required' });
+      res.status(400).json({ error: 'currentWidth, currentHeight, targetWidth, targetHeight required' });
+      return;
     }
 
     const strategy = resolutionQualityEngine.getUpscaleStrategy(
@@ -134,6 +138,51 @@ router.post('/upscale-strategy', async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/resolution/execute-upscale
+ * Actually run the AI upscale (real FAL clarity-upscaler call) — unlike
+ * /upscale-strategy above, this performs the operation and returns a real
+ * upscaled image URL. Requires FAL_KEY configured.
+ */
+router.post('/execute-upscale', async (req: Request, res: Response) => {
+  try {
+    const { imageUrl, currentWidth, currentHeight, targetWidth, targetHeight } = req.body;
+
+    if (!imageUrl || !currentWidth || !currentHeight || !targetWidth || !targetHeight) {
+      res.status(400).json({
+        error: 'imageUrl, currentWidth, currentHeight, targetWidth, targetHeight required',
+      });
+      return;
+    }
+
+    const result = await resolutionQualityEngine.executeUpscale(
+      imageUrl,
+      currentWidth,
+      currentHeight,
+      targetWidth,
+      targetHeight
+    );
+
+    if (!result) {
+      res.status(503).json({
+        status: 'unavailable',
+        error: 'Real upscale unavailable — FAL_KEY not configured or the API call failed',
+        fallback: 'Source resolution will be used as-is; consider regenerating at higher native resolution instead',
+      });
+      return;
+    }
+
+    res.json({
+      status: 'success',
+      ...result,
+      metadata: { upscaledAt: new Date().toISOString() },
+    });
+  } catch (error) {
+    log.error('[ResolutionQuality] Execute upscale failed', error);
+    res.status(500).json({ error: 'Execute upscale failed', message: String(error) });
+  }
+});
+
+/**
  * GET /api/resolution/best/:platform/:contentType
  * Get the single best (max quality) spec for platform + content type
  */
@@ -141,11 +190,13 @@ router.get('/best/:platform/:contentType', async (req: Request, res: Response) =
   try {
     const { platform, contentType } = req.params;
 
-    if (!['instagram', 'tiktok'].includes(platform)) {
-      return res.status(400).json({ error: 'platform must be instagram or tiktok' });
+    if (!['instagram', 'tiktok'].includes(String(platform))) {
+      res.status(400).json({ error: 'platform must be instagram or tiktok' });
+      return;
     }
-    if (!['image', 'video', 'carousel'].includes(contentType)) {
-      return res.status(400).json({ error: 'contentType must be image, video, or carousel' });
+    if (!['image', 'video', 'carousel'].includes(String(contentType))) {
+      res.status(400).json({ error: 'contentType must be image, video, or carousel' });
+      return;
     }
 
     const spec = resolutionQualityEngine.getBestSpec(
@@ -198,6 +249,7 @@ router.get('/health', async (req: Request, res: Response) => {
         injectInstructions: 'POST /api/resolution/inject-instructions',
         validate: 'POST /api/resolution/validate',
         upscaleStrategy: 'POST /api/resolution/upscale-strategy',
+        executeUpscale: 'POST /api/resolution/execute-upscale',
         best: 'GET /api/resolution/best/:platform/:contentType',
       },
       timestamp: new Date().toISOString(),

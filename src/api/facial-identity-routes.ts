@@ -22,7 +22,8 @@ router.post('/lock', async (req: Request, res: Response) => {
     const { imageId, imagePath, facialFeatures } = req.body;
 
     if (!imageId || !imagePath) {
-      return res.status(400).json({ error: 'imageId and imagePath required' });
+      res.status(400).json({ error: 'imageId and imagePath required' });
+      return;
     }
 
     log.info('[FacialIdentity] Lock creation requested', { imageId, brand: brand?.name });
@@ -57,7 +58,8 @@ router.post('/inject', async (req: Request, res: Response) => {
     const { lockId, prompt } = req.body;
 
     if (!lockId || !prompt) {
-      return res.status(400).json({ error: 'lockId and prompt required' });
+      res.status(400).json({ error: 'lockId and prompt required' });
+      return;
     }
 
     const enhancedPrompt = facialIdentityPreservationService.injectIdentityLock(prompt, lockId);
@@ -84,7 +86,8 @@ router.post('/validate', async (req: Request, res: Response) => {
     const { lockId, generatedDescription } = req.body;
 
     if (!lockId || !generatedDescription) {
-      return res.status(400).json({ error: 'lockId and generatedDescription required' });
+      res.status(400).json({ error: 'lockId and generatedDescription required' });
+      return;
     }
 
     const validation = await facialIdentityPreservationService.validatePreservation(
@@ -113,7 +116,8 @@ router.post('/lock-and-inject', async (req: Request, res: Response) => {
     const { imageId, imagePath, facialFeatures, prompt } = req.body;
 
     if (!imageId || !imagePath || !prompt) {
-      return res.status(400).json({ error: 'imageId, imagePath, and prompt required' });
+      res.status(400).json({ error: 'imageId, imagePath, and prompt required' });
+      return;
     }
 
     const identityLock = await facialIdentityPreservationService.createIdentityLock(
@@ -148,10 +152,11 @@ router.post('/lock-and-inject', async (req: Request, res: Response) => {
 router.get('/lock/:lockId', async (req: Request, res: Response) => {
   try {
     const { lockId } = req.params;
-    const identityLock = facialIdentityPreservationService.getIdentityLock(lockId);
+    const identityLock = facialIdentityPreservationService.getIdentityLock(String(lockId));
 
     if (!identityLock) {
-      return res.status(404).json({ error: 'Identity lock not found', lockId });
+      res.status(404).json({ error: 'Identity lock not found', lockId });
+      return;
     }
 
     res.json({

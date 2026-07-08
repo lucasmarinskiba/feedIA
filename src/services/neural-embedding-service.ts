@@ -5,6 +5,11 @@
  */
 
 import { log } from '../agent/logger.js';
+import {
+  generateRealTextEmbedding,
+  generateRealImageEmbeddingViaCaption,
+  isGeminiConfigured,
+} from './gemini-vision-client.js';
 
 interface TextEmbedding {
   id: string;
@@ -35,34 +40,44 @@ class NeuralEmbeddingService {
   private imageEmbeddings: Map<string, ImageEmbedding> = new Map();
 
   /**
-   * Generate text embedding (simulated CLIP/sentence-transformer)
-   * In production: call OpenAI embeddings or local CLIP model
+   * Generate text embedding — real Gemini text-embedding-004 (768-dim) when
+   * GEMINI_API_KEY is configured, falling back to a deterministic simulated
+   * vector (same 768 dimension, so mixed real/simulated sets stay comparable
+   * via cosine similarity) if the key is unset or the call fails.
    */
   async generateTextEmbedding(text: string, id?: string): Promise<TextEmbedding> {
     const embeddingId = id || `text-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
-    // Simulate embedding vector (in production: call real embedding service)
-    // This is a placeholder using simple text hashing
-    const vector = this.simulateTextVector(text);
+    const real = isGeminiConfigured() ? await generateRealTextEmbedding(text) : null;
+    const vector = real ?? this.simulateTextVector(text);
 
     const embedding: TextEmbedding = {
       id: embeddingId,
       text,
       vector,
-      model: 'sentence-transformers-placeholder',
+      model: real ? 'gemini-text-embedding-004' : 'simulated-fallback-768d',
       createdAt: new Date().toISOString(),
     };
 
     this.textEmbeddings.set(embeddingId, embedding);
 
-    log.info('[NeuralEmbedding] Text embedding generated', { id: embeddingId, textLength: text.length });
+    log.info('[NeuralEmbedding] Text embedding generated', {
+      id: embeddingId,
+      textLength: text.length,
+      real: Boolean(real),
+    });
 
     return embedding;
   }
 
   /**
-   * Generate image embedding (simulated CLIP)
-   * In production: call CLIP model or similar vision model
+   * Generate image embedding via caption-then-embed (Gemini vision describes
+   * the image, then the real text-embedding-004 model embeds that
+   * description — see gemini-vision-client.ts). Since this reuses the same
+   * text-embedding model, real image embeddings live in the SAME 768-dim
+   * space as text embeddings, making findImagesForText() a genuine
+   * cross-modal comparison instead of comparing two unrelated random vectors.
+   * Falls back to a simulated 768-dim vector if the real call fails/unset.
    */
   async generateImageEmbedding(
     imageUrl: string,
@@ -71,30 +86,37 @@ class NeuralEmbeddingService {
   ): Promise<ImageEmbedding> {
     const embeddingId = id || `img-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
-    // Simulate embedding vector
-    const vector = this.simulateImageVector(imageUrl);
+    const real = isGeminiConfigured() ? await generateRealImageEmbeddingViaCaption(imageUrl) : null;
+    const vector = real?.embedding ?? this.simulateImageVector(imageUrl);
 
     const embedding: ImageEmbedding = {
       id: embeddingId,
       imageUrl,
       vector,
-      model: 'clip-placeholder',
-      features: features || this.extractImageFeatures(imageUrl),
+      model: real ? 'gemini-caption-then-embed-004' : 'simulated-fallback-768d',
+      features: features || (real ? { caption: real.caption } : this.extractImageFeatures(imageUrl)),
       createdAt: new Date().toISOString(),
     };
 
     this.imageEmbeddings.set(embeddingId, embedding);
 
-    log.info('[NeuralEmbedding] Image embedding generated', { id: embeddingId, url: imageUrl });
+    log.info('[NeuralEmbedding] Image embedding generated', {
+      id: embeddingId,
+      url: imageUrl,
+      real: Boolean(real),
+    });
 
     return embedding;
   }
 
   /**
-   * Find similar texts (semantic search)
+   * Find similar texts (semantic search). Uses a real query embedding when
+   * GEMINI_API_KEY is configured so search quality matches whatever
+   * generated the stored embeddings.
    */
-  findSimilarTexts(queryText: string, topK: number = 10): SimilarityResult[] {
-    const queryVector = this.simulateTextVector(queryText);
+  async findSimilarTexts(queryText: string, topK: number = 10): Promise<SimilarityResult[]> {
+    const real = isGeminiConfigured() ? await generateRealTextEmbedding(queryText) : null;
+    const queryVector = real ?? this.simulateTextVector(queryText);
 
     const similarities: SimilarityResult[] = [];
 
@@ -117,10 +139,12 @@ class NeuralEmbeddingService {
   }
 
   /**
-   * Find similar images (visual search)
+   * Find similar images (visual search). Uses a real caption-then-embed
+   * query vector when GEMINI_API_KEY is configured.
    */
-  findSimilarImages(queryImageUrl: string, topK: number = 10): SimilarityResult[] {
-    const queryVector = this.simulateImageVector(queryImageUrl);
+  async findSimilarImages(queryImageUrl: string, topK: number = 10): Promise<SimilarityResult[]> {
+    const real = isGeminiConfigured() ? await generateRealImageEmbeddingViaCaption(queryImageUrl) : null;
+    const queryVector = real?.embedding ?? this.simulateImageVector(queryImageUrl);
 
     const similarities: SimilarityResult[] = [];
 
@@ -172,16 +196,18 @@ class NeuralEmbeddingService {
   }
 
   /**
-   * Cross-modal search (text to image)
+   * Cross-modal search (text to image). With real embeddings configured,
+   * both text and image embeddings live in the same Gemini text-embedding
+   * space (images are embedded via caption-then-embed), so this is now a
+   * genuine cross-modal comparison rather than two unrelated random vectors.
    */
-  findImagesForText(queryText: string, topK: number = 10): SimilarityResult[] {
-    const queryVector = this.simulateTextVector(queryText);
+  async findImagesForText(queryText: string, topK: number = 10): Promise<SimilarityResult[]> {
+    const real = isGeminiConfigured() ? await generateRealTextEmbedding(queryText) : null;
+    const queryVector = real ?? this.simulateTextVector(queryText);
 
     const similarities: SimilarityResult[] = [];
 
     for (const [id, embedding] of this.imageEmbeddings.entries()) {
-      // Cross-modal similarity (text embedding vs image embedding)
-      // In production: use shared embedding space (e.g., CLIP)
       const similarity = this.cosineSimilarity(queryVector, embedding.vector);
 
       similarities.push({
@@ -202,12 +228,13 @@ class NeuralEmbeddingService {
    * Production: replace with actual embedding service
    */
   private simulateTextVector(text: string): number[] {
-    // Create deterministic vector from text (for reproducibility)
+    // Fallback only — used when GEMINI_API_KEY is unset or the real call
+    // fails. 768-dim to match gemini-text-embedding-004 so mixed real/
+    // fallback sets stay comparable via cosine similarity.
     const hash = this.hashString(text);
     const vector: number[] = [];
 
-    for (let i = 0; i < 384; i++) {
-      // 384-dim (sentence-transformers size)
+    for (let i = 0; i < 768; i++) {
       vector.push(Math.sin(hash + i) * 0.5 + 0.5); // Normalize to [0, 1]
     }
 
@@ -215,14 +242,13 @@ class NeuralEmbeddingService {
   }
 
   /**
-   * Helper: Simulate image embedding vector
+   * Helper: Simulate image embedding vector (fallback only — see note above)
    */
   private simulateImageVector(imageUrl: string): number[] {
     const hash = this.hashString(imageUrl);
     const vector: number[] = [];
 
-    for (let i = 0; i < 512; i++) {
-      // 512-dim (CLIP size)
+    for (let i = 0; i < 768; i++) {
       vector.push(Math.cos(hash + i) * 0.5 + 0.5);
     }
 
@@ -254,9 +280,11 @@ class NeuralEmbeddingService {
     let norm2 = 0;
 
     for (let i = 0; i < vec1.length; i++) {
-      dotProduct += vec1[i] * vec2[i];
-      norm1 += vec1[i] * vec1[i];
-      norm2 += vec2[i] * vec2[i];
+      const a = vec1[i] ?? 0;
+      const b = vec2[i] ?? 0;
+      dotProduct += a * b;
+      norm1 += a * a;
+      norm2 += b * b;
     }
 
     const denominator = Math.sqrt(norm1) * Math.sqrt(norm2);
