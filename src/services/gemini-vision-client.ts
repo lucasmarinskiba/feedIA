@@ -17,8 +17,12 @@ import { readFile } from 'node:fs/promises';
 import { log } from '../agent/logger.js';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const VISION_MODEL = process.env.GEMINI_VISION_MODEL || 'gemini-2.0-flash';
-const EMBEDDING_MODEL = process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004';
+// gemini-2.0-flash returned 429 (quota=0 on free tier) when tested live;
+// gemini-2.5-flash works correctly for both vision + JSON response mode.
+const VISION_MODEL = process.env.GEMINI_VISION_MODEL || 'gemini-2.5-flash';
+// text-embedding-004 is deprecated; gemini-embedding-001 is the current model
+// (verified live: returns 3072-dim vectors, not 768 — see neural-embedding-service.ts)
+const EMBEDDING_MODEL = process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-001';
 
 export const isGeminiConfigured = (): boolean => Boolean(GEMINI_API_KEY);
 
@@ -232,9 +236,11 @@ export async function analyzeImageFeatures(imagePathOrBase64: string): Promise<R
 }
 
 /**
- * Real text embedding via Gemini's text-embedding-004 model.
- * Returns a 768-dimension vector, or null on failure (caller falls back to
- * the deterministic hash-based simulation in neural-embedding-service.ts).
+ * Real text embedding via Gemini's gemini-embedding-001 model.
+ * Returns a 3072-dimension vector (verified live against the real API — the
+ * older text-embedding-004 name is deprecated and returns 404), or null on
+ * failure (caller falls back to the deterministic hash-based simulation in
+ * neural-embedding-service.ts).
  */
 export async function generateRealTextEmbedding(text: string): Promise<number[] | null> {
   if (!GEMINI_API_KEY) {

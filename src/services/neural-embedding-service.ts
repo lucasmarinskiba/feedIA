@@ -40,10 +40,11 @@ class NeuralEmbeddingService {
   private imageEmbeddings: Map<string, ImageEmbedding> = new Map();
 
   /**
-   * Generate text embedding — real Gemini text-embedding-004 (768-dim) when
-   * GEMINI_API_KEY is configured, falling back to a deterministic simulated
-   * vector (same 768 dimension, so mixed real/simulated sets stay comparable
-   * via cosine similarity) if the key is unset or the call fails.
+   * Generate text embedding — real Gemini gemini-embedding-001 (3072-dim,
+   * verified live against the API) when GEMINI_API_KEY is configured,
+   * falling back to a deterministic simulated vector (same 3072 dimension,
+   * so mixed real/simulated sets stay comparable via cosine similarity) if
+   * the key is unset or the call fails.
    */
   async generateTextEmbedding(text: string, id?: string): Promise<TextEmbedding> {
     const embeddingId = id || `text-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -55,7 +56,7 @@ class NeuralEmbeddingService {
       id: embeddingId,
       text,
       vector,
-      model: real ? 'gemini-text-embedding-004' : 'simulated-fallback-768d',
+      model: real ? 'gemini-embedding-001' : 'simulated-fallback-3072d',
       createdAt: new Date().toISOString(),
     };
 
@@ -72,12 +73,12 @@ class NeuralEmbeddingService {
 
   /**
    * Generate image embedding via caption-then-embed (Gemini vision describes
-   * the image, then the real text-embedding-004 model embeds that
+   * the image, then the real gemini-embedding-001 model embeds that
    * description — see gemini-vision-client.ts). Since this reuses the same
-   * text-embedding model, real image embeddings live in the SAME 768-dim
+   * text-embedding model, real image embeddings live in the SAME 3072-dim
    * space as text embeddings, making findImagesForText() a genuine
    * cross-modal comparison instead of comparing two unrelated random vectors.
-   * Falls back to a simulated 768-dim vector if the real call fails/unset.
+   * Falls back to a simulated 3072-dim vector if the real call fails/unset.
    */
   async generateImageEmbedding(
     imageUrl: string,
@@ -93,7 +94,7 @@ class NeuralEmbeddingService {
       id: embeddingId,
       imageUrl,
       vector,
-      model: real ? 'gemini-caption-then-embed-004' : 'simulated-fallback-768d',
+      model: real ? 'gemini-caption-then-embed-001' : 'simulated-fallback-3072d',
       features: features || (real ? { caption: real.caption } : this.extractImageFeatures(imageUrl)),
       createdAt: new Date().toISOString(),
     };
@@ -229,12 +230,12 @@ class NeuralEmbeddingService {
    */
   private simulateTextVector(text: string): number[] {
     // Fallback only — used when GEMINI_API_KEY is unset or the real call
-    // fails. 768-dim to match gemini-text-embedding-004 so mixed real/
-    // fallback sets stay comparable via cosine similarity.
+    // fails. 3072-dim to match gemini-embedding-001 (verified live) so mixed
+    // real/fallback sets stay comparable via cosine similarity.
     const hash = this.hashString(text);
     const vector: number[] = [];
 
-    for (let i = 0; i < 768; i++) {
+    for (let i = 0; i < 3072; i++) {
       vector.push(Math.sin(hash + i) * 0.5 + 0.5); // Normalize to [0, 1]
     }
 
@@ -248,7 +249,7 @@ class NeuralEmbeddingService {
     const hash = this.hashString(imageUrl);
     const vector: number[] = [];
 
-    for (let i = 0; i < 768; i++) {
+    for (let i = 0; i < 3072; i++) {
       vector.push(Math.cos(hash + i) * 0.5 + 0.5);
     }
 
