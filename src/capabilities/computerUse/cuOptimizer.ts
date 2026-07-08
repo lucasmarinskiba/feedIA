@@ -16,6 +16,16 @@ export interface MessageWithCache {
   cache?: boolean;
 }
 
+/** Single executable Computer-Use step (click/type/scroll/etc). */
+export interface CuAction {
+  kind: 'click' | 'type' | 'scroll' | 'wait' | 'screenshot' | 'key';
+  selector?: string;
+  text?: string;
+  priority: number;
+  id: string;
+  timestamp: number;
+}
+
 export const optimizeCuPlan = (actions: unknown[]) => ({ strategy: { mode: 'sequential' }, batches: [], totalEstimatedMs: 0, savingsMs: 0, savingsPercent: 0 });
 
 export const compressScreenshot = (screenshot: string): string => screenshot;

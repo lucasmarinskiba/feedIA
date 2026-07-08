@@ -20,7 +20,7 @@ import {
   consultCanvaSpecialist,
   type DesignBrief,
   type CanvaDesignSpec,
-} from '../agent/specialists/canvaSpecialist.js';
+} from '../../agent/specialists/canvaSpecialist.js';
 import {
   planCanvaDesign,
   injectCanvaInsightsToStudio,
