@@ -3,7 +3,6 @@ import { contentPipeline } from './content-generation-pipeline.js';
 import { carouselDesignerPro } from '../skills/carousel-designer-pro.js';
 import { promptLoader } from '../services/prompt-loader.js';
 import { masterContentPipeline } from '../services/master-content-pipeline.js';
-import { consistencyLockManager } from '../services/consistency-lock.js';
 import type { BrandProfile } from '../config/types.js';
 
 export interface AutomationRequest {
@@ -20,6 +19,8 @@ export interface AutomationRequest {
  * Run every slide/scene prompt through the Master Content Pipeline
  * (quality + cinematography + ocurrencia + resolution lock, all sharing
  * one consistency lock so the piece stays visually stable end to end).
+ * Thin wrapper over masterContentPipeline.enhancePromptBatch — kept here so
+ * call sites below don't need to know the underlying content-type mapping.
  */
 async function enhancePromptsThroughMasterPipeline(
   prompts: string[],
@@ -27,31 +28,7 @@ async function enhancePromptsThroughMasterPipeline(
   contentType: 'image' | 'video' | 'carousel',
   envDescription: string
 ): Promise<{ prompts: string[]; avgQuality: number; avgWit: number }> {
-  const seriesLock = consistencyLockManager.createSeriesLock(
-    prompts.length,
-    undefined,
-    undefined,
-    consistencyLockManager.createEnvironmentLock(envDescription)
-  );
-
-  const results = [];
-  for (let i = 0; i < prompts.length; i++) {
-    const result = await masterContentPipeline.processContent({
-      basePrompt: prompts[i] ?? '',
-      platform,
-      contentType,
-      consistencySeriesId: seriesLock.seriesId,
-      frameNumber: i + 1,
-      frameCount: prompts.length,
-    });
-    results.push(result);
-  }
-
-  return {
-    prompts: results.map(r => r.finalPrompt),
-    avgQuality: results.reduce((sum, r) => sum + r.qualityScore, 0) / results.length,
-    avgWit: results.reduce((sum, r) => sum + r.witScore, 0) / results.length,
-  };
+  return masterContentPipeline.enhancePromptBatch(prompts, platform, contentType, envDescription);
 }
 
 export interface AutomationResult {

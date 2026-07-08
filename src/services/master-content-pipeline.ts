@@ -139,6 +139,46 @@ class MasterContentPipeline {
   }
 
   /**
+   * Enhance a raw batch of prompt strings (from any agent/pipeline) through
+   * the master pipeline, sharing one consistency lock across the whole batch
+   * so environment/style stays stable end to end. Used by content-routes.ts,
+   * autonomous-generator.ts, and any future agent that produces raw prompt text.
+   */
+  async enhancePromptBatch(
+    prompts: string[],
+    platform: 'instagram' | 'tiktok',
+    contentType: 'image' | 'video' | 'carousel',
+    envDescription: string
+  ): Promise<{ prompts: string[]; avgQuality: number; avgWit: number; allReady: boolean }> {
+    const seriesLock = consistencyLockManager.createSeriesLock(
+      prompts.length,
+      undefined,
+      undefined,
+      consistencyLockManager.createEnvironmentLock(envDescription)
+    );
+
+    const results: MasterPipelineResult[] = [];
+    for (let i = 0; i < prompts.length; i++) {
+      const result = await this.processContent({
+        basePrompt: prompts[i] ?? '',
+        platform,
+        contentType,
+        consistencySeriesId: seriesLock.seriesId,
+        frameNumber: i + 1,
+        frameCount: prompts.length,
+      });
+      results.push(result);
+    }
+
+    return {
+      prompts: results.map(r => r.finalPrompt),
+      avgQuality: results.length ? results.reduce((sum, r) => sum + r.qualityScore, 0) / results.length : 0,
+      avgWit: results.length ? results.reduce((sum, r) => sum + r.witScore, 0) / results.length : 0,
+      allReady: results.every(r => r.readyForGeneration),
+    };
+  }
+
+  /**
    * Process entire carousel (multiple frames) through pipeline in one call
    */
   async processCarousel(

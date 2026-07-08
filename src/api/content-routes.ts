@@ -1,10 +1,44 @@
 import { Router } from 'express';
 import { log } from '../agent/logger.js';
-import { contentPipeline } from '../agents/content-generation-pipeline.js';
+import { contentPipeline, type GeneratedContent } from '../agents/content-generation-pipeline.js';
 import { promptLoader } from '../services/prompt-loader.js';
+import { masterContentPipeline } from '../services/master-content-pipeline.js';
 import type { BrandProfile } from '../config/types.js';
 
 const router = Router();
+
+/**
+ * Run every prompt in a GeneratedContent through the Master Content Pipeline
+ * (quality + cinematography + ocurrencia + resolution lock, one shared
+ * consistency lock across the piece) and write enhanced text back in place.
+ */
+async function enhanceGeneratedContent(
+  content: GeneratedContent,
+  brand: BrandProfile,
+  occasion: string,
+  platform: 'instagram' | 'tiktok' = 'instagram'
+): Promise<{ content: GeneratedContent; avgQuality: number; avgWit: number }> {
+  const contentTypeMap: Record<GeneratedContent['format'], 'image' | 'video' | 'carousel'> = {
+    carousel: 'carousel',
+    reel: 'video',
+    story: 'video',
+    post: 'image',
+  };
+
+  const rawPrompts = content.prompts.map(p => p.prompt.text);
+  const enhanced = await masterContentPipeline.enhancePromptBatch(
+    rawPrompts,
+    platform,
+    contentTypeMap[content.format],
+    `${brand.name} — ${occasion}`
+  );
+
+  content.prompts.forEach((p, idx) => {
+    p.prompt.text = enhanced.prompts[idx] ?? p.prompt.text;
+  });
+
+  return { content, avgQuality: enhanced.avgQuality, avgWit: enhanced.avgWit };
+}
 
 /**
  * POST /api/content/carousel — Generate carousel content with prompts
@@ -14,9 +48,10 @@ router.post('/carousel', async (req, res) => {
     const { brand, occasion, category, count } = req.body;
 
     if (!brand || !occasion) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing brand or occasion',
       });
+      return;
     }
 
     const content = await contentPipeline.generateCarousel({
@@ -27,14 +62,19 @@ router.post('/carousel', async (req, res) => {
       count: count || 10,
     });
 
+    const { avgQuality, avgWit } = await enhanceGeneratedContent(content, brand, occasion, req.body.platform);
+
     log.info('[ContentAPI] carousel generated', {
       contentId: content.id,
       slides: content.prompts.length,
+      avgQuality,
+      avgWit,
     });
 
     res.json({
       success: true,
       content,
+      quality: { avgQuality, avgWit },
     });
   } catch (error) {
     log.error('[ContentAPI] carousel error', {
@@ -54,9 +94,10 @@ router.post('/reel', async (req, res) => {
     const { brand, occasion, category, count } = req.body;
 
     if (!brand || !occasion) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing brand or occasion',
       });
+      return;
     }
 
     const content = await contentPipeline.generateReel({
@@ -67,14 +108,19 @@ router.post('/reel', async (req, res) => {
       count: count || 5,
     });
 
+    const { avgQuality, avgWit } = await enhanceGeneratedContent(content, brand, occasion, req.body.platform);
+
     log.info('[ContentAPI] reel generated', {
       contentId: content.id,
       scenes: content.prompts.length,
+      avgQuality,
+      avgWit,
     });
 
     res.json({
       success: true,
       content,
+      quality: { avgQuality, avgWit },
     });
   } catch (error) {
     log.error('[ContentAPI] reel error', {
@@ -94,9 +140,10 @@ router.post('/story', async (req, res) => {
     const { brand, occasion, category } = req.body;
 
     if (!brand || !occasion) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing brand or occasion',
       });
+      return;
     }
 
     const content = await contentPipeline.generateStory({
@@ -107,14 +154,19 @@ router.post('/story', async (req, res) => {
       count: 3,
     });
 
+    const { avgQuality, avgWit } = await enhanceGeneratedContent(content, brand, occasion, req.body.platform);
+
     log.info('[ContentAPI] story generated', {
       contentId: content.id,
       frames: content.prompts.length,
+      avgQuality,
+      avgWit,
     });
 
     res.json({
       success: true,
       content,
+      quality: { avgQuality, avgWit },
     });
   } catch (error) {
     log.error('[ContentAPI] story error', {
@@ -134,9 +186,10 @@ router.post('/post', async (req, res) => {
     const { brand, occasion, category } = req.body;
 
     if (!brand || !occasion) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing brand or occasion',
       });
+      return;
     }
 
     const content = await contentPipeline.generatePost({
@@ -146,13 +199,18 @@ router.post('/post', async (req, res) => {
       category,
     });
 
+    const { avgQuality, avgWit } = await enhanceGeneratedContent(content, brand, occasion, req.body.platform);
+
     log.info('[ContentAPI] post generated', {
       contentId: content.id,
+      avgQuality,
+      avgWit,
     });
 
     res.json({
       success: true,
       content,
+      quality: { avgQuality, avgWit },
     });
   } catch (error) {
     log.error('[ContentAPI] post error', {
@@ -172,9 +230,10 @@ router.post('/batch', async (req, res) => {
     const { brand, format, occasions, count } = req.body;
 
     if (!brand || !format || !occasions || !Array.isArray(occasions)) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing brand, format, or occasions array',
       });
+      return;
     }
 
     const contents = await contentPipeline.generateBatch(
@@ -182,6 +241,13 @@ router.post('/batch', async (req, res) => {
       format,
       occasions,
       count || 1,
+    );
+
+    // Enhance every generated piece through the master pipeline in parallel
+    await Promise.all(
+      contents.map((content, idx) =>
+        enhanceGeneratedContent(content, brand, occasions[idx % occasions.length] ?? occasions[0], req.body.platform)
+      )
     );
 
     log.info('[ContentAPI] batch generated', {
