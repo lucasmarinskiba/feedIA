@@ -19,6 +19,7 @@ import creativityRoutes from './api/creativity-routes.js';
 import facialIdentityRoutes from './api/facial-identity-routes.js';
 import resolutionQualityRoutes from './api/resolution-quality-routes.js';
 import masterGenerateRoutes from './api/master-generate-routes.js';
+import contentStrategyRoutes from './api/content-strategy-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -143,6 +144,9 @@ app.use('/api/resolution', resolutionQualityRoutes);
 
 // Mount master pipeline (single-call: quality + refinement + ocurrencia + identity + consistency + resolution)
 app.use('/api/master', masterGenerateRoutes);
+
+// Mount content strategy routes (calendar + task list + content compass/Brújula + scripts)
+app.use('/api/strategy', contentStrategyRoutes);
 
 // Error handler
 app.use((err: any, req: Request, res: Response) => {
@@ -286,6 +290,14 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/master/generate-carousel — full 2-10 frame carousel, one call`);
   console.log(`   GET  /api/master/health — pipeline stages + usage guide`);
   console.log(`   → THIS IS THE RECOMMENDED ENTRY POINT for all new content generation`);
+  console.log(`🗓️  Content Strategy Endpoints (Calendar + Tasks + Brújula + Scripts):`);
+  console.log(`   POST /api/strategy/calendar/plan — plan N days, weighted pillar rotation, format cadence`);
+  console.log(`   GET  /api/strategy/tasks/:accountId — task list (idea→script→design→review→ready→scheduled)`);
+  console.log(`   POST /api/strategy/tasks/:postId/advance — move item to next production stage`);
+  console.log(`   GET  /api/strategy/compass/:accountId — 14-day gap analysis vs ideal cadence + recommendation`);
+  console.log(`   POST /api/strategy/compass/:accountId/fill-gaps — auto-plan posts to close biggest gap`);
+  console.log(`   POST /api/strategy/script — scene-by-scene guion (hook/build/CTA pacing)`);
+  console.log(`   POST /api/strategy/script/batch — scripts for multiple topics in one call`);
   console.log(`   📊 Scaling Math: Video 3,450×12=41,400 + Image 12,870×12=154,440 + Stories 10,000×12=120,000 + Football 2,000×12=24,000 + Hooks 1,000×12=12,000 = 352,840 total`);
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
