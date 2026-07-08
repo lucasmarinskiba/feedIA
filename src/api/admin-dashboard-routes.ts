@@ -9,7 +9,7 @@ import { analyticsEngine } from '../services/analytics-engine.js';
 import { feedIAOrchestrator } from '../services/feedia-agents-orchestrator.js';
 import { promptCache, contentCache, validationCache, embeddingCache } from '../services/cache-manager.js';
 import { feedIADatabase } from '../db/database.js';
-import type { BrandProfile } from '../config/types.js';
+import { runHealthChecks } from '../observability/healthChecks.js';
 
 const router = Router();
 
@@ -47,6 +47,31 @@ router.get('/health', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/admin/infra
+ * External infrastructure health (Redis cache, Supabase) — real connectivity
+ * checks, not just "is the env var set". Each check opens its own short-lived
+ * connection and reports latency, so this is safe to poll periodically.
+ */
+router.get('/infra', async (req: Request, res: Response) => {
+  try {
+    const report = await runHealthChecks();
+
+    res.status(report.ok ? 200 : 503).json({
+      ...report,
+      notes: {
+        redis: !process.env.REDIS_URL
+          ? 'REDIS_URL not set — cache-manager.ts stays in-memory (lost on restart)'
+          : undefined,
+        supabase: !process.env.SUPABASE_URL ? 'SUPABASE_URL not set — using local SQLite only' : undefined,
+      },
+    });
+  } catch (error) {
+    log.error('[AdminDashboard] Infra health check failed', error);
+    res.status(500).json({ error: 'Infra health check failed' });
+  }
+});
+
+/**
  * GET /api/admin/agents
  * Detailed agent metrics
  */
@@ -57,7 +82,7 @@ router.get('/agents', async (req: Request, res: Response) => {
     res.json({
       status: 'ok',
       agentCount: agents.length,
-      agents: agents.map(agent => ({
+      agents: agents.map((agent) => ({
         id: agent.agentId,
         specialization: agent.specialization,
         tasksCompleted: agent.tasksCompleted,
@@ -92,7 +117,7 @@ router.get('/metrics', async (req: Request, res: Response) => {
       75.5, // avg quality
       6, // agent count
       2500, // avg agent latency
-      queueStatus.completed || 0 // total tasks
+      queueStatus.completed || 0, // total tasks
     );
 
     res.json({
@@ -122,7 +147,7 @@ router.get('/recommendations', async (req: Request, res: Response) => {
       75.5,
       6,
       2500,
-      0
+      0,
     );
 
     const recommendations = analyticsEngine.generateRecommendations(metrics);
@@ -130,8 +155,8 @@ router.get('/recommendations', async (req: Request, res: Response) => {
     res.json({
       status: 'ok',
       recommendationCount: recommendations.length,
-      critical: recommendations.filter(r => r.severity === 'critical').length,
-      high: recommendations.filter(r => r.severity === 'high').length,
+      critical: recommendations.filter((r) => r.severity === 'critical').length,
+      high: recommendations.filter((r) => r.severity === 'high').length,
       recommendations: recommendations.sort((a, b) => {
         const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
         return severityOrder[a.severity] - severityOrder[b.severity];

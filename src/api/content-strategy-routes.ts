@@ -17,7 +17,7 @@ const router = Router();
  */
 router.post('/calendar/plan', async (req: Request, res: Response) => {
   try {
-    const brand = (req as any).brand as BrandProfile;
+    const brand = req.brand as BrandProfile;
     const { accountId, days = 7, cadence } = req.body;
 
     if (!accountId) {
@@ -29,13 +29,14 @@ router.post('/calendar/plan', async (req: Request, res: Response) => {
       String(accountId),
       brand,
       days,
-      cadence || DEFAULT_WEEKLY_CADENCE
+      cadence || DEFAULT_WEEKLY_CADENCE,
     );
 
     res.json({
       status: 'success',
       ...plan,
-      nextStep: 'GET /api/strategy/tasks/:accountId to see the pipeline, advance each item through idea -> script -> design -> review -> ready -> scheduled',
+      nextStep:
+        'GET /api/strategy/tasks/:accountId to see the pipeline, advance each item through idea -> script -> design -> review -> ready -> scheduled',
       metadata: { plannedAt: new Date().toISOString() },
     });
   } catch (error) {
@@ -102,7 +103,7 @@ router.post('/tasks/:postId/advance', async (req: Request, res: Response) => {
  */
 router.get('/compass/:accountId', async (req: Request, res: Response) => {
   try {
-    const brand = (req as any).brand as BrandProfile;
+    const brand = req.brand as BrandProfile;
     const { accountId } = req.params;
 
     const compass = await contentStrategyEngine.getContentCompass(String(accountId), brand);
@@ -124,7 +125,7 @@ router.get('/compass/:accountId', async (req: Request, res: Response) => {
  */
 router.post('/compass/:accountId/fill-gaps', async (req: Request, res: Response) => {
   try {
-    const brand = (req as any).brand as BrandProfile;
+    const brand = req.brand as BrandProfile;
     const { accountId } = req.params;
 
     const plan = await contentStrategyEngine.fillCompassGaps(String(accountId), brand);
@@ -132,7 +133,9 @@ router.post('/compass/:accountId/fill-gaps', async (req: Request, res: Response)
     res.json({
       status: 'success',
       ...plan,
-      message: plan.items.length ? `Planned ${plan.items.length} posts to close the biggest gap` : 'No gaps found — cadence already balanced',
+      message: plan.items.length
+        ? `Planned ${plan.items.length} posts to close the biggest gap`
+        : 'No gaps found — cadence already balanced',
       metadata: { filledAt: new Date().toISOString() },
     });
   } catch (error) {
@@ -165,6 +168,34 @@ router.post('/script', async (req: Request, res: Response) => {
   } catch (error) {
     log.error('[ContentStrategy] Script generation failed', error);
     res.status(500).json({ error: 'Script generation failed', message: String(error) });
+  }
+});
+
+/**
+ * POST /api/strategy/script/audio
+ * Generate real ElevenLabs voiceover audio for every scene of a script
+ * (script must be a ContentScript object, e.g. from POST /api/strategy/script)
+ */
+router.post('/script/audio', async (req: Request, res: Response) => {
+  try {
+    const { script, voiceId } = req.body;
+
+    if (!script || !Array.isArray(script.scenes)) {
+      res.status(400).json({ error: 'script (ContentScript object with scenes[]) required' });
+      return;
+    }
+
+    const audio = await scriptWriterEngine.generateScriptAudio(script, voiceId);
+
+    res.json({
+      status: 'success',
+      sceneCount: audio.length,
+      audio,
+      metadata: { generatedAt: new Date().toISOString() },
+    });
+  } catch (error) {
+    log.error('[ContentStrategy] Script audio generation failed', error);
+    res.status(500).json({ error: 'Script audio generation failed', message: String(error) });
   }
 });
 
@@ -210,6 +241,7 @@ router.get('/health', async (req: Request, res: Response) => {
         'Content Compass — 14-day gap analysis vs ideal cadence + recommendation',
         'Auto-fill gaps — plans just enough posts to fix biggest deficit',
         'Script writer — scene-by-scene guiones with hook/build/CTA pacing',
+        'Real ElevenLabs TTS — voiceover audio per scene (falls back to mock if ELEVENLABS_API_KEY unset)',
       ],
       defaultCadence: DEFAULT_WEEKLY_CADENCE,
       endpoints: {
@@ -220,6 +252,7 @@ router.get('/health', async (req: Request, res: Response) => {
         fillGaps: 'POST /api/strategy/compass/:accountId/fill-gaps',
         script: 'POST /api/strategy/script',
         scriptBatch: 'POST /api/strategy/script/batch',
+        scriptAudio: 'POST /api/strategy/script/audio',
       },
       timestamp: new Date().toISOString(),
     });

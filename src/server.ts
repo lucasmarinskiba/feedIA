@@ -1,5 +1,9 @@
 import express, { Express, Request, Response } from 'express';
 import { log } from './agent/logger.js';
+import { initSentry, captureException } from './observability/sentry.js';
+
+// Initialize error tracking before anything else can throw (no-op if SENTRY_DSN unset)
+initSentry();
 import promptGenerationRoutes from './api/prompt-generation-routes.js';
 import contentRoutes from './api/content-routes.js';
 import autonomyRoutes from './api/autonomy-routes.js';
@@ -68,7 +72,7 @@ app.use((req: Request, res: Response, next) => {
       metricsToWatch: [],
     },
   };
-  (req as any).brand = mockBrand;
+  req.brand = mockBrand;
   next();
 });
 
@@ -153,8 +157,9 @@ app.use('/api/strategy', contentStrategyRoutes);
 app.use('/api/video-gen', veoVideoRoutes);
 
 // Error handler
-app.use((err: any, req: Request, res: Response) => {
+app.use((err: Error, req: Request, res: Response) => {
   log.error('[Server] error', { error: err.message });
+  captureException(err, { path: req.path, method: req.method });
   res.status(500).json({
     error: 'Internal server error',
     message: err.message,
@@ -219,13 +224,17 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/video/batch-96/brand-positioning — brand/culture positioning`);
   console.log(`   POST /api/video/batch-96/cause-driven — NGO/cause/social-impact marketing`);
   console.log(`   GET  /api/video/batch-96/categories — list soft-sell categories`);
-  console.log(`🎬 Video Library Total: BATCH 90-91 (1,100) + BATCH 92-93 (1,350) + BATCH 95-96 (1,000) = 3,450 PROMPTS`);
+  console.log(
+    `🎬 Video Library Total: BATCH 90-91 (1,100) + BATCH 92-93 (1,350) + BATCH 95-96 (1,000) = 3,450 PROMPTS`,
+  );
   console.log(`🖼️  Image Upload & Parameterization Endpoints:`);
   console.log(`   POST /api/image-upload/upload — upload image, extract features`);
   console.log(`   POST /api/image-upload/match-prompts — find matching prompts for image`);
   console.log(`   POST /api/image-upload/parameterize — combine image + prompt + parameters`);
   console.log(`   GET  /api/image-upload/status — database statistics`);
-  console.log(`💾 Database: feedia.db (SQLite). Schema: prompts, variations, images, content, analytics, brand_profiles`);
+  console.log(
+    `💾 Database: feedia.db (SQLite). Schema: prompts, variations, images, content, analytics, brand_profiles`,
+  );
   console.log(`🚀 Prompt Expansion Endpoints (LLM-powered: 3,450 → 315,840+):`);
   console.log(`   POST /api/prompts/expand-single — expand 1 prompt → 6 variations`);
   console.log(`   POST /api/prompts/super-expand — expand 1 prompt → 12 variations (2x, scaling)`);
@@ -255,7 +264,9 @@ app.listen(PORT, async () => {
   console.log(`   GET  /api/football/categories — list categories + templates`);
   console.log(`   GET  /api/football/health — service status`);
   console.log(`🧠 Backend Professional + Agents:`);
-  console.log(`   → Orchestrator: Coordinate 6 specialized agents (content-gen, quality-val, consistency, refinement, analytics, batch-processor)`);
+  console.log(
+    `   → Orchestrator: Coordinate 6 specialized agents (content-gen, quality-val, consistency, refinement, analytics, batch-processor)`,
+  );
   console.log(`   → Neural Embeddings: Semantic search, similarity matching, pattern clustering (text + image)`);
   console.log(`   → Analytics Engine: Metrics, trends, optimization recommendations, health reports`);
   console.log(`   → Cache Manager: LRU eviction, TTL support, hit-rate tracking (5 caches)`);
@@ -281,16 +292,22 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/identity/validate — verify generated output preserved source identity`);
   console.log(`   POST /api/identity/lock-and-inject — combined lock + inject in one call`);
   console.log(`   GET  /api/identity/lock/:lockId — retrieve lock details`);
-  console.log(`   → Guarantee: Uploaded person's real face shape/eyes/nose/lips/marks preserved, not idealized/invented`);
+  console.log(
+    `   → Guarantee: Uploaded person's real face shape/eyes/nose/lips/marks preserved, not idealized/invented`,
+  );
   console.log(`📐 Resolution & Quality Endpoints (Max IG/TikTok Resolution, Zero Quality Loss):`);
   console.log(`   GET  /api/resolution/specs/:platform — full spec table (instagram/tiktok)`);
   console.log(`   POST /api/resolution/inject-instructions — inject quality lock into prompt`);
   console.log(`   POST /api/resolution/validate — check asset specs vs platform requirements`);
   console.log(`   POST /api/resolution/upscale-strategy — AI upscale recommendation for low-res source`);
   console.log(`   GET  /api/resolution/best/:platform/:contentType — max quality spec for format`);
-  console.log(`   → Auto-applied: Every refined prompt now locks resolution/bitrate (IG reels 1080x1920@8000kbps, TikTok HD 1080x1920@16000kbps)`);
+  console.log(
+    `   → Auto-applied: Every refined prompt now locks resolution/bitrate (IG reels 1080x1920@8000kbps, TikTok HD 1080x1920@16000kbps)`,
+  );
   console.log(`🎯 MASTER PIPELINE Endpoints (Single-Call Full Guarantee):`);
-  console.log(`   POST /api/master/generate — one prompt through ALL systems (quality+cinematography+ocurrencia+identity+consistency+resolution)`);
+  console.log(
+    `   POST /api/master/generate — one prompt through ALL systems (quality+cinematography+ocurrencia+identity+consistency+resolution)`,
+  );
   console.log(`   POST /api/master/generate-carousel — full 2-10 frame carousel, one call`);
   console.log(`   GET  /api/master/health — pipeline stages + usage guide`);
   console.log(`   → THIS IS THE RECOMMENDED ENTRY POINT for all new content generation`);
@@ -302,7 +319,9 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/strategy/compass/:accountId/fill-gaps — auto-plan posts to close biggest gap`);
   console.log(`   POST /api/strategy/script — scene-by-scene guion (hook/build/CTA pacing)`);
   console.log(`   POST /api/strategy/script/batch — scripts for multiple topics in one call`);
-  console.log(`   📊 Scaling Math: Video 3,450×12=41,400 + Image 12,870×12=154,440 + Stories 10,000×12=120,000 + Football 2,000×12=24,000 + Hooks 1,000×12=12,000 = 352,840 total`);
+  console.log(
+    `   📊 Scaling Math: Video 3,450×12=41,400 + Image 12,870×12=154,440 + Stories 10,000×12=120,000 + Football 2,000×12=24,000 + Hooks 1,000×12=12,000 = 352,840 total`,
+  );
   console.log(`🎬 Veo 3.1 Video Generation Endpoints (Real Video Rendering):`);
   console.log(`   POST /api/video-gen/start — start async video generation (returns operation to poll)`);
   console.log(`   GET  /api/video-gen/status/:operationName — poll generation progress`);
@@ -310,9 +329,24 @@ app.listen(PORT, async () => {
   console.log(`   GET  /api/video-gen/health — models + requirements`);
   console.log(`   → NOTE: Veo requires a BILLED Google Cloud project — free-tier GEMINI_API_KEY quota is 0`);
   console.log(`🔬 Real Model Integration Status:`);
-  console.log(`   Gemini Vision + Embeddings (facial landmarks, image features, text/image embeddings): ${process.env.GEMINI_API_KEY ? '✅ configured' : '⚠️  GEMINI_API_KEY not set — falling back to placeholders'}`);
-  console.log(`   Veo 3.1 (real video generation): ${process.env.GEMINI_API_KEY ? '✅ key configured (billing/quota not yet verified)' : '⚠️  GEMINI_API_KEY not set'}`);
-  console.log(`   FAL Clarity Upscaler (real AI upscaling): ${process.env.FAL_KEY ? '✅ configured' : '⚠️  FAL_KEY not set — upscale strategy only, cannot execute'}`);
+  console.log(
+    `   Gemini Vision + Embeddings (facial landmarks, image features, text/image embeddings): ${process.env.GEMINI_API_KEY ? '✅ configured' : '⚠️  GEMINI_API_KEY not set — falling back to placeholders'}`,
+  );
+  console.log(
+    `   Veo 3.1 (real video generation): ${process.env.GEMINI_API_KEY ? '✅ key configured (billing/quota not yet verified)' : '⚠️  GEMINI_API_KEY not set'}`,
+  );
+  console.log(
+    `   FAL Clarity Upscaler (real AI upscaling): ${process.env.FAL_KEY ? '✅ configured' : '⚠️  FAL_KEY not set — upscale strategy only, cannot execute'}`,
+  );
+  console.log(
+    `   ElevenLabs TTS (script voiceover): ${process.env.ELEVENLABS_API_KEY ? '✅ configured' : '⚠️  ELEVENLABS_API_KEY not set — falls back to mock audio URLs'}`,
+  );
+  console.log(
+    `   Sentry error tracking: ${process.env.SENTRY_DSN ? '✅ configured' : '⚠️  SENTRY_DSN not set — errors only logged locally'}`,
+  );
+  console.log(
+    `   Redis cache/queue persistence: ${process.env.REDIS_URL ? '✅ configured (check GET /api/admin/infra)' : '⚠️  REDIS_URL not set — cache-manager.ts in-memory only'}`,
+  );
   console.log(`💾 Database Endpoints:`);
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
   console.log(`   GET  /api/autonomy/database/stats`);

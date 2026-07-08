@@ -8,6 +8,7 @@
 import { log } from '../agent/logger.js';
 import { qualityValidator } from './quality-validator.js';
 import { creativityWitEngine } from './creativity-wit-engine.js';
+import { textToSpeech, isElevenLabsAvailable } from '../integrations/elevenlabs.js';
 
 export interface ScriptScene {
   sceneNumber: number;
@@ -43,7 +44,7 @@ class ScriptWriterEngine {
     topic: string,
     format: 'reel' | 'story' | 'tiktok-video',
     totalDurationSeconds: number = 15,
-    sceneCount: number = 4
+    sceneCount: number = 4,
   ): Promise<ContentScript> {
     const { hookEnd, buildEnd } = actBoundaries(totalDurationSeconds);
     const scenes: ScriptScene[] = [];
@@ -96,9 +97,7 @@ class ScriptWriterEngine {
 
     const hookScene = scenes[0];
     const hookScore = hookScene ? hookScene.qualityScore : 0;
-    const overallQualityScore = Math.round(
-      scenes.reduce((sum, s) => sum + s.qualityScore, 0) / (scenes.length || 1)
-    );
+    const overallQualityScore = Math.round(scenes.reduce((sum, s) => sum + s.qualityScore, 0) / (scenes.length || 1));
 
     log.info('[ScriptWriter] Script generated', {
       topic,
@@ -124,7 +123,7 @@ class ScriptWriterEngine {
   async generateScriptBatch(
     topics: string[],
     format: 'reel' | 'story' | 'tiktok-video',
-    totalDurationSeconds: number = 15
+    totalDurationSeconds: number = 15,
   ): Promise<ContentScript[]> {
     const scripts: ContentScript[] = [];
     for (const topic of topics) {
@@ -140,13 +139,48 @@ class ScriptWriterEngine {
   renderScriptAsText(script: ContentScript): string {
     return script.scenes
       .map(
-        s =>
+        (s) =>
           `[${s.timestampStart}s-${s.timestampEnd}s] Scene ${s.sceneNumber}\n` +
           `  Visual: ${s.visualDirection}\n` +
           `  Camera: ${s.cameraNote}\n` +
-          `  Line: ${s.voiceoverOrText}`
+          `  Line: ${s.voiceoverOrText}`,
       )
       .join('\n\n');
+  }
+
+  /**
+   * Generate real voiceover audio for every scene via ElevenLabs TTS.
+   * Strips the [HOOK]/[BUILD]/[CTA] act markers before synthesis — those are
+   * internal pacing labels for the script, not meant to be spoken aloud.
+   * Falls back to ElevenLabs' own mock (no key/DRY_RUN) automatically —
+   * textToSpeech() never throws, so this always returns a result per scene.
+   */
+  async generateScriptAudio(
+    script: ContentScript,
+    voiceId?: string,
+  ): Promise<Array<{ sceneNumber: number; audioUrl?: string; audioBase64?: string; provider: string }>> {
+    const results = [];
+
+    for (const scene of script.scenes) {
+      const cleanLine = scene.voiceoverOrText.replace(/^\[(HOOK|BUILD|CTA)\]\s*/, '').trim();
+
+      const tts = await textToSpeech({ text: cleanLine, voiceId });
+
+      results.push({
+        sceneNumber: scene.sceneNumber,
+        audioUrl: tts.audioUrl,
+        audioBase64: tts.audioBase64,
+        provider: tts.provider,
+      });
+    }
+
+    log.info('[ScriptWriter] Scene audio generated', {
+      topic: script.topic,
+      scenes: results.length,
+      realTTS: isElevenLabsAvailable(),
+    });
+
+    return results;
   }
 }
 
