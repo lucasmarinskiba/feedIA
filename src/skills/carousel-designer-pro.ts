@@ -57,7 +57,7 @@ export const carouselDesignerPro = {
       slides.push({
         position: i + 1,
         type: 'hook',
-        prompt: contentCtx.prompts[i].prompt?.text || '',
+        prompt: contentCtx.prompts[i]!.prompt?.text || '',
         copyDirective: `HOOK ${i + 1}: Start strong. Problem statement or curiosity gap. Max 8 words.`,
         visualStyle: 'Bold color, minimal text, eye-catching composition',
       });
@@ -68,7 +68,7 @@ export const carouselDesignerPro = {
       slides.push({
         position: i + 1,
         type: 'value',
-        prompt: contentCtx.prompts[i].prompt?.text || '',
+        prompt: contentCtx.prompts[i]!.prompt?.text || '',
         copyDirective: `VALUE ${i - 2}: Step-by-step insight. 50 words max. Numbered list.`,
         visualStyle: 'Clean layout, readable typography, supporting visuals',
       });
@@ -79,7 +79,7 @@ export const carouselDesignerPro = {
       slides.push({
         position: i + 1,
         type: 'proof',
-        prompt: contentCtx.prompts[i].prompt?.text || '',
+        prompt: contentCtx.prompts[i]!.prompt?.text || '',
         copyDirective: `PROOF: Testimonial or stat. Quote format. Attribution.`,
         visualStyle: 'Real image or avatar, quote styling, high contrast',
       });
@@ -90,7 +90,7 @@ export const carouselDesignerPro = {
       slides.push({
         position: 10,
         type: 'cta',
-        prompt: contentCtx.prompts[9].prompt?.text || '',
+        prompt: contentCtx.prompts[9]!.prompt?.text || '',
         copyDirective: `CTA: Single action. Link/bio/DM. Urgency optional.`,
         visualStyle: 'Highlight color, button/arrow, clear hierarchy',
       });

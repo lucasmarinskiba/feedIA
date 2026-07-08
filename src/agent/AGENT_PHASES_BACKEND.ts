@@ -42,7 +42,8 @@ Return all 5 approaches ranked by potential.`;
       messages: [{ role: 'user', content: JSON.stringify(input) }],
     });
 
-    const output = response.content[0].type === 'text' ? response.content[0].text : '';
+    const firstBlock = response.content[0];
+    const output = firstBlock && firstBlock.type === 'text' ? firstBlock.text : '';
     this.outputCount++;
     this.trainingData.push({ input, output });
 
@@ -104,7 +105,8 @@ Specialize ruthlessly. Eliminate low performers.`;
       messages: [{ role: 'user', content: JSON.stringify(input) }],
     });
 
-    const output = response.content[0].type === 'text' ? response.content[0].text : '';
+    const firstBlock = response.content[0];
+    const output = firstBlock && firstBlock.type === 'text' ? firstBlock.text : '';
     this.outputCount++;
 
     return {
@@ -121,6 +123,10 @@ Specialize ruthlessly. Eliminate low performers.`;
     const current = this.winningPatterns.get(result.pattern) || 0;
     this.winningPatterns.set(result.pattern, (current + result.performance) / 2);
     this.performanceScore = Math.min(90, this.performanceScore + 0.5); // Increase score
+  }
+
+  getWinningPatterns(): Map<string, number> {
+    return this.winningPatterns;
   }
 
   isPhaseComplete(): boolean {
@@ -166,7 +172,8 @@ You're confident because you've seen 1000+ cases.`;
       messages: [{ role: 'user', content: JSON.stringify(input) }],
     });
 
-    const output = response.content[0].type === 'text' ? response.content[0].text : '';
+    const firstBlock = response.content[0];
+    const output = firstBlock && firstBlock.type === 'text' ? firstBlock.text : '';
     this.outputCount++;
 
     return {
@@ -245,7 +252,7 @@ class AgentPhaseOrchestrator {
       console.log(`[Agent] Advanced Phase 1→2. Trained on ${trainingData.length} examples.`);
     } else if (this.phase.phase === 2) {
       // Phase 2 → 3: Consolidate learnings
-      const specialistLearnings = (this.agent as SpecialistPhase).winningPatterns;
+      const specialistLearnings = (this.agent as SpecialistPhase).getWinningPatterns();
       this.agent = new ExpertPhase('default', 1000);
       this.phase = { phase: 3, outputCount: 1000, performanceScore: 90 };
 

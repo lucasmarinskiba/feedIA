@@ -66,6 +66,10 @@ router.post('/parameterized-prompt', async (req: Request, res: Response) => {
       ? templates.find(t => t.id === templateId) || templates[0]
       : templates[0];
 
+    if (!selectedTemplate) {
+      return res.status(404).json({ error: `No templates found for category: ${category}` });
+    }
+
     // Generate prompt
     const generatedPrompt = videoPromptEngine.generatePrompt(selectedTemplate.id, {
       category,
@@ -87,7 +91,7 @@ router.post('/parameterized-prompt', async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       prompt: generatedPrompt,
       template: {
@@ -102,7 +106,7 @@ router.post('/parameterized-prompt', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[VideoParameterizedRoutes] Prompt generation error', error);
-    res.status(500).json({ error: 'Prompt generation failed' });
+    return res.status(500).json({ error: 'Prompt generation failed' });
   }
 });
 
@@ -131,6 +135,7 @@ router.post('/batch-generate', async (req: Request, res: Response) => {
       .map(req => {
         const templates = videoPromptEngine.getTemplatesByCategory(req.category);
         const selectedTemplate = templates[0];
+        if (!selectedTemplate) return null;
 
         return videoPromptEngine.generatePrompt(selectedTemplate.id, {
           category: req.category,
@@ -146,7 +151,7 @@ router.post('/batch-generate', async (req: Request, res: Response) => {
       })
       .filter((p): p is NonNullable<typeof p> => p !== null);
 
-    res.json({
+    return res.json({
       status: 'success',
       totalRequested: requests.length,
       totalGenerated: generatedPrompts.length,
@@ -158,7 +163,7 @@ router.post('/batch-generate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[VideoParameterizedRoutes] Batch generation error', error);
-    res.status(500).json({ error: 'Batch generation failed' });
+    return res.status(500).json({ error: 'Batch generation failed' });
   }
 });
 
@@ -269,14 +274,15 @@ router.post('/batch-expand', async (req: Request, res: Response) => {
       };
 
       const templates = videoPromptEngine.getTemplatesByCategory(baseParams.category);
-      const prompt = videoPromptEngine.generatePrompt(templates[0].id, expandedParams);
+      const selectedTemplate = templates[0];
+      const prompt = selectedTemplate ? videoPromptEngine.generatePrompt(selectedTemplate.id, expandedParams) : null;
 
       if (prompt) {
         expandedPrompts.push(prompt);
       }
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       baseParams,
       totalVariations: expandedPrompts.length,
@@ -288,7 +294,7 @@ router.post('/batch-expand', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[VideoParameterizedRoutes] Batch expand error', error);
-    res.status(500).json({ error: 'Batch expand failed' });
+    return res.status(500).json({ error: 'Batch expand failed' });
   }
 });
 

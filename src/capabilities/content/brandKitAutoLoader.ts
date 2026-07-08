@@ -6,7 +6,7 @@
  */
 
 import { log } from '../../agent/logger.js';
-import type { BrandProfile } from '../../config/types.js';
+import { BrandProfileSchema, type BrandProfile } from '../../config/types.js';
 
 export interface BrandKitSource {
   type: 'instagram' | 'canva' | 'manual' | 'ai-detected';
@@ -78,29 +78,44 @@ const loadFromCanva = async (userId: string): Promise<BrandProfile | null> => {
   // Mock: return sample Canva brand
   log.debug(`[Brand Kit] Checking Canva for user: ${userId}`);
 
-  return {
+  return BrandProfileSchema.parse({
     id: `brand_${userId}_canva`,
     name: 'My Brand (Canva)',
-    colors: {
-      primary: '#E91E8C',
-      secondary: '#00D9FF',
-      accent: '#FFFFFF',
-      neutral: '#1A1A1A',
-    },
-    fonts: {
-      headline: 'Poppins',
-      body: 'Inter',
-      accent: 'Playfair Display',
+    type: 'empresa',
+    niche: 'creative',
+    audience: {
+      description: 'Gen Z creators and small business owners',
+      pains: [],
+      desires: [],
+      locale: 'es-AR',
     },
     voice: {
       tone: ['energetic', 'playful', 'authentic'],
-      tagline: 'Bold ideas, creative execution',
+      forbidden: [],
+      referenceQuotes: ['Bold ideas, creative execution'],
     },
-    audience: {
-      primary: 'Gen Z creators',
-      secondary: 'small business owners',
+    visual: {
+      palette: ['#E91E8C', '#00D9FF', '#FFFFFF', '#1A1A1A'],
+      typography: ['Poppins', 'Inter', 'Playfair Display'],
+      style: 'minimalista',
+      mood: 'profesional',
+      photographyStyle: 'natural',
+      compositionRules: [],
+      allowedIconography: [],
+      forbiddenIconography: [],
+      moodboardUrls: [],
+      density: 'medium',
+      imageTextRatio: 'balanced',
     },
-  };
+    goals: {
+      primary: 'engagement',
+      metricsToWatch: [],
+    },
+    competitors: [],
+    hashtagPools: {},
+    contentPillars: [],
+    complianceRules: [],
+  });
 };
 
 const detectFromInstagram = async (userId: string): Promise<BrandProfile | null> => {
@@ -109,29 +124,44 @@ const detectFromInstagram = async (userId: string): Promise<BrandProfile | null>
   // Mock: return sample Instagram brand
   log.debug(`[Brand Kit] Checking Instagram for user: ${userId}`);
 
-  return {
+  return BrandProfileSchema.parse({
     id: `brand_${userId}_ig`,
     name: 'My Instagram Brand',
-    colors: {
-      primary: '#E1306C',
-      secondary: '#405DE6',
-      accent: '#FFFFFF',
-      neutral: '#000000',
-    },
-    fonts: {
-      headline: 'Montserrat',
-      body: 'Open Sans',
-      accent: 'Playfair Display',
+    type: 'marca-personal',
+    niche: 'lifestyle',
+    audience: {
+      description: 'Women 25-35, lifestyle enthusiasts',
+      pains: [],
+      desires: [],
+      locale: 'es-AR',
     },
     voice: {
       tone: ['friendly', 'inspirational'],
-      tagline: 'Creating moments that matter',
+      forbidden: [],
+      referenceQuotes: ['Creating moments that matter'],
     },
-    audience: {
-      primary: 'women 25-35',
-      secondary: 'lifestyle enthusiasts',
+    visual: {
+      palette: ['#E1306C', '#405DE6', '#FFFFFF', '#000000'],
+      typography: ['Montserrat', 'Open Sans', 'Playfair Display'],
+      style: 'minimalista',
+      mood: 'profesional',
+      photographyStyle: 'natural',
+      compositionRules: [],
+      allowedIconography: [],
+      forbiddenIconography: [],
+      moodboardUrls: [],
+      density: 'medium',
+      imageTextRatio: 'balanced',
     },
-  };
+    goals: {
+      primary: 'engagement',
+      metricsToWatch: [],
+    },
+    competitors: [],
+    hashtagPools: {},
+    contentPillars: [],
+    complianceRules: [],
+  });
 };
 
 const aiDetectBrand = async (userId: string): Promise<{profile: BrandProfile; confidence: number}> => {
@@ -141,29 +171,44 @@ const aiDetectBrand = async (userId: string): Promise<{profile: BrandProfile; co
   log.info(`[Brand Kit] AI analysis starting for: ${userId}`);
 
   return {
-    profile: {
+    profile: BrandProfileSchema.parse({
       id: `brand_${userId}_ai`,
       name: 'Auto-Detected Brand',
-      colors: {
-        primary: '#6B8E71',
-        secondary: '#D4AF37',
-        accent: '#F5EEE0',
-        neutral: '#1A1A1A',
-      },
-      fonts: {
-        headline: 'Poppins',
-        body: 'Inter',
-        accent: 'Lora',
+      type: 'empresa',
+      niche: 'sustainability',
+      audience: {
+        description: 'Conscious consumers and sustainability advocates',
+        pains: [],
+        desires: [],
+        locale: 'es-AR',
       },
       voice: {
         tone: ['authentic', 'educational', 'warm'],
-        tagline: 'Real stories, real impact',
+        forbidden: [],
+        referenceQuotes: ['Real stories, real impact'],
       },
-      audience: {
-        primary: 'conscious consumers',
-        secondary: 'sustainability advocates',
+      visual: {
+        palette: ['#6B8E71', '#D4AF37', '#F5EEE0', '#1A1A1A'],
+        typography: ['Poppins', 'Inter', 'Lora'],
+        style: 'minimalista',
+        mood: 'profesional',
+        photographyStyle: 'natural',
+        compositionRules: [],
+        allowedIconography: [],
+        forbiddenIconography: [],
+        moodboardUrls: [],
+        density: 'medium',
+        imageTextRatio: 'balanced',
       },
-    },
+      goals: {
+        primary: 'engagement',
+        metricsToWatch: [],
+      },
+      competitors: [],
+      hashtagPools: {},
+      contentPillars: [],
+      complianceRules: [],
+    }),
     confidence: 65,
   };
 };
@@ -171,10 +216,10 @@ const aiDetectBrand = async (userId: string): Promise<{profile: BrandProfile; co
 export const validateBrandKit = (brand: BrandProfile): {valid: boolean; issues: string[]} => {
   const issues: string[] = [];
 
-  if (!brand.colors?.primary) issues.push('Missing primary color');
-  if (!brand.fonts?.headline) issues.push('Missing headline font');
+  if (!brand.visual?.palette?.length) issues.push('Missing primary color');
+  if (!brand.visual?.typography?.length) issues.push('Missing headline font');
   if (!brand.voice?.tone?.length) issues.push('Missing voice tone');
-  if (!brand.audience?.primary) issues.push('Missing primary audience');
+  if (!brand.audience?.description) issues.push('Missing primary audience');
 
   return {
     valid: issues.length === 0,
@@ -189,6 +234,5 @@ export const mergeBrandKits = (source: BrandKitSource, manual: Partial<BrandProf
     ...source.data,
     ...manual,
     id: source.data.id,
-    lastUpdated: new Date().toISOString(),
   };
 };

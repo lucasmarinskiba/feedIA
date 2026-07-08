@@ -81,7 +81,7 @@ router.post('/batch-92/generate', async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       batch: 'batch-92',
       prompt,
@@ -96,7 +96,7 @@ router.post('/batch-92/generate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Batch92] Generation error', error);
-    res.status(500).json({ error: 'Batch 92 generation failed' });
+    return res.status(500).json({ error: 'Batch 92 generation failed' });
   }
 });
 
@@ -143,7 +143,7 @@ router.post('/batch-92/batch-generate', async (req: Request, res: Response) => {
       })
       .filter((p): p is NonNullable<typeof p> => p !== null);
 
-    res.json({
+    return res.json({
       status: 'success',
       batch: 'batch-92',
       totalRequested: requests.length,
@@ -157,7 +157,7 @@ router.post('/batch-92/batch-generate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Batch92] Batch generation error', error);
-    res.status(500).json({ error: 'Batch 92 batch generation failed' });
+    return res.status(500).json({ error: 'Batch 92 batch generation failed' });
   }
 });
 
@@ -222,7 +222,7 @@ router.post('/batch-93/generate', async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       batch: 'batch-93',
       prompt,
@@ -237,7 +237,7 @@ router.post('/batch-93/generate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Batch93] Generation error', error);
-    res.status(500).json({ error: 'Batch 93 generation failed' });
+    return res.status(500).json({ error: 'Batch 93 generation failed' });
   }
 });
 
@@ -285,7 +285,7 @@ router.post('/batch-93/batch-generate', async (req: Request, res: Response) => {
       })
       .filter((p): p is NonNullable<typeof p> => p !== null);
 
-    res.json({
+    return res.json({
       status: 'success',
       batch: 'batch-93',
       totalRequested: requests.length,
@@ -299,7 +299,7 @@ router.post('/batch-93/batch-generate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Batch93] Batch generation error', error);
-    res.status(500).json({ error: 'Batch 93 batch generation failed' });
+    return res.status(500).json({ error: 'Batch 93 batch generation failed' });
   }
 });
 

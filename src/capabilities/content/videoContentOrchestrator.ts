@@ -103,7 +103,7 @@ export const generateVideoContent = async (
     const specs = getVideoSpecs(brief.platform, brief.duration);
 
     // Step 6: Retention score
-    const retentionScore = calculateRetentionScore(script, brief.duration);
+    const retentionScore = calculateRetentionScore(scriptBrief, brief.duration);
 
     const video: GeneratedVideo = {
       id: `video_${Date.now()}`,
@@ -187,7 +187,7 @@ const getVideoSpecs = (
     },
   };
 
-  return platformSpecs[platform] || platformSpecs.tiktok;
+  return platformSpecs[platform] || platformSpecs.tiktok!;
 };
 
 const calculateRetentionScore = (script: VideoScriptBrief, duration: number): number => {

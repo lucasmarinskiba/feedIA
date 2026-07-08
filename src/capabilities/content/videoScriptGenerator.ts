@@ -58,7 +58,7 @@ const generateHook = (topic: string, emotion: string): string => {
     curiosity: `👀 ${topic} hack that nobody talks about (watch till end) →`,
   };
 
-  return hooks[emotion] || hooks['curiosity'];
+  return hooks[emotion] || hooks['curiosity']!;
 };
 
 const generateScenes = (
@@ -102,7 +102,7 @@ const generateFactoid = (topic: string, order: number): string => {
     `The ${topic} secret that changes everything`,
   ];
 
-  return templates[order % templates.length];
+  return templates[order % templates.length]!;
 };
 
 const generateCTA = (topic: string): string => {
@@ -113,7 +113,7 @@ const generateCTA = (topic: string): string => {
     `Share this with someone who needs to know ${topic}`,
   ];
 
-  return ctas[Math.floor(Math.random() * ctas.length)];
+  return ctas[Math.floor(Math.random() * ctas.length)]!;
 };
 
 const generateHashtags = (topic: string): string[] => {

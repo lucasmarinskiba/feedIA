@@ -43,7 +43,7 @@ router.post('/create-lock', async (req: Request, res: Response) => {
     // Create series lock
     const seriesLock = consistencyLockManager.createSeriesLock(frameCount, charLock, prodLock, envLock);
 
-    res.json({
+    return res.json({
       status: 'success',
       seriesId: seriesLock.seriesId,
       frameCount: seriesLock.frameCount,
@@ -63,7 +63,7 @@ router.post('/create-lock', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ConsistencyLock] Lock creation failed', error);
-    res.status(500).json({ error: 'Lock creation failed', message: String(error) });
+    return res.status(500).json({ error: 'Lock creation failed', message: String(error) });
   }
 });
 
@@ -94,7 +94,7 @@ router.post('/generate-prompts', async (req: Request, res: Response) => {
       narrativeArc
     );
 
-    res.json({
+    return res.json({
       status: 'success',
       seriesId,
       frameCount: lockedPrompts.length,
@@ -113,7 +113,7 @@ router.post('/generate-prompts', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ConsistencyLock] Prompt generation failed', error);
-    res.status(500).json({ error: 'Prompt generation failed', message: String(error) });
+    return res.status(500).json({ error: 'Prompt generation failed', message: String(error) });
   }
 });
 
@@ -133,7 +133,7 @@ router.post('/validate', async (req: Request, res: Response) => {
 
     const report = await characterStabilityService.validateCharacterConsistency(seriesId, prompts);
 
-    res.json({
+    return res.json({
       status: 'validated',
       ...report,
       passed: report.consistencyScore >= 70,
@@ -145,7 +145,7 @@ router.post('/validate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ConsistencyLock] Validation failed', error);
-    res.status(500).json({ error: 'Validation failed', message: String(error) });
+    return res.status(500).json({ error: 'Validation failed', message: String(error) });
   }
 });
 
@@ -166,14 +166,14 @@ router.post('/suggest-improvements', async (req: Request, res: Response) => {
       prompts
     );
 
-    res.json({
+    return res.json({
       status: 'analysis_complete',
       ...suggestions,
       metadata: { analyzedAt: new Date().toISOString() },
     });
   } catch (error) {
     log.error('[ConsistencyLock] Suggestions failed', error);
-    res.status(500).json({ error: 'Suggestions failed', message: String(error) });
+    return res.status(500).json({ error: 'Suggestions failed', message: String(error) });
   }
 });
 
@@ -181,7 +181,7 @@ router.post('/suggest-improvements', async (req: Request, res: Response) => {
  * GET /api/consistency/lock/:seriesId
  * Get series lock details
  */
-router.get('/lock/:seriesId', async (req: Request, res: Response) => {
+router.get('/lock/:seriesId', async (req: Request<{ seriesId: string }>, res: Response) => {
   try {
     const { seriesId } = req.params;
     const seriesLock = consistencyLockManager.getSeriesLock(seriesId);
@@ -190,7 +190,7 @@ router.get('/lock/:seriesId', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Series lock not found', seriesId });
     }
 
-    res.json({
+    return res.json({
       status: 'ok',
       seriesId,
       seriesLock,
@@ -199,7 +199,7 @@ router.get('/lock/:seriesId', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ConsistencyLock] Lock retrieval failed', error);
-    res.status(500).json({ error: 'Lock retrieval failed' });
+    return res.status(500).json({ error: 'Lock retrieval failed' });
   }
 });
 

@@ -91,7 +91,7 @@ export const createJob = (prompt: string): CarouselJob => {
 export const getJob = (jobId: string): CarouselJob | null => {
   let job = JOBS.get(jobId);
   if (!job) {
-    job = loadJobFromDisk(jobId);
+    job = loadJobFromDisk(jobId) ?? undefined;
     if (job) {
       JOBS.set(jobId, job);
     }

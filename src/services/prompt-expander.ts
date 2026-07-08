@@ -81,8 +81,9 @@ Generate now:
     });
 
     // Parse response
+    const firstBlock = message.content[0];
     const responseText =
-      message.content[0].type === 'text' ? message.content[0].text : '';
+      firstBlock && firstBlock.type === 'text' ? firstBlock.text : '';
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {

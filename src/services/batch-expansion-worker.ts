@@ -4,7 +4,7 @@
  * Rate-limited: 10s per prompt (Anthropic safety)
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { log } from '../agent/logger.js';
 import { feedIADatabase } from '../db/database.js';
 import { superExpandAndStore } from './prompt-expander.js';

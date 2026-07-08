@@ -120,7 +120,7 @@ class ContentSpecialist {
       pillars[cat] = (pillars[cat] || 0) + 1;
     });
     Object.keys(pillars).forEach((key) => {
-      pillars[key] = pillars[key] / posts.length;
+      pillars[key] = pillars[key]! / posts.length;
     });
     return pillars;
   }
@@ -183,7 +183,7 @@ class GrowthSpecialist {
 
     // Identify underperforming pillar
     const weakestPillar = Object.keys(personality.contentPillars).reduce((a, b) =>
-      personality.contentPillars[a] < personality.contentPillars[b] ? a : b,
+      personality.contentPillars[a]! < personality.contentPillars[b]! ? a : b,
     );
 
     recommendations.push(`Strengthen ${weakestPillar} content - it's underutilized relative to audience interest`);
@@ -323,7 +323,8 @@ class AutonomousFeedIABrain {
 
   constructor() {
     this.computerUse = new FeedIAComputerUseOrchestrator();
-    this.contentSpecialist = new ContentSpecialist({} as AccountPersonality);
+    this.accountPersonality = {} as AccountPersonality;
+    this.contentSpecialist = new ContentSpecialist(this.accountPersonality);
     this.growthSpecialist = new GrowthSpecialist();
     this.qualityAnalyzer = new QualityAnalyzer();
   }
@@ -437,6 +438,60 @@ class AutonomousFeedIABrain {
 
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // ── PUBLIC INTELLIGENCE API (used by Brain→Tools integration hub) ──
+
+  async detectAccountPersonality(): Promise<AccountPersonality> {
+    this.accountPersonality = await this.contentSpecialist.detectAccountVibe();
+    return this.accountPersonality;
+  }
+
+  async getContentStrategy(): Promise<string[]> {
+    return this.contentSpecialist.planWeeklyContent();
+  }
+
+  async identifyGrowthOpportunities(): Promise<string[]> {
+    return this.growthSpecialist.detectGrowthOpportunities(this.accountPersonality);
+  }
+
+  async getViralTriggers(): Promise<string[]> {
+    return this.growthSpecialist.identifyViralityTriggers(this.accountPersonality);
+  }
+
+  async getOptimalPostingTimes(): Promise<string[]> {
+    const schedule = await this.growthSpecialist.optimizePostingSchedule(this.accountPersonality);
+    return schedule.newSchedule;
+  }
+
+  async getContentCalendar(): Promise<Record<string, string[]>> {
+    const weeklyPlan = await this.contentSpecialist.planWeeklyContent();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const calendar: Record<string, string[]> = {};
+    weeklyPlan.forEach((topic, i) => {
+      calendar[days[i % days.length]!] = [topic];
+    });
+    return calendar;
+  }
+
+  async getAudienceSegmentation(): Promise<string[]> {
+    return this.accountPersonality.audienceSegments || [];
+  }
+
+  async getPerformanceAnalysis(): Promise<Record<string, number>> {
+    return {
+      averageEngagement: this.accountPersonality.averageEngagement || 0,
+      postingFrequency: this.accountPersonality.postingFrequency || 0,
+    };
+  }
+
+  async analyzeCompetitors(): Promise<string[]> {
+    // Competitor analysis requires vision-based scraping; not yet wired to a data source.
+    return [];
+  }
+
+  async getOptimizationRecommendations(): Promise<string[]> {
+    return this.growthSpecialist.detectGrowthOpportunities(this.accountPersonality);
   }
 }
 

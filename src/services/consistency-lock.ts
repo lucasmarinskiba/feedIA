@@ -4,7 +4,7 @@
  * Locks visual traits: face, outfit, environment, product properties
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { log } from '../agent/logger.js';
 
 interface CharacterLock {
@@ -285,7 +285,7 @@ class ConsistencyLockManager {
   private extractField(description: string, fieldName: string): string | null {
     const regex = new RegExp(`${fieldName}[:\\s]([^,\\n]+)`, 'i');
     const match = description.match(regex);
-    return match ? match[1].trim() : null;
+    return match && match[1] ? match[1].trim() : null;
   }
 
   /**
@@ -294,7 +294,7 @@ class ConsistencyLockManager {
   private extractArray(description: string, fieldName: string): string[] {
     const regex = new RegExp(`${fieldName}[:\\s]([^\\n]+)`, 'i');
     const match = description.match(regex);
-    if (!match) return [];
+    if (!match || !match[1]) return [];
 
     return match[1]
       .split(/[,;]/)

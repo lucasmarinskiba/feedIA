@@ -8,6 +8,7 @@
  */
 
 import type { RouteHandler } from '../http.js';
+import { json } from '../http.js';
 import { log } from '../../agent/logger.js';
 import {
   importPinAnalysis,
@@ -19,21 +20,22 @@ import {
 
 // ── POST /api/research/pinterest/import ────────────────────────────
 
-export const importPinterestPin: RouteHandler = async (req, res) => {
+export const importPinterestPin: RouteHandler = async ({ res, body }) => {
   try {
-    const pinData: PinterestPinAnalysis = req.body;
+    const pinData = (body ?? {}) as Partial<PinterestPinAnalysis>;
 
     if (!pinData.pinUrl || !pinData.analysis) {
-      return res.status(400).json({
+      json(res, 400, {
         error: 'Missing required fields: pinUrl, analysis',
       });
+      return;
     }
 
     log.info(`[API] Pinterest pin import: ${pinData.title}`);
 
-    const imported = importPinAnalysis(pinData);
+    const imported = importPinAnalysis(pinData as PinterestPinAnalysis);
 
-    res.status(200).json({
+    json(res, 200, {
       success: true,
       pinUrl: imported.pinUrl,
       title: imported.title,
@@ -42,20 +44,21 @@ export const importPinterestPin: RouteHandler = async (req, res) => {
     });
   } catch (error) {
     log.error(`[API] Pinterest import error: ${error}`);
-    res.status(500).json({error: 'Import failed'});
+    json(res, 500, {error: 'Import failed'});
   }
 };
 
 // ── POST /api/research/pinterest/library ───────────────────────────
 
-export const buildPinterestLibrary: RouteHandler = async (req, res) => {
+export const buildPinterestLibrary: RouteHandler = async ({ res, body }) => {
   try {
-    const {pins} = req.body;
+    const {pins} = (body ?? {}) as { pins?: PinterestPinAnalysis[] };
 
     if (!Array.isArray(pins) || pins.length === 0) {
-      return res.status(400).json({
+      json(res, 400, {
         error: 'pins must be array of PinterestPinAnalysis',
       });
+      return;
     }
 
     log.info(`[API] Building research library from ${pins.length} pins`);
@@ -63,7 +66,7 @@ export const buildPinterestLibrary: RouteHandler = async (req, res) => {
     const library = buildResearchLibrary(pins);
     const brainUpdate = applyResearchToBrain(library);
 
-    res.status(200).json({
+    json(res, 200, {
       success: true,
       pinsAnalyzed: library.pins.length,
       topFonts: library.aggregated.topFonts.slice(0, 5),
@@ -78,19 +81,19 @@ export const buildPinterestLibrary: RouteHandler = async (req, res) => {
     });
   } catch (error) {
     log.error(`[API] Library build error: ${error}`);
-    res.status(500).json({error: 'Library build failed'});
+    json(res, 500, {error: 'Library build failed'});
   }
 };
 
 // ── GET /api/research/pinterest/template ───────────────────────────
 
-export const getPinterestTemplate: RouteHandler = async (_req, res) => {
+export const getPinterestTemplate: RouteHandler = async ({ res }) => {
   try {
     log.info('[API] Pinterest research template requested');
 
     const template = generatePinterestResearchTemplate();
 
-    res.status(200).json({
+    json(res, 200, {
       success: true,
       template,
       instructions: `
@@ -111,7 +114,7 @@ export const getPinterestTemplate: RouteHandler = async (_req, res) => {
     });
   } catch (error) {
     log.error(`[API] Template error: ${error}`);
-    res.status(500).json({error: 'Template generation failed'});
+    json(res, 500, {error: 'Template generation failed'});
   }
 };
 

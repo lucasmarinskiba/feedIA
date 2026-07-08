@@ -264,5 +264,5 @@ export const getMatchingTemplate = (briefing: {
   messageType: 'promo' | 'education' | 'lifestyle' | 'social-proof' | 'feature';
 }): LayoutTemplate => {
   const matches = layoutTemplates.filter(t => t.bestFor.includes(briefing.industry));
-  return matches[0] || layoutTemplates[0];
+  return matches[0] || layoutTemplates[0]!;
 };

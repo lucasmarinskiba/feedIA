@@ -25,7 +25,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
 
     const analysis = await creativityWitEngine.analyzeWit(promptText);
 
-    res.json({
+    return res.json({
       status: 'analyzed',
       witScore: analysis.witScore,
       originalityScore: analysis.originalityScore,
@@ -38,7 +38,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Creativity] Analysis failed', error);
-    res.status(500).json({ error: 'Analysis failed' });
+    return res.status(500).json({ error: 'Analysis failed' });
   }
 });
 
@@ -59,7 +59,7 @@ router.post('/boost', async (req: Request, res: Response) => {
 
     const result = await creativityWitEngine.boostWit(promptText);
 
-    res.json({
+    return res.json({
       status: 'boosted',
       original: {
         prompt: result.originalPrompt.slice(0, 150) + '...',
@@ -75,7 +75,7 @@ router.post('/boost', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Creativity] Boost failed', error);
-    res.status(500).json({ error: 'Boost failed', message: String(error) });
+    return res.status(500).json({ error: 'Boost failed', message: String(error) });
   }
 });
 
@@ -101,7 +101,7 @@ router.post('/inject-twist', async (req: Request, res: Response) => {
 
     const result = creativityWitEngine.injectCreativeTwist(promptText, selectedTwist);
 
-    res.json({
+    return res.json({
       status: 'twist_injected',
       twist: result.twist,
       enhancedPrompt: result.prompt,
@@ -109,7 +109,7 @@ router.post('/inject-twist', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Creativity] Twist injection failed', error);
-    res.status(500).json({ error: 'Twist injection failed' });
+    return res.status(500).json({ error: 'Twist injection failed' });
   }
 });
 
@@ -138,7 +138,7 @@ router.get('/twist-techniques', async (req: Request, res: Response) => {
  * GET /api/creativity/suggest/:contentType
  * Get suggested twists for content type (carousel/reel/story/image)
  */
-router.get('/suggest/:contentType', async (req: Request, res: Response) => {
+router.get('/suggest/:contentType', async (req: Request<{ contentType: string }>, res: Response) => {
   try {
     const { contentType } = req.params;
 
@@ -150,7 +150,7 @@ router.get('/suggest/:contentType', async (req: Request, res: Response) => {
       contentType as 'carousel' | 'reel' | 'story' | 'image'
     );
 
-    res.json({
+    return res.json({
       status: 'ok',
       contentType,
       suggestedTechniques: suggestions,
@@ -158,7 +158,7 @@ router.get('/suggest/:contentType', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Creativity] Suggestion failed', error);
-    res.status(500).json({ error: 'Suggestion failed' });
+    return res.status(500).json({ error: 'Suggestion failed' });
   }
 });
 

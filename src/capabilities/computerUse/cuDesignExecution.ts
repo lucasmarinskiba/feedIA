@@ -55,7 +55,7 @@ export const executeDesignCuPlan = async (
 ): Promise<DesignCuExecutionResult> => {
   const startTime = Date.now();
 
-  log.info(`[CU Design] Executing plan ${context.plan.workflowId}`);
+  log.info(`[CU Design] Executing plan for session ${context.sessionId}`);
 
   // 1. Optimize actions
   const optimizedActions = optimizeDesignPlan(context.plan.cuActions);
@@ -75,10 +75,10 @@ export const executeDesignCuPlan = async (
     log.warn(`[CU Design] No executor provided, simulating execution`);
     events = optimizedActions.map((action, i) => ({
       kind: 'act' as const,
-      timestamp: Date.now() + i * 500,
-      gesture: 'click' as const,
-      x: 0,
-      y: 0,
+      step: i + 1,
+      gesture: action.kind,
+      target: action.selector ?? 'canvas',
+      narrate: `${action.kind}${action.text ? `: ${action.text}` : ''}`,
     }));
     success = true;
   }

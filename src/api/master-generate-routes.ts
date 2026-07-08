@@ -44,7 +44,7 @@ router.post('/generate', async (req: Request, res: Response) => {
       frameCount,
     });
 
-    res.json({
+    return res.json({
       status: result.readyForGeneration ? 'ready' : 'needs_review',
       finalPrompt: result.finalPrompt,
       pipeline: {
@@ -69,7 +69,7 @@ router.post('/generate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[MasterGenerate] Generation failed', error);
-    res.status(500).json({ error: 'Generation failed', message: String(error) });
+    return res.status(500).json({ error: 'Generation failed', message: String(error) });
   }
 });
 
@@ -114,7 +114,7 @@ router.post('/generate-carousel', async (req: Request, res: Response) => {
     const avgQuality = Math.round(results.reduce((sum, r) => sum + r.qualityScore, 0) / results.length);
     const avgWit = Math.round(results.reduce((sum, r) => sum + r.witScore, 0) / results.length);
 
-    res.json({
+    return res.json({
       status: allReady ? 'ready' : 'needs_review',
       frameCount: results.length,
       frames: results.map((r, i) => ({
@@ -136,7 +136,7 @@ router.post('/generate-carousel', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[MasterGenerate] Carousel generation failed', error);
-    res.status(500).json({ error: 'Carousel generation failed', message: String(error) });
+    return res.status(500).json({ error: 'Carousel generation failed', message: String(error) });
   }
 });
 

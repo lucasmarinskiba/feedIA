@@ -125,7 +125,7 @@ router.post('/generate', async (req: Request, res: Response) => {
       finalPrompt = refinement.refinedPrompt;
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       prompt: finalPrompt,
       category,
@@ -149,7 +149,7 @@ router.post('/generate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[FootballMeme] Generation failed', error);
-    res.status(500).json({ error: 'Generation failed', message: String(error) });
+    return res.status(500).json({ error: 'Generation failed', message: String(error) });
   }
 });
 
@@ -176,7 +176,7 @@ router.post('/batch-generate', async (req: Request, res: Response) => {
       if (response) prompts.push(response);
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       category,
       promptCount: prompts.length,
@@ -185,7 +185,7 @@ router.post('/batch-generate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[FootballMeme] Batch generation failed', error);
-    res.status(500).json({ error: 'Batch generation failed' });
+    return res.status(500).json({ error: 'Batch generation failed' });
   }
 });
 

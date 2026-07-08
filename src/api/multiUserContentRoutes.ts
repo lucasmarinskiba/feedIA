@@ -20,7 +20,7 @@ router.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', phases: [21, 22, 23, 24, 25], message: 'Multi-user SaaS online (Phase 25: Philosophy-First Branding)' });
 });
 
-router.post('/:userId/brand', (req: Request, res: Response) => {
+router.post('/:userId/brand', (req: Request<{ userId: string }>, res: Response) => {
   try {
     const { userId } = req.params;
     const profile = createUserBrandProfile(userId, req.body);
@@ -30,10 +30,10 @@ router.post('/:userId/brand', (req: Request, res: Response) => {
   }
 });
 
-router.get('/:userId/brand', (req: Request, res: Response) => {
+router.get('/:userId/brand', (req: Request<{ userId: string }>, res: Response) => {
   const profile = getUserBrandProfile(req.params.userId);
   if (!profile) return res.status(404).json({ error: 'Not found' });
-  res.json({ status: 'success', data: profile });
+  return res.json({ status: 'success', data: profile });
 });
 
 router.post('/:userId/generate/carousel', async (req: Request, res: Response) => {
@@ -54,7 +54,7 @@ router.post('/:userId/generate/video', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/:userId/validate/coherence', (req: Request, res: Response) => {
+router.post('/:userId/validate/coherence', (req: Request<{ userId: string }>, res: Response) => {
   const report = generateBrandCoherenceReport(req.params.userId, req.body.posts || []);
   res.json({ status: 'success', data: report });
 });
@@ -65,10 +65,10 @@ router.get('/:userId/resources/recommend', (req: Request, res: Response) => {
   res.json({ status: 'success', data: { recommended: recommendations, free: getFreeResources().slice(0, 5) } });
 });
 
-router.get('/:userId/dashboard', (req: Request, res: Response) => {
+router.get('/:userId/dashboard', (req: Request<{ userId: string }>, res: Response) => {
   const profile = getUserBrandProfile(req.params.userId);
   if (!profile) return res.status(404).json({ error: 'Not found' });
-  res.json({
+  return res.json({
     status: 'success',
     data: {
       accountName: profile.accountName,
@@ -80,10 +80,10 @@ router.get('/:userId/dashboard', (req: Request, res: Response) => {
   });
 });
 
-router.post('/:userId/learnings/update', (req: Request, res: Response) => {
+router.post('/:userId/learnings/update', (req: Request<{ userId: string }>, res: Response) => {
   const updated = updateUserBrandLearnings(req.params.userId, req.body);
   if (!updated) return res.status(404).json({ error: 'Not found' });
-  res.json({ status: 'success', data: updated });
+  return res.json({ status: 'success', data: updated });
 });
 
 router.post('/:userId/generate/batch', async (req: Request, res: Response) => {
@@ -103,7 +103,7 @@ router.post('/:userId/generate/batch', async (req: Request, res: Response) => {
  * POST /api/multi-user/:userId/philosophy
  * Create brand philosophy (mission, values, personality, tone)
  */
-router.post('/:userId/philosophy', (req: Request, res: Response) => {
+router.post('/:userId/philosophy', (req: Request<{ userId: string }>, res: Response) => {
   try {
     const { userId } = req.params;
     log.info(`[Phase 25] Creating philosophy for user: ${userId}`);
@@ -125,7 +125,7 @@ router.post('/:userId/philosophy', (req: Request, res: Response) => {
  * GET /api/multi-user/:userId/philosophy
  * Retrieve user's brand philosophy
  */
-router.get('/:userId/philosophy', (req: Request, res: Response) => {
+router.get('/:userId/philosophy', (req: Request<{ userId: string }>, res: Response) => {
   const { userId } = req.params;
   const philosophy = getBrandPhilosophy(userId);
 
@@ -133,14 +133,14 @@ router.get('/:userId/philosophy', (req: Request, res: Response) => {
     return res.status(404).json({ error: 'Brand philosophy not found. Create one first.' });
   }
 
-  res.json({ status: 'success', data: philosophy });
+  return res.json({ status: 'success', data: philosophy });
 });
 
 /**
  * PUT /api/multi-user/:userId/philosophy
  * Update brand philosophy
  */
-router.put('/:userId/philosophy', (req: Request, res: Response) => {
+router.put('/:userId/philosophy', (req: Request<{ userId: string }>, res: Response) => {
   try {
     const { userId } = req.params;
     const updated = updateBrandPhilosophy(userId, req.body);
@@ -149,9 +149,9 @@ router.put('/:userId/philosophy', (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Brand philosophy not found' });
     }
 
-    res.json({ status: 'success', data: updated, message: 'Philosophy updated' });
+    return res.json({ status: 'success', data: updated, message: 'Philosophy updated' });
   } catch (error) {
-    res.status(500).json({ error: 'Update failed', details: String(error) });
+    return res.status(500).json({ error: 'Update failed', details: String(error) });
   }
 });
 
@@ -188,7 +188,7 @@ router.get('/:userId/fonts/category/:category', (req: Request, res: Response) =>
  * GET /api/multi-user/:userId/fonts/pairing/:niche
  * Get recommended font pairing for niche (tech, finance, wellness, etc)
  */
-router.get('/:userId/fonts/pairing/:niche', (req: Request, res: Response) => {
+router.get('/:userId/fonts/pairing/:niche', (req: Request<{ userId: string; niche: string }>, res: Response) => {
   const { niche } = req.params;
   const pairing = getFontPairings(niche);
 
@@ -205,7 +205,7 @@ router.get('/:userId/fonts/pairing/:niche', (req: Request, res: Response) => {
  * POST /api/multi-user/:userId/visual/derive
  * Automatically derive visual identity (fonts, colors) from brand philosophy
  */
-router.post('/:userId/visual/derive', (req: Request, res: Response) => {
+router.post('/:userId/visual/derive', (req: Request<{ userId: string }>, res: Response) => {
   try {
     const { userId } = req.params;
     const philosophy = getBrandPhilosophy(userId);
@@ -218,13 +218,13 @@ router.post('/:userId/visual/derive', (req: Request, res: Response) => {
 
     const visual = deriveVisualFromPhilosophy(philosophy);
 
-    res.json({
+    return res.json({
       status: 'success',
       data: visual,
       message: 'Visual identity derived automatically from philosophy',
     });
   } catch (error) {
-    res.status(500).json({ error: 'Derivation failed', details: String(error) });
+    return res.status(500).json({ error: 'Derivation failed', details: String(error) });
   }
 });
 
@@ -232,7 +232,7 @@ router.post('/:userId/visual/derive', (req: Request, res: Response) => {
  * POST /api/multi-user/:userId/visual/validate
  * Validate visual identity against brand philosophy (ensure alignment)
  */
-router.post('/:userId/visual/validate', (req: Request, res: Response) => {
+router.post('/:userId/visual/validate', (req: Request<{ userId: string }>, res: Response) => {
   try {
     const { userId } = req.params;
     const { visual } = req.body;
@@ -258,7 +258,7 @@ router.post('/:userId/visual/validate', (req: Request, res: Response) => {
  * GET /api/multi-user/:userId/philosophy/brief
  * Generate content brief from brand philosophy (used for content generation)
  */
-router.get('/:userId/philosophy/brief', (req: Request, res: Response) => {
+router.get('/:userId/philosophy/brief', (req: Request<{ userId: string }>, res: Response) => {
   const { userId } = req.params;
   const { brief, pillars } = generatePhilosophyBrief(userId);
 
@@ -266,7 +266,7 @@ router.get('/:userId/philosophy/brief', (req: Request, res: Response) => {
     return res.status(404).json({ error: 'Brand philosophy not found' });
   }
 
-  res.json({
+  return res.json({
     status: 'success',
     data: { brief, contentPillars: pillars },
     message: 'Philosophy brief for content generation',
@@ -357,7 +357,7 @@ router.post('/:userId/patterns/generate', (req: Request, res: Response) => {
  * GET /api/multi-user/:userId/patterns/:patternName/template
  * Get full template for specific pattern
  */
-router.get('/:userId/patterns/:patternName/template', (req: Request, res: Response) => {
+router.get('/:userId/patterns/:patternName/template', (req: Request<{ userId: string; patternName: string }>, res: Response) => {
   const { patternName } = req.params;
 
   const templates: Record<string, any> = {
@@ -395,7 +395,7 @@ router.get('/:userId/patterns/:patternName/template', (req: Request, res: Respon
     return res.status(404).json({ error: `Pattern ${patternName} not found` });
   }
 
-  res.json({
+  return res.json({
     status: 'success',
     data: template,
     message: `Template for ${patternName}`,
@@ -437,7 +437,7 @@ router.post('/:userId/patterns/batch-generate', (req: Request, res: Response) =>
  * GET /api/multi-user/:userId/patterns/platform/:platform
  * Get platform-specific storytelling recommendations
  */
-router.get('/:userId/patterns/platform/:platform', (req: Request, res: Response) => {
+router.get('/:userId/patterns/platform/:platform', (req: Request<{ userId: string; platform: string }>, res: Response) => {
   const { platform } = req.params;
 
   const platformGuides: Record<string, any> = {
@@ -479,7 +479,7 @@ router.get('/:userId/patterns/platform/:platform', (req: Request, res: Response)
     return res.status(404).json({ error: `Platform ${platform} not found` });
   }
 
-  res.json({
+  return res.json({
     status: 'success',
     data: guide,
     message: `Storytelling guide for ${platform}`

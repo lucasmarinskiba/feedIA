@@ -102,7 +102,7 @@ const calculateDuration = (text: string, pace: 'slow' | 'normal' | 'fast'): numb
   const wordCount = text.split(' ').length;
   const baseWPM = 140;
 
-  const paceMultiplier: Record<string, number> = {
+  const paceMultiplier: Record<'slow' | 'normal' | 'fast', number> = {
     slow: 0.7,
     normal: 1.0,
     fast: 1.4,

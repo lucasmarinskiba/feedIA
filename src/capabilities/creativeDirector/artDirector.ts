@@ -4,6 +4,7 @@
  */
 
 import { PINTEREST_AESTHETICS, formatAestheticForPrompt } from './pinterestAesthetics.js';
+import type { BrandProfile } from '../../config/types.js';
 
 export interface PinterestDesignBrief {
   palette: {
@@ -110,6 +111,8 @@ export const generateCarouselArtDirectionPrompt = (
   slideCount: number,
   brand?: unknown,
 ): string => {
+  // Type brand as BrandProfile if provided
+  const brandProfile = brand as Partial<BrandProfile> | undefined;
   const aesthetic = PINTEREST_AESTHETICS.find((a) => a.id === style);
 
   const prompt = `

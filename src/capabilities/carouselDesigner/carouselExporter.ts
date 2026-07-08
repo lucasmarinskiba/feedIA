@@ -15,14 +15,35 @@ export interface CarouselExport {
   expiresAt: string;
 }
 
+interface ExportSlideData {
+  visualText?: string;
+  designNotes?: string;
+  pinterestPattern?: string;
+  colorPalette?: { primary?: string; secondary?: string; accent?: string };
+  animation?: { type?: string; duration?: number; delay?: number; easing?: string };
+  downloadedAssetId?: string;
+  imageUrl?: string;
+  typography?: {
+    headline?: { size?: number; weight?: number };
+    body?: { size?: number };
+  };
+}
+
+interface ExportTimingEntry {
+  slideId: number;
+  delay: number;
+  duration: number;
+  animation: string;
+}
+
 /**
  * Create carousel export package (ZIP structure in /tmp).
  * Returns metadata for download.
  */
 export const createCarouselExport = async (
   jobId: string,
-  slides: unknown[],
-  animations: { css: string; timeline: unknown[] },
+  slides: ExportSlideData[],
+  animations: { css: string; timeline: ExportTimingEntry[] },
   mp4Url?: string,
 ): Promise<CarouselExport> => {
   const exportDir = `/tmp/carousel-exports/${jobId}`;
@@ -55,9 +76,9 @@ export const createCarouselExport = async (
     writeFileSync(join(exportDir, 'animations.css'), animations.css, 'utf8');
 
     // 3. Write animation timeline
+    const lastTiming = animations.timeline[animations.timeline.length - 1];
     const timelineMetadata = {
-      total_duration_ms: animations.timeline[animations.timeline.length - 1]?.delay +
-        animations.timeline[animations.timeline.length - 1]?.duration || 0,
+      total_duration_ms: lastTiming ? lastTiming.delay + lastTiming.duration : 0,
       slides: animations.timeline,
     };
 
@@ -160,7 +181,7 @@ export const createCarouselExport = async (
 /**
  * Generate HTML5 preview with inline CSS animations.
  */
-const generateHTMLPreview = (slides: unknown[], css: string): string => {
+const generateHTMLPreview = (slides: ExportSlideData[], css: string): string => {
   const slidesHTML = slides
     .map(
       (slide, idx) => `

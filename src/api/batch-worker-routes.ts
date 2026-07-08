@@ -64,7 +64,7 @@ router.post('/expand-batch', async (req: Request, res: Response) => {
 
     const jobId = await batchExpansionWorker.queueBatchExpansion(batchId);
 
-    res.json({
+    return res.json({
       status: 'queued',
       jobId,
       batchId,
@@ -74,7 +74,7 @@ router.post('/expand-batch', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[BatchWorker] Expand batch failed', error);
-    res.status(500).json({ error: 'Batch expansion failed', message: String(error) });
+    return res.status(500).json({ error: 'Batch expansion failed', message: String(error) });
   }
 });
 
@@ -82,7 +82,7 @@ router.post('/expand-batch', async (req: Request, res: Response) => {
  * GET /api/batch/status/:jobId
  * Get job progress + status
  */
-router.get('/status/:jobId', async (req: Request, res: Response) => {
+router.get('/status/:jobId', async (req: Request<{ jobId: string }>, res: Response) => {
   try {
     const { jobId } = req.params;
     const job = batchExpansionWorker.getJobStatus(jobId);
@@ -97,7 +97,7 @@ router.get('/status/:jobId', async (req: Request, res: Response) => {
         ? 'Completed'
         : 'Queued';
 
-    res.json({
+    return res.json({
       jobId,
       batch: job.batch_id,
       status: job.status,
@@ -116,7 +116,7 @@ router.get('/status/:jobId', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[BatchWorker] Status check failed', error);
-    res.status(500).json({ error: 'Status check failed' });
+    return res.status(500).json({ error: 'Status check failed' });
   }
 });
 

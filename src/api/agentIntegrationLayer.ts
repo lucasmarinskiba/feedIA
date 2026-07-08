@@ -212,7 +212,8 @@ Provide a detailed plan.`,
       ],
     });
 
-    const plan = response.content[0].type === 'text' ? response.content[0].text : '';
+    const firstBlock = response.content[0];
+    const plan = firstBlock?.type === 'text' ? firstBlock.text : '';
     log.info(`[Agent Integration] ✓ Plan generated (${plan.length} chars)`);
     return plan;
   } catch (error) {
@@ -262,7 +263,8 @@ Make it high-quality, specific, and actionable.`,
       ],
     });
 
-    const content = response.content[0].type === 'text' ? response.content[0].text : '';
+    const firstBlock = response.content[0];
+    const content = firstBlock?.type === 'text' ? firstBlock.text : '';
     log.info(`[Agent Integration] ✓ Content generated (${content.length} chars)`);
     return content;
   } catch (error) {

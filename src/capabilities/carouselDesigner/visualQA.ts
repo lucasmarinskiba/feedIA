@@ -11,17 +11,28 @@ export interface QAResult {
   timestamp: string;
 }
 
+interface QASlideData {
+  typography?: {
+    headline?: { size?: number };
+    body?: { size?: number };
+  };
+  colorPalette?: { primary?: string; secondary?: string; accent?: string };
+  pinterestPattern?: string;
+  animation?: { type?: string; duration?: number };
+  cssKeyframes?: string;
+}
+
 /**
  * Validate carousel slides against Pinterest aesthetic standards.
  * Returns score + issues found.
  */
-export const validateAesthetic = (slides: unknown[], threshold: number = 70): QAResult => {
+export const validateAesthetic = (slides: QASlideData[], threshold: number = 70): QAResult => {
   const issues: string[] = [];
   const warnings: string[] = [];
   let scoreDeduction = 0;
 
   // Check 1: Typography sizing
-  slides.forEach((slide: any, idx: any) => {
+  slides.forEach((slide, idx) => {
     const headlineSize = slide.typography?.headline?.size || 0;
     const bodySize = slide.typography?.body?.size || 0;
 
@@ -36,7 +47,7 @@ export const validateAesthetic = (slides: unknown[], threshold: number = 70): QA
   });
 
   // Check 2: Color palette completeness
-  slides.forEach((slide: any, idx: any) => {
+  slides.forEach((slide, idx) => {
     const palette = slide.colorPalette;
     if (!palette || !palette.primary || !palette.secondary) {
       issues.push(`Slide ${idx + 1}: Missing color palette (primary/secondary)`);
@@ -59,8 +70,8 @@ export const validateAesthetic = (slides: unknown[], threshold: number = 70): QA
     'asymmetrical-balance',
   ];
 
-  slides.forEach((slide: any, idx: any) => {
-    if (!validPatterns.includes(slide.pinterestPattern)) {
+  slides.forEach((slide, idx) => {
+    if (!slide.pinterestPattern || !validPatterns.includes(slide.pinterestPattern)) {
       warnings.push(`Slide ${idx + 1}: Unknown layout pattern "${slide.pinterestPattern}"`);
       scoreDeduction += 3;
     }
@@ -69,9 +80,9 @@ export const validateAesthetic = (slides: unknown[], threshold: number = 70): QA
   // Check 4: Animation validity
   const validAnimations = ['fade', 'slideLeft', 'slideUp', 'zoom', 'rotate'];
 
-  slides.forEach((slide: any, idx: any) => {
+  slides.forEach((slide, idx) => {
     const animType = slide.animation?.type;
-    if (!validAnimations.includes(animType)) {
+    if (!animType || !validAnimations.includes(animType)) {
       warnings.push(`Slide ${idx + 1}: Invalid animation "${animType}"`);
       scoreDeduction += 2;
     }
@@ -126,49 +137,10 @@ export const requireAestheticPass = (result: QAResult, threshold: number = 70): 
  * Returns modified slides + list of fixes applied.
  */
 export const autoFixAesthetic = (
-  slides: unknown[],
-): { slides: unknown[]; fixes: string[] } => {
+  slides: QASlideData[],
+): { slides: QASlideData[]; fixes: string[] } => {
   const fixes: string[] = [];
-  const fixed = JSON.parse(JSON.stringify(slides)); // Deep copy
-
-  fixed.forEach((slide: unknown, idx: number) => {
-    // Fix 1: Headline size out of range
-    const headlineSize = slide.typography?.headline?.size || 32;
-    if (headlineSize < 28) {
-      slide.typography.headline.size = 28;
-      fixes.push(`Slide ${idx + 1}: Fixed headline size to 28px`);
-    } else if (headlineSize > 36) {
-      slide.typography.headline.size = 36;
-      fixes.push(`Slide ${idx + 1}: Fixed headline size to 36px`);
-    }
-
-    // Fix 2: Body size out of range
-    const bodySize = slide.typography?.body?.size || 16;
-    if (bodySize < 14) {
-      slide.typography.body.size = 14;
-      fixes.push(`Slide ${idx + 1}: Fixed body size to 14px`);
-    } else if (bodySize > 18) {
-      slide.typography.body.size = 18;
-      fixes.push(`Slide ${idx + 1}: Fixed body size to 18px`);
-    }
-
-    // Fix 3: Animation duration out of range
-    const duration = slide.animation?.duration || 400;
-    if (duration < 300) {
-      slide.animation.duration = 300;
-      fixes.push(`Slide ${idx + 1}: Fixed animation duration to 300ms`);
-    } else if (duration > 600) {
-      slide.animation.duration = 600;
-      fixes.push(`Slide ${idx + 1}: Fixed animation duration to 600ms`);
-    }
-
-    // Fix 4: Invalid pattern → default
-    if (!validPatterns.includes(slide.pinterestPattern)) {
-      const defaultPattern = 'left-aligned-text-right-image';
-      fixes.push(`Slide ${idx + 1}: Fixed layout pattern to ${defaultPattern}`);
-      slide.pinterestPattern = defaultPattern;
-    }
-  });
+  const fixed: QASlideData[] = JSON.parse(JSON.stringify(slides)); // Deep copy
 
   const validPatterns = [
     'left-aligned-text-right-image',
@@ -176,6 +148,45 @@ export const autoFixAesthetic = (
     'grid-layout',
     'asymmetrical-balance',
   ];
+
+  fixed.forEach((slide, idx) => {
+    // Fix 1: Headline size out of range
+    const headlineSize = slide.typography?.headline?.size || 32;
+    if (slide.typography?.headline && headlineSize < 28) {
+      slide.typography.headline.size = 28;
+      fixes.push(`Slide ${idx + 1}: Fixed headline size to 28px`);
+    } else if (slide.typography?.headline && headlineSize > 36) {
+      slide.typography.headline.size = 36;
+      fixes.push(`Slide ${idx + 1}: Fixed headline size to 36px`);
+    }
+
+    // Fix 2: Body size out of range
+    const bodySize = slide.typography?.body?.size || 16;
+    if (slide.typography?.body && bodySize < 14) {
+      slide.typography.body.size = 14;
+      fixes.push(`Slide ${idx + 1}: Fixed body size to 14px`);
+    } else if (slide.typography?.body && bodySize > 18) {
+      slide.typography.body.size = 18;
+      fixes.push(`Slide ${idx + 1}: Fixed body size to 18px`);
+    }
+
+    // Fix 3: Animation duration out of range
+    const duration = slide.animation?.duration || 400;
+    if (slide.animation && duration < 300) {
+      slide.animation.duration = 300;
+      fixes.push(`Slide ${idx + 1}: Fixed animation duration to 300ms`);
+    } else if (slide.animation && duration > 600) {
+      slide.animation.duration = 600;
+      fixes.push(`Slide ${idx + 1}: Fixed animation duration to 600ms`);
+    }
+
+    // Fix 4: Invalid pattern → default
+    if (!slide.pinterestPattern || !validPatterns.includes(slide.pinterestPattern)) {
+      const defaultPattern = 'left-aligned-text-right-image';
+      fixes.push(`Slide ${idx + 1}: Fixed layout pattern to ${defaultPattern}`);
+      slide.pinterestPattern = defaultPattern;
+    }
+  });
 
   return { slides: fixed, fixes };
 };

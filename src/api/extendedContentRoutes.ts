@@ -104,7 +104,7 @@ router.post('/carousel/generate', async (req: Request, res: Response) => {
 
     // Generate with agent reasoning layer
     log.info('[Extended Routes] Using agent reasoning layer for carousel');
-    const { plan, content } = await generateCarouselWithAgents(brief);
+    const { plan, content } = await generateCarouselWithAgents({ ...brief });
 
     // Also generate using original smart carousel for comparison/validation
     const carousel = await generateSmartCarousel(brief);
@@ -113,7 +113,7 @@ router.post('/carousel/generate', async (req: Request, res: Response) => {
       `[Extended Routes] ✓ Carousel generated: ${carousel.slideCount} slides, retention=${carousel.metadata.averageRetention}%`,
     );
 
-    res.json({
+    return res.json({
       status: 'success',
       data: {
         ...carousel,
@@ -124,7 +124,7 @@ router.post('/carousel/generate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error(`[Extended Routes] Carousel generation failed: ${error}`);
-    res.status(500).json({error: 'Carousel generation failed', details: String(error)});
+    return res.status(500).json({error: 'Carousel generation failed', details: String(error)});
   }
 });
 
@@ -168,7 +168,7 @@ router.post('/video/generate', async (req: Request, res: Response) => {
 
     // Generate with agent reasoning layer
     log.info('[Extended Routes] Using agent reasoning layer for video');
-    const { plan, content } = await generateVideoWithAgents(brief);
+    const { plan, content } = await generateVideoWithAgents({ ...brief });
 
     // Also generate using original smart video for comparison/validation
     const video = await generateSmartVideo(brief);
@@ -177,7 +177,7 @@ router.post('/video/generate', async (req: Request, res: Response) => {
       `[Extended Routes] ✓ Video generated: ${video.duration}s ${video.platform}, ${video.scenes.length} scenes, retention=${video.metadata.averageRetention}%`,
     );
 
-    res.json({
+    return res.json({
       status: 'success',
       data: {
         ...video,
@@ -188,7 +188,7 @@ router.post('/video/generate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error(`[Extended Routes] Video generation failed: ${error}`);
-    res.status(500).json({error: 'Video generation failed', details: String(error)});
+    return res.status(500).json({error: 'Video generation failed', details: String(error)});
   }
 });
 
@@ -210,7 +210,7 @@ router.get('/patterns/colors', (req: Request, res: Response) => {
 
   const palette = selectColorPalette(topic, emotion as any, undefined);
 
-  res.json({
+  return res.json({
     status: 'success',
     data: {
       recommended: palette,

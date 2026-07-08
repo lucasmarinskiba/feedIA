@@ -112,7 +112,7 @@ export const injectHumor = (
   log.info(`[Humor] Injecting ${intensity} ${comedyStyle} humor`);
 
   const style = comedyStyles[comedyStyle];
-  const formulas = humorFormulas[comedyStyle] || humorFormulas.relatable;
+  const formulas = humorFormulas[comedyStyle] || humorFormulas.relatable!;
 
   if (intensity === 'light') {
     return addEmoji(text, 2);
@@ -140,9 +140,8 @@ const addEmoji = (text: string, count: number): string => {
 };
 
 const addRelatable = (text: string, formulas: string[]): string => {
-  const formula = formulas[Math.floor(Math.random() * formulas.length)];
   const relatableMarkers = ["(relatable)", "(same energy)", "(we've all been there)"];
-  const marker = relatableMarkers[Math.floor(Math.random() * relatableMarkers.length)];
+  const marker = relatableMarkers[Math.floor(Math.random() * relatableMarkers.length)]!;
 
   return `${text} ${marker}`;
 };
@@ -200,7 +199,7 @@ const selectHumorType = (index: number, total: number): HumorPoint['type'] => {
   // First is strong punchline, rest vary
   if (index === 0) return 'punchline';
 
-  return types[index % types.length];
+  return types[index % types.length]!;
 };
 
 const generateHumorLine = (_topic: string, _style: keyof typeof comedyStyles): string => {
@@ -212,7 +211,7 @@ const generateHumorLine = (_topic: string, _style: keyof typeof comedyStyles): s
     "(This part never gets old)",
   ];
 
-  return lines[Math.floor(Math.random() * lines.length)];
+  return lines[Math.floor(Math.random() * lines.length)]!;
 };
 
 const selectTiming = (index: number, total: number): HumorPoint['timing'] => {
@@ -230,7 +229,7 @@ const selectDeliveryNote = (_style: keyof typeof comedyStyles): string => {
     'Text overlay pops up. Exaggerated timing.',
   ];
 
-  return notes[Math.floor(Math.random() * notes.length)];
+  return notes[Math.floor(Math.random() * notes.length)]!;
 };
 
 const evaluateTiming = (points: HumorPoint[]): HumorMap['timing'] => {

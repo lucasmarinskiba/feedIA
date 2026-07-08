@@ -94,7 +94,7 @@ router.post('/upload-images', upload.array('images', 10), async (req: Request, r
     return res.json(response);
   } catch (error) {
     log.error('[ParameterizedRoutes] Upload error', error);
-    res.status(500).json({ error: 'Image processing failed' });
+    return res.status(500).json({ error: 'Image processing failed' });
   }
 });
 
@@ -118,7 +118,7 @@ router.post('/match-prompts', async (req: Request, res: Response) => {
 
     const matched = await matchDescriptionsToPrompts(imageDescriptions, objective, occasion);
 
-    res.json({
+    return res.json({
       status: 'success',
       matched,
       count: matched.length,
@@ -127,7 +127,7 @@ router.post('/match-prompts', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ParameterizedRoutes] Matching error', error);
-    res.status(500).json({ error: 'Prompt matching failed' });
+    return res.status(500).json({ error: 'Prompt matching failed' });
   }
 });
 
@@ -189,7 +189,7 @@ router.post('/generate-content', async (req: Request, res: Response) => {
       contentType,
     );
 
-    res.json({
+    return res.json({
       status: 'success',
       contentType,
       variants: contentVariants,
@@ -203,7 +203,7 @@ router.post('/generate-content', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ParameterizedRoutes] Generation error', error);
-    res.status(500).json({ error: 'Content generation failed' });
+    return res.status(500).json({ error: 'Content generation failed' });
   }
 });
 
@@ -227,22 +227,22 @@ async function matchImagesToPrompts(
     for (const batchId of relevantBatches) {
       const prompts = feediaBrain.getPromptsByBatch(batchId);
 
-      for (const prompt of prompts) {
-        if (prompt.parameterized?.includes('[USER_IMAGE]')) {
+      prompts.forEach((prompt, index) => {
+        if (prompt.includes('[USER_IMAGE]')) {
           const confidence = calculateMatchConfidence(prompt, objective, imageType);
 
           if (confidence > 0.6) {
             matched.push({
-              id: `${batchId}-${prompt.id}`,
-              base: prompt.base,
-              parameterized: prompt.parameterized,
-              occasion: occasion || prompt.occasion || 'temática',
+              id: `${batchId}-${index}`,
+              base: prompt,
+              parameterized: prompt,
+              occasion: occasion || 'temática',
               batchId,
               confidence,
             });
           }
         }
-      }
+      });
     }
   }
 
@@ -263,8 +263,8 @@ async function matchDescriptionsToPrompts(
     for (const batchId of relevantBatches) {
       const prompts = feediaBrain.getPromptsByBatch(batchId);
 
-      for (const prompt of prompts) {
-        if (prompt.parameterized?.includes('[USER_IMAGE]')) {
+      prompts.forEach((prompt, index) => {
+        if (prompt.includes('[USER_IMAGE]')) {
           const confidence = calculateDescriptionConfidence(
             prompt,
             description,
@@ -273,16 +273,16 @@ async function matchDescriptionsToPrompts(
 
           if (confidence > 0.65) {
             matched.push({
-              id: `${batchId}-${prompt.id}`,
-              base: prompt.base,
-              parameterized: prompt.parameterized,
+              id: `${batchId}-${index}`,
+              base: prompt,
+              parameterized: prompt,
               occasion: occasion || 'temática',
               batchId,
               confidence,
             });
           }
         }
-      }
+      });
     }
   }
 
@@ -368,31 +368,27 @@ function getRelevantBatches(objective: string, imageType: string): string[] {
   return Array.from({ length: 34 }, (_, i) => String(62 + i));
 }
 
-function calculateMatchConfidence(prompt: MatchedPrompt, objective: string, imageType: string): number {
+function calculateMatchConfidence(prompt: string, objective: string, imageType: string): number {
   let score = 0.5; // Base score
 
   // Boost for relevant batch
-  if (prompt.base?.includes(objective)) score += 0.2;
+  if (prompt.includes(objective)) score += 0.2;
 
   // Boost for matching image type
-  if (prompt.parameterized?.includes(imageType)) score += 0.15;
-
-  // Boost for occasion match
-  if (prompt.occasion === 'temática') score += 0.1;
+  if (prompt.includes(imageType)) score += 0.15;
 
   return Math.min(score, 1.0);
 }
 
 function calculateDescriptionConfidence(
-  prompt: MatchedPrompt,
+  prompt: string,
   description: string,
   objective: string,
 ): number {
   let score = 0.5;
 
   const descLower = description.toLowerCase();
-  const baseLower = prompt.base.toLowerCase();
-  const paramLower = prompt.parameterized.toLowerCase();
+  const baseLower = prompt.toLowerCase();
 
   // Token overlap scoring
   const descTokens = descLower.split(/\s+/);
@@ -402,7 +398,7 @@ function calculateDescriptionConfidence(
   score += Math.min(overlap * 0.05, 0.3);
 
   // Objective match
-  if (paramLower.includes(objective.toLowerCase())) score += 0.15;
+  if (baseLower.includes(objective.toLowerCase())) score += 0.15;
 
   return Math.min(score, 1.0);
 }

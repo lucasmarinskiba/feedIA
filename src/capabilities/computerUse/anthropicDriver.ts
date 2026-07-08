@@ -21,34 +21,19 @@ import { env } from '../../config/index.js';
 import { log } from '../../agent/logger.js';
 import type { CuEvent } from './liveSession.js';
 import { actionGate } from '../../glassbox/index.js';
-// TODO: cuOptimizer optimization functions (WIP)
-// Commented to unblock build; stubs added below
-// import {
-//   compressScreenshot,
-//   pruneMessageHistory,
-//   withCacheBreakpoint,
-//   clampCoordinate,
-//   detectActionLoop,
-//   clearActionHistory,
-//   shouldAbortNoProgress,
-//   newUsage,
-//   accumulateUsage,
-//   type TokenUsage,
-//   type MessageWithCache,
-// } from './cuOptimizer.js';
-
-// Stubs (optimize later)
-const compressScreenshot = (s: string) => s;
-const pruneMessageHistory = (h: unknown[]) => h;
-const withCacheBreakpoint = (f: Function) => f;
-const clampCoordinate = (c: number) => c;
-const detectActionLoop = () => false;
-const clearActionHistory = () => {};
-const shouldAbortNoProgress = () => false;
-const newUsage = () => ({ input: 0, output: 0, cache: 0 });
-const accumulateUsage = (a: unknown, b: unknown) => ({ ...a, ...b });
-type TokenUsage = { input: number; output: number; cache: number };
-type MessageWithCache = { content: string; cache?: boolean };
+import {
+  compressScreenshot,
+  pruneMessageHistory,
+  withCacheBreakpoint,
+  clampCoordinate,
+  detectActionLoop,
+  clearActionHistory,
+  shouldAbortNoProgress,
+  newUsage,
+  accumulateUsage,
+  type TokenUsage,
+  type MessageWithCache,
+} from './cuOptimizer.js';
 import { startWatchdog, stopWatchdog, cancelSession, withActionTimeout, withTurnTimeout } from './cuWatchdog.js';
 import { withRetry } from '../../auth/retryHelper.js';
 

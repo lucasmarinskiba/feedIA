@@ -79,7 +79,7 @@ export const searchCanvaTemplateByAesthetic = async (
     const templates = await canvaSearchTemplates(style, '4:5');
     if (templates.length > 0) {
       return {
-        templateId: templates[0].id,
+        templateId: templates[0]!.id,
         method: 'canva-api',
       };
     }
@@ -93,7 +93,7 @@ export const searchCanvaTemplateByAesthetic = async (
 
   // Try 3: Mock (fallback)
   const mockTemplates = MOCK_TEMPLATES[style as keyof typeof MOCK_TEMPLATES] || [];
-  const templateId = mockTemplates.length > 0 ? mockTemplates[0] : null;
+  const templateId = mockTemplates.length > 0 ? mockTemplates[0]! : null;
 
   log.info(`[ComputerUse] Template search: style=${style}, method=mock, templateId=${templateId}`);
 

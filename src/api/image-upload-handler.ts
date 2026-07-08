@@ -121,7 +121,7 @@ async function generateImageEmbedding(imagePath: string): Promise<number[]> {
  * Calculate similarity score between two embeddings (cosine similarity)
  */
 function cosineSimilarity(a: number[], b: number[]): number {
-  const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
+  const dotProduct = a.reduce((sum, val, i) => sum + val * (b[i] ?? 0), 0);
   const normA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
   const normB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
   return normA && normB ? dotProduct / (normA * normB) : 0;
@@ -167,7 +167,7 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
 
     log.info('[ImageUpload] Image stored', { imageId, userId });
 
-    res.json({
+    return res.json({
       status: 'success',
       image: {
         id: imageId,
@@ -190,7 +190,7 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
     if (req.file) {
       fs.unlinkSync(req.file.path); // Clean up on error
     }
-    res.status(500).json({ error: 'Image upload failed' });
+    return res.status(500).json({ error: 'Image upload failed' });
   }
 });
 
@@ -215,7 +215,7 @@ router.post('/match-prompts', async (req: Request, res: Response) => {
     // TODO: Filter by category/batch if specified
     // TODO: Implement actual similarity scoring based on embeddings
 
-    res.json({
+    return res.json({
       status: 'success',
       imageId,
       matchCount: matches.length,
@@ -227,7 +227,7 @@ router.post('/match-prompts', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ImageMatch] Match prompts failed', error);
-    res.status(500).json({ error: 'Prompt matching failed' });
+    return res.status(500).json({ error: 'Prompt matching failed' });
   }
 });
 
@@ -251,7 +251,7 @@ router.post('/parameterize', async (req: Request, res: Response) => {
     // TODO: Generate parameterized prompt
     // TODO: Queue for video generation
 
-    res.json({
+    return res.json({
       status: 'success',
       parameterized: {
         imageId,
@@ -266,7 +266,7 @@ router.post('/parameterize', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ImageParameterize] Parameterization failed', error);
-    res.status(500).json({ error: 'Parameterization failed' });
+    return res.status(500).json({ error: 'Parameterization failed' });
   }
 });
 
@@ -278,7 +278,7 @@ router.get('/status', async (req: Request, res: Response) => {
   try {
     const stats = feedIADatabase.getStats();
 
-    res.json({
+    return res.json({
       status: 'operational',
       database: stats,
       uploadDirectory: UPLOAD_DIR,
@@ -297,7 +297,7 @@ router.get('/status', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ImageUpload] Status check failed', error);
-    res.status(500).json({ error: 'Status check failed' });
+    return res.status(500).json({ error: 'Status check failed' });
   }
 });
 

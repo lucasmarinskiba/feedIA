@@ -269,7 +269,7 @@ async function fullTimeAutomationWorkflow(brief: FullTimeBrief) {
   // Midday: Post content (Manager role)
   console.log('[FeedIA] 12 PM: Posting phase - publishing daily content');
   for (let i = 0; i < brief.dailyPostCount; i++) {
-    const platform = brief.platforms[i % brief.platforms.length];
+    const platform = brief.platforms[i % brief.platforms.length]!;
     await orchestrator.executeAutomation({
       task: 'post_carousel',
       platform,

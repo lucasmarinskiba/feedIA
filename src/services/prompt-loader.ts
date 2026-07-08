@@ -129,7 +129,7 @@ export const promptLoader = {
 
     // Randomize selection for variety across carousel slides
     const randomIndex = Math.floor(Math.random() * prompts.length);
-    const primary = prompts[randomIndex];
+    const primary = prompts[randomIndex]!;
     const variations = prompts.filter((_, i) => i !== randomIndex).slice(0, 3);
 
     // Format-specific brand context injection

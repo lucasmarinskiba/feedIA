@@ -53,7 +53,7 @@ router.post('/batch-96/pets', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Failed to generate pet soft-sell prompt' });
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       batch: 'batch-96',
       category: 'soft-sell-pets',
@@ -68,7 +68,7 @@ router.post('/batch-96/pets', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Batch96] Pet soft-sell error', error);
-    res.status(500).json({ error: 'Pet soft-sell generation failed' });
+    return res.status(500).json({ error: 'Pet soft-sell generation failed' });
   }
 });
 
@@ -102,7 +102,7 @@ router.post('/batch-96/lifestyle', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Failed to generate lifestyle soft-sell' });
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       batch: 'batch-96',
       category: 'soft-sell-lifestyle',
@@ -117,7 +117,7 @@ router.post('/batch-96/lifestyle', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Batch96] Lifestyle soft-sell error', error);
-    res.status(500).json({ error: 'Lifestyle soft-sell generation failed' });
+    return res.status(500).json({ error: 'Lifestyle soft-sell generation failed' });
   }
 });
 
@@ -151,7 +151,7 @@ router.post('/batch-96/services', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Failed to generate service soft-sell' });
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       batch: 'batch-96',
       category: 'soft-sell-services',
@@ -166,7 +166,7 @@ router.post('/batch-96/services', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Batch96] Service soft-sell error', error);
-    res.status(500).json({ error: 'Service soft-sell generation failed' });
+    return res.status(500).json({ error: 'Service soft-sell generation failed' });
   }
 });
 
@@ -200,7 +200,7 @@ router.post('/batch-96/brand-positioning', async (req: Request, res: Response) =
       return res.status(400).json({ error: 'Failed to generate brand positioning' });
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       batch: 'batch-96',
       category: 'soft-sell-brand-positioning',
@@ -215,7 +215,7 @@ router.post('/batch-96/brand-positioning', async (req: Request, res: Response) =
     });
   } catch (error) {
     log.error('[Batch96] Brand positioning error', error);
-    res.status(500).json({ error: 'Brand positioning generation failed' });
+    return res.status(500).json({ error: 'Brand positioning generation failed' });
   }
 });
 
@@ -249,7 +249,7 @@ router.post('/batch-96/cause-driven', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Failed to generate cause-driven prompt' });
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       batch: 'batch-96',
       category: 'soft-sell-cause-driven',
@@ -264,7 +264,7 @@ router.post('/batch-96/cause-driven', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Batch96] Cause-driven error', error);
-    res.status(500).json({ error: 'Cause-driven generation failed' });
+    return res.status(500).json({ error: 'Cause-driven generation failed' });
   }
 });
 

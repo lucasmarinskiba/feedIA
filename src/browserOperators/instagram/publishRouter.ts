@@ -258,7 +258,6 @@ export const checkPublishHealth = async (
 
   // Check web (sin iniciar sesión, solo verificar si Chrome/Playwright está disponible)
   try {
-    // @ts-expect-error — playwright optional
     const pw = await import('playwright').catch(() => null);
     webOk = !!pw;
   } catch {

@@ -144,13 +144,18 @@ export const animationEngine = () => {
   /**
    * Generate complete CSS with slide classes and animations.
    */
-  const generateCSS = (allKeyframes: string, slides: unknown[], timeline: unknown[]): string => {
+  const generateCSS = (
+    allKeyframes: string,
+    slides: unknown[],
+    timeline: Array<{ slideId: number; delay: number; duration: number; animation: string }>,
+  ): string => {
     const slideCSS = slides
-      .map((slide, idx) => {
+      .map((slide: any, idx) => {
         const timingInfo = timeline[idx];
+        if (!timingInfo) return '';
         return `
 .slide-${idx + 1} {
-  animation: ${timingInfo.animation} ${timingInfo.duration}ms ${slide.animation?.easing || 'ease-out'} forwards ${timingInfo.delay}ms;
+  animation: ${timingInfo.animation} ${timingInfo.duration}ms ${slide?.animation?.easing || 'ease-out'} forwards ${timingInfo.delay}ms;
 }
 `;
       })
@@ -206,13 +211,13 @@ ${slideCSS}
    */
   const generateMP4Timing = (
     slides: unknown[],
-    timeline: unknown[],
+    timeline: Array<{ slideId: number; delay: number; duration: number; animation: string }>,
   ): Array<{
     slideIndex: number;
     startTime: number;
     duration: number;
     transition: string;
-  }> => timeline.map((timing, idx) => ({
+  }> => timeline.map((timing) => ({
       slideIndex: timing.slideId,
       startTime: timing.delay / 1000, // Convert to seconds
       duration: timing.duration / 1000,

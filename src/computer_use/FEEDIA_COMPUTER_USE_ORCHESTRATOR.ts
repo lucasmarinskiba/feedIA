@@ -115,9 +115,9 @@ class FeedIAComputerUseOrchestrator {
       await this.browser.initializeBrowser();
       await this.browser.navigateToInstagram();
       await this.browser.createInstagramCarousel({
-        images: carouselContent.images || [],
-        captions: carouselContent.captions || [],
-        hashtags: carouselContent.hashtags || '',
+        images: [],
+        captions: [carouselContent.content],
+        hashtags: '',
       });
       await this.browser.closeBrowser();
 
@@ -167,9 +167,9 @@ class FeedIAComputerUseOrchestrator {
       await this.browser.initializeBrowser();
       await this.browser.navigateToInstagram();
       await this.browser.createInstagramCarousel({
-        images: [reelContent.video],
-        captions: [reelContent.caption],
-        hashtags: reelContent.hashtags,
+        images: [],
+        captions: [reelContent.content],
+        hashtags: '',
       });
       await this.browser.closeBrowser();
     }
@@ -200,7 +200,7 @@ class FeedIAComputerUseOrchestrator {
     if (brief.platform === 'instagram' || brief.platform === 'both') {
       await this.browser.initializeBrowser();
       await this.browser.navigateToInstagram();
-      await this.browser.createInstagramStory(storyContent.image, storyContent.text);
+      await this.browser.createInstagramStory('', storyContent.content);
       await this.browser.closeBrowser();
 
       console.log('[FeedIA] Story posted to Instagram');

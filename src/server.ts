@@ -71,6 +71,26 @@ app.use((req: Request, res: Response, next) => {
       primary: 'engagement',
       metricsToWatch: [],
     },
+    competitors: [],
+    hashtagPools: {},
+    contentPillars: [],
+    complianceRules: [],
+    brandStrategy: {
+      vision: '',
+      mission: '',
+      values: [],
+      promise: '',
+      positioning: '',
+      story: '',
+      personality: [],
+      archetype: '',
+      architecture: 'master-brand',
+      differentiators: [],
+      experiencePrinciples: [],
+      targetPersonas: [],
+      brandVoiceRules: [],
+      visualUsageRules: [],
+    },
   };
   req.brand = mockBrand;
   next();

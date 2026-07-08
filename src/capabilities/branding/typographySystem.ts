@@ -377,7 +377,7 @@ export const validateTypography = (
     readableOnMobile: platform === 'desktop' ? true : font.mobileOptimized,
     matchesNicheEnergy: font.niches.includes(niche),
     sufficientContrast: font.minContrast >= 4.5,
-    enoughReadingTime: font.category !== 'script' || font.category === 'body',
+    enoughReadingTime: font.category !== 'script',
   };
 
   return {

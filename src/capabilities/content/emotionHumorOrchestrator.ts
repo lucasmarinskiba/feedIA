@@ -20,6 +20,8 @@ import {
   type HumorMap,
 } from './humorInjectionEngine.js';
 
+export type { Emotion };
+
 export interface ContentEnrichmentBrief {
   content: string; // Original copy/script
   contentType: 'carousel-slide' | 'video-hook' | 'video-scene' | 'video-cta';
@@ -120,7 +122,7 @@ const applyPsychologicalTriggers = (content: string, emotionMap: EmotionMap): st
 
   // Insert primary trigger at start
   if (emotionMap.triggers.length > 0) {
-    const primaryTrigger = emotionMap.triggers[0];
+    const primaryTrigger = emotionMap.triggers[0]!;
     result = `${primaryTrigger.trigger}\n\n${result}`;
   }
 
@@ -160,7 +162,7 @@ const calculateEngagementScore = (
   );
 
   // Comedy resonance: Humor count + timing quality
-  const timingScore: Record<string, number> = {
+  const timingScore: Record<HumorMap['timing'], number> = {
     excellent: 90,
     good: 75,
     risky: 50,
@@ -201,7 +203,7 @@ export const enrichCarouselWithEmotionAndHumor = async (
           contentType: slide.number <= 3 ? 'carousel-slide' : 'carousel-slide',
           topic,
           primaryEmotion,
-          audience: brand?.audience?.primary,
+          audience: brand?.audience?.description,
         },
         brand,
       ),
@@ -209,7 +211,7 @@ export const enrichCarouselWithEmotionAndHumor = async (
   );
 
   return enriched.map((e, idx) => ({
-    number: slides[idx].number,
+    number: slides[idx]!.number,
     enriched: e,
   }));
 };
@@ -229,7 +231,7 @@ export const enrichVideoWithEmotionAndHumor = async (
       topic,
       primaryEmotion,
       humorIntensity: 'strong',
-      audience: brand?.audience?.primary,
+      audience: brand?.audience?.description,
     },
     brand,
   );
@@ -242,7 +244,7 @@ export const enrichVideoWithEmotionAndHumor = async (
           contentType: 'video-scene',
           topic,
           primaryEmotion,
-          audience: brand?.audience?.primary,
+          audience: brand?.audience?.description,
         },
         brand,
       ),
@@ -256,7 +258,7 @@ export const enrichVideoWithEmotionAndHumor = async (
       topic,
       primaryEmotion,
       humorIntensity: 'medium',
-      audience: brand?.audience?.primary,
+      audience: brand?.audience?.description,
     },
     brand,
   );
@@ -264,7 +266,7 @@ export const enrichVideoWithEmotionAndHumor = async (
   return {
     hook,
     scenes: scenes.map((e, idx) => ({
-      second: videoScript.scenes[idx].second,
+      second: videoScript.scenes[idx]!.second,
       enriched: e,
     })),
     cta,

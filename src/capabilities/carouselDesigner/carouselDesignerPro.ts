@@ -3,10 +3,10 @@ import { createQuickCarousel } from '../quickCarousel/quickCarousel';
 import { artDirector } from '../creativeDirector/artDirector';
 import { animationEngine } from './animationEngine';
 import { downloadImageFromUrl, downloadAndUploadToCanva, detectImageRequests, searchImageUrls } from '../../integrations/imageDownloader';
-import { canva } from '../../integrations/canva';
 import { generateAnimatedCarousel, isRunwayAvailable } from '../../integrations/runway';
-import { validateAesthetic, autoFixAesthetic } from './visualQA';
+import { validateAesthetic as validateAestheticQA, autoFixAesthetic } from './visualQA';
 import { createCarouselExport } from './carouselExporter';
+import type { BrandProfile } from '../../config/types.js';
 
 export interface CarouselDesignerProInput {
   prompt: string;
@@ -79,9 +79,67 @@ export interface CarouselDesignerProOutput {
  * Combines quick-carousel pipeline with Pinterest aesthetic patterns,
  * animation engine, and Computer Use for Canva interaction.
  */
+/**
+ * Minimal default brand profile used when no brand is supplied.
+ * Keeps the pipeline usable for anonymous/quick-generation callers.
+ */
+const DEFAULT_BRAND_PROFILE: BrandProfile = {
+  name: 'FeedIA',
+  type: 'marca-personal',
+  niche: 'contenido general',
+  audience: {
+    description: 'Audiencia general de Instagram',
+    pains: [],
+    desires: [],
+    locale: 'es-AR',
+  },
+  voice: {
+    tone: ['directo', 'cercano'],
+    forbidden: [],
+    referenceQuotes: [],
+  },
+  visual: {
+    palette: [],
+    typography: [],
+    style: 'minimalista',
+    mood: 'profesional',
+    photographyStyle: 'natural',
+    compositionRules: [],
+    allowedIconography: [],
+    forbiddenIconography: [],
+    moodboardUrls: [],
+    density: 'medium',
+    imageTextRatio: 'balanced',
+  },
+  goals: {
+    primary: 'engagement',
+    metricsToWatch: [],
+  },
+  competitors: [],
+  hashtagPools: {},
+  contentPillars: [],
+  complianceRules: [],
+  brandStrategy: {
+    vision: '',
+    mission: '',
+    values: [],
+    promise: '',
+    positioning: '',
+    story: '',
+    personality: [],
+    archetype: '',
+    architecture: 'master-brand',
+    differentiators: [],
+    experiencePrinciples: [],
+    targetPersonas: [],
+    brandVoiceRules: [],
+    visualUsageRules: [],
+  },
+};
+
 export const designCarouselPinterest = async (
   input: CarouselDesignerProInput,
-  brand?: unknown,
+  brand?: BrandProfile,
   client?: Anthropic,
 ): Promise<CarouselDesignerProOutput> => {
   const startTime = Date.now();
@@ -90,17 +148,18 @@ export const designCarouselPinterest = async (
   const slideCount = input.slideCount || 10;
   const animationStyle = input.animationStyle || 'fade';
   const includeVideo = input.includeVideo !== false;
+  const brandProfile = brand ?? DEFAULT_BRAND_PROFILE;
 
   try {
     // Step 1: Generate base carousel using existing pipeline
-    const baseCarousel = await createQuickCarousel(brand, {
+    const baseCarousel = await createQuickCarousel(brandProfile, {
       prompt: input.prompt,
       slideCount,
       tone: 'Pinterest-inspired, innovative, zero-corporate',
     });
 
     // Step 2: Enhance with Pinterest aesthetics
-    const pinterestSlides = baseCarousel.slides.map((slide: unknown, idx: number) => {
+    const pinterestSlides = baseCarousel.slides.map((slide, idx) => {
       const pinterestPattern = getPinterestPattern(idx, slideCount);
       const palette = getPinterestPalette(style);
       const textAnim = getTextAnimation(animationStyle, idx);
@@ -129,11 +188,11 @@ export const designCarouselPinterest = async (
     });
 
     // Step 3: Generate Pinterest-aligned image prompts
-    const enhancedSlides = await Promise.all(
-      pinterestSlides.map(async (slide) => {
+    const enhancedSlides: PinterestSlide[] = await Promise.all(
+      pinterestSlides.map(async (slide): Promise<PinterestSlide> => {
         const imagePrompt = artDirector.generatePinterestPrompt(
           `${input.prompt} - slide ${slide.slide}`,
-          brand,
+          brandProfile,
           {
             palette: slide.colorPalette,
             pattern: slide.pinterestPattern,
@@ -167,7 +226,7 @@ export const designCarouselPinterest = async (
         for (let i = 0; i < imagesToProcess.length; i++) {
           const slideIdx = Math.floor((i / imagesToProcess.length) * enhancedSlides.length);
           const result = await downloadAndUploadToCanva(
-            imagesToProcess[i],
+            imagesToProcess[i]!,
             `carousel-slide-${slideIdx + 1}.png`,
           );
           if (result.assetId) {
@@ -205,7 +264,7 @@ export const designCarouselPinterest = async (
       try {
         // Generate MP4 from PNG slides using Runway API
         const slides = enhancedSlides.map((s) => `carousel-slide-${s.slide}`); // Placeholder paths
-        const timings = animationEngine_instance.generateMP4Timing(enhancedSlides, animations.timeline);
+        const timings = animations.timeline;
 
         const result = await generateAnimatedCarousel(slides, timings, {
           duration: slideCount * 2.5,
@@ -224,15 +283,15 @@ export const designCarouselPinterest = async (
     }
 
     // Step 7: Visual QA check
-    const qaResult = validateAesthetic(enhancedSlides);
+    const qaResult = validateAestheticQA(enhancedSlides);
     let finalSlides = enhancedSlides;
 
     // Auto-fix if score low but close to threshold
     if (qaResult.score < 70 && qaResult.score > 50) {
-      const { slides: fixedSlides, fixes } = autoFixAesthetic(enhancedSlides);
-      finalSlides = fixedSlides;
+      const { slides: fixedSlides } = autoFixAesthetic(enhancedSlides);
+      finalSlides = fixedSlides as PinterestSlide[];
       // Re-validate after fixes
-      const revalidated = validateAesthetic(finalSlides);
+      const revalidated = validateAestheticQA(finalSlides);
       if (revalidated.score >= 70) {
         // Success: auto-fix brought it above threshold
       }
@@ -286,7 +345,7 @@ const getPinterestPattern = (slideIndex: number, totalSlides: number): string =>
     'asymmetrical-balance',
     'left-aligned-text-right-image',
   ];
-  return patterns[slideIndex % patterns.length];
+  return patterns[slideIndex % patterns.length]!;
 };
 
 /**
@@ -344,7 +403,7 @@ const getTextAnimation = (
 /**
  * Generate HTML5 preview with CSS animations.
  */
-const generateHTMLPreview = (slides: PinterestSlide[], animations: unknown): string => {
+const generateHTMLPreview = (slides: PinterestSlide[], animations: { css: string }): string => {
   const slidesHTML = slides
     .map(
       (slide, idx) => `
@@ -391,33 +450,3 @@ const generateHTMLPreview = (slides: PinterestSlide[], animations: unknown): str
   `;
 };
 
-/**
- * Validate carousel against Pinterest aesthetic standards.
- * Returns score 0-100.
- */
-const validateAesthetic = (slides: PinterestSlide[]): number => {
-  let score = 100;
-
-  slides.forEach((slide) => {
-    // Typography validation
-    if (slide.typography.headline.size < 28 || slide.typography.headline.size > 36) score -= 5;
-    if (slide.typography.body.size < 14 || slide.typography.body.size > 18) score -= 5;
-
-    // Color validation (simple check)
-    if (!slide.colorPalette.primary || !slide.colorPalette.secondary) score -= 10;
-
-    // Pattern validation
-    const validPatterns = [
-      'left-aligned-text-right-image',
-      'full-bleed-image-overlay',
-      'grid-layout',
-      'asymmetrical-balance',
-    ];
-    if (!validPatterns.includes(slide.pinterestPattern)) score -= 10;
-
-    // Animation validation
-    if (slide.animation.duration < 300 || slide.animation.duration > 600) score -= 5;
-  });
-
-  return Math.max(0, Math.min(100, score));
-};

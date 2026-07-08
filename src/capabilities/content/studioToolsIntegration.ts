@@ -191,7 +191,7 @@ export const generateCarousel = async (
     topic,
     slideCount,
     emotion,
-    audience: brand?.audience?.primary,
+    audience: brand?.audience?.description,
   };
 
   const carousel = await generateCarouselContent(brief, brand);
@@ -217,7 +217,7 @@ export const generateVideo = async (
     platform,
     tone: brand?.voice?.tone || ['professional'],
     emotionalHook: emotion,
-    audience: brand?.audience?.primary,
+    audience: brand?.audience?.description,
   };
 
   const video = await generateVideoContent(brief, brand);
@@ -301,8 +301,8 @@ export const validateWeeklyContentCoherence = async (
     type: piece.type,
     topic: piece.data.topic || 'Untitled',
     emotion: piece.data.emotion || 'curiosity',
-    fonts: piece.data.fonts || [brand?.fonts?.headline || 'Poppins'],
-    colors: piece.data.colors || [brand?.colors?.primary || '#E91E8C'],
+    fonts: piece.data.fonts || [brand?.visual?.typography?.[0] || 'Poppins'],
+    colors: piece.data.colors || [brand?.visual?.palette?.[0] || '#E91E8C'],
     tone: brand?.voice?.tone?.[0] || 'professional',
     cta: piece.data.cta || 'Follow',
   }));

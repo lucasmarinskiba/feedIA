@@ -176,7 +176,7 @@ export const generateCarouselNarrative = (
 
   // Determine slide count based on story strength
   const recommendedCount = autoSlideCount ? determineSlideCount(topic, emotion) : 7; // Default 7
-  const roleSequence = narrativePatterns[recommendedCount] || narrativePatterns[7];
+  const roleSequence = narrativePatterns[recommendedCount] || narrativePatterns[7]!;
 
   const slides: NarrativeSlide[] = roleSequence.map((role, idx) => ({
     number: idx + 1,

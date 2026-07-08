@@ -75,9 +75,9 @@ Role: Generate ultra-realistic construction/retail/luxury prompts with nano-bana
 Brand Context:
 - Name: ${brand.name}
 - Niche: ${brand.niche || 'general'}
-- Target: ${brand.targetAudience || 'professionals'}
-- Aesthetic: ${brand.aesthetic || 'modern'}
-- Tone: ${brand.tone || 'professional'}
+- Target: ${brand.audience?.description || 'professionals'}
+- Aesthetic: ${brand.visual?.style || 'modern'}
+- Tone: ${brand.voice?.tone?.join(', ') || 'professional'}
 
 Style Guide: ${styleGuide}
 Occasion Filter: ${occasion || 'flexible (trabajo/amigos/temática)'}

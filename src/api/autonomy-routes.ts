@@ -57,7 +57,7 @@ router.post('/generate', async (req, res) => {
     log.error('[AutonomyAPI] generation failed', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Autonomous generation failed',
     });
   }
@@ -91,7 +91,7 @@ router.post('/carousels', async (req, res) => {
     log.error('[AutonomyAPI] carousel generation failed', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Carousel generation failed',
     });
   }
@@ -125,7 +125,7 @@ router.post('/reels', async (req, res) => {
     log.error('[AutonomyAPI] reel generation failed', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Reel generation failed',
     });
   }
@@ -159,7 +159,7 @@ router.post('/stories', async (req, res) => {
     log.error('[AutonomyAPI] story generation failed', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Story generation failed',
     });
   }

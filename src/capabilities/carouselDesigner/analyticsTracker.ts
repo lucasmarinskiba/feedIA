@@ -57,8 +57,9 @@ export const getAnalyticsSummary = (): {
 
   const styles: Record<string, number> = {};
   events.forEach((e) => {
-    if (e.data?.style) {
-      styles[e.data.style] = (styles[e.data.style] || 0) + 1;
+    const style = e.data?.style;
+    if (typeof style === 'string') {
+      styles[style] = (styles[style] || 0) + 1;
     }
   });
 

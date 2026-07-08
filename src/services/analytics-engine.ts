@@ -235,8 +235,8 @@ class AnalyticsEngine {
       return { status: 'no_data', timeWindow: timeWindowMinutes };
     }
 
-    const first = recentMetrics[0];
-    const last = recentMetrics[recentMetrics.length - 1];
+    const first = recentMetrics[0]!;
+    const last = recentMetrics[recentMetrics.length - 1]!;
 
     return {
       timeWindow: timeWindowMinutes,
@@ -272,7 +272,7 @@ class AnalyticsEngine {
       return { status: 'no_metrics_yet' };
     }
 
-    const latest = this.metrics[this.metrics.length - 1];
+    const latest = this.metrics[this.metrics.length - 1]!;
 
     const healthStatus =
       latest.content.quality_avg >= 75 &&

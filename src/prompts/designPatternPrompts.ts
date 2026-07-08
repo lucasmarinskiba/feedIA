@@ -1910,7 +1910,7 @@ export const platformStoryTiming = {
       middle: '3-45s: Build curiosity + deliver value',
       end: '45-60s: Memorable ending'
     },
-    format: 'Fast cuts, text overlays, captions',
+    style: 'Fast cuts, text overlays, captions',
     recommendation: 'Audio-first design'
   },
 

@@ -74,7 +74,7 @@ router.post('/expand-refine', async (req: Request, res: Response) => {
       if (success) stored++;
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       promptId,
       expansions: {
@@ -99,7 +99,7 @@ router.post('/expand-refine', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[QualityExpansion] Expand-refine failed', error);
-    res.status(500).json({ error: 'Expansion failed', message: String(error) });
+    return res.status(500).json({ error: 'Expansion failed', message: String(error) });
   }
 });
 
@@ -117,7 +117,7 @@ router.post('/validate', async (req: Request, res: Response) => {
 
     const validation = await qualityValidator.validatePrompt(promptText);
 
-    res.json({
+    return res.json({
       status: 'validated',
       qualityScore: validation.score,
       passed: validation.passed,
@@ -135,7 +135,7 @@ router.post('/validate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[QualityExpansion] Validation failed', error);
-    res.status(500).json({ error: 'Validation failed' });
+    return res.status(500).json({ error: 'Validation failed' });
   }
 });
 
@@ -155,7 +155,7 @@ router.post('/refine', async (req: Request, res: Response) => {
 
     const refinement = await promptRefinementEngine.refinePrompt(promptText);
 
-    res.json({
+    return res.json({
       status: 'refined',
       original: refinement.originalPrompt.slice(0, 150) + '...',
       refined: refinement.refinedPrompt.slice(0, 200) + '...',
@@ -167,7 +167,7 @@ router.post('/refine', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[QualityExpansion] Refine failed', error);
-    res.status(500).json({ error: 'Refinement failed' });
+    return res.status(500).json({ error: 'Refinement failed' });
   }
 });
 

@@ -83,7 +83,7 @@ router.post('/generate-variations', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[PromptRoutes] Generation error', { error });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Prompt generation failed',
       details: error instanceof Error ? error.message : String(error),
     });
@@ -153,7 +153,7 @@ router.post('/batch-generate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[PromptRoutes] Batch generation error', { error });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Batch generation failed',
       details: error instanceof Error ? error.message : String(error),
     });
@@ -182,7 +182,7 @@ router.get('/optimized-config', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[PromptRoutes] Config retrieval error', { error });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Config retrieval failed',
       details: error instanceof Error ? error.message : String(error),
     });
@@ -195,7 +195,7 @@ router.get('/optimized-config', async (req: Request, res: Response) => {
  * GET /api/prompts/metrics/:batchId
  * Retrieve metrics for a specific batch
  */
-router.get('/metrics/:batchId', async (req: Request, res: Response) => {
+router.get('/metrics/:batchId', async (req: Request<{ batchId: string }>, res: Response) => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { batchId } = req.params;
@@ -217,7 +217,7 @@ router.get('/metrics/:batchId', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[PromptRoutes] Metrics retrieval error', { error });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Metrics retrieval failed',
       details: error instanceof Error ? error.message : String(error),
     });

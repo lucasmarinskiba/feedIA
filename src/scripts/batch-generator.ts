@@ -4,6 +4,7 @@ import { log } from '../agent/logger.js';
 import { generatePromptVariations, batchGeneratePrompts } from '../agents/prompt-generation-agent.js';
 import { scalingLayer } from '../api/scaling-layer.js';
 import type { BrandProfile } from '../config/types.js';
+import { buildMinimalBrandProfile } from '../auth/brandHelpers.js';
 
 const BATCHES = {
   28: { name: 'Construction', baseIds: ['A001', 'A050', 'A100', 'B001', 'B075'] },
@@ -20,13 +21,12 @@ const BATCHES = {
   39: { name: 'Advanced Commercial Design', baseIds: ['A001', 'A050', 'A100', 'B050', 'B125'] },
 };
 
-const mockBrand: BrandProfile = {
+const mockBrand: BrandProfile = buildMinimalBrandProfile({
+  id: 'feedia-batch-generator',
   name: 'FeedIA',
   niche: 'instagram-growth',
-  targetAudience: 'creators',
-  aesthetic: 'modern-minimalist',
-  tone: 'professional-creative',
-};
+  tone: ['professional', 'creative'],
+});
 
 /**
  * Autonomous batch generation CLI
