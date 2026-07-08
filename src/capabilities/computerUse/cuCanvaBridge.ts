@@ -19,7 +19,7 @@ import {
   type DesignBrief,
   type CanvaDesignSpec,
   type CanvaAction,
-} from '../agent/specialists/canvaSpecialist.js';
+} from '../../agent/specialists/canvaSpecialist.js';
 import type { CuAction } from './cuOptimizer.js';
 
 export interface CuCanvaContext {
@@ -58,7 +58,7 @@ const interpretInstruction = (
     format: context.format,
     platform: context.platform,
     topic: instruction,
-    tone: context.brand?.tone || ['professional'],
+    tone: context.brand?.voice?.tone || ['professional'],
     contentType,
     brand: context.brand,
   };

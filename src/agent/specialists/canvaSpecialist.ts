@@ -249,14 +249,17 @@ export const consultCanvaSpecialist = async (brief: DesignBrief): Promise<CanvaD
 
   // Pattern lookup
   const patternKey = `${brief.format}-${brief.contentType}`.toLowerCase().replace(/-_/g, '-');
-  let spec: CanvaDesignSpec = designPatterns[patternKey];
+  let spec: CanvaDesignSpec | undefined = designPatterns[patternKey];
 
   // Fallback: generic pattern
   if (!spec) {
-    const fallback = designPatterns['carousel-value'] || Object.values(designPatterns)[0];
-    spec = fallback as CanvaDesignSpec;
+    spec = designPatterns['carousel-value'] ?? Object.values(designPatterns)[0];
     log.warn(`[Canva Specialist] Pattern '${patternKey}' not found, using fallback`);
   }
+
+  // Deep-clone so per-request brand/tone overrides below never mutate the
+  // shared designPatterns cache (this WAS a bug: spec was a live reference).
+  spec = JSON.parse(JSON.stringify(spec)) as CanvaDesignSpec;
 
   // Brand override (if brand provided)
   if (brief.brand?.type === 'empresa') {
