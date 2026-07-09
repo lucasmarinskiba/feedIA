@@ -28,7 +28,7 @@ import veoVideoRoutes from './api/veo-video-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
-import type { BrandProfile } from './config/types.js';
+import { BrandProfileSchema } from './config/types.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -38,40 +38,41 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Brand context middleware (mock)
+const mockBrand = BrandProfileSchema.parse({
+  name: process.env.BRAND_NAME || 'FeedIA',
+  type: 'empresa',
+  niche: process.env.BRAND_NICHE || 'instagram-growth',
+  audience: {
+    description: process.env.BRAND_AUDIENCE || 'creators',
+    pains: [],
+    desires: [],
+    locale: 'es-AR',
+  },
+  voice: {
+    tone: ['professional', 'creative'],
+    forbidden: [],
+    referenceQuotes: [],
+  },
+  visual: {
+    palette: [],
+    typography: [],
+    style: 'minimalista',
+    mood: 'profesional',
+    photographyStyle: 'natural',
+    compositionRules: [],
+    allowedIconography: [],
+    forbiddenIconography: [],
+    moodboardUrls: [],
+    density: 'medium',
+    imageTextRatio: 'balanced',
+  },
+  goals: {
+    primary: 'engagement',
+    metricsToWatch: [],
+  },
+});
+
 app.use((req: Request, res: Response, next) => {
-  const mockBrand: BrandProfile = {
-    name: process.env.BRAND_NAME || 'FeedIA',
-    type: 'empresa',
-    niche: process.env.BRAND_NICHE || 'instagram-growth',
-    audience: {
-      description: process.env.BRAND_AUDIENCE || 'creators',
-      pains: [],
-      desires: [],
-      locale: 'es-AR',
-    },
-    voice: {
-      tone: ['professional', 'creative'],
-      forbidden: [],
-      referenceQuotes: [],
-    },
-    visual: {
-      palette: [],
-      typography: [],
-      style: 'minimalista',
-      mood: 'profesional',
-      photographyStyle: 'natural',
-      compositionRules: [],
-      allowedIconography: [],
-      forbiddenIconography: [],
-      moodboardUrls: [],
-      density: 'medium',
-      imageTextRatio: 'balanced',
-    },
-    goals: {
-      primary: 'engagement',
-      metricsToWatch: [],
-    },
-  };
   req.brand = mockBrand;
   next();
 });
@@ -156,8 +157,8 @@ app.use('/api/strategy', contentStrategyRoutes);
 // Mount Veo video generation routes (real video rendering, closes prompt-to-video gap)
 app.use('/api/video-gen', veoVideoRoutes);
 
-// Error handler
-app.use((err: Error, req: Request, res: Response) => {
+// Error handler (4-arg signature required by Express)
+app.use((err: Error, req: Request, res: Response, _next: express.NextFunction) => {
   log.error('[Server] error', { error: err.message });
   captureException(err, { path: req.path, method: req.method });
   res.status(500).json({
@@ -166,20 +167,17 @@ app.use((err: Error, req: Request, res: Response) => {
   });
 });
 
-// Initialize database + start server
-app.listen(PORT, async () => {
-  try {
-    await feedIADatabase.initialize();
-    log.info('[Database] initialized', { path: './feedia.db' });
-
-    // Initialize agent orchestrator
+// Fire-and-forget init (serverless: no app.listen)
+feedIADatabase
+  .initialize()
+  .then(() => {
     feedIAOrchestrator.initializeAgents();
-    log.info('[Orchestrator] agents initialized');
-  } catch (error) {
-    log.error('[Database/Orchestrator] initialization failed', error);
-  }
+    log.info('[Server] initialized');
+  })
+  .catch((err) => log.error('[Server] initialization failed', err));
 
-  log.info('[Server] started', { port: PORT });
+if (false) {
+  // dead block — keeps remaining console.logs unreachable but parseable
   console.log(`✅ FeedIA Autonomous Generator running on http://localhost:${PORT}`);
   console.log(`📊 Batches: 28-61 base (6,770) + 62-95 parameterized (6,100) = 12,870 total`);
   console.log(`🔗 Prompt Endpoints:`);
@@ -351,6 +349,6 @@ app.listen(PORT, async () => {
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
   console.log(`   GET  /api/autonomy/database/stats`);
   console.log(`   GET  /api/autonomy/database/performance/:batchId`);
-});
+}
 
 export default app;
