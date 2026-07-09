@@ -289,4 +289,31 @@ class FeedIADatabase {
   }
 }
 
-export const feedIADatabase = new FeedIADatabase();
+// Initialize database with graceful fallback when better-sqlite3 native module is unavailable
+// (e.g. on Vercel serverless where native bindings may not be bundled).
+// The fallback returns safe no-op values so routes don't crash entirely.
+let feedIADatabaseInstance: FeedIADatabase | null = null;
+
+try {
+  feedIADatabaseInstance = new FeedIADatabase();
+} catch (error) {
+  log.warn('[Database] Failed to initialize real database, using mock fallback', error);
+}
+
+const mockDatabase = {
+  initialize: async () => {
+    log.warn('[MockDatabase] initialize called (real DB unavailable)');
+    return Promise.resolve();
+  },
+  storeUserImage: () => false,
+  storePrompt: () => false,
+  findMatchingPrompts: () => [],
+  getPromptsByBatch: () => [],
+  storeVariation: () => false,
+  getStats: () => ({ tables: 0, totalRecords: 0 }),
+  close: () => {
+    log.info('[MockDatabase] close called');
+  },
+};
+
+export const feedIADatabase = (feedIADatabaseInstance || mockDatabase) as FeedIADatabase;
