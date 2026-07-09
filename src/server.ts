@@ -167,7 +167,8 @@ const STATIC_CANDIDATES = [
 const staticDir = STATIC_CANDIDATES.find((d) => fs.existsSync(d)) ?? null;
 if (staticDir) {
   app.use(express.static(staticDir));
-  app.get('*', (req: Request, res: Response) => {
+  // SPA catch-all: serve index.html for all unmatched routes (express 5 compat: use app.use not app.get('*'))
+  app.use((req: Request, res: Response) => {
     res.sendFile(path.join(staticDir, 'index.html'));
   });
 } else {
