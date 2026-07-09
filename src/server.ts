@@ -1,4 +1,6 @@
 import express, { Express, Request, Response } from 'express';
+import path from 'path';
+import fs from 'fs';
 import { log } from './agent/logger.js';
 import { initSentry, captureException } from './observability/sentry.js';
 
@@ -156,6 +158,23 @@ app.use('/api/strategy', contentStrategyRoutes);
 
 // Mount Veo video generation routes (real video rendering, closes prompt-to-video gap)
 app.use('/api/video-gen', veoVideoRoutes);
+
+// Static files + SPA catch-all (must be after all /api routes)
+const STATIC_CANDIDATES = [
+  path.resolve(process.cwd(), 'dist-static'),
+  path.resolve(process.cwd(), 'src/server/static'),
+];
+const staticDir = STATIC_CANDIDATES.find((d) => fs.existsSync(d)) ?? null;
+if (staticDir) {
+  app.use(express.static(staticDir));
+  app.get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(staticDir, 'index.html'));
+  });
+} else {
+  app.get('/', (req: Request, res: Response) => {
+    res.json({ status: 'ok', service: 'FeedIA API', docs: '/health' });
+  });
+}
 
 // Error handler (4-arg signature required by Express)
 app.use((err: Error, req: Request, res: Response, _next: express.NextFunction) => {
