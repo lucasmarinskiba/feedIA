@@ -10,8 +10,11 @@ import path from 'path';
 import crypto from 'crypto';
 import { log } from '../agent/logger.js';
 import { feedIADatabase } from '../db/database.js';
-import { analyzeImageFeatures, generateRealImageEmbeddingViaCaption, isGeminiConfigured } from '../services/gemini-vision-client.js';
-import type { BrandProfile } from '../config/types.js';
+import {
+  analyzeImageFeatures,
+  generateRealImageEmbeddingViaCaption,
+  isGeminiConfigured,
+} from '../services/gemini-vision-client.js';
 
 const router = Router();
 
@@ -52,7 +55,37 @@ const upload = multer({
  * GEMINI_API_KEY is unset or the call fails — never throws, upload always
  * succeeds even without the real model configured.
  */
-async function extractImageFeatures(imagePath: string): Promise<Record<string, any>> {
+interface ImageFeatures {
+  person: {
+    detected: boolean;
+    age_range: string;
+    gender: string;
+    ethnicity: string;
+    expression: string;
+  };
+  scene: {
+    location_type: string;
+    lighting: string;
+    time_of_day: string;
+  };
+  emotion: {
+    primary: string;
+    secondary: string | null;
+    confidence: number;
+  };
+  palette: {
+    dominant_colors: string[];
+    temperature: string;
+    saturation: string;
+  };
+  quality: {
+    blur_score: number;
+    brightness: number;
+    contrast: number;
+  };
+}
+
+async function extractImageFeatures(imagePath: string): Promise<ImageFeatures> {
   const real = isGeminiConfigured() ? await analyzeImageFeatures(imagePath) : null;
 
   if (real) {
@@ -118,23 +151,12 @@ async function generateImageEmbedding(imagePath: string): Promise<number[]> {
 }
 
 /**
- * Calculate similarity score between two embeddings (cosine similarity)
- */
-function cosineSimilarity(a: number[], b: number[]): number {
-  const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
-  const normA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
-  const normB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
-  return normA && normB ? dotProduct / (normA * normB) : 0;
-}
-
-/**
  * POST /api/image-upload/upload
  * Upload image → extract features → store in DB
  */
 router.post('/upload', upload.single('image'), async (req: Request, res: Response) => {
   try {
-    const brand = (req as any).brand as BrandProfile;
-    const userId = (req as any).userId || 'anonymous';
+    const userId = ((req as unknown as Record<string, unknown>).userId as string) || 'anonymous';
 
     if (!req.file) {
       return res.status(400).json({ error: 'No image uploaded' });
@@ -167,7 +189,7 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
 
     log.info('[ImageUpload] Image stored', { imageId, userId });
 
-    res.json({
+    return res.json({
       status: 'success',
       image: {
         id: imageId,
@@ -180,7 +202,6 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
       facial_identity_note: features.person?.detected
         ? 'Person detected. If generating content FROM this photo (not just matching), call POST /api/identity/lock with this imageId to preserve exact facial features across all generated frames.'
         : undefined,
-      brand: brand?.name,
       metadata: {
         uploadedAt: new Date().toISOString(),
       },
@@ -200,7 +221,6 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
  */
 router.post('/match-prompts', async (req: Request, res: Response) => {
   try {
-    const brand = (req as any).brand as BrandProfile;
     const { imageId, limit = 50, category, batch } = req.body;
 
     if (!imageId) {
@@ -215,7 +235,7 @@ router.post('/match-prompts', async (req: Request, res: Response) => {
     // TODO: Filter by category/batch if specified
     // TODO: Implement actual similarity scoring based on embeddings
 
-    res.json({
+    return res.json({
       status: 'success',
       imageId,
       matchCount: matches.length,
@@ -237,7 +257,6 @@ router.post('/match-prompts', async (req: Request, res: Response) => {
  */
 router.post('/parameterize', async (req: Request, res: Response) => {
   try {
-    const brand = (req as any).brand as BrandProfile;
     const { imageId, promptId, parameters } = req.body;
 
     if (!imageId || !promptId) {
@@ -251,7 +270,7 @@ router.post('/parameterize', async (req: Request, res: Response) => {
     // TODO: Generate parameterized prompt
     // TODO: Queue for video generation
 
-    res.json({
+    return res.json({
       status: 'success',
       parameterized: {
         imageId,
@@ -278,7 +297,7 @@ router.get('/status', async (req: Request, res: Response) => {
   try {
     const stats = feedIADatabase.getStats();
 
-    res.json({
+    return res.json({
       status: 'operational',
       database: stats,
       uploadDirectory: UPLOAD_DIR,
