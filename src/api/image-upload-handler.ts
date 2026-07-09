@@ -7,6 +7,7 @@ import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import crypto from 'crypto';
 import { log } from '../agent/logger.js';
 import { feedIADatabase } from '../db/database.js';
@@ -18,7 +19,7 @@ import {
 
 const router = Router();
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads/images';
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(os.tmpdir(), 'feedia-uploads', 'images');
 
 // Ensure upload directory exists
 if (!fs.existsSync(UPLOAD_DIR)) {
