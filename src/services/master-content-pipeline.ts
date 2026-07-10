@@ -17,7 +17,7 @@ import { promptRefinementEngine } from './prompt-refinement-engine.js';
 import { creativityWitEngine } from './creativity-wit-engine.js';
 import { facialIdentityPreservationService } from './facial-identity-preservation.js';
 import { consistencyLockManager } from './consistency-lock.js';
-import { resolutionQualityEngine } from './resolution-quality-engine.js';
+import { applyViraLityLayer, type VirologyInjectionContext } from './virality-prompt-layer.js';
 
 interface MasterPipelineOptions {
   basePrompt: string;
@@ -27,6 +27,8 @@ interface MasterPipelineOptions {
   consistencySeriesId?: string; // from consistency-lock, if part of a carousel series
   frameNumber?: number; // which frame in the series (if applicable)
   frameCount?: number;
+  enableViralityGuidance?: boolean; // NEW: inject viral optimization hints before generation
+  viralityContext?: VirologyInjectionContext; // NEW: baseline content for scoring
 }
 
 interface MasterPipelineResult {
@@ -39,6 +41,8 @@ interface MasterPipelineResult {
   resolutionLocked: boolean;
   readyForGeneration: boolean;
   warnings: string[];
+  viralityScore?: number; // NEW: viral score if guidance was applied
+  viralityPotential?: number; // NEW: ceiling score (potential if improvements applied)
 }
 
 class MasterContentPipeline {
@@ -54,20 +58,57 @@ class MasterContentPipeline {
       consistencySeriesId,
       frameNumber,
       frameCount,
+      enableViralityGuidance,
+      viralityContext,
     } = options;
 
     const stagesApplied: string[] = [];
     const warnings: string[] = [];
     let workingPrompt = basePrompt;
+    let viralityScore: number | undefined;
+    let viralityPotential: number | undefined;
 
     log.info('[MasterPipeline] Processing started', {
       platform,
       contentType,
       hasIdentityLock: !!identityLockId,
       hasConsistencyLock: !!consistencySeriesId,
+      enableViralityGuidance,
     });
 
+    // Stage 0: Virality Guidance Layer (optional, opt-in)
+    if (enableViralityGuidance) {
+      try {
+        const viralityBrief = {
+          topic: basePrompt.split('\n')[0], // first line as topic
+          slideCount: frameCount,
+        };
+
+        const enriched = await applyViraLityLayer(
+          viralityBrief,
+          contentType === 'carousel' ? 'carousel' : contentType === 'video' ? 'reel' : 'story',
+          platform,
+          viralityContext,
+        );
+
+        // Prepend virality guidance to prompt
+        workingPrompt = [...enriched.viralityGuidance, '', basePrompt].join('\n');
+        viralityScore = enriched.predictions.viralScore;
+        viralityPotential = enriched.predictions.ceilingScore;
+        stagesApplied.push('virality-guidance-layer');
+
+        log.info('[MasterPipeline] Virality guidance applied', {
+          viralScore: viralityScore,
+          ceilingScore: viralityPotential,
+          guidelineCount: enriched.viralityGuidance.length,
+        });
+      } catch (err) {
+        warnings.push(`Virality guidance skipped: ${String(err)}`);
+      }
+    }
+
     // Stage 1: Initial quality check
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const initialValidation = await qualityValidator.validatePrompt(workingPrompt);
     stagesApplied.push('quality-validation');
 
@@ -135,6 +176,8 @@ class MasterContentPipeline {
       resolutionLocked: true, // always applied in Stage 2 via refinement
       readyForGeneration,
       warnings,
+      viralityScore,
+      viralityPotential,
     };
   }
 
@@ -148,13 +191,13 @@ class MasterContentPipeline {
     prompts: string[],
     platform: 'instagram' | 'tiktok',
     contentType: 'image' | 'video' | 'carousel',
-    envDescription: string
+    envDescription: string,
   ): Promise<{ prompts: string[]; avgQuality: number; avgWit: number; allReady: boolean }> {
     const seriesLock = consistencyLockManager.createSeriesLock(
       prompts.length,
       undefined,
       undefined,
-      consistencyLockManager.createEnvironmentLock(envDescription)
+      consistencyLockManager.createEnvironmentLock(envDescription),
     );
 
     const results: MasterPipelineResult[] = [];
@@ -171,10 +214,10 @@ class MasterContentPipeline {
     }
 
     return {
-      prompts: results.map(r => r.finalPrompt),
+      prompts: results.map((r) => r.finalPrompt),
       avgQuality: results.length ? results.reduce((sum, r) => sum + r.qualityScore, 0) / results.length : 0,
       avgWit: results.length ? results.reduce((sum, r) => sum + r.witScore, 0) / results.length : 0,
-      allReady: results.every(r => r.readyForGeneration),
+      allReady: results.every((r) => r.readyForGeneration),
     };
   }
 
@@ -186,7 +229,7 @@ class MasterContentPipeline {
     platform: 'instagram' | 'tiktok',
     frameCount: number,
     identityLockId?: string,
-    consistencySeriesId?: string
+    consistencySeriesId?: string,
   ): Promise<MasterPipelineResult[]> {
     const results: MasterPipelineResult[] = [];
 
@@ -205,7 +248,7 @@ class MasterContentPipeline {
 
     log.info('[MasterPipeline] Carousel processed', {
       frameCount,
-      allReady: results.every(r => r.readyForGeneration),
+      allReady: results.every((r) => r.readyForGeneration),
     });
 
     return results;
