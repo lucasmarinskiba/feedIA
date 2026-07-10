@@ -200,7 +200,7 @@ const generateHook = (topic: string, emotion: string, palette: PinterestPattern)
     ],
   };
 
-  const hookText = (hooks[emotion] || hooks.curiosity)[Math.floor(Math.random() * 3)];
+  const hookText = (hooks[emotion] ?? hooks.curiosity ?? [])[Math.floor(Math.random() * 3)] ?? '';
 
   return {
     text: hookText,
@@ -340,7 +340,7 @@ const generateCTA = (
     },
   };
 
-  return ctas[platform] || ctas.tiktok;
+  return ctas[platform] ?? ctas.tiktok!;
 };
 
 // ── Retention Curve (per-second) ────────────────────────────────────────

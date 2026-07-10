@@ -77,7 +77,7 @@ export const enhanceReelCreation = async (
   const guidance = await enrichReelGenerator({
     topic: config.idea,
     brand: config.brand,
-    tone: config.brand?.tone || ['professional'],
+    tone: config.brand?.voice?.tone || ['professional'],
     contentType: 'hook',
   });
 
@@ -108,7 +108,7 @@ export const enhanceTikTokVideo = async (
   const guidance = await enrichTikTokVideo({
     topic: config.topic,
     brand: config.brand,
-    tone: config.brand?.tone || ['professional'],
+    tone: config.brand?.voice?.tone || ['professional'],
     contentType: 'hook',
   });
 
@@ -117,7 +117,7 @@ export const enhanceTikTokVideo = async (
   log.info(`[Studio Enhancer] Applied TikTok 9:16 + trending audio guidance`);
 
   return {
-    ...result,
+    ...(result as Record<string, unknown>),
     tiktokGuidance: guidance,
   };
 };
@@ -138,7 +138,7 @@ export const enhanceTikTokPhoto = async (
   const guidance = await enrichTikTokPhoto({
     topic: config.description,
     brand: config.brand,
-    tone: config.brand?.tone || ['professional'],
+    tone: config.brand?.voice?.tone || ['professional'],
     contentType: 'value',
   });
 
@@ -147,7 +147,7 @@ export const enhanceTikTokPhoto = async (
   log.info(`[Studio Enhancer] Applied single-frame optimization`);
 
   return {
-    ...result,
+    ...(result as Record<string, unknown>),
     photoGuidance: guidance,
   };
 };
@@ -168,7 +168,7 @@ export const enhanceTikTokScript = async (
   const guidance = await enrichTikTokScript({
     topic: config.topic,
     brand: config.brand,
-    tone: config.brand?.tone || ['professional'],
+    tone: config.brand?.voice?.tone || ['professional'],
     contentType: 'educational',
   });
 
@@ -177,7 +177,7 @@ export const enhanceTikTokScript = async (
   log.info(`[Studio Enhancer] Applied hook + pacing guidance`);
 
   return {
-    ...result,
+    ...(result as Record<string, unknown>),
     scriptGuidance: guidance,
   };
 };
@@ -198,7 +198,7 @@ export const enhanceStoryCreation = async (
   const guidance = await enrichStoryTool({
     topic: config.idea,
     brand: config.brand,
-    tone: config.brand?.tone || ['professional'],
+    tone: config.brand?.voice?.tone || ['professional'],
     contentType: 'entertaining',
   });
 
@@ -207,7 +207,7 @@ export const enhanceStoryCreation = async (
   log.info(`[Studio Enhancer] Applied engagement + interaction guidance`);
 
   return {
-    ...result,
+    ...(result as Record<string, unknown>),
     storyGuidance: guidance,
   };
 };

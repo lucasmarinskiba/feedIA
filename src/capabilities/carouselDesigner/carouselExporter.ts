@@ -34,16 +34,20 @@ export const createCarouselExport = async (
     mkdirSync(exportDir, { recursive: true });
 
     // 1. Write PNG slide metadata (placeholder paths)
-    const slidesMetadata = slides.map((slide, idx) => ({
-      id: idx + 1,
-      text: slide.visualText,
-      design_notes: slide.designNotes,
-      pattern: slide.pinterestPattern,
-      colors: slide.colorPalette,
-      animation: slide.animation,
-      image_asset: slide.downloadedAssetId || null,
-      file: `slide-${idx + 1}.png`,
-    }));
+    const slidesMetadata = slides.map((rawSlide, idx) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const slide = rawSlide as any;
+      return {
+        id: idx + 1,
+        text: slide.visualText,
+        design_notes: slide.designNotes,
+        pattern: slide.pinterestPattern,
+        colors: slide.colorPalette,
+        animation: slide.animation,
+        image_asset: slide.downloadedAssetId || null,
+        file: `slide-${idx + 1}.png`,
+      };
+    });
 
     writeFileSync(
       join(exportDir, 'slides.json'),
@@ -55,9 +59,10 @@ export const createCarouselExport = async (
     writeFileSync(join(exportDir, 'animations.css'), animations.css, 'utf8');
 
     // 3. Write animation timeline
+    type TimelineItem = { delay: number; duration: number; animation: string };
+    const lastItem = animations.timeline[animations.timeline.length - 1] as TimelineItem | undefined;
     const timelineMetadata = {
-      total_duration_ms: animations.timeline[animations.timeline.length - 1]?.delay +
-        animations.timeline[animations.timeline.length - 1]?.duration || 0,
+      total_duration_ms: lastItem ? (lastItem.delay + lastItem.duration) : 0,
       slides: animations.timeline,
     };
 
@@ -74,7 +79,7 @@ export const createCarouselExport = async (
       created_at: createdAt,
       expires_at: expiresAt,
       slides_count: slides.length,
-      animation_type: slides[0]?.animation?.type || 'fade',
+      animation_type: (slides[0] as any)?.animation?.type || 'fade',
       aesthetic_score: 0, // Will be filled by completeJob
       mp4_url: mp4Url || null,
       export_format: 'zip',
@@ -163,7 +168,10 @@ export const createCarouselExport = async (
 const generateHTMLPreview = (slides: unknown[], css: string): string => {
   const slidesHTML = slides
     .map(
-      (slide, idx) => `
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (rawSlide: unknown, idx: number) => {
+        const slide = rawSlide as any;
+        return `
     <div class="slide slide-${idx + 1}" style="animation: ${slide.animation?.type || 'fade'} ${slide.animation?.duration || 400}ms ${slide.animation?.easing || 'ease-out'} forwards ${slide.animation?.delay || 0}ms;">
       <h2 style="font-size: ${slide.typography?.headline?.size || 32}px; font-weight: ${slide.typography?.headline?.weight || 700}; color: ${slide.colorPalette?.primary || '#000'};">
         ${slide.visualText}
@@ -173,7 +181,8 @@ const generateHTMLPreview = (slides: unknown[], css: string): string => {
         ${slide.designNotes}
       </p>
     </div>
-  `,
+  `;
+      },
     )
     .join('');
 
@@ -208,7 +217,7 @@ const generateHTMLPreview = (slides: unknown[], css: string): string => {
     ${slidesHTML}
   </div>
   <div class="info">
-    <p>Carousel with ${slides.length} slides · Animations: ${slides[0]?.animation?.type || 'fade'}</p>
+    <p>Carousel with ${slides.length} slides · Animations: ${(slides[0] as any)?.animation?.type || 'fade'}</p>
   </div>
 </body>
 </html>

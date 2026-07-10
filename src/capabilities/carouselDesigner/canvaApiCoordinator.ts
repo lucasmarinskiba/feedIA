@@ -197,6 +197,9 @@ export const runCanvaWorkflow = async (input: {
     }
 
     const template = templates[0];
+    if (!template) {
+      return { success: false, error: 'No templates available' };
+    }
     log.info(`[CanvaAPI] Using template: ${template.id}`);
 
     const slideTexts = input.prompt.split('.').slice(0, input.slideCount);

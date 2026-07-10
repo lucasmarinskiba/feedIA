@@ -231,7 +231,7 @@ export const selectBackgroundImage = (
   };
 
   const key = selectBackgroundStrategy(slideNumber, 10);
-  return strategies[key] || strategies['image-text'];
+  return strategies[key] ?? strategies['image-text']!;
 };
 
 // ── Text Overlay Safety ────────────────────────────────────────────────

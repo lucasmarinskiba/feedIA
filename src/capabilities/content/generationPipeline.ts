@@ -11,7 +11,8 @@ import { autoLoadBrandKit } from './brandKitAutoLoader.js';
 import { getRandomTemplate, searchTemplates, type ContentTemplate } from './templateLibrary.js';
 import { generateCarouselContent, type CarouselBrief } from './carouselContentOrchestrator.js';
 import { generateVideoContent, type VideoBrief } from './videoContentOrchestrator.js';
-import { enrichCarouselWithEmotionAndHumor, enrichVideoWithEmotionAndHumor, type Emotion } from './emotionHumorOrchestrator.js';
+import { enrichCarouselWithEmotionAndHumor, enrichVideoWithEmotionAndHumor } from './emotionHumorOrchestrator.js';
+import type { Emotion } from './emotionPsychologyEngine.js';
 
 export interface UserContentBrief {
   userId: string;
