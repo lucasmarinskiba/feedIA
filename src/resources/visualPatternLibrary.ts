@@ -217,7 +217,7 @@ export const layoutTemplates: LayoutTemplate[] = [
 ];
 
 // Learning engine: ingest new image
-export const ingestVisualPattern = (image: any, metadata: any): VisualPattern => {
+export const ingestVisualPattern = (image: any, metadata: any): VisualPattern => 
   // TODO: Vision API to extract:
   // - dominant colors
   // - layout structure
@@ -225,7 +225,7 @@ export const ingestVisualPattern = (image: any, metadata: any): VisualPattern =>
   // - element positioning
   // - composition rules
 
-  return {
+   ({
     id: `pattern-${Date.now()}`,
     name: metadata.name || 'Untitled',
     industry: metadata.industry || 'general',
@@ -239,8 +239,8 @@ export const ingestVisualPattern = (image: any, metadata: any): VisualPattern =>
     source: metadata.source,
     extractedFrom: metadata.extractedFrom,
     successMetrics: metadata.successMetrics
-  };
-};
+  })
+;
 
 // Query patterns by criteria
 export const queryPatterns = (filters: {
@@ -248,14 +248,12 @@ export const queryPatterns = (filters: {
   platform?: string;
   emotion?: string;
   layoutType?: string;
-}): VisualPattern[] => {
-  return visualPatterns.filter(p => {
+}): VisualPattern[] => visualPatterns.filter(p => {
     if (filters.industry && p.industry !== filters.industry) return false;
     if (filters.platform && p.platform !== filters.platform) return false;
     if (filters.emotion && p.emotion !== filters.emotion) return false;
     return true;
   });
-};
 
 // Get best matching template
 export const getMatchingTemplate = (briefing: {
@@ -264,5 +262,5 @@ export const getMatchingTemplate = (briefing: {
   messageType: 'promo' | 'education' | 'lifestyle' | 'social-proof' | 'feature';
 }): LayoutTemplate => {
   const matches = layoutTemplates.filter(t => t.bestFor.includes(briefing.industry));
-  return (matches[0] || layoutTemplates[0]) as LayoutTemplate;
+  return matches[0] || layoutTemplates[0];
 };

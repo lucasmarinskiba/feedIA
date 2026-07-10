@@ -13,6 +13,7 @@ import { authRoutes } from './authRoutes.js';
 import { startSchedulerLoop } from './schedulerLoop.js';
 import { buildStudioRoutes } from './studioApi.js';
 import { buildCanvaOAuthRoutes } from './canvaOAuthRoutes.js';
+import { buildHiggsfieldRoutes } from './higgsfieldRoutes.js';
 import { buildOAuthRoutes } from './oauthRoutes.js';
 import { voiceRoutes } from './voiceApi.js';
 import { buildGlassBoxRoutes } from './glassboxApi.js';
@@ -226,6 +227,7 @@ export const startDaemon = (opts: DaemonOptions = {}): { stop: () => void } => {
     const capcutWebhookRoutes = buildCapCutWebhookRoutes();
     const inshotWebhookRoutes = buildInShotWebhookRoutes();
     const canvaOAuthRoutes = buildCanvaOAuthRoutes();
+    const higgsfieldRoutes = buildHiggsfieldRoutes();
     const glassboxRoutes = buildGlassBoxRoutes();
     const extendedRoutes = buildExtendedRoutes(brand);
     const skillsRoutes = buildSkillsRoutes();
@@ -242,6 +244,7 @@ export const startDaemon = (opts: DaemonOptions = {}): { stop: () => void } => {
       ...capcutWebhookRoutes,
       ...inshotWebhookRoutes,
       ...canvaOAuthRoutes,
+      ...higgsfieldRoutes,
       ...oauthRoutes,
       ...voiceRoutes,
       ...webhookRoutes,

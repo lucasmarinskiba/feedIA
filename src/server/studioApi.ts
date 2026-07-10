@@ -26,7 +26,7 @@ import {
   renderReelStoryboardSvg,
   svgToDataUrl,
 } from '../capabilities/render/index.js';
-import { generateImage } from '../integrations/imageGen.js';
+import { routeImageGen } from '../services/provider-router.js';
 import type { BrandProfile, ContentFormat } from '../config/types.js';
 import { json, type RouteDefinition } from './http.js';
 
@@ -104,6 +104,7 @@ interface ImageGenBody {
   aspectRatio: '1:1' | '4:5' | '9:16' | '16:9';
   style?: string;
   count?: number;
+  handle?: string;
 }
 interface CanvaCarruselBody {
   carrusel: import('../capabilities/content/carrusel.js').CarruselResult;
@@ -310,13 +311,25 @@ export const buildStudioRoutes = (brand: BrandProfile): RouteDefinition[] => [
       if (!b.prompt || !b.aspectRatio) {
         return json(res, 400, { error: 'prompt y aspectRatio requeridos' });
       }
-      const req: import('../integrations/imageGen.js').ImageGenRequest = {
-        prompt: b.prompt,
-        aspectRatio: b.aspectRatio,
-        ...(b.style !== undefined ? { style: b.style } : {}),
-        ...(b.count !== undefined ? { count: b.count } : {}),
+      const contentTypeMap: Record<string, import('../services/provider-router.js').ContentType> = {
+        '9:16': 'story-image',
+        '4:5': 'carousel-frame',
+        '1:1': 'post-image',
+        '16:9': 'post-image',
       };
-      json(res, 200, await generateImage(req));
+      const routeResult = await routeImageGen({
+        prompt: b.prompt,
+        contentType: contentTypeMap[b.aspectRatio] ?? 'post-image',
+        userHandle: b.handle,
+        style: b.style,
+        count: b.count,
+      });
+      json(res, 200, {
+        ok: routeResult.ok,
+        urls: routeResult.urls ?? (routeResult.url ? [routeResult.url] : []),
+        provider: routeResult.provider,
+        error: routeResult.error,
+      });
     },
   },
   {

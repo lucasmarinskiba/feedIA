@@ -78,14 +78,14 @@ export const generateCarouselConcepts = (briefing: CarouselBriefing, count: numb
       briefing,
 
       // Visual
-      visualPattern: (visualMatches[i] || visualMatches[0])!,
+      visualPattern: visualMatches[i] || visualMatches[0],
       colorPalette: colorMatch || { id: 'default', name: 'Default', primary: '#000', secondary: '#FFF', accent: '#FF0', emotion: [], industries: [], psychology: '', accessibilityRatio: 4.5, examples: [] },
       layoutTemplate: visualMatches[i]?.layout.type || 'hero-left',
 
       // Copy
-      hookCopy: (hookCopies[i] || hookCopies[0])!,
-      educationCopy: educationCopies[0]!,
-      ctaCopy: ctaCopies[0]!,
+      hookCopy: hookCopies[i] || hookCopies[0],
+      educationCopy: educationCopies[0],
+      ctaCopy: ctaCopies[0],
 
       // Flow
       flowPattern: flowMatch || { id: 'default', name: 'Default Flow', slides: 6, flow: [], retention: [], industryFit: [], psychologyFlow: '' },
@@ -129,8 +129,7 @@ export const generateBatchConcepts = (briefings: CarouselBriefing[]): GeneratedC
   return allConcepts;
 };
 
-export const formatConceptForOutput = (concept: GeneratedCarouselConcept): string => {
-  return `
+export const formatConceptForOutput = (concept: GeneratedCarouselConcept): string => `
 CAROUSEL CONCEPT: ${concept.title}
 ================
 
@@ -156,4 +155,3 @@ ${concept.retentionStrategy}
 NEXT STEPS:
 ${concept.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
   `;
-};

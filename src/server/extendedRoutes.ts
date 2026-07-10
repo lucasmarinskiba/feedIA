@@ -4840,9 +4840,24 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       const health = await checkAllPlatforms(brandId);
       const tokens = getAllOAuthTokens();
 
+      const { isHiggsfieldConnected, loadHiggsfieldCredentials } = await import('../integrations/higgsfieldAuth.js');
+      // Use first available user handle for Higgsfield status (single-account mode)
+      const userRegistryMod = await import('../integrations/userRegistry.js');
+      const firstHandle = userRegistryMod.listUsers()[0]?.handle;
+      const higgsfieldConnected = firstHandle ? isHiggsfieldConnected(firstHandle) : false;
+      const higgsfieldCreds = higgsfieldConnected && firstHandle ? loadHiggsfieldCredentials(firstHandle) : null;
+      const firstUser = firstHandle ? userRegistryMod.getUser(firstHandle) : null;
+
       const connections: Record<string, Record<string, unknown>> = {
         instagram: { connected: !!tokens.instagram, status: tokens.instagram?.status ?? 'disconnected' },
         tiktok: { connected: !!tokens.tiktok, status: tokens.tiktok?.status ?? 'disconnected' },
+        higgsfield: {
+          connected: higgsfieldConnected,
+          plan: higgsfieldCreds?.plan ?? null,
+          availableModels: higgsfieldCreds?.availableModels ?? [],
+          connectedAt: higgsfieldCreds?.connectedAt ?? null,
+          providerMode: firstUser?.providerMode ?? 'auto',
+        },
       };
 
       for (const h of health) {
