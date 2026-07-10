@@ -14,6 +14,7 @@
 
 import { log } from '../agent/logger.js';
 import { trendingCacheService } from './trending-cache-service.js';
+import { feedbackAmplificationService } from './feedback-amplification-service.js';
 import type { BrandProfile } from '../config/types.js';
 
 // Dynamic import to cross src/api boundary
@@ -56,6 +57,7 @@ export interface EnrichedBrief {
   }>;
   trendingTopics?: string[];
   trendingGuidance?: string;
+  nicheWinningPatterns?: string[]; // From Niche Cache (feedback loop)
 }
 
 /**
@@ -82,7 +84,7 @@ export const getBaselineScore = async (context: VirologyInjectionContext): Promi
 /**
  * Convert viralityAnalysis → enriched brief with guidance + trending topics
  */
- 
+
 export const enrichBriefWithVirality = async (
   brief: any, // eslint-disable-line @typescript-eslint/no-explicit-any
   baselineAnalysis: any, // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -113,6 +115,22 @@ export const enrichBriefWithVirality = async (
     }
   }
 
+  // NEW: Inject niche cache winning patterns (feedback loop)
+  let nicheWinningPatterns: string[] | undefined;
+  if (brandProfile?.id) {
+    try {
+      nicheWinningPatterns = feedbackAmplificationService.getRecommendedImprovements(brandProfile.id, 3);
+      if (nicheWinningPatterns.length > 0) {
+        log.info('[ViraLityLayer] Niche cache patterns applied', {
+          nicheId: brandProfile.id,
+          patternCount: nicheWinningPatterns.length,
+        });
+      }
+    } catch (err) {
+      log.warn('[ViraLityLayer] Failed to fetch niche patterns', { error: String(err) });
+    }
+  }
+
   return {
     originalBrief: brief,
     viralityGuidance: injections,
@@ -125,6 +143,7 @@ export const enrichBriefWithVirality = async (
     frameGuidance,
     trendingTopics,
     trendingGuidance,
+    nicheWinningPatterns,
   };
 };
 
@@ -171,7 +190,7 @@ const generateFrameGuidance = (improvements: any[], frameCount: number): Enriche
 /**
  * Public orchestrator: given a brief, optionally score it first, then enrich with virality + trending
  */
- 
+
 export const applyViraLityLayer = async (
   brief: any, // eslint-disable-line @typescript-eslint/no-explicit-any
   format: 'carousel' | 'reel' | 'story',
