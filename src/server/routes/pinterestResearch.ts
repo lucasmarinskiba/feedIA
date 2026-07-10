@@ -19,7 +19,8 @@ import {
 
 // ── POST /api/research/pinterest/import ────────────────────────────
 
-export const importPinterestPin: RouteHandler = async (req, res) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const importPinterestPin = async (req: any, res: any): Promise<void> => {
   try {
     const pinData: PinterestPinAnalysis = req.body;
 
@@ -48,7 +49,8 @@ export const importPinterestPin: RouteHandler = async (req, res) => {
 
 // ── POST /api/research/pinterest/library ───────────────────────────
 
-export const buildPinterestLibrary: RouteHandler = async (req, res) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const buildPinterestLibrary = async (req: any, res: any): Promise<void> => {
   try {
     const {pins} = req.body;
 
@@ -84,7 +86,8 @@ export const buildPinterestLibrary: RouteHandler = async (req, res) => {
 
 // ── GET /api/research/pinterest/template ───────────────────────────
 
-export const getPinterestTemplate: RouteHandler = async (_req, res) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getPinterestTemplate = async (_req: any, res: any): Promise<void> => {
   try {
     log.info('[API] Pinterest research template requested');
 
@@ -117,10 +120,10 @@ export const getPinterestTemplate: RouteHandler = async (_req, res) => {
 
 // ── Export routes for mounting ─────────────────────────────────────
 
-export const pinterestResearchRoutes = {
-  'POST /api/research/pinterest/import': importPinterestPin,
-  'POST /api/research/pinterest/library': buildPinterestLibrary,
-  'GET /api/research/pinterest/template': getPinterestTemplate,
+export const pinterestResearchRoutes: Record<string, RouteHandler> = {
+  'POST /api/research/pinterest/import': importPinterestPin as unknown as RouteHandler,
+  'POST /api/research/pinterest/library': buildPinterestLibrary as unknown as RouteHandler,
+  'GET /api/research/pinterest/template': getPinterestTemplate as unknown as RouteHandler,
 };
 
 log.info('[Pinterest Research API] Routes registered: 3 endpoints');

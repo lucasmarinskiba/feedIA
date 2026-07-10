@@ -66,7 +66,7 @@ export const think = async (brand: {
             platform: 'instagram',
             type: 'dm',
             brandNiche: brand.niche,
-            brandTone: brand.voice?.tone,
+            brandTone: brand.tone,
           });
         }
       },
@@ -84,7 +84,7 @@ export const think = async (brand: {
       context: { memory: '', trendUrgency: urgentTrends[0]?.topic },
       execute: async () => {
         for (const t of urgentTrends.slice(0, 2)) {
-          await trendSync.adaptTrend(t.id, brand.niche, brand.voice?.tone);
+          await trendSync.adaptTrend(t.id, brand.niche, brand.tone);
         }
       },
     });

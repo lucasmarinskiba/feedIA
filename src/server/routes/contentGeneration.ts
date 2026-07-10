@@ -13,7 +13,8 @@ import { executeGenerationPipeline, getContentPreview, publishContent } from '..
 
 // ── POST /api/content/generate ────────────────────────────────────────
 
-export const generateContent: RouteHandler = async (req, res) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const generateContent = async (req: any, res: any): Promise<void> => {
   try {
     const {userId, contentType, topic, emotion, templateId, platform, duration} = req.body;
 
@@ -53,7 +54,8 @@ export const generateContent: RouteHandler = async (req, res) => {
 
 // ── GET /api/content/preview/:generationId ────────────────────────────
 
-export const previewContent: RouteHandler = async (req, res) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const previewContent = async (req: any, res: any): Promise<void> => {
   try {
     const {generationId} = req.params;
     const {format} = req.query;
@@ -79,7 +81,8 @@ export const previewContent: RouteHandler = async (req, res) => {
 
 // ── POST /api/content/publish ─────────────────────────────────────────
 
-export const publishToSocial: RouteHandler = async (req, res) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const publishToSocial = async (req: any, res: any): Promise<void> => {
   try {
     const {generationId, targetPlatforms, scheduling, caption} = req.body;
 
@@ -112,7 +115,8 @@ export const publishToSocial: RouteHandler = async (req, res) => {
 
 // ── GET /api/content/templates ────────────────────────────────────────
 
-export const listTemplates: RouteHandler = async (_req, res) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const listTemplates = async (_req: any, res: any): Promise<void> => {
   try {
     const {getTopTemplates} = await import('../../capabilities/content/templateLibrary.js');
 
@@ -138,7 +142,8 @@ export const listTemplates: RouteHandler = async (_req, res) => {
 
 // ── GET /api/content/brand-kit ────────────────────────────────────────
 
-export const getBrandKit: RouteHandler = async (req, res) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getBrandKit = async (req: any, res: any): Promise<void> => {
   try {
     const {userId} = req.query;
 
@@ -159,8 +164,8 @@ export const getBrandKit: RouteHandler = async (req, res) => {
       source: brandKit.type,
       confidence: brandKit.confidence,
       brand: {
-        colors: brandKit.data.colors,
-        fonts: brandKit.data.fonts,
+        colors: brandKit.data.visual?.palette,
+        fonts: brandKit.data.visual?.typography,
         voice: brandKit.data.voice,
         audience: brandKit.data.audience,
       },
@@ -173,12 +178,12 @@ export const getBrandKit: RouteHandler = async (req, res) => {
 
 // ── Export routes for mounting ────────────────────────────────────────
 
-export const contentGenerationRoutes = {
-  'POST /api/content/generate': generateContent,
-  'GET /api/content/preview/:generationId': previewContent,
-  'POST /api/content/publish': publishToSocial,
-  'GET /api/content/templates': listTemplates,
-  'GET /api/content/brand-kit': getBrandKit,
+export const contentGenerationRoutes: Record<string, RouteHandler> = {
+  'POST /api/content/generate': generateContent as unknown as RouteHandler,
+  'GET /api/content/preview/:generationId': previewContent as unknown as RouteHandler,
+  'POST /api/content/publish': publishToSocial as unknown as RouteHandler,
+  'GET /api/content/templates': listTemplates as unknown as RouteHandler,
+  'GET /api/content/brand-kit': getBrandKit as unknown as RouteHandler,
 };
 
 log.info('[Content Generation API] Routes registered: 5 endpoints');

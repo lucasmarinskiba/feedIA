@@ -56,17 +56,19 @@ class BrainToToolsHub {
   private async extractBrainIntelligence(): Promise<BrainIntelligence> {
     console.log('[Brain→Tools] Extracting intelligence from brain');
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const brain = this.brain as any;
     const intelligence: BrainIntelligence = {
-      accountPersonality: await this.brain.detectAccountPersonality(),
-      contentStrategy: await this.brain.getContentStrategy(),
-      growthOpportunities: await this.brain.identifyGrowthOpportunities(),
-      viralTriggers: await this.brain.getViralTriggers(),
-      postingSchedule: await this.brain.getOptimalPostingTimes(),
-      contentCalendar: await this.brain.getContentCalendar(),
-      audienceSegments: await this.brain.getAudienceSegmentation(),
-      performanceMetrics: await this.brain.getPerformanceAnalysis(),
-      competitorInsights: await this.brain.analyzeCompetitors(),
-      recommendations: await this.brain.getOptimizationRecommendations(),
+      accountPersonality: await brain.detectAccountPersonality(),
+      contentStrategy: await brain.getContentStrategy(),
+      growthOpportunities: await brain.identifyGrowthOpportunities(),
+      viralTriggers: await brain.getViralTriggers(),
+      postingSchedule: await brain.getOptimalPostingTimes(),
+      contentCalendar: await brain.getContentCalendar(),
+      audienceSegments: await brain.getAudienceSegmentation(),
+      performanceMetrics: await brain.getPerformanceAnalysis(),
+      competitorInsights: await brain.analyzeCompetitors(),
+      recommendations: await brain.getOptimizationRecommendations(),
     };
 
     return intelligence;

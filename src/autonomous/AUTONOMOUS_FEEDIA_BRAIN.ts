@@ -37,11 +37,11 @@ class ContentSpecialist {
     const posts = vision.content.recentPosts || [];
 
     // Analyze tone
-    const tones = posts.map((p) => this.analyzeTone(p.caption));
-    const primaryTone = this.getMostCommon(tones);
+    const tones = posts.map((p: any) => this.analyzeTone(p.caption));
+    const primaryTone = this.getMostCommon(tones) as AccountPersonality['vibe'];
 
     // Analyze format
-    const formats = posts.map((p) => p.format);
+    const formats = posts.map((p: any) => p.format);
     const primaryFormat = this.getMostCommon(formats);
 
     // Identify content pillars
@@ -120,7 +120,7 @@ class ContentSpecialist {
       pillars[cat] = (pillars[cat] || 0) + 1;
     });
     Object.keys(pillars).forEach((key) => {
-      pillars[key] = pillars[key] / posts.length;
+      pillars[key] = (pillars[key] ?? 0) / posts.length;
     });
     return pillars;
   }
@@ -183,7 +183,7 @@ class GrowthSpecialist {
 
     // Identify underperforming pillar
     const weakestPillar = Object.keys(personality.contentPillars).reduce((a, b) =>
-      personality.contentPillars[a] < personality.contentPillars[b] ? a : b,
+      (personality.contentPillars[a] ?? 0) < (personality.contentPillars[b] ?? 0) ? a : b,
     );
 
     recommendations.push(`Strengthen ${weakestPillar} content - it's underutilized relative to audience interest`);
@@ -319,7 +319,7 @@ class AutonomousFeedIABrain {
   private growthSpecialist: GrowthSpecialist;
   private qualityAnalyzer: QualityAnalyzer;
   private computerUse: FeedIAComputerUseOrchestrator;
-  private accountPersonality: AccountPersonality;
+  private accountPersonality!: AccountPersonality;
 
   constructor() {
     this.computerUse = new FeedIAComputerUseOrchestrator();
