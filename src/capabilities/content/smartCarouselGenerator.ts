@@ -248,10 +248,10 @@ const generateHeadline = (role: string, topic: string, emotion: string): string 
     ],
   };
 
-  const emotionHooks = hooks[emotion] || hooks.curiosity;
+  const emotionHooks = hooks[emotion] ?? hooks.curiosity ?? [];
 
   if (role === 'hook') {
-    return emotionHooks[Math.floor(Math.random() * emotionHooks.length)];
+    return emotionHooks[Math.floor(Math.random() * emotionHooks.length)]!;
   }
   if (role === 'value' || role === 'item') {
     return `Tip: ${topic}`;

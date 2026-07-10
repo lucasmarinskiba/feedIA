@@ -52,7 +52,7 @@ export const generateSceneBreakdown = (script: VideoScript): SceneBreakdown => {
       voiceover: scene.voiceover,
       visualType,
       action: scene.action || selectDefaultAction(scene.second, script.duration),
-      duration: idx < script.scenes.length - 1 ? script.scenes[idx + 1].second - scene.second : 5,
+      duration: idx < script.scenes.length - 1 ? (script.scenes[idx + 1]!.second - scene.second) : 5,
       transitionEffect: selectTransition(idx),
     });
 
@@ -60,7 +60,7 @@ export const generateSceneBreakdown = (script: VideoScript): SceneBreakdown => {
     if (idx < script.scenes.length - 1) {
       transitions.push({
         from: scene.second,
-        to: script.scenes[idx + 1].second,
+        to: script.scenes[idx + 1]!.second,
         effect: selectTransition(idx),
       });
     }
@@ -105,10 +105,10 @@ const selectDefaultAction = (second: number, duration: number): string => {
   ];
 
   const idx = Math.floor(second / 5) % actions.length;
-  return actions[idx];
+  return actions[idx]!;
 };
 
 const selectTransition = (frameIndex: number): string => {
   const transitions = ['fade', 'slide-left', 'zoom-in', 'cut', 'dissolve'];
-  return transitions[frameIndex % transitions.length];
+  return transitions[frameIndex % transitions.length]!;
 };

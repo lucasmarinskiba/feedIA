@@ -125,14 +125,14 @@ GUÍAS DE DISEÑO VISUAL:
 ${aesthetic ? formatAestheticForPrompt(aesthetic) : ''}
 
 ${
-  brandProfile
-    ? `
+  brand
+    ? (() => { const bp = brand as { name?: string; niche?: string; audience?: { description?: string }; type?: string }; return `
 CONTEXTO DE MARCA:
-- Nombre: ${brandProfile.name}
-- Nicho: ${brandProfile.niche}
-- Público: ${brandProfile.audience?.description || 'Variado'}
-- Tipo: ${brandProfile.type || 'Marca'}
-`
+- Nombre: ${bp.name || ''}
+- Nicho: ${bp.niche || ''}
+- Público: ${bp.audience?.description || 'Variado'}
+- Tipo: ${bp.type || 'Marca'}
+`; })()
     : ''
 }
 

@@ -78,29 +78,17 @@ const loadFromCanva = async (userId: string): Promise<BrandProfile | null> => {
   // Mock: return sample Canva brand
   log.debug(`[Brand Kit] Checking Canva for user: ${userId}`);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mock data uses legacy shape
   return {
     id: `brand_${userId}_canva`,
     name: 'My Brand (Canva)',
-    colors: {
-      primary: '#E91E8C',
-      secondary: '#00D9FF',
-      accent: '#FFFFFF',
-      neutral: '#1A1A1A',
-    },
-    fonts: {
-      headline: 'Poppins',
-      body: 'Inter',
-      accent: 'Playfair Display',
-    },
-    voice: {
-      tone: ['energetic', 'playful', 'authentic'],
-      tagline: 'Bold ideas, creative execution',
-    },
-    audience: {
-      primary: 'Gen Z creators',
-      secondary: 'small business owners',
-    },
-  };
+    type: 'marca-personal',
+    niche: 'general',
+    visual: { palette: ['#E91E8C', '#00D9FF', '#FFFFFF', '#1A1A1A'], typography: ['Poppins', 'Inter', 'Playfair Display'], style: 'bold-playful', mood: 'energetic' },
+    voice: { tone: ['energetic', 'playful', 'authentic'], forbidden: [], referenceQuotes: [] },
+    audience: { description: 'Gen Z creators and small business owners', pains: [], desires: [], locale: 'es' },
+    goals: [], competitors: [], hashtagPools: { niche: [], trending: [], branded: [] },
+  } as unknown as BrandProfile;
 };
 
 const detectFromInstagram = async (userId: string): Promise<BrandProfile | null> => {
@@ -109,29 +97,17 @@ const detectFromInstagram = async (userId: string): Promise<BrandProfile | null>
   // Mock: return sample Instagram brand
   log.debug(`[Brand Kit] Checking Instagram for user: ${userId}`);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mock data uses legacy shape
   return {
     id: `brand_${userId}_ig`,
     name: 'My Instagram Brand',
-    colors: {
-      primary: '#E1306C',
-      secondary: '#405DE6',
-      accent: '#FFFFFF',
-      neutral: '#000000',
-    },
-    fonts: {
-      headline: 'Montserrat',
-      body: 'Open Sans',
-      accent: 'Playfair Display',
-    },
-    voice: {
-      tone: ['friendly', 'inspirational'],
-      tagline: 'Creating moments that matter',
-    },
-    audience: {
-      primary: 'women 25-35',
-      secondary: 'lifestyle enthusiasts',
-    },
-  };
+    type: 'marca-personal',
+    niche: 'lifestyle',
+    visual: { palette: ['#E1306C', '#405DE6', '#FFFFFF', '#000000'], typography: ['Montserrat', 'Open Sans', 'Playfair Display'], style: 'clean-editorial', mood: 'friendly' },
+    voice: { tone: ['friendly', 'inspirational'], forbidden: [], referenceQuotes: [] },
+    audience: { description: 'Women 25-35 and lifestyle enthusiasts', pains: [], desires: [], locale: 'es' },
+    goals: [], competitors: [], hashtagPools: { niche: [], trending: [], branded: [] },
+  } as unknown as BrandProfile;
 };
 
 const aiDetectBrand = async (userId: string): Promise<{profile: BrandProfile; confidence: number}> => {
@@ -144,26 +120,13 @@ const aiDetectBrand = async (userId: string): Promise<{profile: BrandProfile; co
     profile: {
       id: `brand_${userId}_ai`,
       name: 'Auto-Detected Brand',
-      colors: {
-        primary: '#6B8E71',
-        secondary: '#D4AF37',
-        accent: '#F5EEE0',
-        neutral: '#1A1A1A',
-      },
-      fonts: {
-        headline: 'Poppins',
-        body: 'Inter',
-        accent: 'Lora',
-      },
-      voice: {
-        tone: ['authentic', 'educational', 'warm'],
-        tagline: 'Real stories, real impact',
-      },
-      audience: {
-        primary: 'conscious consumers',
-        secondary: 'sustainability advocates',
-      },
-    },
+      type: 'marca-personal',
+      niche: 'wellness',
+      visual: { palette: ['#6B8E71', '#D4AF37', '#F5EEE0', '#1A1A1A'], typography: ['Poppins', 'Inter', 'Lora'], style: 'warm-organic', mood: 'authentic' },
+      voice: { tone: ['authentic', 'educational', 'warm'], forbidden: [], referenceQuotes: [] },
+      audience: { description: 'Conscious consumers and sustainability advocates', pains: [], desires: [], locale: 'es' },
+      goals: [], competitors: [], hashtagPools: { niche: [], trending: [], branded: [] },
+    } as unknown as BrandProfile,
     confidence: 65,
   };
 };
@@ -171,10 +134,10 @@ const aiDetectBrand = async (userId: string): Promise<{profile: BrandProfile; co
 export const validateBrandKit = (brand: BrandProfile): {valid: boolean; issues: string[]} => {
   const issues: string[] = [];
 
-  if (!brand.colors?.primary) issues.push('Missing primary color');
-  if (!brand.fonts?.headline) issues.push('Missing headline font');
+  if (!brand.visual?.palette?.[0]) issues.push('Missing primary color');
+  if (!brand.visual?.typography?.[0]) issues.push('Missing headline font');
   if (!brand.voice?.tone?.length) issues.push('Missing voice tone');
-  if (!brand.audience?.primary) issues.push('Missing primary audience');
+  if (!brand.audience?.description) issues.push('Missing audience description');
 
   return {
     valid: issues.length === 0,
@@ -189,6 +152,5 @@ export const mergeBrandKits = (source: BrandKitSource, manual: Partial<BrandProf
     ...source.data,
     ...manual,
     id: source.data.id,
-    lastUpdated: new Date().toISOString(),
   };
 };

@@ -147,10 +147,11 @@ export const animationEngine = () => {
   const generateCSS = (allKeyframes: string, slides: unknown[], timeline: unknown[]): string => {
     const slideCSS = slides
       .map((slide, idx) => {
-        const timingInfo = timeline[idx];
+        const timingInfo = timeline[idx] as { animation: string; duration: number; delay: number };
+        const s = slide as { animation?: { easing?: string } };
         return `
 .slide-${idx + 1} {
-  animation: ${timingInfo.animation} ${timingInfo.duration}ms ${slide.animation?.easing || 'ease-out'} forwards ${timingInfo.delay}ms;
+  animation: ${timingInfo.animation} ${timingInfo.duration}ms ${s.animation?.easing || 'ease-out'} forwards ${timingInfo.delay}ms;
 }
 `;
       })
@@ -212,12 +213,15 @@ ${slideCSS}
     startTime: number;
     duration: number;
     transition: string;
-  }> => timeline.map((timing, idx) => ({
-      slideIndex: timing.slideId,
-      startTime: timing.delay / 1000, // Convert to seconds
-      duration: timing.duration / 1000,
-      transition: timing.animation,
-    }));
+  }> => timeline.map((timing) => {
+    const t = timing as { slideId: number; delay: number; duration: number; animation: string };
+    return {
+      slideIndex: t.slideId,
+      startTime: t.delay / 1000, // Convert to seconds
+      duration: t.duration / 1000,
+      transition: t.animation,
+    };
+  });
 
   return {
     buildAnimationTimeline,

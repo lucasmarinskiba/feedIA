@@ -123,7 +123,7 @@ export const createEmotionMap = (emotion: Emotion, topic: string, audience: stri
 
 const selectPrimaryTrigger = (emotion: Emotion, _topic: string, _audience: string): string => {
   const formulas = hookFormulas[emotion];
-  return formulas[Math.floor(Math.random() * formulas.length)];
+  return formulas[Math.floor(Math.random() * formulas.length)] ?? '';
 };
 
 const selectSecondaryTriggers = (emotion: Emotion): string[] => {

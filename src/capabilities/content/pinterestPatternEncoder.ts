@@ -484,30 +484,30 @@ export const selectColorPalette = (
   const candidates = emotionToPalette[emotion] || ['warm-organic-orange'];
   const palette = pinterestPatternLibrary.colorPalettes.find((p) => p.id === candidates[0]);
 
-  return palette || pinterestPatternLibrary.colorPalettes[0];
+  return palette ?? pinterestPatternLibrary.colorPalettes[0]!;
 };
 
 export const selectTypographyPairing = (contentType: string): PinterestPattern => {
   if (contentType === 'luxury' || contentType === 'premium') {
-    return pinterestPatternLibrary.typographyPairings[1]; // Montserrat + Lora
+    return pinterestPatternLibrary.typographyPairings[1]!; // Montserrat + Lora
   }
   if (contentType === 'playful' || contentType === 'entertainment') {
-    return pinterestPatternLibrary.typographyPairings[0]; // Poppins + Inter (modern default)
+    return pinterestPatternLibrary.typographyPairings[0]!; // Poppins + Inter (modern default)
   }
-  return pinterestPatternLibrary.typographyPairings[0]; // Default to modern pair
+  return pinterestPatternLibrary.typographyPairings[0]!; // Default to modern pair
 };
 
 export const selectLayoutPattern = (contentPhase: 'hook' | 'value' | 'proof' | 'cta'): PinterestPattern => {
   if (contentPhase === 'hook') {
-    return pinterestPatternLibrary.layoutPatterns[1]; // Full-bleed for impact
+    return pinterestPatternLibrary.layoutPatterns[1]!; // Full-bleed for impact
   }
   if (contentPhase === 'value') {
-    return pinterestPatternLibrary.layoutPatterns[0]; // Text left + visual right for clarity
+    return pinterestPatternLibrary.layoutPatterns[0]!; // Text left + visual right for clarity
   }
   if (contentPhase === 'proof') {
-    return pinterestPatternLibrary.layoutPatterns[2]; // Grid for organizing proof
+    return pinterestPatternLibrary.layoutPatterns[2]!; // Grid for organizing proof
   }
-  return pinterestPatternLibrary.layoutPatterns[0]; // Default
+  return pinterestPatternLibrary.layoutPatterns[0]!; // Default
 };
 
 export const selectNarrativeStructure = (
@@ -515,20 +515,20 @@ export const selectNarrativeStructure = (
   contentType?: string,
 ): PinterestPattern => {
   if (slideCount === 5) {
-    return pinterestPatternLibrary.narrativeStructures[0]; // Hook-Value-Proof-CTA-5
+    return pinterestPatternLibrary.narrativeStructures[0]!; // Hook-Value-Proof-CTA-5
   }
   if (slideCount === 7) {
-    return pinterestPatternLibrary.narrativeStructures[1]; // Listicle-7
+    return pinterestPatternLibrary.narrativeStructures[1]!; // Listicle-7
   }
   if (contentType === 'transformation' || contentType === 'before-after') {
-    return pinterestPatternLibrary.narrativeStructures[2]; // Before-After-5
+    return pinterestPatternLibrary.narrativeStructures[2]!; // Before-After-5
   }
   if (contentType === 'educational' || contentType === 'newsletter') {
-    return pinterestPatternLibrary.narrativeStructures[3]; // Hook-Lesson-Example-Actions-CTA
+    return pinterestPatternLibrary.narrativeStructures[3]!; // Hook-Lesson-Example-Actions-CTA
   }
 
   // Default: listicle (highest engagement)
-  return pinterestPatternLibrary.narrativeStructures[1];
+  return pinterestPatternLibrary.narrativeStructures[1]!;
 };
 
 // ── Log Initialization ────────────────────────────────────────────────

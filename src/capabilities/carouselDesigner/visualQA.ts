@@ -84,7 +84,7 @@ export const validateAesthetic = (slides: unknown[], threshold: number = 70): QA
   });
 
   // Check 5: Rounded corners applied
-  const cornerRadii = slides.filter((s) => s.cssKeyframes && s.cssKeyframes.includes('border-radius'));
+  const cornerRadii = slides.filter((s: unknown) => { const sl = s as any; return sl.cssKeyframes && sl.cssKeyframes.includes('border-radius'); });
   if (cornerRadii.length < slides.length * 0.7) {
     warnings.push(`Only ${cornerRadii.length}/${slides.length} slides have rounded corners`);
     scoreDeduction += 5;
@@ -131,7 +131,8 @@ export const autoFixAesthetic = (
   const fixes: string[] = [];
   const fixed = JSON.parse(JSON.stringify(slides)); // Deep copy
 
-  fixed.forEach((slide: unknown, idx: number) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  fixed.forEach((slide: any, idx: number) => {
     // Fix 1: Headline size out of range
     const headlineSize = slide.typography?.headline?.size || 32;
     if (headlineSize < 28) {

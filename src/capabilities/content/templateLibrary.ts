@@ -276,7 +276,7 @@ export const searchTemplates = (query: string): ContentTemplate[] => {
 
 export const getRandomTemplate = (type?: string): ContentTemplate => {
   const filtered = type ? getTemplatesByType(type) : templateLibrary;
-  return filtered[Math.floor(Math.random() * filtered.length)];
+  return filtered[Math.floor(Math.random() * filtered.length)]!;
 };
 
 log.info(`[Template Library] ${templateLibrary.length} templates loaded (Carousel, Reel, Video, Story, TikTok)`);

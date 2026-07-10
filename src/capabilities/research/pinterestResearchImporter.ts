@@ -237,20 +237,20 @@ export const applyResearchToBrain = (library: PinterestResearchLibrary): {rules:
 
   // Font rules
   if (library.aggregated.topFonts.length > 0) {
-    const topFont = library.aggregated.topFonts[0].font;
-    rules.push(`Use ${topFont} for headlines (appears in ${library.aggregated.topFonts[0].frequency} top pins)`);
+    const topFont = library.aggregated.topFonts[0]!.font;
+    rules.push(`Use ${topFont} for headlines (appears in ${library.aggregated.topFonts[0]!.frequency} top pins)`);
   }
 
   // Color rules
   if (library.aggregated.topColors.length > 0) {
-    const topColor = library.aggregated.topColors[0].color;
-    rules.push(`Primary color: ${topColor} (found in ${library.aggregated.topColors[0].frequency} pins)`);
+    const topColor = library.aggregated.topColors[0]!.color;
+    rules.push(`Primary color: ${topColor} (found in ${library.aggregated.topColors[0]!.frequency} pins)`);
   }
 
   // Strategy rules
   if (library.aggregated.topStrategies.length > 0) {
     recommendations.push(
-      `Top strategy: ${library.aggregated.topStrategies[0].strategy} (${library.aggregated.topStrategies[0].frequency} pins)`,
+      `Top strategy: ${library.aggregated.topStrategies[0]!.strategy} (${library.aggregated.topStrategies[0]!.frequency} pins)`,
     );
   }
 
