@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { log } from '../agent/logger.js';
 import { autonomousGenerator } from '../agents/autonomous-generator.js';
 import { promptDb } from '../services/prompt-database.js';
@@ -9,12 +9,12 @@ const router = Router();
 /**
  * POST /api/autonomy/generate — Full autonomous generation (all formats)
  */
-router.post('/generate', async (req, res) => {
+router.post('/generate', async (req: Request, res: Response): Promise<void> => {
   try {
     const { brand, occasion, carouselCount = 1, reelCount = 1, storyCount = 3 } = req.body;
 
     if (!brand || !occasion) {
-      return res.status(400).json({
+      return void res.status(400).json({
         error: 'Missing brand or occasion',
       });
     }
@@ -49,7 +49,7 @@ router.post('/generate', async (req, res) => {
       totalTimeMs: result.totalTimeMs,
     });
 
-    return res.json({
+    return void res.json({
       success: true,
       result,
     });
@@ -66,12 +66,12 @@ router.post('/generate', async (req, res) => {
 /**
  * POST /api/autonomy/carousels — Batch carousel generation
  */
-router.post('/carousels', async (req, res) => {
+router.post('/carousels', async (req: Request, res: Response): Promise<void> => {
   try {
     const { brand, occasion, count = 1 } = req.body;
 
     if (!brand || !occasion) {
-      return res.status(400).json({
+      return void res.status(400).json({
         error: 'Missing brand or occasion',
       });
     }
@@ -83,7 +83,7 @@ router.post('/carousels', async (req, res) => {
       batchSize: count,
     });
 
-    return res.json({
+    return void res.json({
       success: result.status === 'success',
       result,
     });
@@ -100,12 +100,12 @@ router.post('/carousels', async (req, res) => {
 /**
  * POST /api/autonomy/reels — Batch reel generation
  */
-router.post('/reels', async (req, res) => {
+router.post('/reels', async (req: Request, res: Response): Promise<void> => {
   try {
     const { brand, occasion, count = 1 } = req.body;
 
     if (!brand || !occasion) {
-      return res.status(400).json({
+      return void res.status(400).json({
         error: 'Missing brand or occasion',
       });
     }
@@ -117,7 +117,7 @@ router.post('/reels', async (req, res) => {
       batchSize: count,
     });
 
-    return res.json({
+    return void res.json({
       success: result.status === 'success',
       result,
     });
@@ -134,12 +134,12 @@ router.post('/reels', async (req, res) => {
 /**
  * POST /api/autonomy/stories — Batch story generation
  */
-router.post('/stories', async (req, res) => {
+router.post('/stories', async (req: Request, res: Response): Promise<void> => {
   try {
     const { brand, occasion, count = 3 } = req.body;
 
     if (!brand || !occasion) {
-      return res.status(400).json({
+      return void res.status(400).json({
         error: 'Missing brand or occasion',
       });
     }
@@ -151,7 +151,7 @@ router.post('/stories', async (req, res) => {
       batchSize: count,
     });
 
-    return res.json({
+    return void res.json({
       success: result.status === 'success',
       result,
     });

@@ -28,7 +28,7 @@ interface VideoPromptRequest {
  * POST /api/video/parameterized-prompt
  * Generate single video prompt with custom parameters
  */
-router.post('/parameterized-prompt', async (req: Request, res: Response) => {
+router.post('/parameterized-prompt', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const {
@@ -45,7 +45,7 @@ router.post('/parameterized-prompt', async (req: Request, res: Response) => {
     } = req.body as VideoPromptRequest;
 
     if (!category) {
-      return res.status(400).json({ error: 'category required: emotional|narrative|transformation|lifestyle|technical' });
+      return void res.status(400).json({ error: 'category required: emotional|narrative|transformation|lifestyle|technical' });
     }
 
     log.info('[VideoParameterizedRoutes] Prompt request', {
@@ -58,13 +58,13 @@ router.post('/parameterized-prompt', async (req: Request, res: Response) => {
     // Get templates by category
     const templates = videoPromptEngine.getTemplatesByCategory(category);
     if (templates.length === 0) {
-      return res.status(404).json({ error: `No templates found for category: ${category}` });
+      return void res.status(404).json({ error: `No templates found for category: ${category}` });
     }
 
     // Select template (use provided or first available)
-    const selectedTemplate = templateId
-      ? templates.find(t => t.id === templateId) || templates[0]
-      : templates[0];
+    const selectedTemplate = (templateId
+      ? templates.find(t => t.id === templateId) ?? templates[0]
+      : templates[0])!;
 
     // Generate prompt
     const generatedPrompt = videoPromptEngine.generatePrompt(selectedTemplate.id, {
@@ -80,7 +80,7 @@ router.post('/parameterized-prompt', async (req: Request, res: Response) => {
     });
 
     if (!generatedPrompt) {
-      return res.status(400).json({
+      return void res.status(400).json({
         error: 'Failed to generate prompt. Check required parameters.',
         template: selectedTemplate,
         requiredParams: selectedTemplate.requiredParams,
@@ -110,17 +110,17 @@ router.post('/parameterized-prompt', async (req: Request, res: Response) => {
  * POST /api/video/batch-generate
  * Generate multiple video prompts in parallel
  */
-router.post('/batch-generate', async (req: Request, res: Response) => {
+router.post('/batch-generate', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { requests } = req.body as { requests: VideoPromptRequest[] };
 
     if (!requests || !Array.isArray(requests) || requests.length === 0) {
-      return res.status(400).json({ error: 'requests array required' });
+      return void res.status(400).json({ error: 'requests array required' });
     }
 
     if (requests.length > 10) {
-      return res.status(400).json({ error: 'Maximum 10 requests per batch' });
+      return void res.status(400).json({ error: 'Maximum 10 requests per batch' });
     }
 
     log.info('[VideoParameterizedRoutes] Batch generation', {
@@ -131,6 +131,7 @@ router.post('/batch-generate', async (req: Request, res: Response) => {
       .map(req => {
         const templates = videoPromptEngine.getTemplatesByCategory(req.category);
         const selectedTemplate = templates[0];
+        if (!selectedTemplate) return null;
 
         return videoPromptEngine.generatePrompt(selectedTemplate.id, {
           category: req.category,
@@ -144,7 +145,7 @@ router.post('/batch-generate', async (req: Request, res: Response) => {
           specs: req.specs,
         });
       })
-      .filter((p): p is NonNullable<typeof p> => p !== null);
+      .filter((p): p is NonNullable<typeof p> => p != null);
 
     res.json({
       status: 'success',
@@ -230,7 +231,7 @@ router.get('/templates', async (req: Request, res: Response) => {
  * POST /api/video/batch-expand
  * Expand 1 prompt into 10 variations (different [PERSONA], [PRODUCT], [LOCATION])
  */
-router.post('/batch-expand', async (req: Request, res: Response) => {
+router.post('/batch-expand', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { baseParams, personaVariations, productVariations, locationVariations } = req.body as {
@@ -241,7 +242,7 @@ router.post('/batch-expand', async (req: Request, res: Response) => {
     };
 
     if (!baseParams) {
-      return res.status(400).json({ error: 'baseParams required' });
+      return void res.status(400).json({ error: 'baseParams required' });
     }
 
     const personas = personaVariations || ['Persona 1', 'Persona 2', 'Persona 3'];
@@ -269,7 +270,9 @@ router.post('/batch-expand', async (req: Request, res: Response) => {
       };
 
       const templates = videoPromptEngine.getTemplatesByCategory(baseParams.category);
-      const prompt = videoPromptEngine.generatePrompt(templates[0].id, expandedParams);
+      const firstTemplate = templates[0];
+      if (!firstTemplate) continue;
+      const prompt = videoPromptEngine.generatePrompt(firstTemplate.id, expandedParams);
 
       if (prompt) {
         expandedPrompts.push(prompt);

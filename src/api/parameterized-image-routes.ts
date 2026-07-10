@@ -48,17 +48,17 @@ interface GeneratedContent {
  * POST /api/parameterized/upload-images
  * User uploads images → system analyzes + matches to prompts
  */
-router.post('/upload-images', upload.array('images', 10), async (req: Request, res: Response) => {
+router.post('/upload-images', upload.array('images', 10), async (req: Request, res: Response): Promise<void> => {
   try {
     const { objective, contentType = 'carousel', domain, occasion, batchIds } = req.body as ParameterizedPromptRequest;
     const uploadedFiles = req.files as Express.Multer.File[];
 
     if (!uploadedFiles || uploadedFiles.length === 0) {
-      return res.status(400).json({ error: 'No images uploaded' });
+      return void res.status(400).json({ error: 'No images uploaded' });
     }
 
     if (!objective) {
-      return res.status(400).json({ error: 'objective required' });
+      return void res.status(400).json({ error: 'objective required' });
     }
 
     log.info('[ParameterizedRoutes] Images uploaded', {
@@ -80,11 +80,10 @@ router.post('/upload-images', upload.array('images', 10), async (req: Request, r
       metadata: {
         totalPrompts: matchedPrompts.length,
         generatedAt: new Date().toISOString(),
-        brand: brand?.name,
       },
     };
 
-    return res.json(response);
+    return void res.json(response);
   } catch (error) {
     log.error('[ParameterizedRoutes] Upload error', error);
     res.status(500).json({ error: 'Image processing failed' });
@@ -95,12 +94,12 @@ router.post('/upload-images', upload.array('images', 10), async (req: Request, r
  * POST /api/parameterized/match-prompts
  * Direct prompt matching from parameterized library
  */
-router.post('/match-prompts', async (req: Request, res: Response) => {
+router.post('/match-prompts', async (req: Request, res: Response): Promise<void> => {
   try {
     const { imageDescriptions, objective, contentType = 'carousel', occasion } = req.body;
 
     if (!imageDescriptions || imageDescriptions.length === 0) {
-      return res.status(400).json({ error: 'imageDescriptions required' });
+      return void res.status(400).json({ error: 'imageDescriptions required' });
     }
 
     log.info('[ParameterizedRoutes] Matching prompts', {
@@ -146,12 +145,12 @@ router.get('/library-status', (req: Request, res: Response) => {
  * POST /api/parameterized/generate-content
  * Full pipeline: images → matched prompts → generated content
  */
-router.post('/generate-content', async (req: Request, res: Response) => {
+router.post('/generate-content', async (req: Request, res: Response): Promise<void> => {
   try {
     const { imageDescriptions, objective, contentType = 'carousel', occasion = 'temática' } = req.body;
 
     if (!imageDescriptions || !objective) {
-      return res.status(400).json({ error: 'imageDescriptions and objective required' });
+      return void res.status(400).json({ error: 'imageDescriptions and objective required' });
     }
 
     log.info('[ParameterizedRoutes] Content generation', {
@@ -166,7 +165,7 @@ router.post('/generate-content', async (req: Request, res: Response) => {
     // Step 2: Generate content variants
     const contentVariants = await generateContentVariants(matchedPrompts, imageDescriptions, objective, contentType);
 
-    return res.json({
+    return void res.json({
       status: 'success',
       contentType,
       variants: contentVariants,
@@ -203,19 +202,21 @@ async function matchImagesToPrompts(
     for (const batchId of relevantBatches) {
       const prompts = feediaBrain.getPromptsByBatch(batchId);
 
-      for (const prompt of prompts) {
-        if (prompt.parameterized?.includes('[USER_IMAGE]')) {
-          const confidence = calculateMatchConfidence(prompt, objective, imageType);
+      for (let idx = 0; idx < prompts.length; idx++) {
+        const promptText = prompts[idx] as string;
+        if (promptText.includes('[USER_IMAGE]')) {
+          const matchedPrompt: MatchedPrompt = {
+            id: `${batchId}-${idx}`,
+            base: promptText,
+            parameterized: promptText,
+            occasion: occasion || 'temática',
+            batchId,
+            confidence: 0,
+          };
+          const confidence = calculateMatchConfidence(matchedPrompt, objective, imageType);
 
           if (confidence > 0.6) {
-            matched.push({
-              id: `${batchId}-${prompt.id}`,
-              base: prompt.base,
-              parameterized: prompt.parameterized,
-              occasion: occasion || prompt.occasion || 'temática',
-              batchId,
-              confidence,
-            });
+            matched.push({ ...matchedPrompt, confidence });
           }
         }
       }
@@ -239,19 +240,21 @@ async function matchDescriptionsToPrompts(
     for (const batchId of relevantBatches) {
       const prompts = feediaBrain.getPromptsByBatch(batchId);
 
-      for (const prompt of prompts) {
-        if (prompt.parameterized?.includes('[USER_IMAGE]')) {
-          const confidence = calculateDescriptionConfidence(prompt, description, objective);
+      for (let idx = 0; idx < prompts.length; idx++) {
+        const promptText = prompts[idx] as string;
+        if (promptText.includes('[USER_IMAGE]')) {
+          const matchedPrompt: MatchedPrompt = {
+            id: `${batchId}-${idx}`,
+            base: promptText,
+            parameterized: promptText,
+            occasion: occasion || 'temática',
+            batchId,
+            confidence: 0,
+          };
+          const confidence = calculateDescriptionConfidence(matchedPrompt, description, objective);
 
           if (confidence > 0.65) {
-            matched.push({
-              id: `${batchId}-${prompt.id}`,
-              base: prompt.base,
-              parameterized: prompt.parameterized,
-              occasion: occasion || 'temática',
-              batchId,
-              confidence,
-            });
+            matched.push({ ...matchedPrompt, confidence });
           }
         }
       }

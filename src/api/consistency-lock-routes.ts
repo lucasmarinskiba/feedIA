@@ -16,13 +16,13 @@ const router = Router();
  * POST /api/consistency/create-lock
  * Create character/product/environment locks for carousel series
  */
-router.post('/create-lock', async (req: Request, res: Response) => {
+router.post('/create-lock', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { frameCount, characterDescription, productDescription, environmentDescription } = req.body;
 
     if (!frameCount || frameCount < 2) {
-      return res.status(400).json({ error: 'frameCount must be >= 2' });
+      return void res.status(400).json({ error: 'frameCount must be >= 2' });
     }
 
     log.info('[ConsistencyLock] Lock creation requested', { frameCount, brand: brand?.name });
@@ -71,17 +71,17 @@ router.post('/create-lock', async (req: Request, res: Response) => {
  * POST /api/consistency/generate-prompts
  * Generate carousel prompts with consistency locks applied
  */
-router.post('/generate-prompts', async (req: Request, res: Response) => {
+router.post('/generate-prompts', async (req: Request, res: Response): Promise<void> => {
   try {
     const { seriesId, basePrompt, narrativeArc } = req.body;
 
     if (!seriesId || !basePrompt) {
-      return res.status(400).json({ error: 'seriesId and basePrompt required' });
+      return void res.status(400).json({ error: 'seriesId and basePrompt required' });
     }
 
     const seriesLock = consistencyLockManager.getSeriesLock(seriesId);
     if (!seriesLock) {
-      return res.status(404).json({ error: 'Series lock not found', seriesId });
+      return void res.status(404).json({ error: 'Series lock not found', seriesId });
     }
 
     log.info('[ConsistencyLock] Prompt generation requested', { seriesId });
@@ -121,12 +121,12 @@ router.post('/generate-prompts', async (req: Request, res: Response) => {
  * POST /api/consistency/validate
  * Validate carousel prompts for consistency
  */
-router.post('/validate', async (req: Request, res: Response) => {
+router.post('/validate', async (req: Request, res: Response): Promise<void> => {
   try {
     const { seriesId, prompts } = req.body;
 
     if (!seriesId || !prompts || prompts.length < 2) {
-      return res.status(400).json({ error: 'seriesId and prompts array (min 2) required' });
+      return void res.status(400).json({ error: 'seriesId and prompts array (min 2) required' });
     }
 
     log.info('[ConsistencyLock] Validation requested', { seriesId, frameCount: prompts.length });
@@ -153,12 +153,12 @@ router.post('/validate', async (req: Request, res: Response) => {
  * POST /api/consistency/suggest-improvements
  * Get suggestions to improve carousel consistency
  */
-router.post('/suggest-improvements', async (req: Request, res: Response) => {
+router.post('/suggest-improvements', async (req: Request, res: Response): Promise<void> => {
   try {
     const { seriesId, prompts } = req.body;
 
     if (!seriesId || !prompts) {
-      return res.status(400).json({ error: 'seriesId and prompts required' });
+      return void res.status(400).json({ error: 'seriesId and prompts required' });
     }
 
     const suggestions = await characterStabilityService.suggestStabilityImprovements(
@@ -181,13 +181,13 @@ router.post('/suggest-improvements', async (req: Request, res: Response) => {
  * GET /api/consistency/lock/:seriesId
  * Get series lock details
  */
-router.get('/lock/:seriesId', async (req: Request, res: Response) => {
+router.get('/lock/:seriesId', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { seriesId } = req.params;
+    const seriesId = String(req.params.seriesId ?? '');
     const seriesLock = consistencyLockManager.getSeriesLock(seriesId);
 
     if (!seriesLock) {
-      return res.status(404).json({ error: 'Series lock not found', seriesId });
+      return void res.status(404).json({ error: 'Series lock not found', seriesId });
     }
 
     res.json({

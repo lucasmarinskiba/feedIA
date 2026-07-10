@@ -25,7 +25,7 @@ interface Batch95Request {
  * POST /api/video/batch-95/daily-life-montage
  * Generate daily-life montage prompt (café/office/home/shop)
  */
-router.post('/batch-95/daily-life-montage', async (req: Request, res: Response) => {
+router.post('/batch-95/daily-life-montage', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { persona, location = 'café', product, duration = 15, userImage, emotionalArc } = req.body as Batch95Request;
@@ -49,7 +49,7 @@ router.post('/batch-95/daily-life-montage', async (req: Request, res: Response) 
     });
 
     if (!prompt) {
-      return res.status(400).json({ error: 'Failed to generate montage prompt' });
+      return void res.status(400).json({ error: 'Failed to generate montage prompt' });
     }
 
     res.json({
@@ -73,7 +73,7 @@ router.post('/batch-95/daily-life-montage', async (req: Request, res: Response) 
  * POST /api/video/batch-95/ugc-reel
  * Generate authentic UGC reel (iPhone vlog, character-locked)
  */
-router.post('/batch-95/ugc-reel', async (req: Request, res: Response) => {
+router.post('/batch-95/ugc-reel', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { persona, location = 'home', product, duration = 30, userImage } = req.body as Batch95Request;
@@ -91,7 +91,7 @@ router.post('/batch-95/ugc-reel', async (req: Request, res: Response) => {
     });
 
     if (!prompt) {
-      return res.status(400).json({ error: 'Failed to generate UGC prompt' });
+      return void res.status(400).json({ error: 'Failed to generate UGC prompt' });
     }
 
     res.json({
@@ -115,7 +115,7 @@ router.post('/batch-95/ugc-reel', async (req: Request, res: Response) => {
  * POST /api/video/batch-95/transformation-narrative
  * Generate character transformation narrative (eye-reflection, glow-up, historical)
  */
-router.post('/batch-95/transformation-narrative', async (req: Request, res: Response) => {
+router.post('/batch-95/transformation-narrative', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { persona, location, product, duration = 20, userImage, emotionalArc } = req.body as Batch95Request;
@@ -134,7 +134,7 @@ router.post('/batch-95/transformation-narrative', async (req: Request, res: Resp
     });
 
     if (!prompt) {
-      return res.status(400).json({ error: 'Failed to generate transformation prompt' });
+      return void res.status(400).json({ error: 'Failed to generate transformation prompt' });
     }
 
     res.json({
@@ -158,7 +158,7 @@ router.post('/batch-95/transformation-narrative', async (req: Request, res: Resp
  * POST /api/video/batch-95/action-sequence
  * Generate action/stunt sequence (western/parkour/sports/fantasy/cinematic)
  */
-router.post('/batch-95/action-sequence', async (req: Request, res: Response) => {
+router.post('/batch-95/action-sequence', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { location = 'desert', product, duration = 15, userImage } = req.body as Batch95Request;
@@ -175,7 +175,7 @@ router.post('/batch-95/action-sequence', async (req: Request, res: Response) => 
     });
 
     if (!prompt) {
-      return res.status(400).json({ error: 'Failed to generate action prompt' });
+      return void res.status(400).json({ error: 'Failed to generate action prompt' });
     }
 
     res.json({
@@ -199,7 +199,7 @@ router.post('/batch-95/action-sequence', async (req: Request, res: Response) => 
  * POST /api/video/batch-95/location-montage
  * Generate location-based montage (snow/desert/beach/city/indoor with emotional arc)
  */
-router.post('/batch-95/location-montage', async (req: Request, res: Response) => {
+router.post('/batch-95/location-montage', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { location = 'beach', persona, duration = 20, userImage, emotionalArc } = req.body as Batch95Request;
@@ -217,7 +217,7 @@ router.post('/batch-95/location-montage', async (req: Request, res: Response) =>
     });
 
     if (!prompt) {
-      return res.status(400).json({ error: 'Failed to generate location montage' });
+      return void res.status(400).json({ error: 'Failed to generate location montage' });
     }
 
     res.json({

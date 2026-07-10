@@ -9,7 +9,7 @@ const router = Router();
 // ── Health ─────────────────────────────────────────────────────────────
 
 router.get('/health', (req: Request, res: Response) => {
-  return res.json({
+  return void res.json({
     status: 'ok',
     service: 'prompt-generation',
     batches: ['28-construction', '29-nano-banana'],
@@ -33,14 +33,14 @@ router.get('/health', (req: Request, res: Response) => {
  *
  * Response: Array of GeneratedPrompt objects + metrics
  */
-router.post('/generate-variations', async (req: Request, res: Response) => {
+router.post('/generate-variations', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const request: PromptGenerationRequest = req.body;
     const feedbackLoop = new FeedbackLoop(brand);
 
     if (!request.basePromptId || !request.numberOfVariations) {
-      return res.status(400).json({
+      return void res.status(400).json({
         error: 'basePromptId and numberOfVariations required',
       });
     }
@@ -72,7 +72,7 @@ router.post('/generate-variations', async (req: Request, res: Response) => {
       metrics: metrics as any,
     });
 
-    return res.json({
+    return void res.json({
       status: 'success',
       data: {
         prompts,
@@ -105,14 +105,14 @@ router.post('/generate-variations', async (req: Request, res: Response) => {
  *
  * Response: Array of all generated prompts + batch metrics
  */
-router.post('/batch-generate', async (req: Request, res: Response) => {
+router.post('/batch-generate', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { baseIds, style, variationsPerBase = 10 } = req.body;
     const feedbackLoop = new FeedbackLoop(brand);
 
     if (!Array.isArray(baseIds) || baseIds.length === 0) {
-      return res.status(400).json({
+      return void res.status(400).json({
         error: 'baseIds array required (min 1)',
       });
     }
@@ -141,7 +141,7 @@ router.post('/batch-generate', async (req: Request, res: Response) => {
       metrics: metrics as any,
     });
 
-    return res.json({
+    return void res.json({
       status: 'success',
       data: {
         batchId,
@@ -168,14 +168,14 @@ router.post('/batch-generate', async (req: Request, res: Response) => {
  *
  * Returns: { style, temperature, maxTokens, occasionWeights, ... }
  */
-router.get('/optimized-config', async (req: Request, res: Response) => {
+router.get('/optimized-config', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const feedbackLoop = new FeedbackLoop(brand);
 
     const config = await feedbackLoop.getOptimizedConfig();
 
-    return res.json({
+    return void res.json({
       status: 'success',
       data: config,
       message: 'Optimized config based on previous batch metrics',
@@ -195,22 +195,22 @@ router.get('/optimized-config', async (req: Request, res: Response) => {
  * GET /api/prompts/metrics/:batchId
  * Retrieve metrics for a specific batch
  */
-router.get('/metrics/:batchId', async (req: Request, res: Response) => {
+router.get('/metrics/:batchId', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
-    const { batchId } = req.params;
+    const batchId = String(req.params.batchId ?? '');
     const feedbackLoop = new FeedbackLoop(brand);
 
     const metrics = await feedbackLoop.getMetrics(batchId);
 
     if (!metrics) {
-      return res.status(404).json({
+      return void res.status(404).json({
         error: 'Batch not found',
         batchId,
       });
     }
 
-    return res.json({
+    return void res.json({
       status: 'success',
       data: metrics,
       batchId,

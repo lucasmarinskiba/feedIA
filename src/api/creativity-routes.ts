@@ -15,12 +15,12 @@ const router = Router();
  * POST /api/creativity/analyze
  * Analyze prompt for wit/originality score
  */
-router.post('/analyze', async (req: Request, res: Response) => {
+router.post('/analyze', async (req: Request, res: Response): Promise<void> => {
   try {
     const { promptText } = req.body;
 
     if (!promptText) {
-      return res.status(400).json({ error: 'promptText required' });
+      return void res.status(400).json({ error: 'promptText required' });
     }
 
     const analysis = await creativityWitEngine.analyzeWit(promptText);
@@ -46,13 +46,13 @@ router.post('/analyze', async (req: Request, res: Response) => {
  * POST /api/creativity/boost
  * Full pipeline: analyze + remove clichés + inject twist
  */
-router.post('/boost', async (req: Request, res: Response) => {
+router.post('/boost', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { promptText } = req.body;
 
     if (!promptText) {
-      return res.status(400).json({ error: 'promptText required' });
+      return void res.status(400).json({ error: 'promptText required' });
     }
 
     log.info('[Creativity] Boost requested', { brand: brand?.name });
@@ -83,12 +83,12 @@ router.post('/boost', async (req: Request, res: Response) => {
  * POST /api/creativity/inject-twist
  * Inject specific creative twist technique
  */
-router.post('/inject-twist', async (req: Request, res: Response) => {
+router.post('/inject-twist', async (req: Request, res: Response): Promise<void> => {
   try {
     const { promptText, twistType, contentType } = req.body;
 
     if (!promptText) {
-      return res.status(400).json({ error: 'promptText required' });
+      return void res.status(400).json({ error: 'promptText required' });
     }
 
     let selectedTwist = twistType;
@@ -138,12 +138,12 @@ router.get('/twist-techniques', async (req: Request, res: Response) => {
  * GET /api/creativity/suggest/:contentType
  * Get suggested twists for content type (carousel/reel/story/image)
  */
-router.get('/suggest/:contentType', async (req: Request, res: Response) => {
+router.get('/suggest/:contentType', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { contentType } = req.params;
+    const contentType = String(req.params.contentType ?? '');
 
     if (!['carousel', 'reel', 'story', 'image'].includes(contentType)) {
-      return res.status(400).json({ error: 'contentType must be: carousel, reel, story, or image' });
+      return void res.status(400).json({ error: 'contentType must be: carousel, reel, story, or image' });
     }
 
     const suggestions = creativityWitEngine.suggestTwistForContentType(

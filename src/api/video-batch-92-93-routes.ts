@@ -33,13 +33,13 @@ interface Batch93Request {
  * POST /api/video/batch-92/generate
  * Generate vertical engagement prompt (9:16, 15sec TikTok/Instagram Reels)
  */
-router.post('/batch-92/generate', async (req: Request, res: Response) => {
+router.post('/batch-92/generate', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { engagementType, persona, product, duration = 15, userImage } = req.body as Batch92Request;
 
     if (!engagementType || !persona || !product) {
-      return res.status(400).json({
+      return void res.status(400).json({
         error: 'Required: engagementType, persona, product',
         supportedTypes: ['emotional', 'entertainment', 'polemic', 'education', 'humor', 'debate'],
       });
@@ -76,7 +76,7 @@ router.post('/batch-92/generate', async (req: Request, res: Response) => {
     });
 
     if (!prompt) {
-      return res.status(400).json({
+      return void res.status(400).json({
         error: 'Failed to generate prompt. Check required parameters.',
       });
     }
@@ -104,17 +104,17 @@ router.post('/batch-92/generate', async (req: Request, res: Response) => {
  * POST /api/video/batch-92/batch-generate
  * Generate multiple vertical engagement prompts
  */
-router.post('/batch-92/batch-generate', async (req: Request, res: Response) => {
+router.post('/batch-92/batch-generate', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { requests } = req.body as { requests: Batch92Request[] };
 
     if (!requests || !Array.isArray(requests) || requests.length === 0) {
-      return res.status(400).json({ error: 'requests array required' });
+      return void res.status(400).json({ error: 'requests array required' });
     }
 
     if (requests.length > 10) {
-      return res.status(400).json({ error: 'Maximum 10 requests per batch' });
+      return void res.status(400).json({ error: 'Maximum 10 requests per batch' });
     }
 
     log.info('[Batch92] Batch generation', { requestCount: requests.length });
@@ -165,13 +165,13 @@ router.post('/batch-92/batch-generate', async (req: Request, res: Response) => {
  * POST /api/video/batch-93/generate
  * Generate ultra-detailed reference pattern prompt
  */
-router.post('/batch-93/generate', async (req: Request, res: Response) => {
+router.post('/batch-93/generate', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { referencePattern, persona, location, product, duration = 15, userImage } = req.body as Batch93Request;
 
     if (!referencePattern || !persona) {
-      return res.status(400).json({
+      return void res.status(400).json({
         error: 'Required: referencePattern, persona',
         supportedPatterns: [
           'documentary-minimalism',
@@ -217,7 +217,7 @@ router.post('/batch-93/generate', async (req: Request, res: Response) => {
     });
 
     if (!prompt) {
-      return res.status(400).json({
+      return void res.status(400).json({
         error: 'Failed to generate prompt. Check required parameters.',
       });
     }
@@ -245,17 +245,17 @@ router.post('/batch-93/generate', async (req: Request, res: Response) => {
  * POST /api/video/batch-93/batch-generate
  * Generate multiple reference pattern prompts
  */
-router.post('/batch-93/batch-generate', async (req: Request, res: Response) => {
+router.post('/batch-93/batch-generate', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { requests } = req.body as { requests: Batch93Request[] };
 
     if (!requests || !Array.isArray(requests) || requests.length === 0) {
-      return res.status(400).json({ error: 'requests array required' });
+      return void res.status(400).json({ error: 'requests array required' });
     }
 
     if (requests.length > 10) {
-      return res.status(400).json({ error: 'Maximum 10 requests per batch' });
+      return void res.status(400).json({ error: 'Maximum 10 requests per batch' });
     }
 
     log.info('[Batch93] Batch generation', { requestCount: requests.length });
