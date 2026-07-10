@@ -18,6 +18,7 @@ import { creativityWitEngine } from './creativity-wit-engine.js';
 import { facialIdentityPreservationService } from './facial-identity-preservation.js';
 import { consistencyLockManager } from './consistency-lock.js';
 import { applyViraLityLayer, type VirologyInjectionContext } from './virality-prompt-layer.js';
+import { variantFrameworkService, type ContentVariant } from './variant-framework-service.js';
 import type { BrandProfile } from '../config/types.js';
 
 interface MasterPipelineOptions {
@@ -31,6 +32,7 @@ interface MasterPipelineOptions {
   enableViralityGuidance?: boolean; // NEW: inject viral optimization hints before generation
   viralityContext?: VirologyInjectionContext; // NEW: baseline content for scoring
   brandProfile?: BrandProfile; // NEW: for trending topic injection
+  generateVariants?: boolean; // NEW: generate A/B test variants
 }
 
 interface MasterPipelineResult {
@@ -45,6 +47,8 @@ interface MasterPipelineResult {
   warnings: string[];
   viralityScore?: number; // NEW: viral score if guidance was applied
   viralityPotential?: number; // NEW: ceiling score (potential if improvements applied)
+  variants?: ContentVariant[]; // NEW: A/B test variants if generateVariants enabled
+  variantSetId?: string; // NEW: ID for tracking variant set performance
 }
 
 class MasterContentPipeline {
@@ -63,6 +67,7 @@ class MasterContentPipeline {
       enableViralityGuidance,
       viralityContext,
       brandProfile,
+      generateVariants,
     } = options;
 
     const stagesApplied: string[] = [];
@@ -70,6 +75,7 @@ class MasterContentPipeline {
     let workingPrompt = basePrompt;
     let viralityScore: number | undefined;
     let viralityPotential: number | undefined;
+    let enrichedBriefForVariants: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
     log.info('[MasterPipeline] Processing started', {
       platform,
@@ -103,6 +109,7 @@ class MasterContentPipeline {
         workingPrompt = [...guidanceLines, '', basePrompt].join('\n');
         viralityScore = enriched.predictions.viralScore;
         viralityPotential = enriched.predictions.ceilingScore;
+        enrichedBriefForVariants = enriched; // Capture for variant generation
         stagesApplied.push('virality-guidance-layer');
         if (enriched.trendingTopics?.length) {
           stagesApplied.push('trending-topics-injection');
@@ -178,6 +185,30 @@ class MasterContentPipeline {
       readyForGeneration,
     });
 
+    // Stage 6: Generate A/B variants (optional)
+    let variants: ContentVariant[] | undefined;
+    let variantSetId: string | undefined;
+    if (generateVariants && enrichedBriefForVariants) {
+      try {
+        const variantSet = variantFrameworkService.generateVariants(enrichedBriefForVariants, basePrompt);
+        variantSetId = variantSet.controlId.split(':')[0]; // Extract setId
+        variants = [
+          variantFrameworkService.getVariant(variantSet.controlId)!,
+          ...(variantSet.variantIds
+            .map((id) => variantFrameworkService.getVariant(id))
+            .filter((v) => v !== undefined) as ContentVariant[]),
+        ];
+        stagesApplied.push('variant-generation');
+
+        log.info('[MasterPipeline] Variants generated', {
+          variantSetId,
+          variantCount: variants.length,
+        });
+      } catch (err) {
+        warnings.push(`Variant generation failed: ${String(err)}`);
+      }
+    }
+
     return {
       finalPrompt: workingPrompt,
       stagesApplied,
@@ -190,6 +221,8 @@ class MasterContentPipeline {
       warnings,
       viralityScore,
       viralityPotential,
+      variants,
+      variantSetId,
     };
   }
 
