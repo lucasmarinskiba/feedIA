@@ -133,7 +133,7 @@ class FeedIAAgentsOrchestrator {
       const task = this.taskQueue.shift();
       if (!task) break;
 
-      this.activeTasksmake.set(task.id, task);
+      this.activetasks.set(task.id, task);
 
       try {
         const startTime = Date.now();
@@ -169,7 +169,7 @@ class FeedIAAgentsOrchestrator {
         this.updateAgentMetrics(task.type, latency, true);
 
         this.completedTasks.push(task);
-        this.activeTasksmake.delete(task.id);
+        this.activetasks.delete(task.id);
 
         log.info('[Orchestrator] Task completed', { taskId: task.id, latency: `${latency}ms` });
       } catch (error) {
@@ -177,7 +177,7 @@ class FeedIAAgentsOrchestrator {
         task.completedAt = new Date().toISOString();
 
         this.updateAgentMetrics(task.type, 0, false);
-        this.activeTasksmake.delete(task.id);
+        this.activetasks.delete(task.id);
 
         log.error('[Orchestrator] Task failed', { taskId: task.id, error });
       }
@@ -312,7 +312,7 @@ class FeedIAAgentsOrchestrator {
    * Get task status
    */
   getTaskStatus(taskId: string): AgentTask | null {
-    return this.activeTasksmake.get(taskId) || this.completedTasks.find(t => t.id === taskId) || null;
+    return this.activetasks.get(taskId) || this.completedTasks.find(t => t.id === taskId) || null;
   }
 
   /**
@@ -321,7 +321,7 @@ class FeedIAAgentsOrchestrator {
   getQueueStatus(): Record<string, any> {
     return {
       queued: this.taskQueue.length,
-      active: this.activeTasksmake.size,
+      active: this.activetasks.size,
       completed: this.completedTasks.length,
       avgLatency: this.getAverageLatency(),
       successRate: this.getSuccessRate(),

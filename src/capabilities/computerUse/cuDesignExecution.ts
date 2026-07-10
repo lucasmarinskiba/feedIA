@@ -44,7 +44,7 @@ const optimizeDesignPlan = (actions: CuAction[]): CuAction[] => {
   );
 
   // Flatten batches back to actions
-  return optimized.batches.flatMap((batch) => batch.actions);
+  return (optimized.batches as { actions: CuAction[] }[]).flatMap((batch) => batch.actions);
 };
 
 // ── Execute design plan (actual CU calls) ──────────────────────────────
@@ -55,7 +55,7 @@ export const executeDesignCuPlan = async (
 ): Promise<DesignCuExecutionResult> => {
   const startTime = Date.now();
 
-  log.info(`[CU Design] Executing plan ${context.plan.workflowId}`);
+  log.info(`[CU Design] Executing plan ${(context.plan as unknown as { workflowId?: string }).workflowId ?? 'unknown'}`);
 
   // 1. Optimize actions
   const optimizedActions = optimizeDesignPlan(context.plan.cuActions);
@@ -75,10 +75,10 @@ export const executeDesignCuPlan = async (
     log.warn(`[CU Design] No executor provided, simulating execution`);
     events = optimizedActions.map((action, i) => ({
       kind: 'act' as const,
-      timestamp: Date.now() + i * 500,
-      gesture: 'click' as const,
-      x: 0,
-      y: 0,
+      step: i,
+      gesture: 'click',
+      target: action.selector ?? 'unknown',
+      narrate: `Ejecutando acción ${i + 1}`,
     }));
     success = true;
   }

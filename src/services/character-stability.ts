@@ -48,7 +48,7 @@ class CharacterStabilityService {
       locksApplied.push(`Character: ${charLock.characterName}`);
 
       for (let i = 0; i < prompts.length; i++) {
-        const prompt = prompts[i];
+        const prompt = prompts[i]!;
 
         // Check if character traits present
         if (!prompt.toLowerCase().includes(charLock.characterName.toLowerCase())) {
@@ -82,7 +82,7 @@ class CharacterStabilityService {
       locksApplied.push(`Product: ${prodLock.productName}`);
 
       for (let i = 0; i < prompts.length; i++) {
-        const prompt = prompts[i];
+        const prompt = prompts[i]!;
 
         // Check if product present
         if (!prompt.toLowerCase().includes(prodLock.productName.toLowerCase())) {
@@ -107,7 +107,7 @@ class CharacterStabilityService {
       locksApplied.push(`Environment: ${envLock.settingName}`);
 
       for (let i = 0; i < prompts.length; i++) {
-        const prompt = prompts[i];
+        const prompt = prompts[i]!;
 
         // Check for setting changes
         if (prompt.toLowerCase().includes('different location') || prompt.toLowerCase().includes('new setting')) {

@@ -1904,7 +1904,7 @@ export const platformStoryTiming = {
   },
 
   instagramReel: {
-    format: '15-60 seconds',
+    duration: '15-60 seconds',
     timing: {
       first: '0-3s: Unmissable hook (trending audio)',
       middle: '3-45s: Build curiosity + deliver value',

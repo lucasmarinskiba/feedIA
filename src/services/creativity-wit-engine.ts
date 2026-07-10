@@ -193,9 +193,9 @@ class CreativityWitEngine {
    */
   injectCreativeTwist(promptText: string, twistType?: string): { prompt: string; twist: CreativeTwist } {
     // Select twist technique (random or specified)
-    const twist = twistType
+    const twist = (twistType
       ? this.TWIST_TECHNIQUES.find(t => t.twistType === twistType) || this.TWIST_TECHNIQUES[0]
-      : this.TWIST_TECHNIQUES[Math.floor(Math.random() * this.TWIST_TECHNIQUES.length)];
+      : this.TWIST_TECHNIQUES[Math.floor(Math.random() * this.TWIST_TECHNIQUES.length)])!;
 
     const injection = `
 [CREATIVE TWIST - OCURRENCIA INJECTION]
@@ -236,6 +236,7 @@ Make viewer think "I didn't expect that" or "clever!" — surprise + intelligenc
     for (const [cliche, alternatives] of Object.entries(clicheAlternatives)) {
       if (refined.toLowerCase().includes(cliche)) {
         const replacement = alternatives[Math.floor(Math.random() * alternatives.length)];
+        if (!replacement) continue;
         const regex = new RegExp(cliche, 'gi');
         refined = refined.replace(regex, replacement);
         replacements.push({ from: cliche, to: replacement });
