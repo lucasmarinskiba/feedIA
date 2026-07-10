@@ -19,13 +19,13 @@ const router = Router();
  * POST /api/prompts/expand-single
  * Expand single base prompt into 6 variations (one per tone)
  */
-router.post('/expand-single', async (req: Request, res: Response) => {
+router.post('/expand-single', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { promptId, promptText } = req.body;
 
     if (!promptId || !promptText) {
-      return res.status(400).json({ error: 'promptId and promptText required' });
+      return void res.status(400).json({ error: 'promptId and promptText required' });
     }
 
     log.info('[PromptExpansion] Single expansion requested', { promptId });
@@ -50,13 +50,13 @@ router.post('/expand-single', async (req: Request, res: Response) => {
  * Super-expand single prompt: 1 prompt → 12 variations (2x standard)
  * For scaling: video/image/stories 3,450 → 41,400 per library
  */
-router.post('/super-expand', async (req: Request, res: Response) => {
+router.post('/super-expand', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { promptId, promptText } = req.body;
 
     if (!promptId || !promptText) {
-      return res.status(400).json({ error: 'promptId and promptText required' });
+      return void res.status(400).json({ error: 'promptId and promptText required' });
     }
 
     log.info('[PromptExpansion] Super-expand requested', { promptId });

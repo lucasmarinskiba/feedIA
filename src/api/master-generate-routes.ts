@@ -15,7 +15,7 @@ const router = Router();
  * POST /api/master/generate
  * Run single prompt through full pipeline in one call
  */
-router.post('/generate', async (req: Request, res: Response) => {
+router.post('/generate', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const {
@@ -29,7 +29,7 @@ router.post('/generate', async (req: Request, res: Response) => {
     } = req.body;
 
     if (!basePrompt) {
-      return res.status(400).json({ error: 'basePrompt required' });
+      return void res.status(400).json({ error: 'basePrompt required' });
     }
 
     log.info('[MasterGenerate] Single generation requested', { platform, contentType, brand: brand?.name });
@@ -77,7 +77,7 @@ router.post('/generate', async (req: Request, res: Response) => {
  * POST /api/master/generate-carousel
  * Run entire carousel (multiple frames) through pipeline in one call
  */
-router.post('/generate-carousel', async (req: Request, res: Response) => {
+router.post('/generate-carousel', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const {
@@ -89,11 +89,11 @@ router.post('/generate-carousel', async (req: Request, res: Response) => {
     } = req.body;
 
     if (!basePrompt) {
-      return res.status(400).json({ error: 'basePrompt required' });
+      return void res.status(400).json({ error: 'basePrompt required' });
     }
 
     if (frameCount < 2 || frameCount > 10) {
-      return res.status(400).json({ error: 'frameCount must be between 2 and 10' });
+      return void res.status(400).json({ error: 'frameCount must be between 2 and 10' });
     }
 
     log.info('[MasterGenerate] Carousel generation requested', {

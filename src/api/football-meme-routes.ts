@@ -60,7 +60,7 @@ Emotion: Shock, inspiration, belief in impossible.`,
  * POST /api/football/generate
  * Generate single football meme prompt
  */
-router.post('/generate', async (req: Request, res: Response) => {
+router.post('/generate', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const {
@@ -85,7 +85,7 @@ router.post('/generate', async (req: Request, res: Response) => {
     } = req.body;
 
     if (!playerName && !country) {
-      return res.status(400).json({ error: 'playerName or country required' });
+      return void res.status(400).json({ error: 'playerName or country required' });
     }
 
     log.info('[FootballMeme] Generation requested', { category, playerName, country });
@@ -157,12 +157,12 @@ router.post('/generate', async (req: Request, res: Response) => {
  * POST /api/football/batch-generate
  * Generate multiple football meme prompts
  */
-router.post('/batch-generate', async (req: Request, res: Response) => {
+router.post('/batch-generate', async (req: Request, res: Response): Promise<void> => {
   try {
     const { category = 'post-goal', count = 5, parameters } = req.body;
 
     if (!parameters || parameters.length === 0) {
-      return res.status(400).json({ error: 'parameters array required' });
+      return void res.status(400).json({ error: 'parameters array required' });
     }
 
     log.info('[FootballMeme] Batch generation requested', { category, count });

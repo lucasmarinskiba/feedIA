@@ -155,12 +155,12 @@ async function generateImageEmbedding(imagePath: string): Promise<number[]> {
  * POST /api/image-upload/upload
  * Upload image → extract features → store in DB
  */
-router.post('/upload', upload.single('image'), async (req: Request, res: Response) => {
+router.post('/upload', upload.single('image'), async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = ((req as unknown as Record<string, unknown>).userId as string) || 'anonymous';
 
     if (!req.file) {
-      return res.status(400).json({ error: 'No image uploaded' });
+      return void res.status(400).json({ error: 'No image uploaded' });
     }
 
     log.info('[ImageUpload] Processing image', { filename: req.file.filename, size: req.file.size });
@@ -185,12 +185,12 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
 
     if (!stored) {
       fs.unlinkSync(imagePath); // Clean up
-      return res.status(500).json({ error: 'Failed to store image in database' });
+      return void res.status(500).json({ error: 'Failed to store image in database' });
     }
 
     log.info('[ImageUpload] Image stored', { imageId, userId });
 
-    return res.json({
+    return void res.json({
       status: 'success',
       image: {
         id: imageId,
@@ -220,12 +220,12 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
  * POST /api/image-upload/match-prompts
  * Find matching prompts for uploaded image
  */
-router.post('/match-prompts', async (req: Request, res: Response) => {
+router.post('/match-prompts', async (req: Request, res: Response): Promise<void> => {
   try {
     const { imageId, limit = 50, category, batch } = req.body;
 
     if (!imageId) {
-      return res.status(400).json({ error: 'imageId required' });
+      return void res.status(400).json({ error: 'imageId required' });
     }
 
     log.info('[ImageMatch] Finding matching prompts', { imageId, limit, category, batch });
@@ -236,7 +236,7 @@ router.post('/match-prompts', async (req: Request, res: Response) => {
     // TODO: Filter by category/batch if specified
     // TODO: Implement actual similarity scoring based on embeddings
 
-    return res.json({
+    return void res.json({
       status: 'success',
       imageId,
       matchCount: matches.length,
@@ -256,12 +256,12 @@ router.post('/match-prompts', async (req: Request, res: Response) => {
  * POST /api/image-upload/parameterize
  * Combine user image + matched prompt + parameters → generate content
  */
-router.post('/parameterize', async (req: Request, res: Response) => {
+router.post('/parameterize', async (req: Request, res: Response): Promise<void> => {
   try {
     const { imageId, promptId, parameters } = req.body;
 
     if (!imageId || !promptId) {
-      return res.status(400).json({ error: 'imageId and promptId required' });
+      return void res.status(400).json({ error: 'imageId and promptId required' });
     }
 
     log.info('[ImageParameterize] Parameterizing prompt', { imageId, promptId, parameters });
@@ -271,7 +271,7 @@ router.post('/parameterize', async (req: Request, res: Response) => {
     // TODO: Generate parameterized prompt
     // TODO: Queue for video generation
 
-    return res.json({
+    return void res.json({
       status: 'success',
       parameterized: {
         imageId,
@@ -294,11 +294,11 @@ router.post('/parameterize', async (req: Request, res: Response) => {
  * GET /api/image-upload/status
  * Database statistics
  */
-router.get('/status', async (req: Request, res: Response) => {
+router.get('/status', async (req: Request, res: Response): Promise<void> => {
   try {
     const stats = feedIADatabase.getStats();
 
-    return res.json({
+    return void res.json({
       status: 'operational',
       database: stats,
       uploadDirectory: UPLOAD_DIR,

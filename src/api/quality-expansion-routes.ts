@@ -19,13 +19,13 @@ const router = Router();
  * Single prompt → 12 variations with quality validation + refinement
  * 3-step: expand → validate → refine if needed
  */
-router.post('/expand-refine', async (req: Request, res: Response) => {
+router.post('/expand-refine', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { promptId, promptText } = req.body;
 
     if (!promptId || !promptText) {
-      return res.status(400).json({ error: 'promptId and promptText required' });
+      return void res.status(400).json({ error: 'promptId and promptText required' });
     }
 
     log.info('[QualityExpansion] Expand-refine requested', { promptId });
@@ -107,12 +107,12 @@ router.post('/expand-refine', async (req: Request, res: Response) => {
  * POST /api/quality/validate
  * Validate prompt text + return quality report
  */
-router.post('/validate', async (req: Request, res: Response) => {
+router.post('/validate', async (req: Request, res: Response): Promise<void> => {
   try {
     const { promptText } = req.body;
 
     if (!promptText) {
-      return res.status(400).json({ error: 'promptText required' });
+      return void res.status(400).json({ error: 'promptText required' });
     }
 
     const validation = await qualityValidator.validatePrompt(promptText);
@@ -143,12 +143,12 @@ router.post('/validate', async (req: Request, res: Response) => {
  * POST /api/quality/refine
  * Refine prompt based on quality standards + cinematography
  */
-router.post('/refine', async (req: Request, res: Response) => {
+router.post('/refine', async (req: Request, res: Response): Promise<void> => {
   try {
     const { promptText } = req.body;
 
     if (!promptText) {
-      return res.status(400).json({ error: 'promptText required' });
+      return void res.status(400).json({ error: 'promptText required' });
     }
 
     log.info('[QualityExpansion] Refine requested');

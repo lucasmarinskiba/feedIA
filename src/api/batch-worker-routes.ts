@@ -54,12 +54,12 @@ router.post('/expand-all', async (req: Request, res: Response) => {
  * POST /api/batch/expand-batch
  * Queue expansion for specific batch
  */
-router.post('/expand-batch', async (req: Request, res: Response) => {
+router.post('/expand-batch', async (req: Request, res: Response): Promise<void> => {
   try {
     const { batchId } = req.body;
 
     if (!batchId) {
-      return res.status(400).json({ error: 'batchId required' });
+      return void res.status(400).json({ error: 'batchId required' });
     }
 
     const jobId = await batchExpansionWorker.queueBatchExpansion(batchId);
@@ -82,13 +82,13 @@ router.post('/expand-batch', async (req: Request, res: Response) => {
  * GET /api/batch/status/:jobId
  * Get job progress + status
  */
-router.get('/status/:jobId', async (req: Request, res: Response) => {
+router.get('/status/:jobId', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { jobId } = req.params;
+    const jobId = String(req.params.jobId ?? '');
     const job = batchExpansionWorker.getJobStatus(jobId);
 
     if (!job) {
-      return res.status(404).json({ error: 'Job not found', jobId });
+      return void res.status(404).json({ error: 'Job not found', jobId });
     }
 
     const eta = job.status === 'in_progress'

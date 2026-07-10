@@ -22,7 +22,7 @@ router.get('/health', (req: Request, res: Response) => {
 
 router.post('/:userId/brand', (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const userId = String(req.params.userId ?? '');
     const profile = createUserBrandProfile(userId, req.body);
     res.json({ status: 'success', data: profile });
   } catch (error) {
@@ -30,13 +30,13 @@ router.post('/:userId/brand', (req: Request, res: Response) => {
   }
 });
 
-router.get('/:userId/brand', (req: Request, res: Response) => {
-  const profile = getUserBrandProfile(req.params.userId);
-  if (!profile) return res.status(404).json({ error: 'Not found' });
+router.get('/:userId/brand', (req: Request, res: Response): void => {
+  const profile = getUserBrandProfile(String(req.params.userId ?? ''));
+  if (!profile) { res.status(404).json({ error: 'Not found' }); return; }
   res.json({ status: 'success', data: profile });
 });
 
-router.post('/:userId/generate/carousel', async (req: Request, res: Response) => {
+router.post('/:userId/generate/carousel', async (req: Request, res: Response): Promise<void> => {
   try {
     const carousel = await generateSmartCarousel(req.body);
     res.json({ status: 'success', data: carousel });
@@ -45,7 +45,7 @@ router.post('/:userId/generate/carousel', async (req: Request, res: Response) =>
   }
 });
 
-router.post('/:userId/generate/video', async (req: Request, res: Response) => {
+router.post('/:userId/generate/video', async (req: Request, res: Response): Promise<void> => {
   try {
     const video = await generateSmartVideo(req.body);
     res.json({ status: 'success', data: video });
@@ -55,7 +55,7 @@ router.post('/:userId/generate/video', async (req: Request, res: Response) => {
 });
 
 router.post('/:userId/validate/coherence', (req: Request, res: Response) => {
-  const report = generateBrandCoherenceReport(req.params.userId, req.body.posts || []);
+  const report = generateBrandCoherenceReport(String(req.params.userId ?? ''), req.body.posts || []);
   res.json({ status: 'success', data: report });
 });
 
@@ -65,9 +65,9 @@ router.get('/:userId/resources/recommend', (req: Request, res: Response) => {
   res.json({ status: 'success', data: { recommended: recommendations, free: getFreeResources().slice(0, 5) } });
 });
 
-router.get('/:userId/dashboard', (req: Request, res: Response) => {
-  const profile = getUserBrandProfile(req.params.userId);
-  if (!profile) return res.status(404).json({ error: 'Not found' });
+router.get('/:userId/dashboard', (req: Request, res: Response): void => {
+  const profile = getUserBrandProfile(String(req.params.userId ?? ''));
+  if (!profile) { res.status(404).json({ error: 'Not found' }); return; }
   res.json({
     status: 'success',
     data: {
@@ -80,13 +80,13 @@ router.get('/:userId/dashboard', (req: Request, res: Response) => {
   });
 });
 
-router.post('/:userId/learnings/update', (req: Request, res: Response) => {
-  const updated = updateUserBrandLearnings(req.params.userId, req.body);
-  if (!updated) return res.status(404).json({ error: 'Not found' });
+router.post('/:userId/learnings/update', (req: Request, res: Response): void => {
+  const updated = updateUserBrandLearnings(String(req.params.userId ?? ''), req.body);
+  if (!updated) { res.status(404).json({ error: 'Not found' }); return; }
   res.json({ status: 'success', data: updated });
 });
 
-router.post('/:userId/generate/batch', async (req: Request, res: Response) => {
+router.post('/:userId/generate/batch', async (req: Request, res: Response): Promise<void> => {
   try {
     const { carousels = [], videos = [] } = req.body;
     const carouselResults = await Promise.all(carousels.map((b: any) => generateSmartCarousel(b)));
@@ -105,7 +105,7 @@ router.post('/:userId/generate/batch', async (req: Request, res: Response) => {
  */
 router.post('/:userId/philosophy', (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const userId = String(req.params.userId ?? '');
     log.info(`[Phase 25] Creating philosophy for user: ${userId}`);
 
     const philosophy = createBrandPhilosophy(userId, req.body);
@@ -125,12 +125,12 @@ router.post('/:userId/philosophy', (req: Request, res: Response) => {
  * GET /api/multi-user/:userId/philosophy
  * Retrieve user's brand philosophy
  */
-router.get('/:userId/philosophy', (req: Request, res: Response) => {
-  const { userId } = req.params;
+router.get('/:userId/philosophy', (req: Request, res: Response): void => {
+  const userId = String(req.params.userId ?? '');
   const philosophy = getBrandPhilosophy(userId);
 
   if (!philosophy) {
-    return res.status(404).json({ error: 'Brand philosophy not found. Create one first.' });
+    res.status(404).json({ error: 'Brand philosophy not found. Create one first.' }); return;
   }
 
   res.json({ status: 'success', data: philosophy });
@@ -140,13 +140,13 @@ router.get('/:userId/philosophy', (req: Request, res: Response) => {
  * PUT /api/multi-user/:userId/philosophy
  * Update brand philosophy
  */
-router.put('/:userId/philosophy', (req: Request, res: Response) => {
+router.put('/:userId/philosophy', (req: Request, res: Response): void => {
   try {
-    const { userId } = req.params;
+    const userId = String(req.params.userId ?? '');
     const updated = updateBrandPhilosophy(userId, req.body);
 
     if (!updated) {
-      return res.status(404).json({ error: 'Brand philosophy not found' });
+      res.status(404).json({ error: 'Brand philosophy not found' }); return;
     }
 
     res.json({ status: 'success', data: updated, message: 'Philosophy updated' });
@@ -189,7 +189,7 @@ router.get('/:userId/fonts/category/:category', (req: Request, res: Response) =>
  * Get recommended font pairing for niche (tech, finance, wellness, etc)
  */
 router.get('/:userId/fonts/pairing/:niche', (req: Request, res: Response) => {
-  const { niche } = req.params;
+  const niche = String(req.params.niche ?? '');
   const pairing = getFontPairings(niche);
 
   res.json({
@@ -205,13 +205,13 @@ router.get('/:userId/fonts/pairing/:niche', (req: Request, res: Response) => {
  * POST /api/multi-user/:userId/visual/derive
  * Automatically derive visual identity (fonts, colors) from brand philosophy
  */
-router.post('/:userId/visual/derive', (req: Request, res: Response) => {
+router.post('/:userId/visual/derive', (req: Request, res: Response): void => {
   try {
-    const { userId } = req.params;
+    const userId = String(req.params.userId ?? '');
     const philosophy = getBrandPhilosophy(userId);
 
     if (!philosophy) {
-      return res.status(404).json({ error: 'Brand philosophy required. Create one first.' });
+      res.status(404).json({ error: 'Brand philosophy required. Create one first.' }); return;
     }
 
     log.info(`[Phase 25] Deriving visual identity from philosophy: ${userId}`);
@@ -234,7 +234,7 @@ router.post('/:userId/visual/derive', (req: Request, res: Response) => {
  */
 router.post('/:userId/visual/validate', (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const userId = String(req.params.userId ?? '');
     const { visual } = req.body;
 
     log.info(`[Phase 25] Validating visual against philosophy: ${userId}`);
@@ -258,12 +258,12 @@ router.post('/:userId/visual/validate', (req: Request, res: Response) => {
  * GET /api/multi-user/:userId/philosophy/brief
  * Generate content brief from brand philosophy (used for content generation)
  */
-router.get('/:userId/philosophy/brief', (req: Request, res: Response) => {
-  const { userId } = req.params;
+router.get('/:userId/philosophy/brief', (req: Request, res: Response): void => {
+  const userId = String(req.params.userId ?? '');
   const { brief, pillars } = generatePhilosophyBrief(userId);
 
   if (!brief) {
-    return res.status(404).json({ error: 'Brand philosophy not found' });
+    res.status(404).json({ error: 'Brand philosophy not found' }); return;
   }
 
   res.json({
@@ -321,7 +321,7 @@ router.get('/:userId/patterns/available', (req: Request, res: Response) => {
  */
 router.post('/:userId/patterns/generate', (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const userId = String(req.params.userId ?? '');
     const { patternType, patternName, industry, messaging, format } = req.body;
 
     log.info(`[Phase 26] Generating carousel: ${patternName} for ${industry}`);
@@ -357,8 +357,8 @@ router.post('/:userId/patterns/generate', (req: Request, res: Response) => {
  * GET /api/multi-user/:userId/patterns/:patternName/template
  * Get full template for specific pattern
  */
-router.get('/:userId/patterns/:patternName/template', (req: Request, res: Response) => {
-  const { patternName } = req.params;
+router.get('/:userId/patterns/:patternName/template', (req: Request, res: Response): void => {
+  const patternName = String(req.params.patternName ?? '');
 
   const templates: Record<string, any> = {
     productWontPattern: {
@@ -392,7 +392,7 @@ router.get('/:userId/patterns/:patternName/template', (req: Request, res: Respon
   const template = templates[patternName];
 
   if (!template) {
-    return res.status(404).json({ error: `Pattern ${patternName} not found` });
+    res.status(404).json({ error: `Pattern ${patternName} not found` }); return;
   }
 
   res.json({
@@ -408,7 +408,7 @@ router.get('/:userId/patterns/:patternName/template', (req: Request, res: Respon
  */
 router.post('/:userId/patterns/batch-generate', (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const userId = String(req.params.userId ?? '');
     const { patterns } = req.body; // Array of {patternName, industry, messaging}
 
     log.info(`[Phase 26] Batch generating ${patterns.length} carousels`);
@@ -437,8 +437,8 @@ router.post('/:userId/patterns/batch-generate', (req: Request, res: Response) =>
  * GET /api/multi-user/:userId/patterns/platform/:platform
  * Get platform-specific storytelling recommendations
  */
-router.get('/:userId/patterns/platform/:platform', (req: Request, res: Response) => {
-  const { platform } = req.params;
+router.get('/:userId/patterns/platform/:platform', (req: Request, res: Response): void => {
+  const platform = String(req.params.platform ?? '');
 
   const platformGuides: Record<string, any> = {
     'instagram-carousel': {
@@ -476,7 +476,7 @@ router.get('/:userId/patterns/platform/:platform', (req: Request, res: Response)
   const guide = platformGuides[platform];
 
   if (!guide) {
-    return res.status(404).json({ error: `Platform ${platform} not found` });
+    res.status(404).json({ error: `Platform ${platform} not found` }); return;
   }
 
   res.json({

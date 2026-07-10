@@ -27,13 +27,13 @@ interface Batch96Request {
  * POST /api/video/batch-96/pets
  * Generate soft-sell pet/animal marketing (problem→solution enabled)
  */
-router.post('/batch-96/pets', async (req: Request, res: Response) => {
+router.post('/batch-96/pets', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { problem, product, persona = 'pet owner', duration = 20, userImage } = req.body as Batch96Request;
 
     if (!problem || !product) {
-      return res.status(400).json({ error: 'Required: problem, product' });
+      return void res.status(400).json({ error: 'Required: problem, product' });
     }
 
     log.info('[Batch96] Pet soft-sell generation', { problem, product });
@@ -50,7 +50,7 @@ router.post('/batch-96/pets', async (req: Request, res: Response) => {
     });
 
     if (!prompt) {
-      return res.status(400).json({ error: 'Failed to generate pet soft-sell prompt' });
+      return void res.status(400).json({ error: 'Failed to generate pet soft-sell prompt' });
     }
 
     res.json({
@@ -76,13 +76,13 @@ router.post('/batch-96/pets', async (req: Request, res: Response) => {
  * POST /api/video/batch-96/lifestyle
  * Generate soft-sell lifestyle product marketing
  */
-router.post('/batch-96/lifestyle', async (req: Request, res: Response) => {
+router.post('/batch-96/lifestyle', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { problem, product, persona, duration = 20, userImage } = req.body as Batch96Request;
 
     if (!problem || !product) {
-      return res.status(400).json({ error: 'Required: problem, product' });
+      return void res.status(400).json({ error: 'Required: problem, product' });
     }
 
     log.info('[Batch96] Lifestyle soft-sell generation', { problem, product });
@@ -99,7 +99,7 @@ router.post('/batch-96/lifestyle', async (req: Request, res: Response) => {
     });
 
     if (!prompt) {
-      return res.status(400).json({ error: 'Failed to generate lifestyle soft-sell' });
+      return void res.status(400).json({ error: 'Failed to generate lifestyle soft-sell' });
     }
 
     res.json({
@@ -125,13 +125,13 @@ router.post('/batch-96/lifestyle', async (req: Request, res: Response) => {
  * POST /api/video/batch-96/services
  * Generate soft-sell service provider marketing (coaching/education/therapy/business services)
  */
-router.post('/batch-96/services', async (req: Request, res: Response) => {
+router.post('/batch-96/services', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { problem, product, persona, duration = 20, userImage } = req.body as Batch96Request;
 
     if (!problem || !product) {
-      return res.status(400).json({ error: 'Required: problem, product (service)' });
+      return void res.status(400).json({ error: 'Required: problem, product (service)' });
     }
 
     log.info('[Batch96] Service soft-sell generation', { problem, product });
@@ -148,7 +148,7 @@ router.post('/batch-96/services', async (req: Request, res: Response) => {
     });
 
     if (!prompt) {
-      return res.status(400).json({ error: 'Failed to generate service soft-sell' });
+      return void res.status(400).json({ error: 'Failed to generate service soft-sell' });
     }
 
     res.json({
@@ -174,13 +174,13 @@ router.post('/batch-96/services', async (req: Request, res: Response) => {
  * POST /api/video/batch-96/brand-positioning
  * Generate soft-sell brand positioning (company culture/values/social responsibility)
  */
-router.post('/batch-96/brand-positioning', async (req: Request, res: Response) => {
+router.post('/batch-96/brand-positioning', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { product: brandName, problem: brandValue, persona, duration = 20, userImage } = req.body as Batch96Request;
 
     if (!brandName || !brandValue) {
-      return res.status(400).json({ error: 'Required: product (brand name), problem (brand value)' });
+      return void res.status(400).json({ error: 'Required: product (brand name), problem (brand value)' });
     }
 
     log.info('[Batch96] Brand positioning generation', { brand: brandName, value: brandValue });
@@ -197,7 +197,7 @@ router.post('/batch-96/brand-positioning', async (req: Request, res: Response) =
     });
 
     if (!prompt) {
-      return res.status(400).json({ error: 'Failed to generate brand positioning' });
+      return void res.status(400).json({ error: 'Failed to generate brand positioning' });
     }
 
     res.json({
@@ -223,13 +223,13 @@ router.post('/batch-96/brand-positioning', async (req: Request, res: Response) =
  * POST /api/video/batch-96/cause-driven
  * Generate soft-sell cause/social-impact marketing (NGO/non-profit/sustainability/justice)
  */
-router.post('/batch-96/cause-driven', async (req: Request, res: Response) => {
+router.post('/batch-96/cause-driven', async (req: Request, res: Response): Promise<void> => {
   try {
     const brand = (req as any).brand as BrandProfile;
     const { problem, solution, product, duration = 20, userImage } = req.body as Batch96Request;
 
     if (!problem) {
-      return res.status(400).json({ error: 'Required: problem (social issue)' });
+      return void res.status(400).json({ error: 'Required: problem (social issue)' });
     }
 
     log.info('[Batch96] Cause-driven generation', { problem, solution });
@@ -246,7 +246,7 @@ router.post('/batch-96/cause-driven', async (req: Request, res: Response) => {
     });
 
     if (!prompt) {
-      return res.status(400).json({ error: 'Failed to generate cause-driven prompt' });
+      return void res.status(400).json({ error: 'Failed to generate cause-driven prompt' });
     }
 
     res.json({
