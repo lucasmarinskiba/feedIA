@@ -10,7 +10,7 @@ import {
   generatePhotoWithAgents,
   generateReelWithAgents,
 } from '../api/agentIntegrationLayer';
-import { analyzeScreenshot, VisionAnalysis } from './COMPUTER_VISION_LAYER';
+import { analyzeScreenshot, type ScreenshotAnalysis } from './COMPUTER_VISION_LAYER';
 
 interface AutomationBrief {
   task: 'post_carousel' | 'post_reel' | 'post_story' | 'respond_comments' | 'analyze_account';
@@ -46,7 +46,7 @@ class FeedIAComputerUseOrchestrator {
 
       // Step 1: Analyze current screen (Computer Vision)
       const screenAnalysis = await analyzeScreenshot();
-      console.log(`[FeedIA] Screen analysis: ${screenAnalysis.screenState}`);
+      console.log(`[FeedIA] Screen analysis confidence: ${screenAnalysis.confidence}`);
 
       // Step 2: Route to appropriate workflow
       let result: AutomationResult;
@@ -92,7 +92,7 @@ class FeedIAComputerUseOrchestrator {
 
   private async workflowPostCarousel(
     brief: AutomationBrief,
-    vision: VisionAnalysis,
+    vision: ScreenshotAnalysis,
   ): Promise<AutomationResult> {
     console.log('[FeedIA] Workflow: Post Carousel');
 
@@ -146,7 +146,7 @@ class FeedIAComputerUseOrchestrator {
 
   // ── WORKFLOW: POST REEL ──────────────────────────
 
-  private async workflowPostReel(brief: AutomationBrief, vision: VisionAnalysis): Promise<AutomationResult> {
+  private async workflowPostReel(brief: AutomationBrief, vision: ScreenshotAnalysis): Promise<AutomationResult> {
     console.log('[FeedIA] Workflow: Post Reel');
 
     // Step 1: FeedIA generates viral reel
@@ -184,7 +184,7 @@ class FeedIAComputerUseOrchestrator {
 
   // ── WORKFLOW: POST STORY ─────────────────────────
 
-  private async workflowPostStory(brief: AutomationBrief, vision: VisionAnalysis): Promise<AutomationResult> {
+  private async workflowPostStory(brief: AutomationBrief, vision: ScreenshotAnalysis): Promise<AutomationResult> {
     console.log('[FeedIA] Workflow: Post Story');
 
     // Step 1: Generate story image
@@ -218,12 +218,12 @@ class FeedIAComputerUseOrchestrator {
 
   private async workflowRespondComments(
     brief: AutomationBrief,
-    vision: VisionAnalysis,
+    vision: ScreenshotAnalysis,
   ): Promise<AutomationResult> {
     console.log('[FeedIA] Workflow: Respond to Comments');
 
-    // Step 1: Extract comments from vision analysis
-    const comments = vision.content.comments || [];
+    // Step 1: Extract comments from vision analysis (stub: no comments in ScreenshotAnalysis)
+    const comments: any[] = [];
     console.log(`[FeedIA] Found ${comments.length} comments to respond to`);
 
     // Step 2: FeedIA Copy Engine generates personalized responses
@@ -258,7 +258,7 @@ class FeedIAComputerUseOrchestrator {
 
   private async workflowAnalyzeAccount(
     brief: AutomationBrief,
-    vision: VisionAnalysis,
+    vision: ScreenshotAnalysis,
   ): Promise<AutomationResult> {
     console.log('[FeedIA] Workflow: Analyze Account');
 
@@ -286,12 +286,12 @@ class FeedIAComputerUseOrchestrator {
 
   // ── HELPER FUNCTIONS ─────────────────────────────
 
-  private analyzeBestPostingTime(vision: VisionAnalysis): string {
+  private analyzeBestPostingTime(vision: ScreenshotAnalysis): string {
     // Analyze when audience is most active from vision data
     return '9:00 AM'; // Placeholder
   }
 
-  private async analyzeTrendingAudio(vision: VisionAnalysis): Promise<string> {
+  private async analyzeTrendingAudio(vision: ScreenshotAnalysis): Promise<string> {
     // Extract trending sounds from TikTok/Instagram
     return 'current_trending_audio'; // Placeholder
   }
@@ -316,7 +316,7 @@ class FeedIAComputerUseOrchestrator {
     return response.content?.split('\n')[0] || 'Thanks for the comment!';
   }
 
-  private async generateAccountRecommendations(metrics: any, vision: VisionAnalysis): Promise<string[]> {
+  private async generateAccountRecommendations(metrics: any, vision: ScreenshotAnalysis): Promise<string[]> {
     // Analyze metrics + vision, generate growth recommendations
     const recommendations: string[] = [];
 

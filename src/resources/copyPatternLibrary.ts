@@ -237,7 +237,7 @@ export const copyPatterns: CopyPattern[] = [
     id: 'coach-introduction',
     name: 'Coach/Expert Introduction',
     type: 'social-proof',
-    tone: 'informal',
+    tone: 'casual',
     template: 'Meet [COACH_NAME]\n[TITLE/SPECIALTY]\n[BRIEF_CREDENTIAL]',
     examples: [
       'Meet Coach MIKE\nStrength Specialist\nWith 20+ years in the field'
@@ -314,7 +314,7 @@ export const copyPatterns: CopyPattern[] = [
     id: 'qa-educational-service',
     name: 'Q&A Educational Service Offering',
     type: 'education',
-    tone: 'informal',
+    tone: 'casual',
     template: '[QUESTION]?\nConte com a nossa ajuda e saiba como funciona o que pode acontecer',
     examples: [
       'Como fazer a restituição do Imposto de Renda?\nConte com a nossa ajuda',
@@ -435,7 +435,7 @@ export const copyPatterns: CopyPattern[] = [
     id: 'truth-resolution-benefits',
     name: 'Truth Conclusion + Benefits + Transformation CTA',
     type: 'cta',
-    tone: 'inspirational',
+    tone: 'aspirational',
     template: 'VERDADE\n[AFFIRMATION] e necessário\n\nCom acompanhamento especializado, sua [CONTEXT] garante:\n1. [BENEFIT1]\n2. [BENEFIT2]\n3. [BENEFIT3]\n\nConte com [COMPANY] para transformar mitos em soluções.',
     examples: [
       'VERDADE\nRecuperar é possível e necessário\n\nCom acompanhamento especializado, sua escola garante:\n1. Redução da inadimplência\n2. Maior segurança financeira\n3. Mais tranquilidade para focar no ensino\n\nConte com a BURDA Assessoria para transformar mitos em soluções.'
@@ -449,7 +449,7 @@ export const copyPatterns: CopyPattern[] = [
     id: 'domain-transfer-analogy-hook',
     name: 'Domain Transfer Analogy Hook',
     type: 'hook',
-    tone: 'informal',
+    tone: 'casual',
     template: 'Te explicando [COMPLEX_CONCEPT] na linguagem do [FAMILIAR_DOMAIN]',
     examples: [
       'Te explicando consórcio na linguagem do futebol',
