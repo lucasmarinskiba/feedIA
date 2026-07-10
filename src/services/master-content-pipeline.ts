@@ -18,6 +18,7 @@ import { creativityWitEngine } from './creativity-wit-engine.js';
 import { facialIdentityPreservationService } from './facial-identity-preservation.js';
 import { consistencyLockManager } from './consistency-lock.js';
 import { applyViraLityLayer, type VirologyInjectionContext } from './virality-prompt-layer.js';
+import type { BrandProfile } from '../config/types.js';
 
 interface MasterPipelineOptions {
   basePrompt: string;
@@ -29,6 +30,7 @@ interface MasterPipelineOptions {
   frameCount?: number;
   enableViralityGuidance?: boolean; // NEW: inject viral optimization hints before generation
   viralityContext?: VirologyInjectionContext; // NEW: baseline content for scoring
+  brandProfile?: BrandProfile; // NEW: for trending topic injection
 }
 
 interface MasterPipelineResult {
@@ -60,6 +62,7 @@ class MasterContentPipeline {
       frameCount,
       enableViralityGuidance,
       viralityContext,
+      brandProfile,
     } = options;
 
     const stagesApplied: string[] = [];
@@ -89,18 +92,27 @@ class MasterContentPipeline {
           contentType === 'carousel' ? 'carousel' : contentType === 'video' ? 'reel' : 'story',
           platform,
           viralityContext,
+          brandProfile,
         );
 
-        // Prepend virality guidance to prompt
-        workingPrompt = [...enriched.viralityGuidance, '', basePrompt].join('\n');
+        // Prepend virality + trending guidance to prompt
+        const guidanceLines: string[] = [...enriched.viralityGuidance];
+        if (enriched.trendingGuidance) {
+          guidanceLines.push('', enriched.trendingGuidance);
+        }
+        workingPrompt = [...guidanceLines, '', basePrompt].join('\n');
         viralityScore = enriched.predictions.viralScore;
         viralityPotential = enriched.predictions.ceilingScore;
         stagesApplied.push('virality-guidance-layer');
+        if (enriched.trendingTopics?.length) {
+          stagesApplied.push('trending-topics-injection');
+        }
 
         log.info('[MasterPipeline] Virality guidance applied', {
           viralScore: viralityScore,
           ceilingScore: viralityPotential,
           guidelineCount: enriched.viralityGuidance.length,
+          trendingTopicCount: enriched.trendingTopics?.length || 0,
         });
       } catch (err) {
         warnings.push(`Virality guidance skipped: ${String(err)}`);

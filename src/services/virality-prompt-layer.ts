@@ -13,6 +13,8 @@
  */
 
 import { log } from '../agent/logger.js';
+import { trendingCacheService } from './trending-cache-service.js';
+import type { BrandProfile } from '../config/types.js';
 
 // Dynamic import to cross src/api boundary
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,6 +54,8 @@ export interface EnrichedBrief {
     frameNumber: number;
     emphasis: string[];
   }>;
+  trendingTopics?: string[];
+  trendingGuidance?: string;
 }
 
 /**
@@ -76,13 +80,14 @@ export const getBaselineScore = async (context: VirologyInjectionContext): Promi
 };
 
 /**
- * Convert viralityAnalysis → enriched brief with guidance
+ * Convert viralityAnalysis → enriched brief with guidance + trending topics
  */
  
 export const enrichBriefWithVirality = async (
   brief: any, // eslint-disable-line @typescript-eslint/no-explicit-any
   baselineAnalysis: any, // eslint-disable-line @typescript-eslint/no-explicit-any
   carouselFrameCount?: number,
+  brandProfile?: BrandProfile,
 ): Promise<EnrichedBrief> => {
   const { getPromptInjections } = await loadViralPredictor();
 
@@ -92,6 +97,20 @@ export const enrichBriefWithVirality = async (
   let frameGuidance: EnrichedBrief['frameGuidance'] = undefined;
   if (carouselFrameCount && carouselFrameCount > 1) {
     frameGuidance = generateFrameGuidance(baselineAnalysis.improvements, carouselFrameCount);
+  }
+
+  // NEW: Inject trending topics if brand profile provided
+  let trendingTopics: string[] | undefined;
+  let trendingGuidance: string | undefined;
+  if (brandProfile) {
+    try {
+      trendingTopics = await trendingCacheService.getTrendingTopics(brandProfile);
+      if (trendingTopics.length > 0) {
+        trendingGuidance = trendingCacheService.formatTrendingGuidance(trendingTopics);
+      }
+    } catch (err) {
+      log.warn('[ViraLityLayer] Failed to fetch trending topics', { error: String(err) });
+    }
   }
 
   return {
@@ -104,6 +123,8 @@ export const enrichBriefWithVirality = async (
       contentIntent: baselineAnalysis.contentIntent,
     },
     frameGuidance,
+    trendingTopics,
+    trendingGuidance,
   };
 };
 
@@ -148,7 +169,7 @@ const generateFrameGuidance = (improvements: any[], frameCount: number): Enriche
 };
 
 /**
- * Public orchestrator: given a brief, optionally score it first, then enrich
+ * Public orchestrator: given a brief, optionally score it first, then enrich with virality + trending
  */
  
 export const applyViraLityLayer = async (
@@ -156,21 +177,21 @@ export const applyViraLityLayer = async (
   format: 'carousel' | 'reel' | 'story',
   platform: 'instagram' | 'tiktok',
   scoreControl?: VirologyInjectionContext,
+  brandProfile?: BrandProfile,
 ): Promise<EnrichedBrief> => {
   log.info('[ViraLityLayer] Starting enrichment', {
     briefTopic: brief.topic,
     format,
     platform,
     scoreControl: !!scoreControl,
+    hasBrand: !!brandProfile,
   });
 
   let baselineAnalysis;
 
   if (scoreControl) {
-    // Option B: Score control variant first
     baselineAnalysis = await getBaselineScore(scoreControl);
   } else {
-    // Fallback: lightweight scoring on brief topic only
     const { predictVirality } = await loadViralPredictor();
     baselineAnalysis = predictVirality({
       hook: brief.topic,
@@ -182,11 +203,12 @@ export const applyViraLityLayer = async (
   }
 
   const frameCount = brief.slideCount || brief.frameCount || undefined;
-  const enriched = await enrichBriefWithVirality(brief, baselineAnalysis, frameCount);
+  const enriched = await enrichBriefWithVirality(brief, baselineAnalysis, frameCount, brandProfile);
 
   log.info('[ViraLityLayer] Enrichment complete', {
     viralScore: enriched.predictions.viralScore,
     guidelineCount: enriched.viralityGuidance.length,
+    trendingTopicCount: enriched.trendingTopics?.length || 0,
   });
 
   return enriched;
