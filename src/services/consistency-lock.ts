@@ -285,7 +285,7 @@ class ConsistencyLockManager {
   private extractField(description: string, fieldName: string): string | null {
     const regex = new RegExp(`${fieldName}[:\\s]([^,\\n]+)`, 'i');
     const match = description.match(regex);
-    return match ? match[1].trim() : null;
+    return match ? match[1]!.trim() : null;
   }
 
   /**
@@ -296,7 +296,7 @@ class ConsistencyLockManager {
     const match = description.match(regex);
     if (!match) return [];
 
-    return match[1]
+    return match[1]!
       .split(/[,;]/)
       .map(s => s.trim())
       .filter(s => s.length > 0);

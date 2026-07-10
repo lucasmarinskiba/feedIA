@@ -46,7 +46,7 @@ const promptTemplates: Record<string, PromptTemplate> = {
 class FeedIAI18n {
   getTemplate(language: string, slideType: 'hook' | 'showcase' | 'interactive' | 'cta'): string {
     const lang = language.toLowerCase();
-    const template = promptTemplates[lang] || promptTemplates.en;
+    const template = promptTemplates[lang] ?? promptTemplates['en']!;
     return template[slideType];
   }
 

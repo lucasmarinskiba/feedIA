@@ -82,7 +82,7 @@ Generate now:
 
     // Parse response
     const responseText =
-      message.content[0].type === 'text' ? message.content[0].text : '';
+      message.content[0]!.type === 'text' ? (message.content[0] as { type: 'text'; text: string }).text : '';
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {
