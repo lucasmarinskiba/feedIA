@@ -47,6 +47,11 @@ import { repurposeContent } from '../capabilities/repurposing/index.js';
 import { auditarPrePublicacion } from '../capabilities/safety/index.js';
 import { optimizarPerfil } from '../capabilities/profile/index.js';
 import { generateWeeklyReport, sendWeeklyReportAlert } from '../capabilities/analytics/index.js';
+import {
+  generateExecutiveDashboardSnapshot,
+  getGrowthTrajectory,
+  getPlatformComparison,
+} from '../capabilities/executive/metricsExecutiveDashboard.js';
 import { askJson, hasApiKey } from '../agent/claude.js';
 import { AGENTS, agentChat, executeAgentAction } from '../capabilities/agents/index.js';
 import type { AgentMessage } from '../capabilities/agents/index.js';
@@ -3501,6 +3506,44 @@ Generá exactamente 7 entradas, una por día (dayOffset 0=lunes ... 6=domingo).`
         },
         aviso: 'Al activar, TODO el sistema pasa a operar esta cuenta al instante.',
       });
+    },
+  },
+
+  // ── Sala Ejecutiva: Metrics Dashboard ───────────────────────────────────
+  {
+    method: 'GET',
+    pattern: '/api/sala/ejecutiva/dashboard',
+    handler: ({ res }) => {
+      try {
+        const snapshot = generateExecutiveDashboardSnapshot(brand);
+        json(res, 200, snapshot);
+      } catch (err) {
+        json(res, 500, { error: `Dashboard snapshot failed: ${String(err)}` });
+      }
+    },
+  },
+  {
+    method: 'GET',
+    pattern: '/api/sala/ejecutiva/growth-trajectory',
+    handler: ({ res }) => {
+      try {
+        const trajectory = getGrowthTrajectory(brand.id || brand.name);
+        json(res, 200, trajectory);
+      } catch (err) {
+        json(res, 500, { error: `Growth trajectory failed: ${String(err)}` });
+      }
+    },
+  },
+  {
+    method: 'GET',
+    pattern: '/api/sala/ejecutiva/platform-comparison',
+    handler: ({ res }) => {
+      try {
+        const comparison = getPlatformComparison(brand);
+        json(res, 200, comparison);
+      } catch (err) {
+        json(res, 500, { error: `Platform comparison failed: ${String(err)}` });
+      }
     },
   },
 ];
