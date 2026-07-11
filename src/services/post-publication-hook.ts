@@ -14,6 +14,7 @@ import { log } from '../agent/logger.js';
 import { realtimeEngagementLoopService } from './realtime-engagement-loop.js';
 import { accountGrowthService } from './account-growth-service.js';
 import { feedbackAmplificationService } from './feedback-amplification-service.js';
+import { registerPostForPolling } from '../workers/metricsPollingOrchestrator.js';
 import type { Platform } from './cross-platform-optimization.js';
 
 export interface PublishedContent {
@@ -82,6 +83,14 @@ export const setupPostPublicationMonitoring = async (published: PublishedContent
     });
   } catch (err) {
     warnings.push(`Account growth tracking failed: ${String(err)}`);
+  }
+
+  // 4. Register for polling (4h metrics, 15-30m engagement, 7d feedback)
+  try {
+    registerPostForPolling(published.postId, published.accountId, published.platform, published.format);
+    log.info('[PostPublicationHook] Post registered for polling cycles', { postId: published.postId });
+  } catch (err) {
+    warnings.push(`Polling registration failed: ${String(err)}`);
   }
 
   log.info('[PostPublicationHook] Post-publication setup complete', {

@@ -31,6 +31,7 @@ import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
 import { BrandProfileSchema } from './config/types.js';
+import { startPollingScheduler } from './workers/metricsPollingOrchestrator.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -192,7 +193,8 @@ feedIADatabase
   .initialize()
   .then(() => {
     feedIAOrchestrator.initializeAgents();
-    log.info('[Server] initialized');
+    startPollingScheduler();
+    log.info('[Server] initialized with metrics polling scheduler');
   })
   .catch((err) => log.error('[Server] initialization failed', err));
 
