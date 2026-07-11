@@ -27,6 +27,7 @@ import resolutionQualityRoutes from './api/resolution-quality-routes.js';
 import masterGenerateRoutes from './api/master-generate-routes.js';
 import contentStrategyRoutes from './api/content-strategy-routes.js';
 import veoVideoRoutes from './api/veo-video-routes.js';
+import pollingStatusRoutes from './api/polling-status-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -159,6 +160,9 @@ app.use('/api/strategy', contentStrategyRoutes);
 
 // Mount Veo video generation routes (real video rendering, closes prompt-to-video gap)
 app.use('/api/video-gen', veoVideoRoutes);
+
+// Polling status + monitoring routes (4h/15-30m/7d metrics cycles)
+app.use('/api/polling', pollingStatusRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 const STATIC_CANDIDATES = [

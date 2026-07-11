@@ -1,79 +1,99 @@
-# FeedIA Deployment Guide — Vercel
+# FeedIA Deployment — Closed-Loop Viral Optimization
 
-## Prerequisites
-- GitHub account (✅ configured: lucasmarinskiba/feedIA)
-- Vercel account (create at vercel.com)
-- Git remotes configured (✅ https://github.com/lucasmarinskiba/feedIA.git)
+## Pre-Deployment Checklist
+
+### 1. Environment Variables (`.env` or Vercel Settings)
+
+**Required for metrics polling:**
+```bash
+# Instagram Graph API (for metrics + comments)
+META_ACCESS_TOKEN=<your-instagram-business-account-token>
+META_IG_BUSINESS_ID=<your-ig-business-id>
+
+# TikTok (optional)
+TIKTOK_ACCESS_TOKEN=<your-tiktok-token>
+
+# Redis (for BullMQ job queue)
+REDIS_URL=redis://upstash.com/...
+
+# Sentry (error tracking)
+SENTRY_DSN=https://...
+
+# Higgsfield (image/video generation)
+HIGGSFIELD_API_KEY=<your-higgsfield-key>
+```
+
+### 2. Background Worker Setup (Choose One)
+
+**Option A: Vercel Cron (Serverless)**
+- Max 60s execution time
+- Use for: quick polling only
+
+**Option B: BullMQ + Redis (Recommended for Production)**
+- Persistent job queue
+- Already wired in src/workers/metricsPollingOrchestrator.ts
+- Setup: `npm install bullmq redis ioredis`
+
+**Option C: External Service**
+- Hit `/api/polling/trigger-cycle?cycle=metrics|engagement|feedback`
+
+### 3. Polling Scheduler
+
+**Already wired in:** `src/server.ts` line 195
+- 4h metrics cycle: reach/engagement/follows/saves
+- 15-30m engagement cycle: comments + responses
+- 7d feedback cycle: extract patterns + amplify
 
 ## Deployment Steps
 
-### 1. Install Vercel CLI
+### 1. Vercel Deploy
+
 ```bash
-npm install -g vercel
+git push origin main
+# Auto-deploys if connected
 ```
 
-### 2. Login to Vercel
+### 2. Local Test Before Deploy
+
 ```bash
-vercel login
-# Follow browser prompt to authenticate
+npx tsx src/server.ts
+# Expect: [MetricsPolling] Scheduler starting
+
+# Run E2E test
+npx tsx src/bin/run-e2e-test.ts
+# Expect: ✓ All stages passed
 ```
 
-### 3. Deploy Project
+### 3. Production Monitoring
+
+**Dashboard endpoints:**
 ```bash
-vercel
-# Select: feedIA project (or create new)
-# Confirm production deployment
+GET /api/sala/ejecutiva/dashboard
+GET /api/sala/ejecutiva/growth-trajectory
+GET /api/sala/ejecutiva/platform-comparison
 ```
 
-### 4. Environment Variables (Vercel Dashboard)
-```
-BRAND_NAME=@feedia
-BRAND_NICHE=instagram-growth
-BRAND_AUDIENCE=creators
-NODE_ENV=production
-```
-
-## Deployment Config
-- **Framework**: Node.js + TypeScript
-- **Build command**: (auto-detected)
-- **Output directory**: `dist/`
-- **Entry point**: `src/server.ts`
-- **Port**: 3000 (auto-mapped to Vercel)
-
-## API Endpoints After Deploy
-
-### Parameterized Image Endpoints (NEW)
-```
-POST  https://<your-vercel-domain>/api/parameterized/upload-images
-POST  https://<your-vercel-domain>/api/parameterized/match-prompts
-POST  https://<your-vercel-domain>/api/parameterized/generate-content
-GET   https://<your-vercel-domain>/api/parameterized/library-status
-```
-
-### Status Check
+**Polling status:**
 ```bash
-curl https://<your-vercel-domain>/health
+GET /api/polling/stats
 ```
 
-## After Deployment
+## Real Improvements Tracking
 
-1. Test endpoints with curl (PARAMETERIZED_ENDPOINTS_TEST.md)
-2. Monitor Vercel dashboard for errors
-3. Set up analytics/logging
-4. Configure custom domain (optional)
+**Metrics updated every 4h after publish:**
+- Reach (impressions)
+- Engagement (likes + comments + shares)
+- Follows gained
+- Saves
 
-## Rollback
-```bash
-vercel rollback
-# Select previous deployment
-```
+**Trends (30-day):**
+- Growth velocity (followers/week)
+- Format performance ranking
+- Closed-loop feedback patterns
 
-## Monitoring
-- Vercel Dashboard: https://vercel.com/dashboard
-- Real-time logs: vercel logs <project-name>
-- Performance: Vercel Analytics built-in
+## Cost
 
-## Current Commits Ready for Deployment
-- 1dea4d3: Parameterized endpoints wired
-- 6b46fca: Vercel config added
-- 97c0581: Expansion phase complete (24,970 prompts)
+- Instagram API: Free tier
+- Redis: ~$7/month
+- Higgsfield: ~$0.01-0.20 per gen
+- Example: 10 posts/day = ~$15/month
