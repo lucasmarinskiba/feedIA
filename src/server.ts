@@ -33,6 +33,7 @@ import orchestrationRoutes from './api/orchestration-routes.js';
 import cacheManagementRoutes from './api/cache-management-routes.js';
 import engagementRoutes from './api/engagement-routes.js';
 import browserlessSettingsRoutes from './api/browserless-settings-routes.js';
+import salaEjecutivaRoutes from './api/sala-ejecutiva-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -183,6 +184,9 @@ app.use('/api/engagement', engagementRoutes);
 
 // Browserless settings routes (per-user API key management for SaaS)
 app.use('/api/settings/browserless', browserlessSettingsRoutes);
+
+// Sala Ejecutiva routes (real-time metrics dashboard)
+app.use('/api/sala-ejecutiva', salaEjecutivaRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 const STATIC_CANDIDATES = [
