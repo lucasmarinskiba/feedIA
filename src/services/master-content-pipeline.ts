@@ -19,6 +19,8 @@ import { facialIdentityPreservationService } from './facial-identity-preservatio
 import { consistencyLockManager } from './consistency-lock.js';
 import { applyViraLityLayer, type VirologyInjectionContext } from './virality-prompt-layer.js';
 import { variantFrameworkService, type ContentVariant } from './variant-framework-service.js';
+import { agentDecisionFrameworkService, type DecisionContext, type AgentDecision } from './agent-decision-framework.js';
+import { crossPlatformOptimizationService } from './cross-platform-optimization.js';
 import type { BrandProfile } from '../config/types.js';
 
 interface MasterPipelineOptions {
@@ -33,6 +35,9 @@ interface MasterPipelineOptions {
   viralityContext?: VirologyInjectionContext; // NEW: baseline content for scoring
   brandProfile?: BrandProfile; // NEW: for trending topic injection
   generateVariants?: boolean; // NEW: generate A/B test variants
+  timeBudget?: 'urgent' | 'standard' | 'extended'; // NEW: for agent decision framework
+  accountInfo?: { followerCount: number; avgEngagement: number; consistency: number }; // NEW: for platform optimization
+  topic?: string; // NEW: content topic for agent decision
 }
 
 interface MasterPipelineResult {
@@ -49,6 +54,8 @@ interface MasterPipelineResult {
   viralityPotential?: number; // NEW: ceiling score (potential if improvements applied)
   variants?: ContentVariant[]; // NEW: A/B test variants if generateVariants enabled
   variantSetId?: string; // NEW: ID for tracking variant set performance
+  agentDecision?: AgentDecision; // NEW: format + enrichment + variant strategy
+  platformRecommendation?: string; // NEW: cross-platform optimization suggestion
 }
 
 class MasterContentPipeline {
@@ -68,6 +75,9 @@ class MasterContentPipeline {
       viralityContext,
       brandProfile,
       generateVariants,
+      timeBudget = 'standard',
+      accountInfo,
+      topic = basePrompt.split('\n')[0] || 'generated content',
     } = options;
 
     const stagesApplied: string[] = [];
@@ -76,6 +86,8 @@ class MasterContentPipeline {
     let viralityScore: number | undefined;
     let viralityPotential: number | undefined;
     let enrichedBriefForVariants: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    let agentDecision: AgentDecision | undefined;
+    let platformRecommendation: string | undefined;
 
     log.info('[MasterPipeline] Processing started', {
       platform,
@@ -85,7 +97,52 @@ class MasterContentPipeline {
       enableViralityGuidance,
     });
 
-    // Stage 0: Virality Guidance Layer (optional, opt-in)
+    // Stage -1: Agent Decision Framework (determines strategy for this content)
+    if (brandProfile || accountInfo) {
+      try {
+        const decisionCtx: DecisionContext = {
+          topic,
+          contentType: contentType === 'carousel' ? 'carousel' : contentType === 'video' ? 'reel' : 'story',
+          platform,
+          timeBudget,
+          qualityThreshold: enableViralityGuidance ? 'excellent' : 'good',
+          account: accountInfo,
+          brand: brandProfile,
+        };
+        agentDecision = agentDecisionFrameworkService.decide(decisionCtx);
+        stagesApplied.push('agent-decision-framework');
+
+        // Auto-enable variants + virality if agent recommends
+        if (agentDecision.shouldGenerateVariants && !generateVariants) {
+          log.info('[MasterPipeline] Auto-enabling variants based on agent decision');
+        }
+
+        log.info('[MasterPipeline] Agent decision made', {
+          formats: agentDecision.recommendedFormats,
+          layers: agentDecision.activeEnrichmentLayers,
+          variants: agentDecision.variantCount,
+          estimatedReach: agentDecision.estimatedReach,
+        });
+      } catch (err) {
+        warnings.push(`Agent decision skipped: ${String(err)}`);
+      }
+    }
+
+    // Stage 0 (was -1): Cross-platform optimization recommendation
+    if (brandProfile && accountInfo) {
+      try {
+        const analysis = crossPlatformOptimizationService.analyzeCrossPlatform(
+          brandProfile.id || brandProfile.name,
+          brandProfile,
+        );
+        platformRecommendation = analysis.recommendedAction;
+        stagesApplied.push('cross-platform-optimization');
+      } catch (err) {
+        warnings.push(`Cross-platform optimization skipped: ${String(err)}`);
+      }
+    }
+
+    // Stage 1: Virality Guidance Layer (optional, opt-in)
     if (enableViralityGuidance) {
       try {
         const viralityBrief = {
@@ -223,6 +280,8 @@ class MasterContentPipeline {
       viralityPotential,
       variants,
       variantSetId,
+      agentDecision,
+      platformRecommendation,
     };
   }
 
