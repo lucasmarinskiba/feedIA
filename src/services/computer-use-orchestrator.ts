@@ -12,7 +12,6 @@
 
 import { log } from '../agent/logger.js';
 import { getBudgetStatus, recordCost } from './token-budget-manager.js';
-import { getEngagementStrategy } from './realtime-engagement-loop.js';
 import { getInstagramToken } from '../api/instagram-oauth-routes.js';
 import { executeBrowserlessAction } from './browserless-automation.js';
 
@@ -115,10 +114,7 @@ export const executeEngagementTask = async (task: EngagementTask): Promise<Engag
     };
   }
 
-  // 4. Get engagement strategy
-  const strategy = getEngagementStrategy(task.accountId);
-
-  // 5. Execute via Computer Use (Browserless cloud automation)
+  // 4. Execute via Computer Use (Browserless cloud automation)
   try {
     const browserlessResult = await executeBrowserlessAction(task, token);
 
@@ -142,7 +138,7 @@ export const executeEngagementTask = async (task: EngagementTask): Promise<Engag
       durationMs: browserlessResult.durationMs,
     });
 
-    // 6. Record cost
+    // 5. Record cost
     recordCost(task.accountId, `engagement-${task.action}`, actionCost);
 
     return {

@@ -50,6 +50,9 @@ export const executeBrowserlessAction = async (task: BrowserlessAction, igToken:
     // Browserless payload: custom Chrome automation script
     const payload = buildPayload(task, igToken);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
@@ -57,8 +60,10 @@ export const executeBrowserlessAction = async (task: BrowserlessAction, igToken:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
-      timeout: 30000, // 30s timeout for action
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     const durationMs = Date.now() - startTime;
 
