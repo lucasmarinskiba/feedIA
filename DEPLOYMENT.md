@@ -1,99 +1,76 @@
-# FeedIA Deployment — Closed-Loop Viral Optimization
+# FeedIA Deployment — MVP Mode (No Token Required)
 
-## Pre-Deployment Checklist
+## MVP Deployment (Test Mode)
 
-### 1. Environment Variables (`.env` or Vercel Settings)
+**Start here. No API tokens needed. Polling works with mock metrics.**
 
-**Required for metrics polling:**
-```bash
-# Instagram Graph API (for metrics + comments)
-META_ACCESS_TOKEN=<your-instagram-business-account-token>
-META_IG_BUSINESS_ID=<your-ig-business-id>
-
-# TikTok (optional)
-TIKTOK_ACCESS_TOKEN=<your-tiktok-token>
-
-# Redis (for BullMQ job queue)
-REDIS_URL=redis://upstash.com/...
-
-# Sentry (error tracking)
-SENTRY_DSN=https://...
-
-# Higgsfield (image/video generation)
-HIGGSFIELD_API_KEY=<your-higgsfield-key>
-```
-
-### 2. Background Worker Setup (Choose One)
-
-**Option A: Vercel Cron (Serverless)**
-- Max 60s execution time
-- Use for: quick polling only
-
-**Option B: BullMQ + Redis (Recommended for Production)**
-- Persistent job queue
-- Already wired in src/workers/metricsPollingOrchestrator.ts
-- Setup: `npm install bullmq redis ioredis`
-
-**Option C: External Service**
-- Hit `/api/polling/trigger-cycle?cycle=metrics|engagement|feedback`
-
-### 3. Polling Scheduler
-
-**Already wired in:** `src/server.ts` line 195
-- 4h metrics cycle: reach/engagement/follows/saves
-- 15-30m engagement cycle: comments + responses
-- 7d feedback cycle: extract patterns + amplify
-
-## Deployment Steps
-
-### 1. Vercel Deploy
+### 1. Deploy to Vercel
 
 ```bash
 git push origin main
-# Auto-deploys if connected
+# Auto-deploys (if connected)
 ```
 
-### 2. Local Test Before Deploy
+### 2. Test Locally
 
 ```bash
 npx tsx src/server.ts
 # Expect: [MetricsPolling] Scheduler starting
 
-# Run E2E test
 npx tsx src/bin/run-e2e-test.ts
 # Expect: ✓ All stages passed
 ```
 
-### 3. Production Monitoring
+### 3. MVP Features (Live Now)
 
-**Dashboard endpoints:**
+- ✓ Cron polling (4h/15-30m/7d cycles)
+- ✓ Closed-loop optimization (generate → publish → measure → extract → bias)
+- ✓ Provider routing (Higgsfield → Replicate fallback)
+- ✓ Sala Ejecutiva dashboard
+- ✓ Metrics recording (mock 0 reach until token added)
+
+### 4. Monitor
+
 ```bash
-GET /api/sala/ejecutiva/dashboard
-GET /api/sala/ejecutiva/growth-trajectory
-GET /api/sala/ejecutiva/platform-comparison
+# Polling queue
+curl https://your-vercel-url.com/api/polling/stats
+
+# Dashboard (shows mock metrics)
+curl https://your-vercel-url.com/api/sala/ejecutiva/dashboard
 ```
 
-**Polling status:**
+## Add Real Metrics Later (Path 2: OAuth)
+
+When ready to show real reach/engagement:
+
+1. Build Instagram OAuth route (src/server/instagramOAuthRoutes.ts)
+   ```bash
+   POST /oauth/instagram/connect
+   # User clicks → Instagram login → token auto-saved
+   ```
+
+2. Set `META_ACCESS_TOKEN` in Vercel env
+   ```
+   VERCEL SETTINGS → ENV VARS →
+   META_ACCESS_TOKEN=<token>
+   ```
+
+3. Next polling cycle (4h) fetches real metrics
+   - Reach (impressions)
+   - Engagement (likes + comments + shares)
+   - Follows gained
+
+## Optional Environment Variables
+
 ```bash
-GET /api/polling/stats
+# Add later when ready:
+HIGGSFIELD_API_KEY          (image/video generation, optional)
+REDIS_URL                   (for production job queue, optional)
+SENTRY_DSN                  (error tracking, optional)
 ```
-
-## Real Improvements Tracking
-
-**Metrics updated every 4h after publish:**
-- Reach (impressions)
-- Engagement (likes + comments + shares)
-- Follows gained
-- Saves
-
-**Trends (30-day):**
-- Growth velocity (followers/week)
-- Format performance ranking
-- Closed-loop feedback patterns
 
 ## Cost
 
-- Instagram API: Free tier
-- Redis: ~$7/month
-- Higgsfield: ~$0.01-0.20 per gen
-- Example: 10 posts/day = ~$15/month
+- MVP: $0/month
+- +Real metrics: Instagram API (free) + Redis ($7/month)
+- +Image gen: Higgsfield ($0.01-0.20 per gen)
