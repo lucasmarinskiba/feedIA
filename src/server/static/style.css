@@ -490,16 +490,13 @@ button {
 
 .view-container {
   flex: 1;
-  /* Fluid horizontal padding scales with viewport so we recover space on
-     wide monitors without crushing mobile. Clamp keeps it sensible. */
-  padding: 24px clamp(16px, 2.4vw, 40px) 80px;
-  max-width: min(1680px, 100%);
+  padding: 24px clamp(16px, 2.4vw, 24px) 80px;
+  max-width: 100%;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  /* Vertical rhythm — header, toolbar, body all stack with this gap. */
   --page-gap: 20px;
   gap: var(--page-gap);
 }
