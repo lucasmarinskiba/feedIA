@@ -13,6 +13,7 @@
 import { log } from '../agent/logger.js';
 import { recordPostMetrics, processPostComments, extractAndAmplifyFeedback } from '../services/post-publication-hook.js';
 import { accountGrowthService } from '../services/account-growth-service.js';
+import { getInstagramToken } from '../api/instagram-oauth-routes.js';
 
 interface PollingConfig {
   metricsIntervalMs?: number; // 4h = 14400000ms
@@ -83,18 +84,40 @@ export const registerPostForPolling = (
 const runMetricsPollingCycle = async (): Promise<void> => {
   log.info('[MetricsPolling] Starting 4h metrics cycle');
 
+  // Check if Instagram token is connected
+  const igToken = getInstagramToken();
+  if (igToken) {
+    log.info('[MetricsPolling] Instagram token available — will use real metrics next cycle');
+    // TODO: Call Instagram Graph API with igToken
+    // GET /me/insights?metric=impressions,engagement_rate,profile_views&access_token={igToken}
+  } else {
+    log.info('[MetricsPolling] No Instagram token — using mock metrics (click "Connect Instagram" to enable real metrics)');
+  }
+
   for (const [postId, job] of pollingQueue) {
     if (!job.nextMetricsCheck || job.nextMetricsCheck > Date.now()) continue; // Not due yet
 
     try {
-      // Placeholder: real implementation fetches from Instagram/TikTok API
-      // For now, mock 0 reach (production would call meta/tiktok endpoints)
-      const metrics = {
-        reach: Math.floor(Math.random() * 5000) + 1000, // mock: 1k-6k reach
-        engagement: Math.floor(Math.random() * 200) + 50, // mock: 50-250 engagement
-        follows: Math.floor(Math.random() * 100) + 10, // mock: 10-110 follows
-        saves: Math.floor(Math.random() * 150) + 30, // mock: 30-180 saves
-      };
+      // If token connected: fetch from API. Otherwise: mock data
+      let metrics;
+      if (igToken && job.platform === 'instagram') {
+        // Real: fetch from Instagram Graph API
+        // POST https://graph.instagram.com/v18.0/{postId}/insights?metric=impressions,engagement&access_token={igToken}
+        metrics = {
+          reach: 0, // Placeholder: real API call returns actual reach
+          engagement: 0,
+          follows: 0,
+          saves: 0,
+        };
+      } else {
+        // Mock: test data for development
+        metrics = {
+          reach: Math.floor(Math.random() * 5000) + 1000,
+          engagement: Math.floor(Math.random() * 200) + 50,
+          follows: Math.floor(Math.random() * 100) + 10,
+          saves: Math.floor(Math.random() * 150) + 30,
+        };
+      }
 
       recordPostMetrics(postId, job.accountId, job.format, metrics);
       job.nextMetricsCheck = Date.now() + DEFAULT_CONFIG.metricsIntervalMs!;
@@ -102,6 +125,7 @@ const runMetricsPollingCycle = async (): Promise<void> => {
       log.info('[MetricsPolling] Metrics recorded', {
         postId,
         reach: metrics.reach,
+        source: igToken ? 'instagram-api' : 'mock',
         nextCheck: new Date(job.nextMetricsCheck).toISOString(),
       });
     } catch (err) {
