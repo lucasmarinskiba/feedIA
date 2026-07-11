@@ -14,6 +14,7 @@ import { log } from '../agent/logger.js';
 import { getBudgetStatus, recordCost } from './token-budget-manager.js';
 import { getEngagementStrategy } from './realtime-engagement-loop.js';
 import { getInstagramToken } from '../api/instagram-oauth-routes.js';
+import { executeBrowserlessAction } from './browserless-automation.js';
 
 export interface EngagementTask {
   accountId: string;
@@ -117,14 +118,28 @@ export const executeEngagementTask = async (task: EngagementTask): Promise<Engag
   // 4. Get engagement strategy
   const strategy = getEngagementStrategy(task.accountId);
 
-  // 5. Execute via Computer Use
+  // 5. Execute via Computer Use (Browserless cloud automation)
   try {
-    // TODO: Call cuPostPublisher.executeAction(task, token, strategy)
-    // For now: log that it would execute
-    log.info('[ComputerUseOrchestrator] Would execute', {
+    const browserlessResult = await executeBrowserlessAction(task, token);
+
+    if (!browserlessResult.ok) {
+      log.warn('[ComputerUseOrchestrator] Browserless action failed', {
+        action: task.action,
+        error: browserlessResult.error,
+      });
+      return {
+        success: false,
+        action: task.action,
+        accountId: task.accountId,
+        cost: 0,
+        error: browserlessResult.error,
+      };
+    }
+
+    log.info('[ComputerUseOrchestrator] Action executed', {
       action: task.action,
       accountId: task.accountId,
-      strategy: strategy?.responseType,
+      durationMs: browserlessResult.durationMs,
     });
 
     // 6. Record cost
