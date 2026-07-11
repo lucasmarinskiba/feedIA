@@ -30,15 +30,23 @@ const API_KEY = process.env.BROWSERLESS_API_KEY;
 
 /**
  * Execute Instagram action via Browserless
+ * Accepts optional browserlessKey param for per-user keys (SaaS mode)
+ * Falls back to env var if key not provided
  */
-export const executeBrowserlessAction = async (task: BrowserlessAction, igToken: string): Promise<BrowserlessResult> => {
-  if (!API_KEY) {
-    log.warn('[Browserless] Missing BROWSERLESS_API_KEY, skipping automation');
+export const executeBrowserlessAction = async (
+  task: BrowserlessAction,
+  igToken: string,
+  browserlessKey?: string
+): Promise<BrowserlessResult> => {
+  const key = browserlessKey || API_KEY;
+
+  if (!key) {
+    log.warn('[Browserless] Missing Browserless API key, skipping automation');
     return {
       ok: false,
       action: task.action,
       durationMs: 0,
-      error: 'BROWSERLESS_API_KEY not configured',
+      error: 'Browserless key not configured. Connect your key in settings.',
     };
   }
 
@@ -56,7 +64,7 @@ export const executeBrowserlessAction = async (task: BrowserlessAction, igToken:
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${API_KEY}`,
+        Authorization: `Bearer ${key}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),

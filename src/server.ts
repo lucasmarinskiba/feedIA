@@ -32,6 +32,7 @@ import instagramOAuthRoutes from './api/instagram-oauth-routes.js';
 import orchestrationRoutes from './api/orchestration-routes.js';
 import cacheManagementRoutes from './api/cache-management-routes.js';
 import engagementRoutes from './api/engagement-routes.js';
+import browserlessSettingsRoutes from './api/browserless-settings-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -179,6 +180,9 @@ app.use('/api/cache', cacheManagementRoutes);
 
 // Engagement routes (Computer Use orchestration: likes/comments/follows with budget control)
 app.use('/api/engagement', engagementRoutes);
+
+// Browserless settings routes (per-user API key management for SaaS)
+app.use('/api/settings/browserless', browserlessSettingsRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 const STATIC_CANDIDATES = [

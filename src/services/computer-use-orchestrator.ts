@@ -14,6 +14,7 @@ import { log } from '../agent/logger.js';
 import { getBudgetStatus, recordCost } from './token-budget-manager.js';
 import { getInstagramToken } from '../api/instagram-oauth-routes.js';
 import { executeBrowserlessAction } from './browserless-automation.js';
+import { getBrowserlessKey } from '../api/browserless-settings-routes.js';
 
 export interface EngagementTask {
   accountId: string;
@@ -114,9 +115,11 @@ export const executeEngagementTask = async (task: EngagementTask): Promise<Engag
     };
   }
 
-  // 4. Execute via Computer Use (Browserless cloud automation)
+  // 4. Get user's Browserless key and execute
   try {
-    const browserlessResult = await executeBrowserlessAction(task, token);
+    const userBrowserlessKey = getBrowserlessKey(task.accountId);
+
+    const browserlessResult = await executeBrowserlessAction(task, token, userBrowserlessKey);
 
     if (!browserlessResult.ok) {
       log.warn('[ComputerUseOrchestrator] Browserless action failed', {
