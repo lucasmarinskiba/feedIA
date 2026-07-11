@@ -43,7 +43,7 @@ router.get('/connect', (_req: Request, res: Response): void => {
 /**
  * GET /oauth/instagram/callback
  * Instagram redirects here with authorization code
- * Exchange code for token, auto-save to session
+ * Exchange code for token via Instagram Graph API
  */
 router.get('/callback', async (req: Request, res: Response): Promise<void> => {
   try {
@@ -54,24 +54,63 @@ router.get('/callback', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // TODO: Real implementation exchanges code for token via Instagram Graph API
+    const clientId = process.env.INSTAGRAM_APP_ID;
+    const clientSecret = process.env.INSTAGRAM_APP_SECRET;
+    const redirectUri = `${process.env.APP_URL || 'http://localhost:3000'}/oauth/instagram/callback`;
+
+    if (!clientId || !clientSecret) {
+      log.error('[InstagramOAuth] Missing credentials for token exchange');
+      res.status(500).json({ ok: false, error: 'Server not configured for Instagram OAuth' });
+      return;
+    }
+
+    // Exchange code for token via Instagram Graph API
     // POST https://graph.instagram.com/v18.0/oauth/access_token
-    // Params: client_id, client_secret, grant_type=authorization_code, redirect_uri, code
+    const tokenUrl = 'https://graph.instagram.com/v18.0/oauth/access_token';
+    const params = new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      grant_type: 'authorization_code',
+      redirect_uri: redirectUri,
+      code,
+    });
 
-    // For MVP: mock token generation (production: call Instagram API)
-    const mockToken = `IG-TOKEN-${Date.now()}`;
-    const accountId = `account-${Date.now()}`;
+    log.info('[InstagramOAuth] Exchanging code for token', { code: code.substring(0, 10) + '...' });
 
-    // Store in memory (production: userRegistry + database)
-    connectedAccounts.set(accountId, { token: mockToken, timestamp: Date.now() });
+    const tokenResponse = await fetch(tokenUrl, {
+      method: 'POST',
+      body: params,
+    });
 
-    log.info('[InstagramOAuth] Token received and stored', { accountId });
+    if (!tokenResponse.ok) {
+      const errorData = (await tokenResponse.json()) as { error?: { message: string } };
+      log.error('[InstagramOAuth] Token exchange failed', {
+        status: tokenResponse.status,
+        error: errorData.error?.message,
+      });
+      res.status(400).json({ ok: false, error: `Instagram auth failed: ${errorData.error?.message || 'unknown error'}` });
+      return;
+    }
 
-    // Redirect to dashboard with success message
+    const tokenData = (await tokenResponse.json()) as { access_token?: string; user_id?: string; error?: string };
+
+    if (!tokenData.access_token) {
+      log.error('[InstagramOAuth] No token in response', { response: tokenData });
+      res.status(400).json({ ok: false, error: 'No access token received' });
+      return;
+    }
+
+    // Store token in memory (production: database + encryption)
+    const accountId = tokenData.user_id || `account-${Date.now()}`;
+    connectedAccounts.set(accountId, { token: tokenData.access_token, timestamp: Date.now() });
+
+    log.info('[InstagramOAuth] Token stored', { accountId, tokenLength: tokenData.access_token.length });
+
+    // Redirect to dashboard with success
     res.redirect(`/?instagram_connected=true&account=${accountId}`);
   } catch (err) {
     log.error('[InstagramOAuth] Callback failed', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    res.redirect(`/?instagram_error=${encodeURIComponent(String(err))}`);
   }
 });
 
