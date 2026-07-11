@@ -11,6 +11,7 @@
 import { log } from '../agent/logger.js';
 import { routeImageGen, routeVideoGen } from './provider-router.js';
 import { qualityValidator } from './quality-validator.js';
+import { getCachedPrompt, cachePrompt, type ContentPillar, type VariantType } from './prompt-cache-layer.js';
 import type { BrandProfile } from '../config/types.js';
 
 export type ContentType = 'image' | 'video' | 'carousel';
@@ -92,6 +93,33 @@ export const orchestrateContentGeneration = async (req: OrchestratorRequest): Pr
     tier: req.accountTier,
   });
 
+  // Step 0: Check prompt cache
+  const cacheKey = `${req.brandProfile?.niche || 'generic'}:${req.contentType}`;
+  const cached = getCachedPrompt(
+    (req.brandProfile?.niche as ContentPillar) || 'tips',
+    (req.contentType as VariantType) || 'hook',
+    req.platform,
+    req.brandProfile?.niche || 'default',
+  );
+
+  if (cached.hit && cached.prompt && cached.qualityScore && cached.qualityScore >= (req.qualityLevel === 'excellent' ? 80 : 60)) {
+    const durationMs = Date.now() - startTime;
+    log.info('[Orchestrator] Cache hit, skipping generation', {
+      durationMs,
+      qualityScore: cached.qualityScore,
+    });
+    fallbacksApplied.push('cache-hit');
+
+    return {
+      ok: true,
+      qualityScore: cached.qualityScore,
+      costEstimate: 0, // Cache hit costs nothing
+      providerUsed: 'prompt-cache',
+      durationMs,
+      fallbacksApplied,
+    };
+  }
+
   const plan = analyzeRequest(req);
 
   // Budget check
@@ -144,14 +172,26 @@ export const orchestrateContentGeneration = async (req: OrchestratorRequest): Pr
           }
         }
 
+        const qualityScore = plan.targetQuality === 'draft' ? 60 : plan.targetQuality === 'excellent' ? 90 : 75;
         const durationMs = Date.now() - startTime;
-        log.info('[Orchestrator] Success', { provider, durationMs });
+
+        // Cache successful prompt for future reuse
+        cachePrompt(
+          (req.brandProfile?.niche as ContentPillar) || 'tips',
+          (req.contentType as VariantType) || 'hook',
+          req.platform,
+          req.brandProfile?.niche || 'default',
+          req.basePrompt,
+          qualityScore,
+        );
+
+        log.info('[Orchestrator] Success + cached', { provider, durationMs, qualityScore });
 
         return {
           ok: true,
           url: result.url,
           urls: result.urls,
-          qualityScore: plan.targetQuality === 'draft' ? 60 : plan.targetQuality === 'excellent' ? 90 : 75,
+          qualityScore,
           costEstimate: plan.expectedCost,
           providerUsed: result.provider,
           durationMs,
