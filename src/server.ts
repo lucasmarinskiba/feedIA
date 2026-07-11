@@ -31,6 +31,7 @@ import pollingStatusRoutes from './api/polling-status-routes.js';
 import instagramOAuthRoutes from './api/instagram-oauth-routes.js';
 import orchestrationRoutes from './api/orchestration-routes.js';
 import cacheManagementRoutes from './api/cache-management-routes.js';
+import engagementRoutes from './api/engagement-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -175,6 +176,9 @@ app.use('/api/orchestrate', orchestrationRoutes);
 
 // Cache management routes (60% fewer API calls via prompt reuse)
 app.use('/api/cache', cacheManagementRoutes);
+
+// Engagement routes (Computer Use orchestration: likes/comments/follows with budget control)
+app.use('/api/engagement', engagementRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 const STATIC_CANDIDATES = [
