@@ -29,6 +29,7 @@ import contentStrategyRoutes from './api/content-strategy-routes.js';
 import veoVideoRoutes from './api/veo-video-routes.js';
 import pollingStatusRoutes from './api/polling-status-routes.js';
 import instagramOAuthRoutes from './api/instagram-oauth-routes.js';
+import orchestrationRoutes from './api/orchestration-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -167,6 +168,9 @@ app.use('/api/polling', pollingStatusRoutes);
 
 // Instagram OAuth routes (simplified: click → connect → auto-save token)
 app.use('/oauth/instagram', instagramOAuthRoutes);
+
+// Orchestration routes (central intelligence: analyze → plan → execute → track cost)
+app.use('/api/orchestrate', orchestrationRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 const STATIC_CANDIDATES = [
