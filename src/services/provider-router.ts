@@ -12,7 +12,8 @@
  */
 
 import { log } from '../agent/logger.js';
-import { loadHiggsfieldCredentials, generateImageAndWait, generateVideoAndWait } from '../integrations/higgsfield.js';
+import { loadHiggsfieldCredentials } from '../integrations/higgsfieldAuth.js';
+import { generateImageAndWait, generateVideoAndWait } from '../integrations/higgsfield.js';
 import { generateImage } from '../integrations/imageGen.js';
 
 export type ContentType = 'carousel-frame' | 'story-image' | 'reel-video' | 'tiktok-video' | 'tiktok-photo' | 'post-image';
