@@ -1,79 +1,76 @@
-# FeedIA Deployment Guide — Vercel
+# FeedIA Deployment — MVP Mode (No Token Required)
 
-## Prerequisites
-- GitHub account (✅ configured: lucasmarinskiba/feedIA)
-- Vercel account (create at vercel.com)
-- Git remotes configured (✅ https://github.com/lucasmarinskiba/feedIA.git)
+## MVP Deployment (Test Mode)
 
-## Deployment Steps
+**Start here. No API tokens needed. Polling works with mock metrics.**
 
-### 1. Install Vercel CLI
+### 1. Deploy to Vercel
+
 ```bash
-npm install -g vercel
+git push origin main
+# Auto-deploys (if connected)
 ```
 
-### 2. Login to Vercel
+### 2. Test Locally
+
 ```bash
-vercel login
-# Follow browser prompt to authenticate
+npx tsx src/server.ts
+# Expect: [MetricsPolling] Scheduler starting
+
+npx tsx src/bin/run-e2e-test.ts
+# Expect: ✓ All stages passed
 ```
 
-### 3. Deploy Project
+### 3. MVP Features (Live Now)
+
+- ✓ Cron polling (4h/15-30m/7d cycles)
+- ✓ Closed-loop optimization (generate → publish → measure → extract → bias)
+- ✓ Provider routing (Higgsfield → Replicate fallback)
+- ✓ Sala Ejecutiva dashboard
+- ✓ Metrics recording (mock 0 reach until token added)
+
+### 4. Monitor
+
 ```bash
-vercel
-# Select: feedIA project (or create new)
-# Confirm production deployment
+# Polling queue
+curl https://your-vercel-url.com/api/polling/stats
+
+# Dashboard (shows mock metrics)
+curl https://your-vercel-url.com/api/sala/ejecutiva/dashboard
 ```
 
-### 4. Environment Variables (Vercel Dashboard)
-```
-BRAND_NAME=@feedia
-BRAND_NICHE=instagram-growth
-BRAND_AUDIENCE=creators
-NODE_ENV=production
-```
+## Add Real Metrics Later (Path 2: OAuth)
 
-## Deployment Config
-- **Framework**: Node.js + TypeScript
-- **Build command**: (auto-detected)
-- **Output directory**: `dist/`
-- **Entry point**: `src/server.ts`
-- **Port**: 3000 (auto-mapped to Vercel)
+When ready to show real reach/engagement:
 
-## API Endpoints After Deploy
+1. Build Instagram OAuth route (src/server/instagramOAuthRoutes.ts)
+   ```bash
+   POST /oauth/instagram/connect
+   # User clicks → Instagram login → token auto-saved
+   ```
 
-### Parameterized Image Endpoints (NEW)
-```
-POST  https://<your-vercel-domain>/api/parameterized/upload-images
-POST  https://<your-vercel-domain>/api/parameterized/match-prompts
-POST  https://<your-vercel-domain>/api/parameterized/generate-content
-GET   https://<your-vercel-domain>/api/parameterized/library-status
-```
+2. Set `META_ACCESS_TOKEN` in Vercel env
+   ```
+   VERCEL SETTINGS → ENV VARS →
+   META_ACCESS_TOKEN=<token>
+   ```
 
-### Status Check
+3. Next polling cycle (4h) fetches real metrics
+   - Reach (impressions)
+   - Engagement (likes + comments + shares)
+   - Follows gained
+
+## Optional Environment Variables
+
 ```bash
-curl https://<your-vercel-domain>/health
+# Add later when ready:
+HIGGSFIELD_API_KEY          (image/video generation, optional)
+REDIS_URL                   (for production job queue, optional)
+SENTRY_DSN                  (error tracking, optional)
 ```
 
-## After Deployment
+## Cost
 
-1. Test endpoints with curl (PARAMETERIZED_ENDPOINTS_TEST.md)
-2. Monitor Vercel dashboard for errors
-3. Set up analytics/logging
-4. Configure custom domain (optional)
-
-## Rollback
-```bash
-vercel rollback
-# Select previous deployment
-```
-
-## Monitoring
-- Vercel Dashboard: https://vercel.com/dashboard
-- Real-time logs: vercel logs <project-name>
-- Performance: Vercel Analytics built-in
-
-## Current Commits Ready for Deployment
-- 1dea4d3: Parameterized endpoints wired
-- 6b46fca: Vercel config added
-- 97c0581: Expansion phase complete (24,970 prompts)
+- MVP: $0/month
+- +Real metrics: Instagram API (free) + Redis ($7/month)
+- +Image gen: Higgsfield ($0.01-0.20 per gen)

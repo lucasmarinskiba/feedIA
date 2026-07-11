@@ -200,7 +200,7 @@ const generateHook = (topic: string, emotion: string, palette: PinterestPattern)
     ],
   };
 
-  const hookText = (hooks[emotion] || hooks.curiosity)[Math.floor(Math.random() * 3)];
+  const hookText = (hooks[emotion] ?? hooks.curiosity ?? [])[Math.floor(Math.random() * 3)] ?? '';
 
   return {
     text: hookText,
@@ -226,7 +226,7 @@ const generateScenes = (
     second: 0,
     duration: 3,
     visualType: 'hook',
-    voiceover: 'Wait... you're doing this wrong',
+    voiceover: "Wait... you're doing this wrong",
     visualDescription: 'Pattern interrupt visual. Quick cut, high contrast colors from palette.',
     musicCue: 'upbeat-notification',
     subtitleText: 'WAIT...',
@@ -254,7 +254,7 @@ const generateScenes = (
       second: solutionStart,
       duration: solutionDuration,
       visualType: 'action',
-      voiceover: 'Here's what actually works...',
+      voiceover: "Here's what actually works...",
       visualDescription: 'Show solution in action. Step-by-step or before-after.',
       musicCue: 'positive-resolve',
       subtitleText: 'THE SOLUTION',
@@ -340,7 +340,7 @@ const generateCTA = (
     },
   };
 
-  return ctas[platform] || ctas.tiktok;
+  return ctas[platform] ?? ctas.tiktok!;
 };
 
 // ── Retention Curve (per-second) ────────────────────────────────────────

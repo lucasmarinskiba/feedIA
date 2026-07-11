@@ -3,6 +3,7 @@
  * Uses Playwright for browser control + Computer Vision for context awareness
  */
 
+// @ts-ignore — playwright is an optional runtime dependency
 import { chromium, Browser, Page } from 'playwright';
 
 interface BrowserSession {
@@ -213,8 +214,8 @@ class BrowserAutomationManager {
     const followers = parseInt(followersText?.match(/\d+/)?.[0] || '0');
 
     // Get engagement rate from recent posts
-    const postEngagement = await page.$$eval('[role="article"]', (posts) =>
-      posts.map((p) => ({
+    const postEngagement = await page.$$eval('[role="article"]', (posts: any[]) =>
+      posts.map((p: any) => ({
         likes: (p.querySelector('[aria-label*="like"]')?.textContent || '0').match(/\d+/)?.[0],
         comments: (p.querySelector('[aria-label*="comment"]')?.textContent || '0').match(/\d+/)?.[0],
       })),
@@ -222,7 +223,7 @@ class BrowserAutomationManager {
 
     const avgEngagement =
       postEngagement.reduce(
-        (sum, p) =>
+        (sum: any, p: any) =>
           sum + (parseInt(p.likes || '0') + parseInt(p.comments || '0')),
         0,
       ) / postEngagement.length || 0;

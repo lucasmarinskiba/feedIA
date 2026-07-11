@@ -120,7 +120,7 @@ class FeedIABrain {
 
     if (selectedDomains.length === 0) return '';
 
-    const randomDomain = selectedDomains[Math.floor(Math.random() * selectedDomains.length)];
+    const randomDomain = selectedDomains[Math.floor(Math.random() * selectedDomains.length)]!;
     const prompts = [...randomDomain.basePrompts, ...randomDomain.variations];
     return prompts[Math.floor(Math.random() * prompts.length)] || '';
   }
@@ -147,6 +147,15 @@ class FeedIABrain {
    */
   getDomains(): string[] {
     return this.config.domains.map(d => d.domain);
+  }
+
+  /**
+   * Get prompts by batch ID
+   */
+  getPromptsByBatch(batchId: string): string[] {
+    const batch = this.config.domains.find(d => d.domain.toLowerCase().includes(batchId.toLowerCase()));
+    if (!batch) return [];
+    return [...batch.basePrompts, ...batch.variations];
   }
 
   /**

@@ -192,6 +192,7 @@ const renderAccounts = () => {
   const tt = state.connections.tiktok ?? {};
   const canva = state.connections.canva ?? {};
   const meta = state.connections.meta ?? {};
+  const hf = state.connections.higgsfield ?? {};
 
   return `
     <div class="settings-section" id="section-accounts">
@@ -323,6 +324,61 @@ const renderAccounts = () => {
             <button class="btn" style="background:linear-gradient(135deg,#8957e5,#00c4cc);color:#fff;" id="canva-connect-btn">
               <span style="font-size:16px;">🎨</span> Conectar Canva
             </button>
+          </div>`
+        }
+      </div>
+
+      <div class="connection-card" id="higgsfield-card">
+        <div class="connection-header">
+          <div class="connection-logo" style="background:linear-gradient(135deg,#0d0d0d,#1a1a2e);font-size:18px;display:flex;align-items:center;justify-content:center;">🎬</div>
+          <div class="connection-info">
+            <div class="connection-name">Higgsfield</div>
+            <div class="connection-desc">Generación de video con SeeDance, Wan 2.1, Kling y más — un solo billing</div>
+          </div>
+          <div class="connection-status">
+            ${hf.connected ? `<div class="connected">Conectado</div>` : `<div class="disconnected">No conectado</div>`}
+          </div>
+        </div>
+        ${
+          hf.connected
+            ? `<div class="connection-body">
+            <div class="connection-stats">
+              <div class="connection-stat">
+                <div class="connection-stat-num">${escape(hf.plan ?? 'Standard')}</div>
+                <div class="connection-stat-label">Plan</div>
+              </div>
+              <div class="connection-stat">
+                <div class="connection-stat-num">${(hf.availableModels ?? []).length || '6+'}</div>
+                <div class="connection-stat-label">Modelos</div>
+              </div>
+            </div>
+            <div class="connection-models" style="margin:8px 0;font-size:11px;color:var(--text-muted);">
+              Modelos: ${(hf.availableModels ?? ['seedance-v1-lite','wan-2.1-t2v','kling-v1']).slice(0,4).join(' · ')}
+            </div>
+            <div style="margin:10px 0 4px;font-size:12px;font-weight:600;color:var(--text-secondary);">Modo de generación</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;" id="hf-mode-selector">
+              ${['auto','higgsfield-first','speed','quality'].map(m => {
+                const labels = { auto: '🤖 Auto', 'higgsfield-first': '🎬 Higgsfield Primero', speed: '⚡ Velocidad', quality: '✨ Calidad' };
+                const descs = { auto: 'FeedIA elige', 'higgsfield-first': 'Siempre Higgsfield', speed: 'Más rápido', quality: 'Mejor calidad' };
+                const active = (hf.providerMode ?? 'auto') === m;
+                return `<button data-mode="${m}" class="btn ghost small${active ? ' active' : ''}" title="${descs[m]}" style="${active ? 'border-color:var(--accent);color:var(--accent);' : ''}">${labels[m]}</button>`;
+              }).join('')}
+            </div>
+            <div class="btn-row">
+              <button class="btn ghost small" id="hf-reconnect-btn">🔄 Reconectar</button>
+              <button class="btn ghost small crit" id="hf-disconnect-btn">✕ Desconectar</button>
+            </div>
+          </div>`
+            : `<div class="connection-body">
+            <p class="small muted">Conectá tu API key de Higgsfield para generar videos con SeeDance, Wan 2.1, Kling y otros modelos. Un solo pago, múltiples proveedores.</p>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <button class="btn" style="background:linear-gradient(135deg,#0d0d0d,#6c47ff);color:#fff;" id="hf-connect-btn">
+                🎬 Conectar Higgsfield
+              </button>
+              <a href="https://app.higgsfield.ai/settings/api" target="_blank" class="btn ghost small" style="font-size:11px;">
+                Obtener API key ↗
+              </a>
+            </div>
           </div>`
         }
       </div>
@@ -1111,6 +1167,38 @@ const attachListeners = (root, content) => {
     });
   }
 
+  // Higgsfield API-key connect (not OAuth)
+  content.querySelector('#hf-connect-btn')?.addEventListener('click', () => connectHiggsfield(root));
+  content.querySelector('#hf-reconnect-btn')?.addEventListener('click', () => connectHiggsfield(root));
+  content.querySelector('#hf-disconnect-btn')?.addEventListener('click', async () => {
+    if (!confirm('¿Desconectar Higgsfield? Se eliminará tu API key.')) return;
+    try {
+      await api('/api/settings/higgsfield/disconnect', { body: {} });
+      state.connections.higgsfield = { connected: false };
+      toast('Higgsfield desconectado', 'warn');
+      render(root);
+    } catch (err) {
+      toast(err.message, 'crit');
+    }
+  });
+
+  // Higgsfield provider mode selector
+  content.querySelector('#hf-mode-selector')?.querySelectorAll('[data-mode]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const mode = btn.getAttribute('data-mode');
+      if (!mode) return;
+      try {
+        await api('/api/settings/provider-mode', { body: { mode } });
+        if (!state.connections.higgsfield) state.connections.higgsfield = { connected: true };
+        state.connections.higgsfield.providerMode = mode;
+        toast(`Modo: ${mode}`, 'ok');
+        render(root);
+      } catch (err) {
+        toast(err.message ?? 'Error al cambiar modo', 'crit');
+      }
+    });
+  });
+
   // Automation toggles
   content.querySelectorAll('[id^="auto-"]').forEach((toggle) => {
     toggle.addEventListener('change', async () => {
@@ -1255,6 +1343,60 @@ const initiateOAuth = async (service, root) => {
   } catch (err) {
     toast(err.message, 'crit');
   }
+};
+
+/* ─── Higgsfield API-key modal ──────────────────────────────────────────────── */
+const connectHiggsfield = (root) => {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:min(420px,90vw);box-shadow:0 8px 40px rgba(0,0,0,.4);">
+      <h2 style="margin:0 0 8px;font-size:18px;">🎬 Conectar Higgsfield</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin:0 0 20px;">
+        Ingresá tu API key de Higgsfield para acceder a SeeDance, Wan 2.1, Kling y más modelos de video/imagen desde FeedIA.
+        <br><a href="https://app.higgsfield.ai/settings/api" target="_blank" style="color:var(--accent);">Obtener API key ↗</a>
+      </p>
+      <input id="hf-apikey-input" type="password" placeholder="hf-sk-xxxxxxxxxxxx"
+        style="width:100%;box-sizing:border-box;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;margin-bottom:16px;" />
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button id="hf-modal-cancel" class="btn ghost small">Cancelar</button>
+        <button id="hf-modal-save" class="btn" style="background:linear-gradient(135deg,#0d0d0d,#6c47ff);color:#fff;">Conectar</button>
+      </div>
+      <p id="hf-modal-error" style="color:#f55;font-size:12px;margin:8px 0 0;display:none;"></p>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const close = () => document.body.removeChild(overlay);
+  overlay.querySelector('#hf-modal-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+  overlay.querySelector('#hf-modal-save').addEventListener('click', async () => {
+    const apiKey = overlay.querySelector('#hf-apikey-input').value.trim();
+    if (!apiKey) return;
+    const saveBtn = overlay.querySelector('#hf-modal-save');
+    const errEl = overlay.querySelector('#hf-modal-error');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Validando…';
+    errEl.style.display = 'none';
+    try {
+      const res = await api('/api/settings/higgsfield/connect', { body: { apiKey } });
+      state.connections.higgsfield = {
+        connected: true,
+        plan: res.plan,
+        availableModels: res.availableModels ?? [],
+      };
+      toast('Higgsfield conectado ✓', 'ok');
+      close();
+      render(root);
+    } catch (err) {
+      errEl.textContent = err.message ?? 'API key inválida';
+      errEl.style.display = 'block';
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Conectar';
+    }
+  });
+
+  setTimeout(() => overlay.querySelector('#hf-apikey-input')?.focus(), 50);
 };
 
 const disconnect = async (service, root) => {

@@ -95,7 +95,7 @@ export const validateSequence = (sequence: SlideSequence[]): { valid: boolean; i
 
   // Validate hook is first 3 slides
   const hooks = sequence.filter((s) => s.purpose === 'hook');
-  if (hooks.length < 3 || hooks[0].order !== 1) {
+  if (hooks.length < 3 || hooks[0]?.order !== 1) {
     issues.push('Hook must occupy slides 1-3');
   }
 

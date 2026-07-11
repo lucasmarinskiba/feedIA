@@ -87,8 +87,8 @@ export const promptLoader = {
         continue;
       }
 
-      // Generate sample prompts for this batch
-      const basePrompts = ['A001', 'A050', 'A100', 'B001', 'B050'];
+      // Generate sample prompts for this batch (expanded set for variety)
+      const basePrompts = ['A001', 'A025', 'A050', 'A075', 'A100', 'B001', 'B025', 'B050', 'B075', 'B100', 'C001', 'C050', 'C100'];
       for (const baseId of basePrompts) {
         results.push({
           id: `${batchNum}-${baseId}`,
@@ -120,15 +120,17 @@ export const promptLoader = {
     const prompts = this.queryPrompts({
       occasion,
       category,
-      limit: 5,
+      limit: 20,
     });
 
     if (prompts.length === 0) {
       throw new Error(`No prompts found for occasion=${occasion}, category=${category}`);
     }
 
-    const primary = prompts[0];
-    const variations = prompts.slice(1);
+    // Randomize selection for variety across carousel slides
+    const randomIndex = Math.floor(Math.random() * prompts.length);
+    const primary = prompts[randomIndex]!;
+    const variations = prompts.filter((_, i) => i !== randomIndex).slice(0, 3);
 
     // Format-specific brand context injection
     const formatContext = {

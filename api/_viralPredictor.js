@@ -869,6 +869,31 @@ export const predictVirality = (content) => {
   };
 };
 
+/**
+ * Extract virality improvements into LLM-friendly generation guidance.
+ * Called PRE-generation to inject optimization hints into content prompts.
+ */
+export const getPromptInjections = (viralityAnalysis) => {
+  const { improvements, viralScore, ceilingScore, contentIntent } = viralityAnalysis || {};
+
+  if (!improvements || improvements.length === 0) {
+    return [];
+  }
+
+  const priorityEmoji = { CRÍTICA: '⚡', alta: '📌', media: '→', baja: '•' };
+
+  const injections = improvements.map((imp) => {
+    const emoji = priorityEmoji[imp.priority] || '•';
+    return `[${emoji}] ${imp.metric}: ${imp.action} (Impact: ${imp.impact})`;
+  });
+
+  // Add summary context as first line
+  injections.unshift(`=== VIRALITY GUIDANCE (Score: ${viralScore}/99, Potential ceiling: ${ceilingScore}/99) ===`);
+  injections.push(`Content strategy: Lean into ${contentIntent || 'mixed'} for max retention and shares.`);
+
+  return injections;
+};
+
 export const handleViralPredictor = async (req, res, path, m, body) => {
   if (path === '/api/predict/virality' && m === 'POST') {
     const prediction = predictVirality(body || {});

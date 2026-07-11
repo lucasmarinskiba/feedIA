@@ -15,12 +15,5 @@
       "src": "/(.*)",
       "dest": "src/server.ts"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production",
-    "PORT": "3000",
-    "BRAND_NAME": "@feedia",
-    "BRAND_NICHE": "instagram-growth",
-    "BRAND_AUDIENCE": "creators"
-  }
+  ]
 }

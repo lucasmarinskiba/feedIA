@@ -42,7 +42,8 @@ Return all 5 approaches ranked by potential.`;
       messages: [{ role: 'user', content: JSON.stringify(input) }],
     });
 
-    const output = response.content[0].type === 'text' ? response.content[0].text : '';
+    const firstContent = response.content[0];
+    const output = firstContent?.type === 'text' ? firstContent.text : '';
     this.outputCount++;
     this.trainingData.push({ input, output });
 
@@ -104,7 +105,8 @@ Specialize ruthlessly. Eliminate low performers.`;
       messages: [{ role: 'user', content: JSON.stringify(input) }],
     });
 
-    const output = response.content[0].type === 'text' ? response.content[0].text : '';
+    const firstContent2 = response.content[0];
+    const output = firstContent2?.type === 'text' ? firstContent2.text : '';
     this.outputCount++;
 
     return {
@@ -125,6 +127,10 @@ Specialize ruthlessly. Eliminate low performers.`;
 
   isPhaseComplete(): boolean {
     return this.outputCount >= 1000; // Move to Phase 3 after 1000 outputs
+  }
+
+  getWinningPatterns(): Map<string, number> {
+    return this.winningPatterns;
   }
 }
 
@@ -166,7 +172,8 @@ You're confident because you've seen 1000+ cases.`;
       messages: [{ role: 'user', content: JSON.stringify(input) }],
     });
 
-    const output = response.content[0].type === 'text' ? response.content[0].text : '';
+    const firstContent3 = response.content[0];
+    const output = firstContent3?.type === 'text' ? firstContent3.text : '';
     this.outputCount++;
 
     return {
@@ -245,7 +252,7 @@ class AgentPhaseOrchestrator {
       console.log(`[Agent] Advanced Phase 1→2. Trained on ${trainingData.length} examples.`);
     } else if (this.phase.phase === 2) {
       // Phase 2 → 3: Consolidate learnings
-      const specialistLearnings = (this.agent as SpecialistPhase).winningPatterns;
+      const specialistLearnings = (this.agent as SpecialistPhase).getWinningPatterns();
       this.agent = new ExpertPhase('default', 1000);
       this.phase = { phase: 3, outputCount: 1000, performanceScore: 90 };
 

@@ -89,14 +89,13 @@ export const createJob = (prompt: string): CarouselJob => {
 };
 
 export const getJob = (jobId: string): CarouselJob | null => {
-  let job = JOBS.get(jobId);
-  if (!job) {
-    job = loadJobFromDisk(jobId);
-    if (job) {
-      JOBS.set(jobId, job);
-    }
+  const cached = JOBS.get(jobId);
+  if (cached) return cached;
+  const job = loadJobFromDisk(jobId);
+  if (job) {
+    JOBS.set(jobId, job);
   }
-  return job || null;
+  return job ?? null;
 };
 
 export const updateJob = (jobId: string, updates: Partial<CarouselJob>): void => {

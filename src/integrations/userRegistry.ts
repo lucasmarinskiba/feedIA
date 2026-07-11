@@ -3,10 +3,14 @@ import { resolve, dirname } from 'node:path';
 
 const USERS_FILE = resolve('data/runtime/users.json');
 
+export type ProviderMode = 'auto' | 'higgsfield-first' | 'speed' | 'quality';
+
 export interface UserRecord {
   handle: string;
   displayName?: string;
   canvaConnected: boolean;
+  higgsfieldConnected?: boolean;
+  providerMode?: ProviderMode;
   createdAt: string;
 }
 

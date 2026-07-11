@@ -85,7 +85,7 @@ router.get('/patterns', (req: Request, res: Response) => {
  *
  * Response: Carousel with slides, design system, retention curve
  */
-router.post('/carousel/generate', async (req: Request, res: Response) => {
+router.post('/carousel/generate', async (req: Request, res: Response): Promise<void> => {
   try {
     const brief: CarouselBrief = req.body;
 
@@ -95,7 +95,7 @@ router.post('/carousel/generate', async (req: Request, res: Response) => {
 
     // Validate input
     if (!brief.topic) {
-      return res.status(400).json({error: 'topic required'});
+      return void res.status(400).json({error: 'topic required'});
     }
 
     if (!brief.emotion) {
@@ -104,7 +104,7 @@ router.post('/carousel/generate', async (req: Request, res: Response) => {
 
     // Generate with agent reasoning layer
     log.info('[Extended Routes] Using agent reasoning layer for carousel');
-    const { plan, content } = await generateCarouselWithAgents(brief);
+    const { plan, content } = await generateCarouselWithAgents(brief as unknown as Record<string, unknown>);
 
     // Also generate using original smart carousel for comparison/validation
     const carousel = await generateSmartCarousel(brief);
@@ -145,7 +145,7 @@ router.post('/carousel/generate', async (req: Request, res: Response) => {
  *
  * Response: Video script with scenes, hook, CTA, retention curve
  */
-router.post('/video/generate', async (req: Request, res: Response) => {
+router.post('/video/generate', async (req: Request, res: Response): Promise<void> => {
   try {
     const brief: VideoBrief = req.body;
 
@@ -155,7 +155,7 @@ router.post('/video/generate', async (req: Request, res: Response) => {
 
     // Validate
     if (!brief.topic) {
-      return res.status(400).json({error: 'topic required'});
+      return void res.status(400).json({error: 'topic required'});
     }
 
     if (!brief.platform) {
@@ -168,7 +168,7 @@ router.post('/video/generate', async (req: Request, res: Response) => {
 
     // Generate with agent reasoning layer
     log.info('[Extended Routes] Using agent reasoning layer for video');
-    const { plan, content } = await generateVideoWithAgents(brief);
+    const { plan, content } = await generateVideoWithAgents(brief as unknown as Record<string, unknown>);
 
     // Also generate using original smart video for comparison/validation
     const video = await generateSmartVideo(brief);
@@ -198,14 +198,14 @@ router.post('/video/generate', async (req: Request, res: Response) => {
  * GET /api/extended/patterns/colors?topic=productivity&emotion=curiosity
  * Get recommended color palettes for topic + emotion
  */
-router.get('/patterns/colors', (req: Request, res: Response) => {
+router.get('/patterns/colors', (req: Request, res: Response): void => {
   const topic = req.query.topic as string;
   const emotion = (req.query.emotion as string) || 'curiosity';
 
   log.info(`[Extended Routes] Color palette recommendation: topic="${topic}", emotion=${emotion}`);
 
   if (!topic) {
-    return res.status(400).json({error: 'topic required'});
+    return void res.status(400).json({error: 'topic required'});
   }
 
   const palette = selectColorPalette(topic, emotion as any, undefined);

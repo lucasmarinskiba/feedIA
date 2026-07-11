@@ -108,7 +108,7 @@ const calculateDuration = (text: string, pace: 'slow' | 'normal' | 'fast'): numb
     fast: 1.4,
   };
 
-  const secondsPerWord = 60 / (baseWPM * paceMultiplier[pace]);
+  const secondsPerWord = 60 / (baseWPM * (paceMultiplier[pace] ?? 1.0));
   return Math.ceil(wordCount * secondsPerWord);
 };
 

@@ -47,22 +47,22 @@ export const createBrandLockdown = (brand: BrandProfile): BrandLockdown => {
     locked: true,
     typography: {
       headline: {
-        font: brand.fonts?.headline || 'Poppins',
+        font: brand.visual?.typography?.[0] || 'Poppins',
         weights: [600, 700, 800], // Allow limited weights
       },
       body: {
-        font: brand.fonts?.body || 'Inter',
+        font: brand.visual?.typography?.[1] || 'Inter',
         weights: [400, 500],
       },
-      accent: brand.fonts?.accent
-        ? {font: brand.fonts.accent, weights: [400, 600]}
+      accent: brand.visual?.typography?.[2]
+        ? {font: brand.visual.typography[2], weights: [400, 600]}
         : undefined,
     },
     colors: {
-      primary: brand.colors?.primary || '#E91E8C',
-      secondary: brand.colors?.secondary || '#00D9FF',
-      accent: brand.colors?.accent || '#FFFFFF',
-      neutral: brand.colors?.neutral || '#1A1A1A',
+      primary: brand.visual?.palette?.[0] || '#E91E8C',
+      secondary: brand.visual?.palette?.[1] || '#00D9FF',
+      accent: brand.visual?.palette?.[2] || '#FFFFFF',
+      neutral: brand.visual?.palette?.[3] || '#1A1A1A',
     },
     logoPlacement: {
       position: 'top-right',
@@ -190,8 +190,8 @@ export const enforceComplianceAutomated = (
 
   // Ensure required terms are present (if not already)
   if (lockdown.voiceTone.requiredTerms.length > 0) {
-    const requiredTerm = lockdown.voiceTone.requiredTerms[0];
-    if (!fixed.toLowerCase().includes(requiredTerm)) {
+    const requiredTerm = lockdown.voiceTone.requiredTerms[0] ?? '';
+    if (requiredTerm && !fixed.toLowerCase().includes(requiredTerm)) {
       fixed = `${fixed} (${requiredTerm})`;
     }
   }

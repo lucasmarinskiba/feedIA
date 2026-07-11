@@ -171,7 +171,7 @@ export const validateWeeklyCoherence = (posts: ContentPiece[]): ContentWeek => {
   );
 
   return {
-    week: new Date().toISOString().split('T')[0],
+    week: new Date().toISOString().split('T')[0]!,
     posts,
     coherence: {
       visualCoherence,

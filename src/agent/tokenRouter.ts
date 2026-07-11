@@ -419,7 +419,7 @@ export const generateFullCaption = async (
   const prompt = `Generá un caption completo de Instagram para ${brand.name}.
 
 Nicho: ${brand.niche}
-Tono: ${brand.voice?.tone}
+Tono: ${brand.tone}
 Audiencia objetivo: ${brand.targetAudience}
 Contexto del post: ${context}
 
@@ -448,7 +448,7 @@ export const generateReply = async (
 ): Promise<string> => {
   const prompt = `Generá UNA respuesta corta y auténtica para este ${context} en Instagram.
 
-Marca: ${brand.name} (tono: ${brand.voice?.tone})
+Marca: ${brand.name} (tono: ${brand.tone})
 Mensaje a responder: "${originalMessage}"
 
 La respuesta debe ser:

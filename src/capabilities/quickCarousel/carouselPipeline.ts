@@ -29,6 +29,7 @@ import {
   type AspectRatio,
   type ImageStyle,
 } from '../../integrations/falAi.js';
+import { routeImageGen } from '../../services/provider-router.js';
 import { uploadToSocial, isUploadPostAvailable, type SocialPlatform } from '../../integrations/uploadPost.js';
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
@@ -224,6 +225,7 @@ export const renderViaFalAi = async (
   brand: BrandProfile,
   pkg: QuickCarouselPackage,
   config: { model?: Parameters<typeof falGenerateImage>[0]['model']; style?: ImageStyle } = {},
+  userHandle?: string,
 ): Promise<{ pngPaths: string[] }> => {
   if (!isFalAvailable()) throw new Error('[carouselPipeline] FAL_KEY env missing');
   await ensureDir();
@@ -245,21 +247,20 @@ Typography: ${brief.typography.headline}.
 Text overlay: "${slide.visualText.slice(0, 80)}".
 ${brief.elements.join(', ')}. High quality, professional, ${aspectRatio} aspect ratio.`;
 
-    const result = await falGenerateImage({
-      model: config.model ?? 'fal-ai/flux/schnell',
+    const routeResult = await routeImageGen({
       prompt,
-      aspectRatio,
+      contentType: 'carousel-frame',
+      userHandle: userHandle ?? brand.handle,
       style: config.style ?? 'minimal',
-      negativePrompt: brief.doNot.join(', '),
     });
 
-    if (!result.imageUrl) {
-      log.warn('[carouselPipeline] fal.ai returned no image for slide', { slide: i + 1 });
+    if (!routeResult.ok || !routeResult.url) {
+      log.warn('[carouselPipeline] provider-router returned no image', { slide: i + 1, error: routeResult.error });
       continue;
     }
 
     // Descargar PNG
-    const res = await fetch(result.imageUrl);
+    const res = await fetch(routeResult.url);
     const buffer = Buffer.from(await res.arrayBuffer());
     const pngFile = slidePath(pkg.id, i, 'png');
     await fs.writeFile(pngFile, buffer);
@@ -276,6 +277,7 @@ export const runCarouselPipeline = async (
   brand: BrandProfile,
   pkg: QuickCarouselPackage,
   config: PipelineConfig = {},
+  userHandle?: string,
 ): Promise<PipelineResult> => {
   const startTime = Date.now();
   const errors: string[] = [];
@@ -305,7 +307,7 @@ export const runCarouselPipeline = async (
         break;
       }
       case 'C-fal-ai': {
-        const result = await renderViaFalAi(brand, pkg, { model: config.falModel, style: config.falStyle });
+        const result = await renderViaFalAi(brand, pkg, { model: config.falModel, style: config.falStyle }, userHandle ?? brand.handle);
         slidePaths = result.pngPaths;
         break;
       }

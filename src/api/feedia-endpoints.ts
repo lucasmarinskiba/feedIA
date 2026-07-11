@@ -57,22 +57,22 @@ router.get('/ideas', (req: Request, res: Response): void => {
 /**
  * POST /api/feedia/carousel — Generate carousel plan
  */
-router.post('/carousel', (req: Request, res: Response): void => {
-  const { domain, brief, slideCount = 10 } = req.body;
+router.post('/carousel', async (req: Request, res: Response): Promise<void> => {
+  const { domain, brief, slideCount = 10, platform = 'instagram' } = req.body;
 
   if (!domain || !brief) {
     res.status(400).json({ error: 'domain and brief required' });
     return;
   }
 
-  const plan = brujulaIntegration.generateCarouselPlan(domain, brief, slideCount);
+  const plan = await brujulaIntegration.generateCarouselPlan(domain, brief, slideCount, platform);
   res.json(plan);
 });
 
 /**
  * POST /api/feedia/carousel/multiformat — Generate multi-platform carousel
  */
-router.post('/carousel/multiformat', (req: Request, res: Response): void => {
+router.post('/carousel/multiformat', async (req: Request, res: Response): Promise<void> => {
   const { domain, brief } = req.body;
 
   if (!domain || !brief) {
@@ -80,7 +80,7 @@ router.post('/carousel/multiformat', (req: Request, res: Response): void => {
     return;
   }
 
-  const formats = brujulaIntegration.generateMultiFormatCarousel(domain, brief);
+  const formats = await brujulaIntegration.generateMultiFormatCarousel(domain, brief);
   res.json(formats);
 });
 
