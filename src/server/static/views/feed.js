@@ -97,7 +97,11 @@ const renderKpiCard = (key, val, delta) => {
 };
 
 const renderActivityFeed = (items = []) => {
-  if (!items.length) return `<div class="empty">Sin actividad reciente registrada.</div>`;
+  if (!items.length) return `
+    <div class="empty-state">
+      <div class="empty-state-icon" style="background:rgba(212,175,55,0.1);">⚡</div>
+      <div class="empty-state-text">Sin actividad reciente registrada.</div>
+    </div>`;
   return items
     .map(
       (item) => `
@@ -114,7 +118,11 @@ const renderActivityFeed = (items = []) => {
 };
 
 const renderUpcoming = (jobs = []) => {
-  if (!jobs.length) return `<div class="empty">Sin publicaciones programadas próximamente.</div>`;
+  if (!jobs.length) return `
+    <div class="empty-state">
+      <div class="empty-state-icon" style="background:rgba(59,130,246,0.1);">📅</div>
+      <div class="empty-state-text">Sin publicaciones programadas próximamente.</div>
+    </div>`;
   return jobs
     .map(
       (j) => `
@@ -167,14 +175,14 @@ const renderInstagramGrid = (data, plat = 'instagram') => {
   if (!data || !data.posts || data.posts.length === 0) {
     const isTT = plat === 'tiktok';
     return `
-      <div class="ig-grid-empty card" style="text-align:center;padding:30px;">
-        <div style="font-size:48px;opacity:0.4;">${isTT ? '🎵' : '📷'}</div>
-        <h3 style="margin:10px 0 6px;">Sin ${isTT ? 'videos' : 'posts'} registrados</h3>
-        <p class="small muted">${
+      <div class="empty-state" style="padding:40px 20px;">
+        <div class="empty-state-icon" style="background:rgba(240,148,51,0.1);font-size:32px;">${isTT ? '🎵' : '📷'}</div>
+        <div class="empty-state-text">Sin ${isTT ? 'videos' : 'posts'} registrados</div>
+        <div class="empty-state-text" style="font-size:14px;opacity:0.7;margin-top:4px;">${
           isTT
             ? 'Conectá TikTok en Configuración para sincronizar tus videos y métricas.'
             : 'Conectá Instagram en Configuración o publicá desde los studios para ver tu feed real.'
-        }</p>
+        }</div>
       </div>`;
   }
   return `
@@ -231,7 +239,7 @@ export const renderFeed = async (root) => {
         <button class="btn ghost" id="refresh-btn">↻ Actualizar</button>
       </div>
     </header>
-    <div class="page-body"><div class="page-loading"><span class="spinner"></span> cargando feed…</div></div>`;
+    <div class="page-body"><div class="skeleton skeleton-card" style="height:200px;margin-bottom:16px;"></div><div class="skeleton skeleton-text" style="height:16px;margin-bottom:8px;"></div><div class="skeleton skeleton-text" style="height:16px;width:60%;"></div></div>`;
 
   let plat = 'instagram';
   try {
@@ -276,7 +284,7 @@ export const renderFeed = async (root) => {
         <div class="page-body">
           ${renderProfileHeader(plat, profile)}
 
-          ${plat === 'tiktok' && profile?.real ? '<div id="tt-videos" class="card" style="margin-bottom:14px;"><div class="small muted"><span class="spinner"></span> cargando tus videos de TikTok…</div></div>' : ''}
+          ${plat === 'tiktok' && profile?.real ? '<div id="tt-videos" class="card" style="margin-bottom:14px;"><div class="skeleton skeleton-headline" style="height:20px;margin-bottom:10px;"></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;"><div class="skeleton skeleton-card" style="height:100px;"></div><div class="skeleton skeleton-card" style="height:100px;"></div><div class="skeleton skeleton-card" style="height:100px;"></div></div></div>' : ''}
 
           ${renderDigestCard(digest)}
 
@@ -291,8 +299,10 @@ export const renderFeed = async (root) => {
               ${kpiKeys.map((k) => renderKpiCard(k, kpis[k].value, kpis[k].delta ?? 0)).join('')}
             </div>`
               : `
-            <div class="kpi-grid-empty card muted small" style="text-align:center;padding:20px;">
-              Sin KPIs registrados aún. Conectá ${plat === 'tiktok' ? 'TikTok' : 'Instagram'} en Configuración para ver métricas reales.
+            <div class="empty-state" style="padding:40px 20px;">
+              <div class="empty-state-icon" style="background:rgba(59,130,246,0.1);">📊</div>
+              <div class="empty-state-text">Sin KPIs registrados aún</div>
+              <div class="empty-state-text" style="font-size:14px;opacity:0.7;margin-top:4px;">Conectá ${plat === 'tiktok' ? 'TikTok' : 'Instagram'} en Configuración para ver métricas reales.</div>
             </div>`
           }
 
@@ -339,7 +349,7 @@ export const renderFeed = async (root) => {
       }
 
       root.querySelector('#refresh-btn')?.addEventListener('click', () => {
-        root.innerHTML = `<div class="page-loading"><span class="spinner"></span> actualizando…</div>`;
+        root.innerHTML = `<div class="skeleton skeleton-card" style="height:200px;margin-bottom:16px;"></div><div class="skeleton skeleton-text" style="height:16px;margin-bottom:8px;"></div><div class="skeleton skeleton-text" style="height:16px;width:60%;"></div>`;
         load();
       });
       root.querySelector('#new-story-btn')?.addEventListener('click', () => {
@@ -353,7 +363,7 @@ export const renderFeed = async (root) => {
           root.querySelectorAll('.ig-filter-btn').forEach((b) => b.classList.toggle('active', b === btn));
           const grid = root.querySelector('#ig-grid');
           if (!grid) return;
-          grid.innerHTML = '<div class="page-loading"><span class="spinner"></span></div>';
+          grid.innerHTML = '<div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;"><div class="skeleton skeleton-card" style="aspect-ratio:1;"></div><div class="skeleton skeleton-card" style="aspect-ratio:1;"></div><div class="skeleton skeleton-card" style="aspect-ratio:1;"></div><div class="skeleton skeleton-card" style="aspect-ratio:1;"></div><div class="skeleton skeleton-card" style="aspect-ratio:1;"></div><div class="skeleton skeleton-card" style="aspect-ratio:1;"></div></div>';
           try {
             const data = await api(`/api/feed/grid?limit=36${f ? `&format=${encodeURIComponent(f)}` : ''}`);
             grid.innerHTML =
