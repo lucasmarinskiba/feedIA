@@ -11089,3 +11089,51 @@ details[open] > summary::after {
 .inbox-mode #chatbot-log {
   border-radius: 0 !important;
 }
+
+/* ── Skeletal Loaders ─────────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-card) 0%, var(--bg-card-2) 50%, var(--bg-card) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+  border-radius: var(--radius-sm);
+}
+.skeleton-text { height: 14px; width: 80%; }
+.skeleton-headline { height: 24px; width: 60%; }
+.skeleton-avatar { height: 40px; width: 40px; border-radius: 50%; }
+.skeleton-card { height: 120px; width: 100%; }
+
+/* ── Empty States ────────────────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+.empty-state-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+}
+.empty-state-text { max-width: 280px; line-height: 1.6; }
+.empty-state-action { margin-top: 8px; }
+
+/* ── Magnetic Buttons ────────────────────────────────────────────────── */
+.btn-magnetic {
+  position: relative;
+  transition: transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.btn-magnetic:hover {
+  transform: scale(1.04);
+}
+.btn-magnetic:active {
+  transform: scale(0.98) translateY(-1px);
+}
