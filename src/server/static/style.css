@@ -432,6 +432,16 @@ a:focus-visible {
   animation: blink-danger 1.2s ease-in-out infinite;
 }
 
+/* Badge variants (emoji-free) */
+.nav-badge.badge-spark::before { content: '✦ '; font-size: 7px; }
+.nav-badge.badge-star::before { content: '★ '; }
+.nav-badge.badge-compass::before { content: '⊙ '; }
+.nav-badge.badge-calendar::before { content: '◻ '; }
+.nav-badge.badge-crown::before { content: '♔ '; }
+.nav-badge.badge-film::before { content: '◆ '; }
+.nav-badge.badge-tools::before { content: '⚙ '; font-size: 8px; }
+.nav-badge.badge-lightning::before { content: '⚡ '; font-size: 8px; }
+
 /* Brand footer */
 .brand-footer {
   display: flex;
