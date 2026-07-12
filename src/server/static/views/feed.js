@@ -39,7 +39,7 @@ const renderProfileHeader = (plat, p) => {
           ${stats.map(([l, v]) => `<span class="small"><strong>${fmtN(v)}</strong> <span class="muted">${l}</span></span>`).join('')}
         </div>
         ${p.bio ? `<div class="small" style="margin-top:6px;line-height:1.4;">${escape(p.bio)}</div>` : ''}
-        ${p.real === false ? `<a href="/api/auth/${isTT ? 'tiktok' : 'instagram'}/login" class="btn tiny" style="margin-top:10px;display:inline-flex;align-items:center;gap:6px;background:${isTT ? '#FE2C55' : '#C13584'};color:#fff;border:0;border-radius:999px;padding:8px 14px;text-decoration:none;font-weight:700;">🔗 Conectar ${isTT ? 'TikTok' : 'Instagram'} (datos reales)</a>` : `<span class="tag tiny ok" style="margin-top:10px;display:inline-block;">✓ Conectado</span>`}
+        ${p.real === false ? `<a href="/api/auth/${isTT ? 'tiktok' : 'instagram'}/login" class="btn tiny btn-magnetic" style="margin-top:10px;display:inline-flex;align-items:center;gap:6px;background:${isTT ? '#FE2C55' : '#C13584'};color:#fff;border:0;border-radius:999px;padding:8px 14px;text-decoration:none;font-weight:700;">🔗 Conectar ${isTT ? 'TikTok' : 'Instagram'} (datos reales)</a>` : `<span class="tag tiny ok" style="margin-top:10px;display:inline-block;">✓ Conectado</span>`}
       </div>
     </div>`;
 };
@@ -236,7 +236,7 @@ export const renderFeed = async (root) => {
         <p class="view-subtitle page-subtitle">Resumen de hoy, KPIs y actividad reciente.</p>
       </div>
       <div class="page-actions">
-        <button class="btn ghost" id="refresh-btn">↻ Actualizar</button>
+        <button class="btn ghost btn-magnetic" id="refresh-btn">↻ Actualizar</button>
       </div>
     </header>
     <div class="page-body"><div class="skeleton skeleton-card" style="height:200px;margin-bottom:16px;"></div><div class="skeleton skeleton-text" style="height:16px;margin-bottom:8px;"></div><div class="skeleton skeleton-text" style="height:16px;width:60%;"></div></div>`;
@@ -278,7 +278,7 @@ export const renderFeed = async (root) => {
             <p class="view-subtitle page-subtitle">Resumen de hoy — ${new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
           </div>
           <div class="page-actions">
-            <button class="btn ghost" id="refresh-btn">↻ Actualizar</button>
+            <button class="btn ghost btn-magnetic" id="refresh-btn">↻ Actualizar</button>
           </div>
         </header>
         <div class="page-body">
