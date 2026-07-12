@@ -7,14 +7,14 @@
 const STORAGE_KEY = 'feedia.sidebarGroups';
 // Reorg semántica: outcome-first
 const RELABEL = {
-  'Tu Casa': '🎯 Hoy',
-  'Studio': '🎨 Crear',
-  'Indicaciones a la IA': '🧠 Pensar con IA',
-  'Inteligencia IA': '🤖 Auto-Pilot',
-  'Gestión': '📊 Mi cuenta',
-  'Operaciones': '⚙️ Ajustes',
+  'Tu Casa': 'Hoy',
+  'Studio': 'Crear',
+  'Indicaciones a la IA': 'Pensar con IA',
+  'Inteligencia IA': 'Auto-Pilot',
+  'Gestión': 'Mi cuenta',
+  'Operaciones': 'Ajustes',
 };
-const DEFAULT_OPEN = ['🎯 Hoy']; // resto colapsa por default
+const DEFAULT_OPEN = ['Hoy']; // resto colapsa por default
 
 const loadState = () => {
   try {
