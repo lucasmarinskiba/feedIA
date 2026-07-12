@@ -34,6 +34,8 @@ import cacheManagementRoutes from './api/cache-management-routes.js';
 import engagementRoutes from './api/engagement-routes.js';
 import browserlessSettingsRoutes from './api/browserless-settings-routes.js';
 import salaEjecutivaRoutes from './api/sala-ejecutiva-routes.js';
+import editingRoutes from './api/editing-routes.js';
+import carouselEditingRoutes from './api/carousel-editing-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -187,6 +189,12 @@ app.use('/api/settings/browserless', browserlessSettingsRoutes);
 
 // Sala Ejecutiva routes (real-time metrics dashboard)
 app.use('/api/sala-ejecutiva', salaEjecutivaRoutes);
+
+// Editing routes (video/photo editing operations)
+app.use('/api/edit', editingRoutes);
+
+// Carousel editing routes (reorder, update text/image, add/delete slides, styling)
+app.use('/api/carousel', carouselEditingRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 const STATIC_CANDIDATES = [
