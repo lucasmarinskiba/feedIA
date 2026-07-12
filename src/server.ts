@@ -36,6 +36,7 @@ import browserlessSettingsRoutes from './api/browserless-settings-routes.js';
 import salaEjecutivaRoutes from './api/sala-ejecutiva-routes.js';
 import editingRoutes from './api/editing-routes.js';
 import carouselEditingRoutes from './api/carousel-editing-routes.js';
+import campaignRoutes from './api/campaign-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -195,6 +196,9 @@ app.use('/api/edit', editingRoutes);
 
 // Carousel editing routes (reorder, update text/image, add/delete slides, styling)
 app.use('/api/carousel', carouselEditingRoutes);
+
+// Campaign management routes (CRUD, content association, scheduling, metrics)
+app.use('/api/campaigns', campaignRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 const STATIC_CANDIDATES = [
