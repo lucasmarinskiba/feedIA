@@ -492,8 +492,8 @@ button {
   flex: 1;
   padding: 24px 0 80px 0;
   max-width: none;
-  width: 100%;
-  margin: 0;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
