@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FeedIA — Generador de ícono 1024×1024</title>
+    <style>
+      body {
+        font-family:
+          system-ui,
+          Segoe UI,
+          Roboto,
+          sans-serif;
+        background: #0f0f12;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        padding: 32px;
+      }
+      canvas {
+        width: 300px;
+        height: 300px;
+        border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      }
+      button,
+      a.btn {
+        background: linear-gradient(135deg, #dc2743, #bc1888);
+        color: #fff;
+        border: 0;
+        border-radius: 999px;
+        padding: 14px 28px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .muted {
+        color: #9ca3af;
+        font-size: 13px;
+        text-align: center;
+        max-width: 420px;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Ícono FeedIA 1024×1024</h1>
+    <canvas id="c" width="1024" height="1024"></canvas>
+    <a id="dl" class="btn" download="feedia-icon-1024.png">⬇️ Descargar PNG 1024×1024</a>
+    <p class="muted">Subí este PNG en TikTok/Meta como App icon. Se genera en tu navegador, sin servidores.</p>
+
+    <script>
+      const SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 40 40">
+    <defs>
+      <linearGradient id="lg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#f09433"/><stop offset="35%" stop-color="#e6683c"/>
+        <stop offset="65%" stop-color="#dc2743"/><stop offset="100%" stop-color="#bc1888"/>
+      </linearGradient>
+      <clipPath id="lgc"><rect width="40" height="40" rx="9"/></clipPath>
+    </defs>
+    <rect width="40" height="40" rx="9" fill="url(#lg)"/>
+    <g clip-path="url(#lgc)" stroke="rgba(255,255,255,.82)" stroke-width="0.85" stroke-linecap="round">
+      <line x1="20" y1="6" x2="30" y2="9"/><line x1="30" y1="9" x2="35" y2="18"/>
+      <line x1="35" y1="18" x2="33" y2="28"/><line x1="33" y1="28" x2="25" y2="35"/>
+      <line x1="25" y1="35" x2="14" y2="35"/><line x1="14" y1="35" x2="6" y2="28"/>
+      <line x1="6" y1="28" x2="5" y2="18"/><line x1="5" y1="18" x2="11" y2="9"/>
+      <line x1="11" y1="9" x2="20" y2="6"/>
+      <line x1="24" y1="14" x2="30" y2="23"/><line x1="30" y1="23" x2="23" y2="31"/>
+      <line x1="23" y1="31" x2="13" y2="31"/><line x1="13" y1="31" x2="11" y2="21"/>
+      <line x1="11" y1="21" x2="24" y2="14"/>
+      <line x1="20" y1="6" x2="24" y2="14"/><line x1="30" y1="9" x2="24" y2="14"/>
+      <line x1="30" y1="9" x2="30" y2="23"/><line x1="35" y1="18" x2="30" y2="23"/>
+      <line x1="33" y1="28" x2="30" y2="23"/><line x1="33" y1="28" x2="23" y2="31"/>
+      <line x1="25" y1="35" x2="23" y2="31"/><line x1="14" y1="35" x2="13" y2="31"/>
+      <line x1="6" y1="28" x2="13" y2="31"/><line x1="6" y1="28" x2="11" y2="21"/>
+      <line x1="5" y1="18" x2="11" y2="21"/><line x1="11" y1="9" x2="11" y2="21"/>
+      <line x1="11" y1="9" x2="24" y2="14"/>
+      <line x1="20" y1="22" x2="24" y2="14"/><line x1="20" y1="22" x2="30" y2="23"/>
+      <line x1="20" y1="22" x2="23" y2="31"/><line x1="20" y1="22" x2="13" y2="31"/>
+      <line x1="20" y1="22" x2="11" y2="21"/>
+    </g>
+    <g fill="white" clip-path="url(#lgc)">
+      <circle cx="20" cy="6" r="1.9"/><circle cx="30" cy="9" r="1.9"/><circle cx="35" cy="18" r="1.9"/>
+      <circle cx="33" cy="28" r="1.9"/><circle cx="25" cy="35" r="1.9"/><circle cx="14" cy="35" r="1.9"/>
+      <circle cx="6" cy="28" r="1.9"/><circle cx="5" cy="18" r="1.9"/><circle cx="11" cy="9" r="1.9"/>
+      <circle cx="24" cy="14" r="1.9"/><circle cx="30" cy="23" r="1.9"/><circle cx="23" cy="31" r="1.9"/>
+      <circle cx="13" cy="31" r="1.9"/><circle cx="11" cy="21" r="1.9"/><circle cx="20" cy="22" r="1.9"/>
+    </g>
+  </svg>`;
+      const c = document.getElementById('c'),
+        ctx = c.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0, 0, 1024, 1024);
+        ctx.drawImage(img, 0, 0, 1024, 1024);
+        c.toBlob((b) => {
+          document.getElementById('dl').href = URL.createObjectURL(b);
+        }, 'image/png');
+      };
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(SVG);
+    </script>
+  </body>
+</html>
