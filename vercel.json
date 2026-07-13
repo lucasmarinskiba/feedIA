@@ -1,10 +1,4 @@
 {
   "version": 2,
-  "buildCommand": "npm run build && mkdir -p public && cp -r dist-static/* public/",
-  "routes": [
-    {
-      "src": "^/.*$",
-      "dest": "/api"
-    }
-  ]
+  "buildCommand": "npm run build && mkdir -p public && cp -r dist-static/* public/"
 }
