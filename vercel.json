@@ -1,7 +1,14 @@
 {
   "version": 2,
-  "buildCommand": "npm run build && mkdir -p public && cp -r dist-static/* public/",
-  "public": "public",
-  "cleanUrls": true,
-  "trailingSlash": false
+  "buildCommand": "npm run build && mkdir -p public && cp -r dist-static/* public/ && cp public/index.html ./index.html",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
+  ]
 }
