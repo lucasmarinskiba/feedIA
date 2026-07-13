@@ -1,4 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "npm run build && cp -r dist-static/* public/"
+  "buildCommand": "npm run build && cp -r dist-static/* public/",
+  "public": "public",
+  "routes": [
+    {
+      "src": "^/api(/.*)?$",
+      "dest": "/api/index.ts"
+    },
+    {
+      "src": "^/health$",
+      "dest": "/api/index.ts"
+    }
+  ]
 }
