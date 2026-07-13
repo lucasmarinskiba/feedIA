@@ -57,6 +57,13 @@ class FeedIADatabase {
   }
 
   /**
+   * Get database connection
+   */
+  getConnection(): Database.Database {
+    return this.db;
+  }
+
+  /**
    * Initialize database schema
    */
   async initialize(): Promise<void> {

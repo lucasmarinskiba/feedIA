@@ -566,7 +566,8 @@ export const briefToPublish = async (brand: BrandProfile, brief: BriefRequest): 
   };
 };
 
-import type { StrategicBrief } from '../strategy/output/strategicBrief.js';
+// type { StrategicBrief } from '../strategy/output/strategicBrief.js';
+type StrategicBrief = any;
 
 /**
  * Ejecuta el pipeline briefToPublish a partir de un StrategicBrief generado

@@ -1163,7 +1163,7 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
             ...plan.insights,
             '',
             ...plan.briefs.map(
-              (b, i) =>
+              (b: any, i: number) =>
                 `${i + 1}. [${b.format}] ${b.topic} — ${b.estimatedEngagement} engagement (confianza ${b.confidence}%) — ${b.bestDay} ${b.bestHour}`,
             ),
           ].join('\n'),
