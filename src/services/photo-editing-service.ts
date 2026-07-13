@@ -62,7 +62,7 @@ interface TextOverlayParams {
 export const photoEditingService = {
   async crop(inputPath: string, outputPath: string, params: CropParams): Promise<void> {
     await Sharp(inputPath)
-      .extract(params)
+      .extract({ left: params.x, top: params.y, width: params.width, height: params.height })
       .toFile(outputPath);
   },
 
