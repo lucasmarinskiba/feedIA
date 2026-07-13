@@ -438,6 +438,3 @@ if (false) {
 }
 
 export default app;
-
-// Vercel serverless handler
-export const handler = app;
