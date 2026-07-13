@@ -8,3 +8,5 @@ output
 .env
 .env.local
 src/skills/carrusel-instagram/.env
+!public
+!dist-static
