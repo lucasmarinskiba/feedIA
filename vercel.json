@@ -2,10 +2,6 @@
   "version": 2,
   "buildCommand": "npm run build && mkdir -p public && cp -r dist-static/* public/",
   "public": "public",
-  "routes": [
-    {
-      "src": "/",
-      "dest": "/api"
-    }
-  ]
+  "cleanUrls": true,
+  "trailingSlash": false
 }
