@@ -4,12 +4,12 @@
   "public": "public",
   "routes": [
     {
-      "src": "/api/.*",
-      "dest": "/api/index.ts"
+      "src": "/api/(.*)",
+      "dest": "/api"
     },
     {
       "src": "/((?!api).*)",
-      "dest": "/api/index.ts"
+      "dest": "/api"
     }
   ]
 }
