@@ -168,35 +168,37 @@ export const photoEditingService = {
 
     for (let i = 0; i < req.operations.length; i++) {
       const op = req.operations[i];
+      if (!op) continue;
       const intermediate = i === req.operations.length - 1 ? req.outputPath : `/tmp/feedia-photo-${Date.now()}-${i}.png`;
 
+      const params = op.params as unknown;
       switch (op.type) {
         case 'crop':
-          await this.crop(current, intermediate, op.params as CropParams);
+          await this.crop(current, intermediate, params as CropParams);
           break;
         case 'resize':
-          await this.resize(current, intermediate, op.params as ResizeParams);
+          await this.resize(current, intermediate, params as ResizeParams);
           break;
         case 'filter':
-          await this.filter(current, intermediate, op.params as FilterParams);
+          await this.filter(current, intermediate, params as FilterParams);
           break;
         case 'brightness':
-          await this.brightness(current, intermediate, op.params as BrightnessParams);
+          await this.brightness(current, intermediate, params as BrightnessParams);
           break;
         case 'contrast':
-          await this.contrast(current, intermediate, op.params as ContrastParams);
+          await this.contrast(current, intermediate, params as ContrastParams);
           break;
         case 'saturation':
-          await this.saturation(current, intermediate, op.params as SaturationParams);
+          await this.saturation(current, intermediate, params as SaturationParams);
           break;
         case 'blur':
-          await this.blur(current, intermediate, op.params as BlurParams);
+          await this.blur(current, intermediate, params as BlurParams);
           break;
         case 'rotate':
-          await this.rotate(current, intermediate, op.params as RotateParams);
+          await this.rotate(current, intermediate, params as RotateParams);
           break;
         case 'text-overlay':
-          await this.textOverlay(current, intermediate, op.params as TextOverlayParams);
+          await this.textOverlay(current, intermediate, params as TextOverlayParams);
           break;
       }
 

@@ -118,29 +118,31 @@ export const videoEditingService = {
     let current = req.inputPath;
     for (let i = 0; i < req.operations.length; i++) {
       const op = req.operations[i];
+      if (!op) continue;
       const intermediate = i === req.operations.length - 1 ? req.outputPath : `/tmp/feedia-edit-${Date.now()}-${i}.mp4`;
 
+      const params = op.params as unknown;
       switch (op.type) {
         case 'trim':
-          await this.trim(current, intermediate, op.params as TrimParams);
+          await this.trim(current, intermediate, params as TrimParams);
           break;
         case 'cut':
-          await this.cut(current, intermediate, op.params as CutParams);
+          await this.cut(current, intermediate, params as CutParams);
           break;
         case 'speed':
-          await this.speed(current, intermediate, op.params as SpeedParams);
+          await this.speed(current, intermediate, params as SpeedParams);
           break;
         case 'rotate':
-          await this.rotate(current, intermediate, op.params as RotateParams);
+          await this.rotate(current, intermediate, params as RotateParams);
           break;
         case 'filter':
-          await this.filter(current, intermediate, op.params as FilterParams);
+          await this.filter(current, intermediate, params as FilterParams);
           break;
         case 'overlay':
-          await this.overlay(current, intermediate, op.params as OverlayParams);
+          await this.overlay(current, intermediate, params as OverlayParams);
           break;
         case 'transition':
-          await this.transition(current, intermediate, op.params as TransitionParams);
+          await this.transition(current, intermediate, params as TransitionParams);
           break;
       }
 
