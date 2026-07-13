@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build && mkdir -p public && cp -r dist-static/* public/",
+  "buildCommand": "npm run build && mkdir -p public && cp -r dist-static/* public/ && cp public/index.html public/404.html",
   "env": {
     "NODE_ENV": "production",
     "DEPLOY_TIME": "2026-07-13-17-50"

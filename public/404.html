@@ -1,0 +1,1195 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>FeedIA</title>
+    <script>
+      /* Tema aplicado ANTES de pintar CSS → sin parpadeo (FOUC) */
+      (function () {
+        try {
+          var t = localStorage.getItem('fx_theme');
+          if (!t) t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" id="personalization-css" href="/api/personalization/css" />
+    <!-- Vistas lazy, pero precargamos la ruta por defecto → primer render instantáneo -->
+    <link rel="modulepreload" href="/app.js?v=2026-05-29-16" />
+    <link rel="modulepreload" href="/views/feed.js" />
+    <link rel="modulepreload" href="/lib/api.js" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- ═══ DESKTOP SIDEBAR ═══ -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <!-- Logo -->
+        <div class="logo" data-route="feed" id="logo-btn">
+          <div class="logo-icon">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="lg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#f09433" />
+                  <stop offset="35%" stop-color="#e6683c" />
+                  <stop offset="65%" stop-color="#dc2743" />
+                  <stop offset="100%" stop-color="#bc1888" />
+                </linearGradient>
+                <clipPath id="lgc"><rect width="40" height="40" rx="9" /></clipPath>
+              </defs>
+              <rect width="40" height="40" rx="9" fill="url(#lg)" />
+              <!-- edges -->
+              <g clip-path="url(#lgc)" stroke="rgba(255,255,255,.82)" stroke-width="0.85" stroke-linecap="round">
+                <!-- outer ring -->
+                <line x1="20" y1="6" x2="30" y2="9" />
+                <line x1="30" y1="9" x2="35" y2="18" />
+                <line x1="35" y1="18" x2="33" y2="28" />
+                <line x1="33" y1="28" x2="25" y2="35" />
+                <line x1="25" y1="35" x2="14" y2="35" />
+                <line x1="14" y1="35" x2="6" y2="28" />
+                <line x1="6" y1="28" x2="5" y2="18" />
+                <line x1="5" y1="18" x2="11" y2="9" />
+                <line x1="11" y1="9" x2="20" y2="6" />
+                <!-- inner pentagon -->
+                <line x1="24" y1="14" x2="30" y2="23" />
+                <line x1="30" y1="23" x2="23" y2="31" />
+                <line x1="23" y1="31" x2="13" y2="31" />
+                <line x1="13" y1="31" x2="11" y2="21" />
+                <line x1="11" y1="21" x2="24" y2="14" />
+                <!-- outer → inner -->
+                <line x1="20" y1="6" x2="24" y2="14" />
+                <line x1="30" y1="9" x2="24" y2="14" />
+                <line x1="30" y1="9" x2="30" y2="23" />
+                <line x1="35" y1="18" x2="30" y2="23" />
+                <line x1="33" y1="28" x2="30" y2="23" />
+                <line x1="33" y1="28" x2="23" y2="31" />
+                <line x1="25" y1="35" x2="23" y2="31" />
+                <line x1="14" y1="35" x2="13" y2="31" />
+                <line x1="6" y1="28" x2="13" y2="31" />
+                <line x1="6" y1="28" x2="11" y2="21" />
+                <line x1="5" y1="18" x2="11" y2="21" />
+                <line x1="11" y1="9" x2="11" y2="21" />
+                <line x1="11" y1="9" x2="24" y2="14" />
+                <!-- inner → center -->
+                <line x1="20" y1="22" x2="24" y2="14" />
+                <line x1="20" y1="22" x2="30" y2="23" />
+                <line x1="20" y1="22" x2="23" y2="31" />
+                <line x1="20" y1="22" x2="13" y2="31" />
+                <line x1="20" y1="22" x2="11" y2="21" />
+              </g>
+              <!-- nodes -->
+              <g fill="white" clip-path="url(#lgc)">
+                <circle cx="20" cy="6" r="1.9" />
+                <circle cx="30" cy="9" r="1.9" />
+                <circle cx="35" cy="18" r="1.9" />
+                <circle cx="33" cy="28" r="1.9" />
+                <circle cx="25" cy="35" r="1.9" />
+                <circle cx="14" cy="35" r="1.9" />
+                <circle cx="6" cy="28" r="1.9" />
+                <circle cx="5" cy="18" r="1.9" />
+                <circle cx="11" cy="9" r="1.9" />
+                <circle cx="24" cy="14" r="1.9" />
+                <circle cx="30" cy="23" r="1.9" />
+                <circle cx="23" cy="31" r="1.9" />
+                <circle cx="13" cy="31" r="1.9" />
+                <circle cx="11" cy="21" r="1.9" />
+                <circle cx="20" cy="22" r="1.9" />
+              </g>
+            </svg>
+          </div>
+          <span class="logo-text">FeedIA</span>
+        </div>
+
+        <!-- Switcher de plataforma: Instagram / TikTok / Sala — arriba del buscador -->
+        <div id="platform-switcher"></div>
+
+        <!-- Search bar (desktop) -->
+        <div class="sidebar-search">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input type="text" placeholder="Buscar…" id="global-search" autocomplete="off" />
+        </div>
+
+        <nav class="side-nav">
+          <!-- Tu Casa group -->
+          <div class="nav-group-label">Tu Casa</div>
+          <button class="nav-item" data-platform="general" data-route="home">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M3 11l9-8 9 8M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10" />
+              </svg>
+            </span>
+            <span class="nav-label">Home</span>
+            <span class="nav-badge accent badge-spark"></span>
+          </button>
+          <button class="nav-item" data-route="brujula">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="10" />
+                <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88" fill="currentColor" stroke="none" />
+              </svg>
+            </span>
+            <span class="nav-label">Brújula del Día</span>
+            <span class="nav-badge accent badge-compass"></span>
+          </button>
+          <button class="nav-item" data-route="calendar">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </span>
+            <span class="nav-label">Calendario</span>
+            <span class="nav-badge accent badge-calendar"></span>
+          </button>
+          <button class="nav-item" data-route="brandkit">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 2 4 7v6c0 4.5 3.5 8.5 8 9 4.5-.5 8-4.5 8-9V7l-8-5z" />
+                <path d="M9 12l2 2 4-4" />
+              </svg>
+            </span>
+            <span class="nav-label">Brand Kit</span>
+          </button>
+          <button class="nav-item" data-route="welcome">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 8l-9 9-3-3M3 8l9 9 3-3" />
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+              </svg>
+            </span>
+            <span class="nav-label">Bienvenida</span>
+          </button>
+          <button class="nav-item" data-platform="general" data-route="achievements">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M6 9a6 6 0 0012 0M6 9V4h12v5M9 21h6M12 17v4M8 17h8" />
+              </svg>
+            </span>
+            <span class="nav-label">Logros</span>
+          </button>
+          <button class="nav-item" data-platform="general" data-route="memorabilia">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M4 6h16v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM4 6V4a2 2 0 012-2h12a2 2 0 012 2v2M8 11h8M8 15h5" />
+              </svg>
+            </span>
+            <span class="nav-label">Memorabilia</span>
+          </button>
+          <button class="nav-item" data-platform="general" data-route="rituals">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1 1M18 18l1 1M5 19l1-1M18 6l1-1" />
+              </svg>
+            </span>
+            <span class="nav-label">Rituales</span>
+          </button>
+          <button class="nav-item" data-platform="general" data-route="personalization">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 3" />
+              </svg>
+            </span>
+            <span class="nav-label">Personalización</span>
+          </button>
+          <button class="nav-item" data-platform="general" data-route="imperio">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M3 7l4 4 5-7 5 7 4-4v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" />
+              </svg>
+            </span>
+            <span class="nav-label">Sala Ejecutiva</span>
+            <span class="nav-badge accent badge-crown"></span>
+          </button>
+          <button class="nav-item" data-platform="general" data-route="forge">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M9 2L3 12l6 10M15 2l6 10-6 10M12 6v12M8 12h8" />
+              </svg>
+            </span>
+            <span class="nav-label">Forge IA</span>
+            <span class="nav-badge accent badge-spark"></span>
+          </button>
+          <button class="nav-item" data-platform="general" data-route="freeCuDemo">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <polygon points="10,8 16,11 10,14" fill="currentColor" stroke="none" />
+                <path d="M8 21h8M12 17v4" />
+              </svg>
+            </span>
+            <span class="nav-label">Demo Gratis</span>
+            <span class="nav-badge accent badge-film"></span>
+          </button>
+          <button class="nav-item" data-platform="general" data-route="cuToolbox">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path
+                  d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+                />
+              </svg>
+            </span>
+            <span class="nav-label">CU Toolbox</span>
+            <span class="nav-badge accent badge-tools"></span>
+          </button>
+          <!-- Tablero y Aprobaciones viven ahora EMBEBIDOS dentro de Home -->
+
+          <!-- Studio group -->
+          <div class="nav-group-label">Studio</div>
+          <button class="nav-item active" data-route="feed">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                <rect x="14" y="14" width="7" height="7" rx="1.5" />
+              </svg>
+            </span>
+            <span class="nav-label">Feed</span>
+            <span class="nav-badge live" id="nb-feed"></span>
+          </button>
+          <button class="nav-item" data-route="studio-carousel" data-platform="instagram">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="2" y="5" width="13" height="14" rx="2" />
+                <rect x="9" y="3" width="13" height="14" rx="2" opacity="0.45" />
+              </svg>
+            </span>
+            <span class="nav-label">Carruseles</span>
+          </button>
+          <button class="nav-item" data-route="studio-reel" data-platform="instagram">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="2" y="2" width="20" height="20" rx="4" />
+                <polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none" />
+              </svg>
+            </span>
+            <span class="nav-label">Reels</span>
+          </button>
+          <button class="nav-item" data-route="studio-stories" data-platform="instagram">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="10" stroke-width="1.8" />
+                <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none" />
+              </svg>
+            </span>
+            <span class="nav-label">Stories</span>
+          </button>
+          <button class="nav-item" data-route="studio-tiktok" data-platform="tiktok">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="2" y="2" width="20" height="20" rx="5" />
+                <path d="M14 7a3 3 0 0 0 3 3M14 7v7.5a2.5 2.5 0 1 1-2-2.45" stroke-linecap="round" />
+              </svg>
+            </span>
+            <span class="nav-label">TikTok Video</span>
+            <span class="nav-badge accent">FYP</span>
+          </button>
+          <button class="nav-item" data-route="studio-tiktok-photo" data-platform="tiktok">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="3" width="18" height="18" rx="3" />
+                <circle cx="9" cy="9" r="2" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+            </span>
+            <span class="nav-label">Foto TikTok</span>
+            <span class="nav-badge accent">NEW</span>
+          </button>
+          <button class="nav-item" data-route="studio-tiktok-script" data-platform="tiktok">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M4 4h16v16H4z" />
+                <path d="M8 9h8M8 13h8M8 17h5" />
+              </svg>
+            </span>
+            <span class="nav-label">Guion TikTok</span>
+          </button>
+
+          <!-- Indicaciones a la IA group -->
+          <div class="nav-group-label">Indicaciones a la IA</div>
+          <button class="nav-item" data-route="pizarra">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="4" width="18" height="13" rx="1.5" />
+                <path d="M8 21h8M12 17v4M7 8h10M7 11h6" />
+              </svg>
+            </span>
+            <span class="nav-label">Pizarra</span>
+            <span class="nav-badge accent badge-star"></span>
+          </button>
+          <button class="nav-item" data-route="agenda">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M8 2v4M16 2v4M3 10h18" />
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
+              </svg>
+            </span>
+            <span class="nav-label">Agenda</span>
+          </button>
+          <button class="nav-item" data-route="calendar">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </span>
+            <span class="nav-label">Calendario</span>
+          </button>
+          <button class="nav-item" data-route="simulador">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 2a10 10 0 1 0 10 10" />
+                <path d="M12 8v4l3 2" />
+                <path d="M16 2l4 4-4 4" />
+              </svg>
+            </span>
+            <span class="nav-label">Simulador</span>
+          </button>
+
+          <!-- IA group -->
+          <div class="nav-group-label">Inteligencia IA</div>
+          <button class="nav-item" data-route="agents">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" />
+                <circle cx="19" cy="8" r="2.5" opacity=".6" />
+                <circle cx="5" cy="8" r="2.5" opacity=".6" />
+              </svg>
+            </span>
+            <span class="nav-label">Agentes IA</span>
+            <span class="nav-badge accent pulse-metric">10</span>
+          </button>
+          <button class="nav-item" data-route="skills">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 2 2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+            </span>
+            <span class="nav-label">Skills</span>
+            <span class="nav-badge accent badge-lightning"></span>
+          </button>
+          <button class="nav-item" data-route="vision">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </span>
+            <span class="nav-label">Vision IA</span>
+            <span class="nav-badge accent">BETA</span>
+          </button>
+          <button class="nav-item" data-route="hooks">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7 6 12 6 12s6-5 6-12z" />
+                <circle cx="12" cy="8" r="2" />
+              </svg>
+            </span>
+            <span class="nav-label">Hook Library</span>
+            <span class="nav-badge accent pulse-metric">23</span>
+          </button>
+          <button class="nav-item" data-route="optimize">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 12a9 9 0 1 1-3-6.7" />
+                <polyline points="21 4 21 10 15 10" />
+              </svg>
+            </span>
+            <span class="nav-label">Auto-Optimize</span>
+            <span class="nav-badge accent">AI</span>
+          </button>
+          <!-- Autopilot vive ahora dentro del "Cerebro Activado" en Pantalla en vivo (Computer Use) -->
+
+          <button class="nav-item" data-route="mission">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M9 11l-1-4 4-2 4 2-1 4" />
+                <path d="M12 22V11" />
+                <circle cx="12" cy="22" r="0.5" fill="currentColor" />
+                <path d="M5 16l-2 4 4-1" />
+                <path d="M19 16l2 4-4-1" />
+              </svg>
+            </span>
+            <span class="nav-label">Mission Control</span>
+            <span class="nav-badge accent">AI</span>
+          </button>
+          <button class="nav-item" data-platform="general" data-route="inteligencia">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+              </svg>
+            </span>
+            <span class="nav-label">Medidor de Consumo IA</span>
+          </button>
+          <button class="nav-item" data-route="replay">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <polyline points="1 4 1 10 7 10" />
+                <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
+              </svg>
+            </span>
+            <span class="nav-label">Replay Log</span>
+          </button>
+
+          <!-- Gestión group -->
+          <div class="nav-group-label">Gestión</div>
+          <button class="nav-item" data-route="community">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+              </svg>
+            </span>
+            <span class="nav-label">Community Hub</span>
+            <span class="nav-badge accent badge-star"></span>
+          </button>
+          <button class="nav-item" data-route="taskboard">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="4" width="18" height="16" rx="2" />
+                <path d="M9 4v16M15 4v16" />
+              </svg>
+            </span>
+            <span class="nav-label">Task Board</span>
+          </button>
+          <button class="nav-item" data-platform="general" data-route="cliente">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </span>
+            <span class="nav-label">Modo Cliente</span>
+          </button>
+          <button class="nav-item" data-route="curator">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
+              </svg>
+            </span>
+            <span class="nav-label">Backlog</span>
+          </button>
+          <button class="nav-item" data-route="ugc">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                />
+              </svg>
+            </span>
+            <span class="nav-label">UGC</span>
+          </button>
+
+          <!-- Ops group -->
+          <div class="nav-group-label">Operaciones</div>
+          <button class="nav-item" data-route="crisis">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 9v4M12 17h.01" />
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              </svg>
+            </span>
+            <span class="nav-label">Crisis</span>
+            <span class="nav-badge danger" id="nb-crisis" style="display: none">!</span>
+          </button>
+          <button class="nav-item" data-route="settings">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+                />
+              </svg>
+            </span>
+            <span class="nav-label">Ajustes</span>
+          </button>
+          <a class="nav-item" href="/pricing.html" style="text-decoration: none">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+            </span>
+            <span class="nav-label">Planes</span>
+            <span class="nav-badge accent">PRO</span>
+          </a>
+        </nav>
+
+        <!-- Brand footer -->
+        <div class="brand-footer" id="brand-footer">
+          <div class="brand-avatar-wrap">
+            <div class="brand-avatar" data-letter="?"></div>
+            <div class="brand-status-dot"></div>
+          </div>
+          <div class="brand-meta">
+            <div class="brand-name">Mi marca</div>
+            <div class="brand-niche">cargando…</div>
+          </div>
+          <button
+            class="brand-more-btn"
+            id="account-menu-btn"
+            title="Más opciones"
+            aria-haspopup="menu"
+            aria-expanded="false"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="5" r="1" />
+              <circle cx="12" cy="12" r="1" />
+              <circle cx="12" cy="19" r="1" />
+            </svg>
+          </button>
+
+          <!-- Dropdown menu -->
+          <div class="account-menu" id="account-menu" role="menu" hidden>
+            <div class="account-menu-header">
+              <div class="account-menu-email" id="account-menu-email">—</div>
+              <div class="account-menu-plan" id="account-menu-plan">—</div>
+            </div>
+
+            <div class="account-menu-section">
+              <div class="account-menu-label">Cuentas Instagram</div>
+              <div class="account-menu-brands" id="account-menu-brands"></div>
+              <div class="account-menu-limit" id="account-menu-limit"></div>
+            </div>
+
+            <div class="account-menu-divider"></div>
+
+            <button class="account-menu-item" id="account-menu-add" role="menuitem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Agregar Cuenta IG
+            </button>
+
+            <button class="account-menu-item" id="account-menu-settings" role="menuitem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                  d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"
+                />
+              </svg>
+              Ajustes de Marca
+            </button>
+
+            <button class="account-menu-item" id="account-menu-plan-upgrade" role="menuitem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15 8 22 9 17 14 18 21 12 17 6 21 7 14 2 9 9 8 12 2" />
+              </svg>
+              Cambiar Plan
+            </button>
+
+            <div class="account-menu-divider"></div>
+
+            <button class="account-menu-item warning" id="account-menu-logout" role="menuitem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Cerrar Sesión
+            </button>
+
+            <button class="account-menu-item danger" id="account-menu-close-account" role="menuitem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
+              </svg>
+              Cerrar Cuenta de Usuario
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <main class="main" id="main-content">
+      <!-- ═══ TOP BAR · CUA Mode + Quick Access ═══ -->
+      <header class="topbar" id="topbar">
+        <div class="topbar-left">
+          <button class="cua-btn" id="cua-btn" aria-label="Computer Use Agents">
+            <span class="cua-dot" id="cua-dot" data-state="idle"></span>
+            <span class="cua-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20">
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <path d="M8 21h8M12 17v4" />
+                <circle cx="12" cy="10" r="2.2" fill="currentColor" />
+              </svg>
+            </span>
+            <span class="cua-label">Computer Use</span>
+            <span class="cua-state-text" id="cua-state-text">Idle</span>
+            <svg
+              class="cua-chevron"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="14"
+              height="14"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          <div class="cua-dropdown" id="cua-dropdown" hidden>
+            <div class="cua-dd-header">
+              <strong>Agentes de Uso de Computadora</strong>
+              <p class="cua-dd-subtitle">"Ojos" + "manos virtuales" · Mirá el cursor moverse solo</p>
+            </div>
+            <div class="cua-dd-status" id="cua-dd-status">
+              <span class="small muted">Cargando estado…</span>
+            </div>
+            <div class="cua-dd-section-label">Ver y operar</div>
+            <a href="#pantalla" class="cua-dd-item cua-dd-item-featured" data-cua-action="watch">
+              <span class="cua-dd-icon">👀</span>
+              <div>
+                <strong>Pantalla en vivo</strong>
+                <div class="small muted">
+                  Mirá el cursor del agente en tiempo real (SSE) · imprescindible en modo Auto
+                </div>
+              </div>
+              <span class="cua-dd-badge">en vivo</span>
+            </a>
+            <a href="#canva-runner" class="cua-dd-item" data-cua-action="canva">
+              <span class="cua-dd-icon">D</span>
+              <div>
+                <strong>Canva → Instagram</strong>
+                <div class="small muted">Prioriza abrir Canva, crear y subir a IG · pipeline end-to-end</div>
+              </div>
+            </a>
+            <a href="#glassbox" class="cua-dd-item" data-cua-action="glassbox">
+              <span class="cua-dd-icon">🔍</span>
+              <div>
+                <strong>GlassBox · Caja de Cristal</strong>
+                <div class="small muted">Supervisá cada acción del agente en tiempo real</div>
+              </div>
+            </a>
+            <a href="#equipo" class="cua-dd-item" data-cua-action="equipo">
+              <span class="cua-dd-icon">👥</span>
+              <div>
+                <strong>Tu Equipo en vivo</strong>
+                <div class="small muted">Mirá a Nova, Lía, Gard, Luca, Mira operando ahora</div>
+              </div>
+            </a>
+            <a href="#replay" class="cua-dd-item" data-cua-action="replay">
+              <span class="cua-dd-icon">📜</span>
+              <div>
+                <strong>Replay Log</strong>
+                <div class="small muted">Sesiones grabadas paso por paso con screenshots</div>
+              </div>
+            </a>
+
+            <div class="cua-dd-section-label">Modo del agente</div>
+            <div class="cua-mode-pills" id="cua-mode-pills">
+              <button class="cua-mode-pill" data-mode="off" title="Desactivado — sin acciones automáticas">
+                <span class="cua-mode-pill-icon">🔴</span>
+                <div class="cua-mode-pill-content">
+                  <strong>Desactivado</strong>
+                  <div class="small muted">Pausa total</div>
+                </div>
+              </button>
+              <button class="cua-mode-pill" data-mode="auto" title="Activado — ejecuta solo, sin pedir confirmación">
+                <span class="cua-mode-pill-icon">🟢</span>
+                <div class="cua-mode-pill-content">
+                  <strong>Activado</strong>
+                  <div class="small muted">Auto-pilot</div>
+                </div>
+              </button>
+              <button
+                class="cua-mode-pill"
+                data-mode="supervised"
+                title="Asistente / Supervisor — te pide aprobar cada paso y podés frenarlo al toque"
+              >
+                <span class="cua-mode-pill-icon">👁️</span>
+                <div class="cua-mode-pill-content">
+                  <strong>Asistente</strong>
+                  <div class="small muted">Aprobás y frenás</div>
+                </div>
+              </button>
+            </div>
+            <div class="small muted" style="margin: 6px 2px 0; line-height: 1.4">
+              💡 <strong>Asistente</strong> es modo "supervisor": el agente pide permiso paso a paso y vos podés
+              rechazar (frenar) lo que esté por hacer.
+            </div>
+
+            <!-- Emergency stop: frenar inmediatamente -->
+            <button
+              class="cua-emergency-stop"
+              id="cua-emergency-stop"
+              title="Detiene el agente al instante, rechaza acciones pendientes y pasa a Desactivado"
+            >
+              <span class="cua-emergency-icon">🛑</span>
+              <div>
+                <strong>Frenar al agente</strong>
+                <div class="small">Stop de emergencia · cancela pendientes y apaga</div>
+              </div>
+            </button>
+
+            <div id="cua-pending-approvals" class="cua-pending-approvals" hidden>
+              <div class="cua-pending-header">
+                <strong>⏳ Esperando aprobación</strong>
+                <span class="cua-pending-count" id="cua-pending-count">0</span>
+              </div>
+              <div id="cua-pending-list"></div>
+              <a href="#pantalla" class="small accent" style="display: block; margin-top: 6px"
+                >Ver detalle en Pantalla en vivo →</a
+              >
+            </div>
+
+            <div class="cua-dd-section-label">Configuración rápida</div>
+            <div class="cua-dd-toggle" id="cua-narrator-toggle">
+              <div>
+                <strong>🗣️ Voice Narrator</strong>
+                <div class="small muted">El sistema te cuenta qué hace ("Abriendo Canva…")</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="cua-narrator-checkbox" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="cua-dd-section-label">Quick launch</div>
+            <div class="cua-dd-grid">
+              <button class="cua-dd-quick" data-cua-launch="canva">📐 Canva</button>
+              <button class="cua-dd-quick" data-cua-launch="instagram">📷 Instagram</button>
+              <button class="cua-dd-quick" data-cua-launch="figma">Figma</button>
+              <button class="cua-dd-quick" data-cua-launch="photopea">🖼️ Photopea</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="topbar-center">
+          <div class="topbar-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <input
+              type="text"
+              id="global-search"
+              placeholder="Buscar función, vista, herramienta…"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="icon-btn topbar-icon-btn" id="topbar-notif" aria-label="Notificaciones" title="Notificaciones">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            <span class="topbar-badge" id="topbar-notif-badge" hidden></span>
+          </button>
+          <button
+            class="icon-btn topbar-icon-btn"
+            id="topbar-tasks"
+            aria-label="Standup"
+            title="Tareas activas del equipo"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18">
+              <rect x="3" y="4" width="18" height="16" rx="2" />
+              <path d="M9 4v16M15 4v16" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Mobile top bar -->
+      <header class="mobile-header">
+        <div class="mobile-logo">
+          <svg viewBox="0 0 40 40" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="mlg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#f09433" />
+                <stop offset="35%" stop-color="#e6683c" />
+                <stop offset="65%" stop-color="#dc2743" />
+                <stop offset="100%" stop-color="#bc1888" />
+              </linearGradient>
+              <clipPath id="mlgc"><rect width="40" height="40" rx="9" /></clipPath>
+            </defs>
+            <rect width="40" height="40" rx="9" fill="url(#mlg)" />
+            <g clip-path="url(#mlgc)" stroke="rgba(255,255,255,.82)" stroke-width="0.85" stroke-linecap="round">
+              <line x1="20" y1="6" x2="30" y2="9" />
+              <line x1="30" y1="9" x2="35" y2="18" />
+              <line x1="35" y1="18" x2="33" y2="28" />
+              <line x1="33" y1="28" x2="25" y2="35" />
+              <line x1="25" y1="35" x2="14" y2="35" />
+              <line x1="14" y1="35" x2="6" y2="28" />
+              <line x1="6" y1="28" x2="5" y2="18" />
+              <line x1="5" y1="18" x2="11" y2="9" />
+              <line x1="11" y1="9" x2="20" y2="6" />
+              <line x1="24" y1="14" x2="30" y2="23" />
+              <line x1="30" y1="23" x2="23" y2="31" />
+              <line x1="23" y1="31" x2="13" y2="31" />
+              <line x1="13" y1="31" x2="11" y2="21" />
+              <line x1="11" y1="21" x2="24" y2="14" />
+              <line x1="20" y1="6" x2="24" y2="14" />
+              <line x1="30" y1="9" x2="24" y2="14" />
+              <line x1="30" y1="9" x2="30" y2="23" />
+              <line x1="35" y1="18" x2="30" y2="23" />
+              <line x1="33" y1="28" x2="30" y2="23" />
+              <line x1="33" y1="28" x2="23" y2="31" />
+              <line x1="25" y1="35" x2="23" y2="31" />
+              <line x1="14" y1="35" x2="13" y2="31" />
+              <line x1="6" y1="28" x2="13" y2="31" />
+              <line x1="6" y1="28" x2="11" y2="21" />
+              <line x1="5" y1="18" x2="11" y2="21" />
+              <line x1="11" y1="9" x2="11" y2="21" />
+              <line x1="11" y1="9" x2="24" y2="14" />
+              <line x1="20" y1="22" x2="24" y2="14" />
+              <line x1="20" y1="22" x2="30" y2="23" />
+              <line x1="20" y1="22" x2="23" y2="31" />
+              <line x1="20" y1="22" x2="13" y2="31" />
+              <line x1="20" y1="22" x2="11" y2="21" />
+            </g>
+            <g fill="white" clip-path="url(#mlgc)">
+              <circle cx="20" cy="6" r="1.9" />
+              <circle cx="30" cy="9" r="1.9" />
+              <circle cx="35" cy="18" r="1.9" />
+              <circle cx="33" cy="28" r="1.9" />
+              <circle cx="25" cy="35" r="1.9" />
+              <circle cx="14" cy="35" r="1.9" />
+              <circle cx="6" cy="28" r="1.9" />
+              <circle cx="5" cy="18" r="1.9" />
+              <circle cx="11" cy="9" r="1.9" />
+              <circle cx="24" cy="14" r="1.9" />
+              <circle cx="30" cy="23" r="1.9" />
+              <circle cx="23" cy="31" r="1.9" />
+              <circle cx="13" cy="31" r="1.9" />
+              <circle cx="11" cy="21" r="1.9" />
+              <circle cx="20" cy="22" r="1.9" />
+            </g>
+          </svg>
+          <span>FeedIA</span>
+        </div>
+        <div class="mobile-header-actions">
+          <button class="icon-btn" id="mobile-search-btn" aria-label="Buscar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+          </button>
+          <button class="icon-btn" id="mobile-notif-btn" aria-label="Notificaciones">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Mobile search overlay -->
+      <div class="mobile-search-overlay" id="mobile-search-overlay">
+        <div class="mobile-search-inner">
+          <button class="icon-btn" id="close-search-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5m7-7-7 7 7 7" />
+            </svg>
+          </button>
+          <input type="text" placeholder="Buscar función…" id="mobile-search-input" autocomplete="off" />
+        </div>
+      </div>
+
+      <div id="view" class="view-container">
+        <div class="loading-screen"><span class="spinner lg"></span></div>
+      </div>
+    </main>
+
+    <!-- ═══ MOBILE BOTTOM NAV ═══ -->
+    <nav class="bottom-nav" id="bottom-nav">
+      <button class="bottom-nav-item active" data-route="feed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1.2" />
+          <rect x="14" y="3" width="7" height="7" rx="1.2" />
+          <rect x="3" y="14" width="7" height="7" rx="1.2" />
+          <rect x="14" y="14" width="7" height="7" rx="1.2" />
+        </svg>
+        <span>Feed</span>
+      </button>
+      <button class="bottom-nav-item" data-route="analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10" />
+          <line x1="12" y1="20" x2="12" y2="4" />
+          <line x1="6" y1="20" x2="6" y2="14" />
+        </svg>
+        <span>Analytics</span>
+      </button>
+      <!-- FAB center button -->
+      <button class="bottom-nav-fab" id="fab-btn" aria-label="Generar contenido">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </button>
+      <button class="bottom-nav-item" data-route="assistant">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a8 8 0 0 1 8 8c0 3.5-2.5 6.5-6 7.4V20h-4v-2.6C6.5 16.5 4 13.5 4 10a8 8 0 0 1 8-8z" />
+        </svg>
+        <span>FeedIA</span>
+      </button>
+      <button class="bottom-nav-item" data-route="calendar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        <span>Calendario</span>
+      </button>
+    </nav>
+
+    <!-- ═══ FAB MENU ═══ -->
+    <div class="fab-menu" id="fab-menu">
+      <div class="fab-menu-backdrop" id="fab-backdrop"></div>
+      <div class="fab-menu-items">
+        <button class="fab-menu-item" data-route="studio-carousel">
+          <span class="fab-menu-icon">🎠</span>
+          <span>Carrusel</span>
+        </button>
+        <button class="fab-menu-item" data-route="studio-reel">
+          <span class="fab-menu-icon">▶️</span>
+          <span>Reel</span>
+        </button>
+        <button class="fab-menu-item" data-route="studio-stories">
+          <span class="fab-menu-icon">◎</span>
+          <span>Historia</span>
+        </button>
+        <button class="fab-menu-item" data-route="agents">
+          <span class="fab-menu-icon">⚡</span>
+          <span>Agentes IA</span>
+        </button>
+        <button class="fab-menu-item" data-route="hooks">
+          <span class="fab-menu-icon">🎣</span>
+          <span>Hook Library</span>
+        </button>
+        <button class="fab-menu-item" data-route="optimize">
+          <span class="fab-menu-icon">🔁</span>
+          <span>Auto-Optimize</span>
+        </button>
+        <!-- Herramientas IA / Audit semanal viven dentro de Sala Ejecutiva.
+             Autopilot vive dentro del "Cerebro Activado" en Pantalla en vivo. -->
+        <button class="fab-menu-item" data-route="mission">
+          <span class="fab-menu-icon">🛸</span>
+          <span>Mission Control</span>
+        </button>
+        <button class="fab-menu-item" data-route="calendar">
+          <span class="fab-menu-icon">📅</span>
+          <span>Calendario</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ VOICE: floating mic button ═══ -->
+    <button class="voice-fab" id="voice-fab" aria-label="FeedIA voz" title="Hola FeedIA">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
+      </svg>
+      <span class="voice-fab-pulse"></span>
+    </button>
+
+    <!-- ═══ CHATBOT: Asistente FeedIA (al lado del micrófono) ═══ -->
+    <button class="chatbot-fab" id="chatbot-fab" aria-label="Asistente FeedIA" title="Asistente FeedIA">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path
+          d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+        />
+      </svg>
+    </button>
+
+    <div class="chatbot-panel" id="chatbot-panel" aria-hidden="true">
+      <div class="chatbot-header">
+        <div class="chatbot-title">
+          <span class="chatbot-avatar-logo">
+            <svg viewBox="0 0 40 40" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="cbhdlg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#fff" stop-opacity=".95" />
+                  <stop offset="100%" stop-color="#fff" stop-opacity=".7" />
+                </linearGradient>
+              </defs>
+              <rect width="40" height="40" rx="9" fill="url(#cbhdlg)" />
+              <g stroke="#6366f1" stroke-width="1" stroke-linecap="round">
+                <line x1="20" y1="6" x2="30" y2="9" />
+                <line x1="30" y1="9" x2="35" y2="18" />
+                <line x1="35" y1="18" x2="20" y2="22" />
+                <line x1="20" y1="22" x2="5" y2="18" />
+                <line x1="5" y1="18" x2="11" y2="9" />
+                <line x1="11" y1="9" x2="20" y2="6" />
+                <line x1="20" y1="22" x2="14" y2="35" />
+                <line x1="20" y1="22" x2="25" y2="35" />
+              </g>
+              <g fill="#a855f7">
+                <circle cx="20" cy="6" r="1.7" />
+                <circle cx="30" cy="9" r="1.7" />
+                <circle cx="35" cy="18" r="1.7" />
+                <circle cx="5" cy="18" r="1.7" />
+                <circle cx="11" cy="9" r="1.7" />
+                <circle cx="20" cy="22" r="2" />
+                <circle cx="14" cy="35" r="1.7" />
+                <circle cx="25" cy="35" r="1.7" />
+              </g>
+            </svg>
+          </span>
+          <div>
+            <div class="chatbot-name">Asistente FeedIA ✦</div>
+            <div class="chatbot-status">conoce tu marca, equipo y datos</div>
+          </div>
+        </div>
+        <div class="chatbot-header-actions">
+          <button class="chatbot-icon-btn" id="chatbot-clear" aria-label="Limpiar chat" title="Limpiar conversación">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+            </svg>
+          </button>
+          <button class="chatbot-icon-btn" id="chatbot-close" aria-label="Cerrar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="chatbot-log" id="chatbot-log"></div>
+      <div class="chatbot-sugg-box" id="chatbot-sugg-box">
+        <div class="chatbot-sugg-title">Sugerencias</div>
+        <div class="chatbot-sugg-grid">
+          <button class="chatbot-sugg" data-q="¿Cuál es la mejor hora para publicar?">⏰ Mejor hora</button>
+          <button class="chatbot-sugg" data-q="Dame una idea de carrusel viral sobre IA">🃏 Carrusel viral</button>
+          <button class="chatbot-sugg" data-q="Analizá mi marca en Instagram">Análisis</button>
+          <button class="chatbot-sugg" data-q="5 hooks para un reel de automatización">🎬 Hooks</button>
+          <button class="chatbot-sugg" data-q="¿Cómo subo mi engagement rate?">📈 Engagement</button>
+          <button class="chatbot-sugg" data-q="Estrategia de contenido para 30 días">🗓️ 30 días</button>
+        </div>
+      </div>
+      <form class="chatbot-form" id="chatbot-form">
+        <textarea
+          id="chatbot-input"
+          placeholder="Preguntale lo que quieras a FeedIA…"
+          rows="1"
+          autocomplete="off"
+        ></textarea>
+        <button
+          type="button"
+          class="chatbot-mic-btn"
+          id="chatbot-mic-btn"
+          aria-label="Dictar mensaje"
+          title="Dictá tu mensaje por voz"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
+          </svg>
+        </button>
+        <button type="submit" class="chatbot-send" id="chatbot-send" aria-label="Enviar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+          </svg>
+        </button>
+      </form>
+      <div class="chatbot-disclaimer">FeedIA usa tu perfil de marca y datos de sesión. Revisá antes de publicar.</div>
+    </div>
+
+    <!-- ═══ VOICE: full-screen hands-free overlay ═══ -->
+    <div class="voice-overlay" id="voice-overlay" aria-hidden="true">
+      <div class="voice-overlay-bg"></div>
+      <div class="voice-overlay-inner">
+        <button class="voice-close" id="voice-close" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div class="voice-orb" id="voice-orb">
+          <div class="voice-orb-ring r1"></div>
+          <div class="voice-orb-ring r2"></div>
+          <div class="voice-orb-ring r3"></div>
+          <div class="voice-orb-core">
+            <svg viewBox="0 0 40 40" width="44" height="44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="vlg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#f09433" />
+                  <stop offset="35%" stop-color="#e6683c" />
+                  <stop offset="65%" stop-color="#dc2743" />
+                  <stop offset="100%" stop-color="#bc1888" />
+                </linearGradient>
+              </defs>
+              <circle cx="20" cy="20" r="18" fill="url(#vlg)" />
+              <path d="M20 11a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0v-5a3 3 0 0 0-3-3z" fill="#fff" />
+              <path d="M26 18v1a6 6 0 0 1-12 0v-1" stroke="#fff" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </div>
+        </div>
+
+        <div class="voice-state-label" id="voice-state-label">Hola FeedIA</div>
+        <div class="voice-transcript" id="voice-transcript"></div>
+
+        <div class="voice-suggestions" id="voice-suggestions"></div>
+
+        <div class="voice-actions">
+          <button class="btn ghost" id="voice-mic-btn">🎙 <span id="voice-mic-label">Tocá para hablar</span></button>
+          <button
+            class="btn ghost voice-wake-toggle"
+            id="voice-wake-toggle"
+            title="Escuchar en segundo plano — decí 'Hola FeedIA' sin tocar nada"
+          >
+            <span id="voice-wake-icon">🎤</span>
+            <span id="voice-wake-label">Activar "Hola FeedIA"</span>
+          </button>
+          <button class="btn ghost" id="voice-manos-libres-btn" title="Cambiar a interfaz de terminal">🖥️ Modo Manos Libres</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TOAST STACK ═══ -->
+    <div id="toast-stack" class="toast-stack"></div>
+
+    <!-- ═══ SCRIPTS ═══ -->
+    <script type="module" src="/app.js?v=2026-05-29-16"></script>
+    <script type="module" src="/views/siamese.js?v=1"></script>
+
+    <!-- Debug Feed visibility (development) -->
+    <script>
+      window.debugFeed = () => {
+        const feedBtn = document.querySelector('[data-route="feed"]');
+        if (!feedBtn) { console.error('❌ Feed button NOT FOUND'); return; }
+        const computed = window.getComputedStyle(feedBtn);
+        const rect = feedBtn.getBoundingClientRect();
+        console.log('Feed Debug:', {
+          found: true,
+          display: computed.display,
+          visibility: computed.visibility,
+          opacity: computed.opacity,
+          position: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+          visible: rect.width > 0 && rect.height > 0,
+          classes: feedBtn.className,
+        });
+      };
+      setTimeout(debugFeed, 500);
+      setTimeout(debugFeed, 2000);
+    </script>
+  </body>
+</html>
