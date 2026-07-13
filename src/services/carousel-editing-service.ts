@@ -52,10 +52,13 @@ interface UpdateStyleParams {
 
 export const carouselEditingService = {
   async reorderSlides(slides: CarouselSlide[], newOrder: number[]): Promise<CarouselSlide[]> {
-    const reordered = newOrder.map((idx) => ({
-      ...slides[idx],
-      order: newOrder.indexOf(idx),
-    }));
+    const reordered = newOrder
+      .map((idx) => slides[idx])
+      .filter((slide) => slide !== undefined)
+      .map((slide, order) => ({
+        ...slide,
+        order,
+      }));
     return reordered;
   },
 

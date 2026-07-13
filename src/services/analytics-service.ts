@@ -218,14 +218,19 @@ export const analyticsService = {
       if (!dailyReach[dateKey]) {
         dailyReach[dateKey] = [];
       }
-      dailyReach[dateKey]!.push(metric.reach || 0);
+      const dayData = dailyReach[dateKey];
+      if (dayData) {
+        dayData.push(metric.reach || 0);
+      }
     }
 
     return Object.keys(dailyReach)
       .sort()
       .map((date) => {
         const values = dailyReach[date];
-        return values ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+        return values && values.length > 0
+          ? values.reduce((a, b) => a + b, 0) / values.length
+          : 0;
       });
   },
 

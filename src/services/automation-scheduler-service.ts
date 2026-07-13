@@ -186,9 +186,11 @@ export const automationSchedulerService = {
 
       case 'daily':
         const timeStr = schedule.time_of_day || '09:00';
-        const [hours, minutes] = timeStr.split(':').map(Number);
+        const [hoursStr, minutesStr] = timeStr.split(':');
+        const hours = parseInt(hoursStr || '9', 10);
+        const minutes = parseInt(minutesStr || '0', 10);
         let next = new Date(now);
-        next.setHours(hours, minutes, 0, 0);
+        next.setHours(isNaN(hours) ? 9 : hours, isNaN(minutes) ? 0 : minutes, 0, 0);
         if (next <= now) {
           next.setDate(next.getDate() + 1);
         }
