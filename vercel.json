@@ -1,15 +1,10 @@
 {
   "version": 2,
   "buildCommand": "npm run build && cp -r dist-static/* public/",
-  "public": "public",
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api"
-    },
-    {
-      "src": "/((?!api).*)",
-      "dest": "/api"
+      "source": "/(.*)",
+      "destination": "/api"
     }
   ]
 }
