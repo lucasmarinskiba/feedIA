@@ -1,65 +1,157 @@
-import{apiSafe as v}from"../lib/api.js";import{escape as i}from"../lib/dom.js";import{toast as g}from"../lib/toast.js";import{launchCanvaBrain as f}from"../lib/canvaBrain.js";const h=[{id:"feedIA-canva",title:"Canva \xB7 Generador",category:"Creaci\xF3n visual",description:"Carruseles/stories/reels desde YouTube, art\xEDculo, idea, PDF o post IG. IA-render o Canva-CU."},{id:"feedIA-canvas-design",title:"Canvas Design",category:"Creaci\xF3n visual",description:"Cerebro de dise\xF1o compartido: reglas visuales, hooks, paleta brand-aware."},{id:"feedIA-reel-generator",title:"Reel Generator",category:"Creaci\xF3n visual",description:"Reels multi-fuente: guion beat a beat + hook 0.3s + cover."},{id:"feedIA-story-generator",title:"Story Generator",category:"Creaci\xF3n visual",description:"Stories 9:16 + stickers interactivos + CTA."},{id:"feedIA-cu-brain",title:"Computer Use Brain",category:"Cerebro / Computer Use",description:"CU brain-aware: memoria + safety + RL operando Canva/IG."},{id:"feedIA-quick-carousel",title:"Quick Carousel",category:"Creaci\xF3n visual",description:"Carrusel completo desde 1 prompt m\xEDnimo."}],y={"Creaci\xF3n visual":"\u{1F3A8}","Cerebro / Computer Use":"\u{1F9E0}","Copy & estrategia":"\u270D\uFE0F","Ventas & ads":"\u{1F4B0}",Comunidad:"\u2764\uFE0F",Operaci\u00F3n:"\u2699\uFE0F",General:"\u26A1"};let u=null;const c=()=>{u&&(clearInterval(u),u=null)};window.addEventListener("hashchange",()=>{(location.hash.replace("#","")||"feed")!=="skills"&&c()});const w=()=>`
+/* ══════════════════════════════════════════════════════════════════════════════
+   SKILLS — catálogo de skills FeedIA + Generador real de carrusel (run.py)
+   ──────────────────────────────────────────────────────────────────────────────
+   Lista todas las skills (.claude/commands/feedIA-*.md) vía /api/skills/list.
+   Generador carrusel/story/reel hookeado a /api/skills/carousel/generate (corre
+   run.py con FAL_KEY) + camino Canva-CU vía launchCanvaBrain. Tolerante a offline.
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { apiSafe } from '../lib/api.js';
+import { escape } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+import { launchCanvaBrain } from '../lib/canvaBrain.js';
+
+// Fallback: si /api/skills/list no responde, lista mínima de las visuales clave.
+const FALLBACK_SKILLS = [
+  {
+    id: 'feedIA-canva',
+    title: 'Canva · Generador',
+    category: 'Creación visual',
+    description: 'Carruseles/stories/reels desde YouTube, artículo, idea, PDF o post IG. IA-render o Canva-CU.',
+  },
+  {
+    id: 'feedIA-canvas-design',
+    title: 'Canvas Design',
+    category: 'Creación visual',
+    description: 'Cerebro de diseño compartido: reglas visuales, hooks, paleta brand-aware.',
+  },
+  {
+    id: 'feedIA-reel-generator',
+    title: 'Reel Generator',
+    category: 'Creación visual',
+    description: 'Reels multi-fuente: guion beat a beat + hook 0.3s + cover.',
+  },
+  {
+    id: 'feedIA-story-generator',
+    title: 'Story Generator',
+    category: 'Creación visual',
+    description: 'Stories 9:16 + stickers interactivos + CTA.',
+  },
+  {
+    id: 'feedIA-cu-brain',
+    title: 'Computer Use Brain',
+    category: 'Cerebro / Computer Use',
+    description: 'CU brain-aware: memoria + safety + RL operando Canva/IG.',
+  },
+  {
+    id: 'feedIA-quick-carousel',
+    title: 'Quick Carousel',
+    category: 'Creación visual',
+    description: 'Carrusel completo desde 1 prompt mínimo.',
+  },
+];
+
+const CAT_ICON = {
+  'Creación visual': '🎨',
+  'Cerebro / Computer Use': '🧠',
+  'Copy & estrategia': '✍️',
+  'Ventas & ads': '💰',
+  Comunidad: '❤️',
+  Operación: '⚙️',
+  General: '⚡',
+};
+
+let pollTimer = null;
+const stopPoll = () => {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+};
+window.addEventListener('hashchange', () => {
+  if ((location.hash.replace('#', '') || 'feed') !== 'skills') stopPoll();
+});
+
+const renderGenerator = () => `
   <div class="skills-gen">
     <div class="skills-gen-head">
-      <div class="skills-gen-emoji">\u{1F3A8}</div>
+      <div class="skills-gen-emoji">🎨</div>
       <div>
         <h2>Generador de contenido con IA</h2>
-        <p class="small muted">Peg\xE1 una URL de YouTube/art\xEDculo o escrib\xED una idea. FeedIA lo transforma en carrusel listo: estrategia + PNGs 1080\xD71350, o lo dise\xF1a en Canva con Computer Use.</p>
+        <p class="small muted">Pegá una URL de YouTube/artículo o escribí una idea. FeedIA lo transforma en carrusel listo: estrategia + PNGs 1080×1350, o lo diseña en Canva con Computer Use.</p>
       </div>
     </div>
     <textarea id="sk-input" class="skills-gen-input" rows="2"
-      placeholder="Ej: https://youtu.be/... \xB7 'errores al automatizar con IA' \xB7 peg\xE1 el link del art\xEDculo"></textarea>
+      placeholder="Ej: https://youtu.be/... · 'errores al automatizar con IA' · pegá el link del artículo"></textarea>
     <div class="skills-gen-row">
       <select id="sk-format" class="input">
-        <option value="carrusel">\u{1F0CF} Carrusel</option>
-        <option value="reel">\u25B6\uFE0F Reel</option>
-        <option value="historia">\u25CE Story</option>
+        <option value="carrusel">🃏 Carrusel</option>
+        <option value="reel">▶️ Reel</option>
+        <option value="historia">◎ Story</option>
       </select>
       <select id="sk-model" class="input">
         <option value="gpt-image-2">gpt-image-2 (calidad)</option>
-        <option value="nano-banana-2">nano-banana-2 (r\xE1pido)</option>
+        <option value="nano-banana-2">nano-banana-2 (rápido)</option>
       </select>
     </div>
     <div class="skills-gen-actions">
-      <button class="btn primary" id="sk-generate">\u26A1 Generar con IA-render</button>
+      <button class="btn primary" id="sk-generate">⚡ Generar con IA-render</button>
       <button class="btn canva-cta-btn" id="sk-canva">
-        <span class="canva-cta-emoji">\u{1F3A8}</span>
+        <span class="canva-cta-emoji">🎨</span>
         <span class="canva-cta-body">
-          <span class="canva-cta-title">Dise\xF1ar en Canva (Computer Use)</span>
+          <span class="canva-cta-title">Diseñar en Canva (Computer Use)</span>
           <span class="canva-cta-sub">Equipo de especialistas opera Canva</span>
         </span>
-        <span class="canva-cta-arrow">\u2192</span>
+        <span class="canva-cta-arrow">→</span>
       </button>
     </div>
     <div id="sk-result" class="skills-gen-result"></div>
-  </div>`,C=a=>{const d=a?.skills?.length?a.skills:h,p=a?.categories?.length?a.categories:[...new Set(d.map(l=>l.category))];return`
+  </div>`;
+
+const renderCatalog = (data) => {
+  const skills = data?.skills?.length ? data.skills : FALLBACK_SKILLS;
+  const cats = data?.categories?.length ? data.categories : [...new Set(skills.map((s) => s.category))];
+  return `
     <div class="skills-catalog">
       <div class="skills-cat-head">
-        <h3>Cat\xE1logo de skills \xB7 ${d.length}</h3>
-        <input id="sk-search" class="input" placeholder="Buscar skill\u2026" style="max-width:260px;">
+        <h3>Catálogo de skills · ${skills.length}</h3>
+        <input id="sk-search" class="input" placeholder="Buscar skill…" style="max-width:260px;">
       </div>
-      ${p.map(l=>`
-        <div class="skills-cat" data-cat="${i(l)}">
-          <div class="skills-cat-label">${y[l]??"\u26A1"} ${i(l)}</div>
+      ${cats
+        .map(
+          (cat) => `
+        <div class="skills-cat" data-cat="${escape(cat)}">
+          <div class="skills-cat-label">${CAT_ICON[cat] ?? '⚡'} ${escape(cat)}</div>
           <div class="skills-grid">
-            ${d.filter(s=>s.category===l).map(s=>`
-              <div class="skills-card" data-skill="${i(s.id)}" data-name="${i(s.title.toLowerCase())} ${i(s.description.toLowerCase())}">
-                <div class="skills-card-title">${i(s.title)}</div>
-                <div class="skills-card-desc">${i((s.description??"").slice(0,160))}</div>
-                <code class="skills-card-id">/${i(s.id)}</code>
-              </div>`).join("")}
+            ${skills
+              .filter((s) => s.category === cat)
+              .map(
+                (s) => `
+              <div class="skills-card" data-skill="${escape(s.id)}" data-name="${escape(s.title.toLowerCase())} ${escape(s.description.toLowerCase())}">
+                <div class="skills-card-title">${escape(s.title)}</div>
+                <div class="skills-card-desc">${escape((s.description ?? '').slice(0, 160))}</div>
+                <code class="skills-card-id">/${escape(s.id)}</code>
+              </div>`,
+              )
+              .join('')}
           </div>
-        </div>`).join("")}
-    </div>`};export const renderSkills=async a=>{c(),a.innerHTML=`
+        </div>`,
+        )
+        .join('')}
+    </div>`;
+};
+
+export const renderSkills = async (root) => {
+  stopPoll();
+  root.innerHTML = `
     <header class="view-header page-header">
       <div>
-        <h1 class="view-title page-title">\u26A1 Skills de FeedIA</h1>
-        <p class="view-subtitle page-subtitle">Todas las habilidades del sistema. Gener\xE1 carruseles/reels/stories reales o explor\xE1 el cat\xE1logo completo.</p>
+        <h1 class="view-title page-title">⚡ Skills de FeedIA</h1>
+        <p class="view-subtitle page-subtitle">Todas las habilidades del sistema. Generá carruseles/reels/stories reales o explorá el catálogo completo.</p>
       </div>
     </header>
     <div class="page-body">
-      ${w()}
-      <div id="sk-catalog"><div class="loading-screen"><span class="spinner lg"></span></div></div>
+      ${renderGenerator()}
+      <div id="sk-catalog">${'<div class="loading-screen"><span class="spinner lg"></span></div>'}</div>
     </div>
     <style>
       /* enterprise look: cards blancas + texto oscuro legible */
@@ -94,16 +186,119 @@ import{apiSafe as v}from"../lib/api.js";import{escape as i}from"../lib/dom.js";i
       .skills-card-desc{font-size:12px;color:#475067;line-height:1.5;margin-bottom:10px;}
       .skills-card-id{font-size:10.5px;font-weight:700;color:#7C3AED;background:rgba(124,58,237,.1);padding:3px 9px;border-radius:999px;letter-spacing:.02em;}
       .skills-card.hidden{display:none;}
-    </style>`;const{data:d}=await v("/api/skills/list",null);a.querySelector("#sk-catalog").innerHTML=C(d);const p=a.querySelector("#sk-search");p?.addEventListener("input",()=>{const l=p.value.toLowerCase().trim();a.querySelectorAll(".skills-card").forEach(s=>{s.classList.toggle("hidden",l&&!s.dataset.name.includes(l))}),a.querySelectorAll(".skills-cat").forEach(s=>{const o=[...s.querySelectorAll(".skills-card")].some(m=>!m.classList.contains("hidden"));s.style.display=o?"":"none"})}),a.querySelector("#sk-canva")?.addEventListener("click",async()=>{const l=a.querySelector("#sk-input").value.trim(),s=a.querySelector("#sk-format").value;await f({topic:l||"Contenido sin tema",format:s})}),a.querySelector("#sk-generate")?.addEventListener("click",async()=>{const l=a.querySelector("#sk-input").value.trim(),s=a.querySelector("#sk-model").value;if(!l){g("Peg\xE1 una URL o escrib\xED una idea","warn");return}const o=a.querySelector("#sk-result");o.innerHTML='<div class="card"><div class="row" style="gap:10px;align-items:center;"><span class="spinner"></span><div><strong>Generando\u2026</strong><div class="small muted">FeedIA est\xE1 analizando la fuente y produciendo el contenido.</div></div></div></div>';const m=a.querySelector("#sk-format").value,{data:r,error:x}=await v("/api/skills/carousel/generate",null,{method:"POST",body:{input:l,model:s,format:m}});if(x||!r){o.innerHTML='<div class="card"><div class="small muted">\u{1F4E1} Backend del generador offline. Us\xE1 el camino Canva (Computer Use) o reintent\xE1 cuando el server vuelva.</div></div>';return}const k=e=>{const t=(e.slides??[]).length?`<div class="skills-slides">${e.slides.map(n=>{const b=n.url?n.url:`/api/skills/carousel/slide/${encodeURIComponent(e.jobId??"")}/${encodeURIComponent(n.name??n)}`;return`<img src="${i(b)}" alt="slide ${i(String(n.num??""))}" onerror="this.style.display='none'">`}).join("")}</div>`:"";o.innerHTML=`
+    </style>`;
+
+  // Catálogo (con fallback)
+  const { data } = await apiSafe('/api/skills/list', null);
+  root.querySelector('#sk-catalog').innerHTML = renderCatalog(data);
+
+  // Búsqueda en catálogo
+  const search = root.querySelector('#sk-search');
+  search?.addEventListener('input', () => {
+    const q = search.value.toLowerCase().trim();
+    root.querySelectorAll('.skills-card').forEach((c) => {
+      c.classList.toggle('hidden', q && !c.dataset.name.includes(q));
+    });
+    root.querySelectorAll('.skills-cat').forEach((cat) => {
+      const anyVisible = [...cat.querySelectorAll('.skills-card')].some((c) => !c.classList.contains('hidden'));
+      cat.style.display = anyVisible ? '' : 'none';
+    });
+  });
+
+  // Camino Canva-CU
+  root.querySelector('#sk-canva')?.addEventListener('click', async () => {
+    const input = root.querySelector('#sk-input').value.trim();
+    const format = root.querySelector('#sk-format').value;
+    await launchCanvaBrain({ topic: input || 'Contenido sin tema', format });
+  });
+
+  // Camino IA-render (run.py)
+  root.querySelector('#sk-generate')?.addEventListener('click', async () => {
+    const input = root.querySelector('#sk-input').value.trim();
+    const model = root.querySelector('#sk-model').value;
+    if (!input) {
+      toast('Pegá una URL o escribí una idea', 'warn');
+      return;
+    }
+    const resultEl = root.querySelector('#sk-result');
+    resultEl.innerHTML = `<div class="card"><div class="row" style="gap:10px;align-items:center;"><span class="spinner"></span><div><strong>Generando…</strong><div class="small muted">FeedIA está analizando la fuente y produciendo el contenido.</div></div></div></div>`;
+
+    const format = root.querySelector('#sk-format').value;
+    const { data: r, error } = await apiSafe('/api/skills/carousel/generate', null, {
+      method: 'POST',
+      body: { input, model, format },
+    });
+    if (error || !r) {
+      resultEl.innerHTML = `<div class="card"><div class="small muted">📡 Backend del generador offline. Usá el camino Canva (Computer Use) o reintentá cuando el server vuelva.</div></div>`;
+      return;
+    }
+
+    const renderResult = (st) => {
+      const slidesHtml = (st.slides ?? []).length
+        ? `<div class="skills-slides">${st.slides
+            .map((s) => {
+              const src = s.url
+                ? s.url
+                : `/api/skills/carousel/slide/${encodeURIComponent(st.jobId ?? '')}/${encodeURIComponent(s.name ?? s)}`;
+              return `<img src="${escape(src)}" alt="slide ${escape(String(s.num ?? ''))}" onerror="this.style.display='none'">`;
+            })
+            .join('')}</div>`
+        : '';
+      resultEl.innerHTML = `
         <div class="card">
           <div class="row spread" style="margin-bottom:8px;">
-            <strong>${e.status==="done"?"\u2705 Listo":e.status==="error"?"\u26A0\uFE0F Error":e.status==="plan-only"?"\u{1F4CB} Solo estrategia":"\u{1F504} "+i(e.status??"")}</strong>
-            <span class="small muted">${i(e.format??"")} \xB7 ${i(e.model??s)}</span>
+            <strong>${st.status === 'done' ? '✅ Listo' : st.status === 'error' ? '⚠️ Error' : st.status === 'plan-only' ? '📋 Solo estrategia' : '🔄 ' + escape(st.status ?? '')}</strong>
+            <span class="small muted">${escape(st.format ?? '')} · ${escape(st.model ?? model)}</span>
           </div>
-          ${e.error?`<div class="small crit" style="margin-bottom:8px;">${i(e.error)}</div>`:""}
-          ${e.status==="plan-only"?`<div class="small muted" style="margin-bottom:8px;">\u26A0\uFE0F Falta <code>FAL_KEY</code> para render real. Estrategia generada (${(e.strategy?.slides??[]).length} slides). Us\xE1 el camino <strong>Canva (Computer Use)</strong> o configur\xE1 FAL_KEY.</div>`:""}
-          ${(e.log??[]).length?`<div class="skills-log">${e.log.map(n=>`<div class="skills-log-line">${i(n)}</div>`).join("")}</div>`:""}
-          ${t}
-          ${e.caption?`<div style="margin-top:10px;"><div class="small muted">Caption</div><div class="body" style="white-space:pre-wrap;">${i(e.caption)}</div></div>`:""}
-          ${e.hashtags?`<div class="small muted" style="margin-top:8px;">${i(e.hashtags)}</div>`:""}
-        </div>`};if(r.status){k(r),g(r.status==="done"?"\u{1F389} Im\xE1genes generadas":r.status==="plan-only"?"Estrategia lista (sin FAL_KEY)":"Error en generaci\xF3n",r.status==="error"?"warn":"ok");return}if(r.jobId){o.innerHTML='<div class="card"><div class="row" style="gap:10px;align-items:center;"><span class="spinner"></span><div><strong>Generando\u2026</strong></div></div></div>',c();const e=Date.now();u=setInterval(async()=>{if(Date.now()-e>18e4){c(),g("Tard\xF3 demasiado \xB7 revis\xE1 logs","warn");return}const{data:t}=await v(`/api/skills/carousel/status/${r.jobId}`,null);t&&(t.jobId=r.jobId,k(t),["done","error","plan-only"].includes(t.status)&&(c(),g(t.status==="done"?"\u{1F389} Contenido generado":t.status==="plan-only"?"Estrategia lista":"Error",t.status==="error"?"warn":"ok")))},2e3);return}o.innerHTML='<div class="card"><div class="small muted">Respuesta inesperada del generador.</div></div>'})};
+          ${st.error ? `<div class="small crit" style="margin-bottom:8px;">${escape(st.error)}</div>` : ''}
+          ${st.status === 'plan-only' ? `<div class="small muted" style="margin-bottom:8px;">⚠️ Falta <code>FAL_KEY</code> para render real. Estrategia generada (${(st.strategy?.slides ?? []).length} slides). Usá el camino <strong>Canva (Computer Use)</strong> o configurá FAL_KEY.</div>` : ''}
+          ${(st.log ?? []).length ? `<div class="skills-log">${st.log.map((l) => `<div class="skills-log-line">${escape(l)}</div>`).join('')}</div>` : ''}
+          ${slidesHtml}
+          ${st.caption ? `<div style="margin-top:10px;"><div class="small muted">Caption</div><div class="body" style="white-space:pre-wrap;">${escape(st.caption)}</div></div>` : ''}
+          ${st.hashtags ? `<div class="small muted" style="margin-top:8px;">${escape(st.hashtags)}</div>` : ''}
+        </div>`;
+    };
+
+    // Respuesta SÍNCRONA (Vercel): ya trae slides/plan-only/error
+    if (r.status) {
+      renderResult(r);
+      toast(
+        r.status === 'done'
+          ? '🎉 Imágenes generadas'
+          : r.status === 'plan-only'
+            ? 'Estrategia lista (sin FAL_KEY)'
+            : 'Error en generación',
+        r.status === 'error' ? 'warn' : 'ok',
+      );
+      return;
+    }
+
+    // Respuesta ASYNC (backend local con job + poll)
+    if (r.jobId) {
+      resultEl.innerHTML = `<div class="card"><div class="row" style="gap:10px;align-items:center;"><span class="spinner"></span><div><strong>Generando…</strong></div></div></div>`;
+      stopPoll();
+      const t0 = Date.now();
+      pollTimer = setInterval(async () => {
+        if (Date.now() - t0 > 180000) {
+          stopPoll();
+          toast('Tardó demasiado · revisá logs', 'warn');
+          return;
+        }
+        const { data: st } = await apiSafe(`/api/skills/carousel/status/${r.jobId}`, null);
+        if (!st) return;
+        st.jobId = r.jobId;
+        renderResult(st);
+        if (['done', 'error', 'plan-only'].includes(st.status)) {
+          stopPoll();
+          toast(
+            st.status === 'done' ? '🎉 Contenido generado' : st.status === 'plan-only' ? 'Estrategia lista' : 'Error',
+            st.status === 'error' ? 'warn' : 'ok',
+          );
+        }
+      }, 2000);
+      return;
+    }
+
+    resultEl.innerHTML = `<div class="card"><div class="small muted">Respuesta inesperada del generador.</div></div>`;
+  });
+};

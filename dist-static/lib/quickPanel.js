@@ -1,11 +1,33 @@
-const n=[{id:"home",label:"\u{1F3E0} Home",kw:"home inicio empezar",route:"home"},{id:"brujula",label:"\u{1F9ED} Br\xFAjula del D\xEDa",kw:"brujula plan tema hoy",route:"brujula"},{id:"handsfree",label:"\u{1F399}\uFE0F Manos Libres",kw:"manos libres voz dictar feedia",route:"handsfree"},{id:"brandkit",label:"\u{1F3A8} Brand Kit",kw:"brand kit colores marca tipografia logo",route:"brandkit"},{id:"studio-carousel",label:"\u{1F5BC}\uFE0F Carrusel",kw:"carrusel slides instagram crear",route:"studio-carousel"},{id:"studio-reel",label:"\u{1F3AC} Reel",kw:"reel video corto vertical",route:"studio-reel"},{id:"studio-stories",label:"\u{1F4F1} Historia",kw:"historia stories 9 16 frames",route:"studio-stories"},{id:"calendar",label:"\u{1F4C5} Calendario",kw:"calendar agenda planificar",route:"calendar"},{id:"agents",label:"\u{1F916} Agentes",kw:"agentes IA equipo",route:"agents"},{id:"community",label:"\u{1F4AC} Comunidad",kw:"comunidad community dm comentarios responder",route:"community"},{id:"analytics",label:"\u{1F4CA} Analytics",kw:"analytics metricas datos performance",route:"analytics"},{id:"settings",label:"\u2699\uFE0F Configuraci\xF3n",kw:"settings ajustes config cuenta",route:"settings"}],u=`
+/* ══════════════════════════════════════════════════════════════════════════════
+   quickPanel.js — paleta de comandos (⌘K) + scroll-to-top + breadcrumbs.
+   Cero ruido visual hasta que el user lo invoca.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+const COMMANDS = [
+  { id: 'home', label: '🏠 Home', kw: 'home inicio empezar', route: 'home' },
+  { id: 'brujula', label: '🧭 Brújula del Día', kw: 'brujula plan tema hoy', route: 'brujula' },
+  { id: 'handsfree', label: '🎙️ Manos Libres', kw: 'manos libres voz dictar feedia', route: 'handsfree' },
+  { id: 'brandkit', label: '🎨 Brand Kit', kw: 'brand kit colores marca tipografia logo', route: 'brandkit' },
+  { id: 'studio-carousel', label: '🖼️ Carrusel', kw: 'carrusel slides instagram crear', route: 'studio-carousel' },
+  { id: 'studio-reel', label: '🎬 Reel', kw: 'reel video corto vertical', route: 'studio-reel' },
+  { id: 'studio-stories', label: '📱 Historia', kw: 'historia stories 9 16 frames', route: 'studio-stories' },
+  { id: 'calendar', label: '📅 Calendario', kw: 'calendar agenda planificar', route: 'calendar' },
+  { id: 'agents', label: '🤖 Agentes', kw: 'agentes IA equipo', route: 'agents' },
+  { id: 'community', label: '💬 Comunidad', kw: 'comunidad community dm comentarios responder', route: 'community' },
+  { id: 'analytics', label: '📊 Analytics', kw: 'analytics metricas datos performance', route: 'analytics' },
+  { id: 'settings', label: '⚙️ Configuración', kw: 'settings ajustes config cuenta', route: 'settings' },
+];
+
+const TPL = `
 <div class="qp-overlay" id="qp-overlay">
   <div class="qp-panel">
-    <input type="text" class="qp-input" id="qp-input" placeholder="Busc\xE1 vista, herramienta o acci\xF3n\u2026" autocomplete="off" />
+    <input type="text" class="qp-input" id="qp-input" placeholder="Buscá vista, herramienta o acción…" autocomplete="off" />
     <div class="qp-list" id="qp-list"></div>
-    <div class="qp-foot">\u2191\u2193 navegar \xB7 \u21B5 abrir \xB7 esc cerrar</div>
+    <div class="qp-foot">↑↓ navegar · ↵ abrir · esc cerrar</div>
   </div>
-</div>`,m=`
+</div>`;
+
+const CSS = `
 .qp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding:14vh 16px 0;animation:qp-fade .15s ease-out;}
 @keyframes qp-fade{from{opacity:0;}to{opacity:1;}}
 .qp-panel{width:100%;max-width:560px;background:#0F0F14;border:1px solid rgba(255,255,255,.12);border-radius:14px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.6);}
@@ -20,8 +42,113 @@ const n=[{id:"home",label:"\u{1F3E0} Home",kw:"home inicio empezar",route:"home"
 .qp-stt{position:fixed;bottom:80px;right:24px;width:38px;height:38px;border-radius:50%;background:rgba(15,15,20,.85);border:1px solid rgba(255,255,255,.12);color:#a78bfa;font-size:16px;cursor:pointer;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px);z-index:9999;transition:transform .15s;}
 .qp-stt.visible{display:flex;}
 .qp-stt:hover{transform:translateY(-3px);}
-/* Hint chip \u2318K */
+/* Hint chip ⌘K */
 .qp-hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(15,15,20,.92);color:#9CA3AF;border:1px solid rgba(255,255,255,.08);padding:5px 12px;border-radius:18px;font-size:11px;letter-spacing:.5px;backdrop-filter:blur(8px);z-index:9998;pointer-events:none;opacity:0;transition:opacity .3s ease;}
 .qp-hint.show{opacity:1;}
 .qp-hint kbd{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;font-family:inherit;margin:0 2px;}
-`;let o=0,a=n;const b=e=>{const t=(e||"").toLowerCase().trim();return t?n.filter(i=>i.label.toLowerCase().includes(t)||i.kw.includes(t)):n},s=()=>{const e=document.getElementById("qp-list");if(e){if(!a.length){e.innerHTML='<div class="qp-empty">No encontr\xE9 nada \xB7 prob\xE1 "carrusel", "voz", "brand kit"\u2026</div>';return}e.innerHTML=a.map((t,i)=>`<div class="qp-item ${i===o?"active":""}" data-route="${t.route}">${t.label}</div>`).join(""),e.querySelectorAll(".qp-item").forEach(t=>{t.addEventListener("mouseenter",()=>{o=[...e.children].indexOf(t),e.querySelectorAll(".qp-item").forEach((i,d)=>i.classList.toggle("active",d===o))}),t.addEventListener("click",()=>c(t.dataset.route))})}},c=e=>{l(),window.location.hash="#"+e},f=()=>{if(document.getElementById("qp-overlay"))return;document.body.insertAdjacentHTML("beforeend",u),o=0,a=n,s();const e=document.getElementById("qp-input");e.focus(),e.addEventListener("input",t=>{a=b(t.target.value),o=0,s()}),document.getElementById("qp-overlay").addEventListener("click",t=>{t.target.id==="qp-overlay"&&l()})},l=()=>{document.getElementById("qp-overlay")?.remove()};document.addEventListener("keydown",e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault(),document.getElementById("qp-overlay")?l():f();return}if(document.getElementById("qp-overlay")&&(e.key==="Escape"&&(e.preventDefault(),l()),e.key==="ArrowDown"&&(e.preventDefault(),o=Math.min(a.length-1,o+1),s(),document.querySelectorAll(".qp-item")[o]?.scrollIntoView({block:"nearest"})),e.key==="ArrowUp"&&(e.preventDefault(),o=Math.max(0,o-1),s(),document.querySelectorAll(".qp-item")[o]?.scrollIntoView({block:"nearest"})),e.key==="Enter")){e.preventDefault();const t=a[o];t&&c(t.route)}});export const initQuickPanel=()=>{if(document.getElementById("qp-style"))return;const e=document.createElement("style");e.id="qp-style",e.textContent=m,document.head.appendChild(e);const t=document.createElement("button");t.className="qp-stt",t.setAttribute("aria-label","Subir"),t.innerHTML="\u2191",t.addEventListener("click",()=>window.scrollTo({top:0,behavior:"smooth"})),document.body.appendChild(t);let i=!1;window.addEventListener("scroll",()=>{i||(i=!0,requestAnimationFrame(()=>{t.classList.toggle("visible",window.scrollY>600),i=!1}))},{passive:!0});try{if(!(localStorage.getItem("feedia.qpHintSeen")==="1")){const r=document.createElement("div");r.className="qp-hint";const p=/Mac|iPhone|iPad/.test(navigator.platform);r.innerHTML=`tip \xB7 <kbd>${p?"\u2318":"Ctrl"}</kbd><kbd>K</kbd> para buscar vista al instante`,document.body.appendChild(r),setTimeout(()=>r.classList.add("show"),800),setTimeout(()=>{r.classList.remove("show"),setTimeout(()=>r.remove(),400)},5500),localStorage.setItem("feedia.qpHintSeen","1")}}catch{}};document.readyState==="complete"||document.readyState==="interactive"?setTimeout(initQuickPanel,100):document.addEventListener("DOMContentLoaded",initQuickPanel);
+`;
+
+let activeIdx = 0;
+let filtered = COMMANDS;
+
+const filterCommands = (q) => {
+  const query = (q || '').toLowerCase().trim();
+  if (!query) return COMMANDS;
+  return COMMANDS.filter((c) => c.label.toLowerCase().includes(query) || c.kw.includes(query));
+};
+
+const renderList = () => {
+  const list = document.getElementById('qp-list');
+  if (!list) return;
+  if (!filtered.length) {
+    list.innerHTML = '<div class="qp-empty">No encontré nada · probá "carrusel", "voz", "brand kit"…</div>';
+    return;
+  }
+  list.innerHTML = filtered.map((c, i) => `<div class="qp-item ${i === activeIdx ? 'active' : ''}" data-route="${c.route}">${c.label}</div>`).join('');
+  list.querySelectorAll('.qp-item').forEach((el) => {
+    el.addEventListener('mouseenter', () => {
+      activeIdx = [...list.children].indexOf(el);
+      list.querySelectorAll('.qp-item').forEach((e, i) => e.classList.toggle('active', i === activeIdx));
+    });
+    el.addEventListener('click', () => navigate(el.dataset.route));
+  });
+};
+
+const navigate = (route) => {
+  closePanel();
+  window.location.hash = '#' + route;
+};
+
+const openPanel = () => {
+  if (document.getElementById('qp-overlay')) return;
+  document.body.insertAdjacentHTML('beforeend', TPL);
+  activeIdx = 0;
+  filtered = COMMANDS;
+  renderList();
+  const input = document.getElementById('qp-input');
+  input.focus();
+  input.addEventListener('input', (e) => {
+    filtered = filterCommands(e.target.value);
+    activeIdx = 0;
+    renderList();
+  });
+  document.getElementById('qp-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'qp-overlay') closePanel();
+  });
+};
+
+const closePanel = () => { document.getElementById('qp-overlay')?.remove(); };
+
+document.addEventListener('keydown', (e) => {
+  // ⌘K / Ctrl+K → abrir
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    if (document.getElementById('qp-overlay')) closePanel();
+    else openPanel();
+    return;
+  }
+  if (!document.getElementById('qp-overlay')) return;
+  if (e.key === 'Escape') { e.preventDefault(); closePanel(); }
+  if (e.key === 'ArrowDown') { e.preventDefault(); activeIdx = Math.min(filtered.length - 1, activeIdx + 1); renderList(); document.querySelectorAll('.qp-item')[activeIdx]?.scrollIntoView({ block: 'nearest' }); }
+  if (e.key === 'ArrowUp')   { e.preventDefault(); activeIdx = Math.max(0, activeIdx - 1); renderList(); document.querySelectorAll('.qp-item')[activeIdx]?.scrollIntoView({ block: 'nearest' }); }
+  if (e.key === 'Enter') { e.preventDefault(); const c = filtered[activeIdx]; if (c) navigate(c.route); }
+});
+
+export const initQuickPanel = () => {
+  if (document.getElementById('qp-style')) return;
+  const style = document.createElement('style'); style.id = 'qp-style'; style.textContent = CSS;
+  document.head.appendChild(style);
+
+  // Scroll-to-top
+  const stt = document.createElement('button');
+  stt.className = 'qp-stt'; stt.setAttribute('aria-label', 'Subir');
+  stt.innerHTML = '↑';
+  stt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  document.body.appendChild(stt);
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(() => {
+      stt.classList.toggle('visible', window.scrollY > 600);
+      ticking = false;
+    });
+  }, { passive: true });
+
+  // Hint chip (3 seg al cargar primera vez)
+  try {
+    const seen = localStorage.getItem('feedia.qpHintSeen') === '1';
+    if (!seen) {
+      const hint = document.createElement('div');
+      hint.className = 'qp-hint';
+      const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+      hint.innerHTML = `tip · <kbd>${isMac ? '⌘' : 'Ctrl'}</kbd><kbd>K</kbd> para buscar vista al instante`;
+      document.body.appendChild(hint);
+      setTimeout(() => hint.classList.add('show'), 800);
+      setTimeout(() => { hint.classList.remove('show'); setTimeout(() => hint.remove(), 400); }, 5500);
+      localStorage.setItem('feedia.qpHintSeen', '1');
+    }
+  } catch {}
+};
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(initQuickPanel, 100);
+else document.addEventListener('DOMContentLoaded', initQuickPanel);

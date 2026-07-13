@@ -1,52 +1,162 @@
-import{apiSafe as g}from"../lib/api.js";import{escape as e}from"../lib/dom.js";import{toast as b}from"../lib/toast.js";const S=a=>"$"+(a||0).toLocaleString("en-US"),j=a=>a>=1e6?(a/1e6).toFixed(2)+"M":a>=1e4?(a/1e3).toFixed(1)+"k":a>=1e3?(a/1e3).toFixed(2)+"k":(a||0).toLocaleString("en-US"),E=[{id:"summary",label:"\u{1F451} Resumen"},{id:"commandCenter",label:"\u{1F3AF} Command Center"},{id:"decisions",label:"\u2696\uFE0F Decisiones"},{id:"okrs",label:"\u{1F3C1} OKRs"},{id:"igAutopilot",label:"\u{1F4F7} IG Autopilot"},{id:"ttAutopilot",label:"\u{1F3B5} TT Autopilot"},{id:"proposals",label:"\u{1F4A1} Propuestas"},{id:"posts",label:"\u{1F4CA} An\xE1lisis posts"},{id:"analytics",label:"\u{1F4C8} Analytics"},{id:"reports",label:"\u{1F4C4} Reportes"},{id:"audit",label:"\u2705 Audit"},{id:"predictor",label:"\u{1F4E1} Predictor"},{id:"tools",label:"\u{1F9F0} Herramientas IA"},{id:"alerts",label:"\u{1F6A8} Alertas"},{id:"logbook",label:"\u{1F4D2} Bit\xE1cora"},{id:"experiments",label:"\u{1F9EA} Experimentos"},{id:"scheduler",label:"\u23F0 Scheduler"},{id:"collabs",label:"\u{1F91D} Collabs"}],h={reports:{path:"./workspace.js",name:"renderReportes"},audit:{path:"./audit.js",name:"renderAudit"},predictor:{path:"./predictor.js",name:"renderPredictor"},tools:{path:"./tools.js",name:"renderTools"}};let c="summary";const P=(a,o)=>{if(!a||!a.length)return"";const s=Math.max(...a),n=Math.min(...a),i=Math.max(1,s-n),l=320/(a.length-1),d=a.map((A,z)=>`${(z*l).toFixed(1)},${(60-(A-n)/i*60).toFixed(1)}`).join(" "),v=a[a.length-1],m=(a.length-1)*l,p=60-(v-n)/i*60,x="g"+o.replace("#",""),$=`M0,60 L${d.replace(/ /g," L")} L320,60 Z`;return`<svg viewBox="0 0 320 60" preserveAspectRatio="none" style="width:100%;height:60px;display:block;">
-    <defs><linearGradient id="${x}" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0%" stop-color="${o}" stop-opacity=".34"/>
-      <stop offset="100%" stop-color="${o}" stop-opacity="0"/>
+/* ══════════════════════════════════════════════════════════════════════════════
+   SALA EJECUTIVA v2 — Vercel-grade premium minimal
+   ──────────────────────────────────────────────────────────────────────────────
+   Hub con tabs. Hero hairline, no rainbow gradients. Alto contraste letra/fondo.
+   Incluye GrowthMetricsCard inline para Instagram + TikTok (sparkline SVG + KPIs).
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { apiSafe } from '../lib/api.js';
+import { escape } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+
+const fmtUsd = (n) => '$' + (n || 0).toLocaleString('en-US');
+const fmtNum = (n) => {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'M';
+  if (n >= 10_000) return (n / 1_000).toFixed(1) + 'k';
+  if (n >= 1_000) return (n / 1_000).toFixed(2) + 'k';
+  return (n || 0).toLocaleString('en-US');
+};
+
+const TABS = [
+  { id: 'summary', label: '👑 Resumen' },
+  { id: 'commandCenter', label: '🎯 Command Center' },
+  { id: 'decisions', label: '⚖️ Decisiones' },
+  { id: 'okrs', label: '🏁 OKRs' },
+  { id: 'igAutopilot', label: '📷 IG Autopilot' },
+  { id: 'ttAutopilot', label: '🎵 TT Autopilot' },
+  { id: 'proposals', label: '💡 Propuestas' },
+  { id: 'posts', label: '📊 Análisis posts' },
+  { id: 'analytics', label: '📈 Analytics' },
+  { id: 'reports', label: '📄 Reportes' },
+  { id: 'audit', label: '✅ Audit' },
+  { id: 'predictor', label: '📡 Predictor' },
+  { id: 'tools', label: '🧰 Herramientas IA' },
+  { id: 'alerts', label: '🚨 Alertas' },
+  { id: 'logbook', label: '📒 Bitácora' },
+  { id: 'experiments', label: '🧪 Experimentos' },
+  { id: 'scheduler', label: '⏰ Scheduler' },
+  { id: 'collabs', label: '🤝 Collabs' },
+];
+
+const EMBED_VIEWS = {
+  reports: { path: './workspace.js', name: 'renderReportes' },
+  audit: { path: './audit.js', name: 'renderAudit' },
+  predictor: { path: './predictor.js', name: 'renderPredictor' },
+  tools: { path: './tools.js', name: 'renderTools' },
+};
+
+let activeTab = 'summary';
+
+/* ──── Sparkline SVG nativo para growth cards ──── */
+const sparklineSvg = (data, color) => {
+  const W = 320,
+    H = 60;
+  if (!data || !data.length) return '';
+  const max = Math.max(...data),
+    min = Math.min(...data);
+  const span = Math.max(1, max - min);
+  const step = W / (data.length - 1);
+  const pts = data.map((v, i) => `${(i * step).toFixed(1)},${(H - ((v - min) / span) * H).toFixed(1)}`).join(' ');
+  const last = data[data.length - 1];
+  const lastX = (data.length - 1) * step;
+  const lastY = H - ((last - min) / span) * H;
+  const gid = 'g' + color.replace('#', '');
+  const area = `M0,${H} L${pts.replace(/ /g, ' L')} L${W},${H} Z`;
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:60px;display:block;">
+    <defs><linearGradient id="${gid}" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity=".34"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
     </linearGradient></defs>
-    <path d="${$}" fill="url(#${x})"/>
-    <polyline points="${d}" fill="none" stroke="${o}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="${m.toFixed(1)}" cy="${p.toFixed(1)}" r="5" fill="${o}" opacity=".22"/>
-    <circle cx="${m.toFixed(1)}" cy="${p.toFixed(1)}" r="2.4" fill="${o}"/>
-  </svg>`},f=({platform:a,handle:o,followers:r,deltaPct:t,deltaPositive:s=!0,spark:n,tier:i,metrics:l})=>{const d=a==="instagram"?{name:"Instagram",accent:"#E1306C",accent2:"#F77737",glyph:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>'}:{name:"TikTok",accent:"#25F4EE",accent2:"#FE2C55",glyph:'<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19.6 6.7c-1.5-.4-2.7-1.5-3.1-3l-.1-.5h-3.6v13.3a2.6 2.6 0 1 1-2.6-2.6c.3 0 .6 0 .8.1V10.4a6.2 6.2 0 0 0-6 6.2 6.2 6.2 0 0 0 12.4 0V9.5c1.1.7 2.4 1.1 3.8 1.1V7c-.6 0-1.2-.1-1.6-.3Z"/></svg>'},v=s?"#34d399":"#f87171",m=s?"\u2191":"\u2193";return`<div class="v2-card v2-grow-card">
-    <div class="v2-grow-accent" style="background:linear-gradient(90deg,transparent,${d.accent},transparent);"></div>
+    <path d="${area}" fill="url(#${gid})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="5" fill="${color}" opacity=".22"/>
+    <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="2.4" fill="${color}"/>
+  </svg>`;
+};
+
+/* ──── Growth Metrics Card (IG / TT) — premium minimal Vercel-style ──── */
+const growthCard = ({ platform, handle, followers, deltaPct, deltaPositive = true, spark, tier, metrics }) => {
+  const theme =
+    platform === 'instagram'
+      ? {
+          name: 'Instagram',
+          accent: '#E1306C',
+          accent2: '#F77737',
+          glyph: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>`,
+        }
+      : {
+          name: 'TikTok',
+          accent: '#25F4EE',
+          accent2: '#FE2C55',
+          glyph: `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19.6 6.7c-1.5-.4-2.7-1.5-3.1-3l-.1-.5h-3.6v13.3a2.6 2.6 0 1 1-2.6-2.6c.3 0 .6 0 .8.1V10.4a6.2 6.2 0 0 0-6 6.2 6.2 6.2 0 0 0 12.4 0V9.5c1.1.7 2.4 1.1 3.8 1.1V7c-.6 0-1.2-.1-1.6-.3Z"/></svg>`,
+        };
+  const deltaCol = deltaPositive ? '#34d399' : '#f87171';
+  const deltaIco = deltaPositive ? '↑' : '↓';
+  return `<div class="v2-card v2-grow-card">
+    <div class="v2-grow-accent" style="background:linear-gradient(90deg,transparent,${theme.accent},transparent);"></div>
     <div class="v2-grow-head">
       <div class="v2-grow-brand">
-        <div class="v2-grow-glyph" style="background:${d.accent}1f;color:${d.accent};">${d.glyph}</div>
+        <div class="v2-grow-glyph" style="background:${theme.accent}1f;color:${theme.accent};">${theme.glyph}</div>
         <div>
-          <div class="v2-eyebrow">${d.name}</div>
-          <div class="v2-grow-handle">${e(o)}</div>
+          <div class="v2-eyebrow">${theme.name}</div>
+          <div class="v2-grow-handle">${escape(handle)}</div>
         </div>
       </div>
-      <span class="v2-badge" style="background:${d.accent}1a;color:${d.accent};box-shadow:inset 0 0 0 1px ${d.accent}3a;">live</span>
+      <span class="v2-badge" style="background:${theme.accent}1a;color:${theme.accent};box-shadow:inset 0 0 0 1px ${theme.accent}3a;">live</span>
     </div>
     <div class="v2-grow-primary">
       <div class="v2-eyebrow">Followers</div>
       <div class="v2-grow-followers-row">
-        <span class="v2-num-xl">${j(r)}</span>
-        <span class="v2-delta" style="color:${v};">${m} ${e(t)}</span>
+        <span class="v2-num-xl">${fmtNum(followers)}</span>
+        <span class="v2-delta" style="color:${deltaCol};">${deltaIco} ${escape(deltaPct)}</span>
       </div>
-      <div class="v2-hint">vs \xFAltimos 30 d\xEDas</div>
+      <div class="v2-hint">vs últimos 30 días</div>
     </div>
-    <div class="v2-grow-spark">${P(n,d.accent)}</div>
-    ${i?`<div class="v2-grow-tier">
+    <div class="v2-grow-spark">${sparklineSvg(spark, theme.accent)}</div>
+    ${
+      tier
+        ? `<div class="v2-grow-tier">
       <div class="v2-grow-tier-head">
-        <span class="v2-eyebrow">${e(i.name)}</span>
-        <span class="v2-num-sm">${i.pct}%</span>
+        <span class="v2-eyebrow">${escape(tier.name)}</span>
+        <span class="v2-num-sm">${tier.pct}%</span>
       </div>
-      <div class="v2-grow-tier-bar"><div style="width:${i.pct}%;background:linear-gradient(90deg,${d.accent},${d.accent2});"></div></div>
-    </div>`:""}
+      <div class="v2-grow-tier-bar"><div style="width:${tier.pct}%;background:linear-gradient(90deg,${theme.accent},${theme.accent2});"></div></div>
+    </div>`
+        : ''
+    }
     <div class="v2-grow-metrics">
-      ${l.map(p=>`<div class="v2-grow-metric">
-        <div class="v2-eyebrow">${e(p.label)}</div>
+      ${metrics
+        .map(
+          (m) => `<div class="v2-grow-metric">
+        <div class="v2-eyebrow">${escape(m.label)}</div>
         <div class="v2-grow-metric-val">
-          <span class="v2-num-md">${e(String(p.value))}</span>
-          ${p.delta?`<span class="v2-delta-sm" style="color:${p.delta.positive?"#34d399":"#f87171"};">${p.delta.positive?"\u2191":"\u2193"}${e(p.delta.value)}</span>`:""}
+          <span class="v2-num-md">${escape(String(m.value))}</span>
+          ${m.delta ? `<span class="v2-delta-sm" style="color:${m.delta.positive ? '#34d399' : '#f87171'};">${m.delta.positive ? '↑' : '↓'}${escape(m.delta.value)}</span>` : ''}
         </div>
-        ${p.hint?`<div class="v2-hint">${e(p.hint)}</div>`:""}
-      </div>`).join("")}
+        ${m.hint ? `<div class="v2-hint">${escape(m.hint)}</div>` : ''}
+      </div>`,
+        )
+        .join('')}
     </div>
-  </div>`},R=[10200,10380,10510,10620,10780,10960,11210,11380,11520,11790,11900,12260,12410,12680,12830,13110,13280,13580,13720,14060],C=[24300,24700,25010,25320,25950,26380,27110,27530,28310,28780,29710,30260,31520,32890,34380,35980,36810,38510,39420,40380],q=a=>`
-    ${a.ascenso?`<div class="v2-ascenso">\u{1F389} <strong>\xA1Ascendiste!</strong> Subiste de <strong>${e(a.ascenso.de)}</strong> a <strong>${e(a.ascenso.a)}</strong>.</div>`:""}
+  </div>`;
+};
+
+/* ──── Sparkline mock data (sustituir por API real cuando esté) ──── */
+const IG_SPARK = [
+  10200, 10380, 10510, 10620, 10780, 10960, 11210, 11380, 11520, 11790, 11900, 12260, 12410, 12680, 12830, 13110, 13280,
+  13580, 13720, 14060,
+];
+const TT_SPARK = [
+  24300, 24700, 25010, 25320, 25950, 26380, 27110, 27530, 28310, 28780, 29710, 30260, 31520, 32890, 34380, 35980, 36810,
+  38510, 39420, 40380,
+];
+
+/* ──── Resumen ejecutivo (Sala Ejecutiva) ──── */
+const renderSummary = (b) => {
+  const ascenso = b.ascenso
+    ? `<div class="v2-ascenso">🎉 <strong>¡Ascendiste!</strong> Subiste de <strong>${escape(b.ascenso.de)}</strong> a <strong>${escape(b.ascenso.a)}</strong>.</div>`
+    : '';
+  return `
+    ${ascenso}
 
     <!-- HERO minimal -->
     <header class="v2-hero">
@@ -54,40 +164,40 @@ import{apiSafe as g}from"../lib/api.js";import{escape as e}from"../lib/dom.js";i
         <div>
           <div class="v2-hero-tags">
             <span class="v2-badge v2-badge-brand">Sala Ejecutiva</span>
-            <span class="v2-badge v2-badge-ok">Tier ${e(a.tier)}</span>
+            <span class="v2-badge v2-badge-ok">Tier ${escape(b.tier)}</span>
           </div>
           <h1 class="v2-h1">
             Tu imperio opera a escala
-            <span class="v2-h1-dim">sin n\xF3mina ni agencia.</span>
+            <span class="v2-h1-dim">sin nómina ni agencia.</span>
           </h1>
-          <p class="v2-lead">${e(a.narrativa||"FeedIA reemplaza un equipo ejecutivo de contenido. Esta sala muestra la econom\xEDa real y el crecimiento por red.")}</p>
+          <p class="v2-lead">${escape(b.narrativa || 'FeedIA reemplaza un equipo ejecutivo de contenido. Esta sala muestra la economía real y el crecimiento por red.')}</p>
         </div>
         <div class="v2-hero-cta">
-          <button class="v2-btn v2-btn-primary" data-go-route="autopilot">Activar Auto-pilot \u2192</button>
+          <button class="v2-btn v2-btn-primary" data-go-route="autopilot">Activar Auto-pilot →</button>
           <button class="v2-btn v2-btn-outline" data-go-route="cliente">Modo Cliente</button>
         </div>
       </div>
       <div class="v2-tier-progress">
         <div class="v2-tier-progress-head">
           <span class="v2-eyebrow">Progreso al siguiente nivel</span>
-          <span class="v2-num-sm">${a.tierProgresoPct||0}%</span>
+          <span class="v2-num-sm">${b.tierProgresoPct || 0}%</span>
         </div>
-        <div class="v2-tier-progress-bar"><div style="width:${a.tierProgresoPct||0}%;"></div></div>
+        <div class="v2-tier-progress-bar"><div style="width:${b.tierProgresoPct || 0}%;"></div></div>
       </div>
     </header>
 
     <!-- KPI grid -->
     <section class="v2-section">
       <div class="v2-section-head">
-        <div class="v2-eyebrow">Econom\xEDa operativa</div>
+        <div class="v2-eyebrow">Economía operativa</div>
         <h2 class="v2-h2">Lo que tu equipo IA factura hoy</h2>
-        <p class="v2-section-desc">M\xE9tricas financieras y de palanca.</p>
+        <p class="v2-section-desc">Métricas financieras y de palanca.</p>
       </div>
       <div class="v2-kpi-grid">
-        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Apalancamiento</div><div class="v2-num-xl">${e(a.leverage.ratioLabel||"0\xD7")}</div><div class="v2-hint">acciones IA por indicaci\xF3n tuya</div></div>
-        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Acciones ejecutadas</div><div class="v2-num-xl">${(a.leverage.accionesEjecutadas||0).toLocaleString("en-US")}</div><div class="v2-hint">por tu equipo IA</div></div>
-        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Sueldos no pag\xE1s</div><div class="v2-num-xl">${S(a.leverage.costoEquipoUsdMes)}</div><div class="v2-hint">USD por mes</div></div>
-        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Horas humanas ahorradas</div><div class="v2-num-xl">${(a.leverage.horasHumanasAhorradas||0).toLocaleString("en-US")}h</div><div class="v2-hint">por mes</div></div>
+        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Apalancamiento</div><div class="v2-num-xl">${escape(b.leverage.ratioLabel || '0×')}</div><div class="v2-hint">acciones IA por indicación tuya</div></div>
+        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Acciones ejecutadas</div><div class="v2-num-xl">${(b.leverage.accionesEjecutadas || 0).toLocaleString('en-US')}</div><div class="v2-hint">por tu equipo IA</div></div>
+        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Sueldos no pagás</div><div class="v2-num-xl">${fmtUsd(b.leverage.costoEquipoUsdMes)}</div><div class="v2-hint">USD por mes</div></div>
+        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Horas humanas ahorradas</div><div class="v2-num-xl">${(b.leverage.horasHumanasAhorradas || 0).toLocaleString('en-US')}h</div><div class="v2-hint">por mes</div></div>
       </div>
     </section>
 
@@ -96,11 +206,44 @@ import{apiSafe as g}from"../lib/api.js";import{escape as e}from"../lib/dom.js";i
       <div class="v2-section-head">
         <div class="v2-eyebrow">Crecimiento por red</div>
         <h2 class="v2-h2">Instagram &amp; TikTok</h2>
-        <p class="v2-section-desc">Audiencia, alcance y conversi\xF3n por plataforma \xB7 sparkline 30d.</p>
+        <p class="v2-section-desc">Audiencia, alcance y conversión por plataforma · sparkline 30d.</p>
       </div>
       <div class="v2-grow-grid">
-        ${f({platform:"instagram",handle:"@feedia.ai",followers:14060,deltaPct:"+37.8%",deltaPositive:!0,spark:R,tier:{name:"Authority",pct:64},metrics:[{label:"Alcance 30d",value:"287.4k",delta:{value:"22%",positive:!0}},{label:"ER promedio",value:"5.2%",delta:{value:"0.8pp",positive:!0},hint:"vs benchmark 4.5%"},{label:"Saves + Sends",value:"8.9k",delta:{value:"31%",positive:!0}},{label:"Profile visits",value:"12.6k",delta:{value:"18%",positive:!0}}]})}
-        ${f({platform:"tiktok",handle:"@feedia",followers:40380,deltaPct:"+66.2%",deltaPositive:!0,spark:C,tier:{name:"FYP Native",pct:81},metrics:[{label:"Views 30d",value:"1.42M",delta:{value:"54%",positive:!0}},{label:"Completion",value:"61%",delta:{value:"4.2pp",positive:!0},hint:"vs benchmark 48%"},{label:"Shares",value:"14.2k",delta:{value:"47%",positive:!0}},{label:"FYP entries",value:"62%",delta:{value:"9pp",positive:!0}}]})}
+        ${growthCard({
+          platform: 'instagram',
+          handle: '@feedia.ai',
+          followers: 14060,
+          deltaPct: '+37.8%',
+          deltaPositive: true,
+          spark: IG_SPARK,
+          tier: { name: 'Authority', pct: 64 },
+          metrics: [
+            { label: 'Alcance 30d', value: '287.4k', delta: { value: '22%', positive: true } },
+            {
+              label: 'ER promedio',
+              value: '5.2%',
+              delta: { value: '0.8pp', positive: true },
+              hint: 'vs benchmark 4.5%',
+            },
+            { label: 'Saves + Sends', value: '8.9k', delta: { value: '31%', positive: true } },
+            { label: 'Profile visits', value: '12.6k', delta: { value: '18%', positive: true } },
+          ],
+        })}
+        ${growthCard({
+          platform: 'tiktok',
+          handle: '@feedia',
+          followers: 40380,
+          deltaPct: '+66.2%',
+          deltaPositive: true,
+          spark: TT_SPARK,
+          tier: { name: 'FYP Native', pct: 81 },
+          metrics: [
+            { label: 'Views 30d', value: '1.42M', delta: { value: '54%', positive: true } },
+            { label: 'Completion', value: '61%', delta: { value: '4.2pp', positive: true }, hint: 'vs benchmark 48%' },
+            { label: 'Shares', value: '14.2k', delta: { value: '47%', positive: true } },
+            { label: 'FYP entries', value: '62%', delta: { value: '9pp', positive: true } },
+          ],
+        })}
       </div>
     </section>
 
@@ -108,104 +251,236 @@ import{apiSafe as g}from"../lib/api.js";import{escape as e}from"../lib/dom.js";i
     <section class="v2-2col">
       <div class="v2-card v2-card-pad">
         <div class="v2-card-head">
-          <strong>Staff IA report\xE1ndote</strong>
+          <strong>Staff IA reportándote</strong>
           <span class="v2-badge v2-badge-ok">activo 24/7</span>
         </div>
         <div class="v2-staff">
-          ${(a.staff||[]).map(r=>`
+          ${(b.staff || [])
+            .map(
+              (s) => `
             <div class="v2-staff-row">
               <span class="v2-dot"></span>
               <div class="v2-staff-main">
-                <div class="v2-staff-rol">${e(r.rol)}</div>
-                <div class="v2-hint" style="color:#34d399;">${e(r.estado)}</div>
+                <div class="v2-staff-rol">${escape(s.rol)}</div>
+                <div class="v2-hint" style="color:#34d399;">${escape(s.estado)}</div>
               </div>
-            </div>`).join("")}
+            </div>`,
+            )
+            .join('')}
         </div>
       </div>
       <div class="v2-card v2-card-pad">
         <div class="v2-card-head"><strong>Logros desbloqueados</strong></div>
-        ${a.hitos&&a.hitos.length?`<div class="v2-hitos">
-          ${a.hitos.map(r=>`
+        ${
+          b.hitos && b.hitos.length
+            ? `<div class="v2-hitos">
+          ${b.hitos
+            .map(
+              (t) => `
             <div class="v2-hito-row">
-              <span class="v2-hito-ic">\u{1F3C6}</span>
+              <span class="v2-hito-ic">🏆</span>
               <div>
-                <div class="v2-staff-rol">${e(r.titulo)}</div>
-                <div class="v2-hint">${e(r.detalle)}</div>
+                <div class="v2-staff-rol">${escape(t.titulo)}</div>
+                <div class="v2-hint">${escape(t.detalle)}</div>
               </div>
               <span class="v2-badge v2-badge-warn">nuevo</span>
-            </div>`).join("")}
-        </div>`:'<div class="v2-hint">Tus primeros logros aparecer\xE1n ac\xE1.</div>'}
+            </div>`,
+            )
+            .join('')}
+        </div>`
+            : '<div class="v2-hint">Tus primeros logros aparecerán acá.</div>'
+        }
       </div>
     </section>
-  `,y=[{agent:"Nova",emoji:"\u{1F3A8}",priority:"alta",title:'Carrusel "el error #1 al automatizar"',why:"Predigo 2.3\xD7 engagement vs tu promedio.",cta:"Aprobar y agendar"},{agent:"L\xEDa",emoji:"\u270D\uFE0F",priority:"media",title:"Reescribir \xFAltimas 5 captions",why:"Las \xFAltimas perdieron tono c\xF3mplice. Recupero en 2 min.",cta:"Revisar borradores"},{agent:"Mira",emoji:"\u{1F4C8}",priority:"alta",title:"Boost de $40 al reel del martes",why:"ROAS estimado 3.8\xD7. Mejor performer del mes.",cta:"Aprobar boost"},{agent:"Gard",emoji:"\u{1F6E1}\uFE0F",priority:"cr\xEDtica",title:"#IAfacil entr\xF3 en lista gris",why:"Reemplazar antes de los pr\xF3ximos 3 posts.",cta:"Reemplazar ya"},{agent:"Luca",emoji:"\u{1F680}",priority:"media",title:"Serie story diaria 21h x 7 d\xEDas",why:"Retention 14% mayor en ese horario.",cta:"Activar serie"}],k={cr\u00EDtica:{bg:"rgba(239,68,68,.10)",col:"#fda4a4",ring:"rgba(239,68,68,.28)"},alta:{bg:"rgba(245,158,11,.10)",col:"#fbcb6b",ring:"rgba(245,158,11,.28)"},media:{bg:"rgba(124,58,237,.10)",col:"#c4b5fd",ring:"rgba(124,58,237,.28)"}},L=async()=>{const{data:a,error:o}=await g("/api/executive/proposals",y),r=Array.isArray(a)?a:y;return`
+  `;
+};
+
+/* ──── Propuestas / Análisis posts (reuso datos mock + clases v2) ──── */
+const FALLBACK_PROPOSALS = [
+  {
+    agent: 'Nova',
+    emoji: '🎨',
+    priority: 'alta',
+    title: 'Carrusel "el error #1 al automatizar"',
+    why: 'Predigo 2.3× engagement vs tu promedio.',
+    cta: 'Aprobar y agendar',
+  },
+  {
+    agent: 'Lía',
+    emoji: '✍️',
+    priority: 'media',
+    title: 'Reescribir últimas 5 captions',
+    why: 'Las últimas perdieron tono cómplice. Recupero en 2 min.',
+    cta: 'Revisar borradores',
+  },
+  {
+    agent: 'Mira',
+    emoji: '📈',
+    priority: 'alta',
+    title: 'Boost de $40 al reel del martes',
+    why: 'ROAS estimado 3.8×. Mejor performer del mes.',
+    cta: 'Aprobar boost',
+  },
+  {
+    agent: 'Gard',
+    emoji: '🛡️',
+    priority: 'crítica',
+    title: '#IAfacil entró en lista gris',
+    why: 'Reemplazar antes de los próximos 3 posts.',
+    cta: 'Reemplazar ya',
+  },
+  {
+    agent: 'Luca',
+    emoji: '🚀',
+    priority: 'media',
+    title: 'Serie story diaria 21h x 7 días',
+    why: 'Retention 14% mayor en ese horario.',
+    cta: 'Activar serie',
+  },
+];
+
+const PRIO_COLOR = {
+  crítica: { bg: 'rgba(239,68,68,.10)', col: '#fda4a4', ring: 'rgba(239,68,68,.28)' },
+  alta: { bg: 'rgba(245,158,11,.10)', col: '#fbcb6b', ring: 'rgba(245,158,11,.28)' },
+  media: { bg: 'rgba(124,58,237,.10)', col: '#c4b5fd', ring: 'rgba(124,58,237,.28)' },
+};
+
+const renderProposals = async () => {
+  const { data, error } = await apiSafe('/api/executive/proposals', FALLBACK_PROPOSALS);
+  const proposals = Array.isArray(data) ? data : FALLBACK_PROPOSALS;
+  return `
     <div class="v2-section-head">
       <div class="v2-eyebrow">Propuestas del equipo</div>
-      <h2 class="v2-h2">${r.length} oportunidades detectadas</h2>
-      <p class="v2-section-desc">Tus agentes IA priorizan. Aprob\xE1 o descart\xE1 en segundos. ${o?'<span class="v2-badge v2-badge-warn" style="margin-left:8px;">muestras \xB7 backend offline</span>':""}</p>
+      <h2 class="v2-h2">${proposals.length} oportunidades detectadas</h2>
+      <p class="v2-section-desc">Tus agentes IA priorizan. Aprobá o descartá en segundos. ${error ? '<span class="v2-badge v2-badge-warn" style="margin-left:8px;">muestras · backend offline</span>' : ''}</p>
     </div>
     <div class="v2-prop-grid">
-      ${r.map(t=>{const s=k[t.priority]||k.media;return`<div class="v2-card v2-prop">
+      ${proposals
+        .map((p) => {
+          const c = PRIO_COLOR[p.priority] || PRIO_COLOR.media;
+          return `<div class="v2-card v2-prop">
           <div class="v2-prop-head">
-            <span class="v2-prop-agent">${t.emoji} ${e(t.agent)}</span>
-            <span class="v2-badge" style="background:${s.bg};color:${s.col};box-shadow:inset 0 0 0 1px ${s.ring};">${e(t.priority)}</span>
+            <span class="v2-prop-agent">${p.emoji} ${escape(p.agent)}</span>
+            <span class="v2-badge" style="background:${c.bg};color:${c.col};box-shadow:inset 0 0 0 1px ${c.ring};">${escape(p.priority)}</span>
           </div>
-          <div class="v2-prop-title">${e(t.title)}</div>
-          <p class="v2-hint">${e(t.why)}</p>
+          <div class="v2-prop-title">${escape(p.title)}</div>
+          <p class="v2-hint">${escape(p.why)}</p>
           <div class="v2-prop-actions">
-            <button class="v2-btn v2-btn-primary v2-btn-sm" data-prop-approve>${e(t.cta)}</button>
+            <button class="v2-btn v2-btn-primary v2-btn-sm" data-prop-approve>${escape(p.cta)}</button>
             <button class="v2-btn v2-btn-ghost v2-btn-sm" data-prop-reject>Descartar</button>
           </div>
-        </div>`}).join("")}
-    </div>`},T=async()=>{const{data:a,error:o}=await g("/api/executive/posts-analysis",null),r=[{type:"reel",title:"C\xF3mo automatizo mi marketing con IA",reach:12400,eng:8.7,verdict:"top performer",recommend:"Repetir formato facecam + texto grande. Probable Explore."},{type:"carrusel",title:"5 errores al elegir nicho",reach:4200,eng:6.2,verdict:"ok",recommend:"Hook del slide 1 mejorable: tensi\xF3n o n\xFAmero alto."},{type:"story",title:"Behind the scenes del setup",reach:1800,eng:12.4,verdict:"gem oculta",recommend:"Convertir a reel \u2014 ratio engagement/reach excepcional."}],t=a?.posts??r,s={"top performer":{bg:"rgba(16,185,129,.10)",col:"#6ee7b7"},ok:{bg:"rgba(255,255,255,.06)",col:"#e4e4e7"},"gem oculta":{bg:"rgba(168,85,247,.12)",col:"#d8b4fe"}};return`
+        </div>`;
+        })
+        .join('')}
+    </div>`;
+};
+
+const renderPostsAnalysis = async () => {
+  const { data, error } = await apiSafe('/api/executive/posts-analysis', null);
+  const fallback = [
+    {
+      type: 'reel',
+      title: 'Cómo automatizo mi marketing con IA',
+      reach: 12400,
+      eng: 8.7,
+      verdict: 'top performer',
+      recommend: 'Repetir formato facecam + texto grande. Probable Explore.',
+    },
+    {
+      type: 'carrusel',
+      title: '5 errores al elegir nicho',
+      reach: 4200,
+      eng: 6.2,
+      verdict: 'ok',
+      recommend: 'Hook del slide 1 mejorable: tensión o número alto.',
+    },
+    {
+      type: 'story',
+      title: 'Behind the scenes del setup',
+      reach: 1800,
+      eng: 12.4,
+      verdict: 'gem oculta',
+      recommend: 'Convertir a reel — ratio engagement/reach excepcional.',
+    },
+  ];
+  const posts = data?.posts ?? fallback;
+  const VERDICT_COL = {
+    'top performer': { bg: 'rgba(16,185,129,.10)', col: '#6ee7b7' },
+    ok: { bg: 'rgba(255,255,255,.06)', col: '#e4e4e7' },
+    'gem oculta': { bg: 'rgba(168,85,247,.12)', col: '#d8b4fe' },
+  };
+  return `
     <div class="v2-section-head">
-      <div class="v2-eyebrow">An\xE1lisis de tus posts</div>
-      <h2 class="v2-h2">Verdict y recomendaci\xF3n espec\xEDfica</h2>
-      <p class="v2-section-desc">${o?'<span class="v2-badge v2-badge-warn">muestras locales</span>':"Lectura algoritmo + benchmarks del nicho."}</p>
+      <div class="v2-eyebrow">Análisis de tus posts</div>
+      <h2 class="v2-h2">Verdict y recomendación específica</h2>
+      <p class="v2-section-desc">${error ? '<span class="v2-badge v2-badge-warn">muestras locales</span>' : 'Lectura algoritmo + benchmarks del nicho.'}</p>
     </div>
     <div class="v2-posts">
-      ${t.map(n=>{const i=s[n.verdict]||s.ok;return`<div class="v2-card v2-post">
-          <div class="v2-post-ic">${n.type==="reel"?"\u25B6":n.type==="carrusel"?"\u2299":n.type==="story"?"\u25CE":"\u25A3"}</div>
+      ${posts
+        .map((p) => {
+          const v = VERDICT_COL[p.verdict] || VERDICT_COL.ok;
+          const tIco = p.type === 'reel' ? '▶' : p.type === 'carrusel' ? '⊙' : p.type === 'story' ? '◎' : '▣';
+          return `<div class="v2-card v2-post">
+          <div class="v2-post-ic">${tIco}</div>
           <div class="v2-post-main">
-            <div class="v2-post-title">${e(n.title)}</div>
+            <div class="v2-post-title">${escape(p.title)}</div>
             <div class="v2-post-stats">
-              <span><span class="v2-num-sm">${(n.reach||0).toLocaleString("en-US")}</span> reach</span>
-              <span><span class="v2-num-sm">${n.eng}%</span> engagement</span>
-              <span class="v2-badge" style="background:${i.bg};color:${i.col};box-shadow:inset 0 0 0 1px ${i.col}30;">${e(n.verdict)}</span>
+              <span><span class="v2-num-sm">${(p.reach || 0).toLocaleString('en-US')}</span> reach</span>
+              <span><span class="v2-num-sm">${p.eng}%</span> engagement</span>
+              <span class="v2-badge" style="background:${v.bg};color:${v.col};box-shadow:inset 0 0 0 1px ${v.col}30;">${escape(p.verdict)}</span>
             </div>
-            <div class="v2-post-recom">\u{1F4A1} ${e(n.recommend)}</div>
+            <div class="v2-post-recom">💡 ${escape(p.recommend)}</div>
           </div>
-        </div>`}).join("")}
-    </div>`},u=(a,o,r)=>`
+        </div>`;
+        })
+        .join('')}
+    </div>`;
+};
+
+const renderTabLink = (route, title, desc) => `
   <div class="v2-card v2-card-pad v2-link-card">
-    <h3 class="v2-h2" style="margin:0 0 8px;">${e(o)}</h3>
-    <p class="v2-section-desc" style="margin:0 0 18px;">${e(r)}</p>
-    <button class="v2-btn v2-btn-primary" data-go-route="${e(a)}">Abrir vista completa \u2192</button>
-  </div>`,I=async()=>{const{data:a,error:o}=await g("/api/executive/command-center",null);if(!a)return`<div class="alert warn">Command Center sin datos. ${o||"Conect\xE1 backend."}</div>`;const r=a,t=r.systemPulse||{},s=r.topInsights||[],n=r.quickActions||[];return`
+    <h3 class="v2-h2" style="margin:0 0 8px;">${escape(title)}</h3>
+    <p class="v2-section-desc" style="margin:0 0 18px;">${escape(desc)}</p>
+    <button class="v2-btn v2-btn-primary" data-go-route="${escape(route)}">Abrir vista completa →</button>
+  </div>`;
+
+const renderCommandCenter = async () => {
+  const { data, error } = await apiSafe('/api/executive/command-center', null);
+  if (!data) return `<div class="alert warn">Command Center sin datos. ${error || 'Conectá backend.'}</div>`;
+  const d = data;
+  const pulse = d.systemPulse || {};
+  const insights = d.topInsights || [];
+  const qa = d.quickActions || [];
+  return `
     <div class="cc-header">
       <div>
-        <h2 style="margin:0;font-size:22px;">${e(r.digest?.headline||"Centro de mando")}</h2>
-        <p class="small muted">${e(r.digest?.oneLineStatus||"")}</p>
+        <h2 style="margin:0;font-size:22px;">${escape(d.digest?.headline || 'Centro de mando')}</h2>
+        <p class="small muted">${escape(d.digest?.oneLineStatus || '')}</p>
       </div>
-      <div class="cc-health-badge cc-health-${e(r.digest?.health||"steady")}">${e(r.digest?.health||"")}</div>
+      <div class="cc-health-badge cc-health-${escape(d.digest?.health || 'steady')}">${escape(d.digest?.health || '')}</div>
     </div>
     <div class="cc-pulse-grid">
-      <div class="cc-pulse-card"><div class="cc-pulse-val">${t.brainModulesOnline??35}</div><div class="cc-pulse-lbl">m\xF3dulos cerebro online</div></div>
-      <div class="cc-pulse-card"><div class="cc-pulse-val">${t.last24hActions??0}</div><div class="cc-pulse-lbl">acciones aut\xF3nomas 24h</div></div>
-      <div class="cc-pulse-card"><div class="cc-pulse-val">${t.backlogSize??0}</div><div class="cc-pulse-lbl">decisiones backlog</div></div>
-      <div class="cc-pulse-card"><div class="cc-pulse-val">${t.healthScore??0}%</div><div class="cc-pulse-lbl">health score</div></div>
+      <div class="cc-pulse-card"><div class="cc-pulse-val">${pulse.brainModulesOnline ?? 35}</div><div class="cc-pulse-lbl">módulos cerebro online</div></div>
+      <div class="cc-pulse-card"><div class="cc-pulse-val">${pulse.last24hActions ?? 0}</div><div class="cc-pulse-lbl">acciones autónomas 24h</div></div>
+      <div class="cc-pulse-card"><div class="cc-pulse-val">${pulse.backlogSize ?? 0}</div><div class="cc-pulse-lbl">decisiones backlog</div></div>
+      <div class="cc-pulse-card"><div class="cc-pulse-val">${pulse.healthScore ?? 0}%</div><div class="cc-pulse-lbl">health score</div></div>
     </div>
     <div class="cc-section">
-      <h3>\u{1F50D} Top insights</h3>
-      ${s.length?`<ul class="cc-insights">${s.map(i=>`<li>${e(i.icon)} ${e(i.text)}</li>`).join("")}</ul>`:'<div class="tiny muted">Sin insights por ahora.</div>'}
+      <h3>🔍 Top insights</h3>
+      ${insights.length ? `<ul class="cc-insights">${insights.map((i) => `<li>${escape(i.icon)} ${escape(i.text)}</li>`).join('')}</ul>` : '<div class="tiny muted">Sin insights por ahora.</div>'}
     </div>
     <div class="cc-section">
-      <h3>\u26A1 Acciones r\xE1pidas</h3>
+      <h3>⚡ Acciones rápidas</h3>
       <div class="cc-qa-grid">
-        ${n.map(i=>`
-          <button class="cc-qa-card" data-go-route="${e(i.route||"")}" data-skill="${e(i.skill||"")}">
-            <div class="cc-qa-emoji">${e(i.emoji)}</div>
-            <div class="cc-qa-text"><div class="cc-qa-lbl">${e(i.label)}</div><div class="cc-qa-desc">${e(i.description)}</div></div>
-          </button>`).join("")}
+        ${qa
+          .map(
+            (a) => `
+          <button class="cc-qa-card" data-go-route="${escape(a.route || '')}" data-skill="${escape(a.skill || '')}">
+            <div class="cc-qa-emoji">${escape(a.emoji)}</div>
+            <div class="cc-qa-text"><div class="cc-qa-lbl">${escape(a.label)}</div><div class="cc-qa-desc">${escape(a.description)}</div></div>
+          </button>`,
+          )
+          .join('')}
       </div>
     </div>
     <style>
@@ -230,25 +505,37 @@ import{apiSafe as g}from"../lib/api.js";import{escape as e}from"../lib/dom.js";i
       .cc-qa-emoji{font-size:24px;flex-shrink:0;}
       .cc-qa-lbl{font-weight:700;font-size:13px;}
       .cc-qa-desc{font-size:11px;opacity:.65;margin-top:2px;}
-    </style>`},F=async()=>{const{data:a}=await g("/api/executive/decisions/pending",[]),o=Array.isArray(a)?a:[];return o.length===0?'<div class="tiny muted" style="text-align:center;padding:40px;">Sin decisiones pendientes \u2728</div>':`
-    <div class="exec-section-head"><h3>\u2696\uFE0F Decisiones esperando tu aprobaci\xF3n (${o.length})</h3></div>
+    </style>`;
+};
+
+const renderDecisions = async () => {
+  const { data } = await apiSafe('/api/executive/decisions/pending', []);
+  const decisions = Array.isArray(data) ? data : [];
+  if (decisions.length === 0)
+    return `<div class="tiny muted" style="text-align:center;padding:40px;">Sin decisiones pendientes ✨</div>`;
+  return `
+    <div class="exec-section-head"><h3>⚖️ Decisiones esperando tu aprobación (${decisions.length})</h3></div>
     <div class="dec-list">
-      ${o.map(r=>`
-        <div class="dec-card" data-urgency="${e(r.urgency)}">
+      ${decisions
+        .map(
+          (d) => `
+        <div class="dec-card" data-urgency="${escape(d.urgency)}">
           <div class="dec-head">
-            <span class="dec-source">${e(r.source)}</span>
-            <span class="dec-urgency prio-${e(r.urgency==="critical"?"cr\xEDtica":r.urgency==="high"?"alta":"media")}">${e(r.urgency)}</span>
+            <span class="dec-source">${escape(d.source)}</span>
+            <span class="dec-urgency prio-${escape(d.urgency === 'critical' ? 'crítica' : d.urgency === 'high' ? 'alta' : 'media')}">${escape(d.urgency)}</span>
           </div>
-          <h4>${e(r.title)}</h4>
-          <p class="small muted">${e(r.context)}</p>
-          <div class="dec-reasoning"><strong>Razonamiento:</strong> ${e(r.reasoning)}</div>
-          <div class="dec-outcome"><strong>Esperado:</strong> ${e(r.expectedOutcome)}</div>
-          ${r.risks?.length?`<div class="dec-risks"><strong>Riesgos:</strong> ${r.risks.map(t=>e(t)).join(" \xB7 ")}</div>`:""}
+          <h4>${escape(d.title)}</h4>
+          <p class="small muted">${escape(d.context)}</p>
+          <div class="dec-reasoning"><strong>Razonamiento:</strong> ${escape(d.reasoning)}</div>
+          <div class="dec-outcome"><strong>Esperado:</strong> ${escape(d.expectedOutcome)}</div>
+          ${d.risks?.length ? `<div class="dec-risks"><strong>Riesgos:</strong> ${d.risks.map((r) => escape(r)).join(' · ')}</div>` : ''}
           <div class="btn-row" style="margin-top:10px;gap:6px;">
-            <button class="v2-btn v2-btn-primary v2-btn-sm" data-resolve="approved" data-id="${e(r.id)}">\u2705 Aprobar</button>
-            <button class="v2-btn v2-btn-ghost v2-btn-sm" data-resolve="rejected" data-id="${e(r.id)}">Rechazar</button>
+            <button class="v2-btn v2-btn-primary v2-btn-sm" data-resolve="approved" data-id="${escape(d.id)}">✅ Aprobar</button>
+            <button class="v2-btn v2-btn-ghost v2-btn-sm" data-resolve="rejected" data-id="${escape(d.id)}">Rechazar</button>
           </div>
-        </div>`).join("")}
+        </div>`,
+        )
+        .join('')}
     </div>
     <style>
       .dec-list{display:flex;flex-direction:column;gap:10px;}
@@ -263,35 +550,55 @@ import{apiSafe as g}from"../lib/api.js";import{escape as e}from"../lib/dom.js";i
       .dec-reasoning{background:rgba(99,102,241,.06);padding:8px 10px;border-radius:8px;}
       .dec-outcome{background:rgba(16,185,129,.06);padding:8px 10px;border-radius:8px;}
       .dec-risks{background:rgba(239,68,68,.06);padding:8px 10px;border-radius:8px;}
-    </style>`},H=async()=>{const{data:a}=await g("/api/executive/okr/active",{objectives:[],summary:{totalActive:0,onTrack:0,atRisk:0,behind:0,ahead:0,overallScore:0}}),o=a?.objectives??[],r=a?.summary??{};return o.length===0?'<div class="tiny muted" style="text-align:center;padding:40px;">Sin OKRs activos. Cre\xE1 el primero desde la API o /api/executive/okr/create.</div>':`
-    <div class="exec-section-head"><h3>\u{1F3C1} OKRs activos (${o.length}) \xB7 Score global ${(r.overallScore||0).toFixed(0)}%</h3></div>
+    </style>`;
+};
+
+const renderOKRs = async () => {
+  const { data } = await apiSafe('/api/executive/okr/active', {
+    objectives: [],
+    summary: { totalActive: 0, onTrack: 0, atRisk: 0, behind: 0, ahead: 0, overallScore: 0 },
+  });
+  const objectives = data?.objectives ?? [];
+  const summary = data?.summary ?? {};
+  if (objectives.length === 0)
+    return `<div class="tiny muted" style="text-align:center;padding:40px;">Sin OKRs activos. Creá el primero desde la API o /api/executive/okr/create.</div>`;
+  return `
+    <div class="exec-section-head"><h3>🏁 OKRs activos (${objectives.length}) · Score global ${(summary.overallScore || 0).toFixed(0)}%</h3></div>
     <div class="okr-summary-bar">
-      <span class="okr-pill okr-ahead">${r.ahead||0} adelantados</span>
-      <span class="okr-pill okr-ontrack">${r.onTrack||0} en track</span>
-      <span class="okr-pill okr-atrisk">${r.atRisk||0} riesgo</span>
-      <span class="okr-pill okr-behind">${r.behind||0} atrasados</span>
+      <span class="okr-pill okr-ahead">${summary.ahead || 0} adelantados</span>
+      <span class="okr-pill okr-ontrack">${summary.onTrack || 0} en track</span>
+      <span class="okr-pill okr-atrisk">${summary.atRisk || 0} riesgo</span>
+      <span class="okr-pill okr-behind">${summary.behind || 0} atrasados</span>
     </div>
     <div class="okr-list">
-      ${o.map(t=>`
-        <div class="okr-card" data-status="${e(t.status)}">
+      ${objectives
+        .map(
+          (o) => `
+        <div class="okr-card" data-status="${escape(o.status)}">
           <div class="okr-head">
-            <h4>${e(t.title)}</h4>
-            <span class="okr-status okr-${e(t.status)}">${e(t.status)}</span>
+            <h4>${escape(o.title)}</h4>
+            <span class="okr-status okr-${escape(o.status)}">${escape(o.status)}</span>
           </div>
-          <div class="okr-progress-bar"><div class="okr-progress-fill" style="width:${(t.overallProgressPct||0).toFixed(0)}%;"></div></div>
-          <div class="tiny muted" style="margin-top:4px;">${(t.overallProgressPct||0).toFixed(0)}% \xB7 ${t.weeksRemaining} semana(s) restantes</div>
+          <div class="okr-progress-bar"><div class="okr-progress-fill" style="width:${(o.overallProgressPct || 0).toFixed(0)}%;"></div></div>
+          <div class="tiny muted" style="margin-top:4px;">${(o.overallProgressPct || 0).toFixed(0)}% · ${o.weeksRemaining} semana(s) restantes</div>
           <ul class="okr-kr-list">
-            ${(t.keyResults||[]).map(s=>`
+            ${(o.keyResults || [])
+              .map(
+                (kr) => `
               <li>
-                <div class="okr-kr-desc">${e(s.description)}</div>
+                <div class="okr-kr-desc">${escape(kr.description)}</div>
                 <div class="okr-kr-meta">
-                  <span>${s.current.toFixed(0)} / ${s.target.toFixed(0)} (${(s.progressPct||0).toFixed(0)}%)</span>
-                  <span class="okr-trend okr-trend-${e(s.trend)}">${e(s.trend)}</span>
+                  <span>${kr.current.toFixed(0)} / ${kr.target.toFixed(0)} (${(kr.progressPct || 0).toFixed(0)}%)</span>
+                  <span class="okr-trend okr-trend-${escape(kr.trend)}">${escape(kr.trend)}</span>
                 </div>
-              </li>`).join("")}
+              </li>`,
+              )
+              .join('')}
           </ul>
-          ${t.recommendations?.length?`<div class="okr-recs"><strong>Recomendaciones:</strong><ul>${t.recommendations.map(s=>`<li>${e(s)}</li>`).join("")}</ul></div>`:""}
-        </div>`).join("")}
+          ${o.recommendations?.length ? `<div class="okr-recs"><strong>Recomendaciones:</strong><ul>${o.recommendations.map((r) => `<li>${escape(r)}</li>`).join('')}</ul></div>` : ''}
+        </div>`,
+        )
+        .join('')}
     </div>
     <style>
       .okr-summary-bar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
@@ -323,30 +630,48 @@ import{apiSafe as g}from"../lib/api.js";import{escape as e}from"../lib/dom.js";i
       .okr-trend-stalled{background:#ef444422;color:#f87171;}
       .okr-recs{margin-top:10px;font-size:12px;background:rgba(168,85,247,.06);padding:8px 10px;border-radius:8px;}
       .okr-recs ul{margin:4px 0 0;padding-left:18px;}
-    </style>`},w=async a=>{const{data:o,error:r}=await g(`/api/autopilot/${a}/latest`,null);if(!o)return`<div class="tiny muted" style="text-align:center;padding:40px;">Sin reporte de ${a} todav\xEDa. ${r||""}<br><br>Disparar manual: POST /api/autopilot/${a}/run con m\xE9tricas.</div>`;const t=o,s=a==="instagram"?t.autopilotScore:t.fypHealthScore,n=a==="instagram"?"Autopilot Score":"FYP Health";return`
+    </style>`;
+};
+
+const renderAutopilotReport = async (platform) => {
+  const { data, error } = await apiSafe(`/api/autopilot/${platform}/latest`, null);
+  if (!data)
+    return `<div class="tiny muted" style="text-align:center;padding:40px;">Sin reporte de ${platform} todavía. ${error || ''}<br><br>Disparar manual: POST /api/autopilot/${platform}/run con métricas.</div>`;
+  const r = data;
+  const score = platform === 'instagram' ? r.autopilotScore : r.fypHealthScore;
+  const scoreLabel = platform === 'instagram' ? 'Autopilot Score' : 'FYP Health';
+  return `
     <div class="ap-hero">
-      <div class="ap-score-circle ${s>=70?"ok":s>=40?"warn":"crit"}">${s}</div>
+      <div class="ap-score-circle ${score >= 70 ? 'ok' : score >= 40 ? 'warn' : 'crit'}">${score}</div>
       <div>
-        <h3 style="margin:0;font-size:18px;">${n}: ${s}/100</h3>
-        <p class="small" style="margin:4px 0 0;">${e(t.didacticInsight)}</p>
+        <h3 style="margin:0;font-size:18px;">${scoreLabel}: ${score}/100</h3>
+        <p class="small" style="margin:4px 0 0;">${escape(r.didacticInsight)}</p>
       </div>
     </div>
     <div class="cc-section">
-      <h3>\u{1F4E1} Se\xF1ales detectadas (${t.signals?.length||0})</h3>
-      ${(t.signals||[]).length===0?'<div class="tiny muted">Sistema sin flags \u2728</div>':`
+      <h3>📡 Señales detectadas (${r.signals?.length || 0})</h3>
+      ${
+        (r.signals || []).length === 0
+          ? '<div class="tiny muted">Sistema sin flags ✨</div>'
+          : `
         <div class="ap-signals">
-          ${(t.signals||[]).map(i=>`
-            <div class="ap-signal" data-severity="${e(i.severity)}">
+          ${(r.signals || [])
+            .map(
+              (s) => `
+            <div class="ap-signal" data-severity="${escape(s.severity)}">
               <div class="ap-sig-head">
-                <span class="ap-sig-name">${e(i.signal)}</span>
-                <span class="ap-sig-sev sev-${e(i.severity)}">${e(i.severity)}</span>
+                <span class="ap-sig-name">${escape(s.signal)}</span>
+                <span class="ap-sig-sev sev-${escape(s.severity)}">${escape(s.severity)}</span>
               </div>
-              <div class="ap-sig-evidence">${e(i.evidence)}</div>
-              <div class="ap-sig-reason">${e(i.reasoning)}</div>
-              <div class="ap-sig-action">\u2192 <strong>${e(i.recommendedAction)}</strong></div>
-              <div class="ap-sig-impact">\u{1F4C8} ${e(i.expectedImpact)}</div>
-            </div>`).join("")}
-        </div>`}
+              <div class="ap-sig-evidence">${escape(s.evidence)}</div>
+              <div class="ap-sig-reason">${escape(s.reasoning)}</div>
+              <div class="ap-sig-action">→ <strong>${escape(s.recommendedAction)}</strong></div>
+              <div class="ap-sig-impact">📈 ${escape(s.expectedImpact)}</div>
+            </div>`,
+            )
+            .join('')}
+        </div>`
+      }
     </div>
     <style>
       .ap-hero{display:flex;gap:18px;align-items:center;background:var(--surface,#141418);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:18px;}
@@ -369,14 +694,49 @@ import{apiSafe as g}from"../lib/api.js";import{escape as e}from"../lib/dom.js";i
       .ap-sig-reason{font-size:12px;line-height:1.5;margin-bottom:4px;}
       .ap-sig-action{font-size:12px;background:rgba(99,102,241,.08);padding:6px 9px;border-radius:7px;margin:6px 0 4px;}
       .ap-sig-impact{font-size:11px;opacity:.75;}
-    </style>`},M=async a=>c==="summary"?q(a):c==="commandCenter"?I():c==="decisions"?F():c==="okrs"?H():c==="igAutopilot"?w("instagram"):c==="ttAutopilot"?w("tiktok"):c==="proposals"?L():c==="posts"?T():c==="analytics"?u("analytics","Analytics","M\xE9tricas completas de cuenta, posts, audiencia y crecimiento hist\xF3rico."):c==="alerts"?u("alertas","Alertas","Anomal\xEDas detectadas, riesgos de shadowban y oportunidades."):c==="logbook"?u("bitacora","Bit\xE1cora","Cronolog\xEDa de todas las acciones del sistema en tu cuenta."):c==="experiments"?u("experiments","Experimentos","A/B tests con bandits de Thompson."):c==="scheduler"?u("scheduler","Scheduler","Jobs programados y pr\xF3ximas ejecuciones."):c==="collabs"?u("collab","Collabs","Colaboraciones, brand deals y partnerships."):h[c]?`<div id="exec-embed" data-embed="${c}"><div class="loading-screen"><span class="spinner lg"></span></div></div>`:"";export const renderImperio=async a=>{c="summary",a.innerHTML=`
+    </style>`;
+};
+
+const renderTabContent = async (b) => {
+  if (activeTab === 'summary') return renderSummary(b);
+  if (activeTab === 'commandCenter') return renderCommandCenter();
+  if (activeTab === 'decisions') return renderDecisions();
+  if (activeTab === 'okrs') return renderOKRs();
+  if (activeTab === 'igAutopilot') return renderAutopilotReport('instagram');
+  if (activeTab === 'ttAutopilot') return renderAutopilotReport('tiktok');
+  if (activeTab === 'proposals') return renderProposals();
+  if (activeTab === 'posts') return renderPostsAnalysis();
+  if (activeTab === 'analytics')
+    return renderTabLink(
+      'analytics',
+      'Analytics',
+      'Métricas completas de cuenta, posts, audiencia y crecimiento histórico.',
+    );
+  if (activeTab === 'alerts')
+    return renderTabLink('alertas', 'Alertas', 'Anomalías detectadas, riesgos de shadowban y oportunidades.');
+  if (activeTab === 'logbook')
+    return renderTabLink('bitacora', 'Bitácora', 'Cronología de todas las acciones del sistema en tu cuenta.');
+  if (activeTab === 'experiments')
+    return renderTabLink('experiments', 'Experimentos', 'A/B tests con bandits de Thompson.');
+  if (activeTab === 'scheduler')
+    return renderTabLink('scheduler', 'Scheduler', 'Jobs programados y próximas ejecuciones.');
+  if (activeTab === 'collabs') return renderTabLink('collab', 'Collabs', 'Colaboraciones, brand deals y partnerships.');
+  if (EMBED_VIEWS[activeTab]) {
+    return `<div id="exec-embed" data-embed="${activeTab}"><div class="loading-screen"><span class="spinner lg"></span></div></div>`;
+  }
+  return '';
+};
+
+export const renderImperio = async (root) => {
+  activeTab = 'summary';
+  root.innerHTML = `
     <div class="v2-tabs">
-      ${E.map(s=>`<button class="v2-tab ${s.id==="summary"?"is-active":""}" data-tab="${s.id}">${e(s.label)}</button>`).join("")}
+      ${TABS.map((t) => `<button class="v2-tab ${t.id === 'summary' ? 'is-active' : ''}" data-tab="${t.id}">${escape(t.label)}</button>`).join('')}
     </div>
     <div id="exec-body" class="v2-body"><div class="loading-screen"><span class="spinner lg"></span></div></div>
 
     <style>
-      /* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 Sala Ejecutiva v2 \xB7 Vercel-grade \xB7 THEME-AWARE \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+      /* ═════════ Sala Ejecutiva v2 · Vercel-grade · THEME-AWARE ═════════
          Usamos los tokens globales del proyecto (--text-primary, --bg-elevated, etc.)
          que ya cambian con data-theme="light". Cualquier hardcoded color que no
          dependa de los tokens rompe modo claro. */
@@ -394,9 +754,9 @@ import{apiSafe as g}from"../lib/api.js";import{escape as e}from"../lib/dom.js";i
         color:var(--v2-fg);
       }
 
-      /* Tabs minimal */
-      .v2-tabs{display:flex;gap:2px;padding:4px;background:var(--v2-surface);box-shadow:inset 0 0 0 1px var(--v2-line);border-radius:10px;overflow-x:auto;margin-bottom:24px;}
-      .v2-tab{flex-shrink:0;padding:7px 12px;border-radius:6px;border:0;background:transparent;color:var(--v2-fg-3);font-size:12.5px;font-weight:500;letter-spacing:-0.01em;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s;}
+      /* Tabs grid 6x3 */
+      .v2-tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:12px;background:var(--v2-surface);box-shadow:inset 0 0 0 1px var(--v2-line);border-radius:10px;margin-bottom:24px;}
+      .v2-tab{padding:12px 14px;border-radius:8px;border:1.5px solid #444;background:#222;color:var(--v2-fg-3);font-size:12.5px;font-weight:500;letter-spacing:-0.01em;cursor:pointer;white-space:normal;text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s,border-color .15s;}
       .v2-tab:hover{background:var(--v2-hover);color:var(--v2-fg);}
       .v2-tab.is-active{background:var(--v2-hover);color:var(--v2-fg);box-shadow:inset 0 0 0 1px var(--v2-line-strong);}
 
@@ -414,7 +774,7 @@ import{apiSafe as g}from"../lib/api.js";import{escape as e}from"../lib/dom.js";i
       .v2-delta{font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.005em;}
       .v2-delta-sm{font-size:10.5px;font-weight:600;font-variant-numeric:tabular-nums;}
 
-      /* Cards \xB7 hairline border, no shadow blob */
+      /* Cards · hairline border, no shadow blob */
       .v2-card{background:var(--v2-surface);border-radius:14px;box-shadow:inset 0 0 0 1px var(--v2-line);transition:box-shadow .2s;position:relative;overflow:hidden;}
       .v2-card:hover{box-shadow:inset 0 0 0 1px var(--v2-line-strong);}
       .v2-card-pad{padding:18px;}
@@ -522,4 +882,91 @@ import{apiSafe as g}from"../lib/api.js";import{escape as e}from"../lib/dom.js";i
         .v2-card-pad{padding:14px;}
       }
     </style>
-  `;const{data:o}=await g("/api/experience/brief",null),r=o??{tier:"Bronce",tierProgresoPct:12,saludo:"Bienvenido a tu Sala Ejecutiva",narrativa:"Conect\xE1 el backend para ver tu apalancamiento real, equipo trabajando y trofeos.",leverage:{ratioLabel:"0\xD7",accionesEjecutadas:0,indicacionesDadas:0,costoEquipoUsdMes:0,ahorroAnualUsd:0,horasHumanasAhorradas:0},staff:[{rol:"Equipo en pausa",estado:"esperando conexi\xF3n"}],hitos:[],credencial:"FeedIA \xB7 founder mode"},t=async()=>{const s=a.querySelector("#exec-body");s.innerHTML='<div style="text-align:center;padding:40px;"><span class="spinner lg"></span></div>',s.innerHTML=await M(r);const n=s.querySelector("[data-embed]");if(n){const i=n.dataset.embed,l=h[i];if(l)try{const v=(await import(l.path))[l.name];typeof v=="function"&&await v(n)}catch(d){n.innerHTML=`<div class="alert crit">No se pudo cargar ${e(i)}: ${e(d.message)}</div>`}}s.querySelectorAll("[data-go-route]").forEach(i=>{i.addEventListener("click",()=>{window.location.hash=`#${i.dataset.goRoute}`})}),s.querySelectorAll("[data-prop-approve]").forEach(i=>{i.addEventListener("click",()=>{i.closest(".v2-prop").style.opacity=".4",b("\u2705 Aprobado","ok")})}),s.querySelectorAll("[data-prop-reject]").forEach(i=>{i.addEventListener("click",()=>{i.closest(".v2-prop").remove(),b("Descartado","info")})}),s.querySelectorAll("[data-resolve]").forEach(i=>{i.addEventListener("click",async()=>{const l=i.dataset.resolve,d=i.dataset.id;try{(await fetch("/api/executive/decisions/resolve",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({decisionId:d,status:l})})).ok?(i.closest(".dec-card").style.opacity=".35",b(l==="approved"?"\u2705 Aprobada":"Rechazada",l==="approved"?"ok":"info")):b("Error al resolver","err")}catch{b("Backend offline","warn")}})})};a.querySelectorAll(".v2-tab").forEach(s=>{s.addEventListener("click",()=>{c=s.dataset.tab,a.querySelectorAll(".v2-tab").forEach(n=>n.classList.toggle("is-active",n===s)),t()})}),await t()};
+  `;
+
+  const { data: b } = await apiSafe('/api/experience/brief', null);
+  const briefData = b ?? {
+    tier: 'Bronce',
+    tierProgresoPct: 12,
+    saludo: 'Bienvenido a tu Sala Ejecutiva',
+    narrativa: 'Conectá el backend para ver tu apalancamiento real, equipo trabajando y trofeos.',
+    leverage: {
+      ratioLabel: '0×',
+      accionesEjecutadas: 0,
+      indicacionesDadas: 0,
+      costoEquipoUsdMes: 0,
+      ahorroAnualUsd: 0,
+      horasHumanasAhorradas: 0,
+    },
+    staff: [{ rol: 'Equipo en pausa', estado: 'esperando conexión' }],
+    hitos: [],
+    credencial: 'FeedIA · founder mode',
+  };
+
+  const repaint = async () => {
+    const body = root.querySelector('#exec-body');
+    body.innerHTML = '<div style="text-align:center;padding:40px;"><span class="spinner lg"></span></div>';
+    body.innerHTML = await renderTabContent(briefData);
+    const embed = body.querySelector('[data-embed]');
+    if (embed) {
+      const tabId = embed.dataset.embed;
+      const spec = EMBED_VIEWS[tabId];
+      if (spec) {
+        try {
+          const mod = await import(spec.path);
+          const fn = mod[spec.name];
+          if (typeof fn === 'function') await fn(embed);
+        } catch (err) {
+          embed.innerHTML = `<div class="alert crit">No se pudo cargar ${escape(tabId)}: ${escape(err.message)}</div>`;
+        }
+      }
+    }
+    body.querySelectorAll('[data-go-route]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        window.location.hash = `#${btn.dataset.goRoute}`;
+      });
+    });
+    body.querySelectorAll('[data-prop-approve]').forEach((bt) => {
+      bt.addEventListener('click', () => {
+        bt.closest('.v2-prop').style.opacity = '.4';
+        toast('✅ Aprobado', 'ok');
+      });
+    });
+    body.querySelectorAll('[data-prop-reject]').forEach((bt) => {
+      bt.addEventListener('click', () => {
+        bt.closest('.v2-prop').remove();
+        toast('Descartado', 'info');
+      });
+    });
+    body.querySelectorAll('[data-resolve]').forEach((bt) => {
+      bt.addEventListener('click', async () => {
+        const status = bt.dataset.resolve;
+        const id = bt.dataset.id;
+        try {
+          const r = await fetch('/api/executive/decisions/resolve', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ decisionId: id, status }),
+          });
+          if (r.ok) {
+            bt.closest('.dec-card').style.opacity = '.35';
+            toast(status === 'approved' ? '✅ Aprobada' : 'Rechazada', status === 'approved' ? 'ok' : 'info');
+          } else {
+            toast('Error al resolver', 'err');
+          }
+        } catch {
+          toast('Backend offline', 'warn');
+        }
+      });
+    });
+  };
+
+  root.querySelectorAll('.v2-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      activeTab = tab.dataset.tab;
+      root.querySelectorAll('.v2-tab').forEach((t) => t.classList.toggle('is-active', t === tab));
+      void repaint();
+    });
+  });
+  await repaint();
+};

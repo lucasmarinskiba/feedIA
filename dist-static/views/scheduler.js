@@ -1,61 +1,160 @@
-import{api as c}from"../lib/api.js";import{escape as t}from"../lib/dom.js";import{fmt as o}from"../lib/dom.js";import{toast as d}from"../lib/toast.js";let n={jobs:[],runs:[]};const u={"digest-diario":"\u{1F4F0}","curator-fetch":"\u{1F310}","nurture-ejecutar":"\u{1F48C}","bot-poll":"\u{1F916}","ugc-expirar":"\u{1F4F8}","autopilot-semanal":"\u{1F680}"},v=e=>{const a=u[e.name]??"\u2699\uFE0F",s=n.runs.filter(i=>i.job===e.name).sort((i,r)=>new Date(r.startedAt)-new Date(i.startedAt))[0];return`
+import { api } from '../lib/api.js';
+import { escape } from '../lib/dom.js';
+import { fmt } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+
+let state = { jobs: [], runs: [] };
+
+const JOB_ICONS = {
+  'digest-diario': '📰',
+  'curator-fetch': '🌐',
+  'nurture-ejecutar': '💌',
+  'bot-poll': '🤖',
+  'ugc-expirar': '📸',
+  'autopilot-semanal': '🚀',
+};
+
+const renderJobCard = (job) => {
+  const icon = JOB_ICONS[job.name] ?? '⚙️';
+  const lastRun = state.runs
+    .filter((r) => r.job === job.name)
+    .sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt))[0];
+  return `
     <div class="job-card card">
       <div class="job-header">
-        <div class="job-icon">${a}</div>
+        <div class="job-icon">${icon}</div>
         <div class="job-info">
-          <div class="small" style="font-weight:600;">${t(e.name)}</div>
-          <div class="tiny muted">${t(e.cronExpr??"")}</div>
-          ${s?`<div class="tiny muted">\xDAltima ejecuci\xF3n: ${o.rel(s.startedAt)} \u2014 <span class="tag tiny ${s.status==="ok"?"ok":"crit"}">${t(s.status)}</span></div>`:'<div class="tiny muted">Sin ejecuciones registradas</div>'}
+          <div class="small" style="font-weight:600;">${escape(job.name)}</div>
+          <div class="tiny muted">${escape(job.cronExpr ?? '')}</div>
+          ${lastRun ? `<div class="tiny muted">Última ejecución: ${fmt.rel(lastRun.startedAt)} — <span class="tag tiny ${lastRun.status === 'ok' ? 'ok' : 'crit'}">${escape(lastRun.status)}</span></div>` : '<div class="tiny muted">Sin ejecuciones registradas</div>'}
         </div>
         <div class="job-actions">
-          <span class="tag ${e.running?"warn":"ok"}">${e.running?"ejecutando":"listo"}</span>
-          <button class="btn ghost tiny run-btn" data-name="${t(e.name)}" ${e.running?"disabled":""}>\u25B6 Ejecutar</button>
+          <span class="tag ${job.running ? 'warn' : 'ok'}">${job.running ? 'ejecutando' : 'listo'}</span>
+          <button class="btn ghost tiny run-btn" data-name="${escape(job.name)}" ${job.running ? 'disabled' : ''}>▶ Ejecutar</button>
         </div>
       </div>
-      ${e.description?`<div class="tiny muted" style="margin-top:6px;">${t(e.description)}</div>`:""}
-    </div>`},m=()=>n.runs.length?`
+      ${job.description ? `<div class="tiny muted" style="margin-top:6px;">${escape(job.description)}</div>` : ''}
+    </div>`;
+};
+
+const renderRunsLog = () => {
+  if (!state.runs.length) return `<div class="empty muted small">Sin ejecuciones registradas todavía.</div>`;
+  return `
     <div class="runs-log">
-      ${n.runs.slice(0,20).map(e=>`
+      ${state.runs
+        .slice(0, 20)
+        .map(
+          (r) => `
         <div class="run-row">
-          <span class="run-icon">${u[e.job]??"\u2699\uFE0F"}</span>
-          <span class="small run-job">${t(e.job)}</span>
-          <span class="tag tiny ${e.status==="ok"?"ok":e.status==="running"?"warn":"crit"}">${t(e.status)}</span>
-          <span class="tiny muted">${o.rel(e.startedAt)}</span>
-          ${e.duration?`<span class="tiny muted">${e.duration}ms</span>`:""}
-          ${e.error?`<span class="tiny crit" title="${t(e.error)}">\u26A0\uFE0F</span>`:""}
-        </div>`).join("")}
-    </div>`:'<div class="empty muted small">Sin ejecuciones registradas todav\xEDa.</div>',b=()=>`
+          <span class="run-icon">${JOB_ICONS[r.job] ?? '⚙️'}</span>
+          <span class="small run-job">${escape(r.job)}</span>
+          <span class="tag tiny ${r.status === 'ok' ? 'ok' : r.status === 'running' ? 'warn' : 'crit'}">${escape(r.status)}</span>
+          <span class="tiny muted">${fmt.rel(r.startedAt)}</span>
+          ${r.duration ? `<span class="tiny muted">${r.duration}ms</span>` : ''}
+          ${r.error ? `<span class="tiny crit" title="${escape(r.error)}">⚠️</span>` : ''}
+        </div>`,
+        )
+        .join('')}
+    </div>`;
+};
+
+const renderOverridePanel = () => `
   <div class="card" style="margin-bottom:14px;">
-    <h3>\u2699\uFE0F Override de jobs</h3>
-    <p class="small muted" style="margin-bottom:12px;">Modific\xE1 temporalmente la expresi\xF3n cron de un job sin reiniciar el servidor.</p>
+    <h3>⚙️ Override de jobs</h3>
+    <p class="small muted" style="margin-bottom:12px;">Modificá temporalmente la expresión cron de un job sin reiniciar el servidor.</p>
     <div class="field-row">
       <select class="field-select" id="override-job" style="flex:1;">
-        ${n.jobs.map(e=>`<option value="${t(e.name)}">${t(e.name)}</option>`).join("")}
+        ${state.jobs.map((j) => `<option value="${escape(j.name)}">${escape(j.name)}</option>`).join('')}
       </select>
       <input class="field-input" id="override-cron" type="text" placeholder="*/5 * * * *" style="flex:1;"/>
       <button class="btn ghost" id="apply-override-btn">Aplicar</button>
     </div>
-  </div>`,y=e=>{const a=e.querySelector("#scheduler-content");a&&(a.innerHTML=`
+  </div>`;
+
+const render = (root) => {
+  const content = root.querySelector('#scheduler-content');
+  if (!content) return;
+  content.innerHTML = `
     <div class="scheduler-grid">
       <div>
-        <div class="col-header" style="margin-bottom:12px;"><h3>\u{1F4CB} Jobs configurados</h3></div>
-        ${n.jobs.map(v).join("")}
-        ${b()}
+        <div class="col-header" style="margin-bottom:12px;"><h3>📋 Jobs configurados</h3></div>
+        ${state.jobs.map(renderJobCard).join('')}
+        ${renderOverridePanel()}
       </div>
       <div>
-        <div class="col-header" style="margin-bottom:12px;"><h3>\u{1F4DC} Log de ejecuciones</h3></div>
+        <div class="col-header" style="margin-bottom:12px;"><h3>📜 Log de ejecuciones</h3></div>
         <div class="card" style="padding:0;">
-          <div class="list-inner">${m()}</div>
+          <div class="list-inner">${renderRunsLog()}</div>
         </div>
       </div>
-    </div>`,g(e,a))},g=(e,a)=>{a.querySelectorAll(".run-btn").forEach(s=>s.addEventListener("click",async()=>{const i=s.dataset.name;s.disabled=!0,s.innerHTML='<span class="spinner"></span>';try{await c("/api/scheduler/run",{body:{jobName:i}}),d(`Job "${i}" ejecutado`,"ok"),await l(e)}catch(r){d(r.message,"crit"),s.disabled=!1,s.innerHTML="\u25B6 Ejecutar"}})),a.querySelector("#apply-override-btn")?.addEventListener("click",async()=>{const s=a.querySelector("#override-job")?.value,i=a.querySelector("#override-cron")?.value.trim();if(!i){d("Ingres\xE1 una expresi\xF3n cron","crit");return}const r=a.querySelector("#apply-override-btn");r.disabled=!0;try{await c("/api/scheduler/override",{body:{jobName:s,cronExpr:i}}),d(`Override aplicado a "${s}"`,"ok"),await l(e)}catch(p){d(p.message,"crit")}finally{r.disabled=!1}})},l=async e=>{try{const[a,s]=await Promise.allSettled([c("/api/scheduler/jobs"),c("/api/scheduler/runs")]);n.jobs=a.status==="fulfilled"?a.value.jobs??[]:[],n.runs=s.status==="fulfilled"?s.value.runs??[]:[],y(e)}catch(a){d(a.message,"crit")}};export const renderScheduler=async e=>{n={jobs:[],runs:[]},e.innerHTML=`
+    </div>`;
+  attachListeners(root, content);
+};
+
+const attachListeners = (root, content) => {
+  content.querySelectorAll('.run-btn').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const name = btn.dataset.name;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>';
+      try {
+        await api('/api/scheduler/run', { body: { jobName: name } });
+        toast(`Job "${name}" ejecutado`, 'ok');
+        await loadData(root);
+      } catch (err) {
+        toast(err.message, 'crit');
+        btn.disabled = false;
+        btn.innerHTML = '▶ Ejecutar';
+      }
+    }),
+  );
+
+  content.querySelector('#apply-override-btn')?.addEventListener('click', async () => {
+    const jobName = content.querySelector('#override-job')?.value;
+    const cronExpr = content.querySelector('#override-cron')?.value.trim();
+    if (!cronExpr) {
+      toast('Ingresá una expresión cron', 'crit');
+      return;
+    }
+    const btn = content.querySelector('#apply-override-btn');
+    btn.disabled = true;
+    try {
+      await api('/api/scheduler/override', { body: { jobName, cronExpr } });
+      toast(`Override aplicado a "${jobName}"`, 'ok');
+      await loadData(root);
+    } catch (err) {
+      toast(err.message, 'crit');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+};
+
+const loadData = async (root) => {
+  try {
+    const [jobsRes, runsRes] = await Promise.allSettled([api('/api/scheduler/jobs'), api('/api/scheduler/runs')]);
+    state.jobs = jobsRes.status === 'fulfilled' ? (jobsRes.value.jobs ?? []) : [];
+    state.runs = runsRes.status === 'fulfilled' ? (runsRes.value.runs ?? []) : [];
+    render(root);
+  } catch (err) {
+    toast(err.message, 'crit');
+  }
+};
+
+export const renderScheduler = async (root) => {
+  state = { jobs: [], runs: [] };
+  root.innerHTML = `
     <header class="view-header page-header">
       <div>
         <h1 class="view-title page-title">Scheduler</h1>
-        <p class="view-subtitle page-subtitle">Gestion\xE1 y ejecut\xE1 jobs cron del agente manualmente.</p>
+        <p class="view-subtitle page-subtitle">Gestioná y ejecutá jobs cron del agente manualmente.</p>
       </div>
       <div class="page-actions">
-        <button class="btn ghost" id="refresh-sch-btn">\u21BB Actualizar</button>
+        <button class="btn ghost" id="refresh-sch-btn">↻ Actualizar</button>
       </div>
     </header>
-    <div id="scheduler-content" class="page-body"><div class="page-loading"><span class="spinner"></span> cargando\u2026</div></div>`,e.querySelector("#refresh-sch-btn")?.addEventListener("click",()=>l(e)),await l(e)};
+    <div id="scheduler-content" class="page-body"><div class="page-loading"><span class="spinner"></span> cargando…</div></div>`;
+
+  root.querySelector('#refresh-sch-btn')?.addEventListener('click', () => loadData(root));
+  await loadData(root);
+};

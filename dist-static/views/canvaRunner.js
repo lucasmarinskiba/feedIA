@@ -1,71 +1,133 @@
-import{apiSafe as l}from"../lib/api.js";import{escape as n}from"../lib/dom.js";import{toast as s}from"../lib/toast.js";import{launchCanvaBrain as m}from"../lib/canvaBrain.js";const u=[{emoji:"\u{1F3A8}",name:"Nova",role:"Dise\xF1adora",task:"crea el visual en Canva"},{emoji:"\u270D\uFE0F",name:"L\xEDa",role:"Copywriter",task:"escribe el caption con voz de marca"},{emoji:"\u{1F6E1}\uFE0F",name:"Gard",role:"Compliance",task:"valida tono, hashtags y riesgo"},{emoji:"\u{1F680}",name:"Luca",role:"Publisher",task:"sube el post a Instagram"},{emoji:"\u{1F4C8}",name:"Mira",role:"Boost & m\xE9trica",task:"programa el boost y mide retenci\xF3n"}],p=[{key:"design",emoji:"\u{1F3A8}",label:"Dise\xF1o en Canva"},{key:"caption",emoji:"\u270D\uFE0F",label:"Caption + tono"},{key:"publish",emoji:"\u{1F4F7}",label:"Publicaci\xF3n IG"},{key:"boost",emoji:"\u26A1",label:"Boost programado"}],g=()=>`
+/* ══════════════════════════════════════════════════════════════════════════════
+   CANVA RUNNER — Pipeline visual Canva → Instagram (Computer Use Agent)
+   ──────────────────────────────────────────────────────────────────────────────
+   Diseño humanizado: muestra el equipo IA detrás (Nova, Lía, Gard, Luca),
+   capabilities en vivo, formulario claro y resultado con timeline.
+   Render-first + apiSafe (no rompe sin backend).
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { apiSafe } from '../lib/api.js';
+import { escape } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+import { launchCanvaBrain } from '../lib/canvaBrain.js';
+
+const AGENTS = [
+  { emoji: '🎨', name: 'Nova', role: 'Diseñadora', task: 'crea el visual en Canva' },
+  { emoji: '✍️', name: 'Lía', role: 'Copywriter', task: 'escribe el caption con voz de marca' },
+  { emoji: '🛡️', name: 'Gard', role: 'Compliance', task: 'valida tono, hashtags y riesgo' },
+  { emoji: '🚀', name: 'Luca', role: 'Publisher', task: 'sube el post a Instagram' },
+  { emoji: '📈', name: 'Mira', role: 'Boost & métrica', task: 'programa el boost y mide retención' },
+];
+
+const PIPELINE_STEPS = [
+  { key: 'design', emoji: '🎨', label: 'Diseño en Canva' },
+  { key: 'caption', emoji: '✍️', label: 'Caption + tono' },
+  { key: 'publish', emoji: '📷', label: 'Publicación IG' },
+  { key: 'boost', emoji: '⚡', label: 'Boost programado' },
+];
+
+const renderAgentsStrip = () => `
   <div class="canva-agents">
-    ${u.map(e=>`
+    ${AGENTS.map(
+      (a) => `
       <div class="canva-agent">
-        <div class="canva-agent-emoji">${e.emoji}</div>
-        <div class="canva-agent-name">${n(e.name)}</div>
-        <div class="canva-agent-role">${n(e.role)}</div>
-        <div class="canva-agent-task">${n(e.task)}</div>
-      </div>`).join("")}
-  </div>`,b=e=>{if(!e)return`<div class="canva-status-offline">
-      \u{1F4E1} <strong>Backend offline</strong> \u2014 el pipeline no puede ejecutarse hasta reconectar.
-      Igual pod\xE9s usar el formulario y se enviar\xE1 cuando vuelva.
-    </div>`;const o=e.capabilitiesAvailable??{},i=Object.entries(o).filter(([,a])=>a).map(([a])=>a),t=Object.entries(o).filter(([,a])=>!a).map(([a])=>a),r=e.dryRun===!0;return`
+        <div class="canva-agent-emoji">${a.emoji}</div>
+        <div class="canva-agent-name">${escape(a.name)}</div>
+        <div class="canva-agent-role">${escape(a.role)}</div>
+        <div class="canva-agent-task">${escape(a.task)}</div>
+      </div>`,
+    ).join('')}
+  </div>`;
+
+const renderCapabilityRow = (status) => {
+  if (!status) {
+    return `<div class="canva-status-offline">
+      📡 <strong>Backend offline</strong> — el pipeline no puede ejecutarse hasta reconectar.
+      Igual podés usar el formulario y se enviará cuando vuelva.
+    </div>`;
+  }
+  const caps = status.capabilitiesAvailable ?? {};
+  const enabled = Object.entries(caps)
+    .filter(([, v]) => v)
+    .map(([k]) => k);
+  const disabled = Object.entries(caps)
+    .filter(([, v]) => !v)
+    .map(([k]) => k);
+  const dry = status.dryRun === true;
+  return `
     <div class="canva-status">
       <div class="canva-status-row">
-        <span class="tag ${r?"warn":"ok"} tiny">${r?"\u26A0\uFE0F DRY RUN":"\u{1F7E2} Live"}</span>
-        <span class="tag ok tiny">${i.length} capabilities activas</span>
-        ${t.length?`<span class="tag muted tiny">${t.length} desactivadas</span>`:""}
+        <span class="tag ${dry ? 'warn' : 'ok'} tiny">${dry ? '⚠️ DRY RUN' : '🟢 Live'}</span>
+        <span class="tag ok tiny">${enabled.length} capabilities activas</span>
+        ${disabled.length ? `<span class="tag muted tiny">${disabled.length} desactivadas</span>` : ''}
       </div>
       <div class="canva-caps-grid">
-        ${i.map(a=>`<span class="canva-cap on">\u2713 ${n(a)}</span>`).join("")}
-        ${t.map(a=>`<span class="canva-cap off">\u2717 ${n(a)}</span>`).join("")}
+        ${enabled.map((c) => `<span class="canva-cap on">✓ ${escape(c)}</span>`).join('')}
+        ${disabled.map((c) => `<span class="canva-cap off">✗ ${escape(c)}</span>`).join('')}
       </div>
-    </div>`},f=e=>{const o=[{ok:e.designStep?.ok,info:e.designStep?.filePath??"\u2014"},{ok:!!e.captionGeneration?.caption,info:e.captionGeneration?.toneScore!=null?`tono ${e.captionGeneration.toneScore}/100`:"\u2014"},{ok:e.publishStep?.ok,info:e.publishStep?.postUrl??"\u2014"},{ok:e.boostScheduled,info:e.boostScheduled?"programado":"\u2014"}];return`
+    </div>`;
+};
+
+const renderPipelineTimeline = (r) => {
+  const steps = [
+    { ok: r.designStep?.ok, info: r.designStep?.filePath ?? '—' },
+    {
+      ok: !!r.captionGeneration?.caption,
+      info: r.captionGeneration?.toneScore != null ? `tono ${r.captionGeneration.toneScore}/100` : '—',
+    },
+    { ok: r.publishStep?.ok, info: r.publishStep?.postUrl ?? '—' },
+    { ok: r.boostScheduled, info: r.boostScheduled ? 'programado' : '—' },
+  ];
+  return `
     <div class="canva-timeline">
-      ${p.map((i,t)=>`
-        <div class="canva-step ${o[t].ok?"done":"fail"}">
-          <div class="canva-step-emoji">${i.emoji}</div>
-          <div class="canva-step-label">${n(i.label)}</div>
-          <div class="canva-step-state">${o[t].ok?"\u2713":"\u2717"}</div>
-          <div class="canva-step-info">${n(String(o[t].info)).slice(0,80)}</div>
+      ${PIPELINE_STEPS.map(
+        (s, i) => `
+        <div class="canva-step ${steps[i].ok ? 'done' : 'fail'}">
+          <div class="canva-step-emoji">${s.emoji}</div>
+          <div class="canva-step-label">${escape(s.label)}</div>
+          <div class="canva-step-state">${steps[i].ok ? '✓' : '✗'}</div>
+          <div class="canva-step-info">${escape(String(steps[i].info)).slice(0, 80)}</div>
         </div>
-        ${t<p.length-1?'<div class="canva-step-arrow">\u2192</div>':""}
-      `).join("")}
-    </div>`};export const renderCanvaRunner=async e=>{e.innerHTML=`
+        ${i < PIPELINE_STEPS.length - 1 ? '<div class="canva-step-arrow">→</div>' : ''}
+      `,
+      ).join('')}
+    </div>`;
+};
+
+export const renderCanvaRunner = async (container) => {
+  container.innerHTML = `
     <header class="view-header page-header">
       <div>
-        <h1 class="view-title page-title">\u{1F3A8} Canva \u2192 Instagram</h1>
-        <p class="view-subtitle page-subtitle">Pipeline end-to-end. El cursor dise\xF1a, escribe, valida y publica solo. Vos mir\xE1s.</p>
+        <h1 class="view-title page-title">🎨 Canva → Instagram</h1>
+        <p class="view-subtitle page-subtitle">Pipeline end-to-end. El cursor diseña, escribe, valida y publica solo. Vos mirás.</p>
       </div>
     </header>
 
     <div class="page-body">
-      <!-- Hero: capabilities + acciones r\xE1pidas -->
+      <!-- Hero: capabilities + acciones rápidas -->
       <div class="canva-hero">
         <div id="cu-status" class="canva-hero-status">
-          <div class="canva-status-loading">Cargando estado del agente\u2026</div>
+          <div class="canva-status-loading">Cargando estado del agente…</div>
         </div>
         <div class="canva-hero-actions">
-          <button class="btn ghost" id="open-canva">\u{1F4D0} Abrir Canva</button>
-          <button class="btn ghost" id="open-ig">\u{1F4F7} Abrir Instagram</button>
-          <a class="btn ghost" href="#pantalla">\u{1F440} Pantalla en vivo</a>
+          <button class="btn ghost" id="open-canva">📐 Abrir Canva</button>
+          <button class="btn ghost" id="open-ig">📷 Abrir Instagram</button>
+          <a class="btn ghost" href="#pantalla">👀 Pantalla en vivo</a>
         </div>
       </div>
 
       <!-- Equipo IA que opera el pipeline -->
       <div class="canva-section">
         <h3 class="canva-section-title">Tu equipo IA en este pipeline</h3>
-        <p class="small muted" style="margin:0 0 12px;">No es un script: es Nova dise\xF1ando, L\xEDa escribiendo, Gard validando, Luca publicando. Cada uno reporta lo que hace.</p>
-        ${g()}
+        <p class="small muted" style="margin:0 0 12px;">No es un script: es Nova diseñando, Lía escribiendo, Gard validando, Luca publicando. Cada uno reporta lo que hace.</p>
+        ${renderAgentsStrip()}
       </div>
 
       <!-- Form pipeline -->
       <div class="canva-grid-2">
         <div class="card canva-form">
-          <h3>\u{1F4DD} Nueva pieza</h3>
+          <h3>📝 Nueva pieza</h3>
           <label class="form-label">Tema del post</label>
-          <input id="topic" class="input" placeholder="Disciplina, h\xE1bitos, marketing IA\u2026">
+          <input id="topic" class="input" placeholder="Disciplina, hábitos, marketing IA…">
 
           <div class="canva-form-row">
             <div>
@@ -81,46 +143,46 @@ import{apiSafe as l}from"../lib/api.js";import{escape as n}from"../lib/dom.js";i
             <div>
               <label class="form-label">Formato</label>
               <select id="postType" class="input">
-                <option value="feed-post">\u{1F4F8} Feed post</option>
-                <option value="reel">\u{1F3AC} Reel</option>
-                <option value="story">\u{1F4F2} Story</option>
-                <option value="carousel">\u{1F0CF} Carrusel</option>
+                <option value="feed-post">📸 Feed post</option>
+                <option value="reel">🎬 Reel</option>
+                <option value="story">📲 Story</option>
+                <option value="carousel">🃏 Carrusel</option>
               </select>
             </div>
           </div>
 
-          <label class="form-label" style="margin-top:12px;">M\xE9todo de publicaci\xF3n</label>
+          <label class="form-label" style="margin-top:12px;">Método de publicación</label>
           <select id="publishMethod" class="input">
-            <option value="upload-post-api">\u26A1 Upload-Post API (r\xE1pido \xB7 device puede estar off)</option>
-            <option value="computer-use">\u{1F5B1}\uFE0F Computer Use (cursor visible \xB7 m\xE1s confiable)</option>
-            <option value="preview-only">\u{1F441}\uFE0F Solo preview (no publica)</option>
+            <option value="upload-post-api">⚡ Upload-Post API (rápido · device puede estar off)</option>
+            <option value="computer-use">🖱️ Computer Use (cursor visible · más confiable)</option>
+            <option value="preview-only">👁️ Solo preview (no publica)</option>
           </select>
 
           <label class="form-label canva-form-check" style="margin-top:12px;">
             <input type="checkbox" id="generateCaption" checked>
-            <span>L\xEDa escribe el caption autom\xE1ticamente</span>
+            <span>Lía escribe el caption automáticamente</span>
           </label>
 
           <button class="btn primary" id="run-pipeline" style="margin-top:16px;width:100%;font-size:15px;padding:12px;">
-            \u25B6 Lanzar pipeline completo
+            ▶ Lanzar pipeline completo
           </button>
           <div class="small muted" style="margin-top:8px;text-align:center;">
-            Toma 2\u20135 min \xB7 seguilo en vivo en <a href="#pantalla" class="accent">Pantalla en vivo</a>
+            Toma 2–5 min · seguilo en vivo en <a href="#pantalla" class="accent">Pantalla en vivo</a>
           </div>
         </div>
 
         <div class="card canva-tips">
-          <h3>\u{1F4A1} C\xF3mo funciona</h3>
+          <h3>💡 Cómo funciona</h3>
           <ol class="canva-tips-list">
-            <li><strong>Nova</strong> abre Canva y arma el dise\xF1o con tu marca cargada.</li>
-            <li><strong>L\xEDa</strong> escribe el caption respetando voz, intent y hashtags.</li>
+            <li><strong>Nova</strong> abre Canva y arma el diseño con tu marca cargada.</li>
+            <li><strong>Lía</strong> escribe el caption respetando voz, intent y hashtags.</li>
             <li><strong>Gard</strong> valida tono, riesgo y compliance antes de subir.</li>
-            <li><strong>Luca</strong> publica v\xEDa API o v\xEDa cursor (seg\xFAn m\xE9todo).</li>
-            <li><strong>Mira</strong> programa boost si corresponde y mide retenci\xF3n.</li>
+            <li><strong>Luca</strong> publica vía API o vía cursor (según método).</li>
+            <li><strong>Mira</strong> programa boost si corresponde y mide retención.</li>
           </ol>
           <div class="canva-tip-cta">
             <strong>Modo Asistente activado?</strong>
-            <p class="small muted">Cada paso importante te va a pedir aprobaci\xF3n. Frenalo cuando quieras desde el bot\xF3n "\u{1F6D1} Frenar al agente" del topbar.</p>
+            <p class="small muted">Cada paso importante te va a pedir aprobación. Frenalo cuando quieras desde el botón "🛑 Frenar al agente" del topbar.</p>
           </div>
         </div>
       </div>
@@ -176,21 +238,86 @@ import{apiSafe as l}from"../lib/api.js";import{escape as n}from"../lib/dom.js";i
         .canva-form-row{grid-template-columns:1fr;}
       }
     </style>
-  `;const{data:o,error:i}=await l("/api/cu/desktop-status",null);document.getElementById("cu-status").innerHTML=b(i?null:o),document.getElementById("run-pipeline").addEventListener("click",async()=>{const t=document.getElementById("topic").value.trim();if(!t){s("Falta el tema del post","error");return}await m({topic:t,format:document.getElementById("postType").value,contentPayload:{designIntent:document.getElementById("intent").value,publishMethod:document.getElementById("publishMethod").value,generateCaption:document.getElementById("generateCaption").checked}});const r={topic:t,designIntent:document.getElementById("intent").value,postType:document.getElementById("postType").value,publishMethod:"computer-use",generateCaption:document.getElementById("generateCaption").checked},{data:a,error:c}=await l("/api/cu/canva/to-instagram",null,{method:"POST",body:r});if(c||!a){const v=document.getElementById("result");v.innerHTML='<div class="card"><div class="small muted">\u{1F4E1} Backend offline \xB7 pipeline corri\xF3 en modo simulaci\xF3n. Conect\xE1 el server para historial real.</div></div>';return}const d=document.getElementById("result");d.innerHTML=`
+  `;
+
+  const { data: status, error: statusErr } = await apiSafe('/api/cu/desktop-status', null);
+  document.getElementById('cu-status').innerHTML = renderCapabilityRow(statusErr ? null : status);
+
+  document.getElementById('run-pipeline').addEventListener('click', async () => {
+    const topic = document.getElementById('topic').value.trim();
+    if (!topic) {
+      toast('Falta el tema del post', 'error');
+      return;
+    }
+
+    // Lanzar el Cerebro Computer Use (modal in-app con equipo visible)
+    await launchCanvaBrain({
+      topic,
+      format: document.getElementById('postType').value,
+      contentPayload: {
+        designIntent: document.getElementById('intent').value,
+        publishMethod: document.getElementById('publishMethod').value,
+        generateCaption: document.getElementById('generateCaption').checked,
+      },
+    });
+
+    // Backend pipeline call (best-effort) para historial
+    const body = {
+      topic,
+      designIntent: document.getElementById('intent').value,
+      postType: document.getElementById('postType').value,
+      publishMethod: 'computer-use',
+      generateCaption: document.getElementById('generateCaption').checked,
+    };
+    const { data: r, error: pipeErr } = await apiSafe('/api/cu/canva/to-instagram', null, { method: 'POST', body });
+    if (pipeErr || !r) {
+      const resultEl = document.getElementById('result');
+      resultEl.innerHTML = `<div class="card"><div class="small muted">📡 Backend offline · pipeline corrió en modo simulación. Conectá el server para historial real.</div></div>`;
+      return;
+    }
+    const resultEl = document.getElementById('result');
+    resultEl.innerHTML = `
       <div class="card">
         <div class="row spread" style="margin-bottom:10px;">
-          <h3 style="margin:0;">${a.ok?"\u2705 Pipeline completado":"\u26A0\uFE0F Pipeline parcial"}</h3>
-          <span class="small muted">replay <code>${n(a.replayId??"\u2014")}</code></span>
+          <h3 style="margin:0;">${r.ok ? '✅ Pipeline completado' : '⚠️ Pipeline parcial'}</h3>
+          <span class="small muted">replay <code>${escape(r.replayId ?? '—')}</code></span>
         </div>
-        ${f(a)}
-        ${a.captionGeneration?.caption?`
+        ${renderPipelineTimeline(r)}
+        ${
+          r.captionGeneration?.caption
+            ? `
           <div style="margin-top:14px;padding:12px;background:var(--bg-elev,#1c1c22);border-radius:10px;">
-            <div class="small muted" style="margin-bottom:4px;">Caption generado por L\xEDa</div>
-            <div class="body" style="white-space:pre-wrap;">${n(a.captionGeneration.caption)}</div>
-          </div>`:""}
+            <div class="small muted" style="margin-bottom:4px;">Caption generado por Lía</div>
+            <div class="body" style="white-space:pre-wrap;">${escape(r.captionGeneration.caption)}</div>
+          </div>`
+            : ''
+        }
         <div class="btn-row" style="margin-top:14px;gap:8px;">
-          ${a.publishStep?.postUrl?`<a class="btn primary" href="${n(a.publishStep.postUrl)}" target="_blank" rel="noopener">Ver post \u2192</a>`:""}
-          <a class="btn ghost" href="#replay">\u{1F4DC} Replay completo</a>
-          <a class="btn ghost" href="#pantalla">\u{1F440} Pantalla en vivo</a>
+          ${r.publishStep?.postUrl ? `<a class="btn primary" href="${escape(r.publishStep.postUrl)}" target="_blank" rel="noopener">Ver post →</a>` : ''}
+          <a class="btn ghost" href="#replay">📜 Replay completo</a>
+          <a class="btn ghost" href="#pantalla">👀 Pantalla en vivo</a>
         </div>
-      </div>`,s(a.ok?"Pipeline completado \u{1F389}":"Pipeline parcial",a.ok?"success":"warn")}),document.getElementById("open-canva").addEventListener("click",async()=>{const{error:t}=await l("/api/cu/canva/open",null,{method:"POST",body:{}});if(t){s("Backend offline. No se puede abrir Canva.","error");return}s("Canva abierto en navegador","success")}),document.getElementById("open-ig").addEventListener("click",async()=>{const{error:t}=await l("/api/cu/apps/launch",null,{method:"POST",body:{app:"chrome",url:"https://instagram.com"}});if(t){s("Backend offline.","error");return}s("Instagram abierto","success")})};
+      </div>`;
+    toast(r.ok ? 'Pipeline completado 🎉' : 'Pipeline parcial', r.ok ? 'success' : 'warn');
+  });
+
+  document.getElementById('open-canva').addEventListener('click', async () => {
+    const { error } = await apiSafe('/api/cu/canva/open', null, { method: 'POST', body: {} });
+    if (error) {
+      toast('Backend offline. No se puede abrir Canva.', 'error');
+      return;
+    }
+    toast('Canva abierto en navegador', 'success');
+  });
+  document.getElementById('open-ig').addEventListener('click', async () => {
+    const { error } = await apiSafe('/api/cu/apps/launch', null, {
+      method: 'POST',
+      body: { app: 'chrome', url: 'https://instagram.com' },
+    });
+    if (error) {
+      toast('Backend offline.', 'error');
+      return;
+    }
+    toast('Instagram abierto', 'success');
+  });
+};

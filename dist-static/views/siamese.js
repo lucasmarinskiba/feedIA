@@ -1,7 +1,70 @@
-const NEXT_HOST="https://feedia-next.vercel.app",HASH_TO_PATH={home:"/welcome",imperio:"/imperio",mission:"/dashboard",agenda:"/agenda",calendar:"/calendar",feed:"/feed",predictor:"/predictor","brand-os":"/brand-os","cu-queue":"/cu-queue",brain:"/brain",approvals:"/approvals",equipo:"/growth-team",computeruse:"/cu-queue",simulator:"/simulator",tiktok:"/studio/tiktok-script"},targetPathFromHash=()=>{const t=(location.hash||"#home").replace(/^#/,"").split("?")[0];return HASH_TO_PATH[t]||"/welcome"},issuePassport=async t=>{try{const e=await fetch("/api/bridge/passport",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({targetRoute:t})});if(!e.ok)throw new Error(`passport ${e.status}`);return(await e.json()).redirect}catch{return`${NEXT_HOST}${t}`}},pingTwin=async()=>{try{return(await(await fetch("/api/bridge/twin-status",{cache:"no-store"})).json()).twinAlive===!0}catch{return!1}},mount=()=>{if(document.querySelector("#siamese-switcher"))return;const t=document.createElement("div");t.id="siamese-switcher",t.innerHTML=`
-    <button class="ss-btn" id="ss-go" title="Abrir vista equivalente en FeedIA Next (sesi\xF3n compartida)">
+/* ══════════════════════════════════════════════════════════════════════════════
+   SIAMESE SWITCHER — botón flotante para saltar al gemelo (feedia-next).
+   ──────────────────────────────────────────────────────────────────────────────
+   - Detecta hash actual y traduce a path del gemelo
+   - Emite passport (one-shot) → redirige con session attached
+   - Pulsa estado de salud del gemelo cada 60s
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+const NEXT_HOST = 'https://feedia-next.vercel.app';
+
+const HASH_TO_PATH = {
+  home: '/welcome',
+  imperio: '/imperio',
+  mission: '/dashboard',
+  agenda: '/agenda',
+  calendar: '/calendar',
+  feed: '/feed',
+  predictor: '/predictor',
+  'brand-os': '/brand-os',
+  'cu-queue': '/cu-queue',
+  brain: '/brain',
+  approvals: '/approvals',
+  equipo: '/growth-team',
+  computeruse: '/cu-queue',
+  simulator: '/simulator',
+  tiktok: '/studio/tiktok-script',
+};
+
+const targetPathFromHash = () => {
+  const h = (location.hash || '#home').replace(/^#/, '').split('?')[0];
+  return HASH_TO_PATH[h] || '/welcome';
+};
+
+const issuePassport = async (targetPath) => {
+  try {
+    const r = await fetch('/api/bridge/passport', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ targetRoute: targetPath }),
+    });
+    if (!r.ok) throw new Error(`passport ${r.status}`);
+    const j = await r.json();
+    return j.redirect;
+  } catch {
+    // fallback: sin passport, solo redirect plano
+    return `${NEXT_HOST}${targetPath}`;
+  }
+};
+
+const pingTwin = async () => {
+  try {
+    const r = await fetch('/api/bridge/twin-status', { cache: 'no-store' });
+    const j = await r.json();
+    return j.twinAlive === true;
+  } catch {
+    return false;
+  }
+};
+
+const mount = () => {
+  if (document.querySelector('#siamese-switcher')) return;
+  const el = document.createElement('div');
+  el.id = 'siamese-switcher';
+  el.innerHTML = `
+    <button class="ss-btn" id="ss-go" title="Abrir vista equivalente en FeedIA Next (sesión compartida)">
       <span class="ss-dot" data-state="check"></span>
-      <span class="ss-text">Next \u2197</span>
+      <span class="ss-text">Next ↗</span>
     </button>
     <style>
       #siamese-switcher{position:fixed;bottom:18px;left:18px;z-index:9998;font-family:inherit;}
@@ -14,4 +77,69 @@ const NEXT_HOST="https://feedia-next.vercel.app",HASH_TO_PATH={home:"/welcome",i
       :root[data-theme="light"] .ss-btn:hover{box-shadow:inset 0 0 0 1px rgba(17,18,22,.28), 0 10px 28px rgba(20,22,30,.22);}
       @media (max-width: 720px){ #siamese-switcher{bottom:18px;left:12px;} }
     </style>
-  `,document.body.appendChild(t);const e=t.querySelector(".ss-dot"),a=t.querySelector("#ss-go");a.addEventListener("click",async()=>{a.disabled=!0;const o=targetPathFromHash(),r=await issuePassport(o);window.open(r,"_blank","noopener"),a.disabled=!1});const s=async()=>{const o=await pingTwin();e.setAttribute("data-state",o?"ok":"off"),a.title=o?"Abrir vista equivalente en FeedIA Next":"FeedIA Next no responde \u2014 reintentando\u2026"};s(),setInterval(s,6e4)},consumePassport=async()=>{const t=new URL(location.href),e=t.searchParams.get("passport");if(e)try{const a=await fetch(`/api/twin/bridge/passport?id=${encodeURIComponent(e)}`,{cache:"no-store"});if(!a.ok)return;const s=await a.json();if(s.brandSnapshot)try{localStorage.setItem("feedia.brand",JSON.stringify(s.brandSnapshot))}catch{}if(s.identitySnapshot)try{localStorage.setItem("feedia.identity",JSON.stringify(s.identitySnapshot))}catch{}try{sessionStorage.setItem("feedia.siamese.synced",JSON.stringify({at:Date.now(),from:s.from}))}catch{}}catch{}finally{t.searchParams.delete("passport"),history.replaceState({},"",t.toString())}};document.readyState==="loading"?document.addEventListener("DOMContentLoaded",()=>{mount(),consumePassport()}):(mount(),consumePassport());
+  `;
+  document.body.appendChild(el);
+
+  const dot = el.querySelector('.ss-dot');
+  const btn = el.querySelector('#ss-go');
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    const path = targetPathFromHash();
+    const url = await issuePassport(path);
+    window.open(url, '_blank', 'noopener');
+    btn.disabled = false;
+  });
+
+  const refresh = async () => {
+    const alive = await pingTwin();
+    dot.setAttribute('data-state', alive ? 'ok' : 'off');
+    btn.title = alive ? 'Abrir vista equivalente en FeedIA Next' : 'FeedIA Next no responde — reintentando…';
+  };
+  refresh();
+  setInterval(refresh, 60000);
+};
+
+// Passport consumer — si llega ?passport=psp_xxx del gemelo, lo resuelve via twin proxy.
+const consumePassport = async () => {
+  const u = new URL(location.href);
+  const id = u.searchParams.get('passport');
+  if (!id) return;
+  try {
+    const r = await fetch(`/api/twin/bridge/passport?id=${encodeURIComponent(id)}`, { cache: 'no-store' });
+    if (!r.ok) return;
+    const j = await r.json();
+    if (j.brandSnapshot)
+      try {
+        localStorage.setItem('feedia.brand', JSON.stringify(j.brandSnapshot));
+      } catch {
+        /* noop */
+      }
+    if (j.identitySnapshot)
+      try {
+        localStorage.setItem('feedia.identity', JSON.stringify(j.identitySnapshot));
+      } catch {
+        /* noop */
+      }
+    try {
+      sessionStorage.setItem('feedia.siamese.synced', JSON.stringify({ at: Date.now(), from: j.from }));
+    } catch {
+      /* noop */
+    }
+  } catch {
+    /* noop */
+  } finally {
+    u.searchParams.delete('passport');
+    history.replaceState({}, '', u.toString());
+  }
+};
+
+// Auto-mount on DOMReady
+if (document.readyState === 'loading')
+  document.addEventListener('DOMContentLoaded', () => {
+    mount();
+    consumePassport();
+  });
+else {
+  mount();
+  consumePassport();
+}

@@ -1,52 +1,184 @@
-import{escape as h}from"../lib/dom.js";import{toast as k}from"../lib/toast.js";let m=[],F=null,p=null,S=!1,x=!1,y=!0,$=null,g="",z=!1,C=null,v=null;const N=async()=>{try{const o=await(await fetch("/api/voice/elevenlabs/status")).json();z=!!o?.configured,C=o?.voiceId||null}catch{z=!1}},P=async e=>{try{const o=await fetch("/api/voice/elevenlabs/speak",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:e,voiceId:C})});if(!o.ok)throw new Error(`http ${o.status}`);const r=await o.blob(),i=URL.createObjectURL(r);if(v)try{v.pause()}catch{}return v=new Audio(i),v.play().catch(()=>{}),v.onended=()=>URL.revokeObjectURL(i),!0}catch{return!1}},q=()=>{if(!window.speechSynthesis)return null;const e=window.speechSynthesis.getVoices();if(!e.length)return null;const o=[/es-AR/i,/es-MX/i,/es-US/i,/es-419/i,/es-ES/i,/^es/i];for(const r of o){const i=e.find(a=>r.test(a.lang));if(i)return i}return e[0]},V=(e,{interrupt:o=!0,rate:r=1.05,pitch:i=1.02}={})=>{if(!window.speechSynthesis||!e)return;o&&window.speechSynthesis.cancel();const a=new SpeechSynthesisUtterance(String(e).slice(0,280));a.lang="es-AR",a.rate=r,a.pitch=i,$||($=q()),$&&(a.voice=$);try{window.speechSynthesis.speak(a)}catch{}},b=async(e,o={})=>{if(!(!y||!e)){if(z){if(o.interrupt!==!1&&v){try{v.pause()}catch{}v=null}if(await P(e))return;z=!1}V(e,o)}},L=()=>{try{window.speechSynthesis?.cancel()}catch{}if(v){try{v.pause()}catch{}v=null}},U=async()=>{try{let e="";try{e=JSON.parse(localStorage.getItem("feedia.brujula.account")||"{}").handle||""}catch{}const r=await(await fetch("/api/account/profile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"get",accountId:e})})).json(),a=((r?.profile?.brandKit||r?.profile||{}).handle||e||"").replace(/^@/,"").split(/[._\-]/)[0];g=a&&a.length>1?a.charAt(0).toUpperCase()+a.slice(1):""}catch{g=""}},M=/\bfeedia\b/i,I=e=>e.replace(M,"").trim(),R=["En seguida","Dale","Voy","Manos a la obra","Vamos"],T=()=>{const e=R[Math.floor(Math.random()*R.length)];return g?`${e} ${g}`:`${e}`},H=e=>/carrusel|reel|historia|stories|post|publicar|generar|crear|hac[eé]/i.test(e),D=async()=>{try{(await fetch("/api/cua/state",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"auto"})})).ok&&(document.body.dataset.cuMode="auto")}catch{}},O=async()=>{try{return(await import("../lib/platform.js")).getPlatform()}catch{return"instagram"}},J=e=>`
+/* ══════════════════════════════════════════════════════════════════════════════
+   MANOS LIBRES — pantalla terminal-style para Computer Use real
+   Modo Manos Libres = 1 textarea (voz o texto) + log de acciones en vivo.
+   Sin forms. El cerebro lee brand-kit, intel, archetype del cache automáticamente.
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { escape } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+
+let log = []; // {at, icon, text, status}
+let lastResult = null;
+let recognition = null;
+let listening = false;
+let continuousMode = false; // si true → reinicia auto al onend
+let voiceEnabled = true;   // TTS on/off
+let preferredVoice = null;
+let userName = '';
+
+// ── TTS · ElevenLabs (premium, opt-in BYOK) → fallback speechSynthesis ───────
+let elevenLabsActive = false;     // tiene API key configurada?
+let elevenLabsVoiceId = null;
+let currentAudio = null;          // <audio> de ElevenLabs en curso
+
+const checkElevenLabs = async () => {
+  try {
+    const r = await fetch('/api/voice/elevenlabs/status');
+    const j = await r.json();
+    elevenLabsActive = Boolean(j?.configured);
+    elevenLabsVoiceId = j?.voiceId || null;
+  } catch { elevenLabsActive = false; }
+};
+
+const speakElevenLabs = async (text) => {
+  try {
+    const r = await fetch('/api/voice/elevenlabs/speak', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voiceId: elevenLabsVoiceId }),
+    });
+    if (!r.ok) throw new Error(`http ${r.status}`);
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    if (currentAudio) { try { currentAudio.pause(); } catch {} }
+    currentAudio = new Audio(url);
+    currentAudio.play().catch(() => {});
+    currentAudio.onended = () => URL.revokeObjectURL(url);
+    return true;
+  } catch { return false; }
+};
+
+const pickVoice = () => {
+  if (!window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+  const order = [/es-AR/i, /es-MX/i, /es-US/i, /es-419/i, /es-ES/i, /^es/i];
+  for (const rx of order) {
+    const v = voices.find((vv) => rx.test(vv.lang));
+    if (v) return v;
+  }
+  return voices[0];
+};
+
+const speakBrowser = (text, { interrupt = true, rate = 1.05, pitch = 1.02 } = {}) => {
+  if (!window.speechSynthesis || !text) return;
+  if (interrupt) window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(String(text).slice(0, 280));
+  u.lang = 'es-AR'; u.rate = rate; u.pitch = pitch;
+  if (!preferredVoice) preferredVoice = pickVoice();
+  if (preferredVoice) u.voice = preferredVoice;
+  try { window.speechSynthesis.speak(u); } catch {}
+};
+
+const speak = async (text, opts = {}) => {
+  if (!voiceEnabled || !text) return;
+  // Premium primero (ElevenLabs) → fallback browser
+  if (elevenLabsActive) {
+    if (opts.interrupt !== false && currentAudio) { try { currentAudio.pause(); } catch {} currentAudio = null; }
+    const ok = await speakElevenLabs(text);
+    if (ok) return;
+    elevenLabsActive = false; // si falló, cambio a fallback para próximas
+  }
+  speakBrowser(text, opts);
+};
+
+const stopSpeaking = () => {
+  try { window.speechSynthesis?.cancel(); } catch {}
+  if (currentAudio) { try { currentAudio.pause(); } catch {} currentAudio = null; }
+};
+
+// Detectar nombre del usuario (Brand Kit > localStorage > 'creator')
+const loadUserName = async () => {
+  try {
+    let handle = '';
+    try { handle = JSON.parse(localStorage.getItem('feedia.brujula.account') || '{}').handle || ''; } catch {}
+    const r = await fetch('/api/account/profile', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get', accountId: handle }),
+    });
+    const j = await r.json();
+    const bk = j?.profile?.brandKit || j?.profile || {};
+    const name = (bk.handle || handle || '').replace(/^@/, '').split(/[._\-]/)[0];
+    userName = name && name.length > 1 ? name.charAt(0).toUpperCase() + name.slice(1) : '';
+  } catch { userName = ''; }
+};
+
+// Wake word detector — "feedia"
+const WAKE_WORD = /\bfeedia\b/i;
+const stripWakeWord = (txt) => txt.replace(WAKE_WORD, '').trim();
+
+// Frases de saludo aleatorias para responder al wake word
+const GREETINGS = ['En seguida', 'Dale', 'Voy', 'Manos a la obra', 'Vamos'];
+const greet = () => {
+  const g = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
+  return userName ? `${g} ${userName}` : `${g}`;
+};
+
+// Auto-activar Computer Use cuando hay tarea creativa/creación
+const isCreativeTask = (txt) => /carrusel|reel|historia|stories|post|publicar|generar|crear|hac[eé]/i.test(txt);
+const tryActivateCU = async () => {
+  try {
+    const r = await fetch('/api/cua/state', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'auto' }) });
+    if (r.ok) document.body.dataset.cuMode = 'auto';
+  } catch {}
+};
+
+const getPlatform = async () => {
+  try {
+    const mod = await import('../lib/platform.js');
+    return mod.getPlatform();
+  } catch {
+    return 'instagram';
+  }
+};
+
+const renderShell = (platform) => `
   <div class="hf-shell">
     <div class="hf-header">
       <div class="hf-hdr-left">
         <span class="hf-dot"></span>
         <span class="hf-title">Manos Libres</span>
-        <span class="hf-platform">\u2192 ${h(e)}</span>
+        <span class="hf-platform">→ ${escape(platform)}</span>
       </div>
       <div class="hf-hdr-right">
-        <button id="hf-cfg" class="hf-iconbtn" title="Configurar voz premium (ElevenLabs)">\u2699\uFE0F</button>
-        <button id="hf-tts" class="hf-iconbtn" title="Voz on/off">\u{1F50A}</button>
-        <button id="hf-always" class="hf-iconbtn" title="Modo siempre escuchando (dec\xED 'feedia' + comando)">\u{1F442}</button>
-        <button id="hf-clear" class="hf-iconbtn" title="Limpiar log">\u2298</button>
-        <button id="hf-close" class="hf-iconbtn" title="Volver a Hola FeedIA">\u2715</button>
+        <button id="hf-cfg" class="hf-iconbtn" title="Configurar voz premium (ElevenLabs)">⚙️</button>
+        <button id="hf-tts" class="hf-iconbtn" title="Voz on/off">🔊</button>
+        <button id="hf-always" class="hf-iconbtn" title="Modo siempre escuchando (decí 'feedia' + comando)">👂</button>
+        <button id="hf-clear" class="hf-iconbtn" title="Limpiar log">⊘</button>
+        <button id="hf-close" class="hf-iconbtn" title="Volver a Hola FeedIA">✕</button>
       </div>
     </div>
 
     <details id="hf-cfg-panel" class="hf-cfg-panel">
-      <summary class="hf-cfg-sum">\u{1F50A} Asistente de voz</summary>
+      <summary class="hf-cfg-sum">🔊 Asistente de voz</summary>
       <div class="hf-cfg-body">
-        <p class="hf-cfg-hint">FeedIA narra cada acci\xF3n, gu\xEDa y relata Computer Use en tiempo real. Elige tu estilo de voz para asistencia personalizada.</p>
+        <p class="hf-cfg-hint">FeedIA narra cada acción, guía y relata Computer Use en tiempo real. Elige tu estilo de voz para asistencia personalizada.</p>
         <div class="hf-cfg-row">
           <select id="hf-voice-style" class="hf-input" style="width:100%;">
-            <option value="professional">Profesional \xB7 Tono ejecutivo</option>
-            <option value="warm">C\xE1lida \xB7 Tono amigable</option>
-            <option value="concise">Concisa \xB7 Tono directo</option>
-            <option value="narrative">Narrativa \xB7 Tono relato</option>
+            <option value="professional">Profesional · Tono ejecutivo</option>
+            <option value="warm">Cálida · Tono amigable</option>
+            <option value="concise">Concisa · Tono directo</option>
+            <option value="narrative">Narrativa · Tono relato</option>
           </select>
         </div>
         <div class="hf-cfg-actions">
-          <button id="hf-voice-test" class="hf-iconbtn" style="width:auto;padding:6px 14px;">\u{1F50A} Probar</button>
+          <button id="hf-voice-test" class="hf-iconbtn" style="width:auto;padding:6px 14px;">🔊 Probar</button>
           <span id="hf-voice-status" class="hf-cfg-status"></span>
         </div>
       </div>
     </details>
 
     <div class="hf-input-row">
-      <textarea id="hf-input" class="hf-input" rows="3" placeholder='Decile a FeedIA qu\xE9 quer\xE9s que haga. Ej: "Feedia, cre\xE1 un carrusel sobre IA" \u2014 o toc\xE1 \u{1F399}\uFE0F y dict\xE1. Activ\xE1 \u{1F442} para modo manos libres total.'></textarea>
-      <button id="hf-mic" class="hf-mic" title="Dictar por voz (toc\xE1 para empezar, toc\xE1 de nuevo para parar)">\u{1F399}\uFE0F</button>
+      <textarea id="hf-input" class="hf-input" rows="3" placeholder='Decile a FeedIA qué querés que haga. Ej: "Feedia, creá un carrusel sobre IA" — o tocá 🎙️ y dictá. Activá 👂 para modo manos libres total.'></textarea>
+      <button id="hf-mic" class="hf-mic" title="Dictar por voz (tocá para empezar, tocá de nuevo para parar)">🎙️</button>
     </div>
     <div class="hf-row-actions">
-      <label class="hf-cb"><input type="checkbox" id="hf-autopublish" /> \u{1F680} Auto-publicar (requiere cuenta conectada)</label>
-      <button id="hf-go" class="hf-go">\u25B6 Ejecutar</button>
+      <label class="hf-cb"><input type="checkbox" id="hf-autopublish" /> 🚀 Auto-publicar (requiere cuenta conectada)</label>
+      <button id="hf-go" class="hf-go">▶ Ejecutar</button>
     </div>
 
     <div class="hf-divider"><span>actividad en vivo</span></div>
 
     <div id="hf-timeline" class="hf-timeline">
-      <div class="hf-empty">Esperando tu pedido\u2026</div>
+      <div class="hf-empty">Esperando tu pedido…</div>
     </div>
 
     <div id="hf-output" class="hf-output" hidden></div>
@@ -119,23 +251,382 @@ import{escape as h}from"../lib/dom.js";import{toast as k}from"../lib/toast.js";l
     .hf-suggest{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
     .hf-chip{font-size:11.5px;background:rgba(168,85,247,.12);color:#C4B5FD;border:1px solid rgba(168,85,247,.3);padding:5px 11px;border-radius:14px;cursor:pointer;transition:all .15s;}
     .hf-chip:hover{background:rgba(168,85,247,.25);}
-  </style>`,K=e=>`+${(e/1e3).toFixed(1)}s`,w=e=>{const o=e.querySelector("#hf-timeline");if(o){if(!m.length){o.innerHTML='<div class="hf-empty">Esperando tu pedido\u2026</div>';return}o.innerHTML=m.map(r=>`
-    <div class="hf-event ${r.status||"done"}">
-      <span class="hf-event-time">${h(K(r.at))}</span>
-      <span class="hf-event-icon">${h(r.icon||"\xB7")}</span>
-      <span class="hf-event-text">${h(r.text||"")}</span>
-    </div>`).join(""),o.scrollTop=o.scrollHeight}},B=(e,o)=>{const r=e.querySelector("#hf-output");if(!r)return;if(!o){r.hidden=!0;return}const i=o.output||{},a=o.decision||{},u=Array.isArray(i.carouselSlides)?i.carouselSlides:i.image?.url?[{n:1,role:"output",dataUrl:i.image.url}]:[];r.hidden=!1,r.innerHTML=`
+  </style>`;
+
+const formatT = (ms) => `+${(ms / 1000).toFixed(1)}s`;
+
+const renderTimeline = (root) => {
+  const host = root.querySelector('#hf-timeline');
+  if (!host) return;
+  if (!log.length) {
+    host.innerHTML = '<div class="hf-empty">Esperando tu pedido…</div>';
+    return;
+  }
+  host.innerHTML = log
+    .map(
+      (ev) => `
+    <div class="hf-event ${ev.status || 'done'}">
+      <span class="hf-event-time">${escape(formatT(ev.at))}</span>
+      <span class="hf-event-icon">${escape(ev.icon || '·')}</span>
+      <span class="hf-event-text">${escape(ev.text || '')}</span>
+    </div>`,
+    )
+    .join('');
+  host.scrollTop = host.scrollHeight;
+};
+
+const renderOutput = (root, result) => {
+  const host = root.querySelector('#hf-output');
+  if (!host) return;
+  if (!result) {
+    host.hidden = true;
+    return;
+  }
+  const o = result.output || {};
+  const d = result.decision || {};
+  const slides = Array.isArray(o.carouselSlides)
+    ? o.carouselSlides
+    : o.image?.url
+      ? [{ n: 1, role: 'output', dataUrl: o.image.url }]
+      : [];
+  host.hidden = false;
+  host.innerHTML = `
     <div class="hf-out-title">Resultado</div>
-    ${i.pending?`<div class="hf-pending-badge">${h(i.reason||"PENDIENTE")}</div>`:""}
-    ${a.archetype?`<div class="hf-out-section"><div class="hf-out-label">Voz \xB7 Est\xE9tica \xB7 Roles</div><div class="hf-out-text"><b>${h(a.archetype)}</b> \xB7 ${h(a.mood||"")} \xB7 ${(a.roles||[]).join(" + ")}</div></div>`:""}
-    ${i.content?.hook?`<div class="hf-out-section"><div class="hf-out-label">Hook</div><div class="hf-out-text">${h(i.content.hook)}</div></div>`:""}
-    ${i.content?.caption?`<div class="hf-out-section"><div class="hf-out-label">Caption</div><div class="hf-out-text">${h(i.content.caption.slice(0,400))}${i.content.caption.length>400?"\u2026":""}</div></div>`:""}
-    ${i.reply?`<div class="hf-out-section"><div class="hf-out-label">Respuesta</div><div class="hf-out-text">${h(i.reply)}</div></div>`:""}
-    ${u.length?`
+    ${o.pending ? `<div class="hf-pending-badge">${escape(o.reason || 'PENDIENTE')}</div>` : ''}
+    ${d.archetype ? `<div class="hf-out-section"><div class="hf-out-label">Voz · Estética · Roles</div><div class="hf-out-text"><b>${escape(d.archetype)}</b> · ${escape(d.mood || '')} · ${(d.roles || []).join(' + ')}</div></div>` : ''}
+    ${o.content?.hook ? `<div class="hf-out-section"><div class="hf-out-label">Hook</div><div class="hf-out-text">${escape(o.content.hook)}</div></div>` : ''}
+    ${o.content?.caption ? `<div class="hf-out-section"><div class="hf-out-label">Caption</div><div class="hf-out-text">${escape(o.content.caption.slice(0, 400))}${o.content.caption.length > 400 ? '…' : ''}</div></div>` : ''}
+    ${o.reply ? `<div class="hf-out-section"><div class="hf-out-label">Respuesta</div><div class="hf-out-text">${escape(o.reply)}</div></div>` : ''}
+    ${
+      slides.length
+        ? `
       <div class="hf-out-section">
-        <div class="hf-out-label">${u.length} slide${u.length>1?"s":""}</div>
+        <div class="hf-out-label">${slides.length} slide${slides.length > 1 ? 's' : ''}</div>
         <div class="hf-slides">
-          ${u.map((n,t)=>`<div class="hf-slide" data-idx="${t}"><img src="${h(n.dataUrl)}" alt="slide ${n.n}" loading="lazy" /><span class="hf-slide-tag">${n.n}</span></div>`).join("")}
+          ${slides.map((sl, idx) => `<div class="hf-slide" data-idx="${idx}"><img src="${escape(sl.dataUrl)}" alt="slide ${sl.n}" loading="lazy" /><span class="hf-slide-tag">${sl.n}</span></div>`).join('')}
         </div>
-      </div>`:""}
-    ${i.publish?.ok?`<div class="hf-out-section"><div class="hf-out-label">Publicado</div><div class="hf-out-text" style="color:#10F2B0;">\u2713 ${h(i.publish.mediaId||"OK")}</div></div>`:""}`;const c=u,l=n=>{let t=n;const s=document.createElement("div");s.className="hf-lightbox";const f=()=>{const d=c[t];d&&(s.innerHTML=`<button class="hf-lb-close">\u2715</button><button class="hf-lb-nav hf-lb-prev" ${t===0?"disabled":""}>\u2039</button><div class="hf-lb-stage"><img src="${h(d.dataUrl)}" /><div class="hf-lb-meta">Slide ${d.n} / ${c.length}</div></div><button class="hf-lb-nav hf-lb-next" ${t===c.length-1?"disabled":""}>\u203A</button><a class="hf-lb-dl" href="${h(d.dataUrl)}" download="hf-slide-${d.n}.svg">\u2B07 Descargar</a>`,s.querySelector(".hf-lb-close").onclick=()=>s.remove(),s.querySelector(".hf-lb-prev").onclick=()=>{t>0&&(t--,f())},s.querySelector(".hf-lb-next").onclick=()=>{t<c.length-1&&(t++,f())})};s.addEventListener("click",d=>{d.target===s&&s.remove()}),document.addEventListener("keydown",function d(E){if(!document.body.contains(s)){document.removeEventListener("keydown",d);return}E.key==="Escape"&&s.remove(),E.key==="ArrowLeft"&&t>0&&(t--,f()),E.key==="ArrowRight"&&t<c.length-1&&(t++,f())}),f(),document.body.appendChild(s)};r.querySelectorAll(".hf-slide").forEach(n=>n.addEventListener("click",()=>l(parseInt(n.dataset.idx,10)||0)))},W=e=>{const o=window.SpeechRecognition||window.webkitSpeechRecognition;if(!o){e.querySelector("#hf-mic")?.setAttribute("disabled","true"),e.querySelector("#hf-mic").title="Voz no disponible en este navegador (prob\xE1 Chrome)";return}p=new o,p.lang="es-AR",p.continuous=!0,p.interimResults=!0;let r="",i=null;p.onresult=a=>{let u="",c="";for(let t=a.resultIndex;t<a.results.length;t++){const s=a.results[t][0].transcript;a.results[t].isFinal?c+=s:u+=s}c&&(r+=" "+c);const l=(r+" "+u).trim(),n=e.querySelector("#hf-input");n&&(n.value=l),c&&M.test(l)&&(clearTimeout(i),i=setTimeout(()=>{const t=I(l);t.length>5&&(b(T()+". Empezando."),r="",n&&(n.value=t),j(e,{spoken:!0}))},900))},p.onend=()=>{if(x)try{p.start()}catch{}else S=!1,e.querySelector("#hf-mic")?.classList.remove("listening")},p.onerror=a=>{a.error==="no-speech"||a.error==="aborted"||(S=!1,x=!1,e.querySelector("#hf-mic")?.classList.remove("listening"),k(`Voz: ${a.error||"error"}`,"warn"))},window.speechSynthesis&&(window.speechSynthesis.onvoiceschanged=()=>{$=q()},setTimeout(()=>{$=q()},200))},j=async(e,{spoken:o=!1}={})=>{const r=e.querySelector("#hf-input"),i=e.querySelector("#hf-go"),a=!!e.querySelector("#hf-autopublish")?.checked,u=(r?.value||"").trim(),c=I(u);if(!c){o?b("No te escuch\xE9 bien. Repet\xED, por favor."):k("Escrib\xED o dict\xE1 qu\xE9 quer\xE9s que haga","warn");return}m=[{at:0,icon:"\u{1F399}\uFE0F",text:`Vos: "${c}"`,status:"done"}],w(e),i.disabled=!0,i.textContent="\u23F3 Procesando\u2026",H(c)?(m.push({at:1,icon:"\u{1F916}",text:"Activando Computer Use para visualizar la creaci\xF3n\u2026",status:"done"}),w(e),D(),o&&b(`${T()}. Activ\xE9 el modo autom\xE1tico y empiezo el carrusel.`,{interrupt:!0})):o&&b(`${T()}. Procesando.`);try{let l="";try{l=JSON.parse(localStorage.getItem("feedia.brujula.account")||"{}").handle||""}catch{}const n=await O(),s=await(await fetch("/api/handsfree/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({input:c,accountId:l,platform:n,autoPublish:a,goal:"engagement"})})).json();if(!s.ok){m.push({at:0,icon:"\u2717",text:s.message||s.error||"Error desconocido",status:"fail"}),w(e),o&&b("Hubo un problema. "+(s.message||s.error||"reintenta"));return}if((s.timeline||[]).forEach((f,d)=>{m.push(f),o&&d<4&&f.text&&f.status!=="fail"&&(d===1||/carrusel|reel|publicado|listo/i.test(f.text))&&setTimeout(()=>b(f.text.replace(/[…✓✗🎨🧠🤖💬📊]/g,"").trim().slice(0,120)),d*800)}),w(e),F=s,B(e,s),o){const f=s.output||{},d=(f.carouselSlides||[]).length,E=f.content?.hook||"";let A=g?`Listo ${g}. `:"Listo. ";d?A+=`Gener\xE9 ${d} slides. El hook dice: ${E}`:f.reply?A+="Te prepar\xE9 la respuesta.":s.action?A+=`Acci\xF3n ${s.action} completada.`:A+="Revisa el resultado abajo.",setTimeout(()=>b(A),1200)}}catch(l){m.push({at:0,icon:"\u2717",text:`Error de red: ${l?.message||"sin respuesta"}`,status:"fail"}),w(e),o&&b("Error de red. Volv\xE9 a probar.")}finally{i.disabled=!1,i.textContent="\u25B6 Ejecutar"}};export const renderHandsFree=async(e,{navigate:o}={})=>{const r=await O();e.innerHTML=J(r),await Promise.all([U(),N()]),W(e),w(e),B(e,F),setTimeout(()=>{if(y){const t=g?`Hola ${g}. Activ\xE1 el modo manos libres tocando el o\xEDdo arriba. O decime "Feedia" y tu pedido.`:'Hola. Activ\xE1 el modo manos libres tocando el o\xEDdo arriba. O decime "Feedia" y tu pedido.';b(t,{interrupt:!1})}},600),e.querySelector("#hf-close")?.addEventListener("click",()=>{L(),o?.("feed")||(window.location.hash="#feed")}),e.querySelector("#hf-go")?.addEventListener("click",()=>j(e)),e.querySelector("#hf-input")?.addEventListener("keydown",t=>{t.key==="Enter"&&(t.ctrlKey||t.metaKey)&&(t.preventDefault(),j(e))}),e.querySelector("#hf-mic")?.addEventListener("click",()=>{if(p){if(S){try{p.stop()}catch{}x=!1;return}try{x=!1,p.start(),S=!0,e.querySelector("#hf-mic").classList.add("listening")}catch(t){k(`No pude activar el mic: ${t?.message||""}`,"warn")}}});const i=e.querySelector("#hf-always");i?.addEventListener("click",()=>{if(p)if(x=!x,i.classList.toggle("active",x),i.style.background=x?"linear-gradient(135deg,#10F2B0,#3B82F6)":"",i.style.color=x?"#0A0A0F":"",x){try{p.start(),S=!0,e.querySelector("#hf-mic").classList.add("listening")}catch{}b(g?`Modo manos libres activado ${g}. Decime "Feedia" y tu pedido.`:'Modo manos libres activado. Decime "Feedia" y tu pedido.'),k('\u{1F442} Escuchando siempre. Dec\xED "Feedia" + comando.',"ok")}else{try{p.stop()}catch{}S=!1,e.querySelector("#hf-mic").classList.remove("listening"),L(),k("\u{1F442} Modo continuo desactivado","info")}});const a=e.querySelector("#hf-tts");a?.addEventListener("click",()=>{y=!y,a.textContent=y?"\u{1F50A}":"\u{1F507}",a.title=y?"Voz ON \xB7 click para silenciar":"Voz OFF \xB7 click para activar",y?b("Voz activada"):L()}),e.querySelector("#hf-clear")?.addEventListener("click",()=>{m=[],F=null,w(e),B(e,null)});const u=e.querySelector("#hf-cfg-panel");e.querySelector("#hf-cfg")?.addEventListener("click",()=>{u.open=!u.open});let l=localStorage.getItem("feedia-voice-style")||"professional";const n=e.querySelector("#hf-voice-style");n&&(n.value=l,n.addEventListener("change",t=>{l=t.target.value,localStorage.setItem("feedia-voice-style",l),k(`Asistente en modo ${t.target.options[t.target.selectedIndex].text}`,"ok")})),e.querySelector("#hf-voice-test")?.addEventListener("click",()=>{const t=l==="professional"?"Modo profesional activado":l==="warm"?"Modo c\xE1lido y amigable":l==="concise"?"Modo conciso y directo":"Modo narrativa activado";b(g?`Hola ${g}. ${t}.`:t)}),window.addEventListener("hashchange",()=>{L(),x=!1;try{p?.stop()}catch{}},{once:!0})};
+      </div>`
+        : ''
+    }
+    ${o.publish?.ok ? `<div class="hf-out-section"><div class="hf-out-label">Publicado</div><div class="hf-out-text" style="color:#10F2B0;">✓ ${escape(o.publish.mediaId || 'OK')}</div></div>` : ''}`;
+
+  // Lightbox
+  const allSlides = slides;
+  const openLB = (startIdx) => {
+    let i = startIdx;
+    const ov = document.createElement('div');
+    ov.className = 'hf-lightbox';
+    const render = () => {
+      const sl = allSlides[i];
+      if (!sl) return;
+      ov.innerHTML = `<button class="hf-lb-close">✕</button><button class="hf-lb-nav hf-lb-prev" ${i === 0 ? 'disabled' : ''}>‹</button><div class="hf-lb-stage"><img src="${escape(sl.dataUrl)}" /><div class="hf-lb-meta">Slide ${sl.n} / ${allSlides.length}</div></div><button class="hf-lb-nav hf-lb-next" ${i === allSlides.length - 1 ? 'disabled' : ''}>›</button><a class="hf-lb-dl" href="${escape(sl.dataUrl)}" download="hf-slide-${sl.n}.svg">⬇ Descargar</a>`;
+      ov.querySelector('.hf-lb-close').onclick = () => ov.remove();
+      ov.querySelector('.hf-lb-prev').onclick = () => {
+        if (i > 0) {
+          i--;
+          render();
+        }
+      };
+      ov.querySelector('.hf-lb-next').onclick = () => {
+        if (i < allSlides.length - 1) {
+          i++;
+          render();
+        }
+      };
+    };
+    ov.addEventListener('click', (ev) => {
+      if (ev.target === ov) ov.remove();
+    });
+    document.addEventListener('keydown', function onKey(ev) {
+      if (!document.body.contains(ov)) {
+        document.removeEventListener('keydown', onKey);
+        return;
+      }
+      if (ev.key === 'Escape') ov.remove();
+      if (ev.key === 'ArrowLeft' && i > 0) {
+        i--;
+        render();
+      }
+      if (ev.key === 'ArrowRight' && i < allSlides.length - 1) {
+        i++;
+        render();
+      }
+    });
+    render();
+    document.body.appendChild(ov);
+  };
+  host
+    .querySelectorAll('.hf-slide')
+    .forEach((el) => el.addEventListener('click', () => openLB(parseInt(el.dataset.idx, 10) || 0)));
+};
+
+// Web Speech API (gratis, browser nativo) — STT continuo con wake word
+const setupVoice = (root) => {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    root.querySelector('#hf-mic')?.setAttribute('disabled', 'true');
+    root.querySelector('#hf-mic').title = 'Voz no disponible en este navegador (probá Chrome)';
+    return;
+  }
+  recognition = new SR();
+  recognition.lang = 'es-AR';
+  recognition.continuous = true; // siempre escuchando en modo continuo
+  recognition.interimResults = true;
+
+  let finalBuffer = '';
+  let silenceTimer = null;
+
+  recognition.onresult = (e) => {
+    let interim = '';
+    let final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += t;
+      else interim += t;
+    }
+    if (final) finalBuffer += ' ' + final;
+    const fullText = (finalBuffer + ' ' + interim).trim();
+    const input = root.querySelector('#hf-input');
+    if (input) input.value = fullText;
+
+    // Si llega final con wake word → arrancar pipeline
+    if (final && WAKE_WORD.test(fullText)) {
+      clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => {
+        const cleanTxt = stripWakeWord(fullText);
+        if (cleanTxt.length > 5) {
+          // Saludo inmediato por voz
+          speak(greet() + '. Empezando.');
+          finalBuffer = '';
+          if (input) input.value = cleanTxt;
+          execute(root, { spoken: true });
+        }
+      }, 900); // espera 900ms de silencio para asumir fin de comando
+    }
+  };
+
+  recognition.onend = () => {
+    if (continuousMode) {
+      // Reiniciar auto
+      try { recognition.start(); } catch {}
+    } else {
+      listening = false;
+      root.querySelector('#hf-mic')?.classList.remove('listening');
+    }
+  };
+  recognition.onerror = (e) => {
+    if (e.error === 'no-speech' || e.error === 'aborted') return;
+    listening = false;
+    continuousMode = false;
+    root.querySelector('#hf-mic')?.classList.remove('listening');
+    toast(`Voz: ${e.error || 'error'}`, 'warn');
+  };
+
+  // Pre-cargar voices
+  if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = () => { preferredVoice = pickVoice(); };
+    setTimeout(() => { preferredVoice = pickVoice(); }, 200);
+  }
+};
+
+const execute = async (root, { spoken = false } = {}) => {
+  const input = root.querySelector('#hf-input');
+  const goBtn = root.querySelector('#hf-go');
+  const autoPub = Boolean(root.querySelector('#hf-autopublish')?.checked);
+  const rawTxt = (input?.value || '').trim();
+  const txt = stripWakeWord(rawTxt);
+  if (!txt) {
+    if (spoken) speak('No te escuché bien. Repetí, por favor.');
+    else toast('Escribí o dictá qué querés que haga', 'warn');
+    return;
+  }
+  log = [{ at: 0, icon: '🎙️', text: `Vos: "${txt}"`, status: 'done' }];
+  renderTimeline(root);
+  goBtn.disabled = true;
+  goBtn.textContent = '⏳ Procesando…';
+
+  // Si tarea creativa → auto-activar Computer Use para visualización
+  if (isCreativeTask(txt)) {
+    log.push({ at: 1, icon: '🤖', text: 'Activando Computer Use para visualizar la creación…', status: 'done' });
+    renderTimeline(root);
+    void tryActivateCU();
+    if (spoken) speak(`${greet()}. Activé el modo automático y empiezo el carrusel.`, { interrupt: true });
+  } else if (spoken) {
+    speak(`${greet()}. Procesando.`);
+  }
+
+  try {
+    // Account context — lee localStorage si existe
+    let accountId = '';
+    try {
+      accountId = JSON.parse(localStorage.getItem('feedia.brujula.account') || '{}').handle || '';
+    } catch {}
+    const platform = await getPlatform();
+    const r = await fetch('/api/handsfree/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input: txt, accountId, platform, autoPublish: autoPub, goal: 'engagement' }),
+    });
+    const j = await r.json();
+    if (!j.ok) {
+      log.push({
+        at: 0,
+        icon: '✗',
+        text: j.message || j.error || 'Error desconocido',
+        status: 'fail',
+      });
+      renderTimeline(root);
+      if (spoken) speak('Hubo un problema. ' + (j.message || j.error || 'reintenta'));
+      return;
+    }
+    // Merge timeline backend con narración por voz de pasos clave
+    (j.timeline || []).forEach((ev, idx) => {
+      log.push(ev);
+      // Narrar solo eventos importantes (no todos)
+      if (spoken && idx < 4 && ev.text && ev.status !== 'fail') {
+        // Solo el primero y un par de hitos
+        if (idx === 1 || /carrusel|reel|publicado|listo/i.test(ev.text)) {
+          setTimeout(() => speak(ev.text.replace(/[…✓✗🎨🧠🤖💬📊]/g, '').trim().slice(0, 120)), idx * 800);
+        }
+      }
+    });
+    renderTimeline(root);
+    lastResult = j;
+    renderOutput(root, j);
+
+    // Resumen final por voz
+    if (spoken) {
+      const o = j.output || {};
+      const slidesN = (o.carouselSlides || []).length;
+      const hook = o.content?.hook || '';
+      let summary = userName ? `Listo ${userName}. ` : 'Listo. ';
+      if (slidesN) summary += `Generé ${slidesN} slides. El hook dice: ${hook}`;
+      else if (o.reply) summary += `Te preparé la respuesta.`;
+      else if (j.action) summary += `Acción ${j.action} completada.`;
+      else summary += 'Revisa el resultado abajo.';
+      setTimeout(() => speak(summary), 1200);
+    }
+  } catch (err) {
+    log.push({ at: 0, icon: '✗', text: `Error de red: ${err?.message || 'sin respuesta'}`, status: 'fail' });
+    renderTimeline(root);
+    if (spoken) speak('Error de red. Volvé a probar.');
+  } finally {
+    goBtn.disabled = false;
+    goBtn.textContent = '▶ Ejecutar';
+  }
+};
+
+export const renderHandsFree = async (container, { navigate } = {}) => {
+  const platform = await getPlatform();
+  container.innerHTML = renderShell(platform);
+  await Promise.all([loadUserName(), checkElevenLabs()]);
+  setupVoice(container);
+  renderTimeline(container);
+  renderOutput(container, lastResult);
+
+  // Saludo inicial por voz (silencioso si TTS está off por user)
+  setTimeout(() => {
+    if (voiceEnabled) {
+      const hello = userName
+        ? `Hola ${userName}. Activá el modo manos libres tocando el oído arriba. O decime "Feedia" y tu pedido.`
+        : 'Hola. Activá el modo manos libres tocando el oído arriba. O decime "Feedia" y tu pedido.';
+      speak(hello, { interrupt: false });
+    }
+  }, 600);
+
+  // Botón cerrar (volver a Hola FeedIA)
+  container.querySelector('#hf-close')?.addEventListener('click', () => {
+    stopSpeaking();
+    navigate?.('feed') || (window.location.hash = '#feed');
+  });
+
+  container.querySelector('#hf-go')?.addEventListener('click', () => execute(container));
+  container.querySelector('#hf-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      execute(container);
+    }
+  });
+
+  // Mic toggle simple (dictado puntual)
+  container.querySelector('#hf-mic')?.addEventListener('click', () => {
+    if (!recognition) return;
+    if (listening) {
+      try { recognition.stop(); } catch {}
+      continuousMode = false;
+      return;
+    }
+    try {
+      continuousMode = false;
+      recognition.start();
+      listening = true;
+      container.querySelector('#hf-mic').classList.add('listening');
+    } catch (e) {
+      toast(`No pude activar el mic: ${e?.message || ''}`, 'warn');
+    }
+  });
+
+  // 👂 modo siempre escuchando (wake word "feedia")
+  const alwaysBtn = container.querySelector('#hf-always');
+  alwaysBtn?.addEventListener('click', () => {
+    if (!recognition) return;
+    continuousMode = !continuousMode;
+    alwaysBtn.classList.toggle('active', continuousMode);
+    alwaysBtn.style.background = continuousMode ? 'linear-gradient(135deg,#10F2B0,#3B82F6)' : '';
+    alwaysBtn.style.color = continuousMode ? '#0A0A0F' : '';
+    if (continuousMode) {
+      try { recognition.start(); listening = true; container.querySelector('#hf-mic').classList.add('listening'); } catch {}
+      speak(userName ? `Modo manos libres activado ${userName}. Decime "Feedia" y tu pedido.` : 'Modo manos libres activado. Decime "Feedia" y tu pedido.');
+      toast('👂 Escuchando siempre. Decí "Feedia" + comando.', 'ok');
+    } else {
+      try { recognition.stop(); } catch {}
+      listening = false;
+      container.querySelector('#hf-mic').classList.remove('listening');
+      stopSpeaking();
+      toast('👂 Modo continuo desactivado', 'info');
+    }
+  });
+
+  // 🔊 TTS on/off
+  const ttsBtn = container.querySelector('#hf-tts');
+  ttsBtn?.addEventListener('click', () => {
+    voiceEnabled = !voiceEnabled;
+    ttsBtn.textContent = voiceEnabled ? '🔊' : '🔇';
+    ttsBtn.title = voiceEnabled ? 'Voz ON · click para silenciar' : 'Voz OFF · click para activar';
+    if (!voiceEnabled) stopSpeaking();
+    else speak('Voz activada');
+  });
+
+  container.querySelector('#hf-clear')?.addEventListener('click', () => {
+    log = [];
+    lastResult = null;
+    renderTimeline(container);
+    renderOutput(container, null);
+  });
+
+  // 🔊 Voice Style Selector
+  const cfgPanel = container.querySelector('#hf-cfg-panel');
+  const cfgBtn = container.querySelector('#hf-cfg');
+  cfgBtn?.addEventListener('click', () => { cfgPanel.open = !cfgPanel.open; });
+
+  let voiceStyle = localStorage.getItem('feedia-voice-style') || 'professional';
+  const voiceStyleSelect = container.querySelector('#hf-voice-style');
+  if (voiceStyleSelect) {
+    voiceStyleSelect.value = voiceStyle;
+    voiceStyleSelect.addEventListener('change', (e) => {
+      voiceStyle = e.target.value;
+      localStorage.setItem('feedia-voice-style', voiceStyle);
+      toast(`Asistente en modo ${e.target.options[e.target.selectedIndex].text}`, 'ok');
+    });
+  }
+
+  container.querySelector('#hf-voice-test')?.addEventListener('click', () => {
+    const greeting = voiceStyle === 'professional' ? 'Modo profesional activado' :
+                     voiceStyle === 'warm' ? 'Modo cálido y amigable' :
+                     voiceStyle === 'concise' ? 'Modo conciso y directo' : 'Modo narrativa activado';
+    speak(userName ? `Hola ${userName}. ${greeting}.` : greeting);
+  });
+
+  // Limpia voz al salir de la vista
+  window.addEventListener('hashchange', () => { stopSpeaking(); continuousMode = false; try { recognition?.stop(); } catch {} }, { once: true });
+};

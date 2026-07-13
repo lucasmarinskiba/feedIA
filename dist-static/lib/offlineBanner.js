@@ -1,11 +1,116 @@
-const c=6e4,f=4;let n=0,e=null,i=null,r=!0;const b=o=>String(o??"").replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[t]),d=()=>{if(!e&&(e=document.createElement("div"),e.id="feedia-offline-banner",e.innerHTML=`
-    <div class="ob-icon">\u{1F4E1}</div>
+/* ══════════════════════════════════════════════════════════════════════════════
+   offlineBanner.js — Banner persistente cuando el backend está caído
+   ──────────────────────────────────────────────────────────────────────────────
+   Hace ping a /api/health (o /api/home/identity como fallback) cada 30s.
+   Si N fallos consecutivos → muestra banner. Cuando vuelve → desaparece con fade.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+const PING_INTERVAL_MS = 60_000;
+const FAIL_THRESHOLD = 4; // 4 fallos consecutivos (≈4min) para considerar offline
+let failures = 0;
+let bannerEl = null;
+let timer = null;
+let isOnline = true;
+
+const escapeHtml = (s) =>
+  String(s ?? '').replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+  );
+
+const showBanner = () => {
+  if (bannerEl) return;
+  bannerEl = document.createElement('div');
+  bannerEl.id = 'feedia-offline-banner';
+  bannerEl.innerHTML = `
+    <div class="ob-icon">📡</div>
     <div class="ob-body">
-      <strong>Sin conexi\xF3n al backend</strong>
-      <div class="ob-sub">La UI sigue funcionando con datos locales. Cuando vuelva el servidor, se sincroniza autom\xE1ticamente.</div>
+      <strong>Sin conexión al backend</strong>
+      <div class="ob-sub">La UI sigue funcionando con datos locales. Cuando vuelva el servidor, se sincroniza automáticamente.</div>
     </div>
-    <button class="ob-retry" id="ob-retry">\u21BB Reintentar</button>
-    <button class="ob-close" id="ob-close" aria-label="Ocultar">\u2715</button>`,document.body.appendChild(e),e.querySelector("#ob-retry").addEventListener("click",()=>{a(!0)}),e.querySelector("#ob-close").addEventListener("click",()=>{e?.remove(),e=null}),!document.getElementById("ob-style"))){const o=document.createElement("style");o.id="ob-style",o.textContent=l,document.head.appendChild(o)}},s=()=>{e&&(e.classList.add("ob-fade-out"),setTimeout(()=>{e?.remove(),e=null},280))},a=async(o=!1)=>{try{let t=await fetch("/api/health",{method:"GET",cache:"no-store"});if((!t.ok||!t.headers.get("content-type")?.includes("json"))&&(t=await fetch("/api/home/identity",{method:"GET",cache:"no-store"})),!t.ok)throw new Error("not ok");if(!t.headers.get("content-type")?.includes("json"))throw new Error("html response");n=0,r||(r=!0,typeof window.__feediaToast=="function"&&window.__feediaToast("\u2713 Backend conectado","ok")),s()}catch{n++,n>=4&&(r=!1,d()),o&&n>0}};export const initOfflineBanner=()=>{setTimeout(()=>void a(),4e3),i=setInterval(()=>{document.hidden||a()},6e4),document.addEventListener("visibilitychange",()=>{document.hidden||a()})},stopOfflineBanner=()=>{i&&clearInterval(i),s()};const l=`
+    <button class="ob-retry" id="ob-retry">↻ Reintentar</button>
+    <button class="ob-close" id="ob-close" aria-label="Ocultar">✕</button>`;
+  document.body.appendChild(bannerEl);
+
+  bannerEl.querySelector('#ob-retry').addEventListener('click', () => {
+    void ping(true);
+  });
+  bannerEl.querySelector('#ob-close').addEventListener('click', () => {
+    bannerEl?.remove();
+    bannerEl = null;
+  });
+
+  // Estilos una sola vez
+  if (!document.getElementById('ob-style')) {
+    const style = document.createElement('style');
+    style.id = 'ob-style';
+    style.textContent = OB_STYLES;
+    document.head.appendChild(style);
+  }
+};
+
+const hideBanner = () => {
+  if (!bannerEl) return;
+  bannerEl.classList.add('ob-fade-out');
+  setTimeout(() => {
+    bannerEl?.remove();
+    bannerEl = null;
+  }, 280);
+};
+
+const ping = async (manual = false) => {
+  try {
+    // Probamos /api/health primero. Si no existe, fallback a /api/home/identity.
+    let res = await fetch('/api/health', { method: 'GET', cache: 'no-store' });
+    if (!res.ok || !res.headers.get('content-type')?.includes('json')) {
+      res = await fetch('/api/home/identity', { method: 'GET', cache: 'no-store' });
+    }
+    if (!res.ok) throw new Error('not ok');
+    if (!res.headers.get('content-type')?.includes('json')) throw new Error('html response');
+    // Online
+    failures = 0;
+    if (!isOnline) {
+      isOnline = true;
+      // Toast suave de "volvió"
+      if (typeof window.__feediaToast === 'function') {
+        window.__feediaToast('✓ Backend conectado', 'ok');
+      }
+    }
+    hideBanner();
+  } catch {
+    failures++;
+    if (failures >= FAIL_THRESHOLD) {
+      isOnline = false;
+      showBanner();
+    }
+    if (manual && failures > 0) {
+      // Sin toast, el botón Reintentar ya da feedback visual
+    }
+  }
+};
+
+export const initOfflineBanner = () => {
+  // Primer ping después de 4s (no apurar el boot)
+  setTimeout(() => void ping(), 4000);
+  timer = setInterval(() => {
+    if (!document.hidden) void ping();
+  }, PING_INTERVAL_MS);
+
+  // Cuando la pestaña vuelve a estar visible, ping inmediato
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) void ping();
+  });
+
+  // Listener removido — apiSafe ya maneja errores localmente con fallbacks.
+  // El ping a /api/health es la única señal de health del banner.
+};
+
+export const stopOfflineBanner = () => {
+  if (timer) clearInterval(timer);
+  hideBanner();
+};
+
+const OB_STYLES = `
 #feedia-offline-banner {
   position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
   z-index: 9990; display: flex; align-items: center; gap: 12px;

@@ -1,34 +1,71 @@
-import{api as l}from"../lib/api.js";import{escape as c}from"../lib/dom.js";import{fmt as b}from"../lib/dom.js";import{toast as n}from"../lib/toast.js";let r={sources:[],backlog:[],tab:"backlog"};const p=t=>t.length?t.map(e=>`
+import { api } from '../lib/api.js';
+import { escape } from '../lib/dom.js';
+import { fmt } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+
+let state = { sources: [], backlog: [], tab: 'backlog' };
+
+const renderSourcesList = (sources) => {
+  if (!sources.length) return `<div class="empty">Sin fuentes configuradas. Agregá una URL para empezar.</div>`;
+  return sources
+    .map(
+      (s) => `
     <div class="list-item">
-      <div class="list-item-icon">\u{1F310}</div>
+      <div class="list-item-icon">🌐</div>
       <div class="list-item-body">
-        <div class="small">${c(e.name??e.url)}</div>
-        <div class="tiny muted">${c(e.url)}</div>
+        <div class="small">${escape(s.name ?? s.url)}</div>
+        <div class="tiny muted">${escape(s.url)}</div>
       </div>
-      <span class="tag ${e.active?"ok":"warn"}">${e.active?"activa":"pausada"}</span>
-    </div>`).join(""):'<div class="empty">Sin fuentes configuradas. Agreg\xE1 una URL para empezar.</div>',v=t=>t.length?t.map(e=>`
-    <div class="curator-item card" data-id="${c(e.id??"")}">
+      <span class="tag ${s.active ? 'ok' : 'warn'}">${s.active ? 'activa' : 'pausada'}</span>
+    </div>`,
+    )
+    .join('');
+};
+
+const renderBacklog = (items) => {
+  if (!items.length) return `<div class="empty">Backlog vacío. Hacé fetch de fuentes para llenar el backlog.</div>`;
+  return items
+    .map(
+      (item) => `
+    <div class="curator-item card" data-id="${escape(item.id ?? '')}">
       <div class="meta">
-        <span class="tag">${c(e.source??"web")}</span>
-        <span class="tiny muted">${b.rel(e.fetchedAt)}</span>
-        ${e.approved?'<span class="tag ok">aprobado</span>':""}
+        <span class="tag">${escape(item.source ?? 'web')}</span>
+        <span class="tiny muted">${fmt.rel(item.fetchedAt)}</span>
+        ${item.approved ? '<span class="tag ok">aprobado</span>' : ''}
       </div>
-      <h3 class="curator-title">${c(e.title??e.url)}</h3>
-      ${e.summary?`<div class="body">${c(e.summary)}</div>`:""}
+      <h3 class="curator-title">${escape(item.title ?? item.url)}</h3>
+      ${item.summary ? `<div class="body">${escape(item.summary)}</div>` : ''}
       <div class="btn-row" style="margin-top:10px;">
-        ${e.approved?"":`<button class="btn primary tiny approve-btn" data-id="${c(e.id??"")}">\u2713 Aprobar</button>`}
-        <a href="${c(e.url)}" target="_blank" rel="noopener" class="btn ghost tiny">\u{1F517} Ver fuente</a>
+        ${!item.approved ? `<button class="btn primary tiny approve-btn" data-id="${escape(item.id ?? '')}">✓ Aprobar</button>` : ''}
+        <a href="${escape(item.url)}" target="_blank" rel="noopener" class="btn ghost tiny">🔗 Ver fuente</a>
       </div>
-    </div>`).join(""):'<div class="empty">Backlog vac\xEDo. Hac\xE9 fetch de fuentes para llenar el backlog.</div>',g=()=>`
+    </div>`,
+    )
+    .join('');
+};
+
+const renderTabs = () => `
   <div class="tab-bar" style="margin-bottom:16px;">
-    <button class="tab-btn ${r.tab==="backlog"?"active":""}" data-tab="backlog">\u{1F4E5} Backlog (${r.backlog.length})</button>
-    <button class="tab-btn ${r.tab==="sources"?"active":""}" data-tab="sources">\u{1F310} Fuentes (${r.sources.length})</button>
-  </div>`,u=t=>{const e=t.querySelector("#curator-content");if(!e)return;const a=g();let s="";r.tab==="backlog"?s=`
+    <button class="tab-btn ${state.tab === 'backlog' ? 'active' : ''}" data-tab="backlog">📥 Backlog (${state.backlog.length})</button>
+    <button class="tab-btn ${state.tab === 'sources' ? 'active' : ''}" data-tab="sources">🌐 Fuentes (${state.sources.length})</button>
+  </div>`;
+
+const render = (root) => {
+  const contentEl = root.querySelector('#curator-content');
+  if (!contentEl) return;
+
+  const tabsHtml = renderTabs();
+  let mainHtml = '';
+
+  if (state.tab === 'backlog') {
+    mainHtml = `
       <div class="curator-actions btn-row" style="margin-bottom:16px;">
-        <button class="btn primary" id="fetch-btn">\u{1F504} Fetch fuentes</button>
-        <button class="btn ghost" id="refresh-backlog-btn">\u21BB Refrescar</button>
+        <button class="btn primary" id="fetch-btn">🔄 Fetch fuentes</button>
+        <button class="btn ghost" id="refresh-backlog-btn">↻ Refrescar</button>
       </div>
-      <div id="backlog-list">${v(r.backlog)}</div>`:s=`
+      <div id="backlog-list">${renderBacklog(state.backlog)}</div>`;
+  } else {
+    mainHtml = `
       <div class="card" style="margin-bottom:16px;">
         <h3>Agregar fuente</h3>
         <div class="field">
@@ -39,11 +76,101 @@ import{api as l}from"../lib/api.js";import{escape as c}from"../lib/dom.js";impor
         </div>
         <button class="btn primary" id="add-source-btn">+ Agregar</button>
       </div>
-      <div id="sources-list">${p(r.sources)}</div>`,e.innerHTML=a+s,f(t)},f=t=>{const e=t.querySelector("#curator-content");e.querySelectorAll(".tab-btn").forEach(a=>a.addEventListener("click",()=>{r.tab=a.dataset.tab,u(t)})),e.querySelector("#fetch-btn")?.addEventListener("click",async()=>{const a=e.querySelector("#fetch-btn");a.disabled=!0,a.innerHTML='<span class="spinner"></span> fetching\u2026';try{const s=await l("/api/curator/fetch",{body:{}});n(`Fetch ok: ${s.added??0} \xEDtems nuevos`,"ok"),await o(t)}catch(s){n(s.message,"crit")}finally{a.disabled=!1,a.innerHTML="\u{1F504} Fetch fuentes"}}),e.querySelector("#refresh-backlog-btn")?.addEventListener("click",()=>o(t)),e.querySelectorAll(".approve-btn").forEach(a=>a.addEventListener("click",async()=>{const s=a.dataset.id;a.disabled=!0;try{await l("/api/curator/approve",{body:{id:s}});const i=r.backlog.find(d=>d.id===s);i&&(i.approved=!0),u(t),n("\xCDtem aprobado","ok")}catch(i){n(i.message,"crit"),a.disabled=!1}})),e.querySelector("#add-source-btn")?.addEventListener("click",async()=>{const a=e.querySelector("#source-url")?.value.trim(),s=e.querySelector("#source-name")?.value.trim();if(!a){n("Ingres\xE1 una URL","crit");return}const i=e.querySelector("#add-source-btn");i.disabled=!0;try{await l("/api/curator/sources",{body:{url:a,name:s||a}}),n("Fuente agregada","ok"),await o(t)}catch(d){n(d.message,"crit"),i.disabled=!1}})},o=async t=>{try{const[e,a]=await Promise.allSettled([l("/api/curator/sources"),l("/api/curator/backlog")]);r.sources=e.status==="fulfilled"?e.value.sources??[]:[],r.backlog=a.status==="fulfilled"?a.value.items??[]:[],u(t)}catch(e){n(e.message,"crit")}};export const renderCurator=async t=>{r={sources:[],backlog:[],tab:"backlog"},t.innerHTML=`
+      <div id="sources-list">${renderSourcesList(state.sources)}</div>`;
+  }
+
+  contentEl.innerHTML = tabsHtml + mainHtml;
+  attachListeners(root);
+};
+
+const attachListeners = (root) => {
+  const contentEl = root.querySelector('#curator-content');
+
+  contentEl.querySelectorAll('.tab-btn').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      state.tab = btn.dataset.tab;
+      render(root);
+    }),
+  );
+
+  contentEl.querySelector('#fetch-btn')?.addEventListener('click', async () => {
+    const btn = contentEl.querySelector('#fetch-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> fetching…';
+    try {
+      const res = await api('/api/curator/fetch', { body: {} });
+      toast(`Fetch ok: ${res.added ?? 0} ítems nuevos`, 'ok');
+      await loadData(root);
+    } catch (err) {
+      toast(err.message, 'crit');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '🔄 Fetch fuentes';
+    }
+  });
+
+  contentEl.querySelector('#refresh-backlog-btn')?.addEventListener('click', () => loadData(root));
+
+  contentEl.querySelectorAll('.approve-btn').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      btn.disabled = true;
+      try {
+        await api('/api/curator/approve', { body: { id } });
+        const item = state.backlog.find((b) => b.id === id);
+        if (item) item.approved = true;
+        render(root);
+        toast('Ítem aprobado', 'ok');
+      } catch (err) {
+        toast(err.message, 'crit');
+        btn.disabled = false;
+      }
+    }),
+  );
+
+  contentEl.querySelector('#add-source-btn')?.addEventListener('click', async () => {
+    const url = contentEl.querySelector('#source-url')?.value.trim();
+    const name = contentEl.querySelector('#source-name')?.value.trim();
+    if (!url) {
+      toast('Ingresá una URL', 'crit');
+      return;
+    }
+    const btn = contentEl.querySelector('#add-source-btn');
+    btn.disabled = true;
+    try {
+      await api('/api/curator/sources', { body: { url, name: name || url } });
+      toast('Fuente agregada', 'ok');
+      await loadData(root);
+    } catch (err) {
+      toast(err.message, 'crit');
+      btn.disabled = false;
+    }
+  });
+};
+
+const loadData = async (root) => {
+  try {
+    const [sourcesRes, backlogRes] = await Promise.allSettled([
+      api('/api/curator/sources'),
+      api('/api/curator/backlog'),
+    ]);
+    state.sources = sourcesRes.status === 'fulfilled' ? (sourcesRes.value.sources ?? []) : [];
+    state.backlog = backlogRes.status === 'fulfilled' ? (backlogRes.value.items ?? []) : [];
+    render(root);
+  } catch (err) {
+    toast(err.message, 'crit');
+  }
+};
+
+export const renderCurator = async (root) => {
+  state = { sources: [], backlog: [], tab: 'backlog' };
+  root.innerHTML = `
     <header class="view-header page-header">
       <div>
         <h1 class="view-title page-title">Content Curator</h1>
-        <p class="view-subtitle page-subtitle">Monitore\xE1 fuentes, aprob\xE1 contenido inspiracional para el backlog.</p>
+        <p class="view-subtitle page-subtitle">Monitoreá fuentes, aprobá contenido inspiracional para el backlog.</p>
       </div>
     </header>
-    <div id="curator-content" class="page-body"><div class="page-loading"><span class="spinner"></span> cargando\u2026</div></div>`,await o(t)};
+    <div id="curator-content" class="page-body"><div class="page-loading"><span class="spinner"></span> cargando…</div></div>`;
+  await loadData(root);
+};

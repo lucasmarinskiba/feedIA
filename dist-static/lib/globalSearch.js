@@ -1,31 +1,999 @@
-import{apiSafe as p}from"./api.js";import{toast as r}from"./toast.js";const z=[{type:"command",icon:"\u{1F680}",title:"Lanzar misi\xF3n nueva",desc:"Abre Mission Control con el input listo",route:"mission",priority:10,keywords:"mision misi\xF3n goal lanzar objetivo"},{type:"command",icon:"\u{1F6D1}",title:"Frenar al agente",desc:"Stop de emergencia \xB7 pausa todo + rechaza pendientes",action:"emergency-stop",priority:10,keywords:"stop frenar parar pausar emergencia cua agente"},{type:"command",icon:"\u{1F3A8}",title:"Abrir Canva \u2192 Instagram",desc:"Pipeline visual: Nova dise\xF1a y Luca publica",route:"canva-runner",priority:9,keywords:"canva dise\xF1o publicar"},{type:"command",icon:"\u{1F4F7}",title:"Vision IA \xB7 abrir c\xE1mara",desc:"Analizar imagen desde c\xE1mara o subida",route:"vision",priority:8,keywords:"camara c\xE1mara foto imagen analizar vision"},{type:"command",icon:"\u2728",title:"Hablarle al Asistente FeedIA",desc:"Abre la burbuja de chat (la que est\xE1 junto al mic)",action:"open-chatbot",priority:9,keywords:"chatbot asistente chat preguntar feedia"},{type:"command",icon:"\u{1F399}\uFE0F",title:"Hola FeedIA \xB7 comando por voz",desc:"Abre el overlay de voz hands-free",action:"open-voice",priority:8,keywords:"voz hablar microfono micr\xF3fono dictar"},{type:"command",icon:"\u{1F501}",title:"Activar Autopilot",desc:"Pasa al modo operaci\xF3n aut\xF3noma",route:"autopilot",priority:8,keywords:"autopilot automatico aut\xF3nomo activar"},{type:"command",icon:"\u26A1",title:"Skills de FeedIA",desc:"Cat\xE1logo de skills + generador real de carrusel/reel/story",route:"skills",priority:9,keywords:"skills habilidades generador carrusel reel story catalogo canva"},{type:"command",icon:"\u2328\uFE0F",title:"Ver atajos de teclado",desc:'Cheatsheet completo (tambi\xE9n con tecla "?")',action:"open-shortcuts",priority:8,keywords:"atajos shortcuts teclado keyboard cheatsheet ayuda help"},{type:"command",icon:"\u{1F3A8}",title:"Editar Brand Board",desc:"Defin\xED nombre, paleta, voz, tipograf\xEDa",route:"moodboard",priority:7,keywords:"brand marca identidad logo paleta colores"},{type:"command",icon:"\u2699\uFE0F",title:"Abrir Configuraci\xF3n",desc:"API keys, voz, accesibilidad, integraci\xF3n Meta",route:"settings",priority:8,keywords:"settings ajustes configuracion config api keys"},{type:"command",icon:"\u{1F9EC}",title:"Ver Medidor de Consumo IA",desc:"Arquitectura del cerebro, memoria, razonamiento",route:"inteligencia",priority:7,keywords:"inteligencia cerebro consumo tokens memoria arquitectura"},{type:"command",icon:"\u{1F514}",title:"Abrir notificaciones",desc:"Campanita con aprobaciones, logros, equipo",action:"open-notifications",priority:7,keywords:"notificaciones campanita alertas aprobaciones"},{type:"command",icon:"\u{1F3AF}",title:"Lanzar Predictor de Performance",desc:"Score + recomendaciones para viralizar",route:"predictor",priority:7,keywords:"predictor predecir viralizar score"},{type:"command",icon:"\u{1F9EA}",title:"Hook Library",desc:"23+ patrones de hooks + scorer + favoritos",route:"hooks",priority:7,keywords:"hook library biblioteca ganchos patrones"},{type:"command",icon:"\u{1F451}",title:"Sala Ejecutiva",desc:"Resumen, propuestas, an\xE1lisis, reportes, etc.",route:"imperio",priority:8,keywords:"sala ejecutiva imperio reunion ejecutivos resumen apalancamiento"},{type:"command",icon:"\u{1F4D2}",title:"Ver agenda",desc:"Lo que el equipo va a hacer, d\xEDa por d\xEDa",route:"agenda",priority:7,keywords:"agenda cronograma tareas eventos plan"},{type:"command",icon:"\u{1F4C5}",title:"Calendario de contenido",desc:"Vista semana / mes / a\xF1o + IA interpreta",route:"calendar",priority:7,keywords:"calendario calendar contenido publicar planificar"},{type:"command",icon:"\u{1F4CB}",title:"Task Board del equipo",desc:"Kanban con Nova, L\xEDa, Gard, Luca, Mira",route:"taskboard",priority:6,keywords:"task board kanban equipo tareas standup workload"},{type:"command",icon:"\u{1F916}",title:"Agentes IA",desc:"Dashboard de tu equipo aut\xF3nomo",route:"agents",priority:7,keywords:"agentes ia inteligencia artificial nova lia gard luca mira"},{type:"command",icon:"\u{1F6F8}",title:"Mission Control",desc:"Lanzar misiones multi-agente en lenguaje natural",route:"mission",priority:7,keywords:"mission control misiones multi agente goal lanzar"},{type:"command",icon:"\u{1F4DC}",title:"Replay Log",desc:"Sesiones grabadas paso por paso con screenshots",route:"replay",priority:6,keywords:"replay log historial sesiones screenshots"},{type:"command",icon:"\u{1F9E0}",title:"Cerebro Maestro \u2014 carrusel",desc:"Lanza el Master Brain para generar un carrusel completo",action:"master-brain-carousel",priority:9,keywords:"cerebro maestro master brain branding canva carrusel orquestador"},{type:"command",icon:"\u{1F9E0}",title:"Cerebro Maestro \u2014 reel",desc:"Lanza el Master Brain para generar un reel",action:"master-brain-reel",priority:9,keywords:"cerebro maestro master brain reel video orquestador"},{type:"command",icon:"\u{1F9E0}",title:"Cerebro Maestro \u2014 stories",desc:"Lanza el Master Brain para generar stories",action:"master-brain-stories",priority:9,keywords:"cerebro maestro master brain stories historias orquestador"},{type:"command",icon:"\u{1F3DB}\uFE0F",title:"Branding Brain",desc:"Constru\xED / refin\xE1 la identidad completa de tu marca con 8 especialistas IA",route:"personalization",action:"open-branding-brain",priority:9,keywords:"branding brain identidad marca estrategia voz visual lorenz renata aurora"},{type:"command",icon:"\u{1F4AC}",title:"DM Auto-Reply \u2014 Construir plantillas",desc:"Genera respuestas autom\xE1ticas para DMs seg\xFAn la identidad de marca",action:"build-dm-templates",priority:8,keywords:"dm direct message respuesta automatica plantilla inbox"},{type:"command",icon:"#\uFE0F\u20E3",title:"Estrategia de Hashtags",desc:"Genera la estrategia \xF3ptima de hashtags para tu pr\xF3ximo post",action:"hashtag-strategy",priority:8,keywords:"hashtag estrategia tags etiquetas niche nicho rotacion"},{type:"command",icon:"\u{1F9EA}",title:"Crear A/B Test",desc:"Crea variantes de contenido para medir qu\xE9 funciona mejor",action:"create-ab-test",priority:7,keywords:"ab test variante split testing engagement caption"},{type:"command",icon:"\u{1F4C5}",title:"Cola de Contenido \u2014 Programar",desc:"Programa publicaciones en las ventanas \xF3ptimas de tu audiencia",action:"schedule-queue",priority:7,keywords:"cola queue programar publicar schedule contenido calendario"},{type:"command",icon:"\u{1F9E0}",title:"Full Takeover \u2014 Gesti\xF3n completa",desc:"Activa TODOS los cerebros: contenido, DMs, comentarios, hashtags, cola",action:"master-full-takeover",priority:9,keywords:"full takeover autopilot piloto automatico todo gestionar completo"},{type:"command",icon:"\u{1F4C8}",title:"Detectar tendencias del nicho",desc:"Analiza las tendencias actuales relevantes y genera ideas de contenido",action:"detect-trends",priority:8,keywords:"tendencias trends trending nicho viral novedad oportunidad"},{type:"command",icon:"\u{1F50D}",title:"Analizar competidores",desc:"Mapea la competencia, extrae gaps y genera ideas \xFAnicas para tu marca",action:"analyze-competitors",priority:8,keywords:"competidores competencia analizar gaps mercado diferenciacion"},{type:"command",icon:"\u{1F916}",title:"Studio Manager \u2014 Panel CU Brain",desc:"Abre el dashboard central con todos los m\xF3dulos del CU Brain",route:"studio-manager",priority:9,keywords:"studio manager panel cerebro cu brain dashboard queue dms hashtags trending"},{type:"agent",icon:"\u{1F9E0}",title:"Algorithm Master",desc:"Ranking, Explore, shadowban, timing \xF3ptimo",route:"agents",anchor:"algorithm",priority:7,keywords:"algoritmo algorithm ranking explore shadowban timing"},{type:"agent",icon:"\u{1F4CA}",title:"Meta Ads Pro",desc:"Campa\xF1as, audiencias, creativos, ROAS",route:"agents",anchor:"meta-ads",priority:7,keywords:"meta ads facebook campa\xF1as anuncios roas"},{type:"agent",icon:"\u{1F602}",title:"Humor Engine",desc:"Memes, comedy hooks, contenido viral",route:"agents",anchor:"humor",priority:7,keywords:"humor meme comedia viral entretenimiento"},{type:"agent",icon:"\u{1F4B0}",title:"Sales Machine",desc:"Story selling, DM funnels, CTAs",route:"agents",anchor:"sales",priority:7,keywords:"ventas sales dm funnel cierre"},{type:"agent",icon:"\u2764\uFE0F",title:"Community Champion",desc:"Engagement, lives, UGC, comunidad",route:"agents",anchor:"community",priority:7,keywords:"comunidad community engagement lives ugc"},{type:"tool",icon:"\u270D\uFE0F",title:"Caption IA",desc:"3 captions optimizadas con voz de marca",route:"tools",anchor:"caption",priority:6,keywords:"caption pie de foto texto"},{type:"tool",icon:"\u{1F52C}",title:"Hashtag Lab",desc:"Sets balanceados nicho + tendencia",route:"tools",anchor:"hashtags",priority:6,keywords:"hashtags tags etiquetas"},{type:"tool",icon:"\u{1F3A3}",title:"Hook Factory",desc:"Ganchos virales que paran scroll",route:"tools",anchor:"hooks",priority:6,keywords:"hook gancho viral scroll"},{type:"tool",icon:"\u267B\uFE0F",title:"Repurposer",desc:"Reus\xE1 contenido en otros formatos",route:"tools",anchor:"repurpose",priority:6,keywords:"repurpose reusar reciclar formatos"},{type:"tool",icon:"\u{1F6E1}\uFE0F",title:"Safety Check",desc:"Compliance + riesgo shadowban",route:"tools",anchor:"safety",priority:6,keywords:"compliance safety riesgo shadowban"},{type:"tool",icon:"\u{1F3AF}",title:"Predictor de performance",desc:"Score + recomendaciones para viralizar",route:"predictor",priority:6,keywords:"predictor predecir score viral"},{type:"tool",icon:"\u{1F4DA}",title:"Hook Library",desc:"Biblioteca de patrones + scorer + generador",route:"hooks",priority:6,keywords:"hook library biblioteca patrones"}];let k=[];const E=t=>{k=Object.entries(t??{}).map(([e,o])=>{const a=o.split("\xB7").map(i=>i.trim()),c=a[0]??e,l=a.slice(1).join(" \xB7 ");return{type:"view",icon:"\u{1F4C2}",title:c,desc:l,route:e,priority:5,keywords:o.toLowerCase()}})},g=t=>String(t??"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""),S=(t,e)=>{if(!e)return t.priority??0;const o=g(e),a=g(t.title),c=g(t.keywords??""),l=g(t.desc??"");let i=0;a===o&&(i+=100),a.startsWith(o)&&(i+=50),a.includes(o)&&(i+=30),c.includes(o)&&(i+=20),l.includes(o)&&(i+=10);const u=o.split(/\s+/).filter(Boolean);for(const y of u)y.length<2||(a.includes(y)&&(i+=8),c.includes(y)&&(i+=5),l.includes(y)&&(i+=2));return i>0&&(i+=t.priority??0),i},w=(t,e=12)=>{const o=[...z,...k];return!t||!t.trim()?o.filter(a=>(a.priority??0)>=6||a.type==="view").sort((a,c)=>(c.priority??0)-(a.priority??0)).slice(0,e):o.map(a=>({item:a,s:S(a,t)})).filter(a=>a.s>0).sort((a,c)=>c.s-a.s).slice(0,e).map(a=>a.item)},h=t=>String(t??"").replace(/[&<>"']/g,e=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[e]),T=(t,e)=>{if(!e||!e.trim())return h(t);const o=g(e.trim()),a=h(t);return g(t).indexOf(o)<0||o.length<2?a:a.replace(new RegExp(`(${o.split("").map(i=>i.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("")})`,"i"),"<mark>$1</mark>")};let n=null,d=-1,m=[],s=null;const x=t=>n||(n=document.createElement("div"),n.className="gs-dropdown",n.setAttribute("role","listbox"),document.body.appendChild(n),b(t),window.addEventListener("resize",()=>b(t),{passive:!0}),window.addEventListener("scroll",()=>b(t),{passive:!0,capture:!0}),n),b=t=>{if(!n||!t)return;const e=t.getBoundingClientRect();n.style.top=`${Math.round(e.bottom+6)}px`,n.style.left=`${Math.round(e.left)}px`,n.style.width=`${Math.max(420,e.width)}px`},I={command:"\u26A1 Acciones r\xE1pidas",agent:"\u{1F916} Agentes IA",tool:"\u{1F9F0} Herramientas",view:"\u{1F4C2} Vistas"},A=(t,e)=>{if(!n)return;if(!t.length){n.innerHTML=`
-      <div class="gs-empty">
-        <div class="gs-empty-icon">\u{1F50D}</div>
-        <div class="gs-empty-text">Nada encontrado para "<strong>${h(e)}</strong>"</div>
-        <div class="gs-empty-hint">Prob\xE1: <em>lanzar misi\xF3n, frenar agente, abrir canva, ver analytics\u2026</em></div>
-      </div>`;return}const o={};for(const i of t)(o[i.type]||=[]).push(i);const a=["command","agent","tool","view"];let c=0,l="";for(const i of a)if(o[i]?.length){l+=`<div class="gs-group-label">${I[i]}</div>`;for(const u of o[i])l+=`
-        <button class="gs-item ${c===d?"active":""}" role="option" data-idx="${c}">
-          <span class="gs-item-icon">${u.icon??"\xB7"}</span>
-          <span class="gs-item-body">
-            <span class="gs-item-title">${T(u.title,e)}</span>
-            ${u.desc?`<span class="gs-item-desc">${h(u.desc)}</span>`:""}
-          </span>
-          <span class="gs-item-enter">\u21B5</span>
-        </button>`,c++}l+=`
-    <div class="gs-footer">
-      <span><kbd>\u2191\u2193</kbd> navegar</span>
-      <span><kbd>\u21B5</kbd> abrir</span>
-      <span><kbd>Esc</kbd> cerrar</span>
-      <span style="margin-left:auto;opacity:.6;">${t.length} resultados</span>
-    </div>`,n.innerHTML=l,n.querySelectorAll(".gs-item").forEach(i=>{i.addEventListener("mouseenter",()=>{d=Number(i.dataset.idx),f()}),i.addEventListener("click",()=>{d=Number(i.dataset.idx),C()})})},f=()=>{if(!n)return;n.querySelectorAll(".gs-item").forEach((e,o)=>{e.classList.toggle("active",Number(e.dataset.idx)===d)});const t=n.querySelector(".gs-item.active");t&&t.scrollIntoView({block:"nearest",behavior:"smooth"})},M=async t=>{if(t){if(v(),s&&(s.value="",s.blur()),t.action==="emergency-stop"){const e=document.getElementById("cua-emergency-stop");if(e){e.click();return}const{data:o}=await p("/api/cu/mode/pending-approvals",[]);await Promise.all((o??[]).map(a=>p(`/api/cu/mode/reject/${a.id}`,null,{method:"POST",body:{reason:"emergency-stop"}}))),await p("/api/cu/mode",null,{method:"PUT",body:{mode:"off",reason:"Emergency stop search",changedBy:"user"}}),r("\u{1F6D1} Agente frenado","ok");return}if(t.action==="open-chatbot"){document.getElementById("chatbot-fab")?.click();return}if(t.action==="open-voice"){document.getElementById("voice-fab")?.click();return}if(t.action==="open-shortcuts"){typeof window.__openShortcuts=="function"&&window.__openShortcuts();return}if(t.action==="open-notifications"){(document.getElementById("fxn-bell")||document.getElementById("topbar-notif"))?.click();return}if(t.action==="master-brain-carousel"||t.action==="master-brain-reel"||t.action==="master-brain-stories"){const e=t.action==="master-brain-carousel"?"carousel":t.action==="master-brain-reel"?"reel":"stories",o=window.prompt("\u{1F9E0} Cerebro Maestro \u2014 \xBFsobre qu\xE9 tema quer\xE9s crear contenido?");if(!o?.trim())return;r("\u{1F9E0} Activando Cerebro Maestro\u2026","ok");try{const{data:a,error:c}=await p("/api/cu/master",null,{method:"POST",body:{userInput:o,intent:"create-content",mode:"supervisor",contentFormat:e,topic:o}});if(c){r("\u274C Master Brain: "+c,"error");return}r(`\u2705 ${(a?.brainsActivated??[]).length} cerebros \xB7 innovaci\xF3n ${a?.innovationScore??"?"}/100`,"ok"),window.location.hash=e==="carousel"?"#studio-carousel":e==="reel"?"#studio-reel":"#studio-stories"}catch(a){r("\u274C "+a.message,"error")}return}if(t.action==="open-branding-brain"){window.location.hash="#personalization";try{sessionStorage.setItem("feedia.open-tab","branding")}catch{}r("\u{1F3DB}\uFE0F Abriendo Branding Brain\u2026","ok");return}if(t.action==="build-dm-templates"){r("\u{1F4AC} Construyendo plantillas de DM con IA\u2026","ok");try{const{data:e,error:o}=await p("/api/dm/templates/build",null,{method:"POST",body:{}});if(o){r("\u274C DM Templates: "+o,"error");return}const a=Object.keys(e?.templates??{}).length;r(`\u2705 ${a} plantillas de auto-respuesta listas para tus DMs`,"ok")}catch(e){r("\u274C "+e.message,"error")}return}if(t.action==="hashtag-strategy"){const e=window.prompt("#\uFE0F\u20E3 Estrategia de Hashtags \u2014 \xBFsobre qu\xE9 tema es el post?");if(!e?.trim())return;r("#\uFE0F\u20E3 Generando estrategia de hashtags\u2026","ok");try{const{data:o,error:a}=await p("/api/hashtags/strategy",null,{method:"POST",body:{topic:e,format:"carrusel",hook:e}});if(a){r("\u274C Hashtag Engine: "+a,"error");return}r(`\u2705 ${o?.total?.length??0} hashtags \xB7 ${o?.rationale?.slice(0,60)??""}`,"ok");try{await navigator.clipboard.writeText((o?.total??[]).join(" ")),r("\u{1F4CB} Hashtags copiados al portapapeles","ok")}catch{}}catch(o){r("\u274C "+o.message,"error")}return}if(t.action==="create-ab-test"){const e=window.prompt("\u{1F9EA} A/B Test \u2014 \xBFsobre qu\xE9 tema quer\xE9s testear variantes de contenido?");if(!e?.trim())return;r("\u{1F9EA} Creando variantes A/B con IA\u2026","ok");try{const{data:o,error:a}=await p("/api/ab-tests",null,{method:"POST",body:{topic:e,contentType:"carrusel",metric:"engagement_rate",variantCount:2}});if(a){r("\u274C A/B Test: "+a,"error");return}r(`\u2705 Test creado: ${o?.test?.variants?.length??0} variantes para "${e}"`,"ok")}catch(o){r("\u274C "+o.message,"error")}return}if(t.action==="schedule-queue"){r("\u{1F4C5} Programando contenido en ventanas \xF3ptimas\u2026","ok");try{const{data:e,error:o}=await p("/api/queue/schedule",null,{method:"POST",body:{}});if(o){r("\u274C Queue: "+o,"error");return}r(`\u2705 ${e?.scheduled??0} piezas programadas en horarios prime`,"ok")}catch(e){r("\u274C "+e.message,"error")}return}if(t.action==="master-full-takeover"){if(!window.confirm(`\u{1F9E0} Full Takeover activar\xE1 TODOS los cerebros del sistema:
-\u2022 Canva Brain (dise\xF1o)
-\u2022 DM Engine (respuestas)
-\u2022 Comment Orchestrator
-\u2022 Hashtag Engine
-\u2022 Content Queue
-\u2022 Caption Generator
+/* ══════════════════════════════════════════════════════════════════════════════
+   globalSearch.js — Búsqueda global con autocomplete, scoring y quick actions
+   ──────────────────────────────────────────────────────────────────────────────
+   Indexa: vistas (ROUTE_LABELS), agentes IA, herramientas, acciones rápidas
+   y quick commands (ej. "lanzar misión", "frenar agente", "abrir canva").
+   Soporta: keyboard nav (↑↓ Enter Esc), highlight, agrupado por categoría,
+   shortcut Ctrl/Cmd+K para abrir.
+   ══════════════════════════════════════════════════════════════════════════════ */
 
-\xBFConfirmar Full Takeover?`))return;r("\u{1F9E0} Full Takeover iniciado \u2014 activando todos los cerebros\u2026","ok");try{const{data:o,error:a}=await p("/api/cu/master",null,{method:"POST",body:{userInput:"Gesti\xF3n completa de la cuenta",intent:"full-takeover",mode:"supervisor",contentFormat:"carrusel",topic:"contenido de marca"}});if(a){r("\u274C Full Takeover: "+a,"error");return}const c=o?.brainsActivated?.length??0,l=o?.finalOutput?.deliverables?.length??0;r(`\u2705 Full Takeover completo \xB7 ${c} cerebros \xB7 ${l} entregables`,"ok")}catch(o){r("\u274C "+o.message,"error")}return}if(t.action==="detect-trends"){r("\u{1F4C8} Detectando tendencias del nicho con IA\u2026","ok");try{const e=await p("/api/trends/detect","POST",{});if(e.error){r("\u274C "+e.error,"error");return}const o=e.trends?.length??0,a=e.topPicks?.[0]?.name??"\u2014";r(`\u2705 ${o} tendencias detectadas \xB7 Top: "${a}" \xB7 Abriendo Studio Manager`,"ok"),window.location.hash="#studio-manager"}catch(e){r("\u274C "+e.message,"error")}return}if(t.action==="analyze-competitors"){r("\u{1F50D} Analizando competidores del nicho con IA\u2026","ok");try{const e=await p("/api/competitors/analyze","POST",{handles:[]});if(e.error){r("\u274C "+e.error,"error");return}const o=e.competitors?.length??0,a=e.topOpportunities?.length??0;r(`\u2705 ${o} competidores analizados \xB7 ${a} oportunidades top \xB7 Abriendo Studio Manager`,"ok"),window.location.hash="#studio-manager"}catch(e){r("\u274C "+e.message,"error")}return}if(t.route&&(window.location.hash=`#${t.route}`,t.anchor))try{sessionStorage.setItem("feedia.search.anchor",t.anchor)}catch{}}},C=()=>{d<0||d>=m.length||M(m[d])},L=(t="")=>{x(s),n.style.display="block",d=0,m=w(t),A(m,t)},v=()=>{n&&(n.style.display="none"),d=-1};export const initGlobalSearch=({routeLabels:t})=>{if(E(t),s=document.getElementById("global-search"),!!s){if(!document.getElementById("gs-style")){const e=document.createElement("style");e.id="gs-style",e.textContent=$,document.head.appendChild(e)}s.setAttribute("autocomplete","off"),s.setAttribute("spellcheck","false"),s.placeholder="Buscar: misi\xF3n, agente, herramienta, vista\u2026 (\u2318K)",s.addEventListener("input",()=>{const e=s.value;d=0,m=w(e),n||x(s),n.style.display="block",A(m,e)}),s.addEventListener("focus",()=>{L(s.value)}),s.addEventListener("keydown",e=>{e.key==="ArrowDown"?(e.preventDefault(),d=Math.min(m.length-1,d+1),f()):e.key==="ArrowUp"?(e.preventDefault(),d=Math.max(0,d-1),f()):e.key==="Enter"?(e.preventDefault(),m.length>0&&C()):e.key==="Escape"&&(e.preventDefault(),v(),s.blur())}),document.addEventListener("click",e=>{n&&(e.target===s||n.contains(e.target)||v())}),document.addEventListener("keydown",e=>{(e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"&&(e.preventDefault(),s.focus(),s.select()),e.key==="/"&&!["INPUT","TEXTAREA"].includes(document.activeElement?.tagName)&&(e.preventDefault(),s.focus())})}};const $=`
+import { apiSafe } from './api.js';
+import { toast } from './toast.js';
+
+// ── Index estático ────────────────────────────────────────────────────────────
+// (las rutas se enriquecen desde ROUTE_LABELS al inicializar)
+const STATIC_INDEX = [
+  // Quick actions / Commands
+  {
+    type: 'command',
+    icon: '🚀',
+    title: 'Lanzar misión nueva',
+    desc: 'Abre Mission Control con el input listo',
+    route: 'mission',
+    priority: 10,
+    keywords: 'mision misión goal lanzar objetivo',
+  },
+  {
+    type: 'command',
+    icon: '🛑',
+    title: 'Frenar al agente',
+    desc: 'Stop de emergencia · pausa todo + rechaza pendientes',
+    action: 'emergency-stop',
+    priority: 10,
+    keywords: 'stop frenar parar pausar emergencia cua agente',
+  },
+  {
+    type: 'command',
+    icon: '🎨',
+    title: 'Abrir Canva → Instagram',
+    desc: 'Pipeline visual: Nova diseña y Luca publica',
+    route: 'canva-runner',
+    priority: 9,
+    keywords: 'canva diseño publicar',
+  },
+  {
+    type: 'command',
+    icon: '📷',
+    title: 'Vision IA · abrir cámara',
+    desc: 'Analizar imagen desde cámara o subida',
+    route: 'vision',
+    priority: 8,
+    keywords: 'camara cámara foto imagen analizar vision',
+  },
+  {
+    type: 'command',
+    icon: '✨',
+    title: 'Hablarle al Asistente FeedIA',
+    desc: 'Abre la burbuja de chat (la que está junto al mic)',
+    action: 'open-chatbot',
+    priority: 9,
+    keywords: 'chatbot asistente chat preguntar feedia',
+  },
+  {
+    type: 'command',
+    icon: '🎙️',
+    title: 'Hola FeedIA · comando por voz',
+    desc: 'Abre el overlay de voz hands-free',
+    action: 'open-voice',
+    priority: 8,
+    keywords: 'voz hablar microfono micrófono dictar',
+  },
+  {
+    type: 'command',
+    icon: '🔁',
+    title: 'Activar Autopilot',
+    desc: 'Pasa al modo operación autónoma',
+    route: 'autopilot',
+    priority: 8,
+    keywords: 'autopilot automatico autónomo activar',
+  },
+  {
+    type: 'command',
+    icon: '⚡',
+    title: 'Skills de FeedIA',
+    desc: 'Catálogo de skills + generador real de carrusel/reel/story',
+    route: 'skills',
+    priority: 9,
+    keywords: 'skills habilidades generador carrusel reel story catalogo canva',
+  },
+  {
+    type: 'command',
+    icon: '⌨️',
+    title: 'Ver atajos de teclado',
+    desc: 'Cheatsheet completo (también con tecla "?")',
+    action: 'open-shortcuts',
+    priority: 8,
+    keywords: 'atajos shortcuts teclado keyboard cheatsheet ayuda help',
+  },
+  {
+    type: 'command',
+    icon: '🎨',
+    title: 'Editar Brand Board',
+    desc: 'Definí nombre, paleta, voz, tipografía',
+    route: 'moodboard',
+    priority: 7,
+    keywords: 'brand marca identidad logo paleta colores',
+  },
+  {
+    type: 'command',
+    icon: '⚙️',
+    title: 'Abrir Configuración',
+    desc: 'API keys, voz, accesibilidad, integración Meta',
+    route: 'settings',
+    priority: 8,
+    keywords: 'settings ajustes configuracion config api keys',
+  },
+  {
+    type: 'command',
+    icon: '🧬',
+    title: 'Ver Medidor de Consumo IA',
+    desc: 'Arquitectura del cerebro, memoria, razonamiento',
+    route: 'inteligencia',
+    priority: 7,
+    keywords: 'inteligencia cerebro consumo tokens memoria arquitectura',
+  },
+  {
+    type: 'command',
+    icon: '🔔',
+    title: 'Abrir notificaciones',
+    desc: 'Campanita con aprobaciones, logros, equipo',
+    action: 'open-notifications',
+    priority: 7,
+    keywords: 'notificaciones campanita alertas aprobaciones',
+  },
+  {
+    type: 'command',
+    icon: '🎯',
+    title: 'Lanzar Predictor de Performance',
+    desc: 'Score + recomendaciones para viralizar',
+    route: 'predictor',
+    priority: 7,
+    keywords: 'predictor predecir viralizar score',
+  },
+  {
+    type: 'command',
+    icon: '🧪',
+    title: 'Hook Library',
+    desc: '23+ patrones de hooks + scorer + favoritos',
+    route: 'hooks',
+    priority: 7,
+    keywords: 'hook library biblioteca ganchos patrones',
+  },
+  {
+    type: 'command',
+    icon: '👑',
+    title: 'Sala Ejecutiva',
+    desc: 'Resumen, propuestas, análisis, reportes, etc.',
+    route: 'imperio',
+    priority: 8,
+    keywords: 'sala ejecutiva imperio reunion ejecutivos resumen apalancamiento',
+  },
+  {
+    type: 'command',
+    icon: '📒',
+    title: 'Ver agenda',
+    desc: 'Lo que el equipo va a hacer, día por día',
+    route: 'agenda',
+    priority: 7,
+    keywords: 'agenda cronograma tareas eventos plan',
+  },
+  {
+    type: 'command',
+    icon: '📅',
+    title: 'Calendario de contenido',
+    desc: 'Vista semana / mes / año + IA interpreta',
+    route: 'calendar',
+    priority: 7,
+    keywords: 'calendario calendar contenido publicar planificar',
+  },
+  {
+    type: 'command',
+    icon: '📋',
+    title: 'Task Board del equipo',
+    desc: 'Kanban con Nova, Lía, Gard, Luca, Mira',
+    route: 'taskboard',
+    priority: 6,
+    keywords: 'task board kanban equipo tareas standup workload',
+  },
+  {
+    type: 'command',
+    icon: '🤖',
+    title: 'Agentes IA',
+    desc: 'Dashboard de tu equipo autónomo',
+    route: 'agents',
+    priority: 7,
+    keywords: 'agentes ia inteligencia artificial nova lia gard luca mira',
+  },
+  {
+    type: 'command',
+    icon: '🛸',
+    title: 'Mission Control',
+    desc: 'Lanzar misiones multi-agente en lenguaje natural',
+    route: 'mission',
+    priority: 7,
+    keywords: 'mission control misiones multi agente goal lanzar',
+  },
+  {
+    type: 'command',
+    icon: '📜',
+    title: 'Replay Log',
+    desc: 'Sesiones grabadas paso por paso con screenshots',
+    route: 'replay',
+    priority: 6,
+    keywords: 'replay log historial sesiones screenshots',
+  },
+  {
+    type: 'command',
+    icon: '🧠',
+    title: 'Cerebro Maestro — carrusel',
+    desc: 'Lanza el Master Brain para generar un carrusel completo',
+    action: 'master-brain-carousel',
+    priority: 9,
+    keywords: 'cerebro maestro master brain branding canva carrusel orquestador',
+  },
+  {
+    type: 'command',
+    icon: '🧠',
+    title: 'Cerebro Maestro — reel',
+    desc: 'Lanza el Master Brain para generar un reel',
+    action: 'master-brain-reel',
+    priority: 9,
+    keywords: 'cerebro maestro master brain reel video orquestador',
+  },
+  {
+    type: 'command',
+    icon: '🧠',
+    title: 'Cerebro Maestro — stories',
+    desc: 'Lanza el Master Brain para generar stories',
+    action: 'master-brain-stories',
+    priority: 9,
+    keywords: 'cerebro maestro master brain stories historias orquestador',
+  },
+  {
+    type: 'command',
+    icon: '🏛️',
+    title: 'Branding Brain',
+    desc: 'Construí / refiná la identidad completa de tu marca con 8 especialistas IA',
+    route: 'personalization',
+    action: 'open-branding-brain',
+    priority: 9,
+    keywords: 'branding brain identidad marca estrategia voz visual lorenz renata aurora',
+  },
+  {
+    type: 'command',
+    icon: '💬',
+    title: 'DM Auto-Reply — Construir plantillas',
+    desc: 'Genera respuestas automáticas para DMs según la identidad de marca',
+    action: 'build-dm-templates',
+    priority: 8,
+    keywords: 'dm direct message respuesta automatica plantilla inbox',
+  },
+  {
+    type: 'command',
+    icon: '#️⃣',
+    title: 'Estrategia de Hashtags',
+    desc: 'Genera la estrategia óptima de hashtags para tu próximo post',
+    action: 'hashtag-strategy',
+    priority: 8,
+    keywords: 'hashtag estrategia tags etiquetas niche nicho rotacion',
+  },
+  {
+    type: 'command',
+    icon: '🧪',
+    title: 'Crear A/B Test',
+    desc: 'Crea variantes de contenido para medir qué funciona mejor',
+    action: 'create-ab-test',
+    priority: 7,
+    keywords: 'ab test variante split testing engagement caption',
+  },
+  {
+    type: 'command',
+    icon: '📅',
+    title: 'Cola de Contenido — Programar',
+    desc: 'Programa publicaciones en las ventanas óptimas de tu audiencia',
+    action: 'schedule-queue',
+    priority: 7,
+    keywords: 'cola queue programar publicar schedule contenido calendario',
+  },
+  {
+    type: 'command',
+    icon: '🧠',
+    title: 'Full Takeover — Gestión completa',
+    desc: 'Activa TODOS los cerebros: contenido, DMs, comentarios, hashtags, cola',
+    action: 'master-full-takeover',
+    priority: 9,
+    keywords: 'full takeover autopilot piloto automatico todo gestionar completo',
+  },
+  {
+    type: 'command',
+    icon: '📈',
+    title: 'Detectar tendencias del nicho',
+    desc: 'Analiza las tendencias actuales relevantes y genera ideas de contenido',
+    action: 'detect-trends',
+    priority: 8,
+    keywords: 'tendencias trends trending nicho viral novedad oportunidad',
+  },
+  {
+    type: 'command',
+    icon: '🔍',
+    title: 'Analizar competidores',
+    desc: 'Mapea la competencia, extrae gaps y genera ideas únicas para tu marca',
+    action: 'analyze-competitors',
+    priority: 8,
+    keywords: 'competidores competencia analizar gaps mercado diferenciacion',
+  },
+  {
+    type: 'command',
+    icon: '🤖',
+    title: 'Studio Manager — Panel CU Brain',
+    desc: 'Abre el dashboard central con todos los módulos del CU Brain',
+    route: 'studio-manager',
+    priority: 9,
+    keywords: 'studio manager panel cerebro cu brain dashboard queue dms hashtags trending',
+  },
+
+  // Agentes (los 10 especialistas)
+  {
+    type: 'agent',
+    icon: '🧠',
+    title: 'Algorithm Master',
+    desc: 'Ranking, Explore, shadowban, timing óptimo',
+    route: 'agents',
+    anchor: 'algorithm',
+    priority: 7,
+    keywords: 'algoritmo algorithm ranking explore shadowban timing',
+  },
+  {
+    type: 'agent',
+    icon: '📊',
+    title: 'Meta Ads Pro',
+    desc: 'Campañas, audiencias, creativos, ROAS',
+    route: 'agents',
+    anchor: 'meta-ads',
+    priority: 7,
+    keywords: 'meta ads facebook campañas anuncios roas',
+  },
+  {
+    type: 'agent',
+    icon: '😂',
+    title: 'Humor Engine',
+    desc: 'Memes, comedy hooks, contenido viral',
+    route: 'agents',
+    anchor: 'humor',
+    priority: 7,
+    keywords: 'humor meme comedia viral entretenimiento',
+  },
+  {
+    type: 'agent',
+    icon: '💰',
+    title: 'Sales Machine',
+    desc: 'Story selling, DM funnels, CTAs',
+    route: 'agents',
+    anchor: 'sales',
+    priority: 7,
+    keywords: 'ventas sales dm funnel cierre',
+  },
+  {
+    type: 'agent',
+    icon: '❤️',
+    title: 'Community Champion',
+    desc: 'Engagement, lives, UGC, comunidad',
+    route: 'agents',
+    anchor: 'community',
+    priority: 7,
+    keywords: 'comunidad community engagement lives ugc',
+  },
+
+  // Herramientas
+  {
+    type: 'tool',
+    icon: '✍️',
+    title: 'Caption IA',
+    desc: '3 captions optimizadas con voz de marca',
+    route: 'tools',
+    anchor: 'caption',
+    priority: 6,
+    keywords: 'caption pie de foto texto',
+  },
+  {
+    type: 'tool',
+    icon: '🔬',
+    title: 'Hashtag Lab',
+    desc: 'Sets balanceados nicho + tendencia',
+    route: 'tools',
+    anchor: 'hashtags',
+    priority: 6,
+    keywords: 'hashtags tags etiquetas',
+  },
+  {
+    type: 'tool',
+    icon: '🎣',
+    title: 'Hook Factory',
+    desc: 'Ganchos virales que paran scroll',
+    route: 'tools',
+    anchor: 'hooks',
+    priority: 6,
+    keywords: 'hook gancho viral scroll',
+  },
+  {
+    type: 'tool',
+    icon: '♻️',
+    title: 'Repurposer',
+    desc: 'Reusá contenido en otros formatos',
+    route: 'tools',
+    anchor: 'repurpose',
+    priority: 6,
+    keywords: 'repurpose reusar reciclar formatos',
+  },
+  {
+    type: 'tool',
+    icon: '🛡️',
+    title: 'Safety Check',
+    desc: 'Compliance + riesgo shadowban',
+    route: 'tools',
+    anchor: 'safety',
+    priority: 6,
+    keywords: 'compliance safety riesgo shadowban',
+  },
+  {
+    type: 'tool',
+    icon: '🎯',
+    title: 'Predictor de performance',
+    desc: 'Score + recomendaciones para viralizar',
+    route: 'predictor',
+    priority: 6,
+    keywords: 'predictor predecir score viral',
+  },
+  {
+    type: 'tool',
+    icon: '📚',
+    title: 'Hook Library',
+    desc: 'Biblioteca de patrones + scorer + generador',
+    route: 'hooks',
+    priority: 6,
+    keywords: 'hook library biblioteca patrones',
+  },
+];
+
+let routeIndex = []; // poblado desde ROUTE_LABELS
+
+const buildRouteIndex = (routeLabels) => {
+  routeIndex = Object.entries(routeLabels ?? {}).map(([id, label]) => {
+    const parts = label.split('·').map((s) => s.trim());
+    const title = parts[0] ?? id;
+    const desc = parts.slice(1).join(' · ');
+    return {
+      type: 'view',
+      icon: '📂',
+      title,
+      desc,
+      route: id,
+      priority: 5,
+      keywords: label.toLowerCase(),
+    };
+  });
+};
+
+// ── Scoring & matching ────────────────────────────────────────────────────────
+const normalize = (s) =>
+  String(s ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, ''); // sin tildes
+
+const score = (item, query) => {
+  if (!query) return item.priority ?? 0;
+  const q = normalize(query);
+  const title = normalize(item.title);
+  const keywords = normalize(item.keywords ?? '');
+  const desc = normalize(item.desc ?? '');
+  let s = 0;
+  if (title === q) s += 100;
+  if (title.startsWith(q)) s += 50;
+  if (title.includes(q)) s += 30;
+  if (keywords.includes(q)) s += 20;
+  if (desc.includes(q)) s += 10;
+  // Bonus por tokens (queries multi-palabra)
+  const tokens = q.split(/\s+/).filter(Boolean);
+  for (const t of tokens) {
+    if (t.length < 2) continue;
+    if (title.includes(t)) s += 8;
+    if (keywords.includes(t)) s += 5;
+    if (desc.includes(t)) s += 2;
+  }
+  if (s > 0) s += item.priority ?? 0;
+  return s;
+};
+
+const search = (query, limit = 12) => {
+  const all = [...STATIC_INDEX, ...routeIndex];
+  if (!query || !query.trim()) {
+    // Sin query: mostrar top commands + 4 agentes + 4 vistas más relevantes
+    return all
+      .filter((i) => (i.priority ?? 0) >= 6 || i.type === 'view')
+      .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
+      .slice(0, limit);
+  }
+  return all
+    .map((i) => ({ item: i, s: score(i, query) }))
+    .filter((x) => x.s > 0)
+    .sort((a, b) => b.s - a.s)
+    .slice(0, limit)
+    .map((x) => x.item);
+};
+
+// ── Resaltado del match ───────────────────────────────────────────────────────
+const escapeHtml = (s) =>
+  String(s ?? '').replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+  );
+
+const highlight = (text, query) => {
+  if (!query || !query.trim()) return escapeHtml(text);
+  const q = normalize(query.trim());
+  const orig = escapeHtml(text);
+  const normText = normalize(text);
+  const idx = normText.indexOf(q);
+  if (idx < 0 || q.length < 2) return orig;
+  // Devolvemos con highlight aproximado sin alterar mucho
+  return orig.replace(
+    new RegExp(
+      `(${q
+        .split('')
+        .map((c) => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .join('')})`,
+      'i',
+    ),
+    '<mark>$1</mark>',
+  );
+};
+
+// ── DOM ───────────────────────────────────────────────────────────────────────
+let dropdownEl = null;
+let activeIndex = -1;
+let currentResults = [];
+let inputEl = null;
+
+const ensureDropdown = (anchorEl) => {
+  if (dropdownEl) return dropdownEl;
+  dropdownEl = document.createElement('div');
+  dropdownEl.className = 'gs-dropdown';
+  dropdownEl.setAttribute('role', 'listbox');
+  document.body.appendChild(dropdownEl);
+  positionDropdown(anchorEl);
+  window.addEventListener('resize', () => positionDropdown(anchorEl), { passive: true });
+  window.addEventListener('scroll', () => positionDropdown(anchorEl), { passive: true, capture: true });
+  return dropdownEl;
+};
+
+const positionDropdown = (anchor) => {
+  if (!dropdownEl || !anchor) return;
+  const r = anchor.getBoundingClientRect();
+  dropdownEl.style.top = `${Math.round(r.bottom + 6)}px`;
+  dropdownEl.style.left = `${Math.round(r.left)}px`;
+  dropdownEl.style.width = `${Math.max(420, r.width)}px`;
+};
+
+const CATEGORY_LABEL = {
+  command: '⚡ Acciones rápidas',
+  agent: '🤖 Agentes IA',
+  tool: '🧰 Herramientas',
+  view: '📂 Vistas',
+};
+
+const renderResults = (results, query) => {
+  if (!dropdownEl) return;
+  if (!results.length) {
+    dropdownEl.innerHTML = `
+      <div class="gs-empty">
+        <div class="gs-empty-icon">🔍</div>
+        <div class="gs-empty-text">Nada encontrado para "<strong>${escapeHtml(query)}</strong>"</div>
+        <div class="gs-empty-hint">Probá: <em>lanzar misión, frenar agente, abrir canva, ver analytics…</em></div>
+      </div>`;
+    return;
+  }
+  // Agrupar por tipo manteniendo orden por score
+  const groups = {};
+  for (const r of results) {
+    (groups[r.type] ||= []).push(r);
+  }
+  const order = ['command', 'agent', 'tool', 'view'];
+  let i = 0;
+  let html = '';
+  for (const cat of order) {
+    if (!groups[cat]?.length) continue;
+    html += `<div class="gs-group-label">${CATEGORY_LABEL[cat]}</div>`;
+    for (const r of groups[cat]) {
+      const isActive = i === activeIndex;
+      html += `
+        <button class="gs-item ${isActive ? 'active' : ''}" role="option" data-idx="${i}">
+          <span class="gs-item-icon">${r.icon ?? '·'}</span>
+          <span class="gs-item-body">
+            <span class="gs-item-title">${highlight(r.title, query)}</span>
+            ${r.desc ? `<span class="gs-item-desc">${escapeHtml(r.desc)}</span>` : ''}
+          </span>
+          <span class="gs-item-enter">↵</span>
+        </button>`;
+      i++;
+    }
+  }
+  html += `
+    <div class="gs-footer">
+      <span><kbd>↑↓</kbd> navegar</span>
+      <span><kbd>↵</kbd> abrir</span>
+      <span><kbd>Esc</kbd> cerrar</span>
+      <span style="margin-left:auto;opacity:.6;">${results.length} resultados</span>
+    </div>`;
+  dropdownEl.innerHTML = html;
+  dropdownEl.querySelectorAll('.gs-item').forEach((el) => {
+    el.addEventListener('mouseenter', () => {
+      activeIndex = Number(el.dataset.idx);
+      updateActiveVisual();
+    });
+    el.addEventListener('click', () => {
+      activeIndex = Number(el.dataset.idx);
+      executeActive();
+    });
+  });
+};
+
+const updateActiveVisual = () => {
+  if (!dropdownEl) return;
+  dropdownEl.querySelectorAll('.gs-item').forEach((el, i) => {
+    el.classList.toggle('active', Number(el.dataset.idx) === activeIndex);
+  });
+  // scrollIntoView del activo
+  const activeEl = dropdownEl.querySelector('.gs-item.active');
+  if (activeEl) activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+};
+
+// ── Ejecución de un resultado ─────────────────────────────────────────────────
+const executeItem = async (item) => {
+  if (!item) return;
+  closeDropdown();
+  if (inputEl) {
+    inputEl.value = '';
+    inputEl.blur();
+  }
+
+  // Action handlers
+  if (item.action === 'emergency-stop') {
+    const btn = document.getElementById('cua-emergency-stop');
+    if (btn) {
+      btn.click();
+      return;
+    }
+    // Fallback directo
+    const { data: pending } = await apiSafe('/api/cu/mode/pending-approvals', []);
+    await Promise.all(
+      (pending ?? []).map((a) =>
+        apiSafe(`/api/cu/mode/reject/${a.id}`, null, { method: 'POST', body: { reason: 'emergency-stop' } }),
+      ),
+    );
+    await apiSafe('/api/cu/mode', null, {
+      method: 'PUT',
+      body: { mode: 'off', reason: 'Emergency stop search', changedBy: 'user' },
+    });
+    toast('🛑 Agente frenado', 'ok');
+    return;
+  }
+  if (item.action === 'open-chatbot') {
+    const fab = document.getElementById('chatbot-fab');
+    fab?.click();
+    return;
+  }
+  if (item.action === 'open-voice') {
+    const fab = document.getElementById('voice-fab');
+    fab?.click();
+    return;
+  }
+  if (item.action === 'open-shortcuts') {
+    if (typeof window.__openShortcuts === 'function') window.__openShortcuts();
+    return;
+  }
+  if (item.action === 'open-notifications') {
+    const bell = document.getElementById('fxn-bell') || document.getElementById('topbar-notif');
+    bell?.click();
+    return;
+  }
+
+  // ── Cerebro Maestro desde ⌘K ─────────────────────────────────────────────
+  if (
+    item.action === 'master-brain-carousel' ||
+    item.action === 'master-brain-reel' ||
+    item.action === 'master-brain-stories'
+  ) {
+    const format =
+      item.action === 'master-brain-carousel' ? 'carousel' : item.action === 'master-brain-reel' ? 'reel' : 'stories';
+    const topic = window.prompt('🧠 Cerebro Maestro — ¿sobre qué tema querés crear contenido?');
+    if (!topic?.trim()) return;
+    toast('🧠 Activando Cerebro Maestro…', 'ok');
+    try {
+      const { data, error } = await apiSafe('/api/cu/master', null, {
+        method: 'POST',
+        body: { userInput: topic, intent: 'create-content', mode: 'supervisor', contentFormat: format, topic },
+      });
+      if (error) {
+        toast('❌ Master Brain: ' + error, 'error');
+        return;
+      }
+      toast(
+        `✅ ${(data?.brainsActivated ?? []).length} cerebros · innovación ${data?.innovationScore ?? '?'}/100`,
+        'ok',
+      );
+      // Navegar al studio correspondiente para ver los resultados
+      window.location.hash =
+        format === 'carousel' ? '#studio-carousel' : format === 'reel' ? '#studio-reel' : '#studio-stories';
+    } catch (err) {
+      toast('❌ ' + err.message, 'error');
+    }
+    return;
+  }
+
+  // ── Branding Brain desde ⌘K ──────────────────────────────────────────────
+  if (item.action === 'open-branding-brain') {
+    window.location.hash = '#personalization';
+    try {
+      sessionStorage.setItem('feedia.open-tab', 'branding');
+    } catch {
+      /* noop */
+    }
+    toast('🏛️ Abriendo Branding Brain…', 'ok');
+    return;
+  }
+
+  // ── DM Templates desde ⌘K ────────────────────────────────────────────────
+  if (item.action === 'build-dm-templates') {
+    toast('💬 Construyendo plantillas de DM con IA…', 'ok');
+    try {
+      const { data, error } = await apiSafe('/api/dm/templates/build', null, { method: 'POST', body: {} });
+      if (error) {
+        toast('❌ DM Templates: ' + error, 'error');
+        return;
+      }
+      const count = Object.keys(data?.templates ?? {}).length;
+      toast(`✅ ${count} plantillas de auto-respuesta listas para tus DMs`, 'ok');
+    } catch (err) {
+      toast('❌ ' + err.message, 'error');
+    }
+    return;
+  }
+
+  // ── Hashtag Strategy desde ⌘K ─────────────────────────────────────────────
+  if (item.action === 'hashtag-strategy') {
+    const topic = window.prompt('#️⃣ Estrategia de Hashtags — ¿sobre qué tema es el post?');
+    if (!topic?.trim()) return;
+    toast('#️⃣ Generando estrategia de hashtags…', 'ok');
+    try {
+      const { data, error } = await apiSafe('/api/hashtags/strategy', null, {
+        method: 'POST',
+        body: { topic, format: 'carrusel', hook: topic },
+      });
+      if (error) {
+        toast('❌ Hashtag Engine: ' + error, 'error');
+        return;
+      }
+      toast(`✅ ${data?.total?.length ?? 0} hashtags · ${data?.rationale?.slice(0, 60) ?? ''}`, 'ok');
+      // Copiar al clipboard
+      try {
+        await navigator.clipboard.writeText((data?.total ?? []).join(' '));
+        toast('📋 Hashtags copiados al portapapeles', 'ok');
+      } catch {
+        /* noop */
+      }
+    } catch (err) {
+      toast('❌ ' + err.message, 'error');
+    }
+    return;
+  }
+
+  // ── A/B Test desde ⌘K ────────────────────────────────────────────────────
+  if (item.action === 'create-ab-test') {
+    const topic = window.prompt('🧪 A/B Test — ¿sobre qué tema querés testear variantes de contenido?');
+    if (!topic?.trim()) return;
+    toast('🧪 Creando variantes A/B con IA…', 'ok');
+    try {
+      const { data, error } = await apiSafe('/api/ab-tests', null, {
+        method: 'POST',
+        body: { topic, contentType: 'carrusel', metric: 'engagement_rate', variantCount: 2 },
+      });
+      if (error) {
+        toast('❌ A/B Test: ' + error, 'error');
+        return;
+      }
+      toast(`✅ Test creado: ${data?.test?.variants?.length ?? 0} variantes para "${topic}"`, 'ok');
+    } catch (err) {
+      toast('❌ ' + err.message, 'error');
+    }
+    return;
+  }
+
+  // ── Schedule Queue desde ⌘K ──────────────────────────────────────────────
+  if (item.action === 'schedule-queue') {
+    toast('📅 Programando contenido en ventanas óptimas…', 'ok');
+    try {
+      const { data, error } = await apiSafe('/api/queue/schedule', null, { method: 'POST', body: {} });
+      if (error) {
+        toast('❌ Queue: ' + error, 'error');
+        return;
+      }
+      toast(`✅ ${data?.scheduled ?? 0} piezas programadas en horarios prime`, 'ok');
+    } catch (err) {
+      toast('❌ ' + err.message, 'error');
+    }
+    return;
+  }
+
+  // ── Full Takeover desde ⌘K ───────────────────────────────────────────────
+  if (item.action === 'master-full-takeover') {
+    const confirmed = window.confirm(
+      '🧠 Full Takeover activará TODOS los cerebros del sistema:\n• Canva Brain (diseño)\n• DM Engine (respuestas)\n• Comment Orchestrator\n• Hashtag Engine\n• Content Queue\n• Caption Generator\n\n¿Confirmar Full Takeover?',
+    );
+    if (!confirmed) return;
+    toast('🧠 Full Takeover iniciado — activando todos los cerebros…', 'ok');
+    try {
+      const { data, error } = await apiSafe('/api/cu/master', null, {
+        method: 'POST',
+        body: {
+          userInput: 'Gestión completa de la cuenta',
+          intent: 'full-takeover',
+          mode: 'supervisor',
+          contentFormat: 'carrusel',
+          topic: 'contenido de marca',
+        },
+      });
+      if (error) {
+        toast('❌ Full Takeover: ' + error, 'error');
+        return;
+      }
+      const brains = data?.brainsActivated?.length ?? 0;
+      const deliverables = data?.finalOutput?.deliverables?.length ?? 0;
+      toast(`✅ Full Takeover completo · ${brains} cerebros · ${deliverables} entregables`, 'ok');
+    } catch (err) {
+      toast('❌ ' + err.message, 'error');
+    }
+    return;
+  }
+
+  // ── Detect Trends desde ⌘K ──────────────────────────────────────────────
+  if (item.action === 'detect-trends') {
+    toast('📈 Detectando tendencias del nicho con IA…', 'ok');
+    try {
+      const res = await apiSafe('/api/trends/detect', 'POST', {});
+      if (res.error) {
+        toast('❌ ' + res.error, 'error');
+        return;
+      }
+      const count = res.trends?.length ?? 0;
+      const top = res.topPicks?.[0]?.name ?? '—';
+      toast(`✅ ${count} tendencias detectadas · Top: "${top}" · Abriendo Studio Manager`, 'ok');
+      window.location.hash = '#studio-manager';
+    } catch (err) {
+      toast('❌ ' + err.message, 'error');
+    }
+    return;
+  }
+
+  // ── Analyze Competitors desde ⌘K ─────────────────────────────────────────
+  if (item.action === 'analyze-competitors') {
+    toast('🔍 Analizando competidores del nicho con IA…', 'ok');
+    try {
+      const res = await apiSafe('/api/competitors/analyze', 'POST', { handles: [] });
+      if (res.error) {
+        toast('❌ ' + res.error, 'error');
+        return;
+      }
+      const count = res.competitors?.length ?? 0;
+      const opps = res.topOpportunities?.length ?? 0;
+      toast(`✅ ${count} competidores analizados · ${opps} oportunidades top · Abriendo Studio Manager`, 'ok');
+      window.location.hash = '#studio-manager';
+    } catch (err) {
+      toast('❌ ' + err.message, 'error');
+    }
+    return;
+  }
+
+  if (item.route) {
+    window.location.hash = `#${item.route}`;
+    if (item.anchor) {
+      // sessionStorage hint para que la vista destino enfoque el ancla
+      try {
+        sessionStorage.setItem('feedia.search.anchor', item.anchor);
+      } catch {
+        /* noop */
+      }
+    }
+  }
+};
+
+const executeActive = () => {
+  if (activeIndex < 0 || activeIndex >= currentResults.length) return;
+  void executeItem(currentResults[activeIndex]);
+};
+
+// ── Open / Close ──────────────────────────────────────────────────────────────
+const openDropdown = (query = '') => {
+  ensureDropdown(inputEl);
+  dropdownEl.style.display = 'block';
+  activeIndex = 0;
+  currentResults = search(query);
+  renderResults(currentResults, query);
+};
+
+const closeDropdown = () => {
+  if (dropdownEl) dropdownEl.style.display = 'none';
+  activeIndex = -1;
+};
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+export const initGlobalSearch = ({ routeLabels }) => {
+  buildRouteIndex(routeLabels);
+  inputEl = document.getElementById('global-search');
+  if (!inputEl) return;
+
+  // Inyectar estilos una sola vez
+  if (!document.getElementById('gs-style')) {
+    const style = document.createElement('style');
+    style.id = 'gs-style';
+    style.textContent = GS_STYLES;
+    document.head.appendChild(style);
+  }
+
+  inputEl.setAttribute('autocomplete', 'off');
+  inputEl.setAttribute('spellcheck', 'false');
+  inputEl.placeholder = 'Buscar: misión, agente, herramienta, vista… (⌘K)';
+
+  // Input → buscar
+  inputEl.addEventListener('input', () => {
+    const q = inputEl.value;
+    activeIndex = 0;
+    currentResults = search(q);
+    if (!dropdownEl) ensureDropdown(inputEl);
+    dropdownEl.style.display = 'block';
+    renderResults(currentResults, q);
+  });
+
+  // Focus → abrir dropdown vacío (top commands)
+  inputEl.addEventListener('focus', () => {
+    openDropdown(inputEl.value);
+  });
+
+  // Keyboard nav
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIndex = Math.min(currentResults.length - 1, activeIndex + 1);
+      updateActiveVisual();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIndex = Math.max(0, activeIndex - 1);
+      updateActiveVisual();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (currentResults.length > 0) {
+        executeActive();
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      closeDropdown();
+      inputEl.blur();
+    }
+  });
+
+  // Click fuera → cerrar
+  document.addEventListener('click', (e) => {
+    if (!dropdownEl) return;
+    if (e.target === inputEl || dropdownEl.contains(e.target)) return;
+    closeDropdown();
+  });
+
+  // Cmd/Ctrl+K → abrir
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      inputEl.focus();
+      inputEl.select();
+    }
+    // / como shortcut también (si no estás en input)
+    if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      inputEl.focus();
+    }
+  });
+};
+
+const GS_STYLES = `
 .gs-dropdown {
   position: fixed; display: none; z-index: 10000;
   max-height: 480px; overflow-y: auto;

@@ -1,4 +1,53 @@
-import{apiSafe as m}from"../lib/api.js";import{escape as x,fmt as I}from"../lib/dom.js";import{toast as s}from"../lib/toast.js";import{loadingScreen as S,withBtnSpinner as k}from"../lib/ui.js";const z=e=>new Date(e).toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"}),q=e=>new Date(e).toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"}),l=async e=>{const o=e.querySelector("#agenda-content");if(!o)return;o.innerHTML=S();const{data:n,error:d}=await m("/api/agenda",[]),g=Array.isArray(n)?n:Array.isArray(n?.items)?n.items:[],u=!!d||n&&n.demoMode===!0&&!Array.isArray(n),p={instagram:{ico:"\u{1F4F7}",label:"Instagram",color:"#C13584",soft:"rgba(193,53,132,.10)"},tiktok:{ico:"\u{1F3B5}",label:"TikTok",color:"#FE2C55",soft:"rgba(254,44,85,.10)"},general:{ico:"\u{1F4CC}",label:"General",color:"#6366F1",soft:"rgba(99,102,241,.10)"}},v=a=>p[a]||p.general,c=l._flt||"all",E=c==="all"?g:g.filter(a=>(a.platform||"general")===c),h={};for(const a of E){const i=z(a.at);(h[i]||=[]).push(a)}const T=g.length,w={instagram:g.filter(a=>a.platform==="instagram").length,tiktok:g.filter(a=>a.platform==="tiktok").length};o.innerHTML=`
+/* ══════════════════════════════════════════════════════════════════════════════
+   AGENDA — cronograma de lo que FeedIA va a hacer
+   ──────────────────────────────────────────────────────────────────────────────
+   Combina las próximas ejecuciones de directivas con items manuales que el
+   usuario agenda. Vista lineal por día.
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { api, apiSafe } from '../lib/api.js';
+import { escape, fmt } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+import { loadingScreen, withBtnSpinner } from '../lib/ui.js';
+
+const dayKey = (iso) => {
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+};
+const timeStr = (iso) => new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+const render = async (root) => {
+  const host = root.querySelector('#agenda-content');
+  if (!host) return;
+  host.innerHTML = loadingScreen();
+  const { data: items, error } = await apiSafe('/api/agenda', []);
+  const list = Array.isArray(items) ? items : Array.isArray(items?.items) ? items.items : [];
+  const isOffline = !!error || (items && items.demoMode === true && !Array.isArray(items));
+
+  // metadatos de plataforma (colores legibles, no tapan texto)
+  const PLAT = {
+    instagram: { ico: '📷', label: 'Instagram', color: '#C13584', soft: 'rgba(193,53,132,.10)' },
+    tiktok: { ico: '🎵', label: 'TikTok', color: '#FE2C55', soft: 'rgba(254,44,85,.10)' },
+    general: { ico: '📌', label: 'General', color: '#6366F1', soft: 'rgba(99,102,241,.10)' },
+  };
+  const pmeta = (p) => PLAT[p] || PLAT.general;
+
+  // filtro activo (persistido en memoria del módulo)
+  const flt = render._flt || 'all';
+  const shown = flt === 'all' ? list : list.filter((i) => (i.platform || 'general') === flt);
+
+  // group by day
+  const groups = {};
+  for (const it of shown) {
+    const k = dayKey(it.at);
+    (groups[k] ||= []).push(it);
+  }
+  const total = list.length;
+  const counts = {
+    instagram: list.filter((i) => i.platform === 'instagram').length,
+    tiktok: list.filter((i) => i.platform === 'tiktok').length,
+  };
+
+  host.innerHTML = `
     <style>
       .ag-wrap{--ink:#15181E;--ink2:#475067;--ink3:#667085;--line:#E6E8EE;--soft:#F7F8FB;}
       .ag-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 1px 2px rgba(16,24,40,.04);}
@@ -25,32 +74,32 @@ import{apiSafe as m}from"../lib/api.js";import{escape as x,fmt as I}from"../lib/
       .ag-empty{text-align:center;padding:36px 20px;color:var(--ink3);}
     </style>
     <div class="ag-wrap">
-      ${u?'<div class="ag-card" style="border-style:dashed;padding:12px 14px;"><span style="color:#475067;font-size:13px;">\u{1F4E1} Backend offline. Lo que escribas se guardar\xE1 cuando vuelva.</span></div>':""}
+      ${isOffline ? `<div class="ag-card" style="border-style:dashed;padding:12px 14px;"><span style="color:#475067;font-size:13px;">📡 Backend offline. Lo que escribas se guardará cuando vuelva.</span></div>` : ''}
 
       <!-- Plan IA: sincroniza con la cuenta -->
       <div class="ag-card" style="border-top:3px solid #7C3AED;">
-        <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">\u{1F9E0}</span><strong style="font-size:16px;">Planificador IA</strong><span class="ag-pbadge" style="background:rgba(124,58,237,.12);color:#7C3AED;">agente</span></div>
+        <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">🧠</span><strong style="font-size:16px;">Planificador IA</strong><span class="ag-pbadge" style="background:rgba(124,58,237,.12);color:#7C3AED;">agente</span></div>
         <p style="color:#475067;font-size:13px;margin:6px 0 12px;">FeedIA arma tu calendario de contenido sincronizado con tu cuenta (mejores horarios, mix de formatos, cadencia por red).</p>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">
-          <select id="ag-plan-plat" class="ag-input"><option value="instagram">\u{1F4F7} Instagram</option><option value="tiktok">\u{1F3B5} TikTok</option><option value="both">\u{1F310} Ambas</option></select>
-          <select id="ag-plan-dias" class="ag-input"><option value="7">7 d\xEDas</option><option value="14">14 d\xEDas</option><option value="30">30 d\xEDas</option></select>
+          <select id="ag-plan-plat" class="ag-input"><option value="instagram">📷 Instagram</option><option value="tiktok">🎵 TikTok</option><option value="both">🌐 Ambas</option></select>
+          <select id="ag-plan-dias" class="ag-input"><option value="7">7 días</option><option value="14">14 días</option><option value="30">30 días</option></select>
           <input id="ag-plan-nicho" class="ag-input" placeholder="Tu nicho (ej: fitness, IA)">
         </div>
-        <button class="ag-btn primary" id="ag-plan-go" style="margin-top:12px;width:100%;">\u2728 Generar plan de contenido</button>
+        <button class="ag-btn primary" id="ag-plan-go" style="margin-top:12px;width:100%;">✨ Generar plan de contenido</button>
       </div>
 
       <!-- Lenguaje natural -->
       <div class="ag-card">
-        <strong>Decile a FeedIA qu\xE9 hacer</strong>
-        <p style="color:#475067;font-size:13px;margin:4px 0 10px;">Escrib\xED natural: tareas, contenidos, recordatorios, automatizaciones.</p>
-        <textarea id="ag-ai-input" class="ag-input" rows="2" placeholder='Ej: "Recordame revisar m\xE9tricas los lunes 9am" \xB7 "Grabar reel sobre disciplina ma\xF1ana 11am"'></textarea>
-        <button class="ag-btn primary" id="ag-ai-go" style="margin-top:10px;">\u2728 Interpretar y agendar</button>
+        <strong>Decile a FeedIA qué hacer</strong>
+        <p style="color:#475067;font-size:13px;margin:4px 0 10px;">Escribí natural: tareas, contenidos, recordatorios, automatizaciones.</p>
+        <textarea id="ag-ai-input" class="ag-input" rows="2" placeholder='Ej: "Recordame revisar métricas los lunes 9am" · "Grabar reel sobre disciplina mañana 11am"'></textarea>
+        <button class="ag-btn primary" id="ag-ai-go" style="margin-top:10px;">✨ Interpretar y agendar</button>
         <details style="margin-top:10px;">
-          <summary style="cursor:pointer;color:#475067;font-size:13px;">\u2795 Agendar manualmente</summary>
+          <summary style="cursor:pointer;color:#475067;font-size:13px;">➕ Agendar manualmente</summary>
           <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-top:10px;align-items:center;">
-            <input class="ag-input" id="ag-title" placeholder="T\xEDtulo\u2026"/>
+            <input class="ag-input" id="ag-title" placeholder="Título…"/>
             <input class="ag-input" id="ag-at" type="datetime-local"/>
-            <select class="ag-input" id="ag-plat"><option value="general">\u{1F4CC} General</option><option value="instagram">\u{1F4F7} IG</option><option value="tiktok">\u{1F3B5} TikTok</option></select>
+            <select class="ag-input" id="ag-plat"><option value="general">📌 General</option><option value="instagram">📷 IG</option><option value="tiktok">🎵 TikTok</option></select>
             <button class="ag-btn primary" id="ag-add">Agendar</button>
           </div>
         </details>
@@ -58,38 +107,209 @@ import{apiSafe as m}from"../lib/api.js";import{escape as x,fmt as I}from"../lib/
 
       <!-- Filtro por plataforma -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
-        <span class="ag-chip ${c==="all"?"on":""}" data-flt="all">Todo (${T})</span>
-        <span class="ag-chip ${c==="instagram"?"on":""}" data-flt="instagram">\u{1F4F7} IG (${w.instagram})</span>
-        <span class="ag-chip ${c==="tiktok"?"on":""}" data-flt="tiktok">\u{1F3B5} TikTok (${w.tiktok})</span>
+        <span class="ag-chip ${flt === 'all' ? 'on' : ''}" data-flt="all">Todo (${total})</span>
+        <span class="ag-chip ${flt === 'instagram' ? 'on' : ''}" data-flt="instagram">📷 IG (${counts.instagram})</span>
+        <span class="ag-chip ${flt === 'tiktok' ? 'on' : ''}" data-flt="tiktok">🎵 TikTok (${counts.tiktok})</span>
       </div>
 
-      ${Object.keys(h).length===0?`<div class="ag-card ag-empty">Sin nada agendado${c!=="all"?" en este filtro":""}. Gener\xE1 un plan IA arriba o escribile a FeedIA.</div>`:Object.entries(h).map(([a,i])=>`
+      ${
+        Object.keys(groups).length === 0
+          ? `<div class="ag-card ag-empty">Sin nada agendado${flt !== 'all' ? ' en este filtro' : ''}. Generá un plan IA arriba o escribile a FeedIA.</div>`
+          : Object.entries(groups)
+              .map(
+                ([day, dayItems]) => `
           <div class="ag-day">
-            <div class="ag-day-head">${x(a)}</div>
-            ${i.map(t=>{const r=v(t.platform);return`
-              <div class="ag-item ${t.done?"done":""}" style="--pc:${r.color};">
-                <div class="ag-time">${q(t.at)}</div>
+            <div class="ag-day-head">${escape(day)}</div>
+            ${dayItems
+              .map((it) => {
+                const pm = pmeta(it.platform);
+                return `
+              <div class="ag-item ${it.done ? 'done' : ''}" style="--pc:${pm.color};">
+                <div class="ag-time">${timeStr(it.at)}</div>
                 <div style="flex:1;min-width:0;">
-                  <div class="ag-title">${x(t.title)}</div>
-                  ${t.notes?`<div class="ag-notes">${x(t.notes)}</div>`:""}
+                  <div class="ag-title">${escape(it.title)}</div>
+                  ${it.notes ? `<div class="ag-notes">${escape(it.notes)}</div>` : ''}
                   <div class="ag-meta">
-                    <span class="ag-pbadge" style="background:${r.soft};color:${r.color};">${r.ico} ${r.label}</span>
-                    ${t.format?`<span>\xB7 ${x(t.format)}</span>`:""}
-                    <span>\xB7 ${t.fromDirective?"\u{1F916} IA":"\u270B manual"}</span>
-                    <span>\xB7 ${I.rel(t.at)}</span>
+                    <span class="ag-pbadge" style="background:${pm.soft};color:${pm.color};">${pm.ico} ${pm.label}</span>
+                    ${it.format ? `<span>· ${escape(it.format)}</span>` : ''}
+                    <span>· ${it.fromDirective ? '🤖 IA' : '✋ manual'}</span>
+                    <span>· ${fmt.rel(it.at)}</span>
                   </div>
                 </div>
                 <div style="display:flex;gap:6px;flex-shrink:0;">
-                  <button class="ag-iconbtn" data-done="${x(t.id)}" title="${t.done?"reabrir":"hecho"}">${t.done?"\u21BA":"\u2713"}</button>
-                  <button class="ag-iconbtn" data-del="${x(t.id)}" title="eliminar">\u{1F5D1}</button>
+                  <button class="ag-iconbtn" data-done="${escape(it.id)}" title="${it.done ? 'reabrir' : 'hecho'}">${it.done ? '↺' : '✓'}</button>
+                  <button class="ag-iconbtn" data-del="${escape(it.id)}" title="eliminar">🗑</button>
                 </div>
-              </div>`}).join("")}
-          </div>`).join("")}
-    </div>`,o.querySelectorAll("[data-flt]").forEach(a=>a.addEventListener("click",()=>{l._flt=a.dataset.flt,l(e)})),e.querySelector("#ag-plan-go")?.addEventListener("click",async a=>{await k(a.currentTarget,"planeando\u2026",async()=>{const i=e.querySelector("#ag-plan-plat").value,t=Number(e.querySelector("#ag-plan-dias").value),r=e.querySelector("#ag-plan-nicho").value.trim(),{data:f,error:y}=await m("/api/agenda/plan",null,{method:"POST",body:{platform:i,dias:t,nicho:r}});if(y){s("Backend offline \u2014 no se pudo planear","warn");return}const A=f?.created??[];if(!A.length){s("Necesit\xE1s un LLM (GROQ_API_KEY) para el plan IA","warn");return}s(`\u2728 Plan listo: ${A.length} contenidos${f.real?" (con tus datos reales)":""}`,"ok"),await l(e)})});const b=e.querySelector("#ag-ai-input"),$=e.querySelector("#ag-ai-go");$?.addEventListener("click",async a=>{const i=b?.value?.trim();if(!i){s("Escrib\xED qu\xE9 quer\xE9s agendar","warn");return}await k(a.currentTarget,"interpretando\u2026",async()=>{const{data:t,error:r}=await m("/api/agenda/interpret",null,{method:"POST",body:{text:i}});if(r){const y=D(i);y?(await m("/api/agenda",null,{method:"POST",body:{title:i.slice(0,80),at:y.toISOString()}}),s("\u{1F4C5} Interpretado localmente. Agendado.","ok"),b.value="",await l(e)):s("Backend offline. No se pudo interpretar.","warn");return}const f=t?.created??[];s(`\u2728 FeedIA agend\xF3 ${f.length} \xEDtem${f.length===1?"":"s"}`,"ok"),b.value="",await l(e)})}),b?.addEventListener("keydown",a=>{a.key==="Enter"&&!a.shiftKey&&(a.preventDefault(),$?.click())}),e.querySelector("#ag-add")?.addEventListener("click",async a=>{const i=e.querySelector("#ag-title").value.trim(),t=e.querySelector("#ag-at").value,r=e.querySelector("#ag-plat")?.value||"general";if(!i||!t){s("Complet\xE1 t\xEDtulo y fecha","warn");return}await k(a.currentTarget,"agendando\u2026",async()=>{const{error:f}=await m("/api/agenda",null,{method:"POST",body:{title:i,at:new Date(t).toISOString(),platform:r}});if(f){s("Backend offline \u2014 guardalo cuando vuelva","warn");return}s("Agendado","ok"),await l(e)})}),o.querySelectorAll("[data-done]").forEach(a=>a.addEventListener("click",async()=>{await m(`/api/agenda/${a.dataset.done}/done`,null,{method:"POST",body:{done:a.textContent.trim()==="\u2713"}}),await l(e)})),o.querySelectorAll("[data-del]").forEach(a=>a.addEventListener("click",async()=>{await m(`/api/agenda/${a.dataset.del}/delete`,null,{method:"POST",body:{}}),s("Eliminado","ok"),await l(e)}))},D=e=>{const o=e.toLowerCase(),n=new Date,d=new Date(n);/pasado\s*mañana/.test(o)?d.setDate(n.getDate()+2):/mañana/.test(o)&&d.setDate(n.getDate()+1);const g={domingo:0,lunes:1,martes:2,mi\u00E9rcoles:3,miercoles:3,jueves:4,viernes:5,s\u00E1bado:6,sabado:6};for(const[p,v]of Object.entries(g))if(new RegExp(`\\b${p}\\b`).test(o)){const c=(v-n.getDay()+7)%7||7;d.setDate(n.getDate()+c);break}const u=o.match(/(\d{1,2})\s*(?::(\d{2}))?\s*(am|pm|h)?/);if(u){let p=parseInt(u[1],10);const v=u[2]?parseInt(u[2],10):0;/pm/.test(u[3]??"")&&p<12&&(p+=12),d.setHours(p,v,0,0)}else d.setHours(9,0,0,0);return d};export const renderAgenda=async e=>{e.innerHTML=`
+              </div>`;
+              })
+              .join('')}
+          </div>`,
+              )
+              .join('')
+      }
+    </div>`;
+
+  // filtro
+  host.querySelectorAll('[data-flt]').forEach((c) =>
+    c.addEventListener('click', () => {
+      render._flt = c.dataset.flt;
+      render(root);
+    }),
+  );
+
+  // Plan IA
+  root.querySelector('#ag-plan-go')?.addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, 'planeando…', async () => {
+      const platform = root.querySelector('#ag-plan-plat').value;
+      const dias = Number(root.querySelector('#ag-plan-dias').value);
+      const nicho = root.querySelector('#ag-plan-nicho').value.trim();
+      const { data, error } = await apiSafe('/api/agenda/plan', null, {
+        method: 'POST',
+        body: { platform, dias, nicho },
+      });
+      if (error) {
+        toast('Backend offline — no se pudo planear', 'warn');
+        return;
+      }
+      const created = data?.created ?? [];
+      if (!created.length) {
+        toast('Necesitás un LLM (GROQ_API_KEY) para el plan IA', 'warn');
+        return;
+      }
+      toast(`✨ Plan listo: ${created.length} contenidos${data.real ? ' (con tus datos reales)' : ''}`, 'ok');
+      await render(root);
+    });
+  });
+
+  // IA-interpret box
+  const aiInput = root.querySelector('#ag-ai-input');
+  const aiGo = root.querySelector('#ag-ai-go');
+  aiGo?.addEventListener('click', async (e) => {
+    const text = aiInput?.value?.trim();
+    if (!text) {
+      toast('Escribí qué querés agendar', 'warn');
+      return;
+    }
+    await withBtnSpinner(e.currentTarget, 'interpretando…', async () => {
+      const { data, error } = await apiSafe('/api/agenda/interpret', null, {
+        method: 'POST',
+        body: { text },
+      });
+      if (error) {
+        // Fallback: parser local básico
+        const at = guessWhen(text);
+        if (at) {
+          await apiSafe('/api/agenda', null, {
+            method: 'POST',
+            body: { title: text.slice(0, 80), at: at.toISOString() },
+          });
+          toast('📅 Interpretado localmente. Agendado.', 'ok');
+          aiInput.value = '';
+          await render(root);
+        } else {
+          toast('Backend offline. No se pudo interpretar.', 'warn');
+        }
+        return;
+      }
+      const created = data?.created ?? [];
+      toast(`✨ FeedIA agendó ${created.length} ítem${created.length === 1 ? '' : 's'}`, 'ok');
+      aiInput.value = '';
+      await render(root);
+    });
+  });
+  aiInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      aiGo?.click();
+    }
+  });
+
+  // Add manual
+  root.querySelector('#ag-add')?.addEventListener('click', async (e) => {
+    const title = root.querySelector('#ag-title').value.trim();
+    const at = root.querySelector('#ag-at').value;
+    const platform = root.querySelector('#ag-plat')?.value || 'general';
+    if (!title || !at) {
+      toast('Completá título y fecha', 'warn');
+      return;
+    }
+    await withBtnSpinner(e.currentTarget, 'agendando…', async () => {
+      const { error: addErr } = await apiSafe('/api/agenda', null, {
+        method: 'POST',
+        body: { title, at: new Date(at).toISOString(), platform },
+      });
+      if (addErr) {
+        toast('Backend offline — guardalo cuando vuelva', 'warn');
+        return;
+      }
+      toast('Agendado', 'ok');
+      await render(root);
+    });
+  });
+
+  host.querySelectorAll('[data-done]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      await apiSafe(`/api/agenda/${b.dataset.done}/done`, null, {
+        method: 'POST',
+        body: { done: b.textContent.trim() === '✓' },
+      });
+      await render(root);
+    }),
+  );
+  host.querySelectorAll('[data-del]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      await apiSafe(`/api/agenda/${b.dataset.del}/delete`, null, { method: 'POST', body: {} });
+      toast('Eliminado', 'ok');
+      await render(root);
+    }),
+  );
+};
+
+/* Parser local básico: detecta "hoy/mañana/lunes/..." + hora "10am" para fallback offline */
+const guessWhen = (text) => {
+  const t = text.toLowerCase();
+  const now = new Date();
+  const when = new Date(now);
+  if (/pasado\s*mañana/.test(t)) when.setDate(now.getDate() + 2);
+  else if (/mañana/.test(t)) when.setDate(now.getDate() + 1);
+  const days = {
+    domingo: 0,
+    lunes: 1,
+    martes: 2,
+    miércoles: 3,
+    miercoles: 3,
+    jueves: 4,
+    viernes: 5,
+    sábado: 6,
+    sabado: 6,
+  };
+  for (const [name, dow] of Object.entries(days)) {
+    if (new RegExp(`\\b${name}\\b`).test(t)) {
+      const diff = (dow - now.getDay() + 7) % 7 || 7;
+      when.setDate(now.getDate() + diff);
+      break;
+    }
+  }
+  const hm = t.match(/(\d{1,2})\s*(?::(\d{2}))?\s*(am|pm|h)?/);
+  if (hm) {
+    let h = parseInt(hm[1], 10);
+    const m = hm[2] ? parseInt(hm[2], 10) : 0;
+    if (/pm/.test(hm[3] ?? '') && h < 12) h += 12;
+    when.setHours(h, m, 0, 0);
+  } else {
+    when.setHours(9, 0, 0, 0);
+  }
+  return when;
+};
+
+export const renderAgenda = async (root) => {
+  root.innerHTML = `
     <header class="view-header page-header">
       <div>
-        <h1 class="view-title page-title">\u{1F4D2} Agenda</h1>
-        <p class="view-subtitle page-subtitle">Lo que FeedIA va a hacer y lo que agend\xE1s a mano, d\xEDa por d\xEDa.</p>
+        <h1 class="view-title page-title">📒 Agenda</h1>
+        <p class="view-subtitle page-subtitle">Lo que FeedIA va a hacer y lo que agendás a mano, día por día.</p>
       </div>
     </header>
-    <div id="agenda-content" class="page-body">${S()}</div>`,await l(e)};
+    <div id="agenda-content" class="page-body">${loadingScreen()}</div>`;
+  await render(root);
+};

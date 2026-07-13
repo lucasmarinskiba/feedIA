@@ -1,33 +1,169 @@
-const i=[{label:"\u{1F50D} Navegaci\xF3n",items:[{keys:["\u2318","K"],alt:["Ctrl","K"],desc:"Abrir b\xFAsqueda global"},{keys:["/"],desc:"Abrir b\xFAsqueda (alternativo)"},{keys:["?"],desc:"Mostrar este panel de atajos"},{keys:["Esc"],desc:"Cerrar overlay / panel actual"},{keys:["G","H"],desc:"Ir a Home"},{keys:["G","M"],desc:"Ir a Mission Control"},{keys:["G","C"],desc:"Ir a Calendario"},{keys:["G","A"],desc:"Ir a Agenda"},{keys:["G","S"],desc:"Ir a Sala Ejecutiva"},{keys:["G","I"],desc:"Ir a Agentes IA"}]},{label:"\u{1F399}\uFE0F Voz y chat",items:[{keys:["Hola FeedIA"],desc:"Wake word (si est\xE1 activado en Settings)"},{keys:["Click","mic FAB"],desc:"Abrir overlay de voz"},{keys:["Click","\u2726 FAB"],desc:"Abrir chatbot Asistente FeedIA"},{keys:["Enter"],desc:"En el chat: enviar mensaje"},{keys:["Shift","Enter"],desc:"En el chat: nueva l\xEDnea"},{keys:["Esc"],desc:"Cerrar voice / chatbot"}]},{label:"\u{1F916} Computer Use",items:[{keys:["Click","topbar CUA"],desc:"Abrir dropdown Computer Use"},{keys:["Click","\u{1F534}/\u{1F7E2}/\u{1F441}\uFE0F"],desc:"Cambiar modo: Off/Auto/Asistente"},{keys:["Click","\u{1F6D1} rojo"],desc:"Frenar al agente (emergencia)"}]},{label:"\u{1F514} Notificaciones",items:[{keys:["Click","\u{1F514}"],desc:"Abrir campanita"},{keys:["Click","item"],desc:"Marcar como le\xEDdo + navegar"},{keys:["\u2713 Marcar todo"],desc:"Marcar todas como le\xEDdas"}]},{label:"\u26A1 Acciones r\xE1pidas (v\xEDa b\xFAsqueda)",items:[{keys:['/ \u2192 "misi\xF3n"'],desc:"Lanzar misi\xF3n nueva"},{keys:['/ \u2192 "frenar"'],desc:"Stop de emergencia del agente"},{keys:['/ \u2192 "canva"'],desc:"Abrir pipeline Canva \u2192 IG"},{keys:['/ \u2192 "camara"'],desc:"Vision IA con c\xE1mara"},{keys:['/ \u2192 "autopilot"'],desc:"Activar Autopilot"}]}],r=s=>String(s??"").replace(/[&<>"']/g,e=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[e]),o=s=>s.map(e=>e.length===1||e==="\u2318"||e==="\u2325"||e==="\u21E7"?`<kbd>${r(e)}</kbd>`:e==="Ctrl"||e==="Enter"||e==="Esc"||e==="Shift"?`<kbd>${r(e)}</kbd>`:`<span class="sc-token">${r(e)}</span>`).join('<span class="sc-plus">+</span>');let a=null;export const openShortcuts=()=>{if(a)return;a=document.createElement("div"),a.className="sc-overlay",a.setAttribute("role","dialog"),a.setAttribute("aria-label","Atajos de teclado"),a.innerHTML=`
+/* ══════════════════════════════════════════════════════════════════════════════
+   shortcuts.js — Overlay con todos los atajos de teclado del sistema
+   ──────────────────────────────────────────────────────────────────────────────
+   Trigger: tecla "?" (cuando no estás en input) · Cmd/Ctrl+/  · desde búsqueda
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+const SHORTCUT_GROUPS = [
+  {
+    label: '🔍 Navegación',
+    items: [
+      { keys: ['⌘', 'K'], alt: ['Ctrl', 'K'], desc: 'Abrir búsqueda global' },
+      { keys: ['/'], desc: 'Abrir búsqueda (alternativo)' },
+      { keys: ['?'], desc: 'Mostrar este panel de atajos' },
+      { keys: ['Esc'], desc: 'Cerrar overlay / panel actual' },
+      { keys: ['G', 'H'], desc: 'Ir a Home' },
+      { keys: ['G', 'M'], desc: 'Ir a Mission Control' },
+      { keys: ['G', 'C'], desc: 'Ir a Calendario' },
+      { keys: ['G', 'A'], desc: 'Ir a Agenda' },
+      { keys: ['G', 'S'], desc: 'Ir a Sala Ejecutiva' },
+      { keys: ['G', 'I'], desc: 'Ir a Agentes IA' },
+    ],
+  },
+  {
+    label: '🎙️ Voz y chat',
+    items: [
+      { keys: ['Hola FeedIA'], desc: 'Wake word (si está activado en Settings)' },
+      { keys: ['Click', 'mic FAB'], desc: 'Abrir overlay de voz' },
+      { keys: ['Click', '✦ FAB'], desc: 'Abrir chatbot Asistente FeedIA' },
+      { keys: ['Enter'], desc: 'En el chat: enviar mensaje' },
+      { keys: ['Shift', 'Enter'], desc: 'En el chat: nueva línea' },
+      { keys: ['Esc'], desc: 'Cerrar voice / chatbot' },
+    ],
+  },
+  {
+    label: '🤖 Computer Use',
+    items: [
+      { keys: ['Click', 'topbar CUA'], desc: 'Abrir dropdown Computer Use' },
+      { keys: ['Click', '🔴/🟢/👁️'], desc: 'Cambiar modo: Off/Auto/Asistente' },
+      { keys: ['Click', '🛑 rojo'], desc: 'Frenar al agente (emergencia)' },
+    ],
+  },
+  {
+    label: '🔔 Notificaciones',
+    items: [
+      { keys: ['Click', '🔔'], desc: 'Abrir campanita' },
+      { keys: ['Click', 'item'], desc: 'Marcar como leído + navegar' },
+      { keys: ['✓ Marcar todo'], desc: 'Marcar todas como leídas' },
+    ],
+  },
+  {
+    label: '⚡ Acciones rápidas (vía búsqueda)',
+    items: [
+      { keys: ['/ → "misión"'], desc: 'Lanzar misión nueva' },
+      { keys: ['/ → "frenar"'], desc: 'Stop de emergencia del agente' },
+      { keys: ['/ → "canva"'], desc: 'Abrir pipeline Canva → IG' },
+      { keys: ['/ → "camara"'], desc: 'Vision IA con cámara' },
+      { keys: ['/ → "autopilot"'], desc: 'Activar Autopilot' },
+    ],
+  },
+];
+
+const escapeHtml = (s) =>
+  String(s ?? '').replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+  );
+
+const renderKeys = (keys) =>
+  keys
+    .map((k) => {
+      if (k.length === 1 || k === '⌘' || k === '⌥' || k === '⇧') return `<kbd>${escapeHtml(k)}</kbd>`;
+      if (k === 'Ctrl' || k === 'Enter' || k === 'Esc' || k === 'Shift') return `<kbd>${escapeHtml(k)}</kbd>`;
+      return `<span class="sc-token">${escapeHtml(k)}</span>`;
+    })
+    .join('<span class="sc-plus">+</span>');
+
+let overlayEl = null;
+
+export const openShortcuts = () => {
+  if (overlayEl) return;
+  overlayEl = document.createElement('div');
+  overlayEl.className = 'sc-overlay';
+  overlayEl.setAttribute('role', 'dialog');
+  overlayEl.setAttribute('aria-label', 'Atajos de teclado');
+  overlayEl.innerHTML = `
     <div class="sc-backdrop"></div>
     <div class="sc-card">
       <div class="sc-header">
         <div>
-          <div class="sc-title">\u2328\uFE0F Atajos de teclado</div>
-          <div class="sc-sub">Todo lo que pod\xE9s hacer sin tocar el mouse.</div>
+          <div class="sc-title">⌨️ Atajos de teclado</div>
+          <div class="sc-sub">Todo lo que podés hacer sin tocar el mouse.</div>
         </div>
-        <button class="sc-close" aria-label="Cerrar">\u2715</button>
+        <button class="sc-close" aria-label="Cerrar">✕</button>
       </div>
       <div class="sc-body">
-        ${i.map(e=>`
+        ${SHORTCUT_GROUPS.map(
+          (g) => `
           <div class="sc-group">
-            <div class="sc-group-label">${e.label}</div>
+            <div class="sc-group-label">${g.label}</div>
             <div class="sc-items">
-              ${e.items.map(t=>`
+              ${g.items
+                .map(
+                  (it) => `
                 <div class="sc-item">
-                  <div class="sc-keys">${o(t.keys)}</div>
-                  <div class="sc-desc">${r(t.desc)}</div>
-                  ${t.alt?`<div class="sc-alt">o ${o(t.alt)}</div>`:""}
-                </div>`).join("")}
+                  <div class="sc-keys">${renderKeys(it.keys)}</div>
+                  <div class="sc-desc">${escapeHtml(it.desc)}</div>
+                  ${it.alt ? `<div class="sc-alt">o ${renderKeys(it.alt)}</div>` : ''}
+                </div>`,
+                )
+                .join('')}
             </div>
-          </div>`).join("")}
+          </div>`,
+        ).join('')}
       </div>
       <div class="sc-footer">
-        <span>Presion\xE1 <kbd>Esc</kbd> para cerrar</span>
-        <span style="opacity:.6;">\xB7</span>
-        <span>Si tu cuenta tiene Mac, \u2318 = <kbd>Cmd</kbd>; en Windows = <kbd>Ctrl</kbd></span>
+        <span>Presioná <kbd>Esc</kbd> para cerrar</span>
+        <span style="opacity:.6;">·</span>
+        <span>Si tu cuenta tiene Mac, ⌘ = <kbd>Cmd</kbd>; en Windows = <kbd>Ctrl</kbd></span>
       </div>
-    </div>`,document.body.appendChild(a);const s=()=>{a?.remove(),a=null};a.querySelector(".sc-backdrop").addEventListener("click",s),a.querySelector(".sc-close").addEventListener("click",s),document.addEventListener("keydown",function e(t){t.key==="Escape"&&(s(),document.removeEventListener("keydown",e))})},closeShortcuts=()=>{a?.remove(),a=null},initShortcuts=()=>{if(!document.getElementById("sc-style")){const s=document.createElement("style");s.id="sc-style",s.textContent=c,document.head.appendChild(s)}document.addEventListener("keydown",s=>{const e=(document.activeElement?.tagName??"").toUpperCase();if(!(["INPUT","TEXTAREA"].includes(e)||document.activeElement?.isContentEditable)){if(s.key==="?"){s.preventDefault(),openShortcuts();return}(s.metaKey||s.ctrlKey)&&s.key==="/"&&(s.preventDefault(),openShortcuts())}})};const c=`
+    </div>`;
+  document.body.appendChild(overlayEl);
+
+  const close = () => {
+    overlayEl?.remove();
+    overlayEl = null;
+  };
+  overlayEl.querySelector('.sc-backdrop').addEventListener('click', close);
+  overlayEl.querySelector('.sc-close').addEventListener('click', close);
+  document.addEventListener('keydown', function onKey(e) {
+    if (e.key === 'Escape') {
+      close();
+      document.removeEventListener('keydown', onKey);
+    }
+  });
+};
+
+export const closeShortcuts = () => {
+  overlayEl?.remove();
+  overlayEl = null;
+};
+
+export const initShortcuts = () => {
+  if (!document.getElementById('sc-style')) {
+    const style = document.createElement('style');
+    style.id = 'sc-style';
+    style.textContent = SC_STYLES;
+    document.head.appendChild(style);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    // No disparar dentro de inputs/textareas
+    const tag = (document.activeElement?.tagName ?? '').toUpperCase();
+    if (['INPUT', 'TEXTAREA'].includes(tag) || document.activeElement?.isContentEditable) return;
+    if (e.key === '?') {
+      e.preventDefault();
+      openShortcuts();
+      return;
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+      e.preventDefault();
+      openShortcuts();
+    }
+  });
+};
+
+const SC_STYLES = `
 .sc-overlay { position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center; animation: scIn .14s ease; }
 @keyframes scIn { from { opacity: 0; } to { opacity: 1; } }
 .sc-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.7); backdrop-filter: blur(4px); }

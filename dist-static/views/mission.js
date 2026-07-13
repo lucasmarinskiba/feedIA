@@ -1,412 +1,1022 @@
-import{api as d,apiSafe as $}from"../lib/api.js";import{escape as t,fmt as u}from"../lib/dom.js";import{toast as c}from"../lib/toast.js";import{loadingScreen as h,withBtnSpinner as m}from"../lib/ui.js";const j=[{emoji:"\u{1F680}",title:"Lanzar un producto nuevo",goal:'Lanzar mi nuevo curso "Productividad con IA" \u2014 5 d\xEDas de teaser, 3 reels de valor, 1 carrusel de stack, story diaria, abrir DMs el d\xEDa del lanzamiento.'},{emoji:"\u{1F4C8}",title:"Crecer +1000 followers en 30 d\xEDas",goal:"Crecer mi cuenta de 0 a +1000 followers en 30 d\xEDas: 5 posts/sem con voz de marca, optimizar bio, responder DMs, colaborar con 2 cuentas del nicho."},{emoji:"\u{1F4B0}",title:"Vender en stories",goal:"Funnel de ventas en stories: 7 frames diarios con educaci\xF3n + caso + oferta + escasez + CTA. Replicar 4 semanas seguidas."},{emoji:"\u{1F3AC}",title:"Serie de reels educativos",goal:"Serie de 10 reels educativos sobre mi nicho. Cada uno con hook fuerte, 3 puntos clave en 25s, CTA a comentar. Publicar 2/semana."},{emoji:"\u{1F91D}",title:"Re-activar comunidad",goal:"Re-engagement de seguidores inactivos: identificar top 50 fans, 1 story-shoutout, DM personalizado a 20, live de Q&A semanal."},{emoji:"\u{1F525}",title:"Recuperar de baj\xF3n de alcance",goal:"Diagnosticar ca\xEDda de reach. An\xE1lisis de \xFAltimos 30 posts, comparar con baseline, identificar shadowban risk, plan de recovery 14 d\xEDas."}],L=e=>{const s=e.toLowerCase(),a=[];return/(reel|carrusel|story|post|contenido|publicar|lanzar)/.test(s)&&a.push({agent:"Nova",emoji:"\u{1F3A8}",task:"Dise\xF1ar piezas visuales con tu marca",eta:"15 min"}),/(caption|copy|texto|hook|narrativa)/.test(s),a.push({agent:"L\xEDa",emoji:"\u270D\uFE0F",task:"Escribir captions + hooks con voz de marca",eta:"8 min"}),a.push({agent:"Gard",emoji:"\u{1F6E1}\uFE0F",task:"Validar tono, hashtags y compliance",eta:"3 min"}),/(publicar|subir|lanzar|programar)/.test(s)&&a.push({agent:"Luca",emoji:"\u{1F680}",task:"Programar y publicar en Instagram",eta:"5 min"}),/(crecer|métrica|análisis|análisi|reach|engagement|boost)/.test(s)&&a.push({agent:"Mira",emoji:"\u{1F4C8}",task:"An\xE1lisis de performance + boost si aplica",eta:"10 min"}),/(comunidad|dm|mensaje|comentario|fan|seguidor)/.test(s)&&a.push({agent:"Luca",emoji:"\u{1F4AC}",task:"Responder DMs y comentarios con tu voz",eta:"20 min"}),a};let v="launch",g=null;const b=()=>{try{g&&g.close()}catch{}g=null};window.addEventListener("beforeunload",b),window.addEventListener("hashchange",()=>{(location.hash.replace("#","")||"feed")!=="mission"&&b()});const z={planned:"",running:"warn",completed:"ok",failed:"crit",cancelled:"muted"},M=async e=>{let s=[];try{const r=await d("/api/missions/library");s=Array.isArray(r)?r:Array.isArray(r?.library)?r.library:[]}catch(r){e.innerHTML=`<div class="alert crit">Error: ${t(r.message)}</div>`;return}e.innerHTML=`
+/* ══════════════════════════════════════════════════════════════════════════════
+   MISSION CONTROL — Multi-agent orchestration view
+   ──────────────────────────────────────────────────────────────────────────────
+   5 tabs:
+   1. LAUNCH      → User describes a goal → system decomposes → executes
+   2. MISSIONS    → List of active and past missions
+   3. TRACES      → Audit trail of every autonomous decision
+   4. KNOWLEDGE   → Algorithm facts library + brand learnings
+   5. BUS         → Live event stream between agents
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { api, apiSafe } from '../lib/api.js';
+import { escape, fmt } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+import { loadingScreen, withBtnSpinner } from '../lib/ui.js';
+
+/* Mission templates pre-armadas para inspirar al usuario */
+const MISSION_TEMPLATES = [
+  {
+    emoji: '🚀',
+    title: 'Lanzar un producto nuevo',
+    goal: 'Lanzar mi nuevo curso "Productividad con IA" — 5 días de teaser, 3 reels de valor, 1 carrusel de stack, story diaria, abrir DMs el día del lanzamiento.',
+  },
+  {
+    emoji: '📈',
+    title: 'Crecer +1000 followers en 30 días',
+    goal: 'Crecer mi cuenta de 0 a +1000 followers en 30 días: 5 posts/sem con voz de marca, optimizar bio, responder DMs, colaborar con 2 cuentas del nicho.',
+  },
+  {
+    emoji: '💰',
+    title: 'Vender en stories',
+    goal: 'Funnel de ventas en stories: 7 frames diarios con educación + caso + oferta + escasez + CTA. Replicar 4 semanas seguidas.',
+  },
+  {
+    emoji: '🎬',
+    title: 'Serie de reels educativos',
+    goal: 'Serie de 10 reels educativos sobre mi nicho. Cada uno con hook fuerte, 3 puntos clave en 25s, CTA a comentar. Publicar 2/semana.',
+  },
+  {
+    emoji: '🤝',
+    title: 'Re-activar comunidad',
+    goal: 'Re-engagement de seguidores inactivos: identificar top 50 fans, 1 story-shoutout, DM personalizado a 20, live de Q&A semanal.',
+  },
+  {
+    emoji: '🔥',
+    title: 'Recuperar de bajón de alcance',
+    goal: 'Diagnosticar caída de reach. Análisis de últimos 30 posts, comparar con baseline, identificar shadowban risk, plan de recovery 14 días.',
+  },
+];
+
+/* Descompone localmente un goal en pasos por agente cuando backend no responde */
+const decomposeLocally = (goal) => {
+  const g = goal.toLowerCase();
+  const steps = [];
+  // Diseño / contenido
+  if (/(reel|carrusel|story|post|contenido|publicar|lanzar)/.test(g)) {
+    steps.push({ agent: 'Nova', emoji: '🎨', task: 'Diseñar piezas visuales con tu marca', eta: '15 min' });
+  }
+  // Copy
+  if (/(caption|copy|texto|hook|narrativa)/.test(g) || true) {
+    steps.push({ agent: 'Lía', emoji: '✍️', task: 'Escribir captions + hooks con voz de marca', eta: '8 min' });
+  }
+  // Compliance
+  steps.push({ agent: 'Gard', emoji: '🛡️', task: 'Validar tono, hashtags y compliance', eta: '3 min' });
+  // Publishing
+  if (/(publicar|subir|lanzar|programar)/.test(g)) {
+    steps.push({ agent: 'Luca', emoji: '🚀', task: 'Programar y publicar en Instagram', eta: '5 min' });
+  }
+  // Métricas
+  if (/(crecer|métrica|análisis|análisi|reach|engagement|boost)/.test(g)) {
+    steps.push({ agent: 'Mira', emoji: '📈', task: 'Análisis de performance + boost si aplica', eta: '10 min' });
+  }
+  // Community
+  if (/(comunidad|dm|mensaje|comentario|fan|seguidor)/.test(g)) {
+    steps.push({ agent: 'Luca', emoji: '💬', task: 'Responder DMs y comentarios con tu voz', eta: '20 min' });
+  }
+  return steps;
+};
+
+let activeTab = 'launch';
+
+/* EventSource vivo del tab Autónomo. Se cierra al cambiar de tab o salir. */
+let swarmES = null;
+const closeSwarmStream = () => {
+  try {
+    swarmES && swarmES.close();
+  } catch {
+    /* noop */
+  }
+  swarmES = null;
+};
+window.addEventListener('beforeunload', closeSwarmStream);
+// Salir de Mission Control en la SPA también cierra el stream (evita fugas).
+window.addEventListener('hashchange', () => {
+  if ((location.hash.replace('#', '') || 'feed') !== 'mission') closeSwarmStream();
+});
+
+const STATUS_TAG = {
+  planned: '',
+  running: 'warn',
+  completed: 'ok',
+  failed: 'crit',
+  cancelled: 'muted',
+};
+
+/* ──────────────────────────────────────────────────────────────────────────── */
+/* LAUNCH TAB                                                                  */
+/* ──────────────────────────────────────────────────────────────────────────── */
+
+const renderLaunch = async (host) => {
+  let library = [];
+  try {
+    const r = await api('/api/missions/library');
+    library = Array.isArray(r) ? r : Array.isArray(r?.library) ? r.library : [];
+  } catch (err) {
+    host.innerHTML = `<div class="alert crit">Error: ${escape(err.message)}</div>`;
+    return;
+  }
+
+  host.innerHTML = `
     <div class="card mission-launch-card">
-      <h3 style="margin:0 0 6px;">\u{1F3AF} Lanzar misi\xF3n multi-agente</h3>
-      <p class="small muted" style="margin:0 0 14px;">Describ\xED qu\xE9 necesit\xE1s. El sistema interpreta, decompone en sub-tareas, asigna agentes y ejecuta.</p>
+      <h3 style="margin:0 0 6px;">🎯 Lanzar misión multi-agente</h3>
+      <p class="small muted" style="margin:0 0 14px;">Describí qué necesitás. El sistema interpreta, decompone en sub-tareas, asigna agentes y ejecuta.</p>
       <div class="field">
         <label class="field-label">Tu objetivo (lenguaje natural)</label>
         <textarea class="field-textarea" id="mission-intent" rows="2" placeholder="Ej: quiero crecer en autoridad este mes en el nicho de IA aplicada"></textarea>
       </div>
       <div class="field-row">
         <div class="field" style="flex:1;">
-          <label class="field-label">Horizonte (d\xEDas)</label>
+          <label class="field-label">Horizonte (días)</label>
           <input class="field-input" id="mission-horizon" type="number" placeholder="30"/>
         </div>
         <div class="field" style="flex:2;align-self:flex-end;">
           <div class="btn-row">
-            <button class="btn ghost" id="mission-plan-btn">\u{1F4CB} Solo planificar</button>
-            <button class="btn primary" id="mission-launch-btn">\u{1F680} Lanzar y ejecutar</button>
+            <button class="btn ghost" id="mission-plan-btn">📋 Solo planificar</button>
+            <button class="btn primary" id="mission-launch-btn">🚀 Lanzar y ejecutar</button>
           </div>
         </div>
       </div>
       <div id="mission-plan-result"></div>
     </div>
 
-    <div class="col-header" style="margin-top:20px;"><h3>\u{1F4DA} Misiones can\xF3nicas disponibles</h3></div>
+    <div class="col-header" style="margin-top:20px;"><h3>📚 Misiones canónicas disponibles</h3></div>
     <div class="page-grid">
-      ${s.map(r=>`
-        <div class="card mission-library-card" data-intent="${t(r.intent)}">
+      ${library
+        .map(
+          (entry) => `
+        <div class="card mission-library-card" data-intent="${escape(entry.intent)}">
           <div class="meta">
-            <span class="tag accent tiny">${t(r.intent)}</span>
+            <span class="tag accent tiny">${escape(entry.intent)}</span>
           </div>
-          <h3 style="margin:6px 0 4px;">${t(r.intent.replace(/-/g," "))}</h3>
-          <p class="small muted" style="margin:0 0 8px;">${t(r.description)}</p>
-          <div class="tiny muted">Disparadores: ${r.keywordTriggers.slice(0,5).map(o=>t(o)).join(" \xB7 ")}</div>
-        </div>`).join("")}
-    </div>`,e.querySelectorAll("[data-intent]").forEach(r=>{r.addEventListener("click",()=>{const o=e.querySelector("#mission-intent");o&&(o.value=r.dataset.intent.replace(/-/g," "),o.focus())})});const a=e.querySelector("#mission-plan-btn"),i=e.querySelector("#mission-launch-btn"),n=r=>`
+          <h3 style="margin:6px 0 4px;">${escape(entry.intent.replace(/-/g, ' '))}</h3>
+          <p class="small muted" style="margin:0 0 8px;">${escape(entry.description)}</p>
+          <div class="tiny muted">Disparadores: ${entry.keywordTriggers
+            .slice(0, 5)
+            .map((k) => escape(k))
+            .join(' · ')}</div>
+        </div>`,
+        )
+        .join('')}
+    </div>`;
+
+  // Clickable library cards prefill the intent input.
+  host.querySelectorAll('[data-intent]').forEach((card) => {
+    card.addEventListener('click', () => {
+      const input = host.querySelector('#mission-intent');
+      if (input) {
+        input.value = card.dataset.intent.replace(/-/g, ' ');
+        input.focus();
+      }
+    });
+  });
+
+  const planBtn = host.querySelector('#mission-plan-btn');
+  const launchBtn = host.querySelector('#mission-launch-btn');
+
+  const renderPlanPreview = (decomp) => {
+    return `
       <div class="mission-plan-preview">
         <div class="meta">
-          <span class="tag ${r.matchedIntent==="unknown"?"warn":"ok"}">match: ${t(r.matchedIntent)}</span>
-          <span class="tag tiny">${r.playbook.tasks.length} tasks</span>
+          <span class="tag ${decomp.matchedIntent === 'unknown' ? 'warn' : 'ok'}">match: ${escape(decomp.matchedIntent)}</span>
+          <span class="tag tiny">${decomp.playbook.tasks.length} tasks</span>
         </div>
-        <h4 style="margin:8px 0 4px;">${t(r.playbook.name)}</h4>
-        <p class="small muted" style="margin:0 0 10px;">${t(r.playbook.description)}</p>
+        <h4 style="margin:8px 0 4px;">${escape(decomp.playbook.name)}</h4>
+        <p class="small muted" style="margin:0 0 10px;">${escape(decomp.playbook.description)}</p>
         <div class="mission-task-list">
-          ${r.playbook.tasks.map((o,l)=>`
+          ${decomp.playbook.tasks
+            .map(
+              (t, i) => `
             <div class="mission-task-row">
-              <span class="mission-task-num">${l+1}</span>
+              <span class="mission-task-num">${i + 1}</span>
               <div class="mission-task-body">
-                <div class="small"><strong>${t(o.agentId)}</strong> \xB7 ${t(o.id)}</div>
-                <div class="tiny muted">${t(o.goal)}</div>
-                ${o.dependsOn?.length?`<div class="tiny muted">depende de: ${o.dependsOn.map(p=>t(p)).join(", ")}</div>`:""}
+                <div class="small"><strong>${escape(t.agentId)}</strong> · ${escape(t.id)}</div>
+                <div class="tiny muted">${escape(t.goal)}</div>
+                ${t.dependsOn?.length ? `<div class="tiny muted">depende de: ${t.dependsOn.map((d) => escape(d)).join(', ')}</div>` : ''}
               </div>
-            </div>`).join("")}
+            </div>`,
+            )
+            .join('')}
         </div>
-      </div>`;a?.addEventListener("click",async r=>{const o=e.querySelector("#mission-intent").value.trim();if(!o){c("Describ\xED tu objetivo","warn");return}const l=Number(e.querySelector("#mission-horizon").value)||void 0;await m(r.currentTarget,"planificando\u2026",async()=>{try{const p=await d("/api/missions/decompose",{method:"POST",body:{freeIntent:o,horizonDays:l}});e.querySelector("#mission-plan-result").innerHTML=n(p)}catch(p){c("Error: "+p.message,"crit")}})}),i?.addEventListener("click",async r=>{const o=e.querySelector("#mission-intent").value.trim();if(!o){c("Describ\xED tu objetivo","warn");return}const l=Number(e.querySelector("#mission-horizon").value)||void 0;await m(r.currentTarget,"lanzando\u2026",async()=>{try{const p=await d("/api/missions/launch",{method:"POST",body:{freeIntent:o,horizonDays:l,runNow:!0}});c(`Misi\xF3n lanzada: ${p.mission.id}`,"ok"),e.querySelector("#mission-plan-result").innerHTML=`
-          ${n({matchedIntent:p.mission.matchedIntent,playbook:p.mission.playbook})}
+      </div>`;
+  };
+
+  planBtn?.addEventListener('click', async (e) => {
+    const intent = host.querySelector('#mission-intent').value.trim();
+    if (!intent) {
+      toast('Describí tu objetivo', 'warn');
+      return;
+    }
+    const horizon = Number(host.querySelector('#mission-horizon').value) || undefined;
+    await withBtnSpinner(e.currentTarget, 'planificando…', async () => {
+      try {
+        const decomp = await api('/api/missions/decompose', {
+          method: 'POST',
+          body: { freeIntent: intent, horizonDays: horizon },
+        });
+        host.querySelector('#mission-plan-result').innerHTML = renderPlanPreview(decomp);
+      } catch (err) {
+        toast('Error: ' + err.message, 'crit');
+      }
+    });
+  });
+
+  launchBtn?.addEventListener('click', async (e) => {
+    const intent = host.querySelector('#mission-intent').value.trim();
+    if (!intent) {
+      toast('Describí tu objetivo', 'warn');
+      return;
+    }
+    const horizon = Number(host.querySelector('#mission-horizon').value) || undefined;
+    await withBtnSpinner(e.currentTarget, 'lanzando…', async () => {
+      try {
+        const result = await api('/api/missions/launch', {
+          method: 'POST',
+          body: { freeIntent: intent, horizonDays: horizon, runNow: true },
+        });
+        toast(`Misión lanzada: ${result.mission.id}`, 'ok');
+        host.querySelector('#mission-plan-result').innerHTML = `
+          ${renderPlanPreview({ matchedIntent: result.mission.matchedIntent, playbook: result.mission.playbook })}
           <div class="alert" style="margin-top:12px;">
-            <strong>\u{1F680} Ejecutando en background</strong><br>
-            <span class="small muted">Mission id: ${t(p.mission.id)}. Ver progreso en tab "Misiones".</span>
-          </div>`}catch(p){c("Error: "+p.message,"crit")}})})},w=async e=>{try{const s=await d("/api/missions/list?limit=30");if(!s.length){e.innerHTML='<div class="card" style="text-align:center;padding:30px;"><div class="muted">Sin misiones todav\xEDa. Lanz\xE1 una desde el tab "Lanzar".</div></div>';return}e.innerHTML=`
+            <strong>🚀 Ejecutando en background</strong><br>
+            <span class="small muted">Mission id: ${escape(result.mission.id)}. Ver progreso en tab "Misiones".</span>
+          </div>`;
+      } catch (err) {
+        toast('Error: ' + err.message, 'crit');
+      }
+    });
+  });
+};
+
+/* ──────────────────────────────────────────────────────────────────────────── */
+/* MISSIONS TAB                                                                */
+/* ──────────────────────────────────────────────────────────────────────────── */
+
+const renderMissions = async (host) => {
+  try {
+    const missions = await api('/api/missions/list?limit=30');
+    if (!missions.length) {
+      host.innerHTML = `<div class="card" style="text-align:center;padding:30px;"><div class="muted">Sin misiones todavía. Lanzá una desde el tab "Lanzar".</div></div>`;
+      return;
+    }
+    host.innerHTML = `
       <div class="autopilot-section-head">
-        <h3 style="margin:0;">\u{1F3AF} Misiones (${s.length})</h3>
+        <h3 style="margin:0;">🎯 Misiones (${missions.length})</h3>
       </div>
-      ${s.map(a=>`
+      ${missions
+        .map((m) => {
+          const tagCls = STATUS_TAG[m.status] ?? '';
+          return `
           <div class="card mission-card">
             <div class="row spread">
               <div style="flex:1;min-width:0;">
                 <div class="meta">
-                  <span class="tag ${z[a.status]??""}">${t(a.status)}</span>
-                  <span class="tag accent tiny">${t(a.matchedIntent)}</span>
-                  <span class="tiny muted">${u.rel(a.createdAt)}</span>
+                  <span class="tag ${tagCls}">${escape(m.status)}</span>
+                  <span class="tag accent tiny">${escape(m.matchedIntent)}</span>
+                  <span class="tiny muted">${fmt.rel(m.createdAt)}</span>
                 </div>
-                <h3 style="margin:6px 0 4px;">${t(a.playbook.name)}</h3>
-                <p class="small muted" style="margin:0 0 6px;">Intento: "${t(a.freeIntent)}"</p>
-                <div class="small">${a.tasksCompleted??0} / ${a.tasksTotal??0} tasks</div>
-                ${a.summary?`<div class="small muted" style="margin-top:6px;border-left:2px solid var(--border);padding-left:8px;">${t(a.summary.slice(0,200))}\u2026</div>`:""}
+                <h3 style="margin:6px 0 4px;">${escape(m.playbook.name)}</h3>
+                <p class="small muted" style="margin:0 0 6px;">Intento: "${escape(m.freeIntent)}"</p>
+                <div class="small">${m.tasksCompleted ?? 0} / ${m.tasksTotal ?? 0} tasks</div>
+                ${m.summary ? `<div class="small muted" style="margin-top:6px;border-left:2px solid var(--border);padding-left:8px;">${escape(m.summary.slice(0, 200))}…</div>` : ''}
               </div>
-              ${a.status==="planned"||a.status==="running"?`
+              ${
+                m.status === 'planned' || m.status === 'running'
+                  ? `
                 <div class="btn-row" style="flex-shrink:0;">
-                  <button class="btn ghost tiny" data-cancel="${t(a.id)}">Cancelar</button>
-                </div>`:""}
+                  <button class="btn ghost tiny" data-cancel="${escape(m.id)}">Cancelar</button>
+                </div>`
+                  : ''
+              }
             </div>
-          </div>`).join("")}`,e.querySelectorAll("[data-cancel]").forEach(a=>{a.addEventListener("click",async()=>{try{await d(`/api/missions/${a.dataset.cancel}/cancel`,{method:"POST"}),c("Misi\xF3n cancelada","ok"),await w(e)}catch(i){c("Error: "+i.message,"crit")}})})}catch(s){e.innerHTML=`<div class="alert crit">Error: ${t(s.message)}</div>`}},A=async e=>{try{const[s,a]=await Promise.all([d("/api/traces/list?limit=40"),d("/api/traces/stats")]);e.innerHTML=`
+          </div>`;
+        })
+        .join('')}`;
+
+    host.querySelectorAll('[data-cancel]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await api(`/api/missions/${btn.dataset.cancel}/cancel`, { method: 'POST' });
+          toast('Misión cancelada', 'ok');
+          await renderMissions(host);
+        } catch (err) {
+          toast('Error: ' + err.message, 'crit');
+        }
+      });
+    });
+  } catch (err) {
+    host.innerHTML = `<div class="alert crit">Error: ${escape(err.message)}</div>`;
+  }
+};
+
+/* ──────────────────────────────────────────────────────────────────────────── */
+/* TRACES TAB                                                                  */
+/* ──────────────────────────────────────────────────────────────────────────── */
+
+const renderTraces = async (host) => {
+  try {
+    const [traces, stats] = await Promise.all([api('/api/traces/list?limit=40'), api('/api/traces/stats')]);
+
+    host.innerHTML = `
       <div class="autopilot-section-head">
         <div>
-          <h3 style="margin:0;">\u{1F9E0} Reasoning Traces</h3>
-          <div class="small muted">Cada decisi\xF3n aut\xF3noma queda auditada con su contexto, alternativas, elecci\xF3n y razonamiento.</div>
+          <h3 style="margin:0;">🧠 Reasoning Traces</h3>
+          <div class="small muted">Cada decisión autónoma queda auditada con su contexto, alternativas, elección y razonamiento.</div>
         </div>
         <div class="autopilot-stat-row">
-          <div class="autopilot-stat"><div class="autopilot-stat-num">${a.totalTraces}</div><div class="autopilot-stat-label">total</div></div>
-          <div class="autopilot-stat"><div class="autopilot-stat-num">${a.withOutcomes}</div><div class="autopilot-stat-label">con outcome</div></div>
-          <div class="autopilot-stat"><div class="autopilot-stat-num">${(a.successRate*100).toFixed(0)}%</div><div class="autopilot-stat-label">success rate</div></div>
-          <div class="autopilot-stat"><div class="autopilot-stat-num">${a.avgChosenScore.toFixed(0)}</div><div class="autopilot-stat-label">score prom</div></div>
+          <div class="autopilot-stat"><div class="autopilot-stat-num">${stats.totalTraces}</div><div class="autopilot-stat-label">total</div></div>
+          <div class="autopilot-stat"><div class="autopilot-stat-num">${stats.withOutcomes}</div><div class="autopilot-stat-label">con outcome</div></div>
+          <div class="autopilot-stat"><div class="autopilot-stat-num">${(stats.successRate * 100).toFixed(0)}%</div><div class="autopilot-stat-label">success rate</div></div>
+          <div class="autopilot-stat"><div class="autopilot-stat-num">${stats.avgChosenScore.toFixed(0)}</div><div class="autopilot-stat-label">score prom</div></div>
         </div>
       </div>
 
-      ${s.length===0?'<div class="card" style="text-align:center;padding:30px;"><div class="muted">Sin trazas todav\xEDa. Produc\xED piezas o lanz\xE1 misiones para acumular decisiones aut\xF3nomas.</div></div>':""}
+      ${traces.length === 0 ? '<div class="card" style="text-align:center;padding:30px;"><div class="muted">Sin trazas todavía. Producí piezas o lanzá misiones para acumular decisiones autónomas.</div></div>' : ''}
 
-      ${s.map(i=>`
+      ${traces
+        .map(
+          (t) => `
         <div class="card trace-card">
           <div class="meta">
-            <span class="tag accent tiny">${t(i.agentId)}</span>
-            <span class="tag info tiny">${t(i.decisionType)}</span>
-            ${i.outcome?`<span class="tag ${i.outcome.ranking==="better"?"ok":i.outcome.ranking==="worse"?"crit":""} tiny">outcome: ${t(i.outcome.ranking)}</span>`:'<span class="tag tiny muted">sin outcome</span>'}
-            <span class="tiny muted" style="margin-left:auto;">${u.rel(i.createdAt)}</span>
+            <span class="tag accent tiny">${escape(t.agentId)}</span>
+            <span class="tag info tiny">${escape(t.decisionType)}</span>
+            ${t.outcome ? `<span class="tag ${t.outcome.ranking === 'better' ? 'ok' : t.outcome.ranking === 'worse' ? 'crit' : ''} tiny">outcome: ${escape(t.outcome.ranking)}</span>` : '<span class="tag tiny muted">sin outcome</span>'}
+            <span class="tiny muted" style="margin-left:auto;">${fmt.rel(t.createdAt)}</span>
           </div>
           <div class="trace-chosen">
             <span class="trace-chosen-label">Elegido:</span>
-            <code class="trace-chosen-value">${t(i.chosen)}</code>
-            <span class="tag ${i.chosenScore>=80?"ok":i.chosenScore>=60?"info":"warn"} tiny">${i.chosenScore}</span>
+            <code class="trace-chosen-value">${escape(t.chosen)}</code>
+            <span class="tag ${t.chosenScore >= 80 ? 'ok' : t.chosenScore >= 60 ? 'info' : 'warn'} tiny">${t.chosenScore}</span>
           </div>
-          <div class="small" style="margin-top:6px;">${t(i.reasoning)}</div>
-          ${i.alternatives.length>1?`
+          <div class="small" style="margin-top:6px;">${escape(t.reasoning)}</div>
+          ${
+            t.alternatives.length > 1
+              ? `
             <details class="trace-alternatives">
-              <summary class="tiny muted">${i.alternatives.length-1} alternativa(s) descartada(s)</summary>
+              <summary class="tiny muted">${t.alternatives.length - 1} alternativa(s) descartada(s)</summary>
               <div class="trace-alt-list">
-                ${i.alternatives.slice(0,10).map(n=>`
-                  <div class="trace-alt-row ${n.option===i.chosen?"trace-alt-winner":""}">
-                    <code>${t(n.option)}</code>
-                    <span class="tag tiny">${n.score}</span>
-                    ${n.reasoning?`<span class="tiny muted">${t(n.reasoning)}</span>`:""}
-                  </div>`).join("")}
+                ${t.alternatives
+                  .slice(0, 10)
+                  .map(
+                    (a) => `
+                  <div class="trace-alt-row ${a.option === t.chosen ? 'trace-alt-winner' : ''}">
+                    <code>${escape(a.option)}</code>
+                    <span class="tag tiny">${a.score}</span>
+                    ${a.reasoning ? `<span class="tiny muted">${escape(a.reasoning)}</span>` : ''}
+                  </div>`,
+                  )
+                  .join('')}
               </div>
-            </details>`:""}
-          ${i.factsUsed.length?`<div class="tiny muted" style="margin-top:6px;">Facts: ${i.factsUsed.map(n=>`<code>${t(n)}</code>`).join(" ")}</div>`:""}
+            </details>`
+              : ''
+          }
+          ${t.factsUsed.length ? `<div class="tiny muted" style="margin-top:6px;">Facts: ${t.factsUsed.map((f) => `<code>${escape(f)}</code>`).join(' ')}</div>` : ''}
         </div>
-      `).join("")}`}catch(s){e.innerHTML=`<div class="alert crit">Error: ${t(s.message)}</div>`}},k={alta:"ok",media:"info",baja:"muted"},q=async e=>{try{const[s,a]=await Promise.all([d("/api/kb/facts"),d("/api/kb/learnings")]),i={};for(const n of s.facts)i[n.topic]||(i[n.topic]=[]),i[n.topic].push(n);e.innerHTML=`
+      `,
+        )
+        .join('')}`;
+  } catch (err) {
+    host.innerHTML = `<div class="alert crit">Error: ${escape(err.message)}</div>`;
+  }
+};
+
+/* ──────────────────────────────────────────────────────────────────────────── */
+/* KNOWLEDGE TAB                                                               */
+/* ──────────────────────────────────────────────────────────────────────────── */
+
+const CONFIDENCE_TAG = { alta: 'ok', media: 'info', baja: 'muted' };
+
+const renderKnowledge = async (host) => {
+  try {
+    const [facts, learnings] = await Promise.all([api('/api/kb/facts'), api('/api/kb/learnings')]);
+
+    // Group facts by topic.
+    const grouped = {};
+    for (const f of facts.facts) {
+      if (!grouped[f.topic]) grouped[f.topic] = [];
+      grouped[f.topic].push(f);
+    }
+
+    host.innerHTML = `
       <div class="autopilot-section-head">
         <div>
-          <h3 style="margin:0;">\u{1F4D6} Base de Conocimiento</h3>
-          <div class="small muted">${s.count} facts del algoritmo \xB7 ${a.length} aprendizajes propios de tu marca</div>
+          <h3 style="margin:0;">📖 Base de Conocimiento</h3>
+          <div class="small muted">${facts.count} facts del algoritmo · ${learnings.length} aprendizajes propios de tu marca</div>
         </div>
       </div>
 
       <div class="autopilot-grid-2">
         <div>
-          <div class="col-header"><h3>\u{1F310} Algorithm Facts (curados)</h3></div>
-          ${Object.entries(i).map(([n,r])=>`
+          <div class="col-header"><h3>🌐 Algorithm Facts (curados)</h3></div>
+          ${Object.entries(grouped)
+            .map(
+              ([topic, list]) => `
             <details class="kb-topic-group" open>
-              <summary><strong>${t(n)}</strong> <span class="tiny muted">(${r.length})</span></summary>
-              ${r.map(o=>`
+              <summary><strong>${escape(topic)}</strong> <span class="tiny muted">(${list.length})</span></summary>
+              ${list
+                .map(
+                  (f) => `
                 <div class="kb-fact-row">
                   <div class="meta" style="margin-bottom:4px;">
-                    <span class="tag ${k[o.confidence]} tiny">${t(o.confidence)}</span>
-                    <code class="tiny muted">${t(o.id)}</code>
+                    <span class="tag ${CONFIDENCE_TAG[f.confidence]} tiny">${escape(f.confidence)}</span>
+                    <code class="tiny muted">${escape(f.id)}</code>
                   </div>
-                  <div class="small">${t(o.fact)}</div>
-                </div>`).join("")}
-            </details>`).join("")}
+                  <div class="small">${escape(f.fact)}</div>
+                </div>`,
+                )
+                .join('')}
+            </details>`,
+            )
+            .join('')}
         </div>
 
         <div>
-          <div class="col-header"><h3>\u{1F393} Brand Learnings (din\xE1micos)</h3></div>
-          ${a.length===0?'<div class="card" style="padding:20px;text-align:center;"><div class="muted small">Sin aprendizajes propios todav\xEDa. El sistema captura insights autom\xE1ticamente a medida que produce contenido exitoso.</div></div>':a.slice(-30).reverse().map(n=>`
+          <div class="col-header"><h3>🎓 Brand Learnings (dinámicos)</h3></div>
+          ${
+            learnings.length === 0
+              ? '<div class="card" style="padding:20px;text-align:center;"><div class="muted small">Sin aprendizajes propios todavía. El sistema captura insights automáticamente a medida que produce contenido exitoso.</div></div>'
+              : learnings
+                  .slice(-30)
+                  .reverse()
+                  .map(
+                    (l) => `
                 <div class="card kb-learning-row">
                   <div class="meta">
-                    <span class="tag accent tiny">${t(n.category)}</span>
-                    <span class="tag ${k[n.confidence]} tiny">${t(n.confidence)}</span>
-                    <span class="tag tiny">\xD7${n.reinforcements}</span>
-                    <span class="tiny muted" style="margin-left:auto;">${u.rel(n.capturedAt)}</span>
+                    <span class="tag accent tiny">${escape(l.category)}</span>
+                    <span class="tag ${CONFIDENCE_TAG[l.confidence]} tiny">${escape(l.confidence)}</span>
+                    <span class="tag tiny">×${l.reinforcements}</span>
+                    <span class="tiny muted" style="margin-left:auto;">${fmt.rel(l.capturedAt)}</span>
                   </div>
-                  <div class="small" style="margin-top:6px;">${t(n.insight)}</div>
-                  <div class="tiny muted" style="margin-top:4px;">Evidencia: ${t(n.evidence)}</div>
-                </div>`).join("")}
+                  <div class="small" style="margin-top:6px;">${escape(l.insight)}</div>
+                  <div class="tiny muted" style="margin-top:4px;">Evidencia: ${escape(l.evidence)}</div>
+                </div>`,
+                  )
+                  .join('')
+          }
         </div>
-      </div>`}catch(s){e.innerHTML=`<div class="alert crit">Error: ${t(s.message)}</div>`}},I={critical:"crit",high:"warn",normal:"info",low:"muted"},C=async e=>{try{const s=await d("/api/bus/history?limit=80");if(!s.length){e.innerHTML='<div class="card" style="text-align:center;padding:30px;"><div class="muted">Sin eventos en el bus todav\xEDa. A medida que el sistema opere se ir\xE1n acumulando aqu\xED.</div></div>';return}e.innerHTML=`
+      </div>`;
+  } catch (err) {
+    host.innerHTML = `<div class="alert crit">Error: ${escape(err.message)}</div>`;
+  }
+};
+
+/* ──────────────────────────────────────────────────────────────────────────── */
+/* BUS TAB                                                                     */
+/* ──────────────────────────────────────────────────────────────────────────── */
+
+const PRIORITY_TAG = { critical: 'crit', high: 'warn', normal: 'info', low: 'muted' };
+
+const renderBus = async (host) => {
+  try {
+    const events = await api('/api/bus/history?limit=80');
+    if (!events.length) {
+      host.innerHTML = `<div class="card" style="text-align:center;padding:30px;"><div class="muted">Sin eventos en el bus todavía. A medida que el sistema opere se irán acumulando aquí.</div></div>`;
+      return;
+    }
+    host.innerHTML = `
       <div class="autopilot-section-head">
-        <h3 style="margin:0;">\u{1F4E1} Event Bus (${s.length})</h3>
+        <h3 style="margin:0;">📡 Event Bus (${events.length})</h3>
       </div>
       <div class="card" style="padding:0;">
-        ${s.slice().reverse().map(a=>`
+        ${events
+          .slice()
+          .reverse()
+          .map(
+            (e) => `
           <div class="bus-event-row">
-            <span class="tag ${I[a.priority]??""} tiny">${t(a.priority)}</span>
-            <code class="bus-event-type">${t(a.type)}</code>
-            <span class="tiny muted">${t(a.sourceAgent??"\u2014")} \u2192 ${t(a.targetAgent??"*")}</span>
-            <span class="tiny muted" style="margin-left:auto;">${u.rel(a.timestamp)}</span>
-          </div>`).join("")}
-      </div>`}catch(s){e.innerHTML=`<div class="alert crit">Error: ${t(s.message)}</div>`}},S={"simple-reflex":"#5b9bff","model-based-reflex":"#4ade80","goal-based":"#e1306c","utility-based":"#fbbf24",learning:"#a855f7"},H=(e,s)=>{e.innerHTML=`
+            <span class="tag ${PRIORITY_TAG[e.priority] ?? ''} tiny">${escape(e.priority)}</span>
+            <code class="bus-event-type">${escape(e.type)}</code>
+            <span class="tiny muted">${escape(e.sourceAgent ?? '—')} → ${escape(e.targetAgent ?? '*')}</span>
+            <span class="tiny muted" style="margin-left:auto;">${fmt.rel(e.timestamp)}</span>
+          </div>`,
+          )
+          .join('')}
+      </div>`;
+  } catch (err) {
+    host.innerHTML = `<div class="alert crit">Error: ${escape(err.message)}</div>`;
+  }
+};
+
+/* ──────────────────────────────────────────────────────────────────────────── */
+/* TALÍA — Agent Manager                                                       */
+/* ──────────────────────────────────────────────────────────────────────────── */
+
+const TYPE_COLORS = {
+  'simple-reflex': '#5b9bff',
+  'model-based-reflex': '#4ade80',
+  'goal-based': '#e1306c',
+  'utility-based': '#fbbf24',
+  learning: '#a855f7',
+};
+
+const renderFacade = (host, view) => {
+  host.innerHTML = `
     <div class="card talia-hero">
       <div class="talia-avatar">F</div>
       <div style="flex:1;min-width:0;">
-        <h3 style="margin:0 0 4px;">${t(s.assistant)} <span class="tag accent tiny">Sistema aut\xF3nomo</span></h3>
-        <p class="small muted" style="margin:0;">${t(s.tagline)}</p>
-        <p class="small" style="margin:8px 0 0;">${t(s.teamPosture)}</p>
+        <h3 style="margin:0 0 4px;">${escape(view.assistant)} <span class="tag accent tiny">Sistema autónomo</span></h3>
+        <p class="small muted" style="margin:0;">${escape(view.tagline)}</p>
+        <p class="small" style="margin:8px 0 0;">${escape(view.teamPosture)}</p>
       </div>
     </div>
-    <div class="col-header" style="margin-top:18px;"><h3>Qu\xE9 hace FeedIA por vos</h3></div>
+    <div class="col-header" style="margin-top:18px;"><h3>Qué hace FeedIA por vos</h3></div>
     <div class="page-grid">
-      ${(s.capabilities||[]).map(a=>`
+      ${(view.capabilities || [])
+        .map(
+          (c) => `
         <div class="card">
-          <h3 style="margin:0 0 6px;">${t(a.area)}</h3>
-          <p class="small muted" style="margin:0;">${t(a.whatItDoes)}</p>
-        </div>`).join("")}
+          <h3 style="margin:0 0 6px;">${escape(c.area)}</h3>
+          <p class="small muted" style="margin:0;">${escape(c.whatItDoes)}</p>
+        </div>`,
+        )
+        .join('')}
     </div>
     <div class="card" style="margin-top:16px;">
-      <p class="small muted" style="margin:0;">\u{1F512} La arquitectura interna del sistema es propietaria y no se expone. Dale tus \xF3rdenes en la <strong>Pizarra</strong> o por voz \u2014 FeedIA se encarga del resto.</p>
-    </div>`},O=async e=>{try{const[s,a,i]=await Promise.all([d("/api/talia/org-chart"),d("/api/talia/knowledge"),d("/api/taxonomy/types")]);if(s&&s.internalsHidden){H(e,s);return}e.innerHTML=`
+      <p class="small muted" style="margin:0;">🔒 La arquitectura interna del sistema es propietaria y no se expone. Dale tus órdenes en la <strong>Pizarra</strong> o por voz — FeedIA se encarga del resto.</p>
+    </div>`;
+};
+
+const renderTalia = async (host) => {
+  try {
+    const [org, knowledge, types] = await Promise.all([
+      api('/api/talia/org-chart'),
+      api('/api/talia/knowledge'),
+      api('/api/taxonomy/types'),
+    ]);
+
+    // Privacy: when internals are hidden the API returns the public facade.
+    if (org && org.internalsHidden) {
+      renderFacade(host, org);
+      return;
+    }
+
+    host.innerHTML = `
       <div class="card talia-hero">
         <div class="talia-avatar">T</div>
         <div style="flex:1;min-width:0;">
-          <h3 style="margin:0 0 4px;">${t(s.manager.name)} <span class="tag accent tiny">Agent Manager</span></h3>
-          <p class="small muted" style="margin:0;">${t(s.manager.title)}</p>
-          <p class="small" style="margin:8px 0 0;">Gestiona <strong>${s.totalEmployees}</strong> agentes en <strong>${s.departments.length}</strong> departamentos \xB7 empresa: <strong>${t(s.companyId)}</strong></p>
+          <h3 style="margin:0 0 4px;">${escape(org.manager.name)} <span class="tag accent tiny">Agent Manager</span></h3>
+          <p class="small muted" style="margin:0;">${escape(org.manager.title)}</p>
+          <p class="small" style="margin:8px 0 0;">Gestiona <strong>${org.totalEmployees}</strong> agentes en <strong>${org.departments.length}</strong> departamentos · empresa: <strong>${escape(org.companyId)}</strong></p>
         </div>
       </div>
 
       <div class="card" style="margin-top:14px;">
-        <h3 style="margin:0 0 8px;">\u{1F3AF} Dale una orden global a Tal\xEDa</h3>
-        <p class="small muted" style="margin:0 0 12px;">Ej: "FeedIA, ayudame a crecer la cuenta". Tal\xEDa la fragmenta y delega entre los agentes seg\xFAn su tipo (taxonom\xEDa IBM), departamento y carga.</p>
-        <div class="field"><textarea class="field-textarea" id="talia-order" rows="2" placeholder="Escrib\xED tu orden global\u2026"></textarea></div>
-        <div class="btn-row"><button class="btn primary" id="talia-delegate-btn">\u{1F9E9} Fragmentar y delegar</button></div>
+        <h3 style="margin:0 0 8px;">🎯 Dale una orden global a Talía</h3>
+        <p class="small muted" style="margin:0 0 12px;">Ej: "FeedIA, ayudame a crecer la cuenta". Talía la fragmenta y delega entre los agentes según su tipo (taxonomía IBM), departamento y carga.</p>
+        <div class="field"><textarea class="field-textarea" id="talia-order" rows="2" placeholder="Escribí tu orden global…"></textarea></div>
+        <div class="btn-row"><button class="btn primary" id="talia-delegate-btn">🧩 Fragmentar y delegar</button></div>
         <div id="talia-plan"></div>
       </div>
 
-      <div class="col-header" style="margin-top:20px;"><h3>\u{1F3E2} Organigrama por departamento</h3></div>
+      <div class="col-header" style="margin-top:20px;"><h3>🏢 Organigrama por departamento</h3></div>
       <div class="page-grid">
-        ${s.departments.map(n=>`
+        ${org.departments
+          .map(
+            (d) => `
           <div class="card">
-            <div class="meta"><span class="tag accent tiny">${t(n.name)}</span><span class="tag tiny">${n.headcount} agentes</span></div>
+            <div class="meta"><span class="tag accent tiny">${escape(d.name)}</span><span class="tag tiny">${d.headcount} agentes</span></div>
             <div class="talia-emp-list">
-              ${n.employees.map(r=>`
+              ${d.employees
+                .map(
+                  (e) => `
                 <div class="talia-emp-row">
-                  <span class="talia-type-dot" style="background:${S[r.agentType]??"#888"}"></span>
+                  <span class="talia-type-dot" style="background:${TYPE_COLORS[e.agentType] ?? '#888'}"></span>
                   <div style="flex:1;min-width:0;">
-                    <div class="small"><strong>${t(r.name)}</strong></div>
-                    <div class="tiny muted">${t(r.agentTypeName)} \xB7 ${t(r.seniority)} \xB7 carga ${r.recentWorkload}</div>
+                    <div class="small"><strong>${escape(e.name)}</strong></div>
+                    <div class="tiny muted">${escape(e.agentTypeName)} · ${escape(e.seniority)} · carga ${e.recentWorkload}</div>
                   </div>
-                </div>`).join("")}
+                </div>`,
+                )
+                .join('')}
             </div>
-          </div>`).join("")}
+          </div>`,
+          )
+          .join('')}
       </div>
 
-      <div class="col-header" style="margin-top:20px;"><h3>\u{1F9EC} Tipos de agente (clasificaci\xF3n IBM)</h3></div>
+      <div class="col-header" style="margin-top:20px;"><h3>🧬 Tipos de agente (clasificación IBM)</h3></div>
       <div class="page-grid">
-        ${i.map(n=>`
+        ${types
+          .map(
+            (tp) => `
           <div class="card">
-            <div class="meta"><span class="talia-type-dot" style="background:${S[n.type]??"#888"}"></span><strong>${t(n.name)}</strong></div>
-            <p class="small" style="margin:6px 0;">${t(n.definition)}</p>
-            <p class="tiny muted" style="margin:0;"><strong>Tal\xEDa delega aqu\xED cuando:</strong> ${t(n.delegateWhen)}</p>
-            <div class="meta" style="margin-top:6px;">${n.traits.map(r=>`<span class="tag tiny">${t(r)}</span>`).join("")}</div>
-          </div>`).join("")}
+            <div class="meta"><span class="talia-type-dot" style="background:${TYPE_COLORS[tp.type] ?? '#888'}"></span><strong>${escape(tp.name)}</strong></div>
+            <p class="small" style="margin:6px 0;">${escape(tp.definition)}</p>
+            <p class="tiny muted" style="margin:0;"><strong>Talía delega aquí cuando:</strong> ${escape(tp.delegateWhen)}</p>
+            <div class="meta" style="margin-top:6px;">${tp.traits.map((x) => `<span class="tag tiny">${escape(x)}</span>`).join('')}</div>
+          </div>`,
+          )
+          .join('')}
       </div>
 
       <div class="card" style="margin-top:20px;">
-        <h3 style="margin:0 0 8px;">\u{1F510} Qu\xE9 sabe Tal\xEDa (acceso scoped a la empresa)</h3>
-        <ul class="small">${a.whatSheManages.map(n=>`<li>${t(n)}</li>`).join("")}</ul>
-      </div>`,e.querySelector("#talia-delegate-btn")?.addEventListener("click",async n=>{const r=e.querySelector("#talia-order").value.trim();if(!r){c("Escrib\xED una orden","warn");return}await m(n.currentTarget,"delegando\u2026",async()=>{try{const o=await d("/api/talia/delegate",{method:"POST",body:{order:r,createMission:!0}});o.understood&&Array.isArray(o.plan)?e.querySelector("#talia-plan").innerHTML=`
+        <h3 style="margin:0 0 8px;">🔐 Qué sabe Talía (acceso scoped a la empresa)</h3>
+        <ul class="small">${knowledge.whatSheManages.map((x) => `<li>${escape(x)}</li>`).join('')}</ul>
+      </div>`;
+
+    host.querySelector('#talia-delegate-btn')?.addEventListener('click', async (e) => {
+      const order = host.querySelector('#talia-order').value.trim();
+      if (!order) {
+        toast('Escribí una orden', 'warn');
+        return;
+      }
+      await withBtnSpinner(e.currentTarget, 'delegando…', async () => {
+        try {
+          const plan = await api('/api/talia/delegate', { method: 'POST', body: { order, createMission: true } });
+          if (plan.understood && Array.isArray(plan.plan)) {
+            // Sanitized facade response — no internal agent/type disclosure.
+            host.querySelector('#talia-plan').innerHTML = `
               <div class="talia-plan-box">
-                <div class="meta"><span class="tag ok">recibida</span><span class="tag tiny">${o.steps} pasos</span></div>
-                <p class="small" style="margin:8px 0;font-style:italic;">"${t(o.note)}"</p>
+                <div class="meta"><span class="tag ok">recibida</span><span class="tag tiny">${plan.steps} pasos</span></div>
+                <p class="small" style="margin:8px 0;font-style:italic;">"${escape(plan.note)}"</p>
                 <div class="talia-assign-list">
-                  ${o.plan.map(l=>`
+                  ${plan.plan
+                    .map(
+                      (p) => `
                     <div class="talia-assign-row">
-                      <span class="talia-assign-num">${l.step}</span>
-                      <div style="flex:1;min-width:0;"><div class="small">${t(l.task)}</div></div>
-                    </div>`).join("")}
+                      <span class="talia-assign-num">${p.step}</span>
+                      <div style="flex:1;min-width:0;"><div class="small">${escape(p.task)}</div></div>
+                    </div>`,
+                    )
+                    .join('')}
                 </div>
-              </div>`:e.querySelector("#talia-plan").innerHTML=`
+              </div>`;
+          } else {
+            host.querySelector('#talia-plan').innerHTML = `
               <div class="talia-plan-box">
-                <div class="meta"><span class="tag ${o.matchedIntent==="unknown"?"warn":"ok"}">${t(o.matchedIntent)}</span><span class="tag tiny">${o.assignments.length} delegaciones</span></div>
-                <p class="small" style="margin:8px 0;font-style:italic;">"${t(o.managerNote)}"</p>
+                <div class="meta"><span class="tag ${plan.matchedIntent === 'unknown' ? 'warn' : 'ok'}">${escape(plan.matchedIntent)}</span><span class="tag tiny">${plan.assignments.length} delegaciones</span></div>
+                <p class="small" style="margin:8px 0;font-style:italic;">"${escape(plan.managerNote)}"</p>
                 <div class="talia-assign-list">
-                  ${o.assignments.map((l,p)=>`
+                  ${plan.assignments
+                    .map(
+                      (a, i) => `
                     <div class="talia-assign-row">
-                      <span class="talia-assign-num">${p+1}</span>
+                      <span class="talia-assign-num">${i + 1}</span>
                       <div style="flex:1;min-width:0;">
-                        <div class="small"><strong>${t(l.assignee.name)}</strong> <span class="tag tiny">${t(l.requiredTypeName)}</span> <span class="tag tiny">fit ${l.fitScore}</span></div>
-                        <div class="tiny muted">${t(l.taskGoal)}</div>
-                        <div class="tiny" style="color:var(--accent);">${t(l.rationale)}</div>
+                        <div class="small"><strong>${escape(a.assignee.name)}</strong> <span class="tag tiny">${escape(a.requiredTypeName)}</span> <span class="tag tiny">fit ${a.fitScore}</span></div>
+                        <div class="tiny muted">${escape(a.taskGoal)}</div>
+                        <div class="tiny" style="color:var(--accent);">${escape(a.rationale)}</div>
                       </div>
-                    </div>`).join("")}
+                    </div>`,
+                    )
+                    .join('')}
                 </div>
-              </div>`,c("FeedIA recibi\xF3 la orden","ok")}catch(o){c("Error: "+o.message,"crit")}})})}catch(s){e.innerHTML=`<div class="alert crit">Error: ${t(s.message)}</div>`}},D=async e=>{try{const s=await d("/api/computer/runtime");e.innerHTML=`
+              </div>`;
+          }
+          toast('FeedIA recibió la orden', 'ok');
+        } catch (err) {
+          toast('Error: ' + err.message, 'crit');
+        }
+      });
+    });
+  } catch (err) {
+    host.innerHTML = `<div class="alert crit">Error: ${escape(err.message)}</div>`;
+  }
+};
+
+/* ──────────────────────────────────────────────────────────────────────────── */
+/* COMPUTER USE                                                                */
+/* ──────────────────────────────────────────────────────────────────────────── */
+
+const renderComputer = async (host) => {
+  try {
+    const runtime = await api('/api/computer/runtime');
+    host.innerHTML = `
       <div class="card">
-        <h3 style="margin:0 0 6px;">\u{1F5A5} Computer Use \u2014 control de cursor y teclado</h3>
-        <p class="small muted" style="margin:0 0 4px;">FeedIA navega Instagram (Feed, Buscador, Explorar, Perfil, DMs, Historias, Reels, Crear +, Me gusta, Guardar, Compartir, Comentarios, Bio, Destacadas, Grid\u2026) y apps de escritorio como un humano.</p>
+        <h3 style="margin:0 0 6px;">🖥 Computer Use — control de cursor y teclado</h3>
+        <p class="small muted" style="margin:0 0 4px;">FeedIA navega Instagram (Feed, Buscador, Explorar, Perfil, DMs, Historias, Reels, Crear +, Me gusta, Guardar, Compartir, Comentarios, Bio, Destacadas, Grid…) y apps de escritorio como un humano.</p>
         <div class="meta" style="margin:8px 0;">
-          <span class="tag ${s.liveRuntimeAvailable?"ok":"warn"} tiny">${s.liveRuntimeAvailable?"Runtime en vivo disponible":"Modo plan (runtime no instalado)"}</span>
+          <span class="tag ${runtime.liveRuntimeAvailable ? 'ok' : 'warn'} tiny">${runtime.liveRuntimeAvailable ? 'Runtime en vivo disponible' : 'Modo plan (runtime no instalado)'}</span>
         </div>
-        <div class="field"><textarea class="field-textarea" id="cu-instruction" rows="2" placeholder='Ej: "abr\xED los DMs y respond\xE9 al primero", "dale like y guard\xE1 el \xFAltimo post de @cuenta"'></textarea></div>
+        <div class="field"><textarea class="field-textarea" id="cu-instruction" rows="2" placeholder='Ej: "abrí los DMs y respondé al primero", "dale like y guardá el último post de @cuenta"'></textarea></div>
         <div class="btn-row">
-          <button class="btn primary" id="cu-plan-btn">\u{1F4CB} Planificar acciones</button>
-          <button class="btn ghost" id="cu-exec-btn">\u25B6 Ejecutar (seguro)</button>
+          <button class="btn primary" id="cu-plan-btn">📋 Planificar acciones</button>
+          <button class="btn ghost" id="cu-exec-btn">▶ Ejecutar (seguro)</button>
         </div>
         <div id="cu-result"></div>
-      </div>`;const a=i=>`
+      </div>`;
+
+    const renderPlan = (plan) => `
       <div class="talia-plan-box">
         <div class="meta">
-          <span class="tag tiny">${t(i.surface)}</span>
-          <span class="tag ${i.requiresApproval?"warn":"ok"} tiny">${i.requiresApproval?"requiere aprobaci\xF3n":"solo lectura"}</span>
-          <span class="tag tiny">${i.actions.length} pasos</span>
+          <span class="tag tiny">${escape(plan.surface)}</span>
+          <span class="tag ${plan.requiresApproval ? 'warn' : 'ok'} tiny">${plan.requiresApproval ? 'requiere aprobación' : 'solo lectura'}</span>
+          <span class="tag tiny">${plan.actions.length} pasos</span>
         </div>
-        <p class="tiny muted" style="margin:6px 0;">${t(i.notes)}</p>
+        <p class="tiny muted" style="margin:6px 0;">${escape(plan.notes)}</p>
         <div class="cu-step-list">
-          ${i.actions.map(n=>`
+          ${plan.actions
+            .map(
+              (a) => `
             <div class="cu-step-row">
-              <span class="cu-step-num">${n.step}</span>
-              <span class="tag tiny">${t(n.gesture)}</span>
+              <span class="cu-step-num">${a.step}</span>
+              <span class="tag tiny">${escape(a.gesture)}</span>
               <div style="flex:1;min-width:0;">
-                <div class="small">${t(n.humanAction)}</div>
-                <div class="tiny muted">target: ${t(n.targetLabel)}${n.text?` \xB7 texto: "${t(n.text)}"`:""}</div>
+                <div class="small">${escape(a.humanAction)}</div>
+                <div class="tiny muted">target: ${escape(a.targetLabel)}${a.text ? ` · texto: "${escape(a.text)}"` : ''}</div>
               </div>
-            </div>`).join("")}
+            </div>`,
+            )
+            .join('')}
         </div>
-        ${i.unresolved.length?`<div class="tiny muted" style="margin-top:6px;">No resuelto: ${i.unresolved.map(n=>t(n)).join(" \xB7 ")}</div>`:""}
-      </div>`;e.querySelector("#cu-plan-btn")?.addEventListener("click",async i=>{const n=e.querySelector("#cu-instruction").value.trim();if(!n){c("Escrib\xED una instrucci\xF3n","warn");return}await m(i.currentTarget,"planificando\u2026",async()=>{try{const r=await d("/api/computer/plan",{method:"POST",body:{instruction:n}});e.querySelector("#cu-result").innerHTML=a(r)}catch(r){c("Error: "+r.message,"crit")}})}),e.querySelector("#cu-exec-btn")?.addEventListener("click",async i=>{const n=e.querySelector("#cu-instruction").value.trim();if(!n){c("Escrib\xED una instrucci\xF3n","warn");return}await m(i.currentTarget,"ejecutando\u2026",async()=>{try{const{plan:r,result:o}=await d("/api/computer/execute",{method:"POST",body:{instruction:n}});e.querySelector("#cu-result").innerHTML=a(r)+`
+        ${plan.unresolved.length ? `<div class="tiny muted" style="margin-top:6px;">No resuelto: ${plan.unresolved.map((u) => escape(u)).join(' · ')}</div>` : ''}
+      </div>`;
+
+    host.querySelector('#cu-plan-btn')?.addEventListener('click', async (e) => {
+      const instruction = host.querySelector('#cu-instruction').value.trim();
+      if (!instruction) {
+        toast('Escribí una instrucción', 'warn');
+        return;
+      }
+      await withBtnSpinner(e.currentTarget, 'planificando…', async () => {
+        try {
+          const plan = await api('/api/computer/plan', { method: 'POST', body: { instruction } });
+          host.querySelector('#cu-result').innerHTML = renderPlan(plan);
+        } catch (err) {
+          toast('Error: ' + err.message, 'crit');
+        }
+      });
+    });
+
+    host.querySelector('#cu-exec-btn')?.addEventListener('click', async (e) => {
+      const instruction = host.querySelector('#cu-instruction').value.trim();
+      if (!instruction) {
+        toast('Escribí una instrucción', 'warn');
+        return;
+      }
+      await withBtnSpinner(e.currentTarget, 'ejecutando…', async () => {
+        try {
+          const { plan, result } = await api('/api/computer/execute', { method: 'POST', body: { instruction } });
+          host.querySelector('#cu-result').innerHTML =
+            renderPlan(plan) +
+            `
             <div class="talia-plan-box" style="margin-top:10px;">
-              <div class="meta"><span class="tag ${o.completed?"ok":"warn"} tiny">${t(o.mode)}</span><span class="tag tiny">${o.steps.filter(l=>l.status==="ok"||l.status==="planned-only").length}/${o.steps.length} pasos</span></div>
+              <div class="meta"><span class="tag ${result.completed ? 'ok' : 'warn'} tiny">${escape(result.mode)}</span><span class="tag tiny">${result.steps.filter((s) => s.status === 'ok' || s.status === 'planned-only').length}/${result.steps.length} pasos</span></div>
               <div class="cu-step-list">
-                ${o.steps.map(l=>`
+                ${result.steps
+                  .map(
+                    (s) => `
                   <div class="cu-step-row">
-                    <span class="tag ${l.status==="ok"?"ok":l.status==="failed"?"crit":""} tiny">${t(l.status)}</span>
-                    <div style="flex:1;"><div class="small">${t(l.targetLabel)}</div><div class="tiny muted">${t(l.detail??"")}</div></div>
-                  </div>`).join("")}
+                    <span class="tag ${s.status === 'ok' ? 'ok' : s.status === 'failed' ? 'crit' : ''} tiny">${escape(s.status)}</span>
+                    <div style="flex:1;"><div class="small">${escape(s.targetLabel)}</div><div class="tiny muted">${escape(s.detail ?? '')}</div></div>
+                  </div>`,
+                  )
+                  .join('')}
               </div>
-            </div>`,c(`Ejecutado en modo ${o.mode}`,o.completed?"ok":"warn")}catch(r){c("Error: "+r.message,"crit")}})})}catch(s){e.innerHTML=`<div class="alert crit">Error: ${t(s.message)}</div>`}},T={completed:"ok",partial:"warn",failed:"crit"},P={completed:"ok",escalated:"warn",failed:"crit"},R={decision:"\u{1F9ED}",artifact:"\u{1F4E6}",risk:"\u26A0\uFE0F",metric:"\u{1F4CA}",fact:"\u2022"};let y=null;const N=e=>{const s=T[e.status]??"",a=e.steps.filter(i=>i.status==="completed").length;return`
-    <div class="card mission-card swarm-mission" data-mission="${t(e.id)}" style="cursor:pointer;${e.id===y?"border-color:var(--accent);":""}">
+            </div>`;
+          toast(`Ejecutado en modo ${result.mode}`, result.completed ? 'ok' : 'warn');
+        } catch (err) {
+          toast('Error: ' + err.message, 'crit');
+        }
+      });
+    });
+  } catch (err) {
+    host.innerHTML = `<div class="alert crit">Error: ${escape(err.message)}</div>`;
+  }
+};
+
+/* ──────────────────────────────────────────────────────────────────────────── */
+/* AUTÓNOMO (SWARM) TAB — framework orquestador en vivo                        */
+/* ──────────────────────────────────────────────────────────────────────────── */
+
+const SWARM_STATUS_TAG = { completed: 'ok', partial: 'warn', failed: 'crit' };
+const STEP_TAG = { completed: 'ok', escalated: 'warn', failed: 'crit' };
+const BB_ICON = { decision: '🧭', artifact: '📦', risk: '⚠️', metric: '📊', fact: '•' };
+
+let swarmFocusId = null;
+
+const renderSwarmMissionCard = (m) => {
+  const tag = SWARM_STATUS_TAG[m.status] ?? '';
+  const okCount = m.steps.filter((s) => s.status === 'completed').length;
+  return `
+    <div class="card mission-card swarm-mission" data-mission="${escape(m.id)}" style="cursor:pointer;${m.id === swarmFocusId ? 'border-color:var(--accent);' : ''}">
       <div class="row spread">
         <div style="flex:1;min-width:0;">
           <div class="meta">
-            <span class="tag ${s}">${t(e.status)}</span>
-            <span class="tag accent tiny">${t(e.planSource)}</span>
-            <span class="tag tiny">crew ${e.crew.length}</span>
-            <span class="tiny muted">${u.rel(e.startedAt)}</span>
+            <span class="tag ${tag}">${escape(m.status)}</span>
+            <span class="tag accent tiny">${escape(m.planSource)}</span>
+            <span class="tag tiny">crew ${m.crew.length}</span>
+            <span class="tiny muted">${fmt.rel(m.startedAt)}</span>
           </div>
-          <h3 style="margin:6px 0 4px;">${t(e.objective.slice(0,90))}</h3>
-          <div class="small">${a}/${e.steps.length} tareas OK \xB7 replans ${e.replans}</div>
+          <h3 style="margin:6px 0 4px;">${escape(m.objective.slice(0, 90))}</h3>
+          <div class="small">${okCount}/${m.steps.length} tareas OK · replans ${m.replans}</div>
         </div>
       </div>
-    </div>`},F=(e,s)=>e?`
+    </div>`;
+};
+
+const renderSwarmDetail = (m, board) => {
+  if (!m) return '<div class="muted small">Seleccioná una misión para ver su traza y pizarra en vivo.</div>';
+  return `
     <div class="card">
       <div class="meta">
-        <span class="tag ${T[e.status]??""}">${t(e.status)}</span>
-        <span class="tag accent tiny">${t(e.planSource)}</span>
-        <span class="tiny muted">${t(e.id)}</span>
+        <span class="tag ${SWARM_STATUS_TAG[m.status] ?? ''}">${escape(m.status)}</span>
+        <span class="tag accent tiny">${escape(m.planSource)}</span>
+        <span class="tiny muted">${escape(m.id)}</span>
       </div>
-      <h3 style="margin:6px 0;">${t(e.objective)}</h3>
-      <p class="small muted" style="margin:0 0 8px;">${t(e.rationale||"")}</p>
+      <h3 style="margin:6px 0;">${escape(m.objective)}</h3>
+      <p class="small muted" style="margin:0 0 8px;">${escape(m.rationale || '')}</p>
       <div class="small" style="margin-bottom:4px;font-weight:700;">Crew</div>
       <div class="meta" style="margin-bottom:10px;">
-        ${e.crew.map(a=>`<span class="tag tiny">${t(a.agentId)} \xB7 ${t(a.role)}</span>`).join("")||'<span class="tiny muted">\u2014</span>'}
+        ${m.crew.map((c) => `<span class="tag tiny">${escape(c.agentId)} · ${escape(c.role)}</span>`).join('') || '<span class="tiny muted">—</span>'}
       </div>
-      <div class="small" style="margin-bottom:4px;font-weight:700;">Pasos (${e.steps.length})</div>
+      <div class="small" style="margin-bottom:4px;font-weight:700;">Pasos (${m.steps.length})</div>
       <div class="cu-step-list">
-        ${e.steps.map(a=>`
+        ${m.steps
+          .map(
+            (s) => `
           <div class="cu-step-row">
-            <span class="tag ${P[a.status]??""} tiny">${t(a.status)}</span>
+            <span class="tag ${STEP_TAG[s.status] ?? ''} tiny">${escape(s.status)}</span>
             <div style="flex:1;min-width:0;">
-              <div class="small">${t(a.taskId)} \u2192 ${t(a.agentId)} <span class="tiny muted">(${t(a.verdict)}, score ${a.score}, ${a.attempts} intento/s)</span></div>
-              <div class="tiny muted">${t(a.note||"")}</div>
+              <div class="small">${escape(s.taskId)} → ${escape(s.agentId)} <span class="tiny muted">(${escape(s.verdict)}, score ${s.score}, ${s.attempts} intento/s)</span></div>
+              <div class="tiny muted">${escape(s.note || '')}</div>
             </div>
-          </div>`).join("")}
+          </div>`,
+          )
+          .join('')}
       </div>
-      ${e.summary?`<div class="small muted" style="margin-top:8px;border-left:2px solid var(--border);padding-left:8px;white-space:pre-wrap;">${t(e.summary)}</div>`:""}
+      ${m.summary ? `<div class="small muted" style="margin-top:8px;border-left:2px solid var(--border);padding-left:8px;white-space:pre-wrap;">${escape(m.summary)}</div>` : ''}
     </div>
     <div class="card" style="margin-top:10px;">
-      <div class="small" style="font-weight:700;margin-bottom:6px;">\u{1F9E9} Pizarra compartida ${s?`(${s.entries.length})`:""}</div>
-      ${!s||!s.entries.length?'<div class="tiny muted">Sin aportes todav\xEDa.</div>':`
+      <div class="small" style="font-weight:700;margin-bottom:6px;">🧩 Pizarra compartida ${board ? `(${board.entries.length})` : ''}</div>
+      ${
+        !board || !board.entries.length
+          ? '<div class="tiny muted">Sin aportes todavía.</div>'
+          : `
         <div class="cu-step-list">
-          ${s.entries.slice().reverse().slice(0,40).map(a=>`
+          ${board.entries
+            .slice()
+            .reverse()
+            .slice(0, 40)
+            .map(
+              (e) => `
             <div class="cu-step-row">
-              <span class="tiny">${R[a.kind]??"\u2022"}</span>
+              <span class="tiny">${BB_ICON[e.kind] ?? '•'}</span>
               <div style="flex:1;min-width:0;">
-                <div class="tiny"><b>${t(a.by)}</b> \xB7 ${t(a.label)}</div>
-                <div class="tiny muted">${t(typeof a.value=="string"?a.value.slice(0,240):JSON.stringify(a.value).slice(0,240))}</div>
+                <div class="tiny"><b>${escape(e.by)}</b> · ${escape(e.label)}</div>
+                <div class="tiny muted">${escape(typeof e.value === 'string' ? e.value.slice(0, 240) : JSON.stringify(e.value).slice(0, 240))}</div>
               </div>
-            </div>`).join("")}
-        </div>`}
-    </div>`:'<div class="muted small">Seleccion\xE1 una misi\xF3n para ver su traza y pizarra en vivo.</div>',E=e=>{b();const s=y?`?id=${encodeURIComponent(y)}`:"";g=new EventSource(`/api/swarm/stream${s}`),g.addEventListener("swarm",a=>{let i;try{i=JSON.parse(a.data)}catch{return}const n=e.querySelector("#swarm-missions"),r=e.querySelector("#swarm-detail");n&&(n.innerHTML=i.missions.length?i.missions.map(N).join(""):'<div class="card" style="text-align:center;padding:24px;"><div class="muted">Sin misiones aut\xF3nomas todav\xEDa.</div></div>',n.querySelectorAll("[data-mission]").forEach(o=>{o.addEventListener("click",()=>{y=o.dataset.mission,E(e)})})),r&&(r.innerHTML=F(i.detail,i.board))}),g.onerror=()=>{}},B=async e=>{e.innerHTML=`
+            </div>`,
+            )
+            .join('')}
+        </div>`
+      }
+    </div>`;
+};
+
+const openSwarmStream = (host) => {
+  closeSwarmStream();
+  const qs = swarmFocusId ? `?id=${encodeURIComponent(swarmFocusId)}` : '';
+  swarmES = new EventSource(`/api/swarm/stream${qs}`);
+  swarmES.addEventListener('swarm', (ev) => {
+    let data;
+    try {
+      data = JSON.parse(ev.data);
+    } catch {
+      return;
+    }
+    const listEl = host.querySelector('#swarm-missions');
+    const detailEl = host.querySelector('#swarm-detail');
+    if (listEl) {
+      listEl.innerHTML = data.missions.length
+        ? data.missions.map(renderSwarmMissionCard).join('')
+        : '<div class="card" style="text-align:center;padding:24px;"><div class="muted">Sin misiones autónomas todavía.</div></div>';
+      listEl.querySelectorAll('[data-mission]').forEach((el) => {
+        el.addEventListener('click', () => {
+          swarmFocusId = el.dataset.mission;
+          openSwarmStream(host);
+        });
+      });
+    }
+    if (detailEl) detailEl.innerHTML = renderSwarmDetail(data.detail, data.board);
+  });
+  swarmES.onerror = () => {
+    /* EventSource reintenta solo */
+  };
+};
+
+const renderSwarm = async (host) => {
+  host.innerHTML = `
     <div class="card mission-launch-card">
-      <h3 style="margin:0 0 6px;">\u{1F41D} Misi\xF3n aut\xF3noma de punta a punta</h3>
-      <p class="small muted" style="margin:0 0 10px;">El framework orquestador arma la crew, planifica el DAG, ejecuta en paralelo, autoeval\xFAa con un cr\xEDtico y replanifica si hace falta. Respeta los checkpoints humanos.</p>
-      <textarea id="swarm-objetivo" class="input" rows="2" placeholder="Ej: Sub\xED 1 carrusel por d\xEDa esta semana con su estrategia y CTA"></textarea>
+      <h3 style="margin:0 0 6px;">🐝 Misión autónoma de punta a punta</h3>
+      <p class="small muted" style="margin:0 0 10px;">El framework orquestador arma la crew, planifica el DAG, ejecuta en paralelo, autoevalúa con un crítico y replanifica si hace falta. Respeta los checkpoints humanos.</p>
+      <textarea id="swarm-objetivo" class="input" rows="2" placeholder="Ej: Subí 1 carrusel por día esta semana con su estrategia y CTA"></textarea>
       <div class="btn-row" style="margin-top:8px;">
-        <button class="btn primary" id="swarm-launch">\u{1F680} Lanzar misi\xF3n</button>
+        <button class="btn primary" id="swarm-launch">🚀 Lanzar misión</button>
       </div>
     </div>
     <div class="card" style="margin-top:12px;">
       <div class="row spread" style="align-items:center;">
-        <div><b>\u{1F465} Director de Operaciones 24/7</b><div class="tiny muted">Departamentos que trabajan en segundo plano con cooldown propio.</div></div>
-        <button class="btn ghost tiny" id="swarm-ops-run">\u25B6 Correr ciclo ahora</button>
+        <div><b>👥 Director de Operaciones 24/7</b><div class="tiny muted">Departamentos que trabajan en segundo plano con cooldown propio.</div></div>
+        <button class="btn ghost tiny" id="swarm-ops-run">▶ Correr ciclo ahora</button>
       </div>
-      <div id="swarm-ops" class="meta" style="margin-top:8px;"><span class="tiny muted">cargando\u2026</span></div>
+      <div id="swarm-ops" class="meta" style="margin-top:8px;"><span class="tiny muted">cargando…</span></div>
     </div>
     <div class="row" style="gap:14px;align-items:flex-start;margin-top:12px;flex-wrap:wrap;">
       <div style="flex:1;min-width:260px;">
         <div class="autopilot-section-head"><h3 style="margin:0;">Misiones (en vivo)</h3></div>
-        <div id="swarm-missions">${h()}</div>
+        <div id="swarm-missions">${loadingScreen()}</div>
       </div>
       <div style="flex:1.4;min-width:300px;">
         <div class="autopilot-section-head"><h3 style="margin:0;">Traza + pizarra</h3></div>
-        <div id="swarm-detail"><div class="muted small">Seleccion\xE1 una misi\xF3n para ver su traza y pizarra en vivo.</div></div>
+        <div id="swarm-detail"><div class="muted small">Seleccioná una misión para ver su traza y pizarra en vivo.</div></div>
       </div>
-    </div>`,e.querySelector("#swarm-launch")?.addEventListener("click",async a=>{const i=e.querySelector("#swarm-objetivo").value.trim();if(!i){c("Escrib\xED un objetivo","warn");return}await m(a.currentTarget,"lanzando\u2026",async()=>{try{await d("/api/swarm/mission",{method:"POST",body:{objetivo:i}}),c("Misi\xF3n aut\xF3noma en marcha \u{1F41D}","ok"),e.querySelector("#swarm-objetivo").value=""}catch(n){c("Error: "+n.message,"crit")}})});const s=async()=>{try{const a=await d("/api/swarm/operations"),i=e.querySelector("#swarm-ops");if(!i)return;const n=Date.now();i.innerHTML=a.map(r=>{const o=!r.nextEligibleAt||Date.parse(r.nextEligibleAt)<=n;return`<span class="tag ${o?"ok":""} tiny" title="${r.lastRunAt?"\xDAltimo: "+u.rel(r.lastRunAt):"Nunca corri\xF3"}">${t(r.label)} \xB7 ${o?"listo":"cooldown"}</span>`}).join("")}catch{}};e.querySelector("#swarm-ops-run")?.addEventListener("click",async a=>{await m(a.currentTarget,"corriendo\u2026",async()=>{try{await d("/api/swarm/operations/run",{method:"POST",body:{}}),c("Ciclo de operaciones lanzado \u{1F465}","ok"),setTimeout(s,1500)}catch(i){c("Error: "+i.message,"crit")}})}),await s(),E(e)},x=[{id:"launch",label:"\u{1F680} Lanzar",render:M},{id:"talia",label:"\u{1F469}\u200D\u{1F4BC} Tal\xEDa",render:O},{id:"computer",label:"\u{1F5A5} Computer Use",render:D},{id:"swarm",label:"\u{1F41D} Aut\xF3nomo",render:B},{id:"missions",label:"\u{1F3AF} Misiones",render:w},{id:"traces",label:"\u{1F9E0} Trazas",render:A},{id:"knowledge",label:"\u{1F4D6} Conocimiento",render:q},{id:"bus",label:"\u{1F4E1} Bus",render:C}],f=async e=>{const s=e.querySelector("#mission-content");if(!s)return;b(),v!=="swarm"&&(y=null);const a=x.find(i=>i.id===v)??x[0];s.innerHTML=h(),await a.render(s)};export const renderMission=async e=>{v="launch",e.innerHTML=`
+    </div>`;
+
+  host.querySelector('#swarm-launch')?.addEventListener('click', async (e) => {
+    const objetivo = host.querySelector('#swarm-objetivo').value.trim();
+    if (!objetivo) {
+      toast('Escribí un objetivo', 'warn');
+      return;
+    }
+    await withBtnSpinner(e.currentTarget, 'lanzando…', async () => {
+      try {
+        await api('/api/swarm/mission', { method: 'POST', body: { objetivo } });
+        toast('Misión autónoma en marcha 🐝', 'ok');
+        host.querySelector('#swarm-objetivo').value = '';
+      } catch (err) {
+        toast('Error: ' + err.message, 'crit');
+      }
+    });
+  });
+
+  const loadOps = async () => {
+    try {
+      const ops = await api('/api/swarm/operations');
+      const el = host.querySelector('#swarm-ops');
+      if (!el) return;
+      const now = Date.now();
+      el.innerHTML = ops
+        .map((d) => {
+          const ready = !d.nextEligibleAt || Date.parse(d.nextEligibleAt) <= now;
+          return `<span class="tag ${ready ? 'ok' : ''} tiny" title="${d.lastRunAt ? 'Último: ' + fmt.rel(d.lastRunAt) : 'Nunca corrió'}">${escape(d.label)} · ${ready ? 'listo' : 'cooldown'}</span>`;
+        })
+        .join('');
+    } catch {
+      /* opcional */
+    }
+  };
+
+  host.querySelector('#swarm-ops-run')?.addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, 'corriendo…', async () => {
+      try {
+        await api('/api/swarm/operations/run', { method: 'POST', body: {} });
+        toast('Ciclo de operaciones lanzado 👥', 'ok');
+        setTimeout(loadOps, 1500);
+      } catch (err) {
+        toast('Error: ' + err.message, 'crit');
+      }
+    });
+  });
+
+  await loadOps();
+  openSwarmStream(host);
+};
+
+/* ──────────────────────────────────────────────────────────────────────────── */
+/* TAB ROUTING                                                                 */
+/* ──────────────────────────────────────────────────────────────────────────── */
+
+const TABS = [
+  { id: 'launch', label: '🚀 Lanzar', render: renderLaunch },
+  { id: 'talia', label: '👩‍💼 Talía', render: renderTalia },
+  { id: 'computer', label: '🖥 Computer Use', render: renderComputer },
+  { id: 'swarm', label: '🐝 Autónomo', render: renderSwarm },
+  { id: 'missions', label: '🎯 Misiones', render: renderMissions },
+  { id: 'traces', label: '🧠 Trazas', render: renderTraces },
+  { id: 'knowledge', label: '📖 Conocimiento', render: renderKnowledge },
+  { id: 'bus', label: '📡 Bus', render: renderBus },
+];
+
+const renderActiveTab = async (root) => {
+  const host = root.querySelector('#mission-content');
+  if (!host) return;
+  // Cambiar de tab cierra el stream en vivo del tab Autónomo.
+  closeSwarmStream();
+  if (activeTab !== 'swarm') swarmFocusId = null;
+  const def = TABS.find((t) => t.id === activeTab) ?? TABS[0];
+  host.innerHTML = loadingScreen();
+  await def.render(host);
+};
+
+export const renderMission = async (root) => {
+  activeTab = 'launch';
+  root.innerHTML = `
     <!-- HERO: comando central revolucionario -->
     <div class="mc-cockpit">
       <div class="mc-cockpit-bg"></div>
       <div class="mc-cockpit-content">
         <div class="mc-eyebrow">
           <span class="mc-radar"></span>
-          MISSION CONTROL \xB7 sistema multi-agente
+          MISSION CONTROL · sistema multi-agente
         </div>
-        <h1 class="mc-title">\xBFCu\xE1l es tu pr\xF3xima <span class="mc-grad">misi\xF3n</span>?</h1>
-        <p class="mc-sub">Escrib\xED un objetivo en una sola frase. El sistema lo descompone en pasos, asigna a los agentes correctos y los ejecuta. Vos solo aprob\xE1s.</p>
+        <h1 class="mc-title">¿Cuál es tu próxima <span class="mc-grad">misión</span>?</h1>
+        <p class="mc-sub">Escribí un objetivo en una sola frase. El sistema lo descompone en pasos, asigna a los agentes correctos y los ejecuta. Vos solo aprobás.</p>
 
         <!-- Input gigante estilo Spotlight -->
         <div class="mc-command-box">
-          <span class="mc-cmd-icon">\u{1F3AF}</span>
-          <textarea id="mc-goal-input" placeholder="Ej: 'Lanzar mi curso de IA con 5 d\xEDas de teaser, 3 reels educativos y vender 20 cupos en 7 d\xEDas'" rows="2"></textarea>
-          <button class="btn primary mc-launch-btn" id="mc-launch-btn">\u{1F680} Descomponer y ejecutar</button>
+          <span class="mc-cmd-icon">🎯</span>
+          <textarea id="mc-goal-input" placeholder="Ej: 'Lanzar mi curso de IA con 5 días de teaser, 3 reels educativos y vender 20 cupos en 7 días'" rows="2"></textarea>
+          <button class="btn primary mc-launch-btn" id="mc-launch-btn">🚀 Descomponer y ejecutar</button>
         </div>
 
         <!-- Decomposition output: aparece cuando se lanza -->
@@ -414,13 +1024,15 @@ import{api as d,apiSafe as $}from"../lib/api.js";import{escape as t,fmt as u}fro
 
         <!-- Templates -->
         <div class="mc-templates">
-          <div class="mc-templates-label">O empez\xE1 con una misi\xF3n pre-armada:</div>
+          <div class="mc-templates-label">O empezá con una misión pre-armada:</div>
           <div class="mc-templates-grid">
-            ${j.map(a=>`
-              <button class="mc-template" data-goal="${t(a.goal)}">
-                <span class="mc-template-emoji">${a.emoji}</span>
-                <span class="mc-template-title">${t(a.title)}</span>
-              </button>`).join("")}
+            ${MISSION_TEMPLATES.map(
+              (t) => `
+              <button class="mc-template" data-goal="${escape(t.goal)}">
+                <span class="mc-template-emoji">${t.emoji}</span>
+                <span class="mc-template-title">${escape(t.title)}</span>
+              </button>`,
+            ).join('')}
           </div>
         </div>
       </div>
@@ -428,17 +1040,19 @@ import{api as d,apiSafe as $}from"../lib/api.js";import{escape as t,fmt as u}fro
 
     <!-- Tabs avanzados (misiones activas, traces, knowledge, bus) -->
     <div class="page-toolbar" style="margin-top:22px;">
-      <h3 style="margin:0 0 10px;font-size:13px;color:var(--text-muted,#9CA3AF);text-transform:uppercase;letter-spacing:.05em;font-weight:700;">\u{1F4CA} Operaciones avanzadas</h3>
+      <h3 style="margin:0 0 10px;font-size:13px;color:var(--text-muted,#9CA3AF);text-transform:uppercase;letter-spacing:.05em;font-weight:700;">📊 Operaciones avanzadas</h3>
       <div class="page-toolbar-tabs">
-        ${x.map(a=>`
-          <button class="tool-tab-btn ${a.id===v?"active":""}" data-tab="${a.id}">${t(a.label)}</button>
-        `).join("")}
+        ${TABS.map(
+          (t) => `
+          <button class="tool-tab-btn ${t.id === activeTab ? 'active' : ''}" data-tab="${t.id}">${escape(t.label)}</button>
+        `,
+        ).join('')}
       </div>
     </div>
-    <div id="mission-content" class="page-body">${h()}</div>
+    <div id="mission-content" class="page-body">${loadingScreen()}</div>
 
     <style data-v="mc-v3">
-      /* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 Mission Control v3 \xB7 Vercel-grade \xB7 MAX CONTRAST \xB7 THEME-AWARE \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+      /* ═════════ Mission Control v3 · Vercel-grade · MAX CONTRAST · THEME-AWARE ═════════
          Uso !important para ganar sobre cualquier regla legacy de style.css.
          Tokens: --text-primary (#f5f5f5 dark / #16171c light), --bg-elevated, etc. */
       .mc-cockpit {
@@ -476,7 +1090,7 @@ import{api as d,apiSafe as $}from"../lib/api.js";import{escape as t,fmt as u}fro
       }
       @keyframes mcRadar { 0%,100% { opacity: .6; transform: scale(.9); } 50% { opacity: 1; transform: scale(1.15); } }
 
-      /* \u2500\u2500\u2500 TITLE: cero gradient transparente. Color s\xF3lido alto contraste \u2500\u2500\u2500 */
+      /* ─── TITLE: cero gradient transparente. Color sólido alto contraste ─── */
       .mc-title {
         font-size: 40px !important; font-weight: 700 !important;
         margin: 0 0 14px !important; line-height: 1.04 !important;
@@ -500,7 +1114,7 @@ import{api as d,apiSafe as $}from"../lib/api.js";import{escape as t,fmt as u}fro
         opacity: 1 !important;
       }
 
-      /* \u2500\u2500\u2500 Command box \u2500\u2500\u2500 */
+      /* ─── Command box ─── */
       .mc-command-box {
         display: flex !important; align-items: stretch !important; gap: 0 !important;
         padding: 6px !important;
@@ -527,7 +1141,7 @@ import{api as d,apiSafe as $}from"../lib/api.js";import{escape as t,fmt as u}fro
       }
       #mc-goal-input::placeholder { color: var(--text-tertiary, #a1a1aa) !important; opacity: 1 !important; }
 
-      /* \u2500\u2500\u2500 Launch button: pure white-on-bg, no rosa-fuchsia \u2500\u2500\u2500 */
+      /* ─── Launch button: pure white-on-bg, no rosa-fuchsia ─── */
       .mc-launch-btn {
         flex-shrink: 0 !important; border-radius: 10px !important;
         padding: 0 18px !important; height: auto !important;
@@ -540,7 +1154,7 @@ import{api as d,apiSafe as $}from"../lib/api.js";import{escape as t,fmt as u}fro
       }
       .mc-launch-btn:hover { opacity: .9 !important; }
 
-      /* \u2500\u2500\u2500 Decomposition \u2500\u2500\u2500 */
+      /* ─── Decomposition ─── */
       .mc-decomposition {
         margin-bottom: 24px !important; padding: 20px !important;
         background: var(--bg-card-2, #0f0f0f) !important;
@@ -575,7 +1189,7 @@ import{api as d,apiSafe as $}from"../lib/api.js";import{escape as t,fmt as u}fro
       .mc-step-meta { font-size: 11px !important; color: var(--text-tertiary, #a1a1aa) !important; margin-top: 2px !important; }
       .mc-step-eta { font-size: 11px !important; color: var(--text-secondary, #d4d4d8) !important; font-weight: 600 !important; flex-shrink: 0 !important; font-variant-numeric: tabular-nums !important; }
 
-      /* \u2500\u2500\u2500 Templates label + grid: t\xEDtulos visibles SI O SI \u2500\u2500\u2500 */
+      /* ─── Templates label + grid: títulos visibles SI O SI ─── */
       .mc-templates-label {
         font-size: 10.5px !important; color: var(--text-secondary, #d4d4d8) !important;
         margin-bottom: 12px !important; font-weight: 700 !important;
@@ -615,26 +1229,104 @@ import{api as d,apiSafe as $}from"../lib/api.js";import{escape as t,fmt as u}fro
         .mc-command-box { flex-direction: column !important; }
         .mc-launch-btn { margin-top: 6px !important; }
       }
-    </style>`;const s=async a=>{if(!a||!a.trim()){c("Escrib\xED tu misi\xF3n primero","warn");return}const i=e.querySelector("#mc-decomposition");i.hidden=!1,i.classList.add("mc-show"),i.innerHTML='<div style="text-align:center;padding:20px;"><span class="spinner lg"></span><div class="small muted" style="margin-top:8px;">Descomponiendo en pasos\u2026</div></div>';const{data:n,error:r}=await $("/api/missions/decompose",null,{method:"POST",body:{goal:a.trim()}}),o=(n?.steps?.length?n.steps:L(a)).map((l,p)=>({...l,n:p+1}));i.innerHTML=`
+    </style>`;
+
+  // Launch handler
+  const launchGoal = async (goal) => {
+    if (!goal || !goal.trim()) {
+      toast('Escribí tu misión primero', 'warn');
+      return;
+    }
+    const decompEl = root.querySelector('#mc-decomposition');
+    decompEl.hidden = false;
+    decompEl.classList.add('mc-show');
+    decompEl.innerHTML = `<div style="text-align:center;padding:20px;"><span class="spinner lg"></span><div class="small muted" style="margin-top:8px;">Descomponiendo en pasos…</div></div>`;
+
+    const { data, error } = await apiSafe('/api/missions/decompose', null, {
+      method: 'POST',
+      body: { goal: goal.trim() },
+    });
+    const steps = (data?.steps?.length ? data.steps : decomposeLocally(goal)).map((s, i) => ({ ...s, n: i + 1 }));
+
+    decompEl.innerHTML = `
       <div class="mc-decomp-head">
-        <h4>\u{1F4CB} Plan generado \xB7 ${o.length} pasos</h4>
-        ${r?'<span class="tag tiny warn">descomposici\xF3n local</span>':'<span class="tag tiny ok">backend conectado</span>'}
+        <h4>📋 Plan generado · ${steps.length} pasos</h4>
+        ${error ? '<span class="tag tiny warn">descomposición local</span>' : '<span class="tag tiny ok">backend conectado</span>'}
       </div>
       <div class="mc-steps">
-        ${o.map(l=>`
+        ${steps
+          .map(
+            (s) => `
           <div class="mc-step">
-            <span class="mc-step-num">${l.n}</span>
-            <span class="mc-step-emoji">${l.emoji}</span>
+            <span class="mc-step-num">${s.n}</span>
+            <span class="mc-step-emoji">${s.emoji}</span>
             <div class="mc-step-body">
-              <div class="mc-step-task">${t(l.task)}</div>
-              <div class="mc-step-meta">@${t(l.agent)}</div>
+              <div class="mc-step-task">${escape(s.task)}</div>
+              <div class="mc-step-meta">@${escape(s.agent)}</div>
             </div>
-            <span class="mc-step-eta">${t(l.eta??"\u2014")}</span>
-          </div>`).join("")}
+            <span class="mc-step-eta">${escape(s.eta ?? '—')}</span>
+          </div>`,
+          )
+          .join('')}
       </div>
       <div class="btn-row" style="margin-top:14px;gap:8px;">
-        <button class="btn primary" id="mc-approve-all">\u2705 Aprobar y ejecutar todo</button>
-        <button class="btn ghost" id="mc-edit">\u270F\uFE0F Editar misi\xF3n</button>
-        <button class="btn ghost" id="mc-discard">\u{1F5D1} Descartar</button>
+        <button class="btn primary" id="mc-approve-all">✅ Aprobar y ejecutar todo</button>
+        <button class="btn ghost" id="mc-edit">✏️ Editar misión</button>
+        <button class="btn ghost" id="mc-discard">🗑 Descartar</button>
       </div>
-    `,i.querySelector("#mc-approve-all").addEventListener("click",async()=>{const{error:l}=await $("/api/missions/launch",null,{method:"POST",body:{freeIntent:a,runNow:!0}});l?c(`\u{1F680} Misi\xF3n registrada localmente \xB7 ${o.length} pasos. Se ejecuta cuando vuelva el backend.`,"info"):c(`\u{1F680} \xA1Misi\xF3n lanzada! ${o.length} agentes trabajando.`,"ok"),v="missions",e.querySelectorAll(".tool-tab-btn").forEach(p=>p.classList.toggle("active",p.dataset.tab==="missions")),await f(e)}),i.querySelector("#mc-edit").addEventListener("click",()=>{i.hidden=!0,e.querySelector("#mc-goal-input")?.focus()}),i.querySelector("#mc-discard").addEventListener("click",()=>{i.hidden=!0;const l=e.querySelector("#mc-goal-input");l&&(l.value="")})};e.querySelector("#mc-launch-btn")?.addEventListener("click",()=>{const a=e.querySelector("#mc-goal-input")?.value;s(a)}),e.querySelector("#mc-goal-input")?.addEventListener("keydown",a=>{a.key==="Enter"&&(a.ctrlKey||a.metaKey)&&(a.preventDefault(),s(a.target.value))}),e.querySelectorAll(".mc-template").forEach(a=>{a.addEventListener("click",()=>{const i=a.dataset.goal,n=e.querySelector("#mc-goal-input");n&&(n.value=i),s(i)})}),e.querySelectorAll(".tool-tab-btn").forEach(a=>{a.addEventListener("click",async()=>{v=a.dataset.tab,e.querySelectorAll(".tool-tab-btn").forEach(i=>i.classList.toggle("active",i===a)),await f(e)})}),await f(e)};
+    `;
+
+    decompEl.querySelector('#mc-approve-all').addEventListener('click', async () => {
+      const { error: launchErr } = await apiSafe('/api/missions/launch', null, {
+        method: 'POST',
+        body: { freeIntent: goal, runNow: true },
+      });
+      if (launchErr) {
+        toast(`🚀 Misión registrada localmente · ${steps.length} pasos. Se ejecuta cuando vuelva el backend.`, 'info');
+      } else {
+        toast(`🚀 ¡Misión lanzada! ${steps.length} agentes trabajando.`, 'ok');
+      }
+      activeTab = 'missions';
+      root.querySelectorAll('.tool-tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === 'missions'));
+      await renderActiveTab(root);
+    });
+    decompEl.querySelector('#mc-edit').addEventListener('click', () => {
+      decompEl.hidden = true;
+      root.querySelector('#mc-goal-input')?.focus();
+    });
+    decompEl.querySelector('#mc-discard').addEventListener('click', () => {
+      decompEl.hidden = true;
+      const input = root.querySelector('#mc-goal-input');
+      if (input) input.value = '';
+    });
+  };
+
+  root.querySelector('#mc-launch-btn')?.addEventListener('click', () => {
+    const goal = root.querySelector('#mc-goal-input')?.value;
+    void launchGoal(goal);
+  });
+  root.querySelector('#mc-goal-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      void launchGoal(e.target.value);
+    }
+  });
+  root.querySelectorAll('.mc-template').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const goal = btn.dataset.goal;
+      const input = root.querySelector('#mc-goal-input');
+      if (input) input.value = goal;
+      void launchGoal(goal);
+    });
+  });
+
+  root.querySelectorAll('.tool-tab-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      activeTab = btn.dataset.tab;
+      root.querySelectorAll('.tool-tab-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      await renderActiveTab(root);
+    });
+  });
+
+  await renderActiveTab(root);
+};

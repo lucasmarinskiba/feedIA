@@ -1,39 +1,81 @@
-import{apiSafe as f}from"../lib/api.js";import{escape as i}from"../lib/dom.js";import{toast as l}from"../lib/toast.js";let g=null;const v=()=>{try{return localStorage.getItem("feedia.platform")==="tiktok"?"tiktok":"instagram"}catch{return"instagram"}},m={"breakout-potential":"#10b981","high-potential":"#3b82f6",solid:"#a855f7",mediocre:"#f59e0b",low:"#ef4444"},u={"breakout-potential":"\u{1F680} Breakout potential","high-potential":"\u{1F3AF} High potential",solid:"\u{1F4AA} Solid",mediocre:"\u26A0\uFE0F Mediocre",low:"\u{1F6A8} Bajo"},b=e=>`
+/* ══════════════════════════════════════════════════════════════════════════════
+   FORGE IA — Herramienta clave: estrategia + producción + predicción viral
+   ──────────────────────────────────────────────────────────────────────────────
+   Pipeline end-to-end visible:
+     1. Brief → strategy (audience + format + hooks)
+     2. Forge → carousel/reel/story con assets
+     3. Predict → viral score + métricas predichas
+     4. Iterate → regenera hasta breakout-potential
+
+   Funciona para Instagram + TikTok según platform switcher.
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { apiSafe } from '../lib/api.js';
+import { escape } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+
+let lastResult = null;
+
+const getActivePlatform = () => {
+  try {
+    const v = localStorage.getItem('feedia.platform');
+    return v === 'tiktok' ? 'tiktok' : 'instagram';
+  } catch {
+    return 'instagram';
+  }
+};
+
+const VIRALITY_COLORS = {
+  'breakout-potential': '#10b981',
+  'high-potential': '#3b82f6',
+  solid: '#a855f7',
+  mediocre: '#f59e0b',
+  low: '#ef4444',
+};
+
+const VIRALITY_LABELS = {
+  'breakout-potential': '🚀 Breakout potential',
+  'high-potential': '🎯 High potential',
+  solid: '💪 Solid',
+  mediocre: '⚠️ Mediocre',
+  low: '🚨 Bajo',
+};
+
+const buildForm = (platform) => `
   <div class="fg-card">
-    <h2 class="fg-section-title">1. Decile a Forge qu\xE9 crear</h2>
+    <h2 class="fg-section-title">1. Decile a Forge qué crear</h2>
     <p class="fg-section-sub">Strategist + 12 hook formulas + viral predictor analizan ANTES de generar. Cero tokens malgastados.</p>
 
     <div class="fg-form-grid">
       <label class="fg-field fg-field-wide">
-        <span class="fg-label">\xBFSobre qu\xE9?</span>
-        <input class="fg-input" id="fg-topic" placeholder="Ej: c\xF3mo automatizar tu marketing con IA" autocomplete="off" />
+        <span class="fg-label">¿Sobre qué?</span>
+        <input class="fg-input" id="fg-topic" placeholder="Ej: cómo automatizar tu marketing con IA" autocomplete="off" />
       </label>
 
       <label class="fg-field">
         <span class="fg-label">Plataforma</span>
         <select class="fg-input" id="fg-platform">
-          <option value="instagram" ${e==="instagram"?"selected":""}>\u{1F4F7} Instagram</option>
-          <option value="tiktok" ${e==="tiktok"?"selected":""}>\u{1F3B5} TikTok</option>
+          <option value="instagram" ${platform === 'instagram' ? 'selected' : ''}>📷 Instagram</option>
+          <option value="tiktok" ${platform === 'tiktok' ? 'selected' : ''}>🎵 TikTok</option>
         </select>
       </label>
 
       <label class="fg-field">
         <span class="fg-label">Formato</span>
         <select class="fg-input" id="fg-format">
-          <option value="carousel">\u{1F5C2}\uFE0F Carrusel</option>
-          <option value="reel" selected>\u{1F3AC} Reel / Video</option>
-          <option value="story">\u25CE Story</option>
+          <option value="carousel">🗂️ Carrusel</option>
+          <option value="reel" selected>🎬 Reel / Video</option>
+          <option value="story">◎ Story</option>
         </select>
       </label>
 
       <label class="fg-field">
         <span class="fg-label">Goal</span>
         <select class="fg-input" id="fg-goal">
-          <option value="engagement" selected>\u{1F49C} Engagement</option>
-          <option value="awareness">\u{1F4E1} Alcance</option>
-          <option value="conversion">\u{1F4B0} Conversi\xF3n</option>
-          <option value="community">\u{1F465} Comunidad</option>
-          <option value="sales">\u{1F6D2} Ventas</option>
+          <option value="engagement" selected>💜 Engagement</option>
+          <option value="awareness">📡 Alcance</option>
+          <option value="conversion">💰 Conversión</option>
+          <option value="community">👥 Comunidad</option>
+          <option value="sales">🛒 Ventas</option>
         </select>
       </label>
 
@@ -48,129 +90,161 @@ import{apiSafe as f}from"../lib/api.js";import{escape as i}from"../lib/dom.js";i
           <option value="cercano">Cercano</option>
           <option value="profesional">Profesional</option>
           <option value="autoritativo">Autoritativo</option>
-          <option value="humor\xEDstico">Humor\xEDstico</option>
+          <option value="humorístico">Humorístico</option>
           <option value="inspirador">Inspirador</option>
         </select>
       </label>
 
       <label class="fg-field fg-field-wide">
-        <span class="fg-label">\xC1ngulos competidores (opcional)</span>
+        <span class="fg-label">Ángulos competidores (opcional)</span>
         <input class="fg-input" id="fg-competitors" placeholder="Ej: tutorial paso a paso, tips de productividad" autocomplete="off" />
       </label>
     </div>
 
     <div class="fg-actions">
-      <button class="fg-btn fg-btn-secondary" id="fg-strategy-only">\u{1F4CB} Solo estrategia</button>
+      <button class="fg-btn fg-btn-secondary" id="fg-strategy-only">📋 Solo estrategia</button>
       <button class="fg-btn fg-btn-primary" id="fg-forge-go">
-        <span class="fg-btn-icon">\u2728</span>
+        <span class="fg-btn-icon">✨</span>
         Forge contenido completo
       </button>
     </div>
-    <p class="fg-disclaimer">Free: Llama 3.3 70B + Pollinations Flux. Paid: Claude Sonnet/Opus + fal.ai Flux-Pro. <a href="/pricing.html">Ver planes \u2192</a></p>
-  </div>`,c=e=>{if(!e)return"";const a=e.strategicScore||0,s=a>=80?"#10b981":a>=60?"#3b82f6":"#f59e0b";return`
+    <p class="fg-disclaimer">Free: Llama 3.3 70B + Pollinations Flux. Paid: Claude Sonnet/Opus + fal.ai Flux-Pro. <a href="/pricing.html">Ver planes →</a></p>
+  </div>`;
+
+const renderStrategy = (s) => {
+  if (!s) return '';
+  const score = s.strategicScore || 0;
+  const scoreColor = score >= 80 ? '#10b981' : score >= 60 ? '#3b82f6' : '#f59e0b';
+  return `
     <div class="fg-card">
       <div class="fg-strategy-head">
         <div>
-          <h3 class="fg-section-title">2. Plan estrat\xE9gico</h3>
-          <p class="fg-section-sub">${i(e.brandVoiceGuideline||"")}</p>
+          <h3 class="fg-section-title">2. Plan estratégico</h3>
+          <p class="fg-section-sub">${escape(s.brandVoiceGuideline || '')}</p>
         </div>
-        <div class="fg-score-circle" style="background:${s};">
-          <div class="fg-score-val">${a}</div>
+        <div class="fg-score-circle" style="background:${scoreColor};">
+          <div class="fg-score-val">${score}</div>
           <div class="fg-score-lbl">strategic</div>
         </div>
       </div>
 
       <div class="fg-strategy-grid">
         <div class="fg-strategy-block">
-          <strong>\u{1F3AF} Formato recomendado</strong>
-          <div class="fg-strategy-val">${i(e.recommendedFormat?.format||"")} <span class="fg-muted">(fit ${((e.recommendedFormat?.fit||0)*100).toFixed(0)}%)</span></div>
-          <div class="fg-tiny-muted">${i(e.recommendedFormat?.reason||"")}</div>
+          <strong>🎯 Formato recomendado</strong>
+          <div class="fg-strategy-val">${escape(s.recommendedFormat?.format || '')} <span class="fg-muted">(fit ${((s.recommendedFormat?.fit || 0) * 100).toFixed(0)}%)</span></div>
+          <div class="fg-tiny-muted">${escape(s.recommendedFormat?.reason || '')}</div>
         </div>
 
         <div class="fg-strategy-block">
-          <strong>\u{1F465} Audiencia</strong>
-          <div class="fg-strategy-val">${i(e.input?.audience||"")}</div>
-          <div class="fg-tiny-muted">Triggers: ${(e.audienceProfile?.triggers||[]).slice(0,3).join(", ")}</div>
+          <strong>👥 Audiencia</strong>
+          <div class="fg-strategy-val">${escape(s.input?.audience || '')}</div>
+          <div class="fg-tiny-muted">Triggers: ${(s.audienceProfile?.triggers || []).slice(0, 3).join(', ')}</div>
         </div>
 
         <div class="fg-strategy-block">
-          <strong>\u23F0 Mejor ventana</strong>
-          <div class="fg-strategy-val">${i((e.postingWindows||[])[0]||"cualquier hora")}</div>
-          <div class="fg-tiny-muted">Atenci\xF3n: ${e.attentionBudgetSec||2}s</div>
+          <strong>⏰ Mejor ventana</strong>
+          <div class="fg-strategy-val">${escape((s.postingWindows || [])[0] || 'cualquier hora')}</div>
+          <div class="fg-tiny-muted">Atención: ${s.attentionBudgetSec || 2}s</div>
         </div>
       </div>
 
       <div class="fg-hooks">
-        <strong>\u{1F3A3} Top 5 hooks predichos:</strong>
+        <strong>🎣 Top 5 hooks predichos:</strong>
         <div class="fg-hook-list">
-          ${(e.hookCandidates||[]).map((r,d)=>`
-            <div class="fg-hook ${d===0?"best":""}">
+          ${(s.hookCandidates || [])
+            .map(
+              (h, i) => `
+            <div class="fg-hook ${i === 0 ? 'best' : ''}">
               <div class="fg-hook-head">
-                <span class="fg-hook-formula">${i(r.formula)}</span>
-                <span class="fg-hook-strength" style="color:${r.predictedStrength>=.85?"#10b981":"#a855f7"};">
-                  ${(r.predictedStrength*100).toFixed(0)}% strength
+                <span class="fg-hook-formula">${escape(h.formula)}</span>
+                <span class="fg-hook-strength" style="color:${h.predictedStrength >= 0.85 ? '#10b981' : '#a855f7'};">
+                  ${(h.predictedStrength * 100).toFixed(0)}% strength
                 </span>
               </div>
-              <div class="fg-hook-text">${i(r.hook)}</div>
-              ${d===0?'<div class="fg-hook-badge">RECOMENDADO</div>':""}
-            </div>`).join("")}
+              <div class="fg-hook-text">${escape(h.hook)}</div>
+              ${i === 0 ? '<div class="fg-hook-badge">RECOMENDADO</div>' : ''}
+            </div>`,
+            )
+            .join('')}
         </div>
       </div>
 
-      ${(e.algorithmChecklist||[]).length?`
+      ${
+        (s.algorithmChecklist || []).length
+          ? `
         <div class="fg-checklist">
-          <strong>\u{1F9E0} Optimizaci\xF3n algor\xEDtmica (${e.input?.platform||"IG"}):</strong>
+          <strong>🧠 Optimización algorítmica (${s.input?.platform || 'IG'}):</strong>
           <ul>
-            ${(e.algorithmChecklist||[]).map(r=>`
-              <li><strong>${i(r.signal)}:</strong> ${i(r.tactic)}</li>`).join("")}
+            ${(s.algorithmChecklist || [])
+              .map(
+                (c) => `
+              <li><strong>${escape(c.signal)}:</strong> ${escape(c.tactic)}</li>`,
+              )
+              .join('')}
           </ul>
-        </div>`:""}
+        </div>`
+          : ''
+      }
 
-      ${(e.riskFlags||[]).length?`
+      ${
+        (s.riskFlags || []).length
+          ? `
         <div class="fg-flags">
-          <strong>\u26A0\uFE0F Risk flags:</strong>
-          ${(e.riskFlags||[]).map(r=>`<div class="fg-flag">${i(r)}</div>`).join("")}
-        </div>`:""}
-    </div>`},x=e=>{if(!e)return"";const a=m[e.virality]||"#a855f7";return`
+          <strong>⚠️ Risk flags:</strong>
+          ${(s.riskFlags || []).map((f) => `<div class="fg-flag">${escape(f)}</div>`).join('')}
+        </div>`
+          : ''
+      }
+    </div>`;
+};
+
+const renderPrediction = (p) => {
+  if (!p) return '';
+  const color = VIRALITY_COLORS[p.virality] || '#a855f7';
+  return `
     <div class="fg-card">
       <h3 class="fg-section-title">3. Viral predictor</h3>
-      <p class="fg-section-sub">Modelo determin\xEDstico 0-100 con benchmarks reales IG/TT.</p>
+      <p class="fg-section-sub">Modelo determinístico 0-100 con benchmarks reales IG/TT.</p>
 
       <div class="fg-viral-hero">
-        <div class="fg-viral-score" style="border-color:${a};">
-          <div class="fg-viral-num" style="color:${a};">${e.viralScore}</div>
+        <div class="fg-viral-score" style="border-color:${color};">
+          <div class="fg-viral-num" style="color:${color};">${p.viralScore}</div>
           <div class="fg-viral-lbl">viral score</div>
         </div>
         <div class="fg-viral-body">
-          <div class="fg-viral-class" style="background:${a}22;color:${a};">${u[e.virality]||e.virality}</div>
-          <div class="fg-tiny-muted">Techo si optimiz\xE1s: ${e.ceilingScore} (gap ${e.optimizationGap}pts)</div>
+          <div class="fg-viral-class" style="background:${color}22;color:${color};">${VIRALITY_LABELS[p.virality] || p.virality}</div>
+          <div class="fg-tiny-muted">Techo si optimizás: ${p.ceilingScore} (gap ${p.optimizationGap}pts)</div>
         </div>
       </div>
 
       <div class="fg-pred-metrics">
         <div class="fg-pred-metric">
-          <div class="fg-pred-num">${e.predicted?.reach?.toLocaleString("es-AR")||0}</div>
+          <div class="fg-pred-num">${p.predicted?.reach?.toLocaleString('es-AR') || 0}</div>
           <div class="fg-pred-lbl">alcance predicho</div>
         </div>
         <div class="fg-pred-metric">
-          <div class="fg-pred-num">${((e.predicted?.engagementRate||0)*100).toFixed(1)}%</div>
+          <div class="fg-pred-num">${((p.predicted?.engagementRate || 0) * 100).toFixed(1)}%</div>
           <div class="fg-pred-lbl">engagement rate</div>
         </div>
-        ${e.predicted?.completion!==null?`
+        ${
+          p.predicted?.completion !== null
+            ? `
           <div class="fg-pred-metric">
-            <div class="fg-pred-num">${(e.predicted?.completion*100).toFixed(0)}%</div>
+            <div class="fg-pred-num">${(p.predicted?.completion * 100).toFixed(0)}%</div>
             <div class="fg-pred-lbl">completion</div>
-          </div>`:""}
+          </div>`
+            : ''
+        }
         <div class="fg-pred-metric">
-          <div class="fg-pred-num">${e.predicted?.saves?.toLocaleString("es-AR")||0}</div>
+          <div class="fg-pred-num">${p.predicted?.saves?.toLocaleString('es-AR') || 0}</div>
           <div class="fg-pred-lbl">saves</div>
         </div>
         <div class="fg-pred-metric">
-          <div class="fg-pred-num">${e.predicted?.shares?.toLocaleString("es-AR")||0}</div>
+          <div class="fg-pred-num">${p.predicted?.shares?.toLocaleString('es-AR') || 0}</div>
           <div class="fg-pred-lbl">shares</div>
         </div>
         <div class="fg-pred-metric">
-          <div class="fg-pred-num">${e.predicted?.comments?.toLocaleString("es-AR")||0}</div>
+          <div class="fg-pred-num">${p.predicted?.comments?.toLocaleString('es-AR') || 0}</div>
           <div class="fg-pred-lbl">comments</div>
         </div>
       </div>
@@ -178,105 +252,276 @@ import{apiSafe as f}from"../lib/api.js";import{escape as i}from"../lib/dom.js";i
       <div class="fg-breakdown">
         <strong>Breakdown:</strong>
         <div class="fg-breakdown-grid">
-          ${Object.entries(e.breakdown||{}).map(([s,r])=>`
+          ${Object.entries(p.breakdown || {})
+            .map(
+              ([k, v]) => `
             <div class="fg-break-row">
-              <div class="fg-break-name">${i(s)} <span class="fg-tiny-muted">(${r.weight}%)</span></div>
-              <div class="fg-break-bar"><div class="fg-break-fill" style="width:${r.score}%;background:${r.score>=75?"#10b981":r.score>=50?"#a855f7":"#f59e0b"};"></div></div>
-              <div class="fg-break-score">${r.score}</div>
-            </div>`).join("")}
+              <div class="fg-break-name">${escape(k)} <span class="fg-tiny-muted">(${v.weight}%)</span></div>
+              <div class="fg-break-bar"><div class="fg-break-fill" style="width:${v.score}%;background:${v.score >= 75 ? '#10b981' : v.score >= 50 ? '#a855f7' : '#f59e0b'};"></div></div>
+              <div class="fg-break-score">${v.score}</div>
+            </div>`,
+            )
+            .join('')}
         </div>
       </div>
 
-      ${(e.improvements||[]).length?`
+      ${
+        (p.improvements || []).length
+          ? `
         <div class="fg-improvements">
-          <strong>\u{1F4A1} Mejoras sugeridas:</strong>
-          <ul>${(e.improvements||[]).map(s=>`<li>${i(s)}</li>`).join("")}</ul>
-        </div>`:""}
+          <strong>💡 Mejoras sugeridas:</strong>
+          <ul>${(p.improvements || []).map((i) => `<li>${escape(i)}</li>`).join('')}</ul>
+        </div>`
+          : ''
+      }
 
-      ${(e.flags||[]).length?`
+      ${
+        (p.flags || []).length
+          ? `
         <div class="fg-flags">
-          <strong>\u{1F6A8} Risk flags:</strong>
-          ${(e.flags||[]).map(s=>`<div class="fg-flag">${i(s)}</div>`).join("")}
-        </div>`:""}
-    </div>`},h=(e,a,s)=>{if(!e)return"";const r=Array.isArray(e.slides),d=Array.isArray(e.beats),o=Array.isArray(e.frames);return`
+          <strong>🚨 Risk flags:</strong>
+          ${(p.flags || []).map((f) => `<div class="fg-flag">${escape(f)}</div>`).join('')}
+        </div>`
+          : ''
+      }
+    </div>`;
+};
+
+const renderContent = (c, assets, meta) => {
+  if (!c) return '';
+  const isCarousel = Array.isArray(c.slides);
+  const isReel = Array.isArray(c.beats);
+  const isStory = Array.isArray(c.frames);
+
+  return `
     <div class="fg-card">
       <h3 class="fg-section-title">4. Contenido generado</h3>
-      <p class="fg-section-sub">Provider: ${i(s?.llm?.provider||"free")} \xB7 Modelo: ${i(s?.llm?.model||"auto")}</p>
+      <p class="fg-section-sub">Provider: ${escape(meta?.llm?.provider || 'free')} · Modelo: ${escape(meta?.llm?.model || 'auto')}</p>
 
-      ${a?.coverImage?`
+      ${
+        assets?.coverImage
+          ? `
         <div class="fg-cover">
-          <img src="${i(a.coverImage.url)}" alt="Cover" loading="lazy" />
-          <div class="fg-cover-meta">Cover ${a.coverImage.width}\xD7${a.coverImage.height} \xB7 ${i(a.coverImage.provider)}</div>
-        </div>`:""}
+          <img src="${escape(assets.coverImage.url)}" alt="Cover" loading="lazy" />
+          <div class="fg-cover-meta">Cover ${assets.coverImage.width}×${assets.coverImage.height} · ${escape(assets.coverImage.provider)}</div>
+        </div>`
+          : ''
+      }
 
-      ${r?`
+      ${
+        isCarousel
+          ? `
         <div class="fg-slides">
-          ${e.slides.map(t=>`
+          ${c.slides
+            .map(
+              (s) => `
             <div class="fg-slide">
-              <div class="fg-slide-num">Slide ${t.n}</div>
-              <div class="fg-slide-headline">${i(t.headline||"")}</div>
-              ${t.body?`<div class="fg-slide-body">${i(t.body)}</div>`:""}
-              ${t.imagePrompt?`<div class="fg-slide-prompt"><strong>Image prompt:</strong> ${i(t.imagePrompt)}</div>`:""}
-            </div>`).join("")}
-        </div>`:""}
+              <div class="fg-slide-num">Slide ${s.n}</div>
+              <div class="fg-slide-headline">${escape(s.headline || '')}</div>
+              ${s.body ? `<div class="fg-slide-body">${escape(s.body)}</div>` : ''}
+              ${s.imagePrompt ? `<div class="fg-slide-prompt"><strong>Image prompt:</strong> ${escape(s.imagePrompt)}</div>` : ''}
+            </div>`,
+            )
+            .join('')}
+        </div>`
+          : ''
+      }
 
-      ${d?`
+      ${
+        isReel
+          ? `
         <div class="fg-beats">
-          ${e.beats.map(t=>`
+          ${c.beats
+            .map(
+              (b) => `
             <div class="fg-beat">
-              <div class="fg-beat-time">${i(t.sec)}s</div>
+              <div class="fg-beat-time">${escape(b.sec)}s</div>
               <div class="fg-beat-body">
-                <div class="fg-beat-visual">\u{1F3AC} ${i(t.visual||"")}</div>
-                ${t.text?`<div class="fg-beat-text">\u{1F4DD} ${i(t.text)}</div>`:""}
-                ${t.voiceover?`<div class="fg-beat-vo">\u{1F3A4} "${i(t.voiceover)}"</div>`:""}
+                <div class="fg-beat-visual">🎬 ${escape(b.visual || '')}</div>
+                ${b.text ? `<div class="fg-beat-text">📝 ${escape(b.text)}</div>` : ''}
+                ${b.voiceover ? `<div class="fg-beat-vo">🎤 "${escape(b.voiceover)}"</div>` : ''}
               </div>
-            </div>`).join("")}
+            </div>`,
+            )
+            .join('')}
         </div>
-        ${e.suggestedAudio?`<div class="fg-audio-hint">\u{1F3B5} Audio: ${i(e.suggestedAudio)}</div>`:""}`:""}
+        ${c.suggestedAudio ? `<div class="fg-audio-hint">🎵 Audio: ${escape(c.suggestedAudio)}</div>` : ''}`
+          : ''
+      }
 
-      ${o?`
+      ${
+        isStory
+          ? `
         <div class="fg-frames">
-          ${e.frames.map((t,n)=>`
+          ${c.frames
+            .map(
+              (f, i) => `
             <div class="fg-frame">
-              ${a?.frameImages?.[n]?`<img src="${i(a.frameImages[n].url)}" alt="Frame ${t.n}" loading="lazy" />`:""}
+              ${assets?.frameImages?.[i] ? `<img src="${escape(assets.frameImages[i].url)}" alt="Frame ${f.n}" loading="lazy" />` : ''}
               <div class="fg-frame-body">
-                <div class="fg-frame-num">Frame ${t.n} \xB7 ${i(t.stickerType||"none")}</div>
-                <div class="fg-frame-text">${i(t.overlayText||"")}</div>
+                <div class="fg-frame-num">Frame ${f.n} · ${escape(f.stickerType || 'none')}</div>
+                <div class="fg-frame-text">${escape(f.overlayText || '')}</div>
               </div>
-            </div>`).join("")}
-        </div>`:""}
+            </div>`,
+            )
+            .join('')}
+        </div>`
+          : ''
+      }
 
-      ${e.caption?`
+      ${
+        c.caption
+          ? `
         <div class="fg-caption">
           <div class="fg-caption-head">
-            <strong>\u{1F4DD} Caption</strong>
-            <button class="fg-tiny-btn" data-copy="${encodeURIComponent(e.caption)}">Copiar</button>
+            <strong>📝 Caption</strong>
+            <button class="fg-tiny-btn" data-copy="${encodeURIComponent(c.caption)}">Copiar</button>
           </div>
-          <pre>${i(e.caption)}</pre>
-        </div>`:""}
+          <pre>${escape(c.caption)}</pre>
+        </div>`
+          : ''
+      }
 
-      ${(e.hashtags||[]).length?`
+      ${
+        (c.hashtags || []).length
+          ? `
         <div class="fg-hashtags">
-          <strong>#\uFE0F\u20E3 Hashtags (${e.hashtags.length})</strong>
+          <strong>#️⃣ Hashtags (${c.hashtags.length})</strong>
           <div class="fg-tag-list">
-            ${e.hashtags.map(t=>`<span class="fg-tag">${i(t)}</span>`).join("")}
+            ${c.hashtags.map((t) => `<span class="fg-tag">${escape(t)}</span>`).join('')}
           </div>
-          <button class="fg-tiny-btn" data-copy="${encodeURIComponent((e.hashtags||[]).join(" "))}">Copiar todos</button>
-        </div>`:""}
+          <button class="fg-tiny-btn" data-copy="${encodeURIComponent((c.hashtags || []).join(' '))}">Copiar todos</button>
+        </div>`
+          : ''
+      }
 
       <div class="fg-final-actions">
-        <button class="fg-btn fg-btn-secondary" id="fg-regenerate">\u{1F504} Regenerar</button>
-        <button class="fg-btn fg-btn-primary" id="fg-publish">\u{1F4E4} Enviar a publicar</button>
+        <button class="fg-btn fg-btn-secondary" id="fg-regenerate">🔄 Regenerar</button>
+        <button class="fg-btn fg-btn-primary" id="fg-publish">📤 Enviar a publicar</button>
       </div>
-    </div>`},y=e=>{const a=o=>e.querySelector(`#${o}`),s=()=>({topic:a("fg-topic")?.value.trim()||"tu producto",platform:a("fg-platform")?.value||"instagram",format:a("fg-format")?.value||"reel",goal:a("fg-goal")?.value||"engagement",brandNiche:a("fg-niche")?.value.trim()||"",brandVoice:a("fg-voice")?.value||"cercano",competitorAngles:(a("fg-competitors")?.value||"").split(",").map(o=>o.trim()).filter(Boolean)}),r=o=>{const t=e.querySelector("#fg-output");t&&(t.innerHTML=`<div class="fg-loading"><div class="fg-spin"></div><div>${i(o)}</div></div>`)},d=o=>{const t=e.querySelector("#fg-output");t&&(t.innerHTML=[c(o.strategy),h(o.content,o.assets,o.meta),x(o.prediction)].join(""),k(e))};a("fg-strategy-only")?.addEventListener("click",async()=>{r("Pensando estrategia (sin gastar tokens)...");const{data:o,error:t}=await f("/api/strategy/plan",null,{method:"POST",body:s()});if(t||!o){l("No se pudo generar estrategia","err");return}const n=e.querySelector("#fg-output");n.innerHTML=c(o),l("Estrategia generada (gratis)","ok")}),a("fg-forge-go")?.addEventListener("click",async()=>{const o=s();if(!o.topic||o.topic==="tu producto"){l("Decile sobre qu\xE9 crear contenido","warn"),a("fg-topic")?.focus();return}r("Forge en proceso \xB7 strategy \u2192 produce \u2192 predict (10-30s)...");try{const t=await fetch("/api/forge/content",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"include",body:JSON.stringify(o)}),n=await t.json();if(t.status===402){l(n.reason||"L\xEDmite alcanzado","warn"),window.dispatchEvent(new CustomEvent("feedia:quotaExceeded",{detail:n}));const p=e.querySelector("#fg-output");p.innerHTML=`<div class="fg-card" style="text-align:center;padding:40px;"><h3>\u{1F512} Llegaste al l\xEDmite</h3><p>${i(n.reason)}</p><a href="/pricing.html" class="fg-btn fg-btn-primary" style="display:inline-block;margin-top:14px;text-decoration:none;">Ver planes \u2192</a></div>`;return}if(!t.ok){l(n.message||"Error al forge","err");return}g=n,d(n),l(`Score viral: ${n.prediction?.viralScore||0}/100`,n.prediction?.viralScore>=70?"ok":"info")}catch{l("Error de red","err")}})},k=e=>{e.querySelectorAll("[data-copy]").forEach(a=>{a.addEventListener("click",()=>{const s=decodeURIComponent(a.dataset.copy||"");try{navigator.clipboard.writeText(s),l("Copiado","ok")}catch{l("No se pudo copiar","err")}})}),e.querySelector("#fg-regenerate")?.addEventListener("click",()=>{e.querySelector("#fg-forge-go")?.click()}),e.querySelector("#fg-publish")?.addEventListener("click",()=>{if(g)try{localStorage.setItem("feedia.forge.lastDraft",JSON.stringify(g)),l("Borrador guardado. Abriendo Studio\u2026","ok"),setTimeout(()=>{window.location.hash="#studio-carousel"},500)}catch{l("No se pudo guardar","err")}})};export const renderForge=async e=>{const a=v();e.innerHTML=`
+    </div>`;
+};
+
+const wireForm = (root) => {
+  const get = (id) => root.querySelector(`#${id}`);
+
+  const collectInputs = () => ({
+    topic: get('fg-topic')?.value.trim() || 'tu producto',
+    platform: get('fg-platform')?.value || 'instagram',
+    format: get('fg-format')?.value || 'reel',
+    goal: get('fg-goal')?.value || 'engagement',
+    brandNiche: get('fg-niche')?.value.trim() || '',
+    brandVoice: get('fg-voice')?.value || 'cercano',
+    competitorAngles: (get('fg-competitors')?.value || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+  });
+
+  const setLoading = (label) => {
+    const out = root.querySelector('#fg-output');
+    if (out) out.innerHTML = `<div class="fg-loading"><div class="fg-spin"></div><div>${escape(label)}</div></div>`;
+  };
+
+  const renderOutput = (result) => {
+    const out = root.querySelector('#fg-output');
+    if (!out) return;
+    out.innerHTML = [
+      renderStrategy(result.strategy),
+      renderContent(result.content, result.assets, result.meta),
+      renderPrediction(result.prediction),
+    ].join('');
+    wireOutput(root);
+  };
+
+  get('fg-strategy-only')?.addEventListener('click', async () => {
+    setLoading('Pensando estrategia (sin gastar tokens)...');
+    const { data, error } = await apiSafe('/api/strategy/plan', null, { method: 'POST', body: collectInputs() });
+    if (error || !data) {
+      toast('No se pudo generar estrategia', 'err');
+      return;
+    }
+    const out = root.querySelector('#fg-output');
+    out.innerHTML = renderStrategy(data);
+    toast('Estrategia generada (gratis)', 'ok');
+  });
+
+  get('fg-forge-go')?.addEventListener('click', async () => {
+    const inputs = collectInputs();
+    if (!inputs.topic || inputs.topic === 'tu producto') {
+      toast('Decile sobre qué crear contenido', 'warn');
+      get('fg-topic')?.focus();
+      return;
+    }
+    setLoading('Forge en proceso · strategy → produce → predict (10-30s)...');
+    try {
+      const r = await fetch('/api/forge/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(inputs),
+      });
+      const data = await r.json();
+      if (r.status === 402) {
+        toast(data.reason || 'Límite alcanzado', 'warn');
+        window.dispatchEvent(new CustomEvent('feedia:quotaExceeded', { detail: data }));
+        const out = root.querySelector('#fg-output');
+        out.innerHTML = `<div class="fg-card" style="text-align:center;padding:40px;"><h3>🔒 Llegaste al límite</h3><p>${escape(data.reason)}</p><a href="/pricing.html" class="fg-btn fg-btn-primary" style="display:inline-block;margin-top:14px;text-decoration:none;">Ver planes →</a></div>`;
+        return;
+      }
+      if (!r.ok) {
+        toast(data.message || 'Error al forge', 'err');
+        return;
+      }
+      lastResult = data;
+      renderOutput(data);
+      toast(`Score viral: ${data.prediction?.viralScore || 0}/100`, data.prediction?.viralScore >= 70 ? 'ok' : 'info');
+    } catch (err) {
+      toast('Error de red', 'err');
+    }
+  });
+};
+
+const wireOutput = (root) => {
+  root.querySelectorAll('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const text = decodeURIComponent(btn.dataset.copy || '');
+      try {
+        navigator.clipboard.writeText(text);
+        toast('Copiado', 'ok');
+      } catch {
+        toast('No se pudo copiar', 'err');
+      }
+    });
+  });
+  root.querySelector('#fg-regenerate')?.addEventListener('click', () => {
+    root.querySelector('#fg-forge-go')?.click();
+  });
+  root.querySelector('#fg-publish')?.addEventListener('click', () => {
+    if (!lastResult) return;
+    try {
+      localStorage.setItem('feedia.forge.lastDraft', JSON.stringify(lastResult));
+      toast('Borrador guardado. Abriendo Studio…', 'ok');
+      setTimeout(() => {
+        window.location.hash = '#studio-carousel';
+      }, 500);
+    } catch {
+      toast('No se pudo guardar', 'err');
+    }
+  });
+};
+
+export const renderForge = async (root) => {
+  const platform = getActivePlatform();
+  root.innerHTML = `
     <header class="view-header page-header">
       <div>
-        <h1 class="view-title page-title">\u2728 Forge IA</h1>
-        <p class="view-subtitle page-subtitle">Estrategia \u2192 producci\xF3n \u2192 predicci\xF3n viral \xB7 Para Instagram + TikTok</p>
+        <h1 class="view-title page-title">✨ Forge IA</h1>
+        <p class="view-subtitle page-subtitle">Estrategia → producción → predicción viral · Para Instagram + TikTok</p>
       </div>
     </header>
     <div class="page-body">
-      ${b(a)}
+      ${buildForm(platform)}
       <div id="fg-output"></div>
     </div>
     <style>
@@ -388,4 +633,12 @@ import{apiSafe as f}from"../lib/api.js";import{escape as i}from"../lib/dom.js";i
         .fg-form-grid{grid-template-columns:1fr;}
         .fg-break-row{grid-template-columns:90px 1fr 35px;}
       }
-    </style>`,y(e);const s=e.querySelector("#fg-platform");window.addEventListener("feedia:platform",r=>{s&&(s.value=r.detail?.platform==="tiktok"?"tiktok":"instagram")})};
+    </style>`;
+
+  wireForm(root);
+
+  const platformSelect = root.querySelector('#fg-platform');
+  window.addEventListener('feedia:platform', (e) => {
+    if (platformSelect) platformSelect.value = e.detail?.platform === 'tiktok' ? 'tiktok' : 'instagram';
+  });
+};

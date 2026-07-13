@@ -1,4 +1,107 @@
-const u="feedia.sidebarGroups",l={"Tu Casa":"\u{1F3AF} Hoy",Studio:"\u{1F3A8} Crear","Indicaciones a la IA":"\u{1F9E0} Pensar con IA","Inteligencia IA":"\u{1F916} Auto-Pilot",Gesti\u00F3n:"\u{1F4CA} Mi cuenta",Operaciones:"\u2699\uFE0F Ajustes"},g=["\u{1F3AF} Hoy"],m=()=>{try{return JSON.parse(localStorage.getItem(u)||"{}")}catch{return{}}},S=s=>{try{localStorage.setItem(u,JSON.stringify(s))}catch{}};export const initSidebarGroups=()=>{const s=document.querySelector(".side-nav");if(!s)return;const o=m(),c=[...s.querySelectorAll(".nav-group-label")];if(c.length&&(c.forEach(t=>{const a=t.textContent.trim();l[a]&&(t.textContent=l[a],t.dataset.original=a);const r=t.textContent.trim();if(t.dataset.wired)return;t.dataset.wired="1";const i=[];let n=t.nextElementSibling;for(;n&&!n.classList.contains("nav-group-label");)i.push(n),n=n.nextElementSibling;const p=o[r]!==void 0?o[r]:g.includes(r),d=e=>{i.forEach(y=>{y.style.display=e?"":"none"}),t.classList.toggle("collapsed",!e),t.dataset.open=e?"1":"0",o[r]=e,S(o)};if(t.style.cursor="pointer",t.style.userSelect="none",t.style.display="flex",t.style.alignItems="center",t.style.gap="6px",!t.querySelector(".sg-caret")){const e=document.createElement("span");e.className="sg-caret",e.textContent="\u25BE",e.style.fontSize="9px",e.style.transition="transform .15s",e.style.opacity="0.55",t.prepend(e)}t.addEventListener("click",()=>d(t.dataset.open!=="1")),d(p)}),!document.querySelector("#sg-style"))){const t=document.createElement("style");t.id="sg-style",t.textContent=`
+/* ══════════════════════════════════════════════════════════════════════════════
+   sidebarGroups.js — colapsa los grupos del sidebar (`nav-group-label`)
+   sin tocar el HTML. Tu Casa abierto por default; resto colapsado.
+   Estado persiste en localStorage.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+const STORAGE_KEY = 'feedia.sidebarGroups';
+// Reorg semántica: outcome-first
+const RELABEL = {
+  'Tu Casa': 'Hoy',
+  'Studio': 'Crear',
+  'Indicaciones a la IA': 'Pensar con IA',
+  'Inteligencia IA': 'Auto-Pilot',
+  'Gestión': 'Mi cuenta',
+  'Operaciones': 'Ajustes',
+};
+const DEFAULT_OPEN = ['Hoy']; // resto colapsa por default
+
+const loadState = () => {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+};
+const saveState = (state) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {}
+};
+
+export const initSidebarGroups = () => {
+  const nav = document.querySelector('.side-nav');
+  if (!nav) return;
+
+  const state = loadState();
+  const labels = [...nav.querySelectorAll('.nav-group-label')];
+  if (!labels.length) return;
+
+  labels.forEach((label) => {
+    const original = label.textContent.trim();
+    // Re-etiquetar a outcome-first
+    if (RELABEL[original]) {
+      label.textContent = RELABEL[original];
+      label.dataset.original = original;
+    }
+    const name = label.textContent.trim();
+    if (label.dataset.wired) return; // idempotente
+    label.dataset.wired = '1';
+
+    // recolectar todos los siguientes nodos (items + comments) hasta el próximo label
+    const items = [];
+    let cur = label.nextElementSibling;
+    while (cur && !cur.classList.contains('nav-group-label')) {
+      items.push(cur);
+      cur = cur.nextElementSibling;
+    }
+
+    // estado inicial
+    const isOpen = state[name] !== undefined ? state[name] : DEFAULT_OPEN.includes(name);
+    const setOpen = (open) => {
+      items.forEach((el) => {
+        el.style.display = open ? '' : 'none';
+      });
+      label.classList.toggle('collapsed', !open);
+      label.dataset.open = open ? '1' : '0';
+      state[name] = open;
+      saveState(state);
+    };
+
+    // Wrap label con caret + clickable
+    label.style.cursor = 'pointer';
+    label.style.userSelect = 'none';
+    label.style.display = 'flex';
+    label.style.alignItems = 'center';
+    label.style.gap = '6px';
+    if (!label.querySelector('.sg-caret')) {
+      const caret = document.createElement('span');
+      caret.className = 'sg-caret';
+      caret.textContent = '▾';
+      caret.style.fontSize = '9px';
+      caret.style.transition = 'transform .15s';
+      caret.style.opacity = '0.55';
+      label.prepend(caret);
+    }
+    label.addEventListener('click', () => setOpen(label.dataset.open !== '1'));
+    setOpen(isOpen);
+  });
+
+  // CSS
+  if (!document.querySelector('#sg-style')) {
+    const css = document.createElement('style');
+    css.id = 'sg-style';
+    css.textContent = `
       .nav-group-label.collapsed .sg-caret{transform:rotate(-90deg);}
       .nav-group-label:hover{color:var(--text-primary, var(--fg));}
-    `,document.head.appendChild(t)}};document.readyState==="complete"||document.readyState==="interactive"?setTimeout(initSidebarGroups,50):document.addEventListener("DOMContentLoaded",initSidebarGroups);
+    `;
+    document.head.appendChild(css);
+  }
+};
+
+// Auto-init si DOM ya está listo (la nav existe siempre al load)
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(initSidebarGroups, 50);
+} else {
+  document.addEventListener('DOMContentLoaded', initSidebarGroups);
+}

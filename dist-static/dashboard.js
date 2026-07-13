@@ -1,117 +1,351 @@
-const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s)),content=$("#content"),api=async(s,i={})=>{const a=await fetch(s,{method:i.method??"GET",headers:{"content-type":"application/json"},body:i.body?JSON.stringify(i.body):void 0});if(!a.ok)throw new Error(`${s} \u2192 ${a.status}`);return a.json()},escape=s=>String(s??"").replace(/[&<>"]/g,i=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[i]),empty=s=>`<div class="empty">${escape(s)}</div>`,renderDigest=async()=>{content.innerHTML='<p class="loading">Construyendo digest\u2026</p>';const s=await api("/api/digest"),i=s.data,a=`
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+const content = $('#content');
+
+const api = async (path, opts = {}) => {
+  const res = await fetch(path, {
+    method: opts.method ?? 'GET',
+    headers: { 'content-type': 'application/json' },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) throw new Error(`${path} → ${res.status}`);
+  return res.json();
+};
+
+const escape = (s) =>
+  String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+const empty = (msg) => `<div class="empty">${escape(msg)}</div>`;
+
+const renderDigest = async () => {
+  content.innerHTML = '<p class="loading">Construyendo digest…</p>';
+  const digest = await api('/api/digest');
+  const d = digest.data;
+  const kpis = `
     <div class="kpi-row">
-      <div class="kpi"><div class="label">Conversaciones</div><div class="value">${i.conversaciones.totales}</div></div>
-      <div class="kpi"><div class="label">Escaladas</div><div class="value">${i.conversaciones.escaladas}</div></div>
-      <div class="kpi"><div class="label">Backlog nuevo</div><div class="value">${i.curatorBacklog.nuevos}</div></div>
-      <div class="kpi"><div class="label">UGC pendientes</div><div class="value">${i.ugc.pendientes}</div></div>
-      <div class="kpi"><div class="label">Experimentos corriendo</div><div class="value">${i.experimentos.corriendo}</div></div>
-      <div class="kpi"><div class="label">Nurture activos</div><div class="value">${i.nurture.activos}</div></div>
-    </div>`,e=i.crisis.pausado?`<div class="alert crit">\u26A0\uFE0F Publicaciones PAUSADAS por crisis. Alertas enviadas: ${i.crisis.alertasEnviadas}</div>`:"",t=s.cosasQueRequierenAtencion.length?s.cosasQueRequierenAtencion.map(o=>`<li>${escape(o)}</li>`).join(""):'<li class="muted">Nada urgente hoy \u2713</li>',n=s.cosasQuePuedenEsperar.length?s.cosasQuePuedenEsperar.map(o=>`<li>${escape(o)}</li>`).join(""):'<li class="muted">Sin pendientes</li>';content.innerHTML=`
+      <div class="kpi"><div class="label">Conversaciones</div><div class="value">${d.conversaciones.totales}</div></div>
+      <div class="kpi"><div class="label">Escaladas</div><div class="value">${d.conversaciones.escaladas}</div></div>
+      <div class="kpi"><div class="label">Backlog nuevo</div><div class="value">${d.curatorBacklog.nuevos}</div></div>
+      <div class="kpi"><div class="label">UGC pendientes</div><div class="value">${d.ugc.pendientes}</div></div>
+      <div class="kpi"><div class="label">Experimentos corriendo</div><div class="value">${d.experimentos.corriendo}</div></div>
+      <div class="kpi"><div class="label">Nurture activos</div><div class="value">${d.nurture.activos}</div></div>
+    </div>`;
+  const crisisAlert = d.crisis.pausado
+    ? `<div class="alert crit">⚠️ Publicaciones PAUSADAS por crisis. Alertas enviadas: ${d.crisis.alertasEnviadas}</div>`
+    : '';
+  const atencion = digest.cosasQueRequierenAtencion.length
+    ? digest.cosasQueRequierenAtencion.map((x) => `<li>${escape(x)}</li>`).join('')
+    : '<li class="muted">Nada urgente hoy ✓</li>';
+  const otros = digest.cosasQuePuedenEsperar.length
+    ? digest.cosasQuePuedenEsperar.map((x) => `<li>${escape(x)}</li>`).join('')
+    : '<li class="muted">Sin pendientes</li>';
+  content.innerHTML = `
     <div class="section">
-      <div class="section-title"><h2>Digest del d\xEDa</h2><span class="muted">${escape(i.fecha)}</span></div>
-      ${e}
-      ${a}
-      <div class="alert"><strong>${escape(s.resumenEjecutivo)}</strong></div>
-      <h3>Hoy requieren tu atenci\xF3n</h3>
-      <ul>${t}</ul>
+      <div class="section-title"><h2>Digest del día</h2><span class="muted">${escape(d.fecha)}</span></div>
+      ${crisisAlert}
+      ${kpis}
+      <div class="alert"><strong>${escape(digest.resumenEjecutivo)}</strong></div>
+      <h3>Hoy requieren tu atención</h3>
+      <ul>${atencion}</ul>
       <h3>Corriendo solo</h3>
-      <ul>${n}</ul>
-    </div>`},renderCurator=async()=>{content.innerHTML='<p class="loading">Cargando curator\u2026</p>';const[s,i]=await Promise.all([api("/api/curator/sources"),api("/api/curator/backlog?status=nuevo")]),a=i.length?i.map(e=>`
-        <div class="card" data-id="${escape(e.id)}">
-          <h3>${escape(e.resumen.slice(0,80))}</h3>
+      <ul>${otros}</ul>
+    </div>`;
+};
+
+const renderCurator = async () => {
+  content.innerHTML = '<p class="loading">Cargando curator…</p>';
+  const [sources, backlog] = await Promise.all([api('/api/curator/sources'), api('/api/curator/backlog?status=nuevo')]);
+  const cards = backlog.length
+    ? backlog
+        .map(
+          (b) => `
+        <div class="card" data-id="${escape(b.id)}">
+          <h3>${escape(b.resumen.slice(0, 80))}</h3>
           <div class="meta">
-            <span class="tag info">score ${e.scoreRelevancia}</span>
-            ${e.formatosSugeridos.map(t=>`<span class="tag">${escape(t)}</span>`).join("")}
+            <span class="tag info">score ${b.scoreRelevancia}</span>
+            ${b.formatosSugeridos.map((f) => `<span class="tag">${escape(f)}</span>`).join('')}
           </div>
-          <div class="body"><strong>Ideas derivadas:</strong><ul>${e.ideasDerivadas.map(t=>`<li>${escape(t)}</li>`).join("")}</ul></div>
-          ${e.urlOriginal?`<a class="btn" href="${escape(e.urlOriginal)}" target="_blank">abrir fuente</a>`:""}
+          <div class="body"><strong>Ideas derivadas:</strong><ul>${b.ideasDerivadas.map((i) => `<li>${escape(i)}</li>`).join('')}</ul></div>
+          ${b.urlOriginal ? `<a class="btn" href="${escape(b.urlOriginal)}" target="_blank">abrir fuente</a>` : ''}
           <div class="actions">
-            <button class="btn primary" data-action="approve" data-id="${escape(e.id)}">Aprobar</button>
-            <button class="btn" data-action="used" data-id="${escape(e.id)}">Marcar usado</button>
+            <button class="btn primary" data-action="approve" data-id="${escape(b.id)}">Aprobar</button>
+            <button class="btn" data-action="used" data-id="${escape(b.id)}">Marcar usado</button>
           </div>
-        </div>`).join(""):empty("Sin \xEDtems nuevos en el backlog. Configur\xE1 fuentes y corr\xE9 /api/scheduler/run/curator-fetch.");content.innerHTML=`
+        </div>`,
+        )
+        .join('')
+    : empty('Sin ítems nuevos en el backlog. Configurá fuentes y corré /api/scheduler/run/curator-fetch.');
+  content.innerHTML = `
     <div class="section">
       <div class="section-title">
         <h2>Content Curator</h2>
-        <span class="muted">${s.length} fuentes \xB7 ${i.length} \xEDtems nuevos</span>
+        <span class="muted">${sources.length} fuentes · ${backlog.length} ítems nuevos</span>
       </div>
-      <div class="grid">${a}</div>
-    </div>`,$$('[data-action="approve"]').forEach(e=>e.addEventListener("click",async()=>{await api(`/api/curator/backlog/${e.dataset.id}/approve`,{method:"POST"}),renderCurator()})),$$('[data-action="used"]').forEach(e=>e.addEventListener("click",async()=>{await api(`/api/curator/backlog/${e.dataset.id}/used`,{method:"POST"}),renderCurator()}))},renderUgc=async()=>{content.innerHTML='<p class="loading">Cargando UGC\u2026</p>';const s=await api("/api/ugc?status=no-solicitado"),i=s.length?s.map(a=>`
+      <div class="grid">${cards}</div>
+    </div>`;
+  $$('[data-action="approve"]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      await api(`/api/curator/backlog/${b.dataset.id}/approve`, { method: 'POST' });
+      renderCurator();
+    }),
+  );
+  $$('[data-action="used"]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      await api(`/api/curator/backlog/${b.dataset.id}/used`, { method: 'POST' });
+      renderCurator();
+    }),
+  );
+};
+
+const renderUgc = async () => {
+  content.innerHTML = '<p class="loading">Cargando UGC…</p>';
+  const items = await api('/api/ugc?status=no-solicitado');
+  const cards = items.length
+    ? items
+        .map(
+          (it) => `
         <div class="card">
-          <h3>@${escape(a.autor)}</h3>
+          <h3>@${escape(it.autor)}</h3>
           <div class="meta">
-            <span class="tag ${a.decision.riesgoLegal==="alto"?"crit":a.decision.riesgoLegal==="medio"?"warn":"ok"}">riesgo ${a.decision.riesgoLegal}</span>
-            <span class="tag info">prio ${a.decision.prioridad}</span>
-            ${a.decision.formatosSugeridos.map(e=>`<span class="tag">${escape(e)}</span>`).join("")}
+            <span class="tag ${it.decision.riesgoLegal === 'alto' ? 'crit' : it.decision.riesgoLegal === 'medio' ? 'warn' : 'ok'}">riesgo ${it.decision.riesgoLegal}</span>
+            <span class="tag info">prio ${it.decision.prioridad}</span>
+            ${it.decision.formatosSugeridos.map((f) => `<span class="tag">${escape(f)}</span>`).join('')}
           </div>
-          <div class="body">${escape(a.decision.candidato.texto.slice(0,200))}</div>
-          ${a.decision.borradorMensajePermiso?`<div class="body" style="opacity:0.7"><em>Borrador: ${escape(a.decision.borradorMensajePermiso)}</em></div>`:""}
+          <div class="body">${escape(it.decision.candidato.texto.slice(0, 200))}</div>
+          ${it.decision.borradorMensajePermiso ? `<div class="body" style="opacity:0.7"><em>Borrador: ${escape(it.decision.borradorMensajePermiso)}</em></div>` : ''}
           <div class="actions">
-            <button class="btn primary" data-action="permission" data-id="${escape(a.id)}">Pedir permiso</button>
+            <button class="btn primary" data-action="permission" data-id="${escape(it.id)}">Pedir permiso</button>
           </div>
-        </div>`).join(""):empty("No hay UGC pendiente.");content.innerHTML=`<div class="section"><div class="section-title"><h2>UGC pendientes</h2></div><div class="grid">${i}</div></div>`,$$('[data-action="permission"]').forEach(a=>a.addEventListener("click",async()=>{await api(`/api/ugc/${a.dataset.id}/request-permission`,{method:"POST"}),renderUgc()}))},renderExperiments=async()=>{content.innerHTML='<p class="loading">Cargando experimentos\u2026</p>';const s=await api("/api/experiments"),i=s.length?s.map(a=>{const e=a.status==="completado"?"ok":a.status==="corriendo"?"info":a.status==="descartado"?"crit":"warn";return`
+        </div>`,
+        )
+        .join('')
+    : empty('No hay UGC pendiente.');
+  content.innerHTML = `<div class="section"><div class="section-title"><h2>UGC pendientes</h2></div><div class="grid">${cards}</div></div>`;
+  $$('[data-action="permission"]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      await api(`/api/ugc/${b.dataset.id}/request-permission`, { method: 'POST' });
+      renderUgc();
+    }),
+  );
+};
+
+const renderExperiments = async () => {
+  content.innerHTML = '<p class="loading">Cargando experimentos…</p>';
+  const exps = await api('/api/experiments');
+  const cards = exps.length
+    ? exps
+        .map((e) => {
+          const statusClass =
+            e.status === 'completado'
+              ? 'ok'
+              : e.status === 'corriendo'
+                ? 'info'
+                : e.status === 'descartado'
+                  ? 'crit'
+                  : 'warn';
+          return `
         <div class="card">
-          <h3>${escape(a.hipotesis)}</h3>
+          <h3>${escape(e.hipotesis)}</h3>
           <div class="meta">
-            <span class="tag ${e}">${escape(a.status)}</span>
-            <span class="tag">${a.duracionDias}d</span>
+            <span class="tag ${statusClass}">${escape(e.status)}</span>
+            <span class="tag">${e.duracionDias}d</span>
           </div>
-          <div class="body"><strong>Variable:</strong> ${escape(a.variableManipulada)}<br>
-          <strong>M\xE9trica:</strong> ${escape(a.metricaPrimaria)}<br>
-          <strong>Umbral:</strong> ${escape(a.metricaUmbralExito)}</div>
-          ${a.resultados?`<div class="body"><em>${escape(a.resultados.aprendizaje)}</em></div>`:""}
-          ${a.status==="dise\xF1ado"?`<div class="actions"><button class="btn primary" data-action="launch" data-id="${escape(a.id)}">Lanzar</button>
-                 <button class="btn danger" data-action="discard" data-id="${escape(a.id)}">Descartar</button></div>`:""}
-        </div>`}).join(""):empty("Sin experimentos. Dise\xF1\xE1 uno con la tool experimentos_disenar.");content.innerHTML=`<div class="section"><div class="section-title"><h2>Experimentos</h2></div><div class="grid">${i}</div></div>`,$$('[data-action="launch"]').forEach(a=>a.addEventListener("click",async()=>{await api(`/api/experiments/${a.dataset.id}/launch`,{method:"POST"}),renderExperiments()})),$$('[data-action="discard"]').forEach(a=>a.addEventListener("click",async()=>{const e=prompt("Motivo del descarte:")??"sin motivo";await api(`/api/experiments/${a.dataset.id}/discard`,{method:"POST",body:{motivo:e}}),renderExperiments()}))},renderCollab=async()=>{content.innerHTML='<p class="loading">Cargando collab\u2026</p>';const s=await api("/api/collab"),i=s.length?s.map(a=>`
+          <div class="body"><strong>Variable:</strong> ${escape(e.variableManipulada)}<br>
+          <strong>Métrica:</strong> ${escape(e.metricaPrimaria)}<br>
+          <strong>Umbral:</strong> ${escape(e.metricaUmbralExito)}</div>
+          ${e.resultados ? `<div class="body"><em>${escape(e.resultados.aprendizaje)}</em></div>` : ''}
+          ${
+            e.status === 'diseñado'
+              ? `<div class="actions"><button class="btn primary" data-action="launch" data-id="${escape(e.id)}">Lanzar</button>
+                 <button class="btn danger" data-action="discard" data-id="${escape(e.id)}">Descartar</button></div>`
+              : ''
+          }
+        </div>`;
+        })
+        .join('')
+    : empty('Sin experimentos. Diseñá uno con la tool experimentos_disenar.');
+  content.innerHTML = `<div class="section"><div class="section-title"><h2>Experimentos</h2></div><div class="grid">${cards}</div></div>`;
+  $$('[data-action="launch"]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      await api(`/api/experiments/${b.dataset.id}/launch`, { method: 'POST' });
+      renderExperiments();
+    }),
+  );
+  $$('[data-action="discard"]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const motivo = prompt('Motivo del descarte:') ?? 'sin motivo';
+      await api(`/api/experiments/${b.dataset.id}/discard`, { method: 'POST', body: { motivo } });
+      renderExperiments();
+    }),
+  );
+};
+
+const renderCollab = async () => {
+  content.innerHTML = '<p class="loading">Cargando collab…</p>';
+  const items = await api('/api/collab');
+  const cards = items.length
+    ? items
+        .map(
+          (p) => `
       <div class="card">
-        <h3>@${escape(a.handle)}</h3>
+        <h3>@${escape(p.handle)}</h3>
         <div class="meta">
-          <span class="tag info">align ${a.alineacion}</span>
-          <span class="tag ${a.riesgoMarca==="alto"?"crit":a.riesgoMarca==="medio"?"warn":"ok"}">riesgo ${a.riesgoMarca}</span>
-          <span class="tag">${escape(a.formatoColabSugerido)}</span>
-          <span class="tag">${escape(a.status)}</span>
+          <span class="tag info">align ${p.alineacion}</span>
+          <span class="tag ${p.riesgoMarca === 'alto' ? 'crit' : p.riesgoMarca === 'medio' ? 'warn' : 'ok'}">riesgo ${p.riesgoMarca}</span>
+          <span class="tag">${escape(p.formatoColabSugerido)}</span>
+          <span class="tag">${escape(p.status)}</span>
         </div>
-        <div class="body">${escape(a.motivacion)}</div>
-        ${a.borradorOutreach?`<div class="body" style="opacity:0.7"><em>${escape(a.borradorOutreach)}</em></div>`:""}
-      </div>`).join(""):empty("Sin prospects. Proces\xE1 observaciones con la tool procesar_creadores.");content.innerHTML=`<div class="section"><div class="section-title"><h2>Collab Manager</h2></div><div class="grid">${i}</div></div>`},renderNurture=async()=>{const[s,i]=await Promise.all([api("/api/nurture/sequences"),api("/api/nurture/enrollments?status=activo")]);content.innerHTML=`
+        <div class="body">${escape(p.motivacion)}</div>
+        ${p.borradorOutreach ? `<div class="body" style="opacity:0.7"><em>${escape(p.borradorOutreach)}</em></div>` : ''}
+      </div>`,
+        )
+        .join('')
+    : empty('Sin prospects. Procesá observaciones con la tool procesar_creadores.');
+  content.innerHTML = `<div class="section"><div class="section-title"><h2>Collab Manager</h2></div><div class="grid">${cards}</div></div>`;
+};
+
+const renderNurture = async () => {
+  const [seqs, enrolls] = await Promise.all([
+    api('/api/nurture/sequences'),
+    api('/api/nurture/enrollments?status=activo'),
+  ]);
+  content.innerHTML = `
     <div class="section">
       <div class="section-title"><h2>Nurture Sequences</h2></div>
-      <h3>Secuencias (${s.length})</h3>
-      <div class="grid">${s.length?s.map(a=>`
+      <h3>Secuencias (${seqs.length})</h3>
+      <div class="grid">${
+        seqs.length
+          ? seqs
+              .map(
+                (s) => `
         <div class="card">
-          <h3>${escape(a.nombre)}</h3>
-          <div class="meta"><span class="tag">${escape(a.trigger)}</span><span class="tag">${a.pasos.length} pasos</span></div>
-        </div>`).join(""):empty("Sin secuencias.")}</div>
-      <h3 style="margin-top:24px">Enrollments activos (${i.length})</h3>
-      ${i.length?renderTable(i,["igUserId","sequenceId","pasoActual","proximoEnvioEn"]):empty("Sin enrollments activos.")}
-    </div>`},renderConversations=async()=>{const s=await api("/api/conversations");if(!s.length){content.innerHTML=`<div class="section"><div class="section-title"><h2>Conversaciones</h2></div>${empty("Sin conversaciones registradas.")}</div>`;return}content.innerHTML=`
+          <h3>${escape(s.nombre)}</h3>
+          <div class="meta"><span class="tag">${escape(s.trigger)}</span><span class="tag">${s.pasos.length} pasos</span></div>
+        </div>`,
+              )
+              .join('')
+          : empty('Sin secuencias.')
+      }</div>
+      <h3 style="margin-top:24px">Enrollments activos (${enrolls.length})</h3>
+      ${enrolls.length ? renderTable(enrolls, ['igUserId', 'sequenceId', 'pasoActual', 'proximoEnvioEn']) : empty('Sin enrollments activos.')}
+    </div>`;
+};
+
+const renderConversations = async () => {
+  const ctxs = await api('/api/conversations');
+  if (!ctxs.length) {
+    content.innerHTML = `<div class="section"><div class="section-title"><h2>Conversaciones</h2></div>${empty('Sin conversaciones registradas.')}</div>`;
+    return;
+  }
+  content.innerHTML = `
     <div class="section">
-      <div class="section-title"><h2>Conversaciones</h2><span class="muted">${s.length} usuarios</span></div>
-      ${renderTable(s.sort((i,a)=>new Date(a.ultimoContacto)-new Date(i.ultimoContacto)).slice(0,50),["handle","channel","mensajesTotales","autoRepliesEnviados","escaladoAHumano","ultimoContacto"])}
-    </div>`},renderCrisis=async()=>{const s=await api("/api/crisis");content.innerHTML=`
+      <div class="section-title"><h2>Conversaciones</h2><span class="muted">${ctxs.length} usuarios</span></div>
+      ${renderTable(ctxs.sort((a, b) => new Date(b.ultimoContacto) - new Date(a.ultimoContacto)).slice(0, 50), [
+        'handle',
+        'channel',
+        'mensajesTotales',
+        'autoRepliesEnviados',
+        'escaladoAHumano',
+        'ultimoContacto',
+      ])}
+    </div>`;
+};
+
+const renderCrisis = async () => {
+  const state = await api('/api/crisis');
+  content.innerHTML = `
     <div class="section">
       <div class="section-title"><h2>Crisis Manager</h2></div>
-      ${s.publicacionesPausadas?'<div class="alert crit"><strong>\u26A0\uFE0F PUBLICACIONES PAUSADAS</strong></div>':'<div class="alert">Operaci\xF3n normal.</div>'}
+      ${state.publicacionesPausadas ? '<div class="alert crit"><strong>⚠️ PUBLICACIONES PAUSADAS</strong></div>' : '<div class="alert">Operación normal.</div>'}
       <div class="kpi-row">
-        <div class="kpi"><div class="label">Posts en observaci\xF3n</div><div class="value">${s.postsEnObservacion.length}</div></div>
-        <div class="kpi"><div class="label">Alertas enviadas</div><div class="value">${s.alertasEnviadas}</div></div>
+        <div class="kpi"><div class="label">Posts en observación</div><div class="value">${state.postsEnObservacion.length}</div></div>
+        <div class="kpi"><div class="label">Alertas enviadas</div><div class="value">${state.alertasEnviadas}</div></div>
       </div>
-      ${s.publicacionesPausadas?'<button class="btn primary" id="resume">Reanudar publicaciones</button>':""}
-    </div>`;const i=$("#resume");i&&i.addEventListener("click",async()=>{confirm("\xBFReanudar publicaciones pausadas? Asegurate de que la crisis est\xE9 resuelta.")&&(await api("/api/crisis/resume",{method:"POST"}),renderCrisis())})},renderScheduler=async()=>{const[s,i]=await Promise.all([api("/api/scheduler/jobs"),api("/api/scheduler/runs?limit=20")]),a=s.map(e=>{const t=e.override?.cron??e.defaultCron,n=e.override?e.override.enabled:!0;return`
+      ${state.publicacionesPausadas ? '<button class="btn primary" id="resume">Reanudar publicaciones</button>' : ''}
+    </div>`;
+  const btn = $('#resume');
+  if (btn)
+    btn.addEventListener('click', async () => {
+      if (!confirm('¿Reanudar publicaciones pausadas? Asegurate de que la crisis esté resuelta.')) return;
+      await api('/api/crisis/resume', { method: 'POST' });
+      renderCrisis();
+    });
+};
+
+const renderScheduler = async () => {
+  const [jobs, runs] = await Promise.all([api('/api/scheduler/jobs'), api('/api/scheduler/runs?limit=20')]);
+  const jobCards = jobs
+    .map((j) => {
+      const expr = j.override?.cron ?? j.defaultCron;
+      const enabled = j.override ? j.override.enabled : true;
+      return `
       <div class="card">
-        <h3>${escape(e.name)}</h3>
+        <h3>${escape(j.name)}</h3>
         <div class="meta">
-          <span class="tag ${n?"ok":"crit"}">${n?"activo":"deshabilitado"}</span>
-          <span class="tag">${escape(t)}</span>
+          <span class="tag ${enabled ? 'ok' : 'crit'}">${enabled ? 'activo' : 'deshabilitado'}</span>
+          <span class="tag">${escape(expr)}</span>
         </div>
-        <div class="body">${escape(e.description)}</div>
+        <div class="body">${escape(j.description)}</div>
         <div class="actions">
-          <button class="btn primary" data-run="${escape(e.name)}">Ejecutar ahora</button>
+          <button class="btn primary" data-run="${escape(j.name)}">Ejecutar ahora</button>
         </div>
-      </div>`}).join("");content.innerHTML=`
+      </div>`;
+    })
+    .join('');
+  content.innerHTML = `
     <div class="section">
-      <div class="section-title"><h2>Scheduler</h2><span class="muted">${s.length} jobs</span></div>
-      <div class="grid">${a}</div>
-      <h3 style="margin-top:24px">\xDAltimas ejecuciones</h3>
-      ${i.length?renderTable(i,["name","startedAt","durationMs","ok","error"]):empty("Sin ejecuciones a\xFAn.")}
-    </div>`,$$("[data-run]").forEach(e=>e.addEventListener("click",async()=>{e.textContent="Ejecutando\u2026";try{await api(`/api/scheduler/run/${e.dataset.run}`,{method:"POST"})}catch(t){alert(t.message)}renderScheduler()}))},renderTable=(s,i)=>{const a=i.map(t=>`<th>${escape(t)}</th>`).join(""),e=s.map(t=>`<tr>${i.map(n=>`<td>${escape(formatCell(t[n]))}</td>`).join("")}</tr>`).join("");return`<table><thead><tr>${a}</tr></thead><tbody>${e}</tbody></table>`},formatCell=s=>s==null?"\u2014":typeof s=="boolean"?s?"\u2713":"\xB7":typeof s=="number"?s.toLocaleString():String(s),tabs={digest:renderDigest,curator:renderCurator,ugc:renderUgc,experiments:renderExperiments,collab:renderCollab,nurture:renderNurture,conversations:renderConversations,crisis:renderCrisis,scheduler:renderScheduler},switchTab=s=>{$$("nav button").forEach(a=>a.classList.toggle("active",a.dataset.tab===s));const i=tabs[s];i&&i().catch(a=>{content.innerHTML=`<div class="alert crit">Error: ${escape(a.message)}</div>`})};$$("nav button").forEach(s=>s.addEventListener("click",()=>switchTab(s.dataset.tab))),switchTab("digest");
+      <div class="section-title"><h2>Scheduler</h2><span class="muted">${jobs.length} jobs</span></div>
+      <div class="grid">${jobCards}</div>
+      <h3 style="margin-top:24px">Últimas ejecuciones</h3>
+      ${runs.length ? renderTable(runs, ['name', 'startedAt', 'durationMs', 'ok', 'error']) : empty('Sin ejecuciones aún.')}
+    </div>`;
+  $$('[data-run]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      b.textContent = 'Ejecutando…';
+      try {
+        await api(`/api/scheduler/run/${b.dataset.run}`, { method: 'POST' });
+      } catch (err) {
+        alert(err.message);
+      }
+      renderScheduler();
+    }),
+  );
+};
+
+const renderTable = (rows, cols) => {
+  const head = cols.map((c) => `<th>${escape(c)}</th>`).join('');
+  const body = rows.map((r) => `<tr>${cols.map((c) => `<td>${escape(formatCell(r[c]))}</td>`).join('')}</tr>`).join('');
+  return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+};
+
+const formatCell = (v) => {
+  if (v === undefined || v === null) return '—';
+  if (typeof v === 'boolean') return v ? '✓' : '·';
+  if (typeof v === 'number') return v.toLocaleString();
+  return String(v);
+};
+
+const tabs = {
+  digest: renderDigest,
+  curator: renderCurator,
+  ugc: renderUgc,
+  experiments: renderExperiments,
+  collab: renderCollab,
+  nurture: renderNurture,
+  conversations: renderConversations,
+  crisis: renderCrisis,
+  scheduler: renderScheduler,
+};
+
+const switchTab = (tab) => {
+  $$('nav button').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
+  const fn = tabs[tab];
+  if (fn)
+    fn().catch((err) => {
+      content.innerHTML = `<div class="alert crit">Error: ${escape(err.message)}</div>`;
+    });
+};
+
+$$('nav button').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+switchTab('digest');

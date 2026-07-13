@@ -1,86 +1,183 @@
-import{api as e}from"../lib/api.js";import{escape as i,fmt as c}from"../lib/dom.js";import{toast as r}from"../lib/toast.js";import{loadingScreen as h,emptyState as y,withBtnSpinner as g}from"../lib/ui.js";const l={excelente:"ok",bueno:"ok",aceptable:"info",riesgo:"warn",critico:"crit"},$=a=>{const t=l[a.band]??"info";return`
+/* ══════════════════════════════════════════════════════════════════════════════
+   KPI AUDIT — Weekly autonomous system audit + strategic priorities
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { api } from '../lib/api.js';
+import { escape, fmt } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+import { loadingScreen, emptyState, withBtnSpinner } from '../lib/ui.js';
+
+const BAND_TAG = {
+  excelente: 'ok',
+  bueno: 'ok',
+  aceptable: 'info',
+  riesgo: 'warn',
+  critico: 'crit',
+};
+
+const renderSectionCard = (section) => {
+  const tagClass = BAND_TAG[section.band] ?? 'info';
+  return `
     <div class="card audit-section-card">
       <div class="audit-section-head">
-        <div class="audit-section-title">${i(a.section)}</div>
+        <div class="audit-section-title">${escape(section.section)}</div>
         <div class="audit-section-score">
-          <span class="audit-score-num">${a.score}</span>
+          <span class="audit-score-num">${section.score}</span>
           <span class="muted small">/100</span>
-          <span class="tag ${t}">${i(a.band)}</span>
+          <span class="tag ${tagClass}">${escape(section.band)}</span>
         </div>
       </div>
-      <div class="audit-section-bar"><div class="audit-section-bar-fill" style="width:${a.score}%;background:var(--${a.band==="excelente"||a.band==="bueno"?"ok":a.band==="aceptable"?"info":a.band==="riesgo"?"warn":"crit"})"></div></div>
+      <div class="audit-section-bar"><div class="audit-section-bar-fill" style="width:${section.score}%;background:var(--${
+        section.band === 'excelente' || section.band === 'bueno'
+          ? 'ok'
+          : section.band === 'aceptable'
+            ? 'info'
+            : section.band === 'riesgo'
+              ? 'warn'
+              : 'crit'
+      })"></div></div>
       <ul class="audit-observations">
-        ${(a.observations??[]).map(s=>`<li class="small">${i(s)}</li>`).join("")}
+        ${(section.observations ?? []).map((o) => `<li class="small">${escape(o)}</li>`).join('')}
       </ul>
-    </div>`},b=a=>`
+    </div>`;
+};
+
+const renderPriorityCard = (p) => `
   <div class="card priority-card">
-    <div class="priority-rank">#${a.rank}</div>
+    <div class="priority-rank">#${p.rank}</div>
     <div class="priority-body">
-      <h3 style="margin:0 0 4px;">${i(a.title)}</h3>
-      <p class="small muted" style="margin:0 0 8px;">${i(a.rationale)}</p>
-      <div class="small" style="margin-bottom:8px;"><strong>Resultado esperado:</strong> ${i(a.expectedOutcome)}</div>
+      <h3 style="margin:0 0 4px;">${escape(p.title)}</h3>
+      <p class="small muted" style="margin:0 0 8px;">${escape(p.rationale)}</p>
+      <div class="small" style="margin-bottom:8px;"><strong>Resultado esperado:</strong> ${escape(p.expectedOutcome)}</div>
       <div class="btn-row">
-        <button class="btn tiny" data-route="agents" data-agent="${i(a.ownerHint)}">\u2192 ${i(a.ownerHint)}</button>
+        <button class="btn tiny" data-route="agents" data-agent="${escape(p.ownerHint)}">→ ${escape(p.ownerHint)}</button>
       </div>
     </div>
-  </div>`,f=a=>{if(!a?.current)return"";const t=a.deltaPct,s=t===null?"sin comparativo":`${t>0?"\u25B2":t<0?"\u25BC":"\xB7"} ${Math.abs(t)}%`;return`
-    <div class="audit-trend small ${t===null?"muted":t>0?"ok":t<0?"crit":"muted"}">
-      ${s} vs. semana pasada
-    </div>`},w=(a,t)=>{if(!a)return y("\u{1F4CA}","Sin auditor\xEDas todav\xEDa. Corr\xE9 la primera para arrancar el ciclo semanal.",360);const s=l[a.overallBand]??"info";return`
+  </div>`;
+
+const renderTrend = (trend) => {
+  if (!trend?.current) return '';
+  const delta = trend.deltaPct;
+  const deltaStr =
+    delta === null ? 'sin comparativo' : `${delta > 0 ? '▲' : delta < 0 ? '▼' : '·'} ${Math.abs(delta)}%`;
+  const deltaClass = delta === null ? 'muted' : delta > 0 ? 'ok' : delta < 0 ? 'crit' : 'muted';
+  return `
+    <div class="audit-trend small ${deltaClass}">
+      ${deltaStr} vs. semana pasada
+    </div>`;
+};
+
+const renderAuditBody = (audit, trend) => {
+  if (!audit) {
+    return emptyState('📊', 'Sin auditorías todavía. Corré la primera para arrancar el ciclo semanal.', 360);
+  }
+  const overallTag = BAND_TAG[audit.overallBand] ?? 'info';
+  return `
     <div class="audit-hero card">
       <div class="audit-hero-left">
-        <div class="muted tiny">Score general \u2014 semana del ${c.date(a.generatedAt)}</div>
+        <div class="muted tiny">Score general — semana del ${fmt.date(audit.generatedAt)}</div>
         <div class="audit-hero-score">
-          <span class="audit-hero-num">${a.overallScore}</span>
+          <span class="audit-hero-num">${audit.overallScore}</span>
           <span class="muted">/100</span>
-          <span class="tag ${s}" style="font-size:12px;">${i(a.overallBand)}</span>
+          <span class="tag ${overallTag}" style="font-size:12px;">${escape(audit.overallBand)}</span>
         </div>
-        ${f(t)}
-        <p class="audit-summary">${i(a.executiveSummary??"")}</p>
+        ${renderTrend(trend)}
+        <p class="audit-summary">${escape(audit.executiveSummary ?? '')}</p>
       </div>
       <div class="audit-hero-right">
         <div class="audit-stat">
-          <div class="audit-stat-num">${a.priorities?.length??0}</div>
+          <div class="audit-stat-num">${audit.priorities?.length ?? 0}</div>
           <div class="audit-stat-label">Prioridades</div>
         </div>
         <div class="audit-stat">
-          <div class="audit-stat-num">${a.appliedAdjustments??0}</div>
+          <div class="audit-stat-num">${audit.appliedAdjustments ?? 0}</div>
           <div class="audit-stat-label">Ajustes auto-aplicados</div>
         </div>
         <div class="audit-stat">
-          <div class="audit-stat-num">${a.sections?.length??0}</div>
-          <div class="audit-stat-label">\xC1reas auditadas</div>
+          <div class="audit-stat-num">${audit.sections?.length ?? 0}</div>
+          <div class="audit-stat-label">Áreas auditadas</div>
         </div>
       </div>
     </div>
 
-    <div class="col-header"><h3>\u{1F3AF} Prioridades de la semana</h3></div>
-    <div class="page-grid">${(a.priorities??[]).map(b).join("")}</div>
+    <div class="col-header"><h3>🎯 Prioridades de la semana</h3></div>
+    <div class="page-grid">${(audit.priorities ?? []).map(renderPriorityCard).join('')}</div>
 
-    <div class="col-header"><h3>\u{1FA7A} Salud por \xE1rea</h3></div>
-    <div class="page-grid">${(a.sections??[]).map($).join("")}</div>`},S=a=>`
+    <div class="col-header"><h3>🩺 Salud por área</h3></div>
+    <div class="page-grid">${(audit.sections ?? []).map(renderSectionCard).join('')}</div>`;
+};
+
+const renderHistoryRow = (a) => `
   <div class="audit-history-row">
-    <div class="small muted">${c.date(a.generatedAt)}</div>
+    <div class="small muted">${fmt.date(a.generatedAt)}</div>
     <div class="audit-history-score">
       <span style="font-weight:800">${a.overallScore}</span>
       <span class="muted tiny">/100</span>
-      <span class="tag ${l[a.overallBand]??"info"} tiny">${i(a.overallBand)}</span>
+      <span class="tag ${BAND_TAG[a.overallBand] ?? 'info'} tiny">${escape(a.overallBand)}</span>
     </div>
-    <div class="tiny muted" style="flex:1;">${i((a.executiveSummary??"").slice(0,120))}\u2026</div>
-  </div>`,v=async a=>{const t=a.querySelector("#audit-content");if(t)try{const[s,d,n]=await Promise.allSettled([e("/api/audit/latest"),e("/api/audit/trend"),e("/api/audit/history?limit=10")]),u=s.status==="fulfilled"?s.value:null,p=d.status==="fulfilled"?d.value:null,o=n.status==="fulfilled"?n.value:[];t.innerHTML=`
-      ${w(u,p)}
-      ${o.length>1?`
-        <div class="col-header" style="margin-top:24px"><h3>\u{1F4DC} Historial</h3></div>
+    <div class="tiny muted" style="flex:1;">${escape((a.executiveSummary ?? '').slice(0, 120))}…</div>
+  </div>`;
+
+const loadData = async (root) => {
+  const content = root.querySelector('#audit-content');
+  if (!content) return;
+  try {
+    const [latest, trend, history] = await Promise.allSettled([
+      api('/api/audit/latest'),
+      api('/api/audit/trend'),
+      api('/api/audit/history?limit=10'),
+    ]);
+    const audit = latest.status === 'fulfilled' ? latest.value : null;
+    const trendData = trend.status === 'fulfilled' ? trend.value : null;
+    const historyData = history.status === 'fulfilled' ? history.value : [];
+
+    content.innerHTML = `
+      ${renderAuditBody(audit, trendData)}
+      ${
+        historyData.length > 1
+          ? `
+        <div class="col-header" style="margin-top:24px"><h3>📜 Historial</h3></div>
         <div class="card" style="padding:8px 0;">
-          ${o.slice(1).map(S).join("")}
-        </div>`:""}`,t.querySelectorAll("[data-agent]").forEach(m=>{m.addEventListener("click",()=>{location.hash="agents"})})}catch(s){t.innerHTML=`<div class="alert crit">Error: ${i(s.message)}</div>`,r(s.message,"crit")}};export const renderAudit=async a=>{a.innerHTML=`
+          ${historyData.slice(1).map(renderHistoryRow).join('')}
+        </div>`
+          : ''
+      }`;
+
+    // Wire priority CTAs that route to agents.
+    content.querySelectorAll('[data-agent]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        location.hash = 'agents';
+      });
+    });
+  } catch (err) {
+    content.innerHTML = `<div class="alert crit">Error: ${escape(err.message)}</div>`;
+    toast(err.message, 'crit');
+  }
+};
+
+export const renderAudit = async (root) => {
+  root.innerHTML = `
     <header class="view-header page-header">
       <div>
-        <h1 class="view-title page-title">\u{1F4CA} Audit semanal</h1>
-        <p class="view-subtitle page-subtitle">Auditor\xEDa completa del sistema operativo. El Chief of Staff aut\xF3nomo de tu cuenta.</p>
+        <h1 class="view-title page-title">📊 Audit semanal</h1>
+        <p class="view-subtitle page-subtitle">Auditoría completa del sistema operativo. El Chief of Staff autónomo de tu cuenta.</p>
       </div>
       <div class="page-actions">
-        <button class="btn primary" id="run-audit-btn">\u25B6 Correr audit ahora</button>
+        <button class="btn primary" id="run-audit-btn">▶ Correr audit ahora</button>
       </div>
     </header>
-    <div id="audit-content" class="page-body">${h()}</div>`,a.querySelector("#run-audit-btn").addEventListener("click",async t=>{await g(t.currentTarget,"auditando\u2026",async()=>{try{await e("/api/audit/run",{method:"POST",body:{windowDays:7}}),r("Audit semanal completado","ok"),await v(a)}catch(s){r("Error: "+s.message,"crit")}})}),await v(a)};
+    <div id="audit-content" class="page-body">${loadingScreen()}</div>`;
+
+  root.querySelector('#run-audit-btn').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, 'auditando…', async () => {
+      try {
+        await api('/api/audit/run', { method: 'POST', body: { windowDays: 7 } });
+        toast('Audit semanal completado', 'ok');
+        await loadData(root);
+      } catch (err) {
+        toast('Error: ' + err.message, 'crit');
+      }
+    });
+  });
+
+  await loadData(root);
+};

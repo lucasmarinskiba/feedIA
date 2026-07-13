@@ -1,12 +1,137 @@
-export const h=(e,t={},a=[])=>{const n=document.createElement(e);return Object.entries(t).forEach(([o,r])=>{r===!1||r===null||r===void 0||(o==="class"?n.className=r:o==="html"?n.innerHTML=r:o.startsWith("on")&&typeof r=="function"?n.addEventListener(o.slice(2).toLowerCase(),r):o==="style"&&typeof r=="object"?Object.assign(n.style,r):n.setAttribute(o,r))}),(Array.isArray(a)?a:[a]).forEach(o=>{o==null||o===!1||n.append(o instanceof Node?o:document.createTextNode(String(o)))}),n},escape=e=>String(e??"").replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[t]),empty=e=>`<div class="empty">${escape(e)}</div>`,fmt={num:e=>typeof e=="number"?e.toLocaleString():"\u2014",date:e=>e?new Date(e).toLocaleString():"\u2014",rel:e=>{if(!e)return"\u2014";const t=Date.now()-new Date(e).getTime(),a=Math.floor(t/6e4);if(a<60)return`hace ${a} min`;const n=Math.floor(a/60);return n<24?`hace ${n}h`:`hace ${Math.floor(n/24)}d`}},setView=(e,t)=>{e.innerHTML=t};const s=()=>{try{return window.self!==window.top}catch{return!0}},i=async e=>{document.querySelectorAll(".feedia-extlink-modal").forEach(n=>n.remove());const t=document.createElement("div");t.className="feedia-extlink-modal",t.innerHTML=`
+export const h = (tag, props = {}, children = []) => {
+  const el = document.createElement(tag);
+  Object.entries(props).forEach(([k, v]) => {
+    if (v === false || v === null || v === undefined) return;
+    if (k === 'class') el.className = v;
+    else if (k === 'html') el.innerHTML = v;
+    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+    else el.setAttribute(k, v);
+  });
+  (Array.isArray(children) ? children : [children]).forEach((c) => {
+    if (c == null || c === false) return;
+    el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  });
+  return el;
+};
+
+export const escape = (s) =>
+  String(s ?? '').replace(
+    /[&<>"']/g,
+    (c) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      })[c],
+  );
+
+export const empty = (msg) => `<div class="empty">${escape(msg)}</div>`;
+
+export const fmt = {
+  num: (n) => (typeof n === 'number' ? n.toLocaleString() : '—'),
+  date: (iso) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleString();
+  },
+  rel: (iso) => {
+    if (!iso) return '—';
+    const diff = Date.now() - new Date(iso).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 60) return `hace ${m} min`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `hace ${h}h`;
+    const d = Math.floor(h / 24);
+    return `hace ${d}d`;
+  },
+};
+
+export const setView = (root, html) => {
+  root.innerHTML = html;
+};
+
+/* Detecta si estamos en un iframe sandbox (Claude Preview, etc.) que bloquea
+   window.open hacia dominios externos. */
+const isInSandboxedIframe = () => {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  } // cross-origin frame: asumir sandbox
+};
+
+/* Muestra un modal in-app con la URL para que el usuario la abra/copie sin
+   depender de window.open (que el iframe bloquea). Se usa cuando openExternal
+   detecta sandbox o cuando window.open devuelve null. */
+const showExternalLinkModal = async (url) => {
+  // Evitar duplicados
+  document.querySelectorAll('.feedia-extlink-modal').forEach((m) => m.remove());
+
+  const wrap = document.createElement('div');
+  wrap.className = 'feedia-extlink-modal';
+  wrap.innerHTML = `
     <div class="feedia-extlink-backdrop"></div>
     <div class="feedia-extlink-card">
-      <div class="feedia-extlink-icon">\u{1F517}</div>
-      <h3 class="feedia-extlink-title">Abrir en otra pesta\xF1a</h3>
-      <p class="feedia-extlink-sub">Este entorno bloquea aperturas autom\xE1ticas. Toc\xE1 el link para abrirlo en una pesta\xF1a nueva, o copialo.</p>
-      <a class="feedia-extlink-url" href="${e}" target="_blank" rel="noopener noreferrer">${e}</a>
+      <div class="feedia-extlink-icon">🔗</div>
+      <h3 class="feedia-extlink-title">Abrir en otra pestaña</h3>
+      <p class="feedia-extlink-sub">Este entorno bloquea aperturas automáticas. Tocá el link para abrirlo en una pestaña nueva, o copialo.</p>
+      <a class="feedia-extlink-url" href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>
       <div class="feedia-extlink-actions">
-        <button class="feedia-extlink-copy">\u{1F4CB} Copiar URL</button>
+        <button class="feedia-extlink-copy">📋 Copiar URL</button>
         <button class="feedia-extlink-close">Cerrar</button>
       </div>
-    </div>`,document.body.appendChild(t);const a=()=>t.remove();t.querySelector(".feedia-extlink-backdrop").addEventListener("click",a),t.querySelector(".feedia-extlink-close").addEventListener("click",a),t.querySelector(".feedia-extlink-copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(e);const n=t.querySelector(".feedia-extlink-copy");n.textContent="\u2713 Copiado",setTimeout(a,800)}catch{}}),document.addEventListener("keydown",function n(o){o.key==="Escape"&&(a(),document.removeEventListener("keydown",n))})};export const openExternal=async e=>{if(!e)return{opened:!1,shownModal:!1,url:e};if(s())return await i(e),{opened:!1,shownModal:!0,url:e};try{if(window.open(e,"_blank","noopener,noreferrer"))return{opened:!0,shownModal:!1,url:e}}catch{}return await i(e),{opened:!1,shownModal:!0,url:e}};
+    </div>`;
+  document.body.appendChild(wrap);
+
+  const close = () => wrap.remove();
+  wrap.querySelector('.feedia-extlink-backdrop').addEventListener('click', close);
+  wrap.querySelector('.feedia-extlink-close').addEventListener('click', close);
+  wrap.querySelector('.feedia-extlink-copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      const btn = wrap.querySelector('.feedia-extlink-copy');
+      btn.textContent = '✓ Copiado';
+      setTimeout(close, 800);
+    } catch {
+      /* noop */
+    }
+  });
+  document.addEventListener('keydown', function onKey(e) {
+    if (e.key === 'Escape') {
+      close();
+      document.removeEventListener('keydown', onKey);
+    }
+  });
+};
+
+/* Abre una URL externa con UX adaptado al entorno:
+   - Si estamos en iframe sandboxeado: SIEMPRE muestra modal in-app (no intenta
+     window.open porque sabemos que va a fallar y mostrar el banner de error).
+   - Si no estamos en iframe: intenta window.open normal; si es bloqueado por
+     popup blocker, muestra el modal como fallback.
+   Devuelve { opened:true } si abrió en pestaña, { shownModal:true } si fallback. */
+export const openExternal = async (url) => {
+  if (!url) return { opened: false, shownModal: false, url };
+
+  // Si estamos en iframe sandbox, NO intentar window.open (causa el banner).
+  // Vamos directo al modal in-app.
+  if (isInSandboxedIframe()) {
+    await showExternalLinkModal(url);
+    return { opened: false, shownModal: true, url };
+  }
+
+  // Entorno normal: intentar abrir en pestaña nueva
+  try {
+    const w = window.open(url, '_blank', 'noopener,noreferrer');
+    if (w) return { opened: true, shownModal: false, url };
+  } catch {
+    /* popup bloqueado */
+  }
+
+  // Fallback final: modal
+  await showExternalLinkModal(url);
+  return { opened: false, shownModal: true, url };
+};

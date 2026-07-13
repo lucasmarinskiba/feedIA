@@ -1,58 +1,184 @@
-import{apiSafe as v}from"../lib/api.js";import{escape as s}from"../lib/dom.js";import{toast as b}from"../lib/toast.js";const S={social:["instagram","tiktok"],design:["canva"],videoEditor:["capcut","invideo","veed"],videoGen:["runway","pika","luma","kling","heygen"]},T={social:"\u{1F4F1} Redes sociales",design:"\u{1F3A8} Dise\xF1o",videoEditor:"\u{1F39E}\uFE0F Editores de video",videoGen:"\u{1F3A5} Generaci\xF3n IA de video"},d={free:{label:"Free",color:"#6B7280",bg:"rgba(107,114,128,.15)"},starter:{label:"Starter",color:"#3B82F6",bg:"rgba(59,130,246,.12)"},pro:{label:"Pro",color:"#A855F7",bg:"rgba(168,85,247,.12)"},gold:{label:"Gold",color:"#F59E0B",bg:"rgba(245,158,11,.15)"},premium:{label:"Premium",color:"#EC4899",bg:"rgba(236,72,153,.15)"}},g=["free","starter","pro","gold","premium"];let n="all",p="free";const f=(t,r)=>g.indexOf(t)>=g.indexOf(r),y=t=>{const r=d[t.minPlan]||d.free,o=!f(p,t.minPlan);return`
-    <div class="ctb-recipe ${o?"locked":""}" data-recipe-id="${s(t.id)}">
+/* ══════════════════════════════════════════════════════════════════════════════
+   CU TOOLBOX — Recetas Computer Use por tool, gateadas por plan.
+   IG/TT/Canva/CapCut/Runway/Pika/Luma/Kling/HeyGen/InVideo/Veed.
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { apiSafe } from '../lib/api.js';
+import { escape } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+
+const TOOL_GROUPS = {
+  social: ['instagram', 'tiktok'],
+  design: ['canva'],
+  videoEditor: ['capcut', 'invideo', 'veed'],
+  videoGen: ['runway', 'pika', 'luma', 'kling', 'heygen'],
+};
+
+const GROUP_LABELS = {
+  social: '📱 Redes sociales',
+  design: '🎨 Diseño',
+  videoEditor: '🎞️ Editores de video',
+  videoGen: '🎥 Generación IA de video',
+};
+
+const PLAN_BADGES = {
+  free: { label: 'Free', color: '#6B7280', bg: 'rgba(107,114,128,.15)' },
+  starter: { label: 'Starter', color: '#3B82F6', bg: 'rgba(59,130,246,.12)' },
+  pro: { label: 'Pro', color: '#A855F7', bg: 'rgba(168,85,247,.12)' },
+  gold: { label: 'Gold', color: '#F59E0B', bg: 'rgba(245,158,11,.15)' },
+  premium: { label: 'Premium', color: '#EC4899', bg: 'rgba(236,72,153,.15)' },
+};
+
+const PLAN_ORDER = ['free', 'starter', 'pro', 'gold', 'premium'];
+let activeTool = 'all';
+let currentUserPlan = 'free';
+
+const isPlanGte = (userPlan, minPlan) => PLAN_ORDER.indexOf(userPlan) >= PLAN_ORDER.indexOf(minPlan);
+
+const renderRecipeCard = (recipe) => {
+  const badge = PLAN_BADGES[recipe.minPlan] || PLAN_BADGES.free;
+  const locked = !isPlanGte(currentUserPlan, recipe.minPlan);
+  return `
+    <div class="ctb-recipe ${locked ? 'locked' : ''}" data-recipe-id="${escape(recipe.id)}">
       <div class="ctb-recipe-head">
-        <div class="ctb-recipe-title">${s(t.label)}</div>
-        <span class="ctb-badge" style="background:${r.bg};color:${r.color};">${r.label}+</span>
+        <div class="ctb-recipe-title">${escape(recipe.label)}</div>
+        <span class="ctb-badge" style="background:${badge.bg};color:${badge.color};">${badge.label}+</span>
       </div>
       <div class="ctb-recipe-meta">
-        <span class="ctb-meta-item">\u23F1\uFE0F ${t.estimatedMin} min</span>
-        <span class="ctb-meta-item">\u{1F4CB} ${t.steps?.length||0} pasos</span>
-        <span class="ctb-meta-item">\u{1F3F7}\uFE0F ${s(t.category)}</span>
-        ${t.riskLevel?`<span class="ctb-meta-item ctb-risk-${s(t.riskLevel)}">\u26A0\uFE0F ${s(t.riskLevel)}</span>`:""}
+        <span class="ctb-meta-item">⏱️ ${recipe.estimatedMin} min</span>
+        <span class="ctb-meta-item">📋 ${recipe.steps?.length || 0} pasos</span>
+        <span class="ctb-meta-item">🏷️ ${escape(recipe.category)}</span>
+        ${recipe.riskLevel ? `<span class="ctb-meta-item ctb-risk-${escape(recipe.riskLevel)}">⚠️ ${escape(recipe.riskLevel)}</span>` : ''}
       </div>
-      ${t.rateLimit?`<div class="ctb-rate-limit">\u{1F6E1}\uFE0F ${s(t.rateLimit)}</div>`:""}
+      ${recipe.rateLimit ? `<div class="ctb-rate-limit">🛡️ ${escape(recipe.rateLimit)}</div>` : ''}
       <details class="ctb-steps">
-        <summary>Ver ${t.steps?.length||0} pasos</summary>
+        <summary>Ver ${recipe.steps?.length || 0} pasos</summary>
         <ol class="ctb-steps-list">
-          ${(t.steps||[]).map(a=>`
+          ${(recipe.steps || [])
+            .map(
+              (s) => `
             <li>
-              <span class="ctb-step-icon">${a.icon||"\u2022"}</span>
+              <span class="ctb-step-icon">${s.icon || '•'}</span>
               <div>
-                <strong>${s(a.action)}</strong>
-                ${a.detail?`<span class="ctb-step-detail">\u2014 ${s(typeof a.detail=="string"?a.detail:"...")}</span>`:""}
+                <strong>${escape(s.action)}</strong>
+                ${s.detail ? `<span class="ctb-step-detail">— ${escape(typeof s.detail === 'string' ? s.detail : '...')}</span>` : ''}
               </div>
-            </li>`).join("")}
+            </li>`,
+            )
+            .join('')}
         </ol>
       </details>
       <div class="ctb-actions">
-        ${o?`<a class="ctb-btn ghost" href="/pricing.html">\u{1F512} Disponible en ${r.label}+</a>`:`<button class="ctb-btn primary" data-execute="${s(t.id)}">\u25B6\uFE0F Ejecutar Recipe</button>`}
-        <button class="ctb-btn ghost" data-copy-json="${s(t.id)}">\u{1F4CB} Copiar JSON</button>
+        ${
+          locked
+            ? `<a class="ctb-btn ghost" href="/pricing.html">🔒 Disponible en ${badge.label}+</a>`
+            : `<button class="ctb-btn primary" data-execute="${escape(recipe.id)}">▶️ Ejecutar Recipe</button>`
+        }
+        <button class="ctb-btn ghost" data-copy-json="${escape(recipe.id)}">📋 Copiar JSON</button>
       </div>
-    </div>`},h=(t,r)=>{const o={all:r.length};return r.forEach(a=>{o[a.tool]=(o[a.tool]||0)+1}),`
+    </div>`;
+};
+
+const renderToolsBar = (tools, allRecipes) => {
+  const counts = { all: allRecipes.length };
+  allRecipes.forEach((r) => {
+    counts[r.tool] = (counts[r.tool] || 0) + 1;
+  });
+  return `
     <div class="ctb-tools-bar">
-      <button class="ctb-tool-pill ${n==="all"?"active":""}" data-tool="all">
-        \u{1F310} Todas <span class="ctb-count">${o.all}</span>
+      <button class="ctb-tool-pill ${activeTool === 'all' ? 'active' : ''}" data-tool="all">
+        🌐 Todas <span class="ctb-count">${counts.all}</span>
       </button>
-      ${Object.entries(t).map(([a,e])=>`
-        <button class="ctb-tool-pill ${n===a?"active":""}" data-tool="${s(a)}">
-          ${e.icon} ${s(e.label)}
-          <span class="ctb-count">${o[a]||0}</span>
-        </button>`).join("")}
-    </div>`},m=(t,r)=>{const o=n==="all"?t:t.filter(e=>e.tool===n);if(o.length===0)return'<div class="ctb-empty">Sin recetas para este tool en tu plan.</div>';const a={};return o.forEach(e=>{const i=`${e.tool}-${e.category}`;a[i]||(a[i]={tool:e.tool,category:e.category,recipes:[]}),a[i].recipes.push(e)}),Object.values(a).map(e=>`
+      ${Object.entries(tools)
+        .map(
+          ([id, t]) => `
+        <button class="ctb-tool-pill ${activeTool === id ? 'active' : ''}" data-tool="${escape(id)}">
+          ${t.icon} ${escape(t.label)}
+          <span class="ctb-count">${counts[id] || 0}</span>
+        </button>`,
+        )
+        .join('')}
+    </div>`;
+};
+
+const renderGroupedRecipes = (allRecipes, tools) => {
+  const filtered = activeTool === 'all' ? allRecipes : allRecipes.filter((r) => r.tool === activeTool);
+  if (filtered.length === 0) return '<div class="ctb-empty">Sin recetas para este tool en tu plan.</div>';
+  // Agrupar por categoría dentro del tool
+  const grouped = {};
+  filtered.forEach((r) => {
+    const key = `${r.tool}-${r.category}`;
+    if (!grouped[key]) grouped[key] = { tool: r.tool, category: r.category, recipes: [] };
+    grouped[key].recipes.push(r);
+  });
+  return Object.values(grouped)
+    .map(
+      (g) => `
     <div class="ctb-group">
-      <h3 class="ctb-group-title">${r[e.tool]?.icon||"\u2699\uFE0F"} ${s(r[e.tool]?.label||e.tool)} \u2014 ${s(e.category)}</h3>
+      <h3 class="ctb-group-title">${tools[g.tool]?.icon || '⚙️'} ${escape(tools[g.tool]?.label || g.tool)} — ${escape(g.category)}</h3>
       <div class="ctb-recipes-grid">
-        ${e.recipes.map(y).join("")}
+        ${g.recipes.map(renderRecipeCard).join('')}
       </div>
-    </div>`).join("")},k=(t,r)=>{t.querySelectorAll("[data-tool]").forEach(o=>{o.addEventListener("click",()=>{n=o.dataset.tool;const a=t.querySelector("#ctb-recipes"),e=t._cuTools||{};a&&(a.innerHTML=m(r,e)),t.querySelectorAll("[data-tool]").forEach(i=>i.classList.toggle("active",i===o)),u(t,r)})}),u(t,r)},u=(t,r)=>{t.querySelectorAll("[data-copy-json]").forEach(o=>{o.addEventListener("click",async()=>{const a=o.dataset.copyJson,e=r.find(i=>i.id===a);if(e)try{await navigator.clipboard.writeText(JSON.stringify(e,null,2)),b("\u{1F4CB} Recipe JSON copiado","ok")}catch{b("No se pudo copiar","err")}})}),t.querySelectorAll("[data-execute]").forEach(o=>{o.addEventListener("click",()=>{const a=o.dataset.execute,e=r.find(c=>c.id===a);if(!e)return;const i=e.estimatedMin;b(`\u25B6\uFE0F Ejecutando "${e.label}" \u2014 ${i} min CU se descontar\xE1n de tu cap diario`,"info"),setTimeout(()=>{window.location.hash="#pantalla"},1500)})})};export const renderCuToolbox=async t=>{t.innerHTML=`
+    </div>`,
+    )
+    .join('');
+};
+
+const wireEvents = (root, allRecipes) => {
+  root.querySelectorAll('[data-tool]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeTool = btn.dataset.tool;
+      const container = root.querySelector('#ctb-recipes');
+      const toolsRes = root._cuTools || {};
+      if (container) container.innerHTML = renderGroupedRecipes(allRecipes, toolsRes);
+      root.querySelectorAll('[data-tool]').forEach((b) => b.classList.toggle('active', b === btn));
+      // Re-wire dynamic
+      wireRecipeActions(root, allRecipes);
+    });
+  });
+  wireRecipeActions(root, allRecipes);
+};
+
+const wireRecipeActions = (root, allRecipes) => {
+  root.querySelectorAll('[data-copy-json]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.copyJson;
+      const recipe = allRecipes.find((r) => r.id === id);
+      if (!recipe) return;
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(recipe, null, 2));
+        toast('📋 Recipe JSON copiado', 'ok');
+      } catch {
+        toast('No se pudo copiar', 'err');
+      }
+    });
+  });
+  root.querySelectorAll('[data-execute]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.execute;
+      const recipe = allRecipes.find((r) => r.id === id);
+      if (!recipe) return;
+      // Free-tier: muestra modal con preview, no ejecuta CU real
+      const cuMinutes = recipe.estimatedMin;
+      toast(`▶️ Ejecutando "${recipe.label}" — ${cuMinutes} min CU se descontarán de tu cap diario`, 'info');
+      // En implementación real: POST /api/cu/execute con recipe.id
+      // Por ahora: redirect a panel CU
+      setTimeout(() => {
+        window.location.hash = '#pantalla';
+      }, 1500);
+    });
+  });
+};
+
+export const renderCuToolbox = async (root) => {
+  root.innerHTML = `
     <header class="view-header page-header">
       <div>
-        <h1 class="view-title page-title">\u{1F6E0}\uFE0F Computer Use Toolbox</h1>
-        <p class="view-subtitle page-subtitle">Recetas para dominar IG \xB7 TikTok \xB7 Canva \xB7 CapCut \xB7 Runway \xB7 Pika \xB7 Luma \xB7 Kling \xB7 HeyGen \xB7 InVideo \xB7 Veed</p>
+        <h1 class="view-title page-title">🛠️ Computer Use Toolbox</h1>
+        <p class="view-subtitle page-subtitle">Recetas para dominar IG · TikTok · Canva · CapCut · Runway · Pika · Luma · Kling · HeyGen · InVideo · Veed</p>
       </div>
     </header>
     <div class="page-body" id="ctb-root">
-      <div class="ctb-loading"><span class="ctb-spin"></span> Cargando biblioteca de recipes\u2026</div>
+      <div class="ctb-loading"><span class="ctb-spin"></span> Cargando biblioteca de recipes…</div>
     </div>
     <style>
       .ctb-loading{padding:40px;text-align:center;color:var(--text-tertiary,#888);}
@@ -86,8 +212,8 @@ import{apiSafe as v}from"../lib/api.js";import{escape as s}from"../lib/dom.js";i
       .ctb-steps{margin-bottom:10px;}
       .ctb-steps summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--text-secondary,var(--fg));padding:6px 0;list-style:none;}
       .ctb-steps summary::-webkit-details-marker{display:none;}
-      .ctb-steps summary::before{content:'\u25B8 ';transition:transform .2s;}
-      .ctb-steps[open] summary::before{content:'\u25BE ';}
+      .ctb-steps summary::before{content:'▸ ';transition:transform .2s;}
+      .ctb-steps[open] summary::before{content:'▾ ';}
       .ctb-steps-list{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:5px;}
       .ctb-steps-list li{display:flex;gap:8px;align-items:flex-start;font-size:12px;padding:6px 8px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:6px;line-height:1.4;}
       .ctb-step-icon{font-size:13px;flex-shrink:0;}
@@ -99,15 +225,45 @@ import{apiSafe as v}from"../lib/api.js";import{escape as s}from"../lib/dom.js";i
       .ctb-btn.ghost{background:var(--bg-soft,rgba(17,18,22,.04));color:var(--text-secondary,var(--fg));border:1px solid var(--border);}
       .ctb-btn.ghost:hover{background:var(--bg-hover,rgba(17,18,22,.08));}
       .ctb-empty{padding:40px;text-align:center;color:var(--text-tertiary,#888);}
-    </style>`;try{const l=await fetch("/api/auth/me",{credentials:"include"});l.ok&&(p=(await l.json())?.user?.plan||"free")}catch{}const{data:r,error:o}=await v("/api/cu/recipes?planId=premium",null),a=t.querySelector("#ctb-root");if(o||!r){a.innerHTML='<div class="ctb-empty">No se pudo cargar la biblioteca.</div>';return}const e=r.recipes||[],i=r.tools||{};t._cuTools=i;const c=d[p]||d.free,x=e.filter(l=>f(p,l.minPlan)).length;a.innerHTML=`
+    </style>`;
+
+  // Load user plan
+  try {
+    const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+    if (meRes.ok) {
+      const me = await meRes.json();
+      currentUserPlan = me?.user?.plan || 'free';
+    }
+  } catch {
+    /* default free */
+  }
+
+  // Load full library (no filter — frontend filtra por tool)
+  const { data, error } = await apiSafe(`/api/cu/recipes?planId=premium`, null);
+  const container = root.querySelector('#ctb-root');
+  if (error || !data) {
+    container.innerHTML = '<div class="ctb-empty">No se pudo cargar la biblioteca.</div>';
+    return;
+  }
+
+  const allRecipes = data.recipes || [];
+  const tools = data.tools || {};
+  root._cuTools = tools;
+  const planBadge = PLAN_BADGES[currentUserPlan] || PLAN_BADGES.free;
+  const userAccessible = allRecipes.filter((r) => isPlanGte(currentUserPlan, r.minPlan)).length;
+
+  container.innerHTML = `
     <div class="ctb-summary">
-      <h2>Biblioteca: ${e.length} recipes en ${Object.keys(i).length} herramientas</h2>
+      <h2>Biblioteca: ${allRecipes.length} recipes en ${Object.keys(tools).length} herramientas</h2>
       <div class="ctb-summary-meta">
-        Tu plan: <strong style="color:${c.color};">${c.label}</strong> \xB7
-        Recipes disponibles: <strong>${x}/${e.length}</strong> \xB7
-        <a href="/pricing.html" style="color:#a855f7;">Upgrade para m\xE1s \u2192</a>
+        Tu plan: <strong style="color:${planBadge.color};">${planBadge.label}</strong> ·
+        Recipes disponibles: <strong>${userAccessible}/${allRecipes.length}</strong> ·
+        <a href="/pricing.html" style="color:#a855f7;">Upgrade para más →</a>
       </div>
     </div>
-    ${h(i,e)}
-    <div id="ctb-recipes">${m(e,i)}</div>
-  `,k(t,e)};
+    ${renderToolsBar(tools, allRecipes)}
+    <div id="ctb-recipes">${renderGroupedRecipes(allRecipes, tools)}</div>
+  `;
+
+  wireEvents(root, allRecipes);
+};

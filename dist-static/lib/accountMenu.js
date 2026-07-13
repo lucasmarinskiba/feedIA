@@ -1,4 +1,11 @@
-const u=`
+/**
+ * Account Menu — dropdown del brand-footer.
+ *
+ * Maneja: agregar cuenta IG, cambiar activa, cerrar sesión, cerrar cuenta usuario.
+ * Auto-inyecta CSS. Wire al botón #account-menu-btn.
+ */
+
+const STYLES = `
 .account-menu {
   position: absolute;
   bottom: calc(100% + 8px);
@@ -179,7 +186,51 @@ const u=`
 .account-modal-btn.cancel { background: rgba(255,255,255,.05); color: rgba(255,255,255,.7); }
 .account-modal-btn.primary { background: #5865F2; color: #fff; }
 .account-modal-btn.danger { background: #ef4444; color: #fff; }
-`,p=()=>{if(document.getElementById("account-menu-styles"))return;const n=document.createElement("style");n.id="account-menu-styles",n.textContent=u,document.head.appendChild(n)},i=n=>document.querySelector(n),s=async()=>{try{const n=await fetch("/api/auth/me");return n.ok?await n.json():null}catch{return null}},m=async()=>{try{const n=await fetch("/api/users/brands");return n.ok?await n.json():null}catch{return null}},d=n=>{const a=document.createElement("div");return a.className="account-modal-overlay",a.innerHTML=`<div class="account-modal">${n}</div>`,a.addEventListener("click",t=>{t.target===a&&a.remove()}),document.body.appendChild(a),a},g=async()=>{const n=d(`
+`;
+
+const injectStyles = () => {
+  if (document.getElementById('account-menu-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'account-menu-styles';
+  style.textContent = STYLES;
+  document.head.appendChild(style);
+};
+
+const $ = (sel) => document.querySelector(sel);
+
+const fetchMe = async () => {
+  try {
+    const r = await fetch('/api/auth/me');
+    if (!r.ok) return null;
+    return await r.json();
+  } catch {
+    return null;
+  }
+};
+
+const fetchBrands = async () => {
+  try {
+    const r = await fetch('/api/users/brands');
+    if (!r.ok) return null;
+    return await r.json();
+  } catch {
+    return null;
+  }
+};
+
+const showModal = (innerHTML) => {
+  const overlay = document.createElement('div');
+  overlay.className = 'account-modal-overlay';
+  overlay.innerHTML = `<div class="account-modal">${innerHTML}</div>`;
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+  document.body.appendChild(overlay);
+  return overlay;
+};
+
+const promptAddBrand = async () => {
+  const overlay = showModal(`
     <h2>Agregar Cuenta de Instagram</h2>
     <p>Conecta una nueva cuenta de Instagram a tu perfil de usuario.</p>
     <input type="text" id="add-brand-id" placeholder="ID interno (ej: mi-marca)" />
@@ -190,43 +241,242 @@ const u=`
       <button class="account-modal-btn cancel" id="add-brand-cancel">Cancelar</button>
       <button class="account-modal-btn primary" id="add-brand-confirm">Agregar</button>
     </div>
-  `);n.querySelector("#add-brand-cancel").onclick=()=>n.remove(),n.querySelector("#add-brand-confirm").onclick=async()=>{const a=n.querySelector("#add-brand-id").value.trim().toLowerCase().replace(/\s+/g,"-"),t=n.querySelector("#add-brand-name").value.trim(),o=n.querySelector("#add-brand-handle").value.trim().replace(/^@/,""),r=n.querySelector("#add-brand-niche").value.trim();if(!a||!t){alert("ID y Nombre son obligatorios");return}const e=await fetch("/api/users/brands/add",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({brandId:a,profile:{id:a,name:t,handle:o||void 0,niche:r||"general",industryCategory:r||"general"}})}),c=await e.json();if(!e.ok){alert(c.error??"Error al agregar");return}n.remove(),location.reload()}},b=async()=>{const n=d(`
-    <h2>Cerrar Sesi\xF3n</h2>
-    <p>\xBFSeguro que quer\xE9s cerrar tu sesi\xF3n? Vas a tener que volver a iniciar sesi\xF3n para acceder.</p>
+  `);
+
+  overlay.querySelector('#add-brand-cancel').onclick = () => overlay.remove();
+  overlay.querySelector('#add-brand-confirm').onclick = async () => {
+    const brandId = overlay.querySelector('#add-brand-id').value.trim().toLowerCase().replace(/\s+/g, '-');
+    const name = overlay.querySelector('#add-brand-name').value.trim();
+    const handle = overlay.querySelector('#add-brand-handle').value.trim().replace(/^@/, '');
+    const niche = overlay.querySelector('#add-brand-niche').value.trim();
+
+    if (!brandId || !name) {
+      alert('ID y Nombre son obligatorios');
+      return;
+    }
+
+    const r = await fetch('/api/users/brands/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        brandId,
+        profile: {
+          id: brandId,
+          name,
+          handle: handle || undefined,
+          niche: niche || 'general',
+          industryCategory: niche || 'general',
+        },
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      alert(data.error ?? 'Error al agregar');
+      return;
+    }
+    overlay.remove();
+    location.reload();
+  };
+};
+
+const confirmLogout = async () => {
+  const overlay = showModal(`
+    <h2>Cerrar Sesión</h2>
+    <p>¿Seguro que querés cerrar tu sesión? Vas a tener que volver a iniciar sesión para acceder.</p>
     <div class="account-modal-actions">
       <button class="account-modal-btn cancel" id="logout-cancel">Cancelar</button>
-      <button class="account-modal-btn primary" id="logout-confirm">Cerrar Sesi\xF3n</button>
+      <button class="account-modal-btn primary" id="logout-confirm">Cerrar Sesión</button>
     </div>
-  `);n.querySelector("#logout-cancel").onclick=()=>n.remove(),n.querySelector("#logout-confirm").onclick=async()=>{await fetch("/api/auth/logout",{method:"POST"}),location.href="/login.html"}},f=async n=>{const a=d(`
-    <h2 style="color:#ef4444">\u26A0 Cerrar Cuenta de Usuario</h2>
-    <p>Esta acci\xF3n es <strong>permanente</strong>. Tu cuenta de usuario y todas tus cuentas de Instagram asociadas ser\xE1n desactivadas.</p>
-    <p>Para confirmar, escrib\xED tu email: <strong>${n}</strong></p>
-    <input type="text" id="close-confirm-email" placeholder="${n}" autocomplete="off" />
+  `);
+  overlay.querySelector('#logout-cancel').onclick = () => overlay.remove();
+  overlay.querySelector('#logout-confirm').onclick = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    location.href = '/login.html';
+  };
+};
+
+const confirmCloseAccount = async (userEmail) => {
+  const overlay = showModal(`
+    <h2 style="color:#ef4444">⚠ Cerrar Cuenta de Usuario</h2>
+    <p>Esta acción es <strong>permanente</strong>. Tu cuenta de usuario y todas tus cuentas de Instagram asociadas serán desactivadas.</p>
+    <p>Para confirmar, escribí tu email: <strong>${userEmail}</strong></p>
+    <input type="text" id="close-confirm-email" placeholder="${userEmail}" autocomplete="off" />
     <div class="account-modal-actions">
       <button class="account-modal-btn cancel" id="close-cancel">Cancelar</button>
       <button class="account-modal-btn danger" id="close-confirm">Cerrar Cuenta</button>
     </div>
-  `);a.querySelector("#close-cancel").onclick=()=>a.remove(),a.querySelector("#close-confirm").onclick=async()=>{const t=a.querySelector("#close-confirm-email").value.trim();if(t!==n){alert("Email no coincide");return}const o=await fetch("/api/auth/close-account",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({confirm:t})});if(o.ok)location.href="/login.html";else{const r=await o.json();alert(r.error??"Error")}}},x=async()=>{const t=(await(await fetch("/api/plans")).json()).plans??{},o=d(`
+  `);
+  overlay.querySelector('#close-cancel').onclick = () => overlay.remove();
+  overlay.querySelector('#close-confirm').onclick = async () => {
+    const confirm = overlay.querySelector('#close-confirm-email').value.trim();
+    if (confirm !== userEmail) {
+      alert('Email no coincide');
+      return;
+    }
+    const r = await fetch('/api/auth/close-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirm }),
+    });
+    if (r.ok) location.href = '/login.html';
+    else {
+      const d = await r.json();
+      alert(d.error ?? 'Error');
+    }
+  };
+};
+
+const promptUpgradePlan = async () => {
+  const r = await fetch('/api/plans');
+  const data = await r.json();
+  const plans = data.plans ?? {};
+
+  const overlay = showModal(`
     <h2>Cambiar Plan</h2>
     <p>Cada plan permite distinta cantidad de cuentas Instagram y features.</p>
-    ${Object.entries(t).map(([r,e])=>`
+    ${Object.entries(plans)
+      .map(
+        ([tier, limits]) => `
       <div style="border:1px solid rgba(255,255,255,.1); padding:12px; border-radius:8px; margin-bottom:8px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong style="text-transform:uppercase">${r}</strong>
-          <button class="account-modal-btn primary" data-plan="${r}">Elegir</button>
+          <strong style="text-transform:uppercase">${tier}</strong>
+          <button class="account-modal-btn primary" data-plan="${tier}">Elegir</button>
         </div>
         <div style="font-size:12px; color:rgba(255,255,255,.6); margin-top:6px;">
-          M\xE1x ${e.maxBrands===-1?"\u221E":e.maxBrands} cuentas IG \xB7 ${e.maxPostsPerMonth===-1?"Posts ilimitados":e.maxPostsPerMonth+" posts/mes"}
+          Máx ${limits.maxBrands === -1 ? '∞' : limits.maxBrands} cuentas IG · ${limits.maxPostsPerMonth === -1 ? 'Posts ilimitados' : limits.maxPostsPerMonth + ' posts/mes'}
         </div>
       </div>
-    `).join("")}
+    `,
+      )
+      .join('')}
     <div class="account-modal-actions">
       <button class="account-modal-btn cancel" id="plan-cancel">Cancelar</button>
     </div>
-  `);o.querySelector("#plan-cancel").onclick=()=>o.remove(),o.querySelectorAll("[data-plan]").forEach(r=>{r.onclick=async()=>{const e=r.getAttribute("data-plan"),c=await fetch("/api/auth/upgrade-plan",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({plan:e})});if(c.ok)o.remove(),location.reload();else{const l=await c.json();alert(l.error??"Error")}}})},h=async n=>{const a=await fetch("/api/users/brands/active",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({brandId:n})});if(a.ok)location.reload();else{const t=await a.json();alert(t.error??"Error")}},y=(n,a,t)=>{if(n.innerHTML="",!a?.length){n.innerHTML='<div style="font-size:12px; color:rgba(255,255,255,.5); padding:8px;">No ten\xE9s cuentas IG. Agreg\xE1 una.</div>';return}for(const o of a){const r=o.id===t,e=document.createElement("button");e.className="account-menu-brand"+(r?" active":"");const c=(o.profile?.name??o.id).charAt(0).toUpperCase();e.innerHTML=`
-      <div class="account-menu-brand-avatar">${c}</div>
+  `);
+  overlay.querySelector('#plan-cancel').onclick = () => overlay.remove();
+  overlay.querySelectorAll('[data-plan]').forEach((btn) => {
+    btn.onclick = async () => {
+      const plan = btn.getAttribute('data-plan');
+      const res = await fetch('/api/auth/upgrade-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      });
+      if (res.ok) {
+        overlay.remove();
+        location.reload();
+      } else {
+        const d = await res.json();
+        alert(d.error ?? 'Error');
+      }
+    };
+  });
+};
+
+const setActiveBrand = async (brandId) => {
+  const r = await fetch('/api/users/brands/active', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ brandId }),
+  });
+  if (r.ok) location.reload();
+  else {
+    const d = await r.json();
+    alert(d.error ?? 'Error');
+  }
+};
+
+const renderBrandList = (container, brands, activeBrandId) => {
+  container.innerHTML = '';
+  if (!brands?.length) {
+    container.innerHTML =
+      '<div style="font-size:12px; color:rgba(255,255,255,.5); padding:8px;">No tenés cuentas IG. Agregá una.</div>';
+    return;
+  }
+  for (const b of brands) {
+    const isActive = b.id === activeBrandId;
+    const btn = document.createElement('button');
+    btn.className = 'account-menu-brand' + (isActive ? ' active' : '');
+    const initial = (b.profile?.name ?? b.id).charAt(0).toUpperCase();
+    btn.innerHTML = `
+      <div class="account-menu-brand-avatar">${initial}</div>
       <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-        ${o.profile?.name??o.id}
+        ${b.profile?.name ?? b.id}
       </div>
-      ${r?'<span class="check">\u2713</span>':""}
-    `,e.onclick=()=>{r||h(o.id)},n.appendChild(e)}};export const initAccountMenu=async()=>{p();const n=i("#account-menu-btn"),a=i("#account-menu");if(!n||!a)return;const t=()=>{a.hidden=!0,n.setAttribute("aria-expanded","false")},o=async()=>{a.hidden=!1,n.setAttribute("aria-expanded","true"),await r()};n.onclick=e=>{e.stopPropagation(),a.hidden?o():t()},document.addEventListener("click",e=>{!a.contains(e.target)&&e.target!==n&&t()}),i("#account-menu-add").onclick=()=>{t(),g()},i("#account-menu-settings").onclick=()=>{t(),location.hash="#settings"},i("#account-menu-plan-upgrade").onclick=()=>{t(),x()},i("#account-menu-logout").onclick=()=>{t(),b()},i("#account-menu-close-account").onclick=async()=>{t();const e=await s();e?.user?.email&&f(e.user.email)};const r=async()=>{const e=await s();if(!e?.user){location.href="/login.html";return}i("#account-menu-email").textContent=e.user.email,i("#account-menu-plan").textContent=`Plan ${e.user.plan}`;const c=await m();c&&(y(i("#account-menu-brands"),c.brands,c.activeBrandId),i("#account-menu-limit").textContent=`${c.current} / ${c.max===-1?"\u221E":c.max} cuentas IG`)}};
+      ${isActive ? '<span class="check">✓</span>' : ''}
+    `;
+    btn.onclick = () => {
+      if (!isActive) setActiveBrand(b.id);
+    };
+    container.appendChild(btn);
+  }
+};
+
+export const initAccountMenu = async () => {
+  injectStyles();
+
+  const menuBtn = $('#account-menu-btn');
+  const menu = $('#account-menu');
+  if (!menuBtn || !menu) return;
+
+  // Toggle visibility
+  const closeMenu = () => {
+    menu.hidden = true;
+    menuBtn.setAttribute('aria-expanded', 'false');
+  };
+  const openMenu = async () => {
+    menu.hidden = false;
+    menuBtn.setAttribute('aria-expanded', 'true');
+    await refreshMenuData();
+  };
+
+  menuBtn.onclick = (e) => {
+    e.stopPropagation();
+    if (menu.hidden) openMenu();
+    else closeMenu();
+  };
+
+  document.addEventListener('click', (e) => {
+    if (!menu.contains(e.target) && e.target !== menuBtn) closeMenu();
+  });
+
+  // Wire menu items
+  $('#account-menu-add').onclick = () => {
+    closeMenu();
+    promptAddBrand();
+  };
+  $('#account-menu-settings').onclick = () => {
+    closeMenu();
+    location.hash = '#settings';
+  };
+  $('#account-menu-plan-upgrade').onclick = () => {
+    closeMenu();
+    promptUpgradePlan();
+  };
+  $('#account-menu-logout').onclick = () => {
+    closeMenu();
+    confirmLogout();
+  };
+  $('#account-menu-close-account').onclick = async () => {
+    closeMenu();
+    const me = await fetchMe();
+    if (me?.user?.email) confirmCloseAccount(me.user.email);
+  };
+
+  const refreshMenuData = async () => {
+    const me = await fetchMe();
+    if (!me?.user) {
+      // No autenticado → redirigir a login
+      location.href = '/login.html';
+      return;
+    }
+    $('#account-menu-email').textContent = me.user.email;
+    $('#account-menu-plan').textContent = `Plan ${me.user.plan}`;
+
+    const brands = await fetchBrands();
+    if (brands) {
+      renderBrandList($('#account-menu-brands'), brands.brands, brands.activeBrandId);
+      $('#account-menu-limit').textContent = `${brands.current} / ${brands.max === -1 ? '∞' : brands.max} cuentas IG`;
+    }
+  };
+};

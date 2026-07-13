@@ -1,50 +1,192 @@
-import{api as d}from"../lib/api.js";import{escape as i}from"../lib/dom.js";import{fmt as u}from"../lib/dom.js";import{toast as o}from"../lib/toast.js";let s={prospects:[],tab:"prospects"};const p={nuevo:"info",contactado:"warn",negociando:"accent",confirmado:"ok",rechazado:"crit",completado:"muted"},v=a=>`
+import { api } from '../lib/api.js';
+import { escape } from '../lib/dom.js';
+import { fmt } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+
+let state = { prospects: [], tab: 'prospects' };
+
+const STATUS_COLORS = {
+  nuevo: 'info',
+  contactado: 'warn',
+  negociando: 'accent',
+  confirmado: 'ok',
+  rechazado: 'crit',
+  completado: 'muted',
+};
+
+const renderProspect = (p) => `
   <div class="collab-card card">
     <div class="meta">
-      <span class="tag ${p[a.status]??"info"}">${i(a.status??"nuevo")}</span>
-      ${a.nicho?`<span class="tag">${i(a.nicho)}</span>`:""}
-      <span class="tiny muted">${u.rel(a.creadoEn)}</span>
+      <span class="tag ${STATUS_COLORS[p.status] ?? 'info'}">${escape(p.status ?? 'nuevo')}</span>
+      ${p.nicho ? `<span class="tag">${escape(p.nicho)}</span>` : ''}
+      <span class="tiny muted">${fmt.rel(p.creadoEn)}</span>
     </div>
     <div class="collab-header">
-      <div class="collab-avatar">${i((a.handle??"@?").charAt(1).toUpperCase())}</div>
+      <div class="collab-avatar">${escape((p.handle ?? '@?').charAt(1).toUpperCase())}</div>
       <div>
-        <div class="small" style="font-weight:600;">${i(a.handle??"desconocido")}</div>
-        ${a.seguidores?`<div class="tiny muted">${u.num(a.seguidores)} seguidores</div>`:""}
-        ${a.engagementRate?`<div class="tiny muted">ER: ${a.engagementRate}%</div>`:""}
+        <div class="small" style="font-weight:600;">${escape(p.handle ?? 'desconocido')}</div>
+        ${p.seguidores ? `<div class="tiny muted">${fmt.num(p.seguidores)} seguidores</div>` : ''}
+        ${p.engagementRate ? `<div class="tiny muted">ER: ${p.engagementRate}%</div>` : ''}
       </div>
-      ${a.score?`
+      ${
+        p.score
+          ? `
         <div class="collab-score" style="margin-left:auto;">
-          <div class="score-num-sm">${a.score}</div>
+          <div class="score-num-sm">${p.score}</div>
           <div class="tiny muted">score</div>
-        </div>`:""}
+        </div>`
+          : ''
+      }
     </div>
-    ${a.propuesta?`
+    ${
+      p.propuesta
+        ? `
       <div class="small muted" style="margin-top:8px;border-left:2px solid var(--border);padding-left:8px;">
-        ${i(a.propuesta)}
-      </div>`:""}
-    ${a.notas?`<div class="tiny muted" style="margin-top:6px;">\u{1F4DD} ${i(a.notas)}</div>`:""}
+        ${escape(p.propuesta)}
+      </div>`
+        : ''
+    }
+    ${p.notas ? `<div class="tiny muted" style="margin-top:6px;">📝 ${escape(p.notas)}</div>` : ''}
     <div class="btn-row" style="margin-top:12px;">
-      ${a.status==="nuevo"?`<button class="btn primary tiny outreach-btn" data-id="${i(a.id??"")}">\u{1F4EC} Enviar outreach</button>`:""}
-      ${a.status==="negociando"?`<button class="btn primary tiny respond-btn" data-id="${i(a.id??"")}">\u{1F4AC} Responder negociaci\xF3n</button>`:""}
-      ${a.status==="contactado"?`<button class="btn ghost tiny mark-neg-btn" data-id="${i(a.id??"")}">\u2192 Marcar en negociaci\xF3n</button>`:""}
-      ${a.status==="negociando"?`<button class="btn ghost tiny confirm-btn" data-id="${i(a.id??"")}">\u2713 Confirmar collab</button>`:""}
+      ${p.status === 'nuevo' ? `<button class="btn primary tiny outreach-btn" data-id="${escape(p.id ?? '')}">📬 Enviar outreach</button>` : ''}
+      ${p.status === 'negociando' ? `<button class="btn primary tiny respond-btn" data-id="${escape(p.id ?? '')}">💬 Responder negociación</button>` : ''}
+      ${p.status === 'contactado' ? `<button class="btn ghost tiny mark-neg-btn" data-id="${escape(p.id ?? '')}">→ Marcar en negociación</button>` : ''}
+      ${p.status === 'negociando' ? `<button class="btn ghost tiny confirm-btn" data-id="${escape(p.id ?? '')}">✓ Confirmar collab</button>` : ''}
     </div>
-  </div>`,m=()=>{const a=s.tab==="all"?s.prospects:s.tab==="active"?s.prospects.filter(t=>["nuevo","contactado","negociando"].includes(t.status)):s.prospects.filter(t=>t.status===s.tab);return a.length?a.map(v).join(""):`<div class="empty">Sin collabs con estado "${s.tab}".</div>`},f=()=>{const a=s.prospects.filter(t=>["nuevo","contactado","negociando"].includes(t.status)).length;return`
+  </div>`;
+
+const renderList = () => {
+  const filtered =
+    state.tab === 'all'
+      ? state.prospects
+      : state.tab === 'active'
+        ? state.prospects.filter((p) => ['nuevo', 'contactado', 'negociando'].includes(p.status))
+        : state.prospects.filter((p) => p.status === state.tab);
+  if (!filtered.length) return `<div class="empty">Sin collabs con estado "${state.tab}".</div>`;
+  return filtered.map(renderProspect).join('');
+};
+
+const renderTabs = () => {
+  const active = state.prospects.filter((p) => ['nuevo', 'contactado', 'negociando'].includes(p.status)).length;
+  return `
     <div class="tab-bar">
-      <button class="tab-btn ${s.tab==="active"?"active":""}" data-tab="active">\u26A1 Activos (${a})</button>
-      <button class="tab-btn ${s.tab==="confirmado"?"active":""}" data-tab="confirmado">\u2705 Confirmados</button>
-      <button class="tab-btn ${s.tab==="all"?"active":""}" data-tab="all">\u{1F4CB} Todos (${s.prospects.length})</button>
-    </div>`},l=a=>{const t=a.querySelector("#collab-content");t&&(t.innerHTML=`
-    ${f()}
+      <button class="tab-btn ${state.tab === 'active' ? 'active' : ''}" data-tab="active">⚡ Activos (${active})</button>
+      <button class="tab-btn ${state.tab === 'confirmado' ? 'active' : ''}" data-tab="confirmado">✅ Confirmados</button>
+      <button class="tab-btn ${state.tab === 'all' ? 'active' : ''}" data-tab="all">📋 Todos (${state.prospects.length})</button>
+    </div>`;
+};
+
+const render = (root) => {
+  const content = root.querySelector('#collab-content');
+  if (!content) return;
+  content.innerHTML = `
+    ${renderTabs()}
     <div class="btn-row" style="margin:14px 0;">
-      <button class="btn primary" id="find-btn">\u{1F50D} Encontrar creadores</button>
-      <button class="btn ghost" id="refresh-btn">\u21BB Refrescar</button>
+      <button class="btn primary" id="find-btn">🔍 Encontrar creadores</button>
+      <button class="btn ghost" id="refresh-btn">↻ Refrescar</button>
     </div>
-    <div id="collab-list">${m()}</div>`,g(a,t))},g=(a,t)=>{t.querySelectorAll(".tab-btn").forEach(e=>e.addEventListener("click",()=>{s.tab=e.dataset.tab,l(a)})),t.querySelector("#refresh-btn")?.addEventListener("click",()=>b(a)),t.querySelector("#find-btn")?.addEventListener("click",async()=>{const e=prompt("\xBFNicho o tema para buscar creadores? (ej: marketing digital, fitness, finanzas)");if(!e)return;const c=t.querySelector("#find-btn");c.disabled=!0,c.innerHTML='<span class="spinner"></span> buscando\u2026';try{const n=await d("/api/collab/find",{body:{nicho:e}});o(`${n.found??0} creadores encontrados`,"ok"),await b(a)}catch(n){o(n.message,"crit")}finally{c.disabled=!1,c.innerHTML="\u{1F50D} Encontrar creadores"}}),t.querySelectorAll(".outreach-btn").forEach(e=>e.addEventListener("click",async()=>{const c=e.dataset.id;e.disabled=!0;try{await d("/api/collab/outreach",{body:{prospectId:c}});const n=s.prospects.find(r=>r.id===c);n&&(n.status="contactado"),l(a),o("Outreach enviado","ok")}catch(n){o(n.message,"crit"),e.disabled=!1}})),t.querySelectorAll(".respond-btn").forEach(e=>e.addEventListener("click",async()=>{const c=e.dataset.id,n=prompt("\xBFAlguna observaci\xF3n sobre la negociaci\xF3n?")??"";e.disabled=!0;try{await d("/api/collab/respond",{body:{prospectId:c,observaciones:n}}),o("Respuesta de negociaci\xF3n enviada","ok"),await b(a)}catch(r){o(r.message,"crit"),e.disabled=!1}})),t.querySelectorAll(".confirm-btn").forEach(e=>e.addEventListener("click",async()=>{const c=e.dataset.id;e.disabled=!0;try{await d("/api/collab/confirm",{body:{prospectId:c}});const n=s.prospects.find(r=>r.id===c);n&&(n.status="confirmado"),l(a),o("Collab confirmado","ok")}catch(n){o(n.message,"crit"),e.disabled=!1}}))},b=async a=>{try{const t=await d("/api/collab/prospects");s.prospects=t.prospects??[],l(a)}catch{const t=a.querySelector("#collab-content");t&&(t.innerHTML='<div class="empty muted">Sin datos de collabs disponibles todav\xEDa.</div>')}};export const renderCollab=async a=>{s={prospects:[],tab:"active"},a.innerHTML=`
+    <div id="collab-list">${renderList()}</div>`;
+  attachListeners(root, content);
+};
+
+const attachListeners = (root, content) => {
+  content.querySelectorAll('.tab-btn').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      state.tab = btn.dataset.tab;
+      render(root);
+    }),
+  );
+  content.querySelector('#refresh-btn')?.addEventListener('click', () => loadData(root));
+
+  content.querySelector('#find-btn')?.addEventListener('click', async () => {
+    const nicho = prompt('¿Nicho o tema para buscar creadores? (ej: marketing digital, fitness, finanzas)');
+    if (!nicho) return;
+    const btn = content.querySelector('#find-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> buscando…';
+    try {
+      const res = await api('/api/collab/find', { body: { nicho } });
+      toast(`${res.found ?? 0} creadores encontrados`, 'ok');
+      await loadData(root);
+    } catch (err) {
+      toast(err.message, 'crit');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '🔍 Encontrar creadores';
+    }
+  });
+
+  content.querySelectorAll('.outreach-btn').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      btn.disabled = true;
+      try {
+        await api('/api/collab/outreach', { body: { prospectId: id } });
+        const p = state.prospects.find((x) => x.id === id);
+        if (p) p.status = 'contactado';
+        render(root);
+        toast('Outreach enviado', 'ok');
+      } catch (err) {
+        toast(err.message, 'crit');
+        btn.disabled = false;
+      }
+    }),
+  );
+
+  content.querySelectorAll('.respond-btn').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const observaciones = prompt('¿Alguna observación sobre la negociación?') ?? '';
+      btn.disabled = true;
+      try {
+        await api('/api/collab/respond', { body: { prospectId: id, observaciones } });
+        toast('Respuesta de negociación enviada', 'ok');
+        await loadData(root);
+      } catch (err) {
+        toast(err.message, 'crit');
+        btn.disabled = false;
+      }
+    }),
+  );
+
+  content.querySelectorAll('.confirm-btn').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      btn.disabled = true;
+      try {
+        await api('/api/collab/confirm', { body: { prospectId: id } });
+        const p = state.prospects.find((x) => x.id === id);
+        if (p) p.status = 'confirmado';
+        render(root);
+        toast('Collab confirmado', 'ok');
+      } catch (err) {
+        toast(err.message, 'crit');
+        btn.disabled = false;
+      }
+    }),
+  );
+};
+
+const loadData = async (root) => {
+  try {
+    const res = await api('/api/collab/prospects');
+    state.prospects = res.prospects ?? [];
+    render(root);
+  } catch {
+    const content = root.querySelector('#collab-content');
+    if (content) content.innerHTML = `<div class="empty muted">Sin datos de collabs disponibles todavía.</div>`;
+  }
+};
+
+export const renderCollab = async (root) => {
+  state = { prospects: [], tab: 'active' };
+  root.innerHTML = `
     <header class="view-header page-header">
       <div>
         <h1 class="view-title page-title">Collab Manager</h1>
-        <p class="view-subtitle page-subtitle">Gestion\xE1 colaboraciones con creadores e influencers de tu nicho.</p>
+        <p class="view-subtitle page-subtitle">Gestioná colaboraciones con creadores e influencers de tu nicho.</p>
       </div>
     </header>
-    <div id="collab-content" class="page-body"><div class="page-loading"><span class="spinner"></span> cargando\u2026</div></div>`,await b(a)};
+    <div id="collab-content" class="page-body"><div class="page-loading"><span class="spinner"></span> cargando…</div></div>`;
+  await loadData(root);
+};

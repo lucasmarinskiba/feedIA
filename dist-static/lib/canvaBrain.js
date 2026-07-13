@@ -1,29 +1,155 @@
-import{apiSafe as g}from"./api.js";import{toast as x}from"./toast.js";import{openExternal as v}from"./dom.js";const u=[{id:"brand",emoji:"\u{1F3A8}",name:"Brand Strategist",role:"Branding \xB7 Pixel",task:"Carga voz, paleta y reglas de marca del Brand Board",backendAgent:"algorithm",backendAction:"content-score",durationMs:1100},{id:"designer",emoji:"\u{1F5BC}\uFE0F",name:"Visual Designer",role:"Dise\xF1o \xB7 Nova",task:"Elige template, compone layout, aplica paleta y jerarqu\xEDa visual",backendAgent:"visual-storyteller",backendAction:"design-brief",durationMs:2200},{id:"comm",emoji:"\u270D\uFE0F",name:"Communicator",role:"Copy \xB7 L\xEDa",task:"Redacta titulares, bullets y CTA respetando voz de marca",backendAgent:"algorithm",backendAction:"content-score",durationMs:1600},{id:"publicist",emoji:"\u{1F4E3}",name:"Publicist",role:"Posicionamiento \xB7 Luca",task:"Optimiza hook + caption + hashtags para alcance en Explore",backendAgent:"algorithm",backendAction:"reach-boost",durationMs:1400},{id:"artist",emoji:"\u{1F3AD}",name:"Art Director",role:"Direcci\xF3n art\xEDstica \xB7 Pixel",task:"Aprueba mood, contraste y consistencia visual con tu feed",backendAgent:"visual-storyteller",backendAction:"visual-audit",durationMs:1300},{id:"compliance",emoji:"\u{1F6E1}\uFE0F",name:"Compliance Officer",role:"Gard",task:"Valida tono, riesgo de shadowban y pol\xEDticas de IG",backendAgent:"compliance",backendAction:"safety-check",durationMs:1e3},{id:"publisher",emoji:"\u{1F680}",name:"Publisher",role:"Operador CUA",task:"Toma el cursor: abre Canva \u2192 dise\xF1a \u2192 exporta \u2192 publica en Instagram",backendAgent:"computer-use",backendAction:"canva-to-instagram",durationMs:2600}],s=e=>String(e??"").replace(/[&<>"']/g,a=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[a]);let i=null;const h=()=>{if(document.getElementById("canva-brain-style"))return;const e=document.createElement("style");e.id="canva-brain-style",e.textContent=S,document.head.appendChild(e)},k=async()=>{const{data:e}=await g("/api/cu/mode",{mode:"off"});return e?.mode??"off"};export const launchCanvaBrain=async({topic:e,format:a,brand:t,contentPayload:o}={})=>{h(),document.querySelectorAll(".cb-modal").forEach(n=>n.remove());const r=await k(),p=r==="auto"?"\u{1F680} Auto \xB7 sin aprobaciones":r==="supervised"?"\u{1F441}\uFE0F Supervisado \xB7 aprob\xE1s cada paso cr\xEDtico":"\u{1F534} CUA Off \xB7 ejecuci\xF3n manual";i=document.createElement("div"),i.className="cb-modal",i.innerHTML=`
+/* ══════════════════════════════════════════════════════════════════════════════
+   canvaBrain.js — Pipeline visual del Cerebro Computer Use operando Canva
+   ──────────────────────────────────────────────────────────────────────────────
+   Equipo de especialistas (branding, design, comm, publicist, art) orquestados
+   en pasos secuenciales. Cada paso usa el agente correcto del backend.
+   Modal in-app que muestra el progreso en vivo. Modo Supervisado pide aprobación.
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { apiSafe } from './api.js';
+import { toast } from './toast.js';
+import { openExternal } from './dom.js';
+
+/* Equipo de especialistas que opera Canva. Cada uno mapea a un agente del
+   backend cuando existe; si no, simulación local. Pipeline 100% diseño-driven. */
+const CANVA_TEAM = [
+  {
+    id: 'brand',
+    emoji: '🎨',
+    name: 'Brand Strategist',
+    role: 'Branding · Pixel',
+    task: 'Carga voz, paleta y reglas de marca del Brand Board',
+    backendAgent: 'algorithm',
+    backendAction: 'content-score',
+    durationMs: 1100,
+  },
+  {
+    id: 'designer',
+    emoji: '🖼️',
+    name: 'Visual Designer',
+    role: 'Diseño · Nova',
+    task: 'Elige template, compone layout, aplica paleta y jerarquía visual',
+    backendAgent: 'visual-storyteller',
+    backendAction: 'design-brief',
+    durationMs: 2200,
+  },
+  {
+    id: 'comm',
+    emoji: '✍️',
+    name: 'Communicator',
+    role: 'Copy · Lía',
+    task: 'Redacta titulares, bullets y CTA respetando voz de marca',
+    backendAgent: 'algorithm',
+    backendAction: 'content-score',
+    durationMs: 1600,
+  },
+  {
+    id: 'publicist',
+    emoji: '📣',
+    name: 'Publicist',
+    role: 'Posicionamiento · Luca',
+    task: 'Optimiza hook + caption + hashtags para alcance en Explore',
+    backendAgent: 'algorithm',
+    backendAction: 'reach-boost',
+    durationMs: 1400,
+  },
+  {
+    id: 'artist',
+    emoji: '🎭',
+    name: 'Art Director',
+    role: 'Dirección artística · Pixel',
+    task: 'Aprueba mood, contraste y consistencia visual con tu feed',
+    backendAgent: 'visual-storyteller',
+    backendAction: 'visual-audit',
+    durationMs: 1300,
+  },
+  {
+    id: 'compliance',
+    emoji: '🛡️',
+    name: 'Compliance Officer',
+    role: 'Gard',
+    task: 'Valida tono, riesgo de shadowban y políticas de IG',
+    backendAgent: 'compliance',
+    backendAction: 'safety-check',
+    durationMs: 1000,
+  },
+  {
+    id: 'publisher',
+    emoji: '🚀',
+    name: 'Publisher',
+    role: 'Operador CUA',
+    task: 'Toma el cursor: abre Canva → diseña → exporta → publica en Instagram',
+    backendAgent: 'computer-use',
+    backendAction: 'canva-to-instagram',
+    durationMs: 2600,
+  },
+];
+
+const escapeHtml = (s) =>
+  String(s ?? '').replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+  );
+
+let activeModal = null;
+
+const injectStyles = () => {
+  if (document.getElementById('canva-brain-style')) return;
+  const style = document.createElement('style');
+  style.id = 'canva-brain-style';
+  style.textContent = CB_STYLES;
+  document.head.appendChild(style);
+};
+
+/* Lee modo CUA (auto / supervised / off) desde backend para decidir si pedir aprobaciones */
+const getCuaMode = async () => {
+  const { data } = await apiSafe('/api/cu/mode', { mode: 'off' });
+  return data?.mode ?? 'off';
+};
+
+/* Lanza el pipeline: muestra modal y va ejecutando paso a paso */
+export const launchCanvaBrain = async ({ topic, format, brand, contentPayload } = {}) => {
+  injectStyles();
+  // Limpiar previo
+  document.querySelectorAll('.cb-modal').forEach((m) => m.remove());
+
+  const mode = await getCuaMode();
+  const modeLabel =
+    mode === 'auto'
+      ? '🚀 Auto · sin aprobaciones'
+      : mode === 'supervised'
+        ? '👁️ Supervisado · aprobás cada paso crítico'
+        : '🔴 CUA Off · ejecución manual';
+
+  activeModal = document.createElement('div');
+  activeModal.className = 'cb-modal';
+  activeModal.innerHTML = `
     <div class="cb-backdrop"></div>
     <div class="cb-panel">
       <div class="cb-header">
         <div class="cb-header-left">
           <span class="cb-radar"></span>
           <div>
-            <div class="cb-title">\u{1F9E0} Cerebro Computer Use \xB7 Canva</div>
-            <div class="cb-sub">${s(e?`"${e}"`:"Pipeline visual end-to-end")} \xB7 ${s(a??"feed-post")}</div>
+            <div class="cb-title">🧠 Cerebro Computer Use · Canva</div>
+            <div class="cb-sub">${escapeHtml(topic ? `"${topic}"` : 'Pipeline visual end-to-end')} · ${escapeHtml(format ?? 'feed-post')}</div>
           </div>
         </div>
-        <div class="cb-mode-pill">${s(p)}</div>
-        <button class="cb-close" aria-label="Cerrar">\u2715</button>
+        <div class="cb-mode-pill">${escapeHtml(modeLabel)}</div>
+        <button class="cb-close" aria-label="Cerrar">✕</button>
       </div>
 
       <div class="cb-team" id="cb-team">
-        ${u.map((n,c)=>`
-          <div class="cb-step" data-step="${n.id}" data-idx="${c}">
-            <div class="cb-step-emoji">${n.emoji}</div>
+        ${CANVA_TEAM.map(
+          (s, i) => `
+          <div class="cb-step" data-step="${s.id}" data-idx="${i}">
+            <div class="cb-step-emoji">${s.emoji}</div>
             <div class="cb-step-info">
-              <div class="cb-step-name">${s(n.name)}</div>
-              <div class="cb-step-role">${s(n.role)}</div>
-              <div class="cb-step-task">${s(n.task)}</div>
+              <div class="cb-step-name">${escapeHtml(s.name)}</div>
+              <div class="cb-step-role">${escapeHtml(s.role)}</div>
+              <div class="cb-step-task">${escapeHtml(s.task)}</div>
             </div>
             <div class="cb-step-state" data-state="idle">esperando</div>
-          </div>`).join("")}
+          </div>`,
+        ).join('')}
       </div>
 
       <div class="cb-log-wrap">
@@ -32,25 +158,183 @@ import{apiSafe as g}from"./api.js";import{toast as x}from"./toast.js";import{ope
       </div>
 
       <div class="cb-actions" id="cb-actions">
-        <button class="cb-btn primary" id="cb-start">\u25B6 Iniciar pipeline</button>
+        <button class="cb-btn primary" id="cb-start">▶ Iniciar pipeline</button>
         <button class="cb-btn ghost" id="cb-cancel">Cerrar</button>
       </div>
-    </div>`,document.body.appendChild(i);const d=()=>{i?.remove(),i=null};i.querySelector(".cb-backdrop").addEventListener("click",d),i.querySelector(".cb-close").addEventListener("click",d),i.querySelector("#cb-cancel").addEventListener("click",d),i.querySelector("#cb-start").addEventListener("click",async()=>{i.querySelector("#cb-actions").innerHTML='<div class="cb-running">\u{1F504} Pipeline corriendo\u2026 el equipo est\xE1 operando.</div>',await w({topic:e,format:a,brand:t,contentPayload:o,mode:r})})};const l=(e,a="info")=>{const t=i?.querySelector("#cb-log");if(!t)return;const o=new Date().toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit",second:"2-digit"}),r=document.createElement("div");r.className=`cb-log-line cb-log-${a}`,r.innerHTML=`<span class="cb-log-time">${s(o)}</span> ${s(e)}`,t.appendChild(r),t.scrollTop=t.scrollHeight},m=(e,a,t)=>{const o=i?.querySelector(`.cb-step[data-idx="${e}"]`);if(!o)return;const r=o.querySelector(".cb-step-state");r.dataset.state=a,r.textContent=t??a,o.classList.toggle("cb-step-active",a==="running"),o.classList.toggle("cb-step-done",a==="done"),o.classList.toggle("cb-step-skip",a==="skipped")},y=e=>new Promise(a=>setTimeout(a,e)),w=async({topic:e,format:a,brand:t,contentPayload:o,mode:r})=>{l(`\u{1F9E0} Cerebro Computer Use iniciado \xB7 ${u.length} especialistas activos`,"head"),l(`\u{1F4CB} Modo: ${r==="auto"?"AUTO":r==="supervised"?"SUPERVISED":"OFF (simulaci\xF3n)"}`,"head"),r==="off"&&l("\u26A0\uFE0F CUA est\xE1 apagado. Corriendo simulaci\xF3n visual. Activ\xE1 Auto/Supervisado para ejecuci\xF3n real.","warn");let p=null,d=null;for(let n=0;n<u.length;n++){const c=u[n];if(m(n,"running","trabajando\u2026"),l(`${c.emoji} ${c.name} \u2192 ${c.task}`,"step"),r==="supervised"&&(c.id==="designer"||c.id==="publisher")&&!await A(c))return m(n,"skipped","rechazado"),l(`\u2717 ${c.name} rechazado por el usuario. Pipeline detenido.`,"crit"),f({aborted:!0});const b=await C(c,{topic:e,format:a,brand:t,contentPayload:o});await y(c.durationMs*(r==="auto"?.55:1)),c.id==="publisher"&&b?.designUrl&&(p=b.designUrl),c.id==="publisher"&&b?.postUrl&&(d=b.postUrl),m(n,"done",b?.ok===!1?"simulado":"ok"),l(`\u2713 ${c.name} complet\xF3: ${b?.message??c.task}`,b?.ok===!1?"sim":"ok")}p?(l(`\u{1F3A8} Canva listo: ${p}`,"ok"),await v(p)):r!=="off"&&((await g("/api/cu/canva/open",null,{method:"POST",body:{topic:e,format:a}})).error?l("\u{1F310} No se pudo abrir Canva v\xEDa CUA. Abriendo manualmente\u2026","warn"):l("\u{1F5B1}\uFE0F Computer Use abri\xF3 Canva con el cursor","ok")),d&&l(`\u{1F4F7} Post publicado: ${d}`,"ok"),f({aborted:!1,designUrl:p,publishUrl:d})},C=async(e,a)=>{if(e.id==="publisher"){const o=await g("/api/cu/canva/to-instagram",null,{method:"POST",body:{topic:a.topic,designIntent:"educar",postType:a.format??"feed-post",publishMethod:"computer-use",generateCaption:!0}});return o.data?.ok?{ok:!0,message:"Dise\xF1o + publicaci\xF3n completados",designUrl:o.data?.designStep?.filePath??null,postUrl:o.data?.publishStep?.postUrl??null}:{ok:!1,message:"simulaci\xF3n: cursor abrir\xEDa Canva, exportar\xEDa a IG (sin backend)"}}const t=await g(`/api/agents/${e.backendAgent}/action`,null,{method:"POST",body:{actionId:e.backendAction,params:{topic:a.topic,format:a.format}}});return t.data?{ok:!0,message:t.data.summary??t.data.title??"completado"}:{ok:!1,message:"simulaci\xF3n local"}},A=e=>new Promise(a=>{if(!i)return a(!0);const t=document.createElement("div");t.className="cb-approval",t.innerHTML=`
+    </div>`;
+  document.body.appendChild(activeModal);
+
+  const closeModal = () => {
+    activeModal?.remove();
+    activeModal = null;
+  };
+  activeModal.querySelector('.cb-backdrop').addEventListener('click', closeModal);
+  activeModal.querySelector('.cb-close').addEventListener('click', closeModal);
+  activeModal.querySelector('#cb-cancel').addEventListener('click', closeModal);
+  activeModal.querySelector('#cb-start').addEventListener('click', async () => {
+    activeModal.querySelector('#cb-actions').innerHTML =
+      '<div class="cb-running">🔄 Pipeline corriendo… el equipo está operando.</div>';
+    await runPipeline({ topic, format, brand, contentPayload, mode });
+  });
+};
+
+const log = (text, kind = 'info') => {
+  const el = activeModal?.querySelector('#cb-log');
+  if (!el) return;
+  const time = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const div = document.createElement('div');
+  div.className = `cb-log-line cb-log-${kind}`;
+  div.innerHTML = `<span class="cb-log-time">${escapeHtml(time)}</span> ${escapeHtml(text)}`;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+};
+
+const setStepState = (idx, state, detail) => {
+  const step = activeModal?.querySelector(`.cb-step[data-idx="${idx}"]`);
+  if (!step) return;
+  const st = step.querySelector('.cb-step-state');
+  st.dataset.state = state;
+  st.textContent = detail ?? state;
+  step.classList.toggle('cb-step-active', state === 'running');
+  step.classList.toggle('cb-step-done', state === 'done');
+  step.classList.toggle('cb-step-skip', state === 'skipped');
+};
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const runPipeline = async ({ topic, format, brand, contentPayload, mode }) => {
+  log(`🧠 Cerebro Computer Use iniciado · ${CANVA_TEAM.length} especialistas activos`, 'head');
+  log(`📋 Modo: ${mode === 'auto' ? 'AUTO' : mode === 'supervised' ? 'SUPERVISED' : 'OFF (simulación)'}`, 'head');
+
+  // Si CUA está OFF, ofrecer activarlo. No bloqueamos: corremos simulación visible.
+  if (mode === 'off') {
+    log('⚠️ CUA está apagado. Corriendo simulación visual. Activá Auto/Supervisado para ejecución real.', 'warn');
+  }
+
+  let designUrl = null;
+  let publishUrl = null;
+
+  for (let i = 0; i < CANVA_TEAM.length; i++) {
+    const s = CANVA_TEAM[i];
+    setStepState(i, 'running', 'trabajando…');
+    log(`${s.emoji} ${s.name} → ${s.task}`, 'step');
+
+    // Modo supervised: pedir aprobación para pasos críticos (designer + publisher)
+    if (mode === 'supervised' && (s.id === 'designer' || s.id === 'publisher')) {
+      const approved = await askApproval(s);
+      if (!approved) {
+        setStepState(i, 'skipped', 'rechazado');
+        log(`✗ ${s.name} rechazado por el usuario. Pipeline detenido.`, 'crit');
+        return finishPipeline({ aborted: true });
+      }
+    }
+
+    // Llamar al backend cuando exista; si no, simular con sleep + outcome
+    const backendCalled = await callBackendStep(s, { topic, format, brand, contentPayload });
+    await sleep(s.durationMs * (mode === 'auto' ? 0.55 : 1));
+
+    if (s.id === 'publisher' && backendCalled?.designUrl) designUrl = backendCalled.designUrl;
+    if (s.id === 'publisher' && backendCalled?.postUrl) publishUrl = backendCalled.postUrl;
+
+    setStepState(i, 'done', backendCalled?.ok === false ? 'simulado' : 'ok');
+    log(`✓ ${s.name} completó: ${backendCalled?.message ?? s.task}`, backendCalled?.ok === false ? 'sim' : 'ok');
+  }
+
+  // Si el publisher devolvió un designUrl, abrir Canva
+  if (designUrl) {
+    log(`🎨 Canva listo: ${designUrl}`, 'ok');
+    await openExternal(designUrl);
+  } else if (mode !== 'off') {
+    // Pedir al backend que abra Canva como fallback CUA
+    const open = await apiSafe('/api/cu/canva/open', null, { method: 'POST', body: { topic, format } });
+    if (!open.error) log('🖱️ Computer Use abrió Canva con el cursor', 'ok');
+    else log('🌐 No se pudo abrir Canva vía CUA. Abriendo manualmente…', 'warn');
+  }
+  if (publishUrl) log(`📷 Post publicado: ${publishUrl}`, 'ok');
+
+  finishPipeline({ aborted: false, designUrl, publishUrl });
+};
+
+const callBackendStep = async (step, payload) => {
+  // Intenta los endpoints más probables; fallback a simulación local
+  if (step.id === 'publisher') {
+    const r = await apiSafe('/api/cu/canva/to-instagram', null, {
+      method: 'POST',
+      body: {
+        topic: payload.topic,
+        designIntent: 'educar',
+        postType: payload.format ?? 'feed-post',
+        publishMethod: 'computer-use',
+        generateCaption: true,
+      },
+    });
+    if (r.data?.ok) {
+      return {
+        ok: true,
+        message: 'Diseño + publicación completados',
+        designUrl: r.data?.designStep?.filePath ?? null,
+        postUrl: r.data?.publishStep?.postUrl ?? null,
+      };
+    }
+    return { ok: false, message: 'simulación: cursor abriría Canva, exportaría a IG (sin backend)' };
+  }
+  // Resto: best-effort sin tirar
+  const r = await apiSafe(`/api/agents/${step.backendAgent}/action`, null, {
+    method: 'POST',
+    body: { actionId: step.backendAction, params: { topic: payload.topic, format: payload.format } },
+  });
+  if (r.data) return { ok: true, message: r.data.summary ?? r.data.title ?? 'completado' };
+  return { ok: false, message: 'simulación local' };
+};
+
+const askApproval = (step) =>
+  new Promise((resolve) => {
+    if (!activeModal) return resolve(true);
+    const overlay = document.createElement('div');
+    overlay.className = 'cb-approval';
+    overlay.innerHTML = `
     <div class="cb-approval-card">
-      <div style="font-size:30px;">${e.emoji}</div>
-      <h3>${s(e.name)} pide aprobaci\xF3n</h3>
-      <p>${s(e.task)}</p>
+      <div style="font-size:30px;">${step.emoji}</div>
+      <h3>${escapeHtml(step.name)} pide aprobación</h3>
+      <p>${escapeHtml(step.task)}</p>
       <div class="btn-row" style="justify-content:center;gap:8px;margin-top:14px;">
-        <button class="cb-btn primary" id="cb-ap-yes">\u2713 Aprobar</button>
-        <button class="cb-btn ghost" id="cb-ap-no">\u2717 Rechazar</button>
+        <button class="cb-btn primary" id="cb-ap-yes">✓ Aprobar</button>
+        <button class="cb-btn ghost" id="cb-ap-no">✗ Rechazar</button>
       </div>
-    </div>`,i.appendChild(t),t.querySelector("#cb-ap-yes").addEventListener("click",()=>{t.remove(),a(!0)}),t.querySelector("#cb-ap-no").addEventListener("click",()=>{t.remove(),a(!1)})}),f=({aborted:e,designUrl:a,publishUrl:t})=>{const o=i?.querySelector("#cb-actions");o&&(e?o.innerHTML=`
+    </div>`;
+    activeModal.appendChild(overlay);
+    overlay.querySelector('#cb-ap-yes').addEventListener('click', () => {
+      overlay.remove();
+      resolve(true);
+    });
+    overlay.querySelector('#cb-ap-no').addEventListener('click', () => {
+      overlay.remove();
+      resolve(false);
+    });
+  });
+
+const finishPipeline = ({ aborted, designUrl, publishUrl }) => {
+  const actions = activeModal?.querySelector('#cb-actions');
+  if (!actions) return;
+  if (aborted) {
+    actions.innerHTML = `
       <button class="cb-btn ghost" id="cb-close-final">Cerrar</button>
-      <div class="cb-aborted">Pipeline detenido. Pod\xE9s retomar m\xE1s tarde.</div>`:o.innerHTML=`
-      <div class="cb-done">\u{1F389} Pipeline completado \xB7 el equipo termin\xF3</div>
-      ${a?`<a class="cb-btn primary" href="${s(a)}" target="_blank" rel="noopener">Abrir dise\xF1o en Canva \u2192</a>`:""}
-      ${t?`<a class="cb-btn primary" href="${s(t)}" target="_blank" rel="noopener">Ver post \u2192</a>`:""}
-      <button class="cb-btn ghost" id="cb-close-final">Cerrar</button>`,o.querySelector("#cb-close-final")?.addEventListener("click",()=>{i?.remove(),i=null}),x(e?"Pipeline detenido":"\u{1F389} Canva pipeline completado",e?"warn":"ok"))},S=`
+      <div class="cb-aborted">Pipeline detenido. Podés retomar más tarde.</div>`;
+  } else {
+    actions.innerHTML = `
+      <div class="cb-done">🎉 Pipeline completado · el equipo terminó</div>
+      ${designUrl ? `<a class="cb-btn primary" href="${escapeHtml(designUrl)}" target="_blank" rel="noopener">Abrir diseño en Canva →</a>` : ''}
+      ${publishUrl ? `<a class="cb-btn primary" href="${escapeHtml(publishUrl)}" target="_blank" rel="noopener">Ver post →</a>` : ''}
+      <button class="cb-btn ghost" id="cb-close-final">Cerrar</button>`;
+  }
+  actions.querySelector('#cb-close-final')?.addEventListener('click', () => {
+    activeModal?.remove();
+    activeModal = null;
+  });
+  toast(aborted ? 'Pipeline detenido' : '🎉 Canva pipeline completado', aborted ? 'warn' : 'ok');
+};
+
+const CB_STYLES = `
 .cb-modal { position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center; animation: cbIn .15s ease; }
 @keyframes cbIn { from { opacity: 0; } to { opacity: 1; } }
 .cb-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.72); backdrop-filter: blur(6px); }

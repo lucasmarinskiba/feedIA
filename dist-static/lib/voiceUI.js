@@ -1,1 +1,466 @@
-import{api as k}from"./api.js";import{t as o,getLang as M,onLangChange as H}from"./i18n.js";import{initVoice as $,isSupported as O,startWakeLoop as m,stopWakeLoop as y,captureCommand as f,cancelCommand as B,speak as g,stopSpeaking as F,getConfig as E,isWakeActive as w}from"./voice.js";let S=!1,C=!1,T=!1,W=!1;const D=async()=>{try{const[{initPorcupine:n,isPorcupineAvailable:i},{initWhisperWeb:c,isWhisperWebAvailable:l}]=await Promise.all([import("./porcupineWake.js"),import("./whisperWeb.js")]);S=i(),C=l()}catch{}};let e={},L=[],b=()=>{},s=!1;const r=n=>document.getElementById(n),t=(n,i)=>{const c=e.orb;if(c&&(c.classList.remove("is-wake","is-listening","is-processing","is-speaking","is-error"),n!=="idle"&&c.classList.add(`is-${n}`)),e.stateLabel){const l={idle:o("voice.idle"),wake:o("voice.idle"),listening:o("voice.listening"),processing:o("voice.processing"),speaking:o("voice.speaking"),error:i==="mic-denied"?o("voice.micDenied"):o("voice.notSupported")};e.stateLabel.textContent=l[n]??o("voice.idle")}},P=()=>{if(!e.suggestions)return;const n=[o("voice.s1"),o("voice.s2"),o("voice.s3"),o("voice.s4")];e.suggestions.innerHTML=`<div class="voice-sugg-title">${o("voice.suggestions")}</div>`+n.map(i=>`<button class="voice-sugg-chip">${i}</button>`).join(""),e.suggestions.querySelectorAll(".voice-sugg-chip").forEach(i=>{i.addEventListener("click",()=>A(i.textContent))})},V="feedia.voice.micGranted",x=()=>localStorage.getItem(V)==="1",K=()=>{try{localStorage.setItem(V,"1")}catch{}},G=async()=>{if(x())return!0;try{return(await navigator.mediaDevices.getUserMedia({audio:!0})).getTracks().forEach(i=>i.stop()),K(),!0}catch{return!1}};export const openVoiceOverlay=async(n=!0)=>{if(e.overlay){if(window.closeChatbotPanel?.(),!x()){const i=await G();if(i&&!w()&&(m(),reflectFab()),!i){s=!0,e.overlay.classList.add("open"),e.overlay.setAttribute("aria-hidden","false"),document.body.style.overflow="hidden",e.transcript&&(e.transcript.innerHTML='<span style="color:#fca5a5;font-size:14px;">\u274C Permiso de micr\xF3fono denegado.<br>Habilitalo en la configuraci\xF3n del navegador y recarg\xE1 la p\xE1gina.</span>'),t("error","mic-denied");return}}s=!0,e.overlay.classList.add("open"),e.overlay.setAttribute("aria-hidden","false"),document.body.style.overflow="hidden",e.transcript&&(e.transcript.textContent=""),P(),t("idle"),n?n==="wake"?E().ttsEnabled?(t("speaking"),g("Dime.").then(()=>{s&&(t("listening"),f())})):(t("listening"),f()):E().ttsEnabled?(t("speaking"),g(o("voice.greeting")).then(()=>{s&&(t("listening"),f())})):(t("listening"),f()):(t("listening"),f())}},closeVoiceOverlay=()=>{s=!1,e.overlay&&(e.overlay.classList.remove("open"),e.overlay.setAttribute("aria-hidden","true")),document.body.style.overflow="",B(),t("idle")};const A=async n=>{if(!n||!n.trim()){t("idle");return}F(),L.push({role:"user",content:n}),e.transcript&&(e.transcript.innerHTML=`<span class="voice-tx-user">${v(n)}</span>`),t("processing");try{const i=await k("/api/voice/command",{method:"POST",body:{transcript:n,lang:M(),history:L.slice(-6)}}),c=i.spokenReply||i.reply||"";L.push({role:"assistant",content:i.reply||c}),e.transcript&&(e.transcript.innerHTML=`<span class="voice-tx-user">${v(n)}</span><span class="voice-tx-feedia">${v(c)}</span>`),t("speaking"),await g(c);const l=i.action||{type:"none"};if(l.type==="navigate"&&l.route){closeVoiceOverlay(),b(l.route);return}if(l.type==="mission"&&l.freeIntent){try{await k("/api/missions/launch",{method:"POST",body:{freeIntent:l.freeIntent,runNow:!0}})}catch{}closeVoiceOverlay(),b("mission");return}s&&(t("listening"),f())}catch{e.transcript&&(e.transcript.innerHTML+=`<span class="voice-tx-feedia">${o("voice.didntCatch")}</span>`),t("speaking"),await g(o("voice.didntCatch")),s&&(t("listening"),f())}},v=n=>String(n??"").replace(/[&<>"]/g,i=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[i]);export const initVoiceUI=({navigate:n})=>{if(b=n,e={overlay:r("voice-overlay"),orb:r("voice-orb"),stateLabel:r("voice-state-label"),transcript:r("voice-transcript"),suggestions:r("voice-suggestions"),fab:r("voice-fab"),close:r("voice-close"),micBtn:r("voice-mic-btn"),micLabel:r("voice-mic-label"),wakeToggle:r("voice-wake-toggle"),wakeIcon:r("voice-wake-icon"),wakeLabel:r("voice-wake-label")},!e.overlay)return;O()||e.fab&&(e.fab.style.display="none"),$({onWake:()=>{s||openVoiceOverlay("wake")},onState:(a,d)=>t(a,d),onPartial:a=>{e.transcript&&(e.transcript.innerHTML=`<span class="voice-tx-user voice-tx-interim">${v(a)}</span>`)},onCommand:A,onError:a=>t("error",a)}),D();const i=()=>{const a=w();e.fab&&e.fab.classList.toggle("is-armed",a),e.wakeToggle&&e.wakeToggle.classList.toggle("is-armed",a),e.wakeIcon&&(e.wakeIcon.textContent=a?"\u{1F534}":"\u{1F3A4}"),e.wakeLabel&&(e.wakeLabel.textContent=a?'En escucha \u2014 di "Hola FeedIA"':'Activar "Hola FeedIA"')};i();let c=!1;(async()=>{const{connectVoiceSocket:a,onVoiceMessage:d}=await import("./voiceSocketClient.js");(await a()).ok&&(c=!0,d(p=>{p.type==="command_result"&&(e.transcript&&(e.transcript.innerHTML=`<span class="voice-tx-user">${v(p.transcript||"")}</span><span class="voice-tx-feedia">${v(p.response||"")}</span>`),t("speaking"),g(p.response||"").then(()=>{s&&(t("listening"),f())})),p.type==="tts_start"&&t("speaking",p.text),p.type==="tts_end"&&s&&(t("listening"),f()),p.type==="error"&&t("error",p.message)}))})();const I=async()=>{try{return(await k("/api/voice/custom-wake-words")).wakeWords?.filter(d=>d.active&&d.type==="porcupine")??[]}catch{return[]}};window.__feediaVoice=window.__feediaVoice||{},window.__feediaVoice.enablePorcupine=async()=>{if(!S)return{ok:!1,error:"Porcupine no disponible"};const{initPorcupine:a,startPorcupineWake:d,setDetectionCallback:h}=await import("./porcupineWake.js"),p=await I(),_=await a({accessKey:window.__env?.PORCUPINE_ACCESS_KEY,customKeywords:p});return _.ok?(h(()=>{s||openVoiceOverlay(!0)}),await d(),T=!0,{ok:!0}):_},window.__feediaVoice.enableWhisper=async()=>{if(!C)return{ok:!1,error:"Whisper Web no disponible"};const{initWhisperWeb:a}=await import("./whisperWeb.js"),d=await a();return d.ok?(W=!0,{ok:!0}):d},window.__feediaVoice.getEngineStatus=()=>({porcupine:T,whisper:W,websocket:c}),window.__feediaVoice.detectedLanguage="es";let u=null;e.fab?.addEventListener("pointerdown",()=>{u=setTimeout(()=>{u=null,w()?(y(),i()):(m(),i())},500)}),e.fab?.addEventListener("pointerup",()=>{if(u){if(clearTimeout(u),u=null,s){closeVoiceOverlay();return}openVoiceOverlay(!0)}}),e.fab?.addEventListener("pointercancel",()=>{clearTimeout(u),u=null}),e.close?.addEventListener("click",()=>closeVoiceOverlay()),e.micBtn?.addEventListener("click",()=>{t("listening"),f()}),r("voice-manos-libres-btn")?.addEventListener("click",()=>{closeVoiceOverlay(),b("handsfree")}),e.wakeToggle?.addEventListener("click",()=>{w()?y():m(),i()}),document.addEventListener("keydown",a=>{a.key==="Escape"&&s&&closeVoiceOverlay()}),H(()=>{e.micLabel&&(e.micLabel.textContent=o("voice.tapToSpeak")),s&&(P(),t("idle"))}),e.micLabel&&(e.micLabel.textContent=o("voice.tapToSpeak")),window.__feediaVoice.enableWake=()=>{m(),i()},window.__feediaVoice.disableWake=()=>{y(),i()},window.__feediaVoice.open=()=>openVoiceOverlay(!0),window.closeVoiceOverlay=closeVoiceOverlay};
+/* ══════════════════════════════════════════════════════════════════════════════
+   voiceUI.js — Wires the voice engine to the overlay UI + app navigation
+   ──────────────────────────────────────────────────────────────────────────────
+   Responsibilities:
+     • Manage the full-screen overlay lifecycle (open/close/state)
+     • Drive the orb animation states
+     • Send transcripts to /api/voice/command and act on the returned action
+       (navigate / launch mission / chat) while FeedIA speaks the reply
+     • Maintain a short rolling conversation history for context
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+import { api } from './api.js';
+import { t, getLang, onLangChange } from './i18n.js';
+import {
+  initVoice,
+  isSupported,
+  startWakeLoop,
+  stopWakeLoop,
+  captureCommand,
+  cancelCommand,
+  speak,
+  stopSpeaking,
+  getConfig,
+  isWakeActive,
+} from './voice.js';
+
+// ── Optional advanced engines (lazy-loaded) ────────────────────────────────
+let porcupineAvailable = false;
+let whisperAvailable = false;
+let usePorcupine = false;
+let useWhisper = false;
+
+const loadAdvancedEngines = async () => {
+  try {
+    const [{ initPorcupine, isPorcupineAvailable }, { initWhisperWeb, isWhisperWebAvailable }] = await Promise.all([
+      import('./porcupineWake.js'),
+      import('./whisperWeb.js'),
+    ]);
+    porcupineAvailable = isPorcupineAvailable();
+    whisperAvailable = isWhisperWebAvailable();
+  } catch {
+    /* engines not available */
+  }
+};
+
+let els = {};
+let history = []; // [{role:'user'|'assistant', content}]
+let navigateFn = () => {}; // injected from app.js
+let opened = false;
+
+const $ = (id) => document.getElementById(id);
+
+const setState = (state, detail) => {
+  const orb = els.orb;
+  if (orb) {
+    orb.classList.remove('is-wake', 'is-listening', 'is-processing', 'is-speaking', 'is-error');
+    if (state !== 'idle') orb.classList.add(`is-${state}`);
+  }
+  if (els.stateLabel) {
+    const map = {
+      idle: t('voice.idle'),
+      wake: t('voice.idle'),
+      listening: t('voice.listening'),
+      processing: t('voice.processing'),
+      speaking: t('voice.speaking'),
+      error: detail === 'mic-denied' ? t('voice.micDenied') : t('voice.notSupported'),
+    };
+    els.stateLabel.textContent = map[state] ?? t('voice.idle');
+  }
+};
+
+const renderSuggestions = () => {
+  if (!els.suggestions) return;
+  const items = [t('voice.s1'), t('voice.s2'), t('voice.s3'), t('voice.s4')];
+  els.suggestions.innerHTML =
+    `<div class="voice-sugg-title">${t('voice.suggestions')}</div>` +
+    items.map((s) => `<button class="voice-sugg-chip">${s}</button>`).join('');
+  els.suggestions.querySelectorAll('.voice-sugg-chip').forEach((chip) => {
+    chip.addEventListener('click', () => handleTranscript(chip.textContent));
+  });
+};
+
+const LS_MIC = 'feedia.voice.micGranted';
+const hasMicGrant = () => localStorage.getItem(LS_MIC) === '1';
+const markMicGrant = () => {
+  try {
+    localStorage.setItem(LS_MIC, '1');
+  } catch {
+    /* ignore */
+  }
+};
+
+// Request mic permission explicitly so the browser shows a clear dialog.
+// Must be called from inside a user-gesture handler (click/tap).
+const ensureMicPermission = async () => {
+  if (hasMicGrant()) return true;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach((t) => t.stop()); // release immediately — SpeechRecognition manages its own stream
+    markMicGrant();
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const openVoiceOverlay = async (greet = true) => {
+  if (!els.overlay) return;
+
+  // Close chatbot panel if open (prevent overlap)
+  window.closeChatbotPanel?.();
+
+  // On first open: request mic permission and auto-arm wake loop if granted.
+  if (!hasMicGrant()) {
+    const granted = await ensureMicPermission();
+    if (granted && !isWakeActive()) {
+      startWakeLoop();
+      reflectFab();
+    }
+    if (!granted) {
+      // Show brief inline error then bail — can't do anything without mic.
+      opened = true;
+      els.overlay.classList.add('open');
+      els.overlay.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      if (els.transcript)
+        els.transcript.innerHTML =
+          '<span style="color:#fca5a5;font-size:14px;">❌ Permiso de micrófono denegado.<br>Habilitalo en la configuración del navegador y recargá la página.</span>';
+      setState('error', 'mic-denied');
+      return;
+    }
+  }
+
+  opened = true;
+  els.overlay.classList.add('open');
+  els.overlay.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  if (els.transcript) els.transcript.textContent = '';
+  renderSuggestions();
+  setState('idle');
+
+  if (!greet) {
+    // No greeting — jump straight into listening.
+    setState('listening');
+    captureCommand();
+  } else if (greet === 'wake') {
+    // Wake-word triggered: short ack so user knows FeedIA heard them.
+    if (getConfig().ttsEnabled) {
+      setState('speaking');
+      speak('Dime.').then(() => {
+        if (opened) {
+          setState('listening');
+          captureCommand();
+        }
+      });
+    } else {
+      setState('listening');
+      captureCommand();
+    }
+  } else {
+    // Manual open (FAB tap): full contextual greeting.
+    if (getConfig().ttsEnabled) {
+      setState('speaking');
+      speak(t('voice.greeting')).then(() => {
+        if (opened) {
+          setState('listening');
+          captureCommand();
+        }
+      });
+    } else {
+      setState('listening');
+      captureCommand();
+    }
+  }
+};
+
+export const closeVoiceOverlay = () => {
+  opened = false;
+  if (els.overlay) {
+    els.overlay.classList.remove('open');
+    els.overlay.setAttribute('aria-hidden', 'true');
+  }
+  document.body.style.overflow = '';
+  cancelCommand();
+  setState('idle');
+};
+
+const handleTranscript = async (text) => {
+  if (!text || !text.trim()) {
+    setState('idle');
+    return;
+  }
+  // Interrupt any ongoing TTS when user speaks
+  stopSpeaking();
+  history.push({ role: 'user', content: text });
+  if (els.transcript) els.transcript.innerHTML = `<span class="voice-tx-user">${escapeHtml(text)}</span>`;
+  setState('processing');
+
+  try {
+    const r = await api('/api/voice/command', {
+      method: 'POST',
+      body: { transcript: text, lang: getLang(), history: history.slice(-6) },
+    });
+
+    const spoken = r.spokenReply || r.reply || '';
+    history.push({ role: 'assistant', content: r.reply || spoken });
+    if (els.transcript) {
+      els.transcript.innerHTML =
+        `<span class="voice-tx-user">${escapeHtml(text)}</span>` +
+        `<span class="voice-tx-feedia">${escapeHtml(spoken)}</span>`;
+    }
+
+    // Speak first; then perform the action so the user hears confirmation.
+    setState('speaking');
+    await speak(spoken);
+
+    const act = r.action || { type: 'none' };
+    if (act.type === 'navigate' && act.route) {
+      closeVoiceOverlay();
+      navigateFn(act.route);
+      return;
+    }
+    if (act.type === 'mission' && act.freeIntent) {
+      try {
+        await api('/api/missions/launch', {
+          method: 'POST',
+          body: { freeIntent: act.freeIntent, runNow: true },
+        });
+      } catch {
+        /* non-blocking */
+      }
+      closeVoiceOverlay();
+      navigateFn('mission');
+      return;
+    }
+    // chat / none → stay in overlay, listen again for follow-up.
+    if (opened) {
+      setState('listening');
+      captureCommand();
+    }
+  } catch (err) {
+    if (els.transcript) {
+      els.transcript.innerHTML += `<span class="voice-tx-feedia">${t('voice.didntCatch')}</span>`;
+    }
+    setState('speaking');
+    await speak(t('voice.didntCatch'));
+    if (opened) {
+      setState('listening');
+      captureCommand();
+    }
+  }
+};
+
+const escapeHtml = (s) =>
+  String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+export const initVoiceUI = ({ navigate }) => {
+  navigateFn = navigate;
+  els = {
+    overlay: $('voice-overlay'),
+    orb: $('voice-orb'),
+    stateLabel: $('voice-state-label'),
+    transcript: $('voice-transcript'),
+    suggestions: $('voice-suggestions'),
+    fab: $('voice-fab'),
+    close: $('voice-close'),
+    micBtn: $('voice-mic-btn'),
+    micLabel: $('voice-mic-label'),
+    wakeToggle: $('voice-wake-toggle'),
+    wakeIcon: $('voice-wake-icon'),
+    wakeLabel: $('voice-wake-label'),
+  };
+
+  if (!els.overlay) return;
+
+  // Hide the FAB entirely if speech recognition is unavailable.
+  if (!isSupported()) {
+    if (els.fab) els.fab.style.display = 'none';
+  }
+
+  initVoice({
+    onWake: () => {
+      if (!opened) openVoiceOverlay('wake');
+    },
+    onState: (s, d) => setState(s, d),
+    onPartial: (txt) => {
+      if (els.transcript) {
+        els.transcript.innerHTML = `<span class="voice-tx-user voice-tx-interim">${escapeHtml(txt)}</span>`;
+      }
+    },
+    onCommand: handleTranscript,
+    onError: (kind) => setState('error', kind),
+  });
+
+  // Load advanced engines in background
+  void loadAdvancedEngines();
+
+  // Reflect wake state on FAB + toggle button.
+  const reflectFab = () => {
+    const armed = isWakeActive();
+    if (els.fab) els.fab.classList.toggle('is-armed', armed);
+    if (els.wakeToggle) els.wakeToggle.classList.toggle('is-armed', armed);
+    if (els.wakeIcon) els.wakeIcon.textContent = armed ? '🔴' : '🎤';
+    if (els.wakeLabel) els.wakeLabel.textContent = armed ? 'En escucha — di "Hola FeedIA"' : 'Activar "Hola FeedIA"';
+  };
+  reflectFab();
+
+  // WebSocket streaming integration
+  let useWebSocket = false;
+  const initWebSocket = async () => {
+    const { connectVoiceSocket, onVoiceMessage } = await import('./voiceSocketClient.js');
+    const r = await connectVoiceSocket();
+    if (!r.ok) return;
+    useWebSocket = true;
+    onVoiceMessage((msg) => {
+      if (msg.type === 'command_result') {
+        if (els.transcript) {
+          els.transcript.innerHTML =
+            `<span class="voice-tx-user">${escapeHtml(msg.transcript || '')}</span>` +
+            `<span class="voice-tx-feedia">${escapeHtml(msg.response || '')}</span>`;
+        }
+        setState('speaking');
+        speak(msg.response || '').then(() => {
+          if (opened) {
+            setState('listening');
+            captureCommand();
+          }
+        });
+      }
+      if (msg.type === 'tts_start') setState('speaking', msg.text);
+      if (msg.type === 'tts_end') {
+        if (opened) {
+          setState('listening');
+          captureCommand();
+        }
+      }
+      if (msg.type === 'error') setState('error', msg.message);
+    });
+  };
+  void initWebSocket();
+
+  // Load custom Porcupine keywords from server
+  const loadCustomKeywords = async () => {
+    try {
+      const r = await api('/api/voice/custom-wake-words');
+      return r.wakeWords?.filter((w) => w.active && w.type === 'porcupine') ?? [];
+    } catch {
+      return [];
+    }
+  };
+
+  // Inicializar el namespace ANTES de asignarle métodos (sino TypeError y se rompe todo initVoiceUI)
+  window.__feediaVoice = window.__feediaVoice || {};
+
+  // Expose engine toggles
+  window.__feediaVoice.enablePorcupine = async () => {
+    if (!porcupineAvailable) return { ok: false, error: 'Porcupine no disponible' };
+    const { initPorcupine, startPorcupineWake, setDetectionCallback } = await import('./porcupineWake.js');
+    const customKeywords = await loadCustomKeywords();
+    const r = await initPorcupine({ accessKey: window.__env?.PORCUPINE_ACCESS_KEY, customKeywords });
+    if (!r.ok) return r;
+    setDetectionCallback(() => {
+      if (!opened) openVoiceOverlay(true);
+    });
+    await startPorcupineWake();
+    usePorcupine = true;
+    return { ok: true };
+  };
+  window.__feediaVoice.enableWhisper = async () => {
+    if (!whisperAvailable) return { ok: false, error: 'Whisper Web no disponible' };
+    const { initWhisperWeb } = await import('./whisperWeb.js');
+    const r = await initWhisperWeb();
+    if (!r.ok) return r;
+    useWhisper = true;
+    return { ok: true };
+  };
+  window.__feediaVoice.getEngineStatus = () => ({
+    porcupine: usePorcupine,
+    whisper: useWhisper,
+    websocket: useWebSocket,
+  });
+  window.__feediaVoice.detectedLanguage = 'es'; // Updated by translation pipeline
+
+  // FAB: tap → open overlay / long-press (500ms) → toggle wake loop without opening overlay.
+  let fabPressTimer = null;
+  els.fab?.addEventListener('pointerdown', () => {
+    fabPressTimer = setTimeout(() => {
+      fabPressTimer = null;
+      if (isWakeActive()) {
+        stopWakeLoop();
+        reflectFab();
+      } else {
+        startWakeLoop();
+        reflectFab();
+      }
+    }, 500);
+  });
+  els.fab?.addEventListener('pointerup', () => {
+    if (fabPressTimer) {
+      clearTimeout(fabPressTimer);
+      fabPressTimer = null;
+      if (opened) {
+        closeVoiceOverlay();
+        return;
+      }
+      openVoiceOverlay(true);
+    }
+  });
+  els.fab?.addEventListener('pointercancel', () => {
+    clearTimeout(fabPressTimer);
+    fabPressTimer = null;
+  });
+
+  els.close?.addEventListener('click', () => closeVoiceOverlay());
+  els.micBtn?.addEventListener('click', () => {
+    setState('listening');
+    captureCommand();
+  });
+
+  // Modo Manos Libres button
+  const manosLibresBtn = $('voice-manos-libres-btn');
+  manosLibresBtn?.addEventListener('click', () => {
+    closeVoiceOverlay();
+    navigateFn('handsfree');
+  });
+
+  // Wake toggle inside overlay.
+  els.wakeToggle?.addEventListener('click', () => {
+    if (isWakeActive()) {
+      stopWakeLoop();
+    } else {
+      startWakeLoop(); // triggers browser mic permission dialog if not yet granted
+    }
+    reflectFab();
+  });
+
+  // Escape closes the overlay.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && opened) closeVoiceOverlay();
+  });
+
+  // Re-render labels on language change.
+  onLangChange(() => {
+    if (els.micLabel) els.micLabel.textContent = t('voice.tapToSpeak');
+    if (opened) {
+      renderSuggestions();
+      setState('idle');
+    }
+  });
+  if (els.micLabel) els.micLabel.textContent = t('voice.tapToSpeak');
+
+  // Expose programmatic control for settings toggles. (NO sobreescribir el objeto,
+  // sino asignar campos — porque arriba ya añadimos enablePorcupine/enableWhisper/etc.)
+  window.__feediaVoice.enableWake = () => {
+    startWakeLoop();
+    reflectFab();
+  };
+  window.__feediaVoice.disableWake = () => {
+    stopWakeLoop();
+    reflectFab();
+  };
+  window.__feediaVoice.open = () => openVoiceOverlay(true);
+
+  // Export global close function for chatbot sync
+  window.closeVoiceOverlay = closeVoiceOverlay;
+};

@@ -5,8 +5,8 @@ import fs from 'fs';
 const app = express();
 app.use(express.json());
 
-// Serve static files from src/server/static
-const staticDir = path.join(__dirname, '..', 'src', 'server', 'static');
+// Serve static files from dist-static (copy of src/server/static)
+const staticDir = path.join(__dirname, '..', 'dist-static');
 app.use(express.static(staticDir, { maxAge: '1h' }));
 
 // Health check

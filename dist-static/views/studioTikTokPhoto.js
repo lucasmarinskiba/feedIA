@@ -1,75 +1,191 @@
-import{apiSafe as E}from"../lib/api.js";import{escape as n,openExternal as S}from"../lib/dom.js";import{toast as u}from"../lib/toast.js";let $=null;const k=()=>{$&&(clearInterval($),$=null)},I=[{v:"photo set",l:"\u{1F4F8} Photo set"},{v:"carrusel",l:"\u{1F0CF} Carrusel"},{v:"album",l:"\u{1F4DA} \xC1lbum"}],L=[{v:"nano-banana-2",l:"\u{1F34C} Nano Banana (r\xE1pido, texto)"},{v:"gpt-image-2",l:"\u{1F3A8} gpt-image-2 (calidad)"},{v:"flux",l:"\u{1F300} Flux (est\xE9tica)"}],z=[{v:"educar",l:"\u{1F393} Educar"},{v:"entretener",l:"\u{1F602} Entretener"},{v:"vender",l:"\u{1F6D2} Vender (soft sell)"},{v:"inspirar",l:"\u{1F680} Inspirar"}],P=[{v:"realista",l:"\u{1F4F7} Realista nativo"},{v:"minimal",l:"\u2B1C Minimal"},{v:"bold-tipo",l:"\u{1F520} Bold tipogr\xE1fico"},{v:"cinematico",l:"\u{1F3AC} Cinem\xE1tico"},{v:"editorial",l:"\u{1F4F0} Editorial / revista"},{v:"retro",l:"\u{1F4FC} Retro / anal\xF3gico"},{v:"3d",l:"\u{1F9CA} 3D / render"},{v:"collage",l:"\u2702\uFE0F Collage / meme"},{v:"ilustrado",l:"\u{1F58D}\uFE0F Ilustrado / mano"}],F=[{v:"marca",l:"\u{1F3A8} De la marca"},{v:"alto-contraste-bn",l:"\u2B1B Alto contraste B&N"},{v:"vibrante",l:"\u{1F308} Vibrante"},{v:"pastel",l:"\u{1FA70} Pastel"},{v:"neon",l:"\u{1F4A1} Ne\xF3n"},{v:"tierra",l:"\u{1F3DC}\uFE0F Tierra / c\xE1lida"},{v:"frio",l:"\u{1F9CA} Fr\xEDo / azulado"}],M=[{v:"energetico",l:"\u26A1 Energ\xE9tico"},{v:"autoridad",l:"\u{1F393} Serio / autoridad"},{v:"aspiracional",l:"\u2728 Aspiracional"},{v:"divertido",l:"\u{1F604} Divertido"},{v:"misterioso",l:"\u{1F576}\uFE0F Misterioso"},{v:"cercano",l:"\u{1FAF6} Cercano"}],O=[{v:"media",l:"\u25E7 Media"},{v:"minima",l:"\u25AB\uFE0F M\xEDnima"},{v:"alta",l:"\u25A6 Alta"}],j=["Todos","13-17","18-24","25-34","35-44","45-54","55+"],q=["Todos","Mujeres","Hombres","No binario"],U=["Todos","LatAm","Argentina","M\xE9xico","Colombia","Chile","Espa\xF1a","USA hispano"],R=["Espa\xF1ol neutro","Rioplatense (AR/UY)","Mexicano","Espa\xF1a","Colombiano"],N=["Todos","Principiante","Intermedio","Avanzado"],c=o=>o.map(a=>typeof a=="string"?`<option value="${n(a)}">${n(a)}</option>`:`<option value="${a.v}">${a.l}</option>`).join(""),D=(o,a)=>Array.from({length:a},(m,r)=>({n:r+1,role:r===0?"HOOK":r===a-1?"REMATE + CTA":`Revelaci\xF3n ${r}`,text:r===0?`Hook brutal: "${o.slice(0,40)}"`:r===a-1?'Punch final + "volv\xE9 a la 1\xAA / coment\xE1"':`Una idea nueva (${r})`,prompt:`[SUJETO] escena sobre "${o.slice(0,50)}", foto ${r+1}/${a}. [PLANO] ${r===0?"impactante que obliga a deslizar":"idea clara"}. [LUZ] direccional alto contraste. [ESTILO] crudo real nativo TikTok. [ON-SCREEN] texto grande en safe-area. [CALIDAD] 1080x1920 9:16 sin watermark.`,alt:`Foto ${r+1} sobre ${o.slice(0,40)}`})),C=(o,a,m)=>{const r=/hook/i.test(a),b=/cta|remate/i.test(a),f=r?"#FE2C55":b?"#7928CA":"#25F4EE",h=f==="#25F4EE"?"#0d0d12":"#fff",g="#fff",y=t=>String(t).replace(/[<>&"]/g,i=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"})[i]),x=y(a.length>16?a.slice(0,16)+"\u2026":a),w=y(m.length>32?m.slice(0,32)+"\u2026":m),A=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 480" width="270" height="480"><rect width="270" height="480" fill="${f}"/><defs><linearGradient id="pg${o}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity="0.55"/></linearGradient></defs><rect width="270" height="480" fill="url(#pg${o})"/><circle cx="135" cy="100" r="32" fill="rgba(255,255,255,0.18)"/><text x="135" y="108" text-anchor="middle" font-family="system-ui,sans-serif" font-size="24" font-weight="900" fill="${g}">${o}</text><text x="135" y="180" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="${h}">${x}</text><text x="135" y="260" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="${g}" opacity="0.8">${w}</text><text x="135" y="440" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="${g}" opacity="0.45">TikTok Photo \xB7 9:16</text></svg>`;return`data:image/svg+xml;charset=utf-8,${encodeURIComponent(A)}`};export const renderTikTokPhoto=async o=>{k(),o.innerHTML=`
+/* ══════════════════════════════════════════════════════════════════════════════
+   STUDIO TIKTOK FOTO — Photo Mode de TikTok (9:16, swipe-driven, sonido)
+   ──────────────────────────────────────────────────────────────────────────────
+   Distinto al carrusel IG: vertical, foto 1 = hook, 1 idea/foto, sonido obligatorio,
+   loop. Equipo de agentes IA internos (estratega viral + equipo de IMAGEN: director de
+   foto, prompt engineer, tipógrafo on-screen, color, consistencia de serie) perfecciona
+   el prompt de cada foto. Render vía /api/skills (9:16). Refleja /feedIA-tiktok-photo.
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { apiSafe } from '../lib/api.js';
+import { escape, openExternal } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+
+let pollTimer = null;
+const stopPoll = () => {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+};
+
+const TIPOS = [
+  { v: 'photo set', l: '📸 Photo set' },
+  { v: 'carrusel', l: '🃏 Carrusel' },
+  { v: 'album', l: '📚 Álbum' },
+];
+const MODELOS = [
+  { v: 'nano-banana-2', l: '🍌 Nano Banana (rápido, texto)' },
+  { v: 'gpt-image-2', l: '🎨 gpt-image-2 (calidad)' },
+  { v: 'flux', l: '🌀 Flux (estética)' },
+];
+const MODES = [
+  { v: 'educar', l: '🎓 Educar' },
+  { v: 'entretener', l: '😂 Entretener' },
+  { v: 'vender', l: '🛒 Vender (soft sell)' },
+  { v: 'inspirar', l: '🚀 Inspirar' },
+];
+const ESTILOS = [
+  { v: 'realista', l: '📷 Realista nativo' },
+  { v: 'minimal', l: '⬜ Minimal' },
+  { v: 'bold-tipo', l: '🔠 Bold tipográfico' },
+  { v: 'cinematico', l: '🎬 Cinemático' },
+  { v: 'editorial', l: '📰 Editorial / revista' },
+  { v: 'retro', l: '📼 Retro / analógico' },
+  { v: '3d', l: '🧊 3D / render' },
+  { v: 'collage', l: '✂️ Collage / meme' },
+  { v: 'ilustrado', l: '🖍️ Ilustrado / mano' },
+];
+const PALETAS = [
+  { v: 'marca', l: '🎨 De la marca' },
+  { v: 'alto-contraste-bn', l: '⬛ Alto contraste B&N' },
+  { v: 'vibrante', l: '🌈 Vibrante' },
+  { v: 'pastel', l: '🩰 Pastel' },
+  { v: 'neon', l: '💡 Neón' },
+  { v: 'tierra', l: '🏜️ Tierra / cálida' },
+  { v: 'frio', l: '🧊 Frío / azulado' },
+];
+const MOODS = [
+  { v: 'energetico', l: '⚡ Energético' },
+  { v: 'autoridad', l: '🎓 Serio / autoridad' },
+  { v: 'aspiracional', l: '✨ Aspiracional' },
+  { v: 'divertido', l: '😄 Divertido' },
+  { v: 'misterioso', l: '🕶️ Misterioso' },
+  { v: 'cercano', l: '🫶 Cercano' },
+];
+const DENSIDAD = [
+  { v: 'media', l: '◧ Media' },
+  { v: 'minima', l: '▫️ Mínima' },
+  { v: 'alta', l: '▦ Alta' },
+];
+
+// Audiencia (opción "Todos")
+const EDADES = ['Todos', '13-17', '18-24', '25-34', '35-44', '45-54', '55+'];
+const GENEROS = ['Todos', 'Mujeres', 'Hombres', 'No binario'];
+const REGIONES = ['Todos', 'LatAm', 'Argentina', 'México', 'Colombia', 'Chile', 'España', 'USA hispano'];
+const IDIOMAS = ['Español neutro', 'Rioplatense (AR/UY)', 'Mexicano', 'España', 'Colombiano'];
+const NIVELES = ['Todos', 'Principiante', 'Intermedio', 'Avanzado'];
+
+const opts = (arr) =>
+  arr
+    .map((o) =>
+      typeof o === 'string'
+        ? `<option value="${escape(o)}">${escape(o)}</option>`
+        : `<option value="${o.v}">${o.l}</option>`,
+    )
+    .join('');
+
+const localPlan = (tema, n) =>
+  Array.from({ length: n }, (_, i) => ({
+    n: i + 1,
+    role: i === 0 ? 'HOOK' : i === n - 1 ? 'REMATE + CTA' : `Revelación ${i}`,
+    text:
+      i === 0
+        ? `Hook brutal: "${tema.slice(0, 40)}"`
+        : i === n - 1
+          ? 'Punch final + "volvé a la 1ª / comentá"'
+          : `Una idea nueva (${i})`,
+    prompt: `[SUJETO] escena sobre "${tema.slice(0, 50)}", foto ${i + 1}/${n}. [PLANO] ${i === 0 ? 'impactante que obliga a deslizar' : 'idea clara'}. [LUZ] direccional alto contraste. [ESTILO] crudo real nativo TikTok. [ON-SCREEN] texto grande en safe-area. [CALIDAD] 1080x1920 9:16 sin watermark.`,
+    alt: `Foto ${i + 1} sobre ${tema.slice(0, 40)}`,
+  }));
+
+const _photoSlotSvg = (n, role, text) => {
+  const isHook = /hook/i.test(role);
+  const isCta = /cta|remate/i.test(role);
+  const bg = isHook ? '#FE2C55' : isCta ? '#7928CA' : '#25F4EE';
+  const labelColor = bg === '#25F4EE' ? '#0d0d12' : '#fff';
+  const fg = '#fff';
+  const esc = (s) =>
+    String(s).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c]);
+  const safeRole = esc(role.length > 16 ? role.slice(0, 16) + '…' : role);
+  const safeText = esc(text.length > 32 ? text.slice(0, 32) + '…' : text);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 480" width="270" height="480"><rect width="270" height="480" fill="${bg}"/><defs><linearGradient id="pg${n}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity="0.55"/></linearGradient></defs><rect width="270" height="480" fill="url(#pg${n})"/><circle cx="135" cy="100" r="32" fill="rgba(255,255,255,0.18)"/><text x="135" y="108" text-anchor="middle" font-family="system-ui,sans-serif" font-size="24" font-weight="900" fill="${fg}">${n}</text><text x="135" y="180" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="${labelColor}">${safeRole}</text><text x="135" y="260" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="${fg}" opacity="0.8">${safeText}</text><text x="135" y="440" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="${fg}" opacity="0.45">TikTok Photo · 9:16</text></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+};
+
+export const renderTikTokPhoto = async (root) => {
+  stopPoll();
+  root.innerHTML = `
     <header class="view-header page-header">
       <div>
-        <h1 class="view-title page-title">\u{1F5BC}\uFE0F Foto TikTok \xB7 Photo Mode</h1>
+        <h1 class="view-title page-title">🖼️ Foto TikTok · Photo Mode</h1>
         <p class="view-subtitle page-subtitle">Carrusel de fotos NATIVO de TikTok: 9:16 vertical, foto 1 = hook, 1 idea por foto, sonido obligatorio, loop para rewatch. Equipo de IA interno perfecciona el prompt de cada imagen.</p>
       </div>
     </header>
     <div class="page-body">
       <div class="card" style="margin-bottom:14px;border-left:3px solid #FE2C55;background:linear-gradient(135deg,rgba(37,244,238,.06),rgba(254,44,85,.06));">
-        <div class="small"><strong>TikTok Photo \u2260 IG Carrusel</strong> \xB7 vertical 9:16 \xB7 foto 1 obliga a deslizar \xB7 texto corto sobre imagen \xB7 sonido trending \xB7 swipe completion + replays mandan.</div>
+        <div class="small"><strong>TikTok Photo ≠ IG Carrusel</strong> · vertical 9:16 · foto 1 obliga a deslizar · texto corto sobre imagen · sonido trending · swipe completion + replays mandan.</div>
       </div>
 
       <div class="gx-panel">
         <label class="gx-label">Tema / idea / URL</label>
-        <textarea id="ph-tema" class="gx-input" rows="2" placeholder="Ej: '5 apps de IA que cambian el juego' \xB7 una idea \xB7 link"></textarea>
+        <textarea id="ph-tema" class="gx-input" rows="2" placeholder="Ej: '5 apps de IA que cambian el juego' · una idea · link"></textarea>
 
         <details class="gx-collapse">
-          <summary class="gx-summary"><span class="gx-sum-ico">\u{1F465}</span> Audiencia Personalizada <span class="gx-chev">\u2304</span></summary>
+          <summary class="gx-summary"><span class="gx-sum-ico">👥</span> Audiencia Personalizada <span class="gx-chev">⌄</span></summary>
           <div class="gx-body">
             <div class="gx-grid">
-              <div><label class="gx-mini">Edad</label><select id="ph-edad" class="gx-input">${c(j)}</select></div>
-              <div><label class="gx-mini">G\xE9nero</label><select id="ph-genero" class="gx-input">${c(q)}</select></div>
-              <div><label class="gx-mini">Regi\xF3n</label><select id="ph-region" class="gx-input">${c(U)}</select></div>
-              <div><label class="gx-mini">Idioma / variante</label><select id="ph-idioma" class="gx-input">${c(R)}</select></div>
-              <div><label class="gx-mini">Nivel del p\xFAblico</label><select id="ph-nivel" class="gx-input">${c(N)}</select></div>
+              <div><label class="gx-mini">Edad</label><select id="ph-edad" class="gx-input">${opts(EDADES)}</select></div>
+              <div><label class="gx-mini">Género</label><select id="ph-genero" class="gx-input">${opts(GENEROS)}</select></div>
+              <div><label class="gx-mini">Región</label><select id="ph-region" class="gx-input">${opts(REGIONES)}</select></div>
+              <div><label class="gx-mini">Idioma / variante</label><select id="ph-idioma" class="gx-input">${opts(IDIOMAS)}</select></div>
+              <div><label class="gx-mini">Nivel del público</label><select id="ph-nivel" class="gx-input">${opts(NIVELES)}</select></div>
               <div><label class="gx-mini">Intereses (opcional)</label><input id="ph-intereses" class="gx-input" placeholder="ej: IA, fitness, finanzas"></div>
             </div>
           </div>
         </details>
 
         <details class="gx-collapse" open>
-          <summary class="gx-summary"><span class="gx-sum-ico">\u{1F4F8}</span> Opciones del Photo set <span class="gx-chev">\u2304</span></summary>
+          <summary class="gx-summary"><span class="gx-sum-ico">📸</span> Opciones del Photo set <span class="gx-chev">⌄</span></summary>
           <div class="gx-body">
             <div style="margin-bottom:12px;">
               <label class="gx-mini">Cantidad de fotos</label>
               <div class="gx-seg" id="ph-n-seg">
-                ${["3","4","5","6","7","8","10"].map(t=>`<button type="button" class="gx-seg-btn${t==="6"?" on":""}" data-v="${t}">${t}</button>`).join("")}
+                ${['3', '4', '5', '6', '7', '8', '10'].map((v) => `<button type="button" class="gx-seg-btn${v === '6' ? ' on' : ''}" data-v="${v}">${v}</button>`).join('')}
               </div>
               <input type="hidden" id="ph-n" value="6">
             </div>
             <div class="gx-grid">
-              <div><label class="gx-mini">Tipo</label><select id="ph-tipo" class="gx-input">${c(I)}</select></div>
-              <div><label class="gx-mini">Objetivo</label><select id="ph-modo" class="gx-input">${c(z)}</select></div>
-              <div><label class="gx-mini">Modelo de imagen</label><select id="ph-model" class="gx-input">${c(L)}</select></div>
+              <div><label class="gx-mini">Tipo</label><select id="ph-tipo" class="gx-input">${opts(TIPOS)}</select></div>
+              <div><label class="gx-mini">Objetivo</label><select id="ph-modo" class="gx-input">${opts(MODES)}</select></div>
+              <div><label class="gx-mini">Modelo de imagen</label><select id="ph-model" class="gx-input">${opts(MODELOS)}</select></div>
             </div>
           </div>
         </details>
 
         <details class="gx-collapse">
-          <summary class="gx-summary"><span class="gx-sum-ico">\u{1F3A8}</span> Est\xE9tica avanzada <span class="gx-chev">\u2304</span></summary>
+          <summary class="gx-summary"><span class="gx-sum-ico">🎨</span> Estética avanzada <span class="gx-chev">⌄</span></summary>
           <div class="gx-body">
             <div class="gx-grid">
-              <div><label class="gx-mini">Estilo visual</label><select id="ph-estilo" class="gx-input">${c(P)}</select></div>
-              <div><label class="gx-mini">Paleta</label><select id="ph-paleta" class="gx-input">${c(F)}</select></div>
-              <div><label class="gx-mini">Mood</label><select id="ph-mood" class="gx-input">${c(M)}</select></div>
-              <div><label class="gx-mini">Densidad de texto</label><select id="ph-dens" class="gx-input">${c(O)}</select></div>
+              <div><label class="gx-mini">Estilo visual</label><select id="ph-estilo" class="gx-input">${opts(ESTILOS)}</select></div>
+              <div><label class="gx-mini">Paleta</label><select id="ph-paleta" class="gx-input">${opts(PALETAS)}</select></div>
+              <div><label class="gx-mini">Mood</label><select id="ph-mood" class="gx-input">${opts(MOODS)}</select></div>
+              <div><label class="gx-mini">Densidad de texto</label><select id="ph-dens" class="gx-input">${opts(DENSIDAD)}</select></div>
             </div>
           </div>
         </details>
 
         <div class="btn-row" style="margin-top:14px;gap:8px;">
-          <button class="btn primary" id="ph-plan">\u{1F4CB} Planear photo set</button>
-          <button class="btn" id="ph-render">\u{1F3A8} Generar im\xE1genes (IA)</button>
+          <button class="btn primary" id="ph-plan">📋 Planear photo set</button>
+          <button class="btn" id="ph-render">🎨 Generar imágenes (IA)</button>
         </div>
 
         <div class="ph-tools">
           <div class="ph-tools-label">O que FeedIA edite por vos (Computer Use / web):</div>
           <div class="ph-tools-row">
-            <button class="btn ghost tiny ph-tool" data-tool="canva" data-kind="app">\u{1F3A8} Canva (CU)</button>
-            <button class="btn ghost tiny ph-tool" data-tool="photopea" data-kind="web" data-url="https://www.photopea.com">\u{1F5BC}\uFE0F Editor imagen (Photopea)</button>
-            <button class="btn ghost tiny ph-tool" data-tool="nano-banana" data-kind="web" data-url="https://fal.ai/models/fal-ai/nano-banana">\u{1F34C} Nano Banana</button>
-            <button class="btn ghost tiny ph-tool" data-tool="gpt-image" data-kind="web" data-url="https://fal.ai/models/fal-ai/gpt-image-1">\u{1F3A8} gpt-image</button>
+            <button class="btn ghost tiny ph-tool" data-tool="canva" data-kind="app">🎨 Canva (CU)</button>
+            <button class="btn ghost tiny ph-tool" data-tool="photopea" data-kind="web" data-url="https://www.photopea.com">🖼️ Editor imagen (Photopea)</button>
+            <button class="btn ghost tiny ph-tool" data-tool="nano-banana" data-kind="web" data-url="https://fal.ai/models/fal-ai/nano-banana">🍌 Nano Banana</button>
+            <button class="btn ghost tiny ph-tool" data-tool="gpt-image" data-kind="web" data-url="https://fal.ai/models/fal-ai/gpt-image-1">🎨 gpt-image</button>
           </div>
         </div>
       </div>
@@ -77,13 +193,13 @@ import{apiSafe as E}from"../lib/api.js";import{escape as n,openExternal as S}fro
       <!-- Lienzo: recuadro 9:16 que muestra la imagen generada por IA -->
       <div class="ph-canvas-wrap">
         <div class="ph-canvas-head">
-          <span>\u{1F5BC}\uFE0F Lienzo \xB7 vista previa 9:16</span>
-          <span class="small muted" id="ph-canvas-meta">vac\xEDo</span>
+          <span>🖼️ Lienzo · vista previa 9:16</span>
+          <span class="small muted" id="ph-canvas-meta">vacío</span>
         </div>
         <div class="ph-frame" id="ph-frame">
           <div class="ph-frame-empty" id="ph-frame-empty">
-            <div style="font-size:34px;">\u{1F5BC}\uFE0F</div>
-            <div class="small muted" style="margin-top:8px;text-align:center;">Tu imagen 9:16 aparece ac\xE1.<br>Us\xE1 "Generar im\xE1genes (IA)" o edit\xE1 en Canva/Photopea.</div>
+            <div style="font-size:34px;">🖼️</div>
+            <div class="small muted" style="margin-top:8px;text-align:center;">Tu imagen 9:16 aparece acá.<br>Usá "Generar imágenes (IA)" o editá en Canva/Photopea.</div>
           </div>
           <img id="ph-frame-img" alt="imagen generada" style="display:none;">
         </div>
@@ -116,7 +232,7 @@ import{apiSafe as E}from"../lib/api.js";import{escape as n,openExternal as S}fro
       .gx-seg-btn{flex:1;min-width:42px;border:0;background:transparent;color:#475067;font-size:14px;font-weight:700;padding:9px 6px;border-radius:9px;cursor:pointer;transition:all .15s;}
       .gx-seg-btn:hover{background:#E7EAF0;}
       .gx-seg-btn.on{background:#fff;color:#15181E;box-shadow:0 1px 3px rgba(16,24,40,.12);}
-      /* Herramientas CU / web \u2014 chips modernos */
+      /* Herramientas CU / web — chips modernos */
       .ph-tools{margin-top:16px;border-top:1px solid #EEF0F4;padding-top:14px;}
       .ph-tools-label{font-size:11px;font-weight:600;color:#667085;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;}
       .ph-tools-row{display:flex;gap:8px;flex-wrap:wrap;}
@@ -143,22 +259,195 @@ import{apiSafe as E}from"../lib/api.js";import{escape as n,openExternal as S}fro
       .ph-prompt{margin-top:6px;}
       .ph-prompt summary{font-size:10px;color:var(--text-dim,#9CA3AF);cursor:pointer;}
       .ph-prompt .small{font-size:11px;white-space:pre-wrap;color:var(--text-dim,#9CA3AF);margin-top:4px;}
-    </style>`;const a=t=>o.querySelector(t)?.value??"",m=()=>a("#ph-tema").trim(),r=()=>({edad:a("#ph-edad"),genero:a("#ph-genero"),region:a("#ph-region"),idioma:a("#ph-idioma"),nivel:a("#ph-nivel"),intereses:a("#ph-intereses").trim()});o.querySelector("#ph-n-seg")?.addEventListener("click",t=>{const i=t.target.closest(".gx-seg-btn");i&&(o.querySelectorAll("#ph-n-seg .gx-seg-btn").forEach(s=>s.classList.remove("on")),i.classList.add("on"),o.querySelector("#ph-n").value=i.dataset.v)}),o.querySelectorAll(".ph-tool").forEach(t=>{t.addEventListener("click",async()=>{const i=t.dataset.tool;if(t.dataset.kind==="app"){const{error:s}=await E("/api/cu/apps/launch",null,{method:"POST",body:{app:i}});u(s?`\u{1F4E1} CU no disponible (demo). Activ\xE1 Computer Use para operar ${i}.`:`${i} abierto \xB7 Computer Use editando \u{1F5B1}\uFE0F`,s?"warn":"ok")}else{const s=await S(t.dataset.url);u(s.shownModal?`\u{1F517} ${i} abierto en otra pesta\xF1a`:`${i} abierto`,"info")}})});const b=o.querySelector("#ph-frame-img"),f=o.querySelector("#ph-frame-empty"),h=o.querySelector("#ph-thumbs"),g=o.querySelector("#ph-canvas-meta"),y=(t,i)=>t.url?t.url:`/api/skills/carousel/slide/${encodeURIComponent(i??"")}/${encodeURIComponent(t.name??t)}`,x=t=>{b.src=t,b.style.display="block",f.style.display="none"},w=(t,i)=>{const s=(t??[]).map(e=>y(e,i)).filter(Boolean);s.length&&(x(s[0]),g.textContent=`${s.length} foto${s.length>1?"s":""} \xB7 9:16`,h.innerHTML=s.map((e,d)=>`<div class="ph-thumb${d===0?" on":""}" data-i="${d}"><img src="${n(e)}" alt="foto ${d+1}" onerror="this.parentElement.style.display='none'"></div>`).join(""),h.querySelectorAll(".ph-thumb").forEach(e=>e.addEventListener("click",()=>{h.querySelectorAll(".ph-thumb").forEach(d=>d.classList.remove("on")),e.classList.add("on"),x(s[Number(e.dataset.i)])})))},A=(t,i,s,e,d)=>{const v=d?'<span class="tag tiny warn">local</span>':e?.simulated?'<span class="tag tiny warn">sin ANTHROPIC_API_KEY</span>':'<span class="tag tiny ok">agentes IA</span>';return`
+    </style>`;
+
+  const val = (id) => root.querySelector(id)?.value ?? '';
+  const temaEl = () => val('#ph-tema').trim();
+  const getAudiencia = () => ({
+    edad: val('#ph-edad'),
+    genero: val('#ph-genero'),
+    region: val('#ph-region'),
+    idioma: val('#ph-idioma'),
+    nivel: val('#ph-nivel'),
+    intereses: val('#ph-intereses').trim(),
+  });
+
+  // Segmented cantidad de fotos
+  root.querySelector('#ph-n-seg')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.gx-seg-btn');
+    if (!btn) return;
+    root.querySelectorAll('#ph-n-seg .gx-seg-btn').forEach((b) => b.classList.remove('on'));
+    btn.classList.add('on');
+    root.querySelector('#ph-n').value = btn.dataset.v;
+  });
+
+  // Herramientas: Canva (Computer Use) o editores web
+  root.querySelectorAll('.ph-tool').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const tool = btn.dataset.tool;
+      if (btn.dataset.kind === 'app') {
+        const { error } = await apiSafe('/api/cu/apps/launch', null, { method: 'POST', body: { app: tool } });
+        toast(
+          error
+            ? `📡 CU no disponible (demo). Activá Computer Use para operar ${tool}.`
+            : `${tool} abierto · Computer Use editando 🖱️`,
+          error ? 'warn' : 'ok',
+        );
+      } else {
+        const o = await openExternal(btn.dataset.url);
+        toast(o.shownModal ? `🔗 ${tool} abierto en otra pestaña` : `${tool} abierto`, 'info');
+      }
+    });
+  });
+
+  // Lienzo 9:16: muestra la imagen generada + thumbs para cambiar
+  const frameImg = root.querySelector('#ph-frame-img');
+  const frameEmpty = root.querySelector('#ph-frame-empty');
+  const thumbsEl = root.querySelector('#ph-thumbs');
+  const metaEl = root.querySelector('#ph-canvas-meta');
+  const srcOf = (s, jobId) =>
+    s.url ? s.url : `/api/skills/carousel/slide/${encodeURIComponent(jobId ?? '')}/${encodeURIComponent(s.name ?? s)}`;
+  const setFrame = (src) => {
+    frameImg.src = src;
+    frameImg.style.display = 'block';
+    frameEmpty.style.display = 'none';
+  };
+  const showCanvas = (slides, jobId) => {
+    const list = (slides ?? []).map((s) => srcOf(s, jobId)).filter(Boolean);
+    if (!list.length) return;
+    setFrame(list[0]);
+    metaEl.textContent = `${list.length} foto${list.length > 1 ? 's' : ''} · 9:16`;
+    thumbsEl.innerHTML = list
+      .map(
+        (src, i) =>
+          `<div class="ph-thumb${i === 0 ? ' on' : ''}" data-i="${i}"><img src="${escape(src)}" alt="foto ${i + 1}" onerror="this.parentElement.style.display='none'"></div>`,
+      )
+      .join('');
+    thumbsEl.querySelectorAll('.ph-thumb').forEach((t) =>
+      t.addEventListener('click', () => {
+        thumbsEl.querySelectorAll('.ph-thumb').forEach((x) => x.classList.remove('on'));
+        t.classList.add('on');
+        setFrame(list[Number(t.dataset.i)]);
+      }),
+    );
+  };
+
+  const renderPlan = (photos, tipo, tema, data, error) => {
+    const tag = error
+      ? '<span class="tag tiny warn">local</span>'
+      : data?.simulated
+        ? '<span class="tag tiny warn">sin ANTHROPIC_API_KEY</span>'
+        : '<span class="tag tiny ok">agentes IA</span>';
+    return `
       <div class="card">
-        <div class="row spread" style="margin-bottom:6px;"><h3 style="margin:0;">\u{1F4CB} ${n(i)} \xB7 ${n(s)}</h3>${v}</div>
+        <div class="row spread" style="margin-bottom:6px;"><h3 style="margin:0;">📋 ${escape(tipo)} · ${escape(tema)}</h3>${tag}</div>
         <div class="ph-grid">
-          ${t.map(l=>`
+          ${photos
+            .map(
+              (s) => `
             <div class="ph-slot">
-              <img src="${C(l.n,l.role,l.text)}" style="width:100%;aspect-ratio:9/16;object-fit:cover;display:block;border-radius:4px 4px 0 0;">
+              <img src="${_photoSlotSvg(s.n, s.role, s.text)}" style="width:100%;aspect-ratio:9/16;object-fit:cover;display:block;border-radius:4px 4px 0 0;">
               <div class="ph-slot-body">
-                <div class="ph-role">${l.n}. ${n(l.role)}</div>
-                <div class="ph-text">${n(l.text)}</div>
-                ${l.prompt?`<details class="ph-prompt"><summary>\u{1F3A8} prompt perfeccionado</summary><div class="small">${n(l.prompt)}</div></details>`:""}
+                <div class="ph-role">${s.n}. ${escape(s.role)}</div>
+                <div class="ph-text">${escape(s.text)}</div>
+                ${s.prompt ? `<details class="ph-prompt"><summary>🎨 prompt perfeccionado</summary><div class="small">${escape(s.prompt)}</div></details>` : ''}
               </div>
-            </div>`).join("")}
+            </div>`,
+            )
+            .join('')}
         </div>
-        ${e?.caption?`<div style="margin-top:10px;"><div class="small muted">Caption</div><div class="body" style="white-space:pre-wrap;">${n(e.caption)}</div></div>`:""}
-        ${e?.hashtags?`<div class="small muted" style="margin-top:6px;">${n(e.hashtags)}</div>`:""}
-        ${e?.sonido?`<div class="small muted" style="margin-top:4px;">\u{1F3B5} Sonido: ${n(e.sonido)}</div>`:""}
-        <div class="small muted" style="margin-top:10px;">\u{1F4A1} "Generar im\xE1genes" produce los PNG 9:16 desde estos prompts. Skill: <code>/feedIA-tiktok-photo</code></div>
-      </div>`};o.querySelector("#ph-plan").addEventListener("click",async()=>{const t=m();if(!t){u("Escrib\xED un tema","warn");return}const i=Number(a("#ph-n")),s=a("#ph-tipo"),e=o.querySelector("#ph-result");e.innerHTML='<div class="card"><span class="spinner"></span> El equipo TikTok + imagen est\xE1 planeando\u2026</div>';const{data:d,error:v}=await E("/api/skills/tiktok/photo",null,{method:"POST",body:{tema:t,fotos:i,tipo:s,modelo:a("#ph-model"),modo:a("#ph-modo"),estilo:a("#ph-estilo"),paleta:a("#ph-paleta"),mood:a("#ph-mood"),densidad:a("#ph-dens"),audiencia:r()}}),l=(d?.photos??[]).length?d.photos:D(t,i);e.innerHTML=A(l,s,t,d,v),l.length&&(x(C(l[0].n,l[0].role,l[0].text)),g.textContent=`${l.length} foto${l.length>1?"s":""} \xB7 plan IA`),u("Photo set listo","ok")}),o.querySelector("#ph-render").addEventListener("click",async()=>{const t=m();if(!t){u("Escrib\xED un tema","warn");return}const i=a("#ph-model"),s=o.querySelector("#ph-result");s.innerHTML='<div class="card"><span class="spinner"></span> Generando fotos 9:16\u2026</div>';const{data:e,error:d}=await E("/api/skills/carousel/generate",null,{method:"POST",body:{input:t,model:i,format:"historia"}});if(d||!e){s.innerHTML='<div class="card"><div class="small muted">\u{1F4E1} Backend offline. Us\xE1 "Planear photo set" o Canva (Computer Use).</div></div>';return}if(e.hasFalKey===!1||e.status==="plan-only"){s.innerHTML='<div class="card" style="border-color:rgba(245,158,11,.4);"><strong>\u26A0\uFE0F Falta FAL_KEY</strong><div class="small muted" style="margin-top:6px;">Configur\xE1 FAL_KEY para render real, o us\xE1 camino Canva.</div></div>';return}const v=l=>`<div class="ph-grid">${(l??[]).map(p=>{const T=p.url?p.url:`/api/skills/carousel/slide/${encodeURIComponent(e.jobId??"")}/${encodeURIComponent(p.name??p)}`;return`<div class="ph-slot"><img src="${n(T)}" alt="foto ${n(String(p.num??""))}" onerror="this.parentElement.style.display='none'"></div>`}).join("")}</div>`;if(e.status){s.innerHTML=`<div class="card"><div class="row spread" style="margin-bottom:8px;"><strong>${e.status==="done"?"\u2705 Fotos listas":e.status==="error"?"\u26A0\uFE0F Error":"\u{1F504} "+n(e.status)}</strong><span class="small muted">9:16 \xB7 ${n(i)}</span></div>${e.error?`<div class="small crit">${n(e.error)}</div>`:""}${v(e.slides)}${e.caption?`<div style="margin-top:10px;"><div class="small muted">Caption</div><div class="body" style="white-space:pre-wrap;">${n(e.caption)}</div></div>`:""}</div>`,w(e.slides,e.jobId),u(e.status==="done"?"\u{1F389} Fotos generadas":"Generaci\xF3n con error",e.status==="error"?"warn":"ok");return}if(e.jobId){k();const l=Date.now();$=setInterval(async()=>{if(Date.now()-l>18e4){k();return}const{data:p}=await E(`/api/skills/carousel/status/${e.jobId}`,null);p&&(s.innerHTML=`<div class="card"><strong>${p.status==="done"?"\u2705 Fotos listas":"\u{1F504} "+n(p.status)}</strong>${v(p.slides)}</div>`,p.slides?.length&&w(p.slides,e.jobId),["done","error","plan-only"].includes(p.status)&&k())},2e3)}})};
+        ${data?.caption ? `<div style="margin-top:10px;"><div class="small muted">Caption</div><div class="body" style="white-space:pre-wrap;">${escape(data.caption)}</div></div>` : ''}
+        ${data?.hashtags ? `<div class="small muted" style="margin-top:6px;">${escape(data.hashtags)}</div>` : ''}
+        ${data?.sonido ? `<div class="small muted" style="margin-top:4px;">🎵 Sonido: ${escape(data.sonido)}</div>` : ''}
+        <div class="small muted" style="margin-top:10px;">💡 "Generar imágenes" produce los PNG 9:16 desde estos prompts. Skill: <code>/feedIA-tiktok-photo</code></div>
+      </div>`;
+  };
+
+  root.querySelector('#ph-plan').addEventListener('click', async () => {
+    const tema = temaEl();
+    if (!tema) {
+      toast('Escribí un tema', 'warn');
+      return;
+    }
+    const n = Number(val('#ph-n'));
+    const tipo = val('#ph-tipo');
+    const resultEl = root.querySelector('#ph-result');
+    resultEl.innerHTML = `<div class="card"><span class="spinner"></span> El equipo TikTok + imagen está planeando…</div>`;
+    const { data, error } = await apiSafe('/api/skills/tiktok/photo', null, {
+      method: 'POST',
+      body: {
+        tema,
+        fotos: n,
+        tipo,
+        modelo: val('#ph-model'),
+        modo: val('#ph-modo'),
+        estilo: val('#ph-estilo'),
+        paleta: val('#ph-paleta'),
+        mood: val('#ph-mood'),
+        densidad: val('#ph-dens'),
+        audiencia: getAudiencia(),
+      },
+    });
+    const photos = (data?.photos ?? []).length ? data.photos : localPlan(tema, n);
+    resultEl.innerHTML = renderPlan(photos, tipo, tema, data, error);
+    if (photos.length) {
+      setFrame(_photoSlotSvg(photos[0].n, photos[0].role, photos[0].text));
+      metaEl.textContent = `${photos.length} foto${photos.length > 1 ? 's' : ''} · plan IA`;
+    }
+    toast('Photo set listo', 'ok');
+  });
+
+  root.querySelector('#ph-render').addEventListener('click', async () => {
+    const tema = temaEl();
+    if (!tema) {
+      toast('Escribí un tema', 'warn');
+      return;
+    }
+    const model = val('#ph-model');
+    const resultEl = root.querySelector('#ph-result');
+    resultEl.innerHTML = `<div class="card"><span class="spinner"></span> Generando fotos 9:16…</div>`;
+    const { data: r, error } = await apiSafe('/api/skills/carousel/generate', null, {
+      method: 'POST',
+      body: { input: tema, model, format: 'historia' },
+    });
+    if (error || !r) {
+      resultEl.innerHTML = `<div class="card"><div class="small muted">📡 Backend offline. Usá "Planear photo set" o Canva (Computer Use).</div></div>`;
+      return;
+    }
+    if (r.hasFalKey === false || r.status === 'plan-only') {
+      resultEl.innerHTML = `<div class="card" style="border-color:rgba(245,158,11,.4);"><strong>⚠️ Falta FAL_KEY</strong><div class="small muted" style="margin-top:6px;">Configurá FAL_KEY para render real, o usá camino Canva.</div></div>`;
+      return;
+    }
+    const renderImgs = (slides) =>
+      `<div class="ph-grid">${(slides ?? [])
+        .map((s) => {
+          const src = s.url
+            ? s.url
+            : `/api/skills/carousel/slide/${encodeURIComponent(r.jobId ?? '')}/${encodeURIComponent(s.name ?? s)}`;
+          return `<div class="ph-slot"><img src="${escape(src)}" alt="foto ${escape(String(s.num ?? ''))}" onerror="this.parentElement.style.display='none'"></div>`;
+        })
+        .join('')}</div>`;
+
+    if (r.status) {
+      resultEl.innerHTML = `<div class="card"><div class="row spread" style="margin-bottom:8px;"><strong>${r.status === 'done' ? '✅ Fotos listas' : r.status === 'error' ? '⚠️ Error' : '🔄 ' + escape(r.status)}</strong><span class="small muted">9:16 · ${escape(model)}</span></div>${r.error ? `<div class="small crit">${escape(r.error)}</div>` : ''}${renderImgs(r.slides)}${r.caption ? `<div style="margin-top:10px;"><div class="small muted">Caption</div><div class="body" style="white-space:pre-wrap;">${escape(r.caption)}</div></div>` : ''}</div>`;
+      showCanvas(r.slides, r.jobId);
+      toast(r.status === 'done' ? '🎉 Fotos generadas' : 'Generación con error', r.status === 'error' ? 'warn' : 'ok');
+      return;
+    }
+    if (r.jobId) {
+      stopPoll();
+      const t0 = Date.now();
+      pollTimer = setInterval(async () => {
+        if (Date.now() - t0 > 180000) {
+          stopPoll();
+          return;
+        }
+        const { data: st } = await apiSafe(`/api/skills/carousel/status/${r.jobId}`, null);
+        if (!st) return;
+        resultEl.innerHTML = `<div class="card"><strong>${st.status === 'done' ? '✅ Fotos listas' : '🔄 ' + escape(st.status)}</strong>${renderImgs(st.slides)}</div>`;
+        if (st.slides?.length) showCanvas(st.slides, r.jobId);
+        if (['done', 'error', 'plan-only'].includes(st.status)) stopPoll();
+      }, 2000);
+    }
+  });
+};

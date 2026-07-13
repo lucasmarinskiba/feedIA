@@ -1,11 +1,33 @@
-import{escape as s}from"../lib/dom.js";import{toast as o}from"../lib/toast.js";const $={"strategy:start":"\u{1F9E0} Pensando estrategia...","strategy:done":"\u2705 Plan estrat\xE9gico listo","content:start":"\u270D\uFE0F Escribiendo carrusel con Llama 3.3 70B...","content:done":"\u2705 Slides + caption + hashtags listos","images:start":"\u{1F3A8} Generando im\xE1genes con Pollinations Flux...","images:done":"\u2705 Im\xE1genes listas","predict:start":"\u{1F4CA} Calculando score viral...","predict:done":"\u2705 Score viral calculado","recipe:start":"\u{1F916} Armando script Computer Use...","recipe:done":"\u2705 Recipe lista para publicar",done:"\u{1F389} Demo completa"},u=()=>`
+/* ══════════════════════════════════════════════════════════════════════════════
+   FREE CU DEMO — User Free ve a FeedIA crear + publicar un carrusel paso a paso.
+   ──────────────────────────────────────────────────────────────────────────────
+   Sin gastos al dev: usa Llama 3.3 70B (Groq free) + Pollinations Flux (free).
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { escape } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+
+const STAGE_LABELS = {
+  'strategy:start': '🧠 Pensando estrategia...',
+  'strategy:done': '✅ Plan estratégico listo',
+  'content:start': '✍️ Escribiendo carrusel con Llama 3.3 70B...',
+  'content:done': '✅ Slides + caption + hashtags listos',
+  'images:start': '🎨 Generando imágenes con Pollinations Flux...',
+  'images:done': '✅ Imágenes listas',
+  'predict:start': '📊 Calculando score viral...',
+  'predict:done': '✅ Score viral calculado',
+  'recipe:start': '🤖 Armando script Computer Use...',
+  'recipe:done': '✅ Recipe lista para publicar',
+  done: '🎉 Demo completa',
+};
+
+const buildBriefForm = () => `
   <div class="fcd-card">
-    <h2 class="fcd-title">\u{1F3AC} Mir\xE1 FeedIA crear y publicar tu primer carrusel</h2>
+    <h2 class="fcd-title">🎬 Mirá FeedIA crear y publicar tu primer carrusel</h2>
     <p class="fcd-sub">Plan Free. $0. Llama 3.3 70B + Pollinations Flux. Vas a ver TODO el proceso paso a paso.</p>
 
     <div class="fcd-field">
-      <label>\xBFSobre qu\xE9 armamos el carrusel?</label>
-      <input id="fcd-topic" type="text" placeholder="Ej: c\xF3mo automatizar mi marketing con IA" autocomplete="off" maxlength="120" />
+      <label>¿Sobre qué armamos el carrusel?</label>
+      <input id="fcd-topic" type="text" placeholder="Ej: cómo automatizar mi marketing con IA" autocomplete="off" maxlength="120" />
     </div>
     <div class="fcd-field-row">
       <div class="fcd-field">
@@ -17,160 +39,305 @@ import{escape as s}from"../lib/dom.js";import{toast as o}from"../lib/toast.js";c
         <select id="fcd-voice">
           <option value="cercano">Cercano</option>
           <option value="profesional">Profesional</option>
-          <option value="humor\xEDstico">Humor\xEDstico</option>
+          <option value="humorístico">Humorístico</option>
           <option value="inspirador">Inspirador</option>
         </select>
       </div>
     </div>
 
     <button class="fcd-cta" id="fcd-start">
-      <span class="fcd-cta-icon">\u25B6\uFE0F</span>
+      <span class="fcd-cta-icon">▶️</span>
       Empezar la demo (5 min CU)
     </button>
     <p class="fcd-disclaimer">Consume ~5 min del cap diario de 30 min Computer Use. Costo a vos: $0.</p>
-  </div>`,b=()=>`
+  </div>`;
+
+const buildProgressView = () => `
   <div class="fcd-card fcd-progress-card">
-    <h2 class="fcd-title">\u{1F3AC} FeedIA trabajando en vivo...</h2>
-    <p class="fcd-sub">Mir\xE1 cada paso ejecut\xE1ndose. Si bloque\xE1s esta pesta\xF1a, el proceso sigue en backend.</p>
+    <h2 class="fcd-title">🎬 FeedIA trabajando en vivo...</h2>
+    <p class="fcd-sub">Mirá cada paso ejecutándose. Si bloqueás esta pestaña, el proceso sigue en backend.</p>
 
     <div class="fcd-stages" id="fcd-stages">
       <div class="fcd-stage active" data-stage="strategy">
         <div class="fcd-stage-num">1</div>
         <div class="fcd-stage-body">
-          <div class="fcd-stage-label">\u{1F9E0} Estrategia</div>
-          <div class="fcd-stage-detail">Detectando audiencia, formato \xF3ptimo, top 5 hooks</div>
+          <div class="fcd-stage-label">🧠 Estrategia</div>
+          <div class="fcd-stage-detail">Detectando audiencia, formato óptimo, top 5 hooks</div>
         </div>
         <div class="fcd-stage-status"><span class="fcd-spin"></span></div>
       </div>
       <div class="fcd-stage" data-stage="content">
         <div class="fcd-stage-num">2</div>
         <div class="fcd-stage-body">
-          <div class="fcd-stage-label">\u270D\uFE0F Contenido</div>
+          <div class="fcd-stage-label">✍️ Contenido</div>
           <div class="fcd-stage-detail">Llama 3.3 70B escribe 7 slides + caption + 12 hashtags</div>
         </div>
-        <div class="fcd-stage-status">\u23F3</div>
+        <div class="fcd-stage-status">⏳</div>
       </div>
       <div class="fcd-stage" data-stage="images">
         <div class="fcd-stage-num">3</div>
         <div class="fcd-stage-body">
-          <div class="fcd-stage-label">\u{1F3A8} Im\xE1genes</div>
-          <div class="fcd-stage-detail">Pollinations Flux genera 7 im\xE1genes 1080\xD71350 en paralelo</div>
+          <div class="fcd-stage-label">🎨 Imágenes</div>
+          <div class="fcd-stage-detail">Pollinations Flux genera 7 imágenes 1080×1350 en paralelo</div>
         </div>
-        <div class="fcd-stage-status">\u23F3</div>
+        <div class="fcd-stage-status">⏳</div>
       </div>
       <div class="fcd-stage" data-stage="predict">
         <div class="fcd-stage-num">4</div>
         <div class="fcd-stage-body">
-          <div class="fcd-stage-label">\u{1F4CA} Predicci\xF3n viral</div>
+          <div class="fcd-stage-label">📊 Predicción viral</div>
           <div class="fcd-stage-detail">Algoritmo predice reach, engagement, saves, shares</div>
         </div>
-        <div class="fcd-stage-status">\u23F3</div>
+        <div class="fcd-stage-status">⏳</div>
       </div>
       <div class="fcd-stage" data-stage="recipe">
         <div class="fcd-stage-num">5</div>
         <div class="fcd-stage-body">
-          <div class="fcd-stage-label">\u{1F916} Computer Use Recipe</div>
+          <div class="fcd-stage-label">🤖 Computer Use Recipe</div>
           <div class="fcd-stage-detail">11 pasos automatizados para subir al Instagram</div>
         </div>
-        <div class="fcd-stage-status">\u23F3</div>
+        <div class="fcd-stage-status">⏳</div>
       </div>
     </div>
 
     <div class="fcd-tip">
-      \u{1F4A1} <strong>Sab\xEDas que...</strong> <span id="fcd-tip-text">FeedIA usa Llama 3.3 70B v\xEDa Groq \u2014 el mismo modelo que potencia chatbots de empresas top mundial. Y vos lo us\xE1s gratis.</span>
+      💡 <strong>Sabías que...</strong> <span id="fcd-tip-text">FeedIA usa Llama 3.3 70B vía Groq — el mismo modelo que potencia chatbots de empresas top mundial. Y vos lo usás gratis.</span>
     </div>
-  </div>`,m=e=>{const t=e.content?.slides||[],a=e.prediction||{},d=e.publishRecipe||{},r=a.viralScore>=70?"#10b981":a.viralScore>=55?"#3b82f6":"#f59e0b";return`
+  </div>`;
+
+const buildResultView = (result) => {
+  const slides = result.content?.slides || [];
+  const pred = result.prediction || {};
+  const recipe = result.publishRecipe || {};
+  const viralColor = pred.viralScore >= 70 ? '#10b981' : pred.viralScore >= 55 ? '#3b82f6' : '#f59e0b';
+
+  return `
     <div class="fcd-card fcd-result-hero">
-      <div class="fcd-hero-badge">\u2705 Carrusel completo en ${(e.timing?.totalMs/1e3).toFixed(1)}s</div>
-      <h2 class="fcd-title">"${s(e.topic)}"</h2>
-      <p class="fcd-sub">${t.length} slides + caption + ${e.content?.hashtags?.length||0} hashtags + recipe Computer Use lista. Costo a vos: <strong>$0</strong>.</p>
+      <div class="fcd-hero-badge">✅ Carrusel completo en ${(result.timing?.totalMs / 1000).toFixed(1)}s</div>
+      <h2 class="fcd-title">"${escape(result.topic)}"</h2>
+      <p class="fcd-sub">${slides.length} slides + caption + ${result.content?.hashtags?.length || 0} hashtags + recipe Computer Use lista. Costo a vos: <strong>$0</strong>.</p>
     </div>
 
     <div class="fcd-card">
       <div class="fcd-section-head">
-        <h3>\u{1F4CA} Predicci\xF3n viral</h3>
-        <div class="fcd-viral-badge" style="background:${r}22;color:${r};">${a.viralScore}/100 \xB7 ${s(a.virality||"solid")}</div>
+        <h3>📊 Predicción viral</h3>
+        <div class="fcd-viral-badge" style="background:${viralColor}22;color:${viralColor};">${pred.viralScore}/100 · ${escape(pred.virality || 'solid')}</div>
       </div>
       <div class="fcd-pred-grid">
-        <div class="fcd-pred-stat"><div class="fcd-pred-num">${(a.predicted?.reach||0).toLocaleString("es-AR")}</div><div class="fcd-pred-lbl">alcance</div></div>
-        <div class="fcd-pred-stat"><div class="fcd-pred-num">${((a.predicted?.engagementRate||0)*100).toFixed(1)}%</div><div class="fcd-pred-lbl">engagement</div></div>
-        <div class="fcd-pred-stat"><div class="fcd-pred-num">${(a.predicted?.saves||0).toLocaleString("es-AR")}</div><div class="fcd-pred-lbl">saves</div></div>
-        <div class="fcd-pred-stat"><div class="fcd-pred-num">${(a.predicted?.shares||0).toLocaleString("es-AR")}</div><div class="fcd-pred-lbl">shares</div></div>
-        <div class="fcd-pred-stat"><div class="fcd-pred-num">${(a.predicted?.comments||0).toLocaleString("es-AR")}</div><div class="fcd-pred-lbl">comments</div></div>
+        <div class="fcd-pred-stat"><div class="fcd-pred-num">${(pred.predicted?.reach || 0).toLocaleString('es-AR')}</div><div class="fcd-pred-lbl">alcance</div></div>
+        <div class="fcd-pred-stat"><div class="fcd-pred-num">${((pred.predicted?.engagementRate || 0) * 100).toFixed(1)}%</div><div class="fcd-pred-lbl">engagement</div></div>
+        <div class="fcd-pred-stat"><div class="fcd-pred-num">${(pred.predicted?.saves || 0).toLocaleString('es-AR')}</div><div class="fcd-pred-lbl">saves</div></div>
+        <div class="fcd-pred-stat"><div class="fcd-pred-num">${(pred.predicted?.shares || 0).toLocaleString('es-AR')}</div><div class="fcd-pred-lbl">shares</div></div>
+        <div class="fcd-pred-stat"><div class="fcd-pred-num">${(pred.predicted?.comments || 0).toLocaleString('es-AR')}</div><div class="fcd-pred-lbl">comments</div></div>
       </div>
     </div>
 
     <div class="fcd-card">
-      <h3>\u{1F3AC} Slides generados (${t.length})</h3>
+      <h3>🎬 Slides generados (${slides.length})</h3>
       <div class="fcd-slides-grid">
-        ${t.map(i=>`
+        ${slides
+          .map(
+            (s) => `
           <div class="fcd-slide-card">
-            ${i.imageUrl?`<img src="${s(i.imageUrl)}" alt="Slide ${i.n}" loading="lazy" />`:'<div class="fcd-slide-placeholder">Imagen pendiente</div>'}
+            ${s.imageUrl ? `<img src="${escape(s.imageUrl)}" alt="Slide ${s.n}" loading="lazy" />` : '<div class="fcd-slide-placeholder">Imagen pendiente</div>'}
             <div class="fcd-slide-body">
-              <div class="fcd-slide-num">Slide ${i.n}/${t.length}</div>
-              <div class="fcd-slide-headline">${s(i.headline||"")}</div>
-              ${i.body?`<div class="fcd-slide-body-text">${s(i.body)}</div>`:""}
+              <div class="fcd-slide-num">Slide ${s.n}/${slides.length}</div>
+              <div class="fcd-slide-headline">${escape(s.headline || '')}</div>
+              ${s.body ? `<div class="fcd-slide-body-text">${escape(s.body)}</div>` : ''}
             </div>
-          </div>`).join("")}
+          </div>`,
+          )
+          .join('')}
       </div>
     </div>
 
     <div class="fcd-card">
       <div class="fcd-section-head">
-        <h3>\u{1F4DD} Caption + Hashtags</h3>
-        <button class="fcd-copy-btn" data-copy="${encodeURIComponent(`${e.content?.caption||""}
-
-${(e.content?.hashtags||[]).join(" ")}`)}">\u{1F4CB} Copiar todo</button>
+        <h3>📝 Caption + Hashtags</h3>
+        <button class="fcd-copy-btn" data-copy="${encodeURIComponent(`${result.content?.caption || ''}\n\n${(result.content?.hashtags || []).join(' ')}`)}">📋 Copiar todo</button>
       </div>
-      <pre class="fcd-caption">${s(e.content?.caption||"")}</pre>
+      <pre class="fcd-caption">${escape(result.content?.caption || '')}</pre>
       <div class="fcd-tags">
-        ${(e.content?.hashtags||[]).map(i=>`<span class="fcd-tag">${s(i)}</span>`).join("")}
+        ${(result.content?.hashtags || []).map((t) => `<span class="fcd-tag">${escape(t)}</span>`).join('')}
       </div>
     </div>
 
     <div class="fcd-card fcd-recipe-card">
-      <h3>\u{1F916} Computer Use Recipe \u2014 Publicar en Instagram</h3>
-      <p class="fcd-sub">${d.totalSteps} pasos \xB7 ${d.estimatedMinutes} min estimado \xB7 Sin gasto adicional</p>
+      <h3>🤖 Computer Use Recipe — Publicar en Instagram</h3>
+      <p class="fcd-sub">${recipe.totalSteps} pasos · ${recipe.estimatedMinutes} min estimado · Sin gasto adicional</p>
       <div class="fcd-recipe-steps">
-        ${(d.steps||[]).map(i=>`
+        ${(recipe.steps || [])
+          .map(
+            (step) => `
           <div class="fcd-step">
-            <div class="fcd-step-num">${i.n}</div>
-            <div class="fcd-step-icon">${i.icon}</div>
+            <div class="fcd-step-num">${step.n}</div>
+            <div class="fcd-step-icon">${step.icon}</div>
             <div class="fcd-step-body">
-              <div class="fcd-step-label">${s(i.label)}</div>
-              <div class="fcd-step-detail">${s(typeof i.detail=="string"?i.detail:`${(i.detail||[]).length} items`)}</div>
+              <div class="fcd-step-label">${escape(step.label)}</div>
+              <div class="fcd-step-detail">${escape(typeof step.detail === 'string' ? step.detail : `${(step.detail || []).length} items`)}</div>
             </div>
-            <div class="fcd-step-time">${i.estimatedSec}s</div>
-          </div>`).join("")}
+            <div class="fcd-step-time">${step.estimatedSec}s</div>
+          </div>`,
+          )
+          .join('')}
       </div>
       <div class="fcd-actions">
-        <button class="fcd-action-btn primary" id="fcd-execute-cu">\u{1F680} Ejecutar Computer Use ahora</button>
-        <button class="fcd-action-btn secondary" id="fcd-download-zip">\u{1F4E6} Descargar paquete (im\xE1genes + caption)</button>
-        <button class="fcd-action-btn ghost" id="fcd-new-demo">\u{1F504} Nueva demo</button>
+        <button class="fcd-action-btn primary" id="fcd-execute-cu">🚀 Ejecutar Computer Use ahora</button>
+        <button class="fcd-action-btn secondary" id="fcd-download-zip">📦 Descargar paquete (imágenes + caption)</button>
+        <button class="fcd-action-btn ghost" id="fcd-new-demo">🔄 Nueva demo</button>
       </div>
     </div>
 
     <div class="fcd-card fcd-upgrade-card">
-      <h3>\u{1F680} \xBFTe gust\xF3 lo que viste?</h3>
-      <p>Free es un sneak peek. En <strong>Starter $7</strong> ten\xE9s:</p>
+      <h3>🚀 ¿Te gustó lo que viste?</h3>
+      <p>Free es un sneak peek. En <strong>Starter $7</strong> tenés:</p>
       <ul>
-        <li>\u2728 Claude Sonnet 4.6 (calidad agencia) en lugar de Llama free</li>
-        <li>\u{1F5BC}\uFE0F Im\xE1genes Full HD garantizadas con Flux-Dev en lugar de Pollinations</li>
-        <li>\u{1F3AF} Viral score \u226565 obligatorio (regenera hasta cumplir)</li>
-        <li>\u{1F916} Computer Use 90 min/d\xEDa + autopilot auto-execute</li>
-        <li>\u{1F4CA} 20 publicaciones PREMIUM/mes garantizadas</li>
+        <li>✨ Claude Sonnet 4.6 (calidad agencia) en lugar de Llama free</li>
+        <li>🖼️ Imágenes Full HD garantizadas con Flux-Dev en lugar de Pollinations</li>
+        <li>🎯 Viral score ≥65 obligatorio (regenera hasta cumplir)</li>
+        <li>🤖 Computer Use 90 min/día + autopilot auto-execute</li>
+        <li>📊 20 publicaciones PREMIUM/mes garantizadas</li>
       </ul>
-      <a class="fcd-action-btn primary" href="/pricing.html">Ver todos los planes \u2192</a>
+      <a class="fcd-action-btn primary" href="/pricing.html">Ver todos los planes →</a>
     </div>
-  `},x=e=>{const t=e.querySelector("#fcd-start");t&&t.addEventListener("click",async()=>{const a=e.querySelector("#fcd-topic")?.value.trim();if(!a||a.length<5){o("Decile un tema de al menos 5 caracteres","warn");return}const d=e.querySelector("#fcd-niche")?.value.trim()||"",r=e.querySelector("#fcd-voice")?.value||"cercano";e.innerHTML=b(),h(e);try{const i=await fetch("/api/free-cu/carousel-demo",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:a,brandNiche:d,brandVoice:r,platform:"instagram",goal:"engagement"})}),c=await i.json();if(!i.ok){o(c.message||"No se pudo correr la demo","err"),i.status===402?setTimeout(()=>{location.href=c.upgradeUrl||"/pricing.html"},1500):setTimeout(()=>l(e),1500);return}c.topic=a,e.innerHTML=m(c),y(e,c)}catch{o("Error de red","err"),setTimeout(()=>l(e),1500)}})},h=e=>{const t=["strategy","content","images","predict","recipe"],a=["FeedIA usa Llama 3.3 70B v\xEDa Groq \u2014 el mismo modelo que potencia chatbots de empresas top mundial. Y vos lo us\xE1s gratis.","Pollinations Flux genera im\xE1genes con calidad similar a Midjourney sin gastar tokens.","El viral predictor usa heur\xEDsticas calibradas contra patrones reales de IG/TikTok virales.","Computer Use recipe = pasos deterministas para publicar sin pagar Claude Computer Use real.","Plan Pro $19 desbloquea Sonnet 4.6 + viral score \u226572 garantizado + autopilot cada 30 min."];let d=0,r=0;const i=e.querySelector("#fcd-tip-text"),c=Array.from(e.querySelectorAll(".fcd-stage")),v=setInterval(()=>{i&&(r=(r+1)%a.length,i.textContent=a[r])},4e3),g=setInterval(()=>{if(d>=t.length){clearInterval(g);return}const n=c.find(f=>f.dataset.stage===t[d]);n&&(n.classList.remove("active"),n.classList.add("done"),n.querySelector(".fcd-stage-status").innerHTML="\u2705"),d++;const p=c.find(f=>f.dataset.stage===t[d]);p&&(p.classList.add("active"),p.querySelector(".fcd-stage-status").innerHTML='<span class="fcd-spin"></span>')},2e3);e._fcdIntervals=[v,g]},y=(e,t)=>{(e._fcdIntervals||[]).forEach(a=>clearInterval(a)),e.querySelectorAll("[data-copy]").forEach(a=>{a.addEventListener("click",()=>{const d=decodeURIComponent(a.dataset.copy);try{navigator.clipboard.writeText(d),o("\u{1F4CB} Copiado","ok")}catch{o("No se pudo copiar","err")}})}),e.querySelector("#fcd-execute-cu")?.addEventListener("click",()=>{o("\u{1F680} Para ejecutar CU real: upgrade a Starter ($7/mes)","info"),setTimeout(()=>{location.href="/pricing.html"},1200)}),e.querySelector("#fcd-download-zip")?.addEventListener("click",()=>{o("\u{1F4E6} Generando paquete...","info");const a=t.content?.slides?.[0]?.imageUrl;a&&window.open(a,"_blank")}),e.querySelector("#fcd-new-demo")?.addEventListener("click",()=>l(e))},l=e=>{e.innerHTML=`
+  `;
+};
+
+const wireBrief = (root) => {
+  const startBtn = root.querySelector('#fcd-start');
+  if (!startBtn) return;
+  startBtn.addEventListener('click', async () => {
+    const topic = root.querySelector('#fcd-topic')?.value.trim();
+    if (!topic || topic.length < 5) {
+      toast('Decile un tema de al menos 5 caracteres', 'warn');
+      return;
+    }
+    const niche = root.querySelector('#fcd-niche')?.value.trim() || '';
+    const voice = root.querySelector('#fcd-voice')?.value || 'cercano';
+
+    root.innerHTML = buildProgressView();
+    animateProgress(root);
+
+    try {
+      const r = await fetch('/api/free-cu/carousel-demo', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic,
+          brandNiche: niche,
+          brandVoice: voice,
+          platform: 'instagram',
+          goal: 'engagement',
+        }),
+      });
+      const data = await r.json();
+      if (!r.ok) {
+        toast(data.message || 'No se pudo correr la demo', 'err');
+        if (r.status === 402) {
+          setTimeout(() => {
+            location.href = data.upgradeUrl || '/pricing.html';
+          }, 1500);
+        } else {
+          setTimeout(() => render(root), 1500);
+        }
+        return;
+      }
+      data.topic = topic;
+      root.innerHTML = buildResultView(data);
+      wireResult(root, data);
+    } catch {
+      toast('Error de red', 'err');
+      setTimeout(() => render(root), 1500);
+    }
+  });
+};
+
+const animateProgress = (root) => {
+  const stageOrder = ['strategy', 'content', 'images', 'predict', 'recipe'];
+  const tips = [
+    'FeedIA usa Llama 3.3 70B vía Groq — el mismo modelo que potencia chatbots de empresas top mundial. Y vos lo usás gratis.',
+    'Pollinations Flux genera imágenes con calidad similar a Midjourney sin gastar tokens.',
+    'El viral predictor usa heurísticas calibradas contra patrones reales de IG/TikTok virales.',
+    'Computer Use recipe = pasos deterministas para publicar sin pagar Claude Computer Use real.',
+    'Plan Pro $19 desbloquea Sonnet 4.6 + viral score ≥72 garantizado + autopilot cada 30 min.',
+  ];
+  let stageIdx = 0;
+  let tipIdx = 0;
+  const tipEl = root.querySelector('#fcd-tip-text');
+  const stageEls = Array.from(root.querySelectorAll('.fcd-stage'));
+
+  const rotateTip = setInterval(() => {
+    if (!tipEl) return;
+    tipIdx = (tipIdx + 1) % tips.length;
+    tipEl.textContent = tips[tipIdx];
+  }, 4000);
+
+  const advance = setInterval(() => {
+    if (stageIdx >= stageOrder.length) {
+      clearInterval(advance);
+      return;
+    }
+    const cur = stageEls.find((el) => el.dataset.stage === stageOrder[stageIdx]);
+    if (cur) {
+      cur.classList.remove('active');
+      cur.classList.add('done');
+      cur.querySelector('.fcd-stage-status').innerHTML = '✅';
+    }
+    stageIdx++;
+    const next = stageEls.find((el) => el.dataset.stage === stageOrder[stageIdx]);
+    if (next) {
+      next.classList.add('active');
+      next.querySelector('.fcd-stage-status').innerHTML = '<span class="fcd-spin"></span>';
+    }
+  }, 2000);
+
+  root._fcdIntervals = [rotateTip, advance];
+};
+
+const wireResult = (root, data) => {
+  // Cleanup intervals from progress
+  (root._fcdIntervals || []).forEach((i) => clearInterval(i));
+
+  root.querySelectorAll('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const text = decodeURIComponent(btn.dataset.copy);
+      try {
+        navigator.clipboard.writeText(text);
+        toast('📋 Copiado', 'ok');
+      } catch {
+        toast('No se pudo copiar', 'err');
+      }
+    });
+  });
+
+  root.querySelector('#fcd-execute-cu')?.addEventListener('click', () => {
+    toast('🚀 Para ejecutar CU real: upgrade a Starter ($7/mes)', 'info');
+    setTimeout(() => {
+      location.href = '/pricing.html';
+    }, 1200);
+  });
+
+  root.querySelector('#fcd-download-zip')?.addEventListener('click', () => {
+    toast('📦 Generando paquete...', 'info');
+    // En implementación real: server side ZIP gen, por ahora abre primer slide
+    const firstImg = data.content?.slides?.[0]?.imageUrl;
+    if (firstImg) window.open(firstImg, '_blank');
+  });
+
+  root.querySelector('#fcd-new-demo')?.addEventListener('click', () => render(root));
+};
+
+const render = (root) => {
+  root.innerHTML = `
     <header class="view-header page-header">
       <div>
-        <h1 class="view-title page-title">\u{1F3AC} Free Carousel Demo</h1>
-        <p class="view-subtitle page-subtitle">Mir\xE1 FeedIA crear y publicar un carrusel paso a paso \xB7 100% gratis \xB7 0 setup</p>
+        <h1 class="view-title page-title">🎬 Free Carousel Demo</h1>
+        <p class="view-subtitle page-subtitle">Mirá FeedIA crear y publicar un carrusel paso a paso · 100% gratis · 0 setup</p>
       </div>
     </header>
     <div class="page-body" id="fcd-container">
-      ${u()}
+      ${buildBriefForm()}
     </div>
     <style>
       .fcd-card{background:var(--bg-card,#fff);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:16px;color:var(--text-primary,var(--fg));}
@@ -246,4 +413,11 @@ ${(e.content?.hashtags||[]).join(" ")}`)}">\u{1F4CB} Copiar todo</button>
       .fcd-upgrade-card{background:linear-gradient(135deg,rgba(225,48,108,.06),rgba(168,85,247,.05));border-color:rgba(168,85,247,.3);}
       .fcd-upgrade-card ul{margin:10px 0 16px;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:13.5px;}
       .fcd-upgrade-card li{line-height:1.5;}
-    </style>`,x(e)};export const renderFreeCuDemo=async e=>{l(e)};
+    </style>`;
+
+  wireBrief(root);
+};
+
+export const renderFreeCuDemo = async (root) => {
+  render(root);
+};

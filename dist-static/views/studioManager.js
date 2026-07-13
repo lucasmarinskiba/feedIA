@@ -1,11 +1,61 @@
-import{apiSafe as c}from"../lib/api.js";import{escape as n}from"../lib/dom.js";import{toast as p}from"../lib/toast.js";import{withBtnSpinner as l}from"../lib/ui.js";const f=e=>e<1e3?`${e}ms`:e<6e4?`${(e/1e3).toFixed(1)}s`:`${Math.round(e/6e4)}m`,m=(e,d="#3451d1")=>`<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:${d}20;color:${d}">${n(e)}</span>`,h=e=>{const d={rising:["#22c55e","\u2191 subiendo"],peak:["#f59e0b","\u26A1 pico"],declining:["#ef4444","\u2193 bajando"]},[o,s]=d[e]??["#6b7280",e];return m(s,o)},w=e=>m(e,{alta:"#22c55e",media:"#f59e0b",baja:"#6b7280"}[e]??"#6b7280"),A=e=>{navigator.clipboard.writeText(e).then(()=>p("Copiado \u2713","success")).catch(()=>p("Error al copiar","error"))},I=(e,d,o,s,t,a=!1)=>`
-  <div class="sm-card" id="sm-card-${e}">
-    <button class="sm-card-header" onclick="document.getElementById('sm-body-${e}').classList.toggle('hidden');this.querySelector('.sm-chevron').classList.toggle('rotated')">
-      <span>${d} <strong>${n(o)}</strong> ${s}</span>
-      <span class="sm-chevron${a?" rotated":""}">\u25BE</span>
+/* ══════════════════════════════════════════════════════════════════════════════
+   STUDIO MANAGER — Panel maestro del CU Brain
+   ──────────────────────────────────────────────────────────────────────────────
+   Dashboard centralizado con 8 paneles:
+     1. Master Brain          4. DM Intelligence     7. Trending Engine
+     2. Content Queue         5. Hashtag Engine       8. Competitor Analysis
+     3. A/B Tests             6. Comment Intelligence
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { api, apiSafe } from '../lib/api.js';
+import { escape } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+import { withBtnSpinner } from '../lib/ui.js';
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+const fmtDuration = (ms) => {
+  if (ms < 1000) return `${ms}ms`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  return `${Math.round(ms / 60000)}m`;
+};
+
+const badge = (text, color = '#3451d1') =>
+  `<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:${color}20;color:${color}">${escape(text)}</span>`;
+
+const momentumBadge = (m) => {
+  const map = { rising: ['#22c55e', '↑ subiendo'], peak: ['#f59e0b', '⚡ pico'], declining: ['#ef4444', '↓ bajando'] };
+  const [c, l] = map[m] ?? ['#6b7280', m];
+  return badge(l, c);
+};
+
+const opportunityBadge = (o) => {
+  const map = { alta: '#22c55e', media: '#f59e0b', baja: '#6b7280' };
+  return badge(o, map[o] ?? '#6b7280');
+};
+
+const copyText = (text) => {
+  navigator.clipboard
+    .writeText(text)
+    .then(() => toast('Copiado ✓', 'success'))
+    .catch(() => toast('Error al copiar', 'error'));
+};
+
+const collapsibleCard = (id, emoji, title, badgeHtml, contentHtml, initialOpen = false) => `
+  <div class="sm-card" id="sm-card-${id}">
+    <button class="sm-card-header" onclick="document.getElementById('sm-body-${id}').classList.toggle('hidden');this.querySelector('.sm-chevron').classList.toggle('rotated')">
+      <span>${emoji} <strong>${escape(title)}</strong> ${badgeHtml}</span>
+      <span class="sm-chevron${initialOpen ? ' rotated' : ''}">▾</span>
     </button>
-    <div id="sm-body-${e}" class="${a?"":"hidden"}">${t}</div>
-  </div>`,$=()=>{if(document.getElementById("sm-styles"))return;const e=document.createElement("style");e.id="sm-styles",e.textContent=`
+    <div id="sm-body-${id}" class="${initialOpen ? '' : 'hidden'}">${contentHtml}</div>
+  </div>`;
+
+// ── CSS inline ────────────────────────────────────────────────────────────────
+
+const injectStyles = () => {
+  if (document.getElementById('sm-styles')) return;
+  const s = document.createElement('style');
+  s.id = 'sm-styles';
+  s.textContent = `
     .sm-wrap { display:flex; flex-direction:column; gap:16px; padding:24px; max-width:960px; margin:0 auto; }
     .sm-topbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
     .sm-topbar h1 { font-size:22px; font-weight:700; margin:0; flex:1; }
@@ -66,33 +116,43 @@ import{apiSafe as c}from"../lib/api.js";import{escape as n}from"../lib/dom.js";i
     .sm-tag.gray { background:#6b728020; color:#6b7280; }
     .sm-empty { text-align:center; padding:32px; color:var(--text-muted,#64748b); font-size:14px; }
     .hidden { display:none !important; }
-  `,document.head.appendChild(e)},S=e=>{const d=e.querySelector("#sm-panel-brain");d&&(d.innerHTML=`
+  `;
+  document.head.appendChild(s);
+};
+
+// ── Panel 1: Master Brain ─────────────────────────────────────────────────────
+
+const renderMasterBrainPanel = (root) => {
+  const wrap = root.querySelector('#sm-panel-brain');
+  if (!wrap) return;
+
+  wrap.innerHTML = `
     <div class="sm-card">
       <div class="sm-card-header" style="cursor:default">
-        \u{1F9E0} <strong>Master Brain</strong> \u2014 Orquestador unificado de Computer Use
+        🧠 <strong>Master Brain</strong> — Orquestador unificado de Computer Use
       </div>
       <div style="padding:16px;display:flex;flex-direction:column;gap:12px;">
         <div class="sm-row">
           <select id="sm-mb-intent" class="sm-select">
-            <option value="create-content">\u270D\uFE0F Crear contenido</option>
-            <option value="build-brand">\u{1F3DB}\uFE0F Construir marca</option>
-            <option value="evolve-brand">\u{1F504} Evolucionar marca</option>
-            <option value="analyze" selected>\u{1F50D} An\xE1lisis completo</option>
-            <option value="publish">\u{1F4E4} Publicar</option>
-            <option value="full-takeover">\u{1F916} Full Takeover (autopilot)</option>
-            <option value="manage-dms">\u{1F4AC} Gestionar DMs</option>
-            <option value="manage-comments">\u{1F4A1} Gestionar comentarios</option>
-            <option value="optimize-hashtags">#\uFE0F\u20E3 Optimizar hashtags</option>
-            <option value="schedule-queue">\u{1F4C5} Programar cola</option>
-            <option value="generate-captions">\u270D\uFE0F Generar captions</option>
-            <option value="detect-trends">\u{1F4C8} Detectar tendencias</option>
-            <option value="analyze-competitors">\u{1F50D} Analizar competidores</option>
-            <option value="ab-test">\u{1F9EA} A/B Test</option>
+            <option value="create-content">✍️ Crear contenido</option>
+            <option value="build-brand">🏛️ Construir marca</option>
+            <option value="evolve-brand">🔄 Evolucionar marca</option>
+            <option value="analyze" selected>🔍 Análisis completo</option>
+            <option value="publish">📤 Publicar</option>
+            <option value="full-takeover">🤖 Full Takeover (autopilot)</option>
+            <option value="manage-dms">💬 Gestionar DMs</option>
+            <option value="manage-comments">💡 Gestionar comentarios</option>
+            <option value="optimize-hashtags">#️⃣ Optimizar hashtags</option>
+            <option value="schedule-queue">📅 Programar cola</option>
+            <option value="generate-captions">✍️ Generar captions</option>
+            <option value="detect-trends">📈 Detectar tendencias</option>
+            <option value="analyze-competitors">🔍 Analizar competidores</option>
+            <option value="ab-test">🧪 A/B Test</option>
           </select>
           <select id="sm-mb-mode" class="sm-select">
-            <option value="supervisor">\u{1F464} Supervisor</option>
-            <option value="autopilot">\u{1F916} Autopilot</option>
-            <option value="observer">\u{1F441}\uFE0F Observer</option>
+            <option value="supervisor">👤 Supervisor</option>
+            <option value="autopilot">🤖 Autopilot</option>
+            <option value="observer">👁️ Observer</option>
           </select>
           <select id="sm-mb-format" class="sm-select">
             <option value="carousel">Carrusel</option>
@@ -101,248 +161,792 @@ import{apiSafe as c}from"../lib/api.js";import{escape as n}from"../lib/dom.js";i
             <option value="post">Post</option>
           </select>
         </div>
-        <input id="sm-mb-topic" class="sm-input" placeholder="Tema / instrucci\xF3n (ej: 'recetas r\xE1pidas para mam\xE1s ocupadas')" />
+        <input id="sm-mb-topic" class="sm-input" placeholder="Tema / instrucción (ej: 'recetas rápidas para mamás ocupadas')" />
         <div class="sm-row">
-          <button class="sm-btn" id="sm-mb-run">\u26A1 Ejecutar Master Brain</button>
-          <button class="sm-btn secondary" id="sm-mb-list">\u{1F4CB} Ver cerebros disponibles</button>
+          <button class="sm-btn" id="sm-mb-run">⚡ Ejecutar Master Brain</button>
+          <button class="sm-btn secondary" id="sm-mb-list">📋 Ver cerebros disponibles</button>
         </div>
         <div id="sm-mb-result" style="display:none;"></div>
       </div>
-    </div>`,e.querySelector("#sm-mb-run").addEventListener("click",async o=>{const s=o.currentTarget,t=e.querySelector("#sm-mb-intent").value,a=e.querySelector("#sm-mb-mode").value,i=e.querySelector("#sm-mb-format").value,r=e.querySelector("#sm-mb-topic").value.trim(),u=e.querySelector("#sm-mb-result");await l(s,async()=>{const b=await c("/api/cu/master-brain","POST",{intent:t,mode:a,contentFormat:i,userInput:r||t,topic:r});if(u.style.display="block",!b.ok){u.innerHTML=`<p style="color:#ef4444">Error: ${n(b.error??"desconocido")}</p>`;return}const{steps:g=[],brainsActivated:x=[],finalOutput:y}=b;u.innerHTML=`
+    </div>`;
+
+  root.querySelector('#sm-mb-run').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    const intent = root.querySelector('#sm-mb-intent').value;
+    const mode = root.querySelector('#sm-mb-mode').value;
+    const format = root.querySelector('#sm-mb-format').value;
+    const topic = root.querySelector('#sm-mb-topic').value.trim();
+    const resultEl = root.querySelector('#sm-mb-result');
+    await withBtnSpinner(btn, async () => {
+      const res = await apiSafe('/api/cu/master-brain', 'POST', {
+        intent,
+        mode,
+        contentFormat: format,
+        userInput: topic || intent,
+        topic,
+      });
+      resultEl.style.display = 'block';
+      if (!res.ok) {
+        resultEl.innerHTML = `<p style="color:#ef4444">Error: ${escape(res.error ?? 'desconocido')}</p>`;
+        return;
+      }
+      const { steps = [], brainsActivated = [], finalOutput } = res;
+      resultEl.innerHTML = `
         <div class="sm-stat-row" style="margin-bottom:12px">
-          <div class="sm-stat"><strong>${x.length}</strong>Cerebros activados</div>
-          <div class="sm-stat"><strong>${g.length}</strong>Pasos ejecutados</div>
-          <div class="sm-stat"><strong>${y?.deliverables?.length??0}</strong>Entregables</div>
+          <div class="sm-stat"><strong>${brainsActivated.length}</strong>Cerebros activados</div>
+          <div class="sm-stat"><strong>${steps.length}</strong>Pasos ejecutados</div>
+          <div class="sm-stat"><strong>${finalOutput?.deliverables?.length ?? 0}</strong>Entregables</div>
         </div>
-        <div class="sm-score-bar" style="margin-bottom:12px"><div class="sm-score-fill" style="width:${Math.min(x.length*8,100)}%"></div></div>
-        ${g.map(v=>`
+        <div class="sm-score-bar" style="margin-bottom:12px"><div class="sm-score-fill" style="width:${Math.min(brainsActivated.length * 8, 100)}%"></div></div>
+        ${steps
+          .map(
+            (s) => `
           <div class="sm-step">
-            <div class="sm-step-emoji">${n(v.emoji)}</div>
+            <div class="sm-step-emoji">${escape(s.emoji)}</div>
             <div class="sm-step-body">
-              <div class="sm-step-phase">${n(v.brainLabel)} \xB7 ${n(v.phase)}</div>
-              <div class="sm-step-out">${n(v.output)}</div>
-              <div class="sm-step-dur">${f(v.durationMs)}</div>
+              <div class="sm-step-phase">${escape(s.brainLabel)} · ${escape(s.phase)}</div>
+              <div class="sm-step-out">${escape(s.output)}</div>
+              <div class="sm-step-dur">${fmtDuration(s.durationMs)}</div>
             </div>
-          </div>`).join("")}
-        ${y?.nextActions?.length?`<div class="sm-row" style="margin-top:8px">${y.nextActions.map(v=>`<button class="sm-btn secondary" onclick="toast('${n(v.apiCall??v.route??"")}','info')">${n(v.label)}</button>`).join("")}</div>`:""}`,p("Master Brain ejecutado \u2713","success")})}),e.querySelector("#sm-mb-list").addEventListener("click",async o=>{const s=o.currentTarget;await l(s,async()=>{const t=await c("/api/cu/master-brain/brains"),a=e.querySelector("#sm-mb-result");if(a.style.display="block",!t.ok||!t.brains){a.innerHTML='<p style="color:#ef4444">No se pudo cargar</p>';return}a.innerHTML=t.brains.map(i=>`
+          </div>`,
+          )
+          .join('')}
+        ${finalOutput?.nextActions?.length ? `<div class="sm-row" style="margin-top:8px">${finalOutput.nextActions.map((a) => `<button class="sm-btn secondary" onclick="toast('${escape(a.apiCall ?? a.route ?? '')}','info')">${escape(a.label)}</button>`).join('')}</div>` : ''}`;
+      toast('Master Brain ejecutado ✓', 'success');
+    });
+  });
+
+  root.querySelector('#sm-mb-list').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    await withBtnSpinner(btn, async () => {
+      const res = await apiSafe('/api/cu/master-brain/brains');
+      const resultEl = root.querySelector('#sm-mb-result');
+      resultEl.style.display = 'block';
+      if (!res.ok || !res.brains) {
+        resultEl.innerHTML = '<p style="color:#ef4444">No se pudo cargar</p>';
+        return;
+      }
+      resultEl.innerHTML = res.brains
+        .map(
+          (b) => `
         <div class="sm-row" style="padding:6px 0;border-bottom:1px solid var(--border,#e2e8f0)">
-          <span>${n(i.emoji)}</span>
-          <span style="font-weight:600;font-size:13px">${n(i.label)}</span>
-          ${m(i.isAvailable?"disponible":"inactivo",i.isAvailable?"#22c55e":"#ef4444")}
-          <span style="font-size:12px;color:var(--text-muted,#64748b);flex:1">${n(i.description)}</span>
-        </div>`).join("")})}))},T=async e=>{const d=e.querySelector("#sm-panel-queue");if(!d)return;d.innerHTML=`
+          <span>${escape(b.emoji)}</span>
+          <span style="font-weight:600;font-size:13px">${escape(b.label)}</span>
+          ${badge(b.isAvailable ? 'disponible' : 'inactivo', b.isAvailable ? '#22c55e' : '#ef4444')}
+          <span style="font-size:12px;color:var(--text-muted,#64748b);flex:1">${escape(b.description)}</span>
+        </div>`,
+        )
+        .join('');
+    });
+  });
+};
+
+// ── Panel 2: Content Queue ─────────────────────────────────────────────────────
+
+const renderQueuePanel = async (root) => {
+  const wrap = root.querySelector('#sm-panel-queue');
+  if (!wrap) return;
+
+  wrap.innerHTML = `
     <div class="sm-card">
-      <div class="sm-card-header" style="cursor:default">\u{1F4C5} <strong>Content Queue</strong></div>
+      <div class="sm-card-header" style="cursor:default">📅 <strong>Content Queue</strong></div>
       <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
         <div class="sm-row">
-          <button class="sm-btn secondary" id="sm-q-load">\u{1F504} Cargar cola</button>
-          <button class="sm-btn secondary" id="sm-q-windows">\u23F0 Ver ventanas prime</button>
-          <button class="sm-btn secondary" id="sm-q-next">\u25B6\uFE0F Procesar siguiente</button>
+          <button class="sm-btn secondary" id="sm-q-load">🔄 Cargar cola</button>
+          <button class="sm-btn secondary" id="sm-q-windows">⏰ Ver ventanas prime</button>
+          <button class="sm-btn secondary" id="sm-q-next">▶️ Procesar siguiente</button>
         </div>
-        <div id="sm-q-list"><div class="sm-empty">Carg\xE1 la cola para ver el contenido programado</div></div>
+        <div id="sm-q-list"><div class="sm-empty">Cargá la cola para ver el contenido programado</div></div>
       </div>
-    </div>`;const o=s=>{const t=e.querySelector("#sm-q-list");if(!s?.length){t.innerHTML='<div class="sm-empty">Cola vac\xEDa \u2014 no hay contenido programado</div>';return}t.innerHTML=s.map(a=>`
+    </div>`;
+
+  const renderQueue = (items) => {
+    const el = root.querySelector('#sm-q-list');
+    if (!items?.length) {
+      el.innerHTML = '<div class="sm-empty">Cola vacía — no hay contenido programado</div>';
+      return;
+    }
+    el.innerHTML = items
+      .map(
+        (item) => `
       <div class="sm-q-item">
-        <div class="sm-q-status ${n(a.status??"pending")}"></div>
+        <div class="sm-q-status ${escape(item.status ?? 'pending')}"></div>
         <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:13px">${n(a.contentType??"post")} \xB7 ${n(a.topic??"\u2014")}</div>
-          <div style="font-size:12px;color:var(--text-muted,#64748b)">${a.scheduledFor?new Date(a.scheduledFor).toLocaleString("es-AR"):"Sin fecha"} \xB7 ${m(a.status??"pending")}</div>
+          <div style="font-weight:600;font-size:13px">${escape(item.contentType ?? 'post')} · ${escape(item.topic ?? '—')}</div>
+          <div style="font-size:12px;color:var(--text-muted,#64748b)">${item.scheduledFor ? new Date(item.scheduledFor).toLocaleString('es-AR') : 'Sin fecha'} · ${badge(item.status ?? 'pending')}</div>
         </div>
-        <button class="sm-btn secondary" style="padding:4px 10px;font-size:11px" onclick="api('/api/queue/${n(a.id)}','DELETE').then(()=>toast('Eliminado','success'))">\u2715</button>
-      </div>`).join("")};e.querySelector("#sm-q-load").addEventListener("click",async s=>{await l(s.currentTarget,async()=>{const t=await c("/api/queue");o(t.items??t.queue??[])})}),e.querySelector("#sm-q-windows").addEventListener("click",async s=>{await l(s.currentTarget,async()=>{const t=await c("/api/queue/windows","POST"),a=e.querySelector("#sm-q-list"),i=["Dom","Lun","Mar","Mi\xE9","Jue","Vie","S\xE1b"],r=t.windows??t??[];a.innerHTML='<div style="font-weight:600;font-size:13px;margin-bottom:8px">\u{1F550} Ventanas de publicaci\xF3n \xF3ptimas</div>'+r.slice(0,12).map(u=>`
+        <button class="sm-btn secondary" style="padding:4px 10px;font-size:11px" onclick="api('/api/queue/${escape(item.id)}','DELETE').then(()=>toast('Eliminado','success'))">✕</button>
+      </div>`,
+      )
+      .join('');
+  };
+
+  root.querySelector('#sm-q-load').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/queue');
+      renderQueue(res.items ?? res.queue ?? []);
+    });
+  });
+
+  root.querySelector('#sm-q-windows').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/queue/windows', 'POST');
+      const el = root.querySelector('#sm-q-list');
+      const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      const windows = res.windows ?? res ?? [];
+      el.innerHTML =
+        `<div style="font-weight:600;font-size:13px;margin-bottom:8px">🕐 Ventanas de publicación óptimas</div>` +
+        windows
+          .slice(0, 12)
+          .map(
+            (w) => `
           <div class="sm-row" style="padding:6px 0;border-bottom:1px solid var(--border,#e2e8f0);font-size:13px">
-            <span style="font-weight:600;width:40px">${i[u.dayOfWeek]??"?"}</span>
-            <span>${String(u.hour).padStart(2,"0")}:00hs</span>
-            ${m(u.quality,u.quality==="prime"?"#22c55e":u.quality==="good"?"#f59e0b":"#6b7280")}
-            <span style="font-size:12px;color:var(--text-muted,#64748b)">${n(u.reason??"")}</span>
-          </div>`).join("")})}),e.querySelector("#sm-q-next").addEventListener("click",async s=>{await l(s.currentTarget,async()=>{const t=await c("/api/queue/process-next","POST");p(t.message??(t.processed?"Procesado \u2713":"Nada pendiente"),t.processed?"success":"info")})})},q=async e=>{const d=e.querySelector("#sm-panel-ab");d&&(d.innerHTML=`
+            <span style="font-weight:600;width:40px">${days[w.dayOfWeek] ?? '?'}</span>
+            <span>${String(w.hour).padStart(2, '0')}:00hs</span>
+            ${badge(w.quality, w.quality === 'prime' ? '#22c55e' : w.quality === 'good' ? '#f59e0b' : '#6b7280')}
+            <span style="font-size:12px;color:var(--text-muted,#64748b)">${escape(w.reason ?? '')}</span>
+          </div>`,
+          )
+          .join('');
+    });
+  });
+
+  root.querySelector('#sm-q-next').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/queue/process-next', 'POST');
+      toast(res.message ?? (res.processed ? 'Procesado ✓' : 'Nada pendiente'), res.processed ? 'success' : 'info');
+    });
+  });
+};
+
+// ── Panel 3: A/B Tests ────────────────────────────────────────────────────────
+
+const renderABPanel = async (root) => {
+  const wrap = root.querySelector('#sm-panel-ab');
+  if (!wrap) return;
+
+  wrap.innerHTML = `
     <div class="sm-card">
-      <div class="sm-card-header" style="cursor:default">\u{1F9EA} <strong>A/B Tests</strong></div>
+      <div class="sm-card-header" style="cursor:default">🧪 <strong>A/B Tests</strong></div>
       <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
         <div class="sm-row">
-          <button class="sm-btn secondary" id="sm-ab-load">\u{1F504} Cargar tests</button>
-          <button class="sm-btn secondary" id="sm-ab-suggest">\u{1F4A1} Sugerir pr\xF3ximo test</button>
+          <button class="sm-btn secondary" id="sm-ab-load">🔄 Cargar tests</button>
+          <button class="sm-btn secondary" id="sm-ab-suggest">💡 Sugerir próximo test</button>
         </div>
         <div style="display:flex;gap:8px">
           <input id="sm-ab-topic" class="sm-input" placeholder="Tema del test (ej: 'caption de reel de recetas')" style="flex:1" />
           <button class="sm-btn" id="sm-ab-create">+ Crear test</button>
         </div>
-        <div id="sm-ab-list"><div class="sm-empty">Carg\xE1 los tests para verlos</div></div>
+        <div id="sm-ab-list"><div class="sm-empty">Cargá los tests para verlos</div></div>
       </div>
-    </div>`,e.querySelector("#sm-ab-load").addEventListener("click",async o=>{await l(o.currentTarget,async()=>{const s=await c("/api/ab-tests"),t=e.querySelector("#sm-ab-list"),a=s.tests??s??[];if(!a.length){t.innerHTML='<div class="sm-empty">Sin tests \u2014 cre\xE1 el primero</div>';return}t.innerHTML=a.map(i=>`
+    </div>`;
+
+  root.querySelector('#sm-ab-load').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/ab-tests');
+      const el = root.querySelector('#sm-ab-list');
+      const tests = res.tests ?? res ?? [];
+      if (!tests.length) {
+        el.innerHTML = '<div class="sm-empty">Sin tests — creá el primero</div>';
+        return;
+      }
+      el.innerHTML = tests
+        .map(
+          (t) => `
         <div class="sm-ab-item">
           <div style="flex:1">
-            <div style="font-weight:600;font-size:13px">${n(i.name??i.id)}</div>
-            <div style="font-size:12px;color:var(--text-muted,#64748b)">${i.variants?.length??0} variantes \xB7 ${m(i.status??"running")}</div>
+            <div style="font-weight:600;font-size:13px">${escape(t.name ?? t.id)}</div>
+            <div style="font-size:12px;color:var(--text-muted,#64748b)">${t.variants?.length ?? 0} variantes · ${badge(t.status ?? 'running')}</div>
           </div>
           <button class="sm-btn secondary" style="padding:4px 10px;font-size:11px"
-            onclick="apiSafe('/api/ab-tests/${n(i.id)}/evaluate','POST').then(r=>toast(r.winner?'Ganador: '+r.winner:'Sin ganador a\xFAn','info'))">
-            \u{1F4CA} Evaluar
+            onclick="apiSafe('/api/ab-tests/${escape(t.id)}/evaluate','POST').then(r=>toast(r.winner?'Ganador: '+r.winner:'Sin ganador aún','info'))">
+            📊 Evaluar
           </button>
-        </div>`).join("")})}),e.querySelector("#sm-ab-create").addEventListener("click",async o=>{const s=e.querySelector("#sm-ab-topic").value.trim();if(!s){p("Escrib\xED un tema para el test","warn");return}await l(o.currentTarget,async()=>{const t=await c("/api/ab-tests","POST",{name:s,topic:s});t.id?p(`Test creado: ${t.id}`,"success"):p("Error al crear test","error")})}),e.querySelector("#sm-ab-suggest").addEventListener("click",async o=>{await l(o.currentTarget,async()=>{const s=await c("/api/ab-tests/suggest-next","POST"),t=e.querySelector("#sm-ab-list");s.suggestion&&(t.innerHTML=`<div style="padding:12px;background:var(--hover,#f8fafc);border-radius:8px;font-size:13px">
-          <div style="font-weight:600;margin-bottom:4px">\u{1F4A1} Test sugerido: ${n(s.suggestion.name??"\u2014")}</div>
-          <div style="color:var(--text-muted,#64748b)">${n(s.suggestion.rationale??"")}</div>
-        </div>`)})}))},z=async e=>{const d=e.querySelector("#sm-panel-dm");d&&(d.innerHTML=`
+        </div>`,
+        )
+        .join('');
+    });
+  });
+
+  root.querySelector('#sm-ab-create').addEventListener('click', async (e) => {
+    const topic = root.querySelector('#sm-ab-topic').value.trim();
+    if (!topic) {
+      toast('Escribí un tema para el test', 'warn');
+      return;
+    }
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/ab-tests', 'POST', { name: topic, topic });
+      if (res.id) toast(`Test creado: ${res.id}`, 'success');
+      else toast('Error al crear test', 'error');
+    });
+  });
+
+  root.querySelector('#sm-ab-suggest').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/ab-tests/suggest-next', 'POST');
+      const el = root.querySelector('#sm-ab-list');
+      if (res.suggestion) {
+        el.innerHTML = `<div style="padding:12px;background:var(--hover,#f8fafc);border-radius:8px;font-size:13px">
+          <div style="font-weight:600;margin-bottom:4px">💡 Test sugerido: ${escape(res.suggestion.name ?? '—')}</div>
+          <div style="color:var(--text-muted,#64748b)">${escape(res.suggestion.rationale ?? '')}</div>
+        </div>`;
+      }
+    });
+  });
+};
+
+// ── Panel 4: DM Intelligence ──────────────────────────────────────────────────
+
+const renderDMPanel = async (root) => {
+  const wrap = root.querySelector('#sm-panel-dm');
+  if (!wrap) return;
+
+  wrap.innerHTML = `
     <div class="sm-card">
-      <div class="sm-card-header" style="cursor:default">\u{1F4AC} <strong>DM Intelligence</strong></div>
+      <div class="sm-card-header" style="cursor:default">💬 <strong>DM Intelligence</strong></div>
       <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
         <div class="sm-row">
-          <button class="sm-btn secondary" id="sm-dm-load">\u{1F504} Cargar conversaciones</button>
-          <button class="sm-btn secondary" id="sm-dm-templates">\u{1F916} Generar auto-respuestas</button>
+          <button class="sm-btn secondary" id="sm-dm-load">🔄 Cargar conversaciones</button>
+          <button class="sm-btn secondary" id="sm-dm-templates">🤖 Generar auto-respuestas</button>
         </div>
         <div style="display:flex;gap:8px">
           <input id="sm-dm-text" class="sm-input" placeholder="Texto de un DM para clasificar..." style="flex:1" />
-          <button class="sm-btn secondary" id="sm-dm-classify">\u{1F50D} Clasificar</button>
+          <button class="sm-btn secondary" id="sm-dm-classify">🔍 Clasificar</button>
         </div>
-        <div id="sm-dm-result"><div class="sm-empty">Carg\xE1 conversaciones o clasific\xE1 un DM</div></div>
+        <div id="sm-dm-result"><div class="sm-empty">Cargá conversaciones o clasificá un DM</div></div>
       </div>
-    </div>`,e.querySelector("#sm-dm-load").addEventListener("click",async o=>{await l(o.currentTarget,async()=>{const s=await c("/api/dm/conversations"),t=e.querySelector("#sm-dm-result"),a=s.conversations??s??[];if(!a.length){t.innerHTML='<div class="sm-empty">Sin conversaciones guardadas</div>';return}t.innerHTML=a.slice(0,10).map(i=>`
+    </div>`;
+
+  root.querySelector('#sm-dm-load').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/dm/conversations');
+      const el = root.querySelector('#sm-dm-result');
+      const convs = res.conversations ?? res ?? [];
+      if (!convs.length) {
+        el.innerHTML = '<div class="sm-empty">Sin conversaciones guardadas</div>';
+        return;
+      }
+      el.innerHTML = convs
+        .slice(0, 10)
+        .map(
+          (c) => `
         <div style="padding:8px 0;border-bottom:1px solid var(--border,#e2e8f0);font-size:13px">
-          <div style="font-weight:600">${n(i.username??i.userId??"\u2014")} ${m(i.intent??"desconocido")}</div>
-          <div style="color:var(--text-muted,#64748b)">${n(i.lastMessage?.slice(0,80)??"")}...</div>
-          <div style="font-size:11px;color:var(--text-muted,#64748b)">${m(i.status??"abierto",i.status==="resolved"?"#22c55e":"#f59e0b")}</div>
-        </div>`).join("")})}),e.querySelector("#sm-dm-classify").addEventListener("click",async o=>{const s=e.querySelector("#sm-dm-text").value.trim();if(!s){p("Escrib\xED el texto de un DM","warn");return}await l(o.currentTarget,async()=>{const t=await c("/api/dm/classify","POST",{message:s}),a=e.querySelector("#sm-dm-result");a.innerHTML=`<div style="padding:12px;background:var(--hover,#f8fafc);border-radius:8px;font-size:13px">
-        <div class="sm-row"><strong>Intent:</strong>${m(t.intent??"\u2014","#3451d1")}</div>
-        <div class="sm-row"><strong>Sentimiento:</strong>${m(t.sentiment??"\u2014",t.sentiment==="positivo"?"#22c55e":t.sentiment==="negativo"?"#ef4444":"#6b7280")}</div>
-        <div class="sm-row"><strong>Urgencia:</strong>${m(t.urgency??"normal")}</div>
-        ${t.suggestedResponse?`<div style="margin-top:8px;padding:8px;border:1px solid var(--border,#e2e8f0);border-radius:6px">${n(t.suggestedResponse)}</div>`:""}
-      </div>`})}),e.querySelector("#sm-dm-templates").addEventListener("click",async o=>{await l(o.currentTarget,async()=>{const s=await c("/api/dm/templates/build","POST"),t=e.querySelector("#sm-dm-result"),a=Object.entries(s??{});if(!a.length){t.innerHTML='<div class="sm-empty">Sin templates generados</div>';return}t.innerHTML=`<div style="font-weight:600;margin-bottom:8px;font-size:13px">\u{1F916} ${a.length} plantillas de auto-respuesta generadas</div>`+a.map(([i,r])=>`
+          <div style="font-weight:600">${escape(c.username ?? c.userId ?? '—')} ${badge(c.intent ?? 'desconocido')}</div>
+          <div style="color:var(--text-muted,#64748b)">${escape(c.lastMessage?.slice(0, 80) ?? '')}...</div>
+          <div style="font-size:11px;color:var(--text-muted,#64748b)">${badge(c.status ?? 'abierto', c.status === 'resolved' ? '#22c55e' : '#f59e0b')}</div>
+        </div>`,
+        )
+        .join('');
+    });
+  });
+
+  root.querySelector('#sm-dm-classify').addEventListener('click', async (e) => {
+    const text = root.querySelector('#sm-dm-text').value.trim();
+    if (!text) {
+      toast('Escribí el texto de un DM', 'warn');
+      return;
+    }
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/dm/classify', 'POST', { message: text });
+      const el = root.querySelector('#sm-dm-result');
+      el.innerHTML = `<div style="padding:12px;background:var(--hover,#f8fafc);border-radius:8px;font-size:13px">
+        <div class="sm-row"><strong>Intent:</strong>${badge(res.intent ?? '—', '#3451d1')}</div>
+        <div class="sm-row"><strong>Sentimiento:</strong>${badge(res.sentiment ?? '—', res.sentiment === 'positivo' ? '#22c55e' : res.sentiment === 'negativo' ? '#ef4444' : '#6b7280')}</div>
+        <div class="sm-row"><strong>Urgencia:</strong>${badge(res.urgency ?? 'normal')}</div>
+        ${res.suggestedResponse ? `<div style="margin-top:8px;padding:8px;border:1px solid var(--border,#e2e8f0);border-radius:6px">${escape(res.suggestedResponse)}</div>` : ''}
+      </div>`;
+    });
+  });
+
+  root.querySelector('#sm-dm-templates').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/dm/templates/build', 'POST');
+      const el = root.querySelector('#sm-dm-result');
+      const templates = Object.entries(res ?? {});
+      if (!templates.length) {
+        el.innerHTML = '<div class="sm-empty">Sin templates generados</div>';
+        return;
+      }
+      el.innerHTML =
+        `<div style="font-weight:600;margin-bottom:8px;font-size:13px">🤖 ${templates.length} plantillas de auto-respuesta generadas</div>` +
+        templates
+          .map(
+            ([intent, tmpl]) => `
           <div style="padding:8px 0;border-bottom:1px solid var(--border,#e2e8f0);font-size:12px">
-            <div style="font-weight:600">${m(i,"#3451d1")}</div>
-            <div style="color:var(--text-muted,#64748b);margin-top:4px">${n(typeof r=="string"?r:JSON.stringify(r))}</div>
-          </div>`).join(""),p(`${a.length} plantillas listas \u2713`,"success")})}))},k=async e=>{const d=e.querySelector("#sm-panel-hashtag");if(!d)return;d.innerHTML=`
+            <div style="font-weight:600">${badge(intent, '#3451d1')}</div>
+            <div style="color:var(--text-muted,#64748b);margin-top:4px">${escape(typeof tmpl === 'string' ? tmpl : JSON.stringify(tmpl))}</div>
+          </div>`,
+          )
+          .join('');
+      toast(`${templates.length} plantillas listas ✓`, 'success');
+    });
+  });
+};
+
+// ── Panel 5: Hashtag Engine ───────────────────────────────────────────────────
+
+const renderHashtagPanel = async (root) => {
+  const wrap = root.querySelector('#sm-panel-hashtag');
+  if (!wrap) return;
+
+  wrap.innerHTML = `
     <div class="sm-card">
-      <div class="sm-card-header" style="cursor:default">#\uFE0F\u20E3 <strong>Hashtag Engine</strong></div>
+      <div class="sm-card-header" style="cursor:default">#️⃣ <strong>Hashtag Engine</strong></div>
       <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
         <div class="sm-row">
           <input id="sm-ht-topic" class="sm-input" placeholder="Tema o contenido (ej: 'reel de recetas veganas')" style="flex:1" />
-          <button class="sm-btn" id="sm-ht-strategy">\u26A1 Generar estrategia</button>
+          <button class="sm-btn" id="sm-ht-strategy">⚡ Generar estrategia</button>
         </div>
         <div class="sm-row">
-          <button class="sm-btn secondary" id="sm-ht-pool">\u{1F3CA} Build pool</button>
-          <button class="sm-btn secondary" id="sm-ht-rotate">\u{1F504} Rotar sets</button>
+          <button class="sm-btn secondary" id="sm-ht-pool">🏊 Build pool</button>
+          <button class="sm-btn secondary" id="sm-ht-rotate">🔄 Rotar sets</button>
         </div>
-        <div id="sm-ht-result"><div class="sm-empty">Gener\xE1 una estrategia de hashtags</div></div>
+        <div id="sm-ht-result"><div class="sm-empty">Generá una estrategia de hashtags</div></div>
       </div>
-    </div>`;const o=(s,t)=>{if(!s){t.innerHTML='<div class="sm-empty">Sin estrategia</div>';return}t.innerHTML=`
-      <div style="margin-bottom:8px;font-size:13px"><strong>Total: ${s.total??0} hashtags</strong> \xB7 ${n(s.rationale??"")}</div>
-      <div style="margin-bottom:4px;font-size:12px;font-weight:600;color:var(--text-muted,#64748b)">\u{1F7E3} PRIMARIOS (nicho)</div>
-      <div style="margin-bottom:8px">${(s.primarySet??[]).map(a=>`<span class="sm-tag purple">${n(a)}</span>`).join("")}</div>
-      <div style="margin-bottom:4px;font-size:12px;font-weight:600;color:var(--text-muted,#64748b)">\u{1F535} SECUNDARIOS (audiencia)</div>
-      <div style="margin-bottom:8px">${(s.secondarySet??[]).map(a=>`<span class="sm-tag blue">${n(a)}</span>`).join("")}</div>
-      <div style="margin-bottom:4px;font-size:12px;font-weight:600;color:var(--text-muted,#64748b)">\u26AB CONTEXTUALES (contenido)</div>
-      <div style="margin-bottom:12px">${(s.contextualSet??[]).map(a=>`<span class="sm-tag gray">${n(a)}</span>`).join("")}</div>
-      <button class="sm-btn secondary" style="font-size:12px" onclick="copyText([...(${JSON.stringify(s.primarySet??[])}),(${JSON.stringify(s.secondarySet??[])}),(${JSON.stringify(s.contextualSet??[])})].join(' '))">\u{1F4CB} Copiar todos</button>`};e.querySelector("#sm-ht-strategy").addEventListener("click",async s=>{const t=e.querySelector("#sm-ht-topic").value.trim();await l(s.currentTarget,async()=>{const a=await c("/api/hashtags/strategy","POST",{topic:t,contentText:t});o(a.strategy??a,e.querySelector("#sm-ht-result"))})}),e.querySelector("#sm-ht-pool").addEventListener("click",async s=>{await l(s.currentTarget,async()=>{const t=await c("/api/hashtags/build-pool","POST"),a=e.querySelector("#sm-ht-result"),i=t.pool??t??{},r=Object.values(i).flat();a.innerHTML=`<div style="font-size:13px;margin-bottom:8px"><strong>${r.length} hashtags en el pool</strong></div>`+r.map(u=>`<span class="sm-tag">${n(u)}</span>`).join(""),p(`Pool de ${r.length} hashtags listo \u2713`,"success")})}),e.querySelector("#sm-ht-rotate").addEventListener("click",async s=>{await l(s.currentTarget,async()=>{const t=await c("/api/hashtags/rotate","POST",{currentSets:[]});o(t.strategy??t,e.querySelector("#sm-ht-result")),p("Hashtags rotados \u2713","success")})})},L=async e=>{const d=e.querySelector("#sm-panel-comment");if(!d)return;d.innerHTML=`
+    </div>`;
+
+  const renderStrategy = (strategy, el) => {
+    if (!strategy) {
+      el.innerHTML = '<div class="sm-empty">Sin estrategia</div>';
+      return;
+    }
+    el.innerHTML = `
+      <div style="margin-bottom:8px;font-size:13px"><strong>Total: ${strategy.total ?? 0} hashtags</strong> · ${escape(strategy.rationale ?? '')}</div>
+      <div style="margin-bottom:4px;font-size:12px;font-weight:600;color:var(--text-muted,#64748b)">🟣 PRIMARIOS (nicho)</div>
+      <div style="margin-bottom:8px">${(strategy.primarySet ?? []).map((t) => `<span class="sm-tag purple">${escape(t)}</span>`).join('')}</div>
+      <div style="margin-bottom:4px;font-size:12px;font-weight:600;color:var(--text-muted,#64748b)">🔵 SECUNDARIOS (audiencia)</div>
+      <div style="margin-bottom:8px">${(strategy.secondarySet ?? []).map((t) => `<span class="sm-tag blue">${escape(t)}</span>`).join('')}</div>
+      <div style="margin-bottom:4px;font-size:12px;font-weight:600;color:var(--text-muted,#64748b)">⚫ CONTEXTUALES (contenido)</div>
+      <div style="margin-bottom:12px">${(strategy.contextualSet ?? []).map((t) => `<span class="sm-tag gray">${escape(t)}</span>`).join('')}</div>
+      <button class="sm-btn secondary" style="font-size:12px" onclick="copyText([...(${JSON.stringify(strategy.primarySet ?? [])}),(${JSON.stringify(strategy.secondarySet ?? [])}),(${JSON.stringify(strategy.contextualSet ?? [])})].join(' '))">📋 Copiar todos</button>`;
+  };
+
+  root.querySelector('#sm-ht-strategy').addEventListener('click', async (e) => {
+    const topic = root.querySelector('#sm-ht-topic').value.trim();
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/hashtags/strategy', 'POST', { topic, contentText: topic });
+      renderStrategy(res.strategy ?? res, root.querySelector('#sm-ht-result'));
+    });
+  });
+
+  root.querySelector('#sm-ht-pool').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/hashtags/build-pool', 'POST');
+      const el = root.querySelector('#sm-ht-result');
+      const pool = res.pool ?? res ?? {};
+      const allTags = Object.values(pool).flat();
+      el.innerHTML =
+        `<div style="font-size:13px;margin-bottom:8px"><strong>${allTags.length} hashtags en el pool</strong></div>` +
+        allTags.map((t) => `<span class="sm-tag">${escape(t)}</span>`).join('');
+      toast(`Pool de ${allTags.length} hashtags listo ✓`, 'success');
+    });
+  });
+
+  root.querySelector('#sm-ht-rotate').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/hashtags/rotate', 'POST', { currentSets: [] });
+      renderStrategy(res.strategy ?? res, root.querySelector('#sm-ht-result'));
+      toast('Hashtags rotados ✓', 'success');
+    });
+  });
+};
+
+// ── Panel 6: Comment Intelligence ────────────────────────────────────────────
+
+const renderCommentPanel = async (root) => {
+  const wrap = root.querySelector('#sm-panel-comment');
+  if (!wrap) return;
+
+  wrap.innerHTML = `
     <div class="sm-card">
-      <div class="sm-card-header" style="cursor:default">\u{1F4A1} <strong>Comment Intelligence</strong></div>
+      <div class="sm-card-header" style="cursor:default">💡 <strong>Comment Intelligence</strong></div>
       <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
         <div class="sm-row">
-          <button class="sm-btn secondary" id="sm-cm-library">\u{1F4DA} Build librer\xEDa</button>
-          <button class="sm-btn secondary" id="sm-cm-seed">\u{1F331} Generar seeds</button>
+          <button class="sm-btn secondary" id="sm-cm-library">📚 Build librería</button>
+          <button class="sm-btn secondary" id="sm-cm-seed">🌱 Generar seeds</button>
         </div>
-        <textarea id="sm-cm-comments" class="sm-input" rows="3" placeholder='Peg\xE1 comentarios (uno por l\xEDnea) para analizar...'></textarea>
+        <textarea id="sm-cm-comments" class="sm-input" rows="3" placeholder='Pegá comentarios (uno por línea) para analizar...'></textarea>
         <div class="sm-row">
-          <button class="sm-btn" id="sm-cm-analyze">\u{1F50D} Analizar</button>
-          <button class="sm-btn secondary" id="sm-cm-replies">\u{1F4AC} Generar respuestas</button>
-          <button class="sm-btn secondary" id="sm-cm-crisis">\u{1F6A8} Detectar crisis</button>
+          <button class="sm-btn" id="sm-cm-analyze">🔍 Analizar</button>
+          <button class="sm-btn secondary" id="sm-cm-replies">💬 Generar respuestas</button>
+          <button class="sm-btn secondary" id="sm-cm-crisis">🚨 Detectar crisis</button>
         </div>
-        <div id="sm-cm-result"><div class="sm-empty">Analiz\xE1 comentarios o constru\xED la librer\xEDa</div></div>
+        <div id="sm-cm-result"><div class="sm-empty">Analizá comentarios o construí la librería</div></div>
       </div>
-    </div>`;const o=s=>{const t=s.querySelector("#sm-cm-comments").value.trim();return t?t.split(`
-`).filter(Boolean).map((a,i)=>({id:String(i),text:a,author:"usuario",timestamp:new Date().toISOString()})):[]};e.querySelector("#sm-cm-analyze").addEventListener("click",async s=>{const t=o(e);if(!t.length){p("Peg\xE1 comentarios para analizar","warn");return}await l(s.currentTarget,async()=>{const a=await c("/api/comments/analyze","POST",{comments:t}),i=e.querySelector("#sm-cm-result"),r=a.batch??a;i.innerHTML=`
+    </div>`;
+
+  const parseComments = (root) => {
+    const raw = root.querySelector('#sm-cm-comments').value.trim();
+    return raw
+      ? raw
+          .split('\n')
+          .filter(Boolean)
+          .map((text, i) => ({ id: String(i), text, author: 'usuario', timestamp: new Date().toISOString() }))
+      : [];
+  };
+
+  root.querySelector('#sm-cm-analyze').addEventListener('click', async (e) => {
+    const comments = parseComments(root);
+    if (!comments.length) {
+      toast('Pegá comentarios para analizar', 'warn');
+      return;
+    }
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/comments/analyze', 'POST', { comments });
+      const el = root.querySelector('#sm-cm-result');
+      const batch = res.batch ?? res;
+      el.innerHTML = `
         <div class="sm-stat-row" style="margin-bottom:8px">
-          <div class="sm-stat"><strong>${r?.positiveCount??0}</strong>Positivos</div>
-          <div class="sm-stat"><strong>${r?.negativeCount??0}</strong>Negativos</div>
-          <div class="sm-stat"><strong>${r?.neutralCount??0}</strong>Neutros</div>
-          <div class="sm-stat"><strong>${r?.questionCount??0}</strong>Preguntas</div>
+          <div class="sm-stat"><strong>${batch?.positiveCount ?? 0}</strong>Positivos</div>
+          <div class="sm-stat"><strong>${batch?.negativeCount ?? 0}</strong>Negativos</div>
+          <div class="sm-stat"><strong>${batch?.neutralCount ?? 0}</strong>Neutros</div>
+          <div class="sm-stat"><strong>${batch?.questionCount ?? 0}</strong>Preguntas</div>
         </div>
-        ${r?.overallSentiment?`<div style="font-size:13px">Sentimiento general: ${m(r.overallSentiment)}</div>`:""}`})}),e.querySelector("#sm-cm-replies").addEventListener("click",async s=>{const t=o(e);if(!t.length){p("Peg\xE1 comentarios primero","warn");return}await l(s.currentTarget,async()=>{const[a,i]=await Promise.all([c("/api/comments/analyze","POST",{comments:t}),Promise.resolve(null)]),r=await c("/api/comments/replies","POST",{batch:a,mode:"supervised"}),u=e.querySelector("#sm-cm-result"),b=r.plans??r??[];u.innerHTML=b.slice(0,5).map(g=>`
+        ${batch?.overallSentiment ? `<div style="font-size:13px">Sentimiento general: ${badge(batch.overallSentiment)}</div>` : ''}`;
+    });
+  });
+
+  root.querySelector('#sm-cm-replies').addEventListener('click', async (e) => {
+    const comments = parseComments(root);
+    if (!comments.length) {
+      toast('Pegá comentarios primero', 'warn');
+      return;
+    }
+    await withBtnSpinner(e.currentTarget, async () => {
+      const [batchRes, repliesRes] = await Promise.all([
+        apiSafe('/api/comments/analyze', 'POST', { comments }),
+        Promise.resolve(null),
+      ]);
+      const plans = await apiSafe('/api/comments/replies', 'POST', { batch: batchRes, mode: 'supervised' });
+      const el = root.querySelector('#sm-cm-result');
+      const items = plans.plans ?? plans ?? [];
+      el.innerHTML = items
+        .slice(0, 5)
+        .map(
+          (p) => `
         <div style="padding:8px 0;border-bottom:1px solid var(--border,#e2e8f0);font-size:13px">
-          <div style="color:var(--text-muted,#64748b)">${m("a: "+n(g.comment?.text?.slice(0,40)??"\u2014"))}</div>
-          <div style="margin-top:4px">${n(g.suggestedReply??g.reply??"\u2014")}</div>
-        </div>`).join("")})}),e.querySelector("#sm-cm-crisis").addEventListener("click",async s=>{const t=o(e);if(!t.length){p("Peg\xE1 comentarios primero","warn");return}await l(s.currentTarget,async()=>{const a=await c("/api/comments/analyze","POST",{comments:t}),i=await c("/api/comments/detect-crisis","POST",{batch:a}),r=e.querySelector("#sm-cm-result");r.innerHTML=`<div style="padding:12px;border-radius:8px;background:${i.isCrisis?"#fef2f2":"#f0fdf4"};font-size:13px">
-        <div style="font-weight:600">${i.isCrisis?"\u{1F6A8} CRISIS DETECTADA":"\u2705 Sin crisis"}</div>
-        ${i.triggers?.length?`<ul style="margin:6px 0 0 16px">${i.triggers.map(u=>`<li>${n(u)}</li>`).join("")}</ul>`:""}
-        ${i.recommendedAction?`<div style="margin-top:6px;font-style:italic">${n(i.recommendedAction)}</div>`:""}
-      </div>`})}),e.querySelector("#sm-cm-seed").addEventListener("click",async s=>{await l(s.currentTarget,async()=>{const t=await c("/api/comments/seed","POST",{hook:"contenido de marca",count:5}),a=e.querySelector("#sm-cm-result"),i=t.comments??t??[];a.innerHTML=`<div style="font-weight:600;margin-bottom:8px;font-size:13px">\u{1F331} ${i.length} comentarios seed generados</div>`+i.map(r=>`<div style="padding:6px 0;border-bottom:1px solid var(--border,#e2e8f0);font-size:13px">${n(typeof r=="string"?r:r.text??JSON.stringify(r))}</div>`).join("")})}),e.querySelector("#sm-cm-library").addEventListener("click",async s=>{await l(s.currentTarget,async()=>{await c("/api/comments/library/build","POST"),p("Librer\xEDa de respuestas construida \u2713","success")})})},M=async e=>{const d=e.querySelector("#sm-panel-trend");if(!d)return;d.innerHTML=`
+          <div style="color:var(--text-muted,#64748b)">${badge('a: ' + escape(p.comment?.text?.slice(0, 40) ?? '—'))}</div>
+          <div style="margin-top:4px">${escape(p.suggestedReply ?? p.reply ?? '—')}</div>
+        </div>`,
+        )
+        .join('');
+    });
+  });
+
+  root.querySelector('#sm-cm-crisis').addEventListener('click', async (e) => {
+    const comments = parseComments(root);
+    if (!comments.length) {
+      toast('Pegá comentarios primero', 'warn');
+      return;
+    }
+    await withBtnSpinner(e.currentTarget, async () => {
+      const batch = await apiSafe('/api/comments/analyze', 'POST', { comments });
+      const crisis = await apiSafe('/api/comments/detect-crisis', 'POST', { batch });
+      const el = root.querySelector('#sm-cm-result');
+      el.innerHTML = `<div style="padding:12px;border-radius:8px;background:${crisis.isCrisis ? '#fef2f2' : '#f0fdf4'};font-size:13px">
+        <div style="font-weight:600">${crisis.isCrisis ? '🚨 CRISIS DETECTADA' : '✅ Sin crisis'}</div>
+        ${crisis.triggers?.length ? `<ul style="margin:6px 0 0 16px">${crisis.triggers.map((t) => `<li>${escape(t)}</li>`).join('')}</ul>` : ''}
+        ${crisis.recommendedAction ? `<div style="margin-top:6px;font-style:italic">${escape(crisis.recommendedAction)}</div>` : ''}
+      </div>`;
+    });
+  });
+
+  root.querySelector('#sm-cm-seed').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/comments/seed', 'POST', { hook: 'contenido de marca', count: 5 });
+      const el = root.querySelector('#sm-cm-result');
+      const seeds = res.comments ?? res ?? [];
+      el.innerHTML =
+        `<div style="font-weight:600;margin-bottom:8px;font-size:13px">🌱 ${seeds.length} comentarios seed generados</div>` +
+        seeds
+          .map(
+            (s) =>
+              `<div style="padding:6px 0;border-bottom:1px solid var(--border,#e2e8f0);font-size:13px">${escape(typeof s === 'string' ? s : (s.text ?? JSON.stringify(s)))}</div>`,
+          )
+          .join('');
+    });
+  });
+
+  root.querySelector('#sm-cm-library').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      await apiSafe('/api/comments/library/build', 'POST');
+      toast('Librería de respuestas construida ✓', 'success');
+    });
+  });
+};
+
+// ── Panel 7: Trending Engine ──────────────────────────────────────────────────
+
+const renderTrendingPanel = async (root) => {
+  const wrap = root.querySelector('#sm-panel-trend');
+  if (!wrap) return;
+
+  wrap.innerHTML = `
     <div class="sm-card">
-      <div class="sm-card-header" style="cursor:default">\u{1F4C8} <strong>Trending Engine</strong></div>
+      <div class="sm-card-header" style="cursor:default">📈 <strong>Trending Engine</strong></div>
       <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
         <div class="sm-row">
-          <button class="sm-btn" id="sm-tr-detect">\u{1F50D} Detectar tendencias</button>
-          <button class="sm-btn secondary" id="sm-tr-latest">\u{1F4C4} Cargar \xFAltimo reporte</button>
-          <button class="sm-btn secondary" id="sm-tr-calendar">\u{1F4C5} Generar calendario</button>
+          <button class="sm-btn" id="sm-tr-detect">🔍 Detectar tendencias</button>
+          <button class="sm-btn secondary" id="sm-tr-latest">📄 Cargar último reporte</button>
+          <button class="sm-btn secondary" id="sm-tr-calendar">📅 Generar calendario</button>
         </div>
-        <div id="sm-tr-result"><div class="sm-empty">Detect\xE1 tendencias para tu nicho</div></div>
+        <div id="sm-tr-result"><div class="sm-empty">Detectá tendencias para tu nicho</div></div>
       </div>
-    </div>`;const o=(s,t)=>{if(!s?.trends?.length){t.innerHTML='<div class="sm-empty">Sin tendencias detectadas</div>';return}t.innerHTML=`
+    </div>`;
+
+  const renderTrends = (report, el) => {
+    if (!report?.trends?.length) {
+      el.innerHTML = '<div class="sm-empty">Sin tendencias detectadas</div>';
+      return;
+    }
+    el.innerHTML = `
       <div class="sm-stat-row" style="margin-bottom:12px">
-        <div class="sm-stat"><strong>${s.trends.length}</strong>Tendencias</div>
-        <div class="sm-stat"><strong>${s.topPicks.length}</strong>Top picks</div>
-        <div class="sm-stat"><strong>${new Date(s.generatedAt).toLocaleDateString("es-AR")}</strong>Generado</div>
+        <div class="sm-stat"><strong>${report.trends.length}</strong>Tendencias</div>
+        <div class="sm-stat"><strong>${report.topPicks.length}</strong>Top picks</div>
+        <div class="sm-stat"><strong>${new Date(report.generatedAt).toLocaleDateString('es-AR')}</strong>Generado</div>
       </div>
-      <div style="padding:8px;background:var(--hover,#f8fafc);border-radius:8px;font-size:12px;margin-bottom:12px;color:var(--text-muted,#64748b)">${n(s.summary)}</div>
-      ${s.trends.map(a=>`
+      <div style="padding:8px;background:var(--hover,#f8fafc);border-radius:8px;font-size:12px;margin-bottom:12px;color:var(--text-muted,#64748b)">${escape(report.summary)}</div>
+      ${report.trends
+        .map(
+          (t) => `
         <div class="sm-trend-item">
-          <div class="sm-trend-meta">${h(a.momentum)} ${m(`${a.relevanceScore}/100`,a.relevanceScore>=80?"#22c55e":a.relevanceScore>=60?"#f59e0b":"#6b7280")} ${m(a.timeWindow)}</div>
-          <div class="sm-trend-name">${n(a.name)}</div>
-          <div class="sm-trend-desc">${n(a.description)}</div>
-          <div style="margin-top:4px">${a.hashtags.slice(0,5).map(i=>`<span class="sm-tag blue">${n(i)}</span>`).join("")}</div>
-          <div style="font-size:12px;color:#3451d1;margin-top:4px">\u{1F4A1} ${n(a.contentIdeas[0]??"")}</div>
-        </div>`).join("")}`};e.querySelector("#sm-tr-detect").addEventListener("click",async s=>{await l(s.currentTarget,async()=>{const t=await c("/api/trends/detect","POST");o(t,e.querySelector("#sm-tr-result")),p(`${t.trends?.length??0} tendencias detectadas \u2713`,"success")})}),e.querySelector("#sm-tr-latest").addEventListener("click",async s=>{await l(s.currentTarget,async()=>{const t=await c("/api/trends/latest");if(t.error){p(t.error,"warn");return}o(t,e.querySelector("#sm-tr-result"))})}),e.querySelector("#sm-tr-calendar").addEventListener("click",async s=>{await l(s.currentTarget,async()=>{const t=await c("/api/trends/calendar","POST",{days:7}),a=e.querySelector("#sm-tr-result");if(t.error){p(t.error,"warn");return}const i=t.calendar??[];a.innerHTML='<div style="font-weight:600;margin-bottom:8px;font-size:13px">\u{1F4C5} Calendario de contenido trending (7 d\xEDas)</div>'+i.map(r=>`
+          <div class="sm-trend-meta">${momentumBadge(t.momentum)} ${badge(`${t.relevanceScore}/100`, t.relevanceScore >= 80 ? '#22c55e' : t.relevanceScore >= 60 ? '#f59e0b' : '#6b7280')} ${badge(t.timeWindow)}</div>
+          <div class="sm-trend-name">${escape(t.name)}</div>
+          <div class="sm-trend-desc">${escape(t.description)}</div>
+          <div style="margin-top:4px">${t.hashtags
+            .slice(0, 5)
+            .map((h) => `<span class="sm-tag blue">${escape(h)}</span>`)
+            .join('')}</div>
+          <div style="font-size:12px;color:#3451d1;margin-top:4px">💡 ${escape(t.contentIdeas[0] ?? '')}</div>
+        </div>`,
+        )
+        .join('')}`;
+  };
+
+  root.querySelector('#sm-tr-detect').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/trends/detect', 'POST');
+      renderTrends(res, root.querySelector('#sm-tr-result'));
+      toast(`${res.trends?.length ?? 0} tendencias detectadas ✓`, 'success');
+    });
+  });
+
+  root.querySelector('#sm-tr-latest').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/trends/latest');
+      if (res.error) {
+        toast(res.error, 'warn');
+        return;
+      }
+      renderTrends(res, root.querySelector('#sm-tr-result'));
+    });
+  });
+
+  root.querySelector('#sm-tr-calendar').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/trends/calendar', 'POST', { days: 7 });
+      const el = root.querySelector('#sm-tr-result');
+      if (res.error) {
+        toast(res.error, 'warn');
+        return;
+      }
+      const calendar = res.calendar ?? [];
+      el.innerHTML =
+        `<div style="font-weight:600;margin-bottom:8px;font-size:13px">📅 Calendario de contenido trending (7 días)</div>` +
+        calendar
+          .map(
+            (entry) => `
           <div style="padding:10px 0;border-bottom:1px solid var(--border,#e2e8f0);font-size:13px">
-            <div class="sm-row">${m(r.date,"#3451d1")} ${m(r.publishTime)} ${m(r.priority,r.priority==="alta"?"#22c55e":r.priority==="media"?"#f59e0b":"#6b7280")}</div>
-            <div style="font-weight:600;margin-top:4px">${n(r.trend.name)}</div>
-            <div style="color:var(--text-muted,#64748b)">${n(r.adaptation?.contentIdea??r.adaptation?.hook??"\u2014")}</div>
-            <div style="font-size:11px;margin-top:4px">${m(r.adaptation?.format??"reel")} ${m(r.adaptation?.urgency??"esta-semana")}</div>
-          </div>`).join("")})})},E=async e=>{const d=e.querySelector("#sm-panel-comp");if(!d)return;d.innerHTML=`
+            <div class="sm-row">${badge(entry.date, '#3451d1')} ${badge(entry.publishTime)} ${badge(entry.priority, entry.priority === 'alta' ? '#22c55e' : entry.priority === 'media' ? '#f59e0b' : '#6b7280')}</div>
+            <div style="font-weight:600;margin-top:4px">${escape(entry.trend.name)}</div>
+            <div style="color:var(--text-muted,#64748b)">${escape(entry.adaptation?.contentIdea ?? entry.adaptation?.hook ?? '—')}</div>
+            <div style="font-size:11px;margin-top:4px">${badge(entry.adaptation?.format ?? 'reel')} ${badge(entry.adaptation?.urgency ?? 'esta-semana')}</div>
+          </div>`,
+          )
+          .join('');
+    });
+  });
+};
+
+// ── Panel 8: Competitor Analysis ──────────────────────────────────────────────
+
+const renderCompetitorPanel = async (root) => {
+  const wrap = root.querySelector('#sm-panel-comp');
+  if (!wrap) return;
+
+  wrap.innerHTML = `
     <div class="sm-card">
-      <div class="sm-card-header" style="cursor:default">\u{1F50D} <strong>Competitor Analysis</strong></div>
+      <div class="sm-card-header" style="cursor:default">🔍 <strong>Competitor Analysis</strong></div>
       <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
         <div class="sm-row">
-          <input id="sm-comp-handles" class="sm-input" placeholder="@handle1, @handle2 (opcional \u2014 deja vac\xEDo para auto-detectar)" style="flex:1" />
-          <button class="sm-btn" id="sm-comp-analyze">\u{1F50D} Analizar competencia</button>
+          <input id="sm-comp-handles" class="sm-input" placeholder="@handle1, @handle2 (opcional — deja vacío para auto-detectar)" style="flex:1" />
+          <button class="sm-btn" id="sm-comp-analyze">🔍 Analizar competencia</button>
         </div>
         <div class="sm-row">
-          <button class="sm-btn secondary" id="sm-comp-latest">\u{1F4C4} \xDAltimo an\xE1lisis</button>
-          <button class="sm-btn secondary" id="sm-comp-strategies">\u26A1 Estrategias ganadoras</button>
-          <button class="sm-btn secondary" id="sm-comp-gaps">\u{1F4A1} Ideas desde gaps</button>
+          <button class="sm-btn secondary" id="sm-comp-latest">📄 Último análisis</button>
+          <button class="sm-btn secondary" id="sm-comp-strategies">⚡ Estrategias ganadoras</button>
+          <button class="sm-btn secondary" id="sm-comp-gaps">💡 Ideas desde gaps</button>
         </div>
-        <div id="sm-comp-result"><div class="sm-empty">Analiz\xE1 la competencia de tu nicho</div></div>
+        <div id="sm-comp-result"><div class="sm-empty">Analizá la competencia de tu nicho</div></div>
       </div>
-    </div>`;const o=(s,t)=>{if(!s?.competitors?.length){t.innerHTML='<div class="sm-empty">Sin datos de competidores</div>';return}t.innerHTML=`
+    </div>`;
+
+  const renderReport = (report, el) => {
+    if (!report?.competitors?.length) {
+      el.innerHTML = '<div class="sm-empty">Sin datos de competidores</div>';
+      return;
+    }
+    el.innerHTML = `
       <div class="sm-stat-row" style="margin-bottom:12px">
-        <div class="sm-stat"><strong>${s.competitors.length}</strong>Competidores</div>
-        <div class="sm-stat"><strong>${s.insights.length}</strong>Insights</div>
-        <div class="sm-stat"><strong>${s.topOpportunities.length}</strong>Top oportunidades</div>
+        <div class="sm-stat"><strong>${report.competitors.length}</strong>Competidores</div>
+        <div class="sm-stat"><strong>${report.insights.length}</strong>Insights</div>
+        <div class="sm-stat"><strong>${report.topOpportunities.length}</strong>Top oportunidades</div>
       </div>
-      <div style="padding:8px;background:var(--hover,#f8fafc);border-radius:8px;font-size:12px;margin-bottom:12px;color:var(--text-muted,#64748b)">${n(s.competitivePosition)}</div>
-      <div style="font-weight:600;font-size:13px;margin-bottom:6px">\u{1F3C6} Top oportunidades</div>
-      ${s.topOpportunities.map(a=>`
+      <div style="padding:8px;background:var(--hover,#f8fafc);border-radius:8px;font-size:12px;margin-bottom:12px;color:var(--text-muted,#64748b)">${escape(report.competitivePosition)}</div>
+      <div style="font-weight:600;font-size:13px;margin-bottom:6px">🏆 Top oportunidades</div>
+      ${report.topOpportunities
+        .map(
+          (ins) => `
         <div class="sm-insight">
-          <div class="sm-row sm-insight-title">${n(a.title)} ${w(a.opportunity)}</div>
-          <div class="sm-insight-desc">${n(a.description)}</div>
-          <div class="sm-insight-rec">\u2192 ${n(a.actionableRecommendation)}</div>
-        </div>`).join("")}
-      <div style="font-weight:600;font-size:13px;margin:10px 0 6px">\u{1F3E2} Competidores analizados</div>
-      ${s.competitors.map(a=>`
+          <div class="sm-row sm-insight-title">${escape(ins.title)} ${opportunityBadge(ins.opportunity)}</div>
+          <div class="sm-insight-desc">${escape(ins.description)}</div>
+          <div class="sm-insight-rec">→ ${escape(ins.actionableRecommendation)}</div>
+        </div>`,
+        )
+        .join('')}
+      <div style="font-weight:600;font-size:13px;margin:10px 0 6px">🏢 Competidores analizados</div>
+      ${report.competitors
+        .map(
+          (c) => `
         <div style="padding:8px 0;border-bottom:1px solid var(--border,#e2e8f0);font-size:13px">
-          <div class="sm-row"><span style="font-weight:600">${n(a.handle)}</span> ${m(a.postingFrequency)} <span style="font-size:12px;color:var(--text-muted,#64748b)">${a.estimatedFollowers.toLocaleString()} seguidores \xB7 ${a.estimatedEngagementRate}% eng.</span></div>
-          <div style="font-size:12px;color:var(--text-muted,#64748b);margin-top:3px">${n(a.winningFormula)}</div>
-        </div>`).join("")}`};e.querySelector("#sm-comp-analyze").addEventListener("click",async s=>{const t=e.querySelector("#sm-comp-handles").value.trim(),a=t?t.split(",").map(i=>i.trim()).filter(Boolean):[];await l(s.currentTarget,async()=>{const i=await c("/api/competitors/analyze","POST",{handles:a});o(i,e.querySelector("#sm-comp-result")),p(`${i.competitors?.length??0} competidores analizados \u2713`,"success")})}),e.querySelector("#sm-comp-latest").addEventListener("click",async s=>{await l(s.currentTarget,async()=>{const t=await c("/api/competitors/latest");if(t.error){p(t.error,"warn");return}o(t,e.querySelector("#sm-comp-result"))})}),e.querySelector("#sm-comp-strategies").addEventListener("click",async s=>{await l(s.currentTarget,async()=>{const t=await c("/api/competitors/strategies","POST");if(t.error){p(t.error,"warn");return}const a=e.querySelector("#sm-comp-result"),i=t.strategies??[];a.innerHTML=`<div style="font-weight:600;margin-bottom:8px;font-size:13px">\u26A1 ${i.length} estrategias ganadoras adaptadas</div>`+i.map((r,u)=>`<div style="padding:6px 0;border-bottom:1px solid var(--border,#e2e8f0);font-size:13px">${u+1}. ${n(r)}</div>`).join("")})}),e.querySelector("#sm-comp-gaps").addEventListener("click",async s=>{await l(s.currentTarget,async()=>{const t=await c("/api/competitors/content-from-gaps","POST",{maxIdeas:5});if(t.error){p(t.error,"warn");return}const a=e.querySelector("#sm-comp-result"),i=t.ideas??[];a.innerHTML=`<div style="font-weight:600;margin-bottom:8px;font-size:13px">\u{1F4A1} ${i.length} ideas de contenido desde gaps</div>`+i.map(r=>`
+          <div class="sm-row"><span style="font-weight:600">${escape(c.handle)}</span> ${badge(c.postingFrequency)} <span style="font-size:12px;color:var(--text-muted,#64748b)">${c.estimatedFollowers.toLocaleString()} seguidores · ${c.estimatedEngagementRate}% eng.</span></div>
+          <div style="font-size:12px;color:var(--text-muted,#64748b);margin-top:3px">${escape(c.winningFormula)}</div>
+        </div>`,
+        )
+        .join('')}`;
+  };
+
+  root.querySelector('#sm-comp-analyze').addEventListener('click', async (e) => {
+    const raw = root.querySelector('#sm-comp-handles').value.trim();
+    const handles = raw
+      ? raw
+          .split(',')
+          .map((h) => h.trim())
+          .filter(Boolean)
+      : [];
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/competitors/analyze', 'POST', { handles });
+      renderReport(res, root.querySelector('#sm-comp-result'));
+      toast(`${res.competitors?.length ?? 0} competidores analizados ✓`, 'success');
+    });
+  });
+
+  root.querySelector('#sm-comp-latest').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/competitors/latest');
+      if (res.error) {
+        toast(res.error, 'warn');
+        return;
+      }
+      renderReport(res, root.querySelector('#sm-comp-result'));
+    });
+  });
+
+  root.querySelector('#sm-comp-strategies').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/competitors/strategies', 'POST');
+      if (res.error) {
+        toast(res.error, 'warn');
+        return;
+      }
+      const el = root.querySelector('#sm-comp-result');
+      const strategies = res.strategies ?? [];
+      el.innerHTML =
+        `<div style="font-weight:600;margin-bottom:8px;font-size:13px">⚡ ${strategies.length} estrategias ganadoras adaptadas</div>` +
+        strategies
+          .map(
+            (s, i) =>
+              `<div style="padding:6px 0;border-bottom:1px solid var(--border,#e2e8f0);font-size:13px">${i + 1}. ${escape(s)}</div>`,
+          )
+          .join('');
+    });
+  });
+
+  root.querySelector('#sm-comp-gaps').addEventListener('click', async (e) => {
+    await withBtnSpinner(e.currentTarget, async () => {
+      const res = await apiSafe('/api/competitors/content-from-gaps', 'POST', { maxIdeas: 5 });
+      if (res.error) {
+        toast(res.error, 'warn');
+        return;
+      }
+      const el = root.querySelector('#sm-comp-result');
+      const ideas = res.ideas ?? [];
+      el.innerHTML =
+        `<div style="font-weight:600;margin-bottom:8px;font-size:13px">💡 ${ideas.length} ideas de contenido desde gaps</div>` +
+        ideas
+          .map(
+            (idea) => `
           <div style="padding:10px 0;border-bottom:1px solid var(--border,#e2e8f0);font-size:13px">
-            <div class="sm-row">${m(r.format,"#3451d1")} ${m(r.estimatedImpact,r.estimatedImpact==="alto"?"#22c55e":r.estimatedImpact==="medio"?"#f59e0b":"#6b7280")}</div>
-            <div style="font-weight:600;margin-top:4px">${n(r.title)}</div>
-            <div style="color:var(--text-muted,#64748b)">${n(r.differentiationAngle)}</div>
-            <div style="font-size:12px;color:#3451d1;margin-top:3px">Hook: ${n(r.hook)}</div>
-          </div>`).join("")})})};export const renderStudioManager=e=>{$();const d=[{id:"brain",label:"\u{1F9E0} Master Brain"},{id:"queue",label:"\u{1F4C5} Queue"},{id:"ab",label:"\u{1F9EA} A/B Tests"},{id:"dm",label:"\u{1F4AC} DMs"},{id:"hashtag",label:"#\uFE0F\u20E3 Hashtags"},{id:"comment",label:"\u{1F4A1} Comentarios"},{id:"trend",label:"\u{1F4C8} Trending"},{id:"comp",label:"\u{1F50D} Competidores"}];e.innerHTML=`
+            <div class="sm-row">${badge(idea.format, '#3451d1')} ${badge(idea.estimatedImpact, idea.estimatedImpact === 'alto' ? '#22c55e' : idea.estimatedImpact === 'medio' ? '#f59e0b' : '#6b7280')}</div>
+            <div style="font-weight:600;margin-top:4px">${escape(idea.title)}</div>
+            <div style="color:var(--text-muted,#64748b)">${escape(idea.differentiationAngle)}</div>
+            <div style="font-size:12px;color:#3451d1;margin-top:3px">Hook: ${escape(idea.hook)}</div>
+          </div>`,
+          )
+          .join('');
+    });
+  });
+};
+
+// ── Entry point ────────────────────────────────────────────────────────────────
+
+export const renderStudioManager = (root) => {
+  injectStyles();
+
+  const TABS = [
+    { id: 'brain', label: '🧠 Master Brain' },
+    { id: 'queue', label: '📅 Queue' },
+    { id: 'ab', label: '🧪 A/B Tests' },
+    { id: 'dm', label: '💬 DMs' },
+    { id: 'hashtag', label: '#️⃣ Hashtags' },
+    { id: 'comment', label: '💡 Comentarios' },
+    { id: 'trend', label: '📈 Trending' },
+    { id: 'comp', label: '🔍 Competidores' },
+  ];
+
+  root.innerHTML = `
     <div class="sm-wrap">
       <div class="sm-topbar">
-        <h1>\u{1F916} Studio Manager</h1>
-        <div style="font-size:12px;color:var(--text-muted,#64748b)">CU Brain \xB7 ${d.length} m\xF3dulos activos</div>
+        <h1>🤖 Studio Manager</h1>
+        <div style="font-size:12px;color:var(--text-muted,#64748b)">CU Brain · ${TABS.length} módulos activos</div>
       </div>
       <div class="sm-tabs" id="sm-tabs">
-        ${d.map((o,s)=>`<button class="sm-tab${s===0?" active":""}" data-tab="${o.id}">${o.label}</button>`).join("")}
+        ${TABS.map((t, i) => `<button class="sm-tab${i === 0 ? ' active' : ''}" data-tab="${t.id}">${t.label}</button>`).join('')}
       </div>
-      ${d.map((o,s)=>`<div class="sm-panel${s===0?" visible":""}" id="sm-panel-${o.id}"></div>`).join("")}
-    </div>`,e.querySelector("#sm-tabs").addEventListener("click",o=>{const s=o.target.closest(".sm-tab");if(!s)return;const t=s.dataset.tab;e.querySelectorAll(".sm-tab").forEach(i=>i.classList.remove("active")),s.classList.add("active"),e.querySelectorAll(".sm-panel").forEach(i=>i.classList.remove("visible"));const a=e.querySelector(`#sm-panel-${t}`);a&&a.classList.add("visible")}),S(e),T(e),q(e),z(e),k(e),L(e),M(e),E(e)};export default renderStudioManager;
+      ${TABS.map((t, i) => `<div class="sm-panel${i === 0 ? ' visible' : ''}" id="sm-panel-${t.id}"></div>`).join('')}
+    </div>`;
+
+  // Tab switching
+  root.querySelector('#sm-tabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('.sm-tab');
+    if (!btn) return;
+    const tabId = btn.dataset.tab;
+    root.querySelectorAll('.sm-tab').forEach((t) => t.classList.remove('active'));
+    btn.classList.add('active');
+    root.querySelectorAll('.sm-panel').forEach((p) => p.classList.remove('visible'));
+    const panel = root.querySelector(`#sm-panel-${tabId}`);
+    if (panel) panel.classList.add('visible');
+  });
+
+  // Render all panels
+  renderMasterBrainPanel(root);
+  void renderQueuePanel(root);
+  void renderABPanel(root);
+  void renderDMPanel(root);
+  void renderHashtagPanel(root);
+  void renderCommentPanel(root);
+  void renderTrendingPanel(root);
+  void renderCompetitorPanel(root);
+};
+
+export default renderStudioManager;

@@ -1,16 +1,406 @@
-import{api as I,apiBust as S,apiSafe as i}from"./api.js";import{toast as d}from"./toast.js";let B=null,k="idle";const A=async()=>{const[e,o,m,y,E]=await Promise.all([i("/api/cu/desktop-status"),i("/api/cu/voice/config"),i("/api/cu/replay-stats"),i("/api/cu/mode"),i("/api/cu/mode/pending-approvals",[])]),p=e.data,l=o.data,t=m.data,r=y.data,s=E.data??[],c=!!e.error&&!!y.error,a=p?.dryRun===!0,n=t?.byOutcome?.["in-progress"]??0,u=p?.capabilitiesAvailable?.computerUse===!0,g=r?.mode??"off";let v="idle",f="Idle";return c?(v="error",f="Offline"):g==="off"?(v="idle",f="Off"):s.length>0?(v="busy",f=`${s.length} esperan`):n>0?(v="streaming",f=`Activo \xB7 ${n}`):g==="supervised"?(v="active",f="Asistente"):g==="auto"?(v="active",f=a?"Activado \xB7 Dry":"Activado"):u||(v="error",f="Sin API key"),{state:v,stateText:f,desktopStatus:p,voiceCfg:l,replayInProgress:n,mode:g,pending:s,offline:c}},h=e=>String(e??"").replace(/[&<>"']/g,o=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[o]),P=e=>{const o=document.getElementById("cua-dot"),m=document.getElementById("cua-state-text"),y=document.getElementById("cua-dd-status"),E=document.getElementById("cua-narrator-checkbox"),p=document.getElementById("cua-pending-approvals"),l=document.getElementById("cua-pending-list"),t=document.getElementById("cua-pending-count");o&&(o.dataset.state=e.state),m&&(m.textContent=e.stateText),e.state!==k&&e.state==="streaming"&&d("\u{1F916} Computer Use Agent operando en vivo","info"),e.pending&&e.pending.length>0&&k!=="busy"&&d(`\u23F3 ${e.pending.length} acci\xF3n${e.pending.length>1?"es":""} esperan tu aprobaci\xF3n`,"warn"),k=e.state,document.querySelectorAll(".cua-mode-pill").forEach(c=>c.classList.toggle("active",c.dataset.mode===(e.mode??"off")));const s=e.mode??"off";if(document.body.dataset.cuMode!==s&&(document.body.dataset.cuMode=s,document.dispatchEvent(new CustomEvent("feedia:cu-mode",{detail:{mode:s}}))),y)if(e.offline)y.innerHTML=`<div class="small" style="color:#EF4444;"><strong>\u{1F4E1} Sin conexi\xF3n al backend</strong></div>
-        <div class="small muted" style="margin-top:4px;">El topbar funciona pero no puede controlar el agente hasta reconectar.</div>`;else{const c=e.desktopStatus?.capabilitiesAvailable??{},a=Object.values(c).filter(Boolean).length,n={off:"\u{1F534} Desactivado \xB7 ninguna acci\xF3n se ejecuta autom\xE1ticamente",auto:"\u{1F7E2} Activado \xB7 el agente ejecuta libremente (mir\xE1 Pantalla en vivo)",supervised:"\u{1F441}\uFE0F Asistente \xB7 cada acci\xF3n importante requiere tu OK \xB7 pod\xE9s frenarlo"}[e.mode??"off"];y.innerHTML=`
-        <div><strong>${h(n)}</strong></div>
+/* ══════════════════════════════════════════════════════════════════════════════
+   TOPBAR · Computer Use Agents access + state polling
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { api, apiBust, apiSafe } from './api.js';
+import { toast } from './toast.js';
+
+let pollTimer = null;
+let lastState = 'idle';
+
+/** Detecta el estado del CUA agent. Usa apiSafe (nunca tira). */
+const detectCuaState = async () => {
+  const [desktopRes, voiceRes, replayRes, modeRes, pendingRes] = await Promise.all([
+    apiSafe('/api/cu/desktop-status'),
+    apiSafe('/api/cu/voice/config'),
+    apiSafe('/api/cu/replay-stats'),
+    apiSafe('/api/cu/mode'),
+    apiSafe('/api/cu/mode/pending-approvals', []),
+  ]);
+
+  const desktopStatus = desktopRes.data;
+  const voiceCfg = voiceRes.data;
+  const replayStats = replayRes.data;
+  const modeData = modeRes.data;
+  const pending = pendingRes.data ?? [];
+  const offline = !!desktopRes.error && !!modeRes.error;
+
+  const dryRun = desktopStatus?.dryRun === true;
+  const replayInProgress = replayStats?.byOutcome?.['in-progress'] ?? 0;
+  const computerUseAvailable = desktopStatus?.capabilitiesAvailable?.computerUse === true;
+  const mode = modeData?.mode ?? 'off';
+
+  let state = 'idle';
+  let stateText = 'Idle';
+
+  if (offline) {
+    state = 'error';
+    stateText = 'Offline';
+  } else if (mode === 'off') {
+    state = 'idle';
+    stateText = 'Off';
+  } else if (pending.length > 0) {
+    state = 'busy';
+    stateText = `${pending.length} esperan`;
+  } else if (replayInProgress > 0) {
+    state = 'streaming';
+    stateText = `Activo · ${replayInProgress}`;
+  } else if (mode === 'supervised') {
+    state = 'active';
+    stateText = 'Asistente';
+  } else if (mode === 'auto') {
+    state = 'active';
+    stateText = dryRun ? 'Activado · Dry' : 'Activado';
+  } else if (!computerUseAvailable) {
+    state = 'error';
+    stateText = 'Sin API key';
+  }
+
+  return { state, stateText, desktopStatus, voiceCfg, replayInProgress, mode, pending, offline };
+};
+
+const escapeHtml = (s) =>
+  String(s ?? '').replace(
+    /[&<>"']/g,
+    (c) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      })[c],
+  );
+
+const updateUI = (info) => {
+  const dot = document.getElementById('cua-dot');
+  const stateText = document.getElementById('cua-state-text');
+  const statusBox = document.getElementById('cua-dd-status');
+  const narratorCheckbox = document.getElementById('cua-narrator-checkbox');
+  const pendingBox = document.getElementById('cua-pending-approvals');
+  const pendingList = document.getElementById('cua-pending-list');
+  const pendingCount = document.getElementById('cua-pending-count');
+
+  if (dot) dot.dataset.state = info.state;
+  if (stateText) stateText.textContent = info.stateText;
+  if (info.state !== lastState && info.state === 'streaming') {
+    toast('🤖 Computer Use Agent operando en vivo', 'info');
+  }
+  if (info.pending && info.pending.length > 0 && lastState !== 'busy') {
+    toast(`⏳ ${info.pending.length} acción${info.pending.length > 1 ? 'es' : ''} esperan tu aprobación`, 'warn');
+  }
+  lastState = info.state;
+
+  // Marcar pill activo según el modo
+  const pills = document.querySelectorAll('.cua-mode-pill');
+  pills.forEach((p) => p.classList.toggle('active', p.dataset.mode === (info.mode ?? 'off')));
+
+  // Broadcast modo al body — CSS oculta forms manuales cuando CU está activo
+  const mode = info.mode ?? 'off';
+  if (document.body.dataset.cuMode !== mode) {
+    document.body.dataset.cuMode = mode;
+    document.dispatchEvent(new CustomEvent('feedia:cu-mode', { detail: { mode } }));
+  }
+
+  // Estado box dentro del dropdown
+  if (statusBox) {
+    if (info.offline) {
+      statusBox.innerHTML = `<div class="small" style="color:#EF4444;"><strong>📡 Sin conexión al backend</strong></div>
+        <div class="small muted" style="margin-top:4px;">El topbar funciona pero no puede controlar el agente hasta reconectar.</div>`;
+    } else {
+      const caps = info.desktopStatus?.capabilitiesAvailable ?? {};
+      const enabledCount = Object.values(caps).filter(Boolean).length;
+      const modeDescr = {
+        off: '🔴 Desactivado · ninguna acción se ejecuta automáticamente',
+        auto: '🟢 Activado · el agente ejecuta libremente (mirá Pantalla en vivo)',
+        supervised: '👁️ Asistente · cada acción importante requiere tu OK · podés frenarlo',
+      }[info.mode ?? 'off'];
+      statusBox.innerHTML = `
+        <div><strong>${escapeHtml(modeDescr)}</strong></div>
         <div style="margin-top:4px;font-size:11px;color:var(--text-muted, #9CA3AF);">
-          ${a} capabilities activas \xB7 ${e.replayInProgress>0?`${e.replayInProgress} sesi\xF3n en curso`:"sin sesi\xF3n en curso"}
+          ${enabledCount} capabilities activas · ${info.replayInProgress > 0 ? `${info.replayInProgress} sesión en curso` : 'sin sesión en curso'}
         </div>
-      `}if(p&&l&&t){const c=e.pending??[];c.length>0?(p.hidden=!1,t.textContent=String(c.length),l.innerHTML=c.slice(0,3).map(a=>`
-        <div class="cua-pending-item" data-approval-id="${h(a.id)}">
-          <div class="small"><strong>${h(a.action.slice(0,60))}</strong></div>
-          <div class="small muted">${h(a.context.slice(0,80))}${a.context.length>80?"\u2026":""}</div>
+      `;
+    }
+  }
+
+  // Lista de pending approvals
+  if (pendingBox && pendingList && pendingCount) {
+    const items = info.pending ?? [];
+    if (items.length > 0) {
+      pendingBox.hidden = false;
+      pendingCount.textContent = String(items.length);
+      pendingList.innerHTML = items
+        .slice(0, 3)
+        .map(
+          (a) => `
+        <div class="cua-pending-item" data-approval-id="${escapeHtml(a.id)}">
+          <div class="small"><strong>${escapeHtml(a.action.slice(0, 60))}</strong></div>
+          <div class="small muted">${escapeHtml(a.context.slice(0, 80))}${a.context.length > 80 ? '…' : ''}</div>
           <div class="actions">
-            <button class="btn primary" data-approve="${h(a.id)}">\u2713 Aprobar</button>
-            <button class="btn ghost" data-reject="${h(a.id)}">\u2717 Rechazar</button>
+            <button class="btn primary" data-approve="${escapeHtml(a.id)}">✓ Aprobar</button>
+            <button class="btn ghost" data-reject="${escapeHtml(a.id)}">✗ Rechazar</button>
           </div>
         </div>
-      `).join(""),l.querySelectorAll("[data-approve]").forEach(a=>{a.addEventListener("click",async n=>{n.stopPropagation();const u=a.dataset.approve,{error:g}=await i(`/api/cu/mode/approve/${u}`,null,{method:"POST",body:{}});g?d("No se pudo aprobar","error"):(d("\u2713 Aprobado","success"),w())})}),l.querySelectorAll("[data-reject]").forEach(a=>{a.addEventListener("click",async n=>{n.stopPropagation();const u=a.dataset.reject,{error:g}=await i(`/api/cu/mode/reject/${u}`,null,{method:"POST",body:{}});g?d("No se pudo rechazar","error"):(d("Rechazado","info"),w())})})):p.hidden=!0}E&&e.voiceCfg&&e.voiceCfg.enabled!==void 0&&(E.checked=e.voiceCfg.enabled)},w=async()=>{S("/api/cu/mode");const e=await A();P(e)},$=()=>{T();const e=async()=>{const o=await A();P(o)};e(),B=setInterval(e,8e3)},T=()=>{B&&(clearInterval(B),B=null)},b=()=>{const e=document.getElementById("cua-dropdown"),o=document.getElementById("cua-btn");e&&(e.hidden=!0),o&&o.classList.remove("open")},L=()=>{const e=document.getElementById("cua-dropdown"),o=document.getElementById("cua-btn");e&&(e.hidden=!1),o&&o.classList.add("open")},x=()=>{const e=document.getElementById("cua-dropdown");e&&(e.hidden?L():b())};export const initTopbar=()=>{const e=document.getElementById("cua-btn"),o=document.getElementById("cua-dropdown"),m=document.getElementById("cua-narrator-checkbox"),y=document.getElementById("global-search"),E=document.getElementById("topbar-notif"),p=document.getElementById("topbar-tasks");if(!e)return;e.addEventListener("click",t=>{t.stopPropagation(),x()}),o&&o.addEventListener("click",t=>t.stopPropagation()),document.addEventListener("click",t=>{o&&!o.hidden&&!o.contains(t.target)&&!e.contains(t.target)&&b()}),document.addEventListener("keydown",t=>{t.key==="Escape"&&b()}),document.querySelectorAll("[data-cua-launch]").forEach(t=>{t.addEventListener("click",async()=>{const r=t.dataset.cuaLaunch;try{r==="canva"?(await I("/api/cu/canva/open",{method:"POST",body:{}}),d("\u{1F3A8} Canva abierto","success")):(await I("/api/cu/apps/launch",{method:"POST",body:{app:"chrome",url:{instagram:"https://www.instagram.com/",figma:"https://www.figma.com/",photopea:"https://www.photopea.com/"}[r]}}),d(`${r} abierto en navegador`,"success"))}catch(s){d(`Error: ${s.message??"no se pudo abrir"}`,"error")}b()})}),document.querySelectorAll("[data-cua-action]").forEach(t=>{t.addEventListener("click",()=>b())}),document.querySelectorAll(".cua-mode-pill").forEach(t=>{t.addEventListener("click",async r=>{r.stopPropagation();const s=t.dataset.mode;document.querySelectorAll(".cua-mode-pill").forEach(n=>n.classList.toggle("active",n===t));const{error:c}=await i("/api/cu/mode",null,{method:"PUT",body:{mode:s,changedBy:"user",reason:"Cambio manual desde topbar"}});if(c){const n=c.code==="API_NOT_FOUND"?"\u2699\uFE0F Servidor desactualizado: corr\xE9 `npm run build && npm start` y volv\xE9 a probar.":c.code==="API_NETWORK_ERROR"?"Backend ca\xEDdo. Revis\xE1 que el servidor est\xE9 corriendo.":`No se pudo cambiar el modo: ${c.message}`;d(n,"error"),await w();return}const a={off:"\u{1F534} Desactivado",auto:"\u{1F7E2} Activado \xB7 auto-pilot",supervised:"\u{1F441}\uFE0F Asistente \xB7 aprob\xE1s cada paso, pod\xE9s frenar"}[s];d(`Modo CUA: ${a}`,"success"),await w()})});const l=document.getElementById("cua-emergency-stop");l&&l.addEventListener("click",async t=>{t.stopPropagation(),l.disabled=!0;const{data:r}=await i("/api/cu/watchdog/active",{active:[]}),s=r?.active??[];await Promise.all(s.map(u=>i(`/api/cu/cancel/${u.sessionId}`,null,{method:"POST"})));const{data:c}=await i("/api/cu/mode/pending-approvals",[]),a=c??[];await Promise.all(a.map(u=>i(`/api/cu/mode/reject/${u.id}`,null,{method:"POST",body:{reason:"emergency-stop"}})));const{error:n}=await i("/api/cu/mode",null,{method:"PUT",body:{mode:"off",changedBy:"user",reason:"Emergency stop desde topbar"}});if(n){const u=n.code==="API_NOT_FOUND"?"\u2699\uFE0F Servidor desactualizado: `npm run build && npm start` y reintent\xE1.":n.code==="API_NETWORK_ERROR"?"Backend ca\xEDdo. Recarg\xE1 la app cuando vuelva.":`No se pudo frenar: ${n.message}`;d(u,"error")}else d(`\u{1F6D1} Agente frenado \xB7 ${s.length} sesiones + ${a.length} acciones canceladas`,"success");await w(),l.disabled=!1,b()}),m&&m.addEventListener("change",async()=>{const t=m.checked;try{t?(await I("/api/cu/voice/enable",{method:"POST",body:{level:"normal"}}),d("\u{1F5E3}\uFE0F Voice Narrator activado","success")):(await I("/api/cu/voice/disable",{method:"POST",body:{}}),d("\u{1F507} Voice Narrator desactivado","info")),S("/api/cu/voice")}catch(r){d(`No se pudo cambiar: ${r.message}`,"error"),m.checked=!t}}),p&&p.addEventListener("click",()=>{window.location.hash="#taskboard"}),$(),document.addEventListener("visibilitychange",()=>{document.hidden?T():$()})},refreshTopbarState=async()=>{const e=await A();P(e)};
+      `,
+        )
+        .join('');
+      pendingList.querySelectorAll('[data-approve]').forEach((btn) => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.approve;
+          const { error } = await apiSafe(`/api/cu/mode/approve/${id}`, null, { method: 'POST', body: {} });
+          if (error) toast('No se pudo aprobar', 'error');
+          else {
+            toast('✓ Aprobado', 'success');
+            refreshState();
+          }
+        });
+      });
+      pendingList.querySelectorAll('[data-reject]').forEach((btn) => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.reject;
+          const { error } = await apiSafe(`/api/cu/mode/reject/${id}`, null, { method: 'POST', body: {} });
+          if (error) toast('No se pudo rechazar', 'error');
+          else {
+            toast('Rechazado', 'info');
+            refreshState();
+          }
+        });
+      });
+    } else {
+      pendingBox.hidden = true;
+    }
+  }
+
+  if (narratorCheckbox && info.voiceCfg && info.voiceCfg.enabled !== undefined) {
+    narratorCheckbox.checked = info.voiceCfg.enabled;
+  }
+};
+
+const refreshState = async () => {
+  apiBust('/api/cu/mode');
+  const info = await detectCuaState();
+  updateUI(info);
+};
+
+const startPolling = () => {
+  stopPolling();
+  const poll = async () => {
+    const info = await detectCuaState();
+    updateUI(info);
+  };
+  poll();
+  pollTimer = setInterval(poll, 8000);
+};
+
+const stopPolling = () => {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+};
+
+const closeDropdown = () => {
+  const dd = document.getElementById('cua-dropdown');
+  const btn = document.getElementById('cua-btn');
+  if (dd) dd.hidden = true;
+  if (btn) btn.classList.remove('open');
+};
+
+const openDropdown = () => {
+  const dd = document.getElementById('cua-dropdown');
+  const btn = document.getElementById('cua-btn');
+  if (dd) dd.hidden = false;
+  if (btn) btn.classList.add('open');
+};
+
+const toggleDropdown = () => {
+  const dd = document.getElementById('cua-dropdown');
+  if (!dd) return;
+  if (dd.hidden) openDropdown();
+  else closeDropdown();
+};
+
+export const initTopbar = () => {
+  const cuaBtn = document.getElementById('cua-btn');
+  const cuaDropdown = document.getElementById('cua-dropdown');
+  const narratorCheckbox = document.getElementById('cua-narrator-checkbox');
+  const searchInput = document.getElementById('global-search');
+  const notifBtn = document.getElementById('topbar-notif');
+  const tasksBtn = document.getElementById('topbar-tasks');
+
+  if (!cuaBtn) return;
+
+  cuaBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleDropdown();
+  });
+
+  if (cuaDropdown) {
+    cuaDropdown.addEventListener('click', (e) => e.stopPropagation());
+  }
+
+  document.addEventListener('click', (e) => {
+    if (cuaDropdown && !cuaDropdown.hidden) {
+      if (!cuaDropdown.contains(e.target) && !cuaBtn.contains(e.target)) {
+        closeDropdown();
+      }
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDropdown();
+  });
+
+  // Quick-launch buttons
+  document.querySelectorAll('[data-cua-launch]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const app = btn.dataset.cuaLaunch;
+      try {
+        if (app === 'canva') {
+          await api('/api/cu/canva/open', { method: 'POST', body: {} });
+          toast('🎨 Canva abierto', 'success');
+        } else {
+          const urlMap = {
+            instagram: 'https://www.instagram.com/',
+            figma: 'https://www.figma.com/',
+            photopea: 'https://www.photopea.com/',
+          };
+          await api('/api/cu/apps/launch', {
+            method: 'POST',
+            body: { app: 'chrome', url: urlMap[app] },
+          });
+          toast(`${app} abierto en navegador`, 'success');
+        }
+      } catch (err) {
+        toast(`Error: ${err.message ?? 'no se pudo abrir'}`, 'error');
+      }
+      closeDropdown();
+    });
+  });
+
+  // Cierra dropdown al ir a una vista de CUA
+  document.querySelectorAll('[data-cua-action]').forEach((item) => {
+    item.addEventListener('click', () => closeDropdown());
+  });
+
+  // CUA Mode pills (Off / Auto / Supervisado)
+  document.querySelectorAll('.cua-mode-pill').forEach((pill) => {
+    pill.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const mode = pill.dataset.mode;
+      // Optimistic UI: marcar activo inmediatamente
+      document.querySelectorAll('.cua-mode-pill').forEach((p) => p.classList.toggle('active', p === pill));
+      const { error } = await apiSafe('/api/cu/mode', null, {
+        method: 'PUT',
+        body: { mode, changedBy: 'user', reason: 'Cambio manual desde topbar' },
+      });
+      if (error) {
+        const msg =
+          error.code === 'API_NOT_FOUND'
+            ? '⚙️ Servidor desactualizado: corré `npm run build && npm start` y volvé a probar.'
+            : error.code === 'API_NETWORK_ERROR'
+              ? 'Backend caído. Revisá que el servidor esté corriendo.'
+              : `No se pudo cambiar el modo: ${error.message}`;
+        toast(msg, 'error');
+        // Volver al estado real
+        await refreshState();
+        return;
+      }
+      const label = {
+        off: '🔴 Desactivado',
+        auto: '🟢 Activado · auto-pilot',
+        supervised: '👁️ Asistente · aprobás cada paso, podés frenar',
+      }[mode];
+      toast(`Modo CUA: ${label}`, 'success');
+      await refreshState();
+    });
+  });
+
+  // Emergency Stop — frena agente, rechaza pendientes, pasa a Off
+  const emergencyBtn = document.getElementById('cua-emergency-stop');
+  if (emergencyBtn) {
+    emergencyBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      emergencyBtn.disabled = true;
+      // 1) Cancelar sesiones activas del watchdog (frena el agente mid-run)
+      const { data: active } = await apiSafe('/api/cu/watchdog/active', { active: [] });
+      const activeSessions = active?.active ?? [];
+      await Promise.all(activeSessions.map((s) => apiSafe(`/api/cu/cancel/${s.sessionId}`, null, { method: 'POST' })));
+      // 2) Rechazar todas las pending approvals
+      const { data: pending } = await apiSafe('/api/cu/mode/pending-approvals', []);
+      const items = pending ?? [];
+      await Promise.all(
+        items.map((a) =>
+          apiSafe(`/api/cu/mode/reject/${a.id}`, null, { method: 'POST', body: { reason: 'emergency-stop' } }),
+        ),
+      );
+      // 3) Forzar modo Off
+      const { error } = await apiSafe('/api/cu/mode', null, {
+        method: 'PUT',
+        body: { mode: 'off', changedBy: 'user', reason: 'Emergency stop desde topbar' },
+      });
+      if (error) {
+        const msg =
+          error.code === 'API_NOT_FOUND'
+            ? '⚙️ Servidor desactualizado: `npm run build && npm start` y reintentá.'
+            : error.code === 'API_NETWORK_ERROR'
+              ? 'Backend caído. Recargá la app cuando vuelva.'
+              : `No se pudo frenar: ${error.message}`;
+        toast(msg, 'error');
+      } else {
+        toast(`🛑 Agente frenado · ${activeSessions.length} sesiones + ${items.length} acciones canceladas`, 'success');
+      }
+      await refreshState();
+      emergencyBtn.disabled = false;
+      closeDropdown();
+    });
+  }
+
+  // Voice Narrator toggle
+  if (narratorCheckbox) {
+    narratorCheckbox.addEventListener('change', async () => {
+      const wantEnabled = narratorCheckbox.checked;
+      try {
+        if (wantEnabled) {
+          await api('/api/cu/voice/enable', { method: 'POST', body: { level: 'normal' } });
+          toast('🗣️ Voice Narrator activado', 'success');
+        } else {
+          await api('/api/cu/voice/disable', { method: 'POST', body: {} });
+          toast('🔇 Voice Narrator desactivado', 'info');
+        }
+        apiBust('/api/cu/voice');
+      } catch (err) {
+        toast(`No se pudo cambiar: ${err.message}`, 'error');
+        narratorCheckbox.checked = !wantEnabled;
+      }
+    });
+  }
+
+  // Global search: handler lives en lib/globalSearch.js (inicializado desde app.js)
+  // No agregamos handler local acá para evitar conflictos.
+
+  // Notif button — el handler que abre la campanita está en bootNotifications (app.js)
+  // No agregamos handler acá para no chocar.
+
+  // Tasks button
+  if (tasksBtn) {
+    tasksBtn.addEventListener('click', () => {
+      window.location.hash = '#taskboard';
+    });
+  }
+
+  startPolling();
+
+  // Pausar polling cuando la pestaña no está visible
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopPolling();
+    else startPolling();
+  });
+};
+
+export const refreshTopbarState = async () => {
+  const info = await detectCuaState();
+  updateUI(info);
+};

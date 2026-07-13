@@ -1,4 +1,22 @@
-import{apiSafe as m}from"../lib/api.js";import{initChatbotUI as b,openChatbot as p}from"../lib/chatbotUI.js";import"../lib/toast.js";let v={navigate:()=>{}},l=[];const x=()=>`
+/* ══════════════════════════════════════════════════════════════════════════════
+   inbox.js — Unified chat + calendar scheduling hub
+   ──────────────────────────────────────────────────────────────────────────────
+   Layout:
+     Left side: Chatbot panel (account-aware, knows scheduling intents)
+     Right side: Calendar mini-view (next 7 days, editable events)
+
+   When user mentions scheduling ("schedule reel tomorrow", "remind me..."),
+   chatbot detects intent → calendar side auto-scrolls/focuses event editor.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+import { api, apiSafe } from '../lib/api.js';
+import { initChatbotUI, openChatbot } from '../lib/chatbotUI.js';
+import { toast } from '../lib/toast.js';
+
+let state = { navigate: () => {} };
+let inboxMiniCalendar = [];
+
+const renderInboxLayout = () => `
   <div class="inbox-container">
     <!-- Left: Chatbot panel in inbox mode -->
     <div class="inbox-chat-half">
@@ -8,20 +26,88 @@ import{apiSafe as m}from"../lib/api.js";import{initChatbotUI as b,openChatbot as
     <!-- Right: Calendar mini-view (next 7 days) -->
     <div class="inbox-calendar-half">
       <div class="inbox-cal-header">
-        <h3 style="margin:0;font-size:14px;font-weight:700;">Pr\xF3ximos eventos</h3>
-        <a href="#calendar" style="font-size:12px;color:var(--primary);">Ver calendario \u2192</a>
+        <h3 style="margin:0;font-size:14px;font-weight:700;">Próximos eventos</h3>
+        <a href="#calendar" style="font-size:12px;color:var(--primary);">Ver calendario →</a>
       </div>
       <div id="inbox-mini-calendar" class="inbox-mini-calendar">
         <!-- Populated by renderMiniCalendar -->
       </div>
     </div>
-  </div>`,h=(n=0)=>{const t=new Date,i=new Date(t);return i.setDate(t.getDate()-(t.getDay()+6)%7+n*7),Array.from({length:7},(e,a)=>{const o=new Date(i);return o.setDate(i.getDate()+a),o})},y=()=>{const n=h(0),t=new Date().toISOString().slice(0,10),i=["Lun","Mar","Mi\xE9","Jue","Vie","S\xE1b","Dom"];let e='<div class="inbox-mini-grid">';return n.forEach((a,o)=>{const d=a.toISOString().slice(0,10),c=d===t,r=l.filter(s=>(s.scheduledFor??"").startsWith(d));e+=`
-      <div class="inbox-mini-day ${c?"today":""}">
+  </div>`;
+
+const getDaysOfWeek = (weekOffset = 0) => {
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7) + weekOffset * 7);
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+};
+
+const renderMiniCalendar = () => {
+  const days = getDaysOfWeek(0);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+  let html = `<div class="inbox-mini-grid">`;
+
+  days.forEach((day, i) => {
+    const dateStr = day.toISOString().slice(0, 10);
+    const isToday = dateStr === todayStr;
+    const daySlots = inboxMiniCalendar.filter((s) => (s.scheduledFor ?? '').startsWith(dateStr));
+
+    html += `
+      <div class="inbox-mini-day ${isToday ? 'today' : ''}">
         <div class="inbox-mini-day-header">
-          <span>${i[o]}</span>
-          <span class="inbox-mini-day-num">${a.getDate()}</span>
+          <span>${DAY_NAMES[i]}</span>
+          <span class="inbox-mini-day-num">${day.getDate()}</span>
         </div>
-        <div class="inbox-mini-day-slots" data-date="${d}">
-          ${r.length?r.map(s=>`<div class="inbox-mini-slot" title="${s.titulo||"Sin t\xEDtulo"}">${s.titulo?.slice(0,8)}\u2026</div>`).join(""):'<div class="inbox-mini-empty">\u2014</div>'}
+        <div class="inbox-mini-day-slots" data-date="${dateStr}">
+          ${
+            daySlots.length
+              ? daySlots.map((s) => `<div class="inbox-mini-slot" title="${s.titulo || 'Sin título'}">${s.titulo?.slice(0, 8)}…</div>`).join('')
+              : `<div class="inbox-mini-empty">—</div>`
+          }
         </div>
-      </div>`}),e+="</div>",e},u=async()=>{const{data:n}=await m("/api/scheduler/jobs",null,{method:"GET"});if(n?.jobs){l=n.jobs.slice(0,20);const t=document.getElementById("inbox-mini-calendar");t&&(t.innerHTML=y())}},f=({navigate:n})=>{if(v.navigate=n,b({navigate:n}),!document.getElementById("inbox-chatbot-wrapper"))return;const i=document.getElementById("chatbot-panel");i&&i.classList.add("inbox-mode"),setTimeout(()=>p?.(),100)};export const renderInbox=({navigate:n})=>{const t=document.getElementById("main-content");t&&(t.innerHTML=x(),u(),f({navigate:n}))};
+      </div>`;
+  });
+
+  html += `</div>`;
+  return html;
+};
+
+const loadMiniCalendar = async () => {
+  const { data } = await apiSafe('/api/scheduler/jobs', null, { method: 'GET' });
+  if (data?.jobs) {
+    inboxMiniCalendar = data.jobs.slice(0, 20);
+    const miniCal = document.getElementById('inbox-mini-calendar');
+    if (miniCal) miniCal.innerHTML = renderMiniCalendar();
+  }
+};
+
+const initChatbotInInboxMode = ({ navigate }) => {
+  state.navigate = navigate;
+
+  initChatbotUI({ navigate });
+
+  const wrapper = document.getElementById('inbox-chatbot-wrapper');
+  if (!wrapper) return;
+
+  const chatPanel = document.getElementById('chatbot-panel');
+  if (chatPanel) {
+    chatPanel.classList.add('inbox-mode');
+  }
+
+  setTimeout(() => openChatbot?.(), 100);
+};
+
+export const renderInbox = ({ navigate }) => {
+  const root = document.getElementById('main-content');
+  if (!root) return;
+
+  root.innerHTML = renderInboxLayout();
+  loadMiniCalendar();
+  initChatbotInInboxMode({ navigate });
+};

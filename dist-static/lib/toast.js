@@ -1,4 +1,29 @@
-const d={info:"\u2139\uFE0F",ok:"\u2705",warn:"\u26A0\uFE0F",crit:"\u26D4"},p={success:"ok",error:"crit",danger:"crit",warning:"warn"},u={info:4200,ok:4200,warn:6e3,crit:8e3};let f=!1;const x=()=>{if(!f){if(f=!0,!document.querySelector("#toast-stack")){const e=document.createElement("div");e.id="toast-stack",e.setAttribute("role","status"),e.setAttribute("aria-live","polite"),document.body.appendChild(e)}if(!document.querySelector("#toast-style")){const e=document.createElement("style");e.id="toast-style",e.textContent=`
+/* ════════════════════════════════════════════════════════
+   Toast — notificaciones accesibles, profesionales y amigables
+   API compatible: toast(msg, kind?, opts?)
+     kind: 'info' | 'ok' | 'warn' | 'crit'  (alias: success→ok, error→crit)
+     opts: { duration?:number, action?:{label, onClick} }
+   ════════════════════════════════════════════════════════ */
+
+const ICON = { info: 'ℹ️', ok: '✅', warn: '⚠️', crit: '⛔' };
+const ALIAS = { success: 'ok', error: 'crit', danger: 'crit', warning: 'warn' };
+const DEFAULT_MS = { info: 4200, ok: 4200, warn: 6000, crit: 8000 };
+
+let booted = false;
+const boot = () => {
+  if (booted) return;
+  booted = true;
+  if (!document.querySelector('#toast-stack')) {
+    const s = document.createElement('div');
+    s.id = 'toast-stack';
+    s.setAttribute('role', 'status');
+    s.setAttribute('aria-live', 'polite');
+    document.body.appendChild(s);
+  }
+  if (!document.querySelector('#toast-style')) {
+    const st = document.createElement('style');
+    st.id = 'toast-style';
+    st.textContent = `
       #toast-stack{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:10050;
         display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none;width:max-content;max-width:92vw;}
       .toast{pointer-events:auto;display:flex;align-items:flex-start;gap:10px;min-width:260px;max-width:440px;
@@ -22,8 +47,59 @@ const d={info:"\u2139\uFE0F",ok:"\u2705",warn:"\u26A0\uFE0F",crit:"\u26D4"},p={s
         background:linear-gradient(90deg,#e1306c,#a855f7);transform-origin:left;animation:tbar linear forwards;}
       .toast:hover .t-bar{animation-play-state:paused;}
       @keyframes tbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
-      @media (prefers-reduced-motion:reduce){.toast,.toast .t-bar{animation:none!important}}`,document.head.appendChild(e)}}};export const toast=(e,c="info",o={})=>{x();const s=p[c]||c,r=document.querySelector("#toast-stack");if(!r)return;for(;r.children.length>=4;)r.firstElementChild?.remove();const l=o.duration??u[s]??4200,t=document.createElement("div");t.className=`toast ${s}`;const m=String(e);if(t.innerHTML=`
-    <span class="t-ic">${d[s]||d.info}</span>
+      @media (prefers-reduced-motion:reduce){.toast,.toast .t-bar{animation:none!important}}`;
+    document.head.appendChild(st);
+  }
+};
+
+export const toast = (msg, kind = 'info', opts = {}) => {
+  boot();
+  const k = ALIAS[kind] || kind;
+  const stack = document.querySelector('#toast-stack');
+  if (!stack) return;
+  // Tope de 4 visibles: saca el más viejo.
+  while (stack.children.length >= 4) stack.firstElementChild?.remove();
+
+  const ms = opts.duration ?? DEFAULT_MS[k] ?? 4200;
+  const el = document.createElement('div');
+  el.className = `toast ${k}`;
+  const safe = String(msg);
+  el.innerHTML = `
+    <span class="t-ic">${ICON[k] || ICON.info}</span>
     <div class="t-tx"></div>
-    <button class="t-x" aria-label="Cerrar">\u2715</button>
-    <span class="t-bar" style="animation-duration:${l}ms"></span>`,t.querySelector(".t-tx").textContent=m,o.action&&typeof o.action.onClick=="function"){const i=document.createElement("button");i.className="t-act",i.textContent=o.action.label||"Ver",i.addEventListener("click",()=>{try{o.action.onClick()}finally{a()}}),t.querySelector(".t-tx").appendChild(document.createElement("br")),t.querySelector(".t-tx").appendChild(i)}let n=null;const a=()=>{clearTimeout(n),t.classList.add("tout"),setTimeout(()=>t.remove(),220)};return t.querySelector(".t-x").addEventListener("click",a),t.addEventListener("mouseenter",()=>clearTimeout(n)),t.addEventListener("mouseleave",()=>{n=setTimeout(a,1400)}),r.appendChild(t),n=setTimeout(a,l),a};
+    <button class="t-x" aria-label="Cerrar">✕</button>
+    <span class="t-bar" style="animation-duration:${ms}ms"></span>`;
+  el.querySelector('.t-tx').textContent = safe;
+
+  if (opts.action && typeof opts.action.onClick === 'function') {
+    const a = document.createElement('button');
+    a.className = 't-act';
+    a.textContent = opts.action.label || 'Ver';
+    a.addEventListener('click', () => {
+      try {
+        opts.action.onClick();
+      } finally {
+        dismiss();
+      }
+    });
+    el.querySelector('.t-tx').appendChild(document.createElement('br'));
+    el.querySelector('.t-tx').appendChild(a);
+  }
+
+  let timer = null;
+  const dismiss = () => {
+    clearTimeout(timer);
+    el.classList.add('tout');
+    setTimeout(() => el.remove(), 220);
+  };
+  el.querySelector('.t-x').addEventListener('click', dismiss);
+  // Pausa al pasar el mouse (control del usuario).
+  el.addEventListener('mouseenter', () => clearTimeout(timer));
+  el.addEventListener('mouseleave', () => {
+    timer = setTimeout(dismiss, 1400);
+  });
+
+  stack.appendChild(el);
+  timer = setTimeout(dismiss, ms);
+  return dismiss;
+};

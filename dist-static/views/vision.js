@@ -1,134 +1,427 @@
-import{api as P}from"../lib/api.js";import{escape as v}from"../lib/dom.js";import{toast as p}from"../lib/toast.js";let i={result:null,imagePreview:null,mode:"upload"};const j=()=>`
+import { api } from '../lib/api.js';
+import { escape } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+
+let state = { result: null, imagePreview: null, mode: 'upload' };
+
+const renderTabs = () => `
   <div class="tab-bar">
-    <button class="tab-btn ${i.mode==="upload"?"active":""}" data-mode="upload">\u{1F4CE} Subir imagen</button>
-    <button class="tab-btn ${i.mode==="camera"?"active":""}" data-mode="camera">\u{1F4F7} C\xE1mara</button>
-    <button class="tab-btn ${i.mode==="url"?"active":""}" data-mode="url">\u{1F517} URL</button>
-  </div>`,k=()=>`
+    <button class="tab-btn ${state.mode === 'upload' ? 'active' : ''}" data-mode="upload">📎 Subir imagen</button>
+    <button class="tab-btn ${state.mode === 'camera' ? 'active' : ''}" data-mode="camera">📷 Cámara</button>
+    <button class="tab-btn ${state.mode === 'url' ? 'active' : ''}" data-mode="url">🔗 URL</button>
+  </div>`;
+
+const renderInputPanel = () => `
   <div class="studio-form">
     <h3>Vision AI</h3>
-    <p class="small muted" style="margin-bottom:16px;">Us\xE1 Claude multimodal para analizar im\xE1genes, generar captions y alt text con la voz de tu marca.</p>
-    ${j()}
+    <p class="small muted" style="margin-bottom:16px;">Usá Claude multimodal para analizar imágenes, generar captions y alt text con la voz de tu marca.</p>
+    ${renderTabs()}
     <div id="input-area" style="margin-top:14px;">
-      ${i.mode==="upload"?`
+      ${
+        state.mode === 'upload'
+          ? `
         <div class="field">
           <label class="field-label">Imagen</label>
           <div class="upload-zone" id="upload-zone">
-            <div class="upload-icon">\u{1F5BC}\uFE0F</div>
-            <div class="small muted">Arrastr\xE1 o hac\xE9 click para subir</div>
+            <div class="upload-icon">🖼️</div>
+            <div class="small muted">Arrastrá o hacé click para subir</div>
             <input type="file" id="file-input" accept="image/*" style="display:none;"/>
           </div>
           <div id="image-preview-wrap" style="display:none;margin-top:8px;">
             <img id="image-preview-img" style="max-width:100%;border-radius:8px;border:1px solid var(--border);"/>
           </div>
-        </div>`:i.mode==="camera"?`
+        </div>`
+          : state.mode === 'camera'
+            ? `
         <div class="field">
-          <label class="field-label">\u{1F4F7} C\xE1mara en vivo</label>
+          <label class="field-label">📷 Cámara en vivo</label>
           <div id="camera-wrap" style="position:relative;border-radius:12px;overflow:hidden;background:#000;min-height:240px;display:flex;align-items:center;justify-content:center;">
             <video id="camera-video" autoplay playsinline muted style="width:100%;display:none;border-radius:12px;"></video>
             <canvas id="camera-canvas" style="display:none;"></canvas>
             <div id="camera-placeholder" style="text-align:center;padding:30px;">
-              <div style="font-size:48px;opacity:.5;">\u{1F4F7}</div>
-              <div class="small muted" style="margin-top:8px;">Presion\xE1 "Activar c\xE1mara" para empezar</div>
+              <div style="font-size:48px;opacity:.5;">📷</div>
+              <div class="small muted" style="margin-top:8px;">Presioná "Activar cámara" para empezar</div>
             </div>
             <img id="camera-snapshot" style="display:none;width:100%;border-radius:12px;"/>
           </div>
           <div class="btn-row" style="margin-top:10px;gap:6px;flex-wrap:wrap;">
-            <button class="btn" id="camera-start">\u{1F4F7} Activar c\xE1mara</button>
-            <button class="btn primary" id="camera-capture" disabled>\u{1F4F8} Tomar foto</button>
-            <button class="btn ghost" id="camera-retake" style="display:none;">\u21BB Repetir</button>
-            <button class="btn ghost" id="camera-switch" disabled title="Cambiar entre c\xE1mara frontal/trasera">\u{1F504}</button>
+            <button class="btn" id="camera-start">📷 Activar cámara</button>
+            <button class="btn primary" id="camera-capture" disabled>📸 Tomar foto</button>
+            <button class="btn ghost" id="camera-retake" style="display:none;">↻ Repetir</button>
+            <button class="btn ghost" id="camera-switch" disabled title="Cambiar entre cámara frontal/trasera">🔄</button>
           </div>
-          <div class="small muted" style="margin-top:6px;">\u26A0\uFE0F Necesita permisos de c\xE1mara del navegador.</div>
-        </div>`:`
+          <div class="small muted" style="margin-top:6px;">⚠️ Necesita permisos de cámara del navegador.</div>
+        </div>`
+            : `
         <div class="field">
           <label class="field-label">URL de la imagen</label>
           <input class="field-input" type="url" id="img-url" placeholder="https://..."/>
-        </div>`}
+        </div>`
+      }
     </div>
     <div class="field">
-      <label class="field-label">An\xE1lisis a realizar</label>
+      <label class="field-label">Análisis a realizar</label>
       <div class="checkbox-group" id="analysis-opts">
-        <label class="checkbox-label"><input type="checkbox" value="analisis" checked/> An\xE1lisis visual completo</label>
+        <label class="checkbox-label"><input type="checkbox" value="analisis" checked/> Análisis visual completo</label>
         <label class="checkbox-label"><input type="checkbox" value="caption" checked/> Caption para Instagram</label>
         <label class="checkbox-label"><input type="checkbox" value="altText" checked/> Alt text accesible</label>
         <label class="checkbox-label"><input type="checkbox" value="hashtags"/> Hashtags sugeridos</label>
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn primary" id="analyze-btn">\u{1F50D} Analizar</button>
+      <button class="btn primary" id="analyze-btn">🔍 Analizar</button>
     </div>
-  </div>`,A=()=>{if(!i.result)return`
-      <div class="card" style="display:flex;align-items:center;justify-content:center;min-height:500px;flex-direction:column;gap:8px;">
-        <div style="font-size:48px;opacity:0.3;">\u{1F441}</div>
-        <div class="muted">Sub\xED una imagen para ver el an\xE1lisis de Claude Vision ac\xE1.</div>
-      </div>`;const e=i.result;return`
-    <div>
-      ${i.imagePreview?`
-        <div class="card" style="margin-bottom:16px;padding:0;overflow:hidden;">
-          <img src="${i.imagePreview}" style="width:100%;max-height:320px;object-fit:cover;display:block;border-radius:12px;"/>
-        </div>`:""}
+  </div>`;
 
-      ${e.analisis?`
+const renderResult = () => {
+  if (!state.result) {
+    return `
+      <div class="card" style="display:flex;align-items:center;justify-content:center;min-height:500px;flex-direction:column;gap:8px;">
+        <div style="font-size:48px;opacity:0.3;">👁</div>
+        <div class="muted">Subí una imagen para ver el análisis de Claude Vision acá.</div>
+      </div>`;
+  }
+  const r = state.result;
+  return `
+    <div>
+      ${
+        state.imagePreview
+          ? `
+        <div class="card" style="margin-bottom:16px;padding:0;overflow:hidden;">
+          <img src="${state.imagePreview}" style="width:100%;max-height:320px;object-fit:cover;display:block;border-radius:12px;"/>
+        </div>`
+          : ''
+      }
+
+      ${
+        r.analisis
+          ? `
         <div class="card" style="margin-bottom:14px;">
-          <h3>\u{1F50D} An\xE1lisis visual</h3>
-          <div class="body">${v(e.analisis.descripcion??"")}</div>
-          ${e.analisis.elementosDestacados?.length?`
+          <h3>🔍 Análisis visual</h3>
+          <div class="body">${escape(r.analisis.descripcion ?? '')}</div>
+          ${
+            r.analisis.elementosDestacados?.length
+              ? `
             <div class="divider"></div>
             <div class="small muted" style="margin-bottom:6px;">Elementos destacados</div>
-            <div class="tag-row">${e.analisis.elementosDestacados.map(l=>`<span class="tag">${v(l)}</span>`).join("")}</div>
-          `:""}
-          ${e.analisis.paleta?.length?`
+            <div class="tag-row">${r.analisis.elementosDestacados.map((e) => `<span class="tag">${escape(e)}</span>`).join('')}</div>
+          `
+              : ''
+          }
+          ${
+            r.analisis.paleta?.length
+              ? `
             <div class="palette-row" style="margin-top:10px;display:flex;gap:6px;">
-              ${e.analisis.paleta.map(l=>`<div class="color-swatch" style="background:${v(l)};width:28px;height:28px;border-radius:6px;border:1px solid var(--border);" title="${v(l)}"></div>`).join("")}
+              ${r.analisis.paleta.map((c) => `<div class="color-swatch" style="background:${escape(c)};width:28px;height:28px;border-radius:6px;border:1px solid var(--border);" title="${escape(c)}"></div>`).join('')}
             </div>
-          `:""}
-          ${e.analisis.puntuacionCalidad?`
+          `
+              : ''
+          }
+          ${
+            r.analisis.puntuacionCalidad
+              ? `
             <div class="divider"></div>
             <div class="gauge-row">
               <span class="small muted">Calidad estimada</span>
-              <div class="gauge-bar"><div class="gauge-fill" style="width:${e.analisis.puntuacionCalidad}%;background:var(--ok);"></div></div>
-              <span class="small">${e.analisis.puntuacionCalidad}/100</span>
+              <div class="gauge-bar"><div class="gauge-fill" style="width:${r.analisis.puntuacionCalidad}%;background:var(--ok);"></div></div>
+              <span class="small">${r.analisis.puntuacionCalidad}/100</span>
             </div>
-          `:""}
-        </div>`:""}
+          `
+              : ''
+          }
+        </div>`
+          : ''
+      }
 
-      ${e.caption?`
+      ${
+        r.caption
+          ? `
         <div class="card" style="margin-bottom:14px;">
-          <h3>\u{1F4DD} Caption</h3>
-          <div class="body" style="white-space:pre-wrap;">${v(e.caption.texto)}</div>
-          ${e.caption.hashtags?.length?`
+          <h3>📝 Caption</h3>
+          <div class="body" style="white-space:pre-wrap;">${escape(r.caption.texto)}</div>
+          ${
+            r.caption.hashtags?.length
+              ? `
             <div class="divider"></div>
-            <div class="meta">${e.caption.hashtags.map(l=>`<span class="tag info">${v(l)}</span>`).join("")}</div>
-          `:""}
+            <div class="meta">${r.caption.hashtags.map((h) => `<span class="tag info">${escape(h)}</span>`).join('')}</div>
+          `
+              : ''
+          }
           <div class="btn-row" style="margin-top:10px;">
-            <button class="btn ghost tiny" id="copy-caption">\u{1F4CB} Copiar caption</button>
+            <button class="btn ghost tiny" id="copy-caption">📋 Copiar caption</button>
           </div>
-        </div>`:""}
+        </div>`
+          : ''
+      }
 
-      ${e.altText?`
+      ${
+        r.altText
+          ? `
         <div class="card" style="margin-bottom:14px;">
-          <h3>\u267F Alt text</h3>
-          <div class="body">${v(e.altText)}</div>
+          <h3>♿ Alt text</h3>
+          <div class="body">${escape(r.altText)}</div>
           <div class="btn-row" style="margin-top:10px;">
-            <button class="btn ghost tiny" id="copy-alt">\u{1F4CB} Copiar alt text</button>
+            <button class="btn ghost tiny" id="copy-alt">📋 Copiar alt text</button>
           </div>
-        </div>`:""}
+        </div>`
+          : ''
+      }
 
-      ${e.hashtags?.length?`
+      ${
+        r.hashtags?.length
+          ? `
         <div class="card">
-          <h3>#\uFE0F\u20E3 Hashtags</h3>
-          <div class="meta">${e.hashtags.map(l=>`<span class="tag info">${v(l)}</span>`).join("")}</div>
-        </div>`:""}
-    </div>`},D=e=>{const l=e.querySelector(".studio-form"),L=e.querySelector(".studio-preview");let y=null;const M=()=>{e.querySelectorAll(".tab-btn").forEach(a=>a.addEventListener("click",()=>{i.mode=a.dataset.mode,l.outerHTML,e.querySelector(".studio-form").outerHTML;const o=e.querySelector(".studio-layout > :first-child");o.outerHTML=k();const n=e.querySelector(".studio-layout > :first-child");f(n,L)}))},f=(a,o)=>{a.querySelectorAll(".tab-btn").forEach(r=>r.addEventListener("click",()=>{i.mode=r.dataset.mode;const u=document.createElement("div");u.innerHTML=k(),a.replaceWith(u.firstElementChild),f(e.querySelector(".studio-form"),o)}));const n=a.querySelector("#upload-zone"),c=a.querySelector("#file-input");n&&c&&(n.addEventListener("click",()=>c.click()),n.addEventListener("dragover",r=>{r.preventDefault(),n.classList.add("drag-over")}),n.addEventListener("dragleave",()=>n.classList.remove("drag-over")),n.addEventListener("drop",r=>{r.preventDefault(),n.classList.remove("drag-over");const u=r.dataTransfer.files[0];u&&S(u,a)}),c.addEventListener("change",()=>{c.files[0]&&S(c.files[0],a)}));const t=a.querySelector("#camera-video"),d=a.querySelector("#camera-canvas"),s=a.querySelector("#camera-snapshot"),$=a.querySelector("#camera-placeholder"),C=a.querySelector("#camera-start"),m=a.querySelector("#camera-capture"),b=a.querySelector("#camera-retake"),x=a.querySelector("#camera-switch");let g=null,h="environment";const w=()=>{g&&(g.getTracks().forEach(r=>r.stop()),g=null)},q=async()=>{try{w(),g=await navigator.mediaDevices.getUserMedia({video:{facingMode:h,width:{ideal:1280},height:{ideal:720}},audio:!1}),t&&(t.srcObject=g,t.style.display="block",$&&($.style.display="none"),s&&(s.style.display="none"),m&&(m.disabled=!1),x&&(x.disabled=!1),b&&(b.style.display="none"))}catch(r){p("No se pudo abrir la c\xE1mara: "+(r.message??"permiso denegado"),"crit")}};C?.addEventListener("click",()=>{q()}),x?.addEventListener("click",()=>{h=h==="environment"?"user":"environment",q()}),m?.addEventListener("click",()=>{if(!t||!d||!g)return;d.width=t.videoWidth,d.height=t.videoHeight;const r=d.getContext("2d");h==="user"&&(r.translate(d.width,0),r.scale(-1,1)),r.drawImage(t,0,0);const u=d.toDataURL("image/jpeg",.85);i.imagePreview=u,d.toBlob(T=>{T&&(y=new File([T],`camera-${Date.now()}.jpg`,{type:"image/jpeg"}))},"image/jpeg",.85),s&&(s.src=u,s.style.display="block"),t.style.display="none",b&&(b.style.display="inline-block"),m&&(m.disabled=!0),p('\u{1F4F8} Foto capturada \xB7 ahora seleccion\xE1 an\xE1lisis y dale "Analizar"',"ok")}),b?.addEventListener("click",()=>{i.imagePreview=null,y=null,s&&(s.style.display="none"),t&&(t.style.display="block"),m&&(m.disabled=!1),b&&(b.style.display="none")}),a.addEventListener("DOMNodeRemovedFromDocument",w),window.addEventListener("hashchange",w,{once:!0}),a.querySelector("#analyze-btn").addEventListener("click",()=>z(a,o,y))},S=(a,o)=>{y=a;const n=new FileReader;n.onload=c=>{i.imagePreview=c.target.result;const t=o.querySelector("#image-preview-wrap"),d=o.querySelector("#image-preview-img");t&&d&&(d.src=c.target.result,t.style.display="block")},n.readAsDataURL(a)},z=async(a,o,n)=>{const c=[...a.querySelectorAll("#analysis-opts input:checked")].map(s=>s.value);if(!c.length){p("Seleccion\xE1 al menos un tipo de an\xE1lisis","crit");return}let t=null;if(i.mode==="upload"){if(!n){p("Sub\xED una imagen primero","crit");return}t=i.imagePreview}else if(i.mode==="camera"){if(!i.imagePreview){p("Tom\xE1 una foto primero","crit");return}t=i.imagePreview}else{const s=a.querySelector("#img-url")?.value.trim();if(!s){p("Ingres\xE1 una URL de imagen","crit");return}t=s,i.imagePreview=s}const d=a.querySelector("#analyze-btn");d.disabled=!0,d.innerHTML='<span class="spinner"></span> analizando\u2026';try{const s=await P("/api/studio/vision",{body:{imageData:t,analisis:c.includes("analisis"),caption:c.includes("caption"),altText:c.includes("altText"),hashtags:c.includes("hashtags")}});i.result=s,o.innerHTML=A(),H(o),p("An\xE1lisis completado","ok")}catch(s){p(s.message,"crit")}finally{d.disabled=!1,d.innerHTML="\u{1F50D} Analizar"}};f(l,L)},H=e=>{e.querySelector("#copy-caption")?.addEventListener("click",()=>{const l=i.result?.caption?.texto??"";navigator.clipboard.writeText(l).then(()=>p("Caption copiado","ok"))}),e.querySelector("#copy-alt")?.addEventListener("click",()=>{const l=i.result?.altText??"";navigator.clipboard.writeText(l).then(()=>p("Alt text copiado","ok"))})};export const renderVision=async e=>{i={result:null,imagePreview:null,mode:"upload"},e.innerHTML=`
+          <h3>#️⃣ Hashtags</h3>
+          <div class="meta">${r.hashtags.map((h) => `<span class="tag info">${escape(h)}</span>`).join('')}</div>
+        </div>`
+          : ''
+      }
+    </div>`;
+};
+
+const wireUp = (root) => {
+  const form = root.querySelector('.studio-form');
+  const preview = root.querySelector('.studio-preview');
+  let currentFile = null;
+
+  const rebindTabs = () => {
+    root.querySelectorAll('.tab-btn').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        state.mode = btn.dataset.mode;
+        form.outerHTML; // force re-render
+        root.querySelector('.studio-form').outerHTML;
+        // Re-render left panel
+        const leftCol = root.querySelector('.studio-layout > :first-child');
+        leftCol.outerHTML = renderInputPanel();
+        const newLeft = root.querySelector('.studio-layout > :first-child');
+        wireUpForm(newLeft, preview);
+      }),
+    );
+  };
+
+  const wireUpForm = (formEl, previewEl) => {
+    // Tab switching
+    formEl.querySelectorAll('.tab-btn').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        state.mode = btn.dataset.mode;
+        const newForm = document.createElement('div');
+        newForm.innerHTML = renderInputPanel();
+        formEl.replaceWith(newForm.firstElementChild);
+        wireUpForm(root.querySelector('.studio-form'), previewEl);
+      }),
+    );
+
+    // Upload zone
+    const zone = formEl.querySelector('#upload-zone');
+    const fileInput = formEl.querySelector('#file-input');
+    if (zone && fileInput) {
+      zone.addEventListener('click', () => fileInput.click());
+      zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        zone.classList.add('drag-over');
+      });
+      zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) handleFile(file, formEl);
+      });
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files[0]) handleFile(fileInput.files[0], formEl);
+      });
+    }
+
+    // Cámara
+    const video = formEl.querySelector('#camera-video');
+    const canvas = formEl.querySelector('#camera-canvas');
+    const snap = formEl.querySelector('#camera-snapshot');
+    const placeholder = formEl.querySelector('#camera-placeholder');
+    const startBtn = formEl.querySelector('#camera-start');
+    const captureBtn = formEl.querySelector('#camera-capture');
+    const retakeBtn = formEl.querySelector('#camera-retake');
+    const switchBtn = formEl.querySelector('#camera-switch');
+    let stream = null;
+    let facing = 'environment'; // 'user' (frontal) | 'environment' (trasera)
+
+    const stopStream = () => {
+      if (stream) {
+        stream.getTracks().forEach((t) => t.stop());
+        stream = null;
+      }
+    };
+    const openStream = async () => {
+      try {
+        stopStream();
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        });
+        if (video) {
+          video.srcObject = stream;
+          video.style.display = 'block';
+          if (placeholder) placeholder.style.display = 'none';
+          if (snap) snap.style.display = 'none';
+          if (captureBtn) captureBtn.disabled = false;
+          if (switchBtn) switchBtn.disabled = false;
+          if (retakeBtn) retakeBtn.style.display = 'none';
+        }
+      } catch (err) {
+        toast('No se pudo abrir la cámara: ' + (err.message ?? 'permiso denegado'), 'crit');
+      }
+    };
+
+    startBtn?.addEventListener('click', () => {
+      void openStream();
+    });
+    switchBtn?.addEventListener('click', () => {
+      facing = facing === 'environment' ? 'user' : 'environment';
+      void openStream();
+    });
+    captureBtn?.addEventListener('click', () => {
+      if (!video || !canvas || !stream) return;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      // Si es cámara frontal, espejar
+      if (facing === 'user') {
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.drawImage(video, 0, 0);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      state.imagePreview = dataUrl;
+      // Convertir a Blob para tener "file"-like
+      canvas.toBlob(
+        (blob) => {
+          if (blob) currentFile = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        },
+        'image/jpeg',
+        0.85,
+      );
+      // Mostrar snapshot, ocultar video
+      if (snap) {
+        snap.src = dataUrl;
+        snap.style.display = 'block';
+      }
+      video.style.display = 'none';
+      if (retakeBtn) retakeBtn.style.display = 'inline-block';
+      if (captureBtn) captureBtn.disabled = true;
+      toast('📸 Foto capturada · ahora seleccioná análisis y dale "Analizar"', 'ok');
+    });
+    retakeBtn?.addEventListener('click', () => {
+      state.imagePreview = null;
+      currentFile = null;
+      if (snap) snap.style.display = 'none';
+      if (video) video.style.display = 'block';
+      if (captureBtn) captureBtn.disabled = false;
+      if (retakeBtn) retakeBtn.style.display = 'none';
+    });
+    // Cleanup al cambiar de tab o destruir
+    formEl.addEventListener('DOMNodeRemovedFromDocument', stopStream);
+    window.addEventListener('hashchange', stopStream, { once: true });
+
+    formEl.querySelector('#analyze-btn').addEventListener('click', () => runAnalysis(formEl, previewEl, currentFile));
+  };
+
+  const handleFile = (file, formEl) => {
+    currentFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      state.imagePreview = e.target.result;
+      const wrap = formEl.querySelector('#image-preview-wrap');
+      const img = formEl.querySelector('#image-preview-img');
+      if (wrap && img) {
+        img.src = e.target.result;
+        wrap.style.display = 'block';
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const runAnalysis = async (formEl, previewEl, file) => {
+    const checkedOpts = [...formEl.querySelectorAll('#analysis-opts input:checked')].map((c) => c.value);
+    if (!checkedOpts.length) {
+      toast('Seleccioná al menos un tipo de análisis', 'crit');
+      return;
+    }
+
+    let imageData = null;
+    if (state.mode === 'upload') {
+      if (!file) {
+        toast('Subí una imagen primero', 'crit');
+        return;
+      }
+      imageData = state.imagePreview;
+    } else if (state.mode === 'camera') {
+      if (!state.imagePreview) {
+        toast('Tomá una foto primero', 'crit');
+        return;
+      }
+      imageData = state.imagePreview;
+    } else {
+      const url = formEl.querySelector('#img-url')?.value.trim();
+      if (!url) {
+        toast('Ingresá una URL de imagen', 'crit');
+        return;
+      }
+      imageData = url;
+      state.imagePreview = url;
+    }
+
+    const btn = formEl.querySelector('#analyze-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> analizando…';
+    try {
+      const result = await api('/api/studio/vision', {
+        body: {
+          imageData,
+          analisis: checkedOpts.includes('analisis'),
+          caption: checkedOpts.includes('caption'),
+          altText: checkedOpts.includes('altText'),
+          hashtags: checkedOpts.includes('hashtags'),
+        },
+      });
+      state.result = result;
+      previewEl.innerHTML = renderResult();
+      attachResultListeners(previewEl);
+      toast('Análisis completado', 'ok');
+    } catch (err) {
+      toast(err.message, 'crit');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '🔍 Analizar';
+    }
+  };
+
+  wireUpForm(form, preview);
+};
+
+const attachResultListeners = (preview) => {
+  preview.querySelector('#copy-caption')?.addEventListener('click', () => {
+    const text = state.result?.caption?.texto ?? '';
+    navigator.clipboard.writeText(text).then(() => toast('Caption copiado', 'ok'));
+  });
+  preview.querySelector('#copy-alt')?.addEventListener('click', () => {
+    const text = state.result?.altText ?? '';
+    navigator.clipboard.writeText(text).then(() => toast('Alt text copiado', 'ok'));
+  });
+};
+
+export const renderVision = async (root) => {
+  state = { result: null, imagePreview: null, mode: 'upload' };
+  root.innerHTML = `
     <header class="view-header page-header">
       <div>
         <h1 class="view-title page-title">Vision AI</h1>
-        <p class="view-subtitle page-subtitle">Claude multimodal analiza im\xE1genes y genera captions con la voz de tu marca.</p>
+        <p class="view-subtitle page-subtitle">Claude multimodal analiza imágenes y genera captions con la voz de tu marca.</p>
       </div>
     </header>
     <div class="page-body">
       <div class="studio-layout">
-        ${k()}
-        <div class="studio-preview">${A()}</div>
+        ${renderInputPanel()}
+        <div class="studio-preview">${renderResult()}</div>
       </div>
-    </div>`,D(e)};
+    </div>`;
+  wireUp(root);
+};

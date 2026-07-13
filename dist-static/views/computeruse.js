@@ -1,42 +1,177 @@
-import{api as x}from"../lib/api.js";import{escape as y}from"../lib/dom.js";import{toast as u}from"../lib/toast.js";import{withBtnSpinner as k}from"../lib/ui.js";let g=null;const m=()=>{try{g&&g.close()}catch{}g=null};window.addEventListener("beforeunload",m),window.addEventListener("hashchange",()=>{(location.hash.replace("#","")||"feed")!=="pantalla"&&m()});const S={navigate:"\u{1F9ED}",click:"\u{1F446}","double-click":"\u{1F446}",type:"\u2328\uFE0F",scroll:"\u{1F5B1}\uFE0F",hover:"\u270B",press:"\u23CE",wait:"\u23F3"},$=(a,t)=>{const c=a.querySelector("#cu-stage"),r=a.querySelector("#cu-cursor"),n=a.querySelector("#cu-apptitle"),o=a.querySelector("#cu-narrate"),d=a.querySelector("#cu-typed"),p=a.querySelector("#cu-log"),b=a.querySelector("#cu-progress");if(c)if(t.kind==="session-start")n.textContent=`Preparando \u2014 ${t.surface}`,o.textContent=`Instrucci\xF3n: ${t.instruction}`,p.innerHTML="",d.textContent="",b.textContent=`0 / ${t.steps}`,c.dataset.total=t.steps,t.requiresApproval&&u("Este plan toca acciones de escritura (requiere aprobaci\xF3n para ejecutar de verdad)","warn");else if(t.kind==="app-open"){n.textContent=t.app,c.classList.add("cu-screen-on");const e=document.createElement("div");e.className="tiny muted",e.textContent=`\u{1FA9F} ${t.note}`,p.prepend(e)}else if(t.kind==="cursor"){const e=c.getBoundingClientRect(),i=t.x/1e3*e.width,s=t.y/620*e.height;r.style.left=`${i}px`,r.style.top=`${s}px`,r.setAttribute("data-label",t.label)}else if(t.kind==="act")r.classList.add("cu-click"),setTimeout(()=>r.classList.remove("cu-click"),320),o.innerHTML=`${S[t.gesture]||"\u2022"} <b>${y(t.gesture)}</b> \u2192 ${y(t.target)}<br><span class="muted">${y(t.narrate)}</span>`,t.gesture!=="type"&&(d.textContent="");else if(t.kind==="screenshot"){let e=c.querySelector("#cu-shot");e||(e=document.createElement("img"),e.id="cu-shot",e.className="cu-shot",c.prepend(e)),e.src=t.dataUri,c.classList.add("cu-has-shot")}else if(t.kind==="type-char")d.textContent=t.full+"\u258C";else if(t.kind==="step-done"){const e=document.createElement("div");e.className="cu-step-row",e.innerHTML=`<span class="tag ok tiny">\u2713</span><span class="small">#${t.step} ${y(t.detail)}</span>`,p.prepend(e);const i=p.querySelectorAll(".cu-step-row").length;b.textContent=`${i} / ${c.dataset.total||"?"}`}else t.kind==="session-end"&&(n.textContent=t.completed?"\u2705 Tarea completada":"\u26D4 Sesi\xF3n finalizada",o.innerHTML=t.completed?`<b>Listo.</b> El sistema complet\xF3 ${t.ok}/${t.total} pasos solo.`:"La sesi\xF3n termin\xF3.",d.textContent="",r.classList.remove("cu-click"),m())},w=(a,t)=>{m(),g=new EventSource(`/api/computer/stream?session=${encodeURIComponent(t)}`),g.addEventListener("cu",c=>{let r;try{r=JSON.parse(c.data)}catch{return}$(a,r)}),g.onerror=()=>{}},C=async(a,t,c)=>{let r;try{r=await x("/api/computer/watch",{method:"POST",body:{instruction:t,speed:c}})}catch(n){u("Error: "+n.message,"crit");return}w(a,r.sessionId)};export const renderComputerUse=async a=>{m(),a.innerHTML=`
+/* ══════════════════════════════════════════════════════════════════════════════
+   PANTALLA EN VIVO — Computer Use Agent observable
+   ──────────────────────────────────────────────────────────────────────────────
+   El usuario escribe una instrucción y MIRA: el cursor se mueve solo, se
+   abren apps, se tipea letra por letra. Stream SSE → escenario animado.
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { api } from '../lib/api.js';
+import { escape } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+import { withBtnSpinner } from '../lib/ui.js';
+
+let es = null;
+const stop = () => {
+  try {
+    es && es.close();
+  } catch {
+    /* noop */
+  }
+  es = null;
+};
+window.addEventListener('beforeunload', stop);
+window.addEventListener('hashchange', () => {
+  if ((location.hash.replace('#', '') || 'feed') !== 'pantalla') stop();
+});
+
+const GESTURE_ICON = {
+  navigate: '🧭',
+  click: '👆',
+  'double-click': '👆',
+  type: '⌨️',
+  scroll: '🖱️',
+  hover: '✋',
+  press: '⏎',
+  wait: '⏳',
+};
+
+const onEvent = (root, ev) => {
+  const stage = root.querySelector('#cu-stage');
+  const cursor = root.querySelector('#cu-cursor');
+  const titleEl = root.querySelector('#cu-apptitle');
+  const narrate = root.querySelector('#cu-narrate');
+  const typed = root.querySelector('#cu-typed');
+  const log = root.querySelector('#cu-log');
+  const prog = root.querySelector('#cu-progress');
+  if (!stage) return;
+
+  if (ev.kind === 'session-start') {
+    titleEl.textContent = `Preparando — ${ev.surface}`;
+    narrate.textContent = `Instrucción: ${ev.instruction}`;
+    log.innerHTML = '';
+    typed.textContent = '';
+    prog.textContent = `0 / ${ev.steps}`;
+    stage.dataset.total = ev.steps;
+    if (ev.requiresApproval)
+      toast('Este plan toca acciones de escritura (requiere aprobación para ejecutar de verdad)', 'warn');
+  } else if (ev.kind === 'app-open') {
+    titleEl.textContent = ev.app;
+    stage.classList.add('cu-screen-on');
+    const b = document.createElement('div');
+    b.className = 'tiny muted';
+    b.textContent = `🪟 ${ev.note}`;
+    log.prepend(b);
+  } else if (ev.kind === 'cursor') {
+    // El cursor se desplaza solo (transición CSS).
+    const rect = stage.getBoundingClientRect();
+    const sx = (ev.x / 1000) * rect.width;
+    const sy = (ev.y / 620) * rect.height;
+    cursor.style.left = `${sx}px`;
+    cursor.style.top = `${sy}px`;
+    cursor.setAttribute('data-label', ev.label);
+  } else if (ev.kind === 'act') {
+    cursor.classList.add('cu-click');
+    setTimeout(() => cursor.classList.remove('cu-click'), 320);
+    narrate.innerHTML = `${GESTURE_ICON[ev.gesture] || '•'} <b>${escape(ev.gesture)}</b> → ${escape(ev.target)}<br><span class="muted">${escape(ev.narrate)}</span>`;
+    if (ev.gesture !== 'type') typed.textContent = '';
+  } else if (ev.kind === 'screenshot') {
+    let img = stage.querySelector('#cu-shot');
+    if (!img) {
+      img = document.createElement('img');
+      img.id = 'cu-shot';
+      img.className = 'cu-shot';
+      stage.prepend(img);
+    }
+    img.src = ev.dataUri;
+    stage.classList.add('cu-has-shot');
+  } else if (ev.kind === 'type-char') {
+    typed.textContent = ev.full + '▌';
+  } else if (ev.kind === 'step-done') {
+    const row = document.createElement('div');
+    row.className = 'cu-step-row';
+    row.innerHTML = `<span class="tag ok tiny">✓</span><span class="small">#${ev.step} ${escape(ev.detail)}</span>`;
+    log.prepend(row);
+    const done = log.querySelectorAll('.cu-step-row').length;
+    prog.textContent = `${done} / ${stage.dataset.total || '?'}`;
+  } else if (ev.kind === 'session-end') {
+    titleEl.textContent = ev.completed ? '✅ Tarea completada' : '⛔ Sesión finalizada';
+    narrate.innerHTML = ev.completed
+      ? `<b>Listo.</b> El sistema completó ${ev.ok}/${ev.total} pasos solo.`
+      : 'La sesión terminó.';
+    typed.textContent = '';
+    cursor.classList.remove('cu-click');
+    stop();
+  }
+};
+
+const attachToSession = (root, sessionId) => {
+  stop();
+  es = new EventSource(`/api/computer/stream?session=${encodeURIComponent(sessionId)}`);
+  es.addEventListener('cu', (e) => {
+    let d;
+    try {
+      d = JSON.parse(e.data);
+    } catch {
+      return;
+    }
+    onEvent(root, d);
+  });
+  es.onerror = () => {
+    /* fin de stream: el server cierra al terminar */
+  };
+};
+
+const watch = async (root, instruction, speed) => {
+  let r;
+  try {
+    r = await api('/api/computer/watch', { method: 'POST', body: { instruction, speed } });
+  } catch (err) {
+    toast('Error: ' + err.message, 'crit');
+    return;
+  }
+  attachToSession(root, r.sessionId);
+};
+
+export const renderComputerUse = async (root) => {
+  stop();
+  root.innerHTML = `
     <header class="view-header page-header">
       <div>
-        <h1 class="view-title page-title">\u{1F5A5}\uFE0F Pantalla en vivo</h1>
-        <p class="view-subtitle page-subtitle">Computer Use Agent: escrib\xED una orden y mir\xE1 c\xF3mo el sistema abre apps, mueve el cursor y opera solo.</p>
+        <h1 class="view-title page-title">🖥️ Pantalla en vivo</h1>
+        <p class="view-subtitle page-subtitle">Computer Use Agent: escribí una orden y mirá cómo el sistema abre apps, mueve el cursor y opera solo.</p>
       </div>
     </header>
     <div class="page-body">
-      <!-- \u{1F9E0} Cerebro Activado: master switch + 6 subsistemas -->
+      <!-- 🧠 Cerebro Activado: master switch + 6 subsistemas -->
       <div class="card cu-brain" id="cu-brain">
         <div class="cu-brain-head">
           <div>
-            <div class="cu-brain-title"><span>\u{1F9E0}</span> <b>Cerebro aut\xF3nomo</b> <span class="tag tiny" id="cu-brain-status">cargando\u2026</span></div>
-            <div class="tiny muted">Cuando est\xE1 <b>Activado</b>, los subsistemas marcados corren solos en su ciclo. Apagado = todo manual.</div>
+            <div class="cu-brain-title"><span>🧠</span> <b>Cerebro autónomo</b> <span class="tag tiny" id="cu-brain-status">cargando…</span></div>
+            <div class="tiny muted">Cuando está <b>Activado</b>, los subsistemas marcados corren solos en su ciclo. Apagado = todo manual.</div>
           </div>
-          <label class="cu-switch" title="Activar cerebro aut\xF3nomo">
+          <label class="cu-switch" title="Activar cerebro autónomo">
             <input type="checkbox" id="cu-master"/><span class="cu-slider"></span>
           </label>
         </div>
         <div class="cu-modules" id="cu-modules">
-          <div class="tiny muted">cargando subsistemas\u2026</div>
+          <div class="tiny muted">cargando subsistemas…</div>
         </div>
       </div>
 
       <div class="card" style="margin-top:12px;">
         <div class="row" style="gap:8px;align-items:flex-end;flex-wrap:wrap;">
           <div style="flex:1;min-width:240px;">
-            <label class="small muted">\xBFQu\xE9 quer\xE9s que haga? (modo manual)</label>
-            <input id="cu-instruction" class="input" placeholder="Ej: arm\xE1 un carrusel del nicho y subilo a Instagram" />
+            <label class="small muted">¿Qué querés que haga? (modo manual)</label>
+            <input id="cu-instruction" class="input" placeholder="Ej: armá un carrusel del nicho y subilo a Instagram" />
           </div>
           <div style="width:120px;">
             <label class="small muted">Velocidad</label>
             <select id="cu-speed" class="input">
               <option value="0.5">Lenta</option>
               <option value="1" selected>Normal</option>
-              <option value="2">R\xE1pida</option>
+              <option value="2">Rápida</option>
             </select>
           </div>
-          <button class="btn primary" id="cu-go">\u25B6 Mirar</button>
+          <button class="btn primary" id="cu-go">▶ Mirar</button>
         </div>
       </div>
 
@@ -49,7 +184,7 @@ import{api as x}from"../lib/api.js";import{escape as y}from"../lib/dom.js";impor
           <span id="cu-progress" class="tag tiny" style="margin-left:auto;">0 / 0</span>
         </div>
         <div id="cu-stage" class="cu-stage">
-          <div id="cu-narrate" class="cu-narrate muted">Escrib\xED una instrucci\xF3n y toc\xE1 \u201CMirar\u201D. Te pod\xE9s cruzar de brazos.</div>
+          <div id="cu-narrate" class="cu-narrate muted">Escribí una instrucción y tocá “Mirar”. Te podés cruzar de brazos.</div>
           <div id="cu-typed" class="cu-typed"></div>
           <div id="cu-cursor" class="cu-cursor"></div>
         </div>
@@ -98,12 +233,105 @@ import{api as x}from"../lib/api.js";import{escape as y}from"../lib/dom.js";impor
       .cu-switch input:checked + .cu-slider{background:linear-gradient(135deg,#e1306c,#a855f7);}
       .cu-switch input:checked + .cu-slider::before{transform:translateX(20px);}
       .cu-switch input:disabled + .cu-slider{opacity:.4;cursor:not-allowed;}
-    </style>`;const t=a.querySelector("#cu-go");t.addEventListener("click",async e=>{const i=a.querySelector("#cu-instruction").value.trim();if(!i){u("Escrib\xED una instrucci\xF3n","warn");return}const s=Number(a.querySelector("#cu-speed").value)||1;await k(e.currentTarget,"mirando\u2026",async()=>{await C(a,i,s)})}),a.querySelector("#cu-instruction").addEventListener("keydown",e=>{e.key==="Enter"&&t.click()});const c=a.querySelector("#cu-brain"),r=a.querySelector("#cu-brain-status"),n=a.querySelector("#cu-master"),o=a.querySelector("#cu-modules"),d=e=>{if(!e)return"\u2014";const i=Date.now()-Date.parse(e);if(isNaN(i))return"\u2014";const s=Math.round(i/6e4);if(s<1)return"reci\xE9n";if(s<60)return`hace ${s} min`;const l=Math.round(s/60);return l<24?`hace ${l} h`:`hace ${Math.round(l/24)} d`},p=e=>{const i=Object.values(e.modules||{});o.innerHTML=i.map(s=>`
-      <div class="cu-mod ${s.enabled?"":"off"}" data-id="${s.id}">
-        <label class="cu-switch"><input type="checkbox" class="cu-mod-toggle" data-id="${s.id}" ${s.enabled?"checked":""} ${e.activated?"":"disabled"}/><span class="cu-slider"></span></label>
+    </style>`;
+
+  const go = root.querySelector('#cu-go');
+  go.addEventListener('click', async (e) => {
+    const instruction = root.querySelector('#cu-instruction').value.trim();
+    if (!instruction) {
+      toast('Escribí una instrucción', 'warn');
+      return;
+    }
+    const speed = Number(root.querySelector('#cu-speed').value) || 1;
+    await withBtnSpinner(e.currentTarget, 'mirando…', async () => {
+      await watch(root, instruction, speed);
+    });
+  });
+  root.querySelector('#cu-instruction').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') go.click();
+  });
+
+  /* 🧠 Cerebro Activado — master + 6 subsistemas (persiste via API) */
+  const brain = root.querySelector('#cu-brain');
+  const brainStatus = root.querySelector('#cu-brain-status');
+  const masterEl = root.querySelector('#cu-master');
+  const modsEl = root.querySelector('#cu-modules');
+  const fmtRel = (iso) => {
+    if (!iso) return '—';
+    const d = Date.now() - Date.parse(iso);
+    if (isNaN(d)) return '—';
+    const m = Math.round(d / 60000);
+    if (m < 1) return 'recién';
+    if (m < 60) return `hace ${m} min`;
+    const h = Math.round(m / 60);
+    return h < 24 ? `hace ${h} h` : `hace ${Math.round(h / 24)} d`;
+  };
+  const renderModules = (s) => {
+    const mods = Object.values(s.modules || {});
+    modsEl.innerHTML = mods
+      .map(
+        (m) => `
+      <div class="cu-mod ${m.enabled ? '' : 'off'}" data-id="${m.id}">
+        <label class="cu-switch"><input type="checkbox" class="cu-mod-toggle" data-id="${m.id}" ${m.enabled ? 'checked' : ''} ${s.activated ? '' : 'disabled'}/><span class="cu-slider"></span></label>
         <div class="cu-mod-info">
-          <b>${s.label}</b>
-          <div class="desc">${s.description}</div>
-          <div class="meta"><span>\xFAltimo: ${d(s.lastRunAt)}</span>${s.nextRunAt?`<span>\xB7 pr\xF3x: ${d(s.nextRunAt)}</span>`:""}</div>
+          <b>${m.label}</b>
+          <div class="desc">${m.description}</div>
+          <div class="meta"><span>último: ${fmtRel(m.lastRunAt)}</span>${m.nextRunAt ? `<span>· próx: ${fmtRel(m.nextRunAt)}</span>` : ''}</div>
         </div>
-      </div>`).join(""),o.querySelectorAll(".cu-mod-toggle").forEach(s=>{s.addEventListener("change",async l=>{const v=l.target.dataset.id,f=l.target.checked;try{const h=await x("/api/autopilot/activated",{method:"POST",body:{moduleId:v,enabled:f}});b(h),u(`${h.modules[v]?.label}: ${f?"activado":"pausado"}`,f?"ok":"info")}catch(h){u("No se pudo guardar: "+h.message,"crit"),l.target.checked=!f}})})},b=e=>{c.classList.toggle("on",!!e.activated),n.checked=!!e.activated,r.textContent=e.activated?"\u25CF Activado":"\u25CB Apagado",r.className=`tag tiny ${e.activated?"ok":""}`,p(e)};n.addEventListener("change",async e=>{const i=e.target.checked;try{const s=await x("/api/autopilot/activated",{method:"POST",body:{activated:i}});b(s),u(i?"\u{1F9E0} Cerebro aut\xF3nomo activado":"\u{1F9E0} Cerebro aut\xF3nomo apagado",i?"ok":"info")}catch(s){u("No se pudo cambiar: "+s.message,"crit"),e.target.checked=!i}}),x("/api/autopilot/activated").then(b).catch(()=>{r.textContent="sin conexi\xF3n",o.innerHTML='<div class="tiny muted">No se pudo cargar el estado. Reintent\xE1 refrescando.</div>'});try{const e=sessionStorage.getItem("fx_cu_session");if(e){sessionStorage.removeItem("fx_cu_session");const i=a.querySelector("#cu-apptitle");i&&(i.textContent="Continuando sesi\xF3n iniciada desde el Estudio\u2026"),w(a,e)}}catch{}};
+      </div>`,
+      )
+      .join('');
+    modsEl.querySelectorAll('.cu-mod-toggle').forEach((inp) => {
+      inp.addEventListener('change', async (e) => {
+        const id = e.target.dataset.id;
+        const enabled = e.target.checked;
+        try {
+          const updated = await api('/api/autopilot/activated', { method: 'POST', body: { moduleId: id, enabled } });
+          renderState(updated);
+          toast(`${updated.modules[id]?.label}: ${enabled ? 'activado' : 'pausado'}`, enabled ? 'ok' : 'info');
+        } catch (err) {
+          toast('No se pudo guardar: ' + err.message, 'crit');
+          e.target.checked = !enabled;
+        }
+      });
+    });
+  };
+  const renderState = (s) => {
+    brain.classList.toggle('on', !!s.activated);
+    masterEl.checked = !!s.activated;
+    brainStatus.textContent = s.activated ? '● Activado' : '○ Apagado';
+    brainStatus.className = `tag tiny ${s.activated ? 'ok' : ''}`;
+    renderModules(s);
+  };
+  masterEl.addEventListener('change', async (e) => {
+    const activated = e.target.checked;
+    try {
+      const updated = await api('/api/autopilot/activated', { method: 'POST', body: { activated } });
+      renderState(updated);
+      toast(activated ? '🧠 Cerebro autónomo activado' : '🧠 Cerebro autónomo apagado', activated ? 'ok' : 'info');
+    } catch (err) {
+      toast('No se pudo cambiar: ' + err.message, 'crit');
+      e.target.checked = !activated;
+    }
+  });
+  api('/api/autopilot/activated')
+    .then(renderState)
+    .catch(() => {
+      brainStatus.textContent = 'sin conexión';
+      modsEl.innerHTML = '<div class="tiny muted">No se pudo cargar el estado. Reintentá refrescando.</div>';
+    });
+
+  /* Handoff desde otra vista (ej: Carrusel Studio → "Crear en vivo en Canva").
+     Si hay un sessionId guardado en sessionStorage, nos enganchamos al vuelo. */
+  try {
+    const handoff = sessionStorage.getItem('fx_cu_session');
+    if (handoff) {
+      sessionStorage.removeItem('fx_cu_session');
+      const ttl = root.querySelector('#cu-apptitle');
+      if (ttl) ttl.textContent = 'Continuando sesión iniciada desde el Estudio…';
+      attachToSession(root, handoff);
+    }
+  } catch {
+    /* sandboxed storage */
+  }
+};

@@ -1,316 +1,596 @@
-import{apiSafe as oe}from"../lib/api.js";import{escape as a}from"../lib/dom.js";import{toast as B}from"../lib/toast.js";const ne=[{id:"awareness",emoji:"\u{1F441}\uFE0F",label:"Llegar a m\xE1s gente",desc:"Maximizar alcance"},{id:"engagement",emoji:"\u{1F49C}",label:"M\xE1s interacci\xF3n",desc:"Comentarios + saves"},{id:"conversion",emoji:"\u{1F4B0}",label:"Vender",desc:"Convertir a cliente"},{id:"community",emoji:"\u{1F91D}",label:"Comunidad",desc:"Conectar con seguidores"},{id:"sales",emoji:"\u{1F6D2}",label:"Lanzar producto",desc:"Push a oferta"}],le=async()=>{try{return(await import("../lib/platform.js")).getPlatform()}catch{return"instagram"}};let N="engagement",q="",Q="",X="",Z="personal",R=null,ee=null;const de=e=>{const u=e==="instagram",i=e==="tiktok";return`
-    <div class="bj-hero" style="background:${u?"linear-gradient(135deg,#f09433,#dc2743,#bc1888)":i?"linear-gradient(135deg,#25F4EE,#000,#FE2C55)":"linear-gradient(135deg,#6366f1,#a855f7)"};">
-      <div class="bj-hero-emoji">\u{1F9ED}</div>
+/* ══════════════════════════════════════════════════════════════════════════════
+   BRÚJULA DEL DÍA — Herramienta clave Tu Casa
+   ──────────────────────────────────────────────────────────────────────────────
+   Estratega diario: lee platform switcher (IG/TT), genera el mejor próximo
+   movimiento del día, predice virality, da 3 hook variants, ventana óptima
+   de publicación, y CTA directo a Studio para crear.
+   ══════════════════════════════════════════════════════════════════════════════ */
+import { apiSafe } from '../lib/api.js';
+import { escape } from '../lib/dom.js';
+import { toast } from '../lib/toast.js';
+
+const GOAL_PRESETS = [
+  { id: 'awareness', emoji: '👁️', label: 'Llegar a más gente', desc: 'Maximizar alcance' },
+  { id: 'engagement', emoji: '💜', label: 'Más interacción', desc: 'Comentarios + saves' },
+  { id: 'conversion', emoji: '💰', label: 'Vender', desc: 'Convertir a cliente' },
+  { id: 'community', emoji: '🤝', label: 'Comunidad', desc: 'Conectar con seguidores' },
+  { id: 'sales', emoji: '🛒', label: 'Lanzar producto', desc: 'Push a oferta' },
+];
+
+const getPlatform = async () => {
+  try {
+    const mod = await import('../lib/platform.js');
+    return mod.getPlatform();
+  } catch {
+    return 'instagram';
+  }
+};
+
+let activeGoal = 'engagement';
+let activeTopic = '';
+let activeAccountId = '';
+let activeNiche = '';
+let activeBrandType = 'personal';
+let cachedPlan = null;
+let cachedPrediction = null;
+
+const renderHero = (platform) => {
+  const isIg = platform === 'instagram';
+  const isTt = platform === 'tiktok';
+  const platformLabel = isIg ? 'Instagram' : isTt ? 'TikTok' : 'tu marca';
+  const accent = isIg
+    ? 'linear-gradient(135deg,#f09433,#dc2743,#bc1888)'
+    : isTt
+      ? 'linear-gradient(135deg,#25F4EE,#000,#FE2C55)'
+      : 'linear-gradient(135deg,#6366f1,#a855f7)';
+  return `
+    <div class="bj-hero" style="background:${accent};">
+      <div class="bj-hero-emoji">🧭</div>
       <div>
-        <h1>Br\xFAjula del D\xEDa</h1>
-        <p>El movimiento m\xE1s inteligente para tu cuenta de ${a(u?"Instagram":i?"TikTok":"tu marca")}, hoy.</p>
+        <h1>Brújula del Día</h1>
+        <p>El movimiento más inteligente para tu cuenta de ${escape(platformLabel)}, hoy.</p>
       </div>
-    </div>`},ce=e=>`
+    </div>`;
+};
+
+const renderInputForm = (platform) => {
+  const isIg = platform === 'instagram';
+  const placeholder = isIg
+    ? 'Ej: "mi nuevo curso de productividad", "mi error más grande", "3 tips de IA"'
+    : 'Ej: "rutina de mañana de 5 min", "secreto que nadie cuenta", "viral challenge"';
+  return `
   <div class="bj-card">
-    <div class="bj-step-label">\xBFSobre qu\xE9 vas a publicar hoy?</div>
+    <div class="bj-step-label">¿Sobre qué vas a publicar hoy?</div>
     <input id="bj-topic" class="bj-input" type="text"
-      placeholder='${e==="instagram"?'Ej: "mi nuevo curso de productividad", "mi error m\xE1s grande", "3 tips de IA"':'Ej: "rutina de ma\xF1ana de 5 min", "secreto que nadie cuenta", "viral challenge"'}' value="${a(q)}" />
+      placeholder='${placeholder}' value="${escape(activeTopic)}" />
     <div id="bj-topic-hint" class="bj-topic-hint" style="display:none;"></div>
-    <div class="bj-step-label" style="margin-top:16px;">\xBFCu\xE1l es tu objetivo?</div>
+    <div class="bj-step-label" style="margin-top:16px;">¿Cuál es tu objetivo?</div>
     <div class="bj-goals">
-      ${ne.map(k=>`
-        <button class="bj-goal ${k.id===N?"active":""}" data-goal="${k.id}">
-          <span class="bj-goal-emoji">${k.emoji}</span>
-          <span class="bj-goal-label">${a(k.label)}</span>
-          <span class="bj-goal-desc">${a(k.desc)}</span>
-        </button>`).join("")}
+      ${GOAL_PRESETS.map(
+        (g) => `
+        <button class="bj-goal ${g.id === activeGoal ? 'active' : ''}" data-goal="${g.id}">
+          <span class="bj-goal-emoji">${g.emoji}</span>
+          <span class="bj-goal-label">${escape(g.label)}</span>
+          <span class="bj-goal-desc">${escape(g.desc)}</span>
+        </button>`,
+      ).join('')}
     </div>
     <details class="bj-account-box">
-      <summary class="bj-account-sum">\u{1F464} Mi cuenta <span class="bj-account-hint">\u2014 opcional: el sistema recuerda tu nicho y aprende de tus resultados</span></summary>
+      <summary class="bj-account-sum">👤 Mi cuenta <span class="bj-account-hint">— opcional: el sistema recuerda tu nicho y aprende de tus resultados</span></summary>
       <div class="bj-account-fields">
-        <input id="bj-account" class="bj-input bj-input-sm" type="text" placeholder='@tucuenta (para activar memoria y aprendizaje)' value="${a(Q)}" />
+        <input id="bj-account" class="bj-input bj-input-sm" type="text" placeholder='@tucuenta (para activar memoria y aprendizaje)' value="${escape(activeAccountId)}" />
         <div class="bj-account-row">
-          <input id="bj-niche" class="bj-input bj-input-sm" type="text" placeholder='Nicho (ej: fitness, finanzas, humor)' value="${a(X)}" />
+          <input id="bj-niche" class="bj-input bj-input-sm" type="text" placeholder='Nicho (ej: fitness, finanzas, humor)' value="${escape(activeNiche)}" />
           <select id="bj-brandtype" class="bj-input bj-input-sm">
-            <option value="personal"${Z==="personal"?" selected":""}>Marca personal</option>
-            <option value="business"${Z==="business"?" selected":""}>Marca empresarial</option>
+            <option value="personal"${activeBrandType === 'personal' ? ' selected' : ''}>Marca personal</option>
+            <option value="business"${activeBrandType === 'business' ? ' selected' : ''}>Marca empresarial</option>
           </select>
         </div>
       </div>
     </details>
-    <button class="bj-btn bj-btn-primary" id="bj-go">\u{1F9ED} Analizar y generar mi plan</button>
-  </div>`,K={carousel:{label:"\u{1F3A8} Crear carrusel",route:"studio-carousel"},reel:{label:"\u{1F3AC} Crear Reel",route:"studio-reel"},stories:{label:"\u{1F4F1} Crear Stories",route:"studio-stories"},schedule:{label:"\u{1F4C5} Programar post",route:"scheduler"},hashtags:{label:"#\uFE0F\u20E3 Estrategia hashtags",endpoint:"/api/hashtags/strategy"},"ab-test":{label:"\u{1F9EA} A/B Test hooks",endpoint:"/api/ab-tests"},"dm-template":{label:"\u{1F4AC} Auto DM",route:"inbox"},competitor:{label:"\u{1F50D} Ver competidores",route:"studio-manager"}},Se=[{key:"hook",label:"Hook",weight:25},{key:"saves",label:"Saves signal",weight:20},{key:"algorithm",label:"Algoritmo IG",weight:18},{key:"audience",label:"Audiencia",weight:15},{key:"conversion",label:"Conversi\xF3n",weight:12},{key:"production",label:"Producci\xF3n",weight:7},{key:"timing",label:"Timing",weight:3}],Te=[{key:"hook",label:"Hook (3s)",weight:30},{key:"completion",label:"Completion %",weight:28},{key:"sound",label:"Audio trend",weight:15},{key:"shareability",label:"Shareability",weight:12},{key:"audience",label:"Audiencia",weight:10},{key:"production",label:"Producci\xF3n",weight:3},{key:"timing",label:"Timing FYP",weight:2}],Y=e=>e>=1e6?`${(e/1e6).toFixed(1)}M`:e>=1e3?`${(e/1e3).toFixed(0)}K`:String(e),pe=e=>{if(!e)return"";const{viralScore:u,ceilingScore:i,contentScore:k,contentDecision:m,monteCarlo:w,improvements:n,predicted:y,optimizationGap:h=0,platform:o,disclaimer:t,honestAnalysis:d,confidence:z}=e,I=o==="tiktok",F=u>=85?"bj-vclass-breakout":u>=70?"bj-vclass-high":u>=55?"bj-vclass-solid":"bj-vclass-low",C=m==="GO"?"bj-d-go":m==="CONDITIONAL"?"bj-d-cond":"bj-d-nogo",c=w?.p10||0,s=w?.p50||0,v=w?.p90||1,g=v>0?Math.round(s/v*100):50,p=(n||[]).filter(b=>typeof b=="object"&&["CR\xCDTICA","alta"].includes(b.priority)).slice(0,2),r=p.length?p.map(b=>`<div class="bj-pred-imp ${b.priority==="CR\xCDTICA"?"bj-imp-critical":"bj-imp-high"}"><span class="bj-imp-pri">${a(b.priority)}</span><span class="bj-imp-body">${a(b.action)}</span>${b.impact?`<span class="bj-imp-impact">${a(b.impact)}</span>`:""}</div>`).join(""):"",l=d?.honestVerdict?`<div class="bj-pred-verdict-simple">"${a(d.honestVerdict)}"</div>`:"";return`
+    <button class="bj-btn bj-btn-primary" id="bj-go">🧭 Analizar y generar mi plan</button>
+  </div>`;
+};
+
+const AUTOMATION_MAP = {
+  carousel: { label: '🎨 Crear carrusel', route: 'studio-carousel' },
+  reel: { label: '🎬 Crear Reel', route: 'studio-reel' },
+  stories: { label: '📱 Crear Stories', route: 'studio-stories' },
+  schedule: { label: '📅 Programar post', route: 'scheduler' },
+  hashtags: { label: '#️⃣ Estrategia hashtags', endpoint: '/api/hashtags/strategy' },
+  'ab-test': { label: '🧪 A/B Test hooks', endpoint: '/api/ab-tests' },
+  'dm-template': { label: '💬 Auto DM', route: 'inbox' },
+  competitor: { label: '🔍 Ver competidores', route: 'studio-manager' },
+};
+
+// Fallback dims (Instagram) — backend sends platform-specific matrixDims
+const MATRIX_DIMS_IG = [
+  { key: 'hook', label: 'Hook', weight: 25 },
+  { key: 'saves', label: 'Saves signal', weight: 20 },
+  { key: 'algorithm', label: 'Algoritmo IG', weight: 18 },
+  { key: 'audience', label: 'Audiencia', weight: 15 },
+  { key: 'conversion', label: 'Conversión', weight: 12 },
+  { key: 'production', label: 'Producción', weight: 7 },
+  { key: 'timing', label: 'Timing', weight: 3 },
+];
+const MATRIX_DIMS_TT = [
+  { key: 'hook', label: 'Hook (3s)', weight: 30 },
+  { key: 'completion', label: 'Completion %', weight: 28 },
+  { key: 'sound', label: 'Audio trend', weight: 15 },
+  { key: 'shareability', label: 'Shareability', weight: 12 },
+  { key: 'audience', label: 'Audiencia', weight: 10 },
+  { key: 'production', label: 'Producción', weight: 3 },
+  { key: 'timing', label: 'Timing FYP', weight: 2 },
+];
+
+const fmtNum = (n) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(0)}K` : String(n));
+
+// Simplified minimal predictions card — shown AFTER the full plan
+const renderPredictionsCard = (pred) => {
+  if (!pred) return '';
+  const {
+    viralScore,
+    ceilingScore,
+    contentScore,
+    contentDecision,
+    monteCarlo,
+    improvements,
+    predicted,
+    optimizationGap = 0,
+    platform: predPlat,
+    disclaimer,
+    honestAnalysis,
+    confidence,
+  } = pred;
+  const isTT = predPlat === 'tiktok';
+  const viralCls =
+    viralScore >= 85
+      ? 'bj-vclass-breakout'
+      : viralScore >= 70
+        ? 'bj-vclass-high'
+        : viralScore >= 55
+          ? 'bj-vclass-solid'
+          : 'bj-vclass-low';
+  const decisionCls =
+    contentDecision === 'GO' ? 'bj-d-go' : contentDecision === 'CONDITIONAL' ? 'bj-d-cond' : 'bj-d-nogo';
+
+  // Reach range — single bar p10→p90
+  const p10 = monteCarlo?.p10 || 0;
+  const p50 = monteCarlo?.p50 || 0;
+  const p90 = monteCarlo?.p90 || 1;
+  const pct50 = p90 > 0 ? Math.round((p50 / p90) * 100) : 50;
+
+  // Top 2 critical/high improvements only
+  const topImps = (improvements || [])
+    .filter((i) => typeof i === 'object' && ['CRÍTICA', 'alta'].includes(i.priority))
+    .slice(0, 2);
+
+  const impHtml = topImps.length
+    ? topImps
+        .map((i) => {
+          const priCls = i.priority === 'CRÍTICA' ? 'bj-imp-critical' : 'bj-imp-high';
+          return `<div class="bj-pred-imp ${priCls}"><span class="bj-imp-pri">${escape(i.priority)}</span><span class="bj-imp-body">${escape(i.action)}</span>${i.impact ? `<span class="bj-imp-impact">${escape(i.impact)}</span>` : ''}</div>`;
+        })
+        .join('')
+    : '';
+
+  const verdictHtml = honestAnalysis?.honestVerdict
+    ? `<div class="bj-pred-verdict-simple">"${escape(honestAnalysis.honestVerdict)}"</div>`
+    : '';
+
+  return `
     <div class="bj-pred-minimal">
       <div class="bj-pred-min-header">
-        <span class="bj-pred-min-title">\u{1F4CA} Predicciones</span>
-        <span class="bj-pred-min-sub">${I?"modelo TikTok FYP":"modelo Instagram"} \xB7 confianza ${z!=null?Math.round(z*100)+"%":"~55%"}</span>
+        <span class="bj-pred-min-title">📊 Predicciones</span>
+        <span class="bj-pred-min-sub">${isTT ? 'modelo TikTok FYP' : 'modelo Instagram'} · confianza ${confidence != null ? Math.round(confidence * 100) + '%' : '~55%'}</span>
       </div>
 
       <div class="bj-pred-min-row">
         <div class="bj-pred-min-score">
-          <div class="bj-pred-gauge" style="--vs:${u}%;width:64px;height:64px;">
-            <span class="bj-pred-vn" style="width:50px;height:50px;font-size:18px;">${u}</span>
+          <div class="bj-pred-gauge" style="--vs:${viralScore}%;width:64px;height:64px;">
+            <span class="bj-pred-vn" style="width:50px;height:50px;font-size:18px;">${viralScore}</span>
           </div>
-          <span class="bj-pred-vlbl ${F}" style="font-size:9px;">viral score</span>
+          <span class="bj-pred-vlbl ${viralCls}" style="font-size:9px;">viral score</span>
         </div>
-        <div class="bj-pred-dbox ${C}" style="min-width:70px;">
-          <span class="bj-pred-dbadge">${m}</span>
-          <span class="bj-pred-dscore">${k}/100</span>
+        <div class="bj-pred-dbox ${decisionCls}" style="min-width:70px;">
+          <span class="bj-pred-dbadge">${contentDecision}</span>
+          <span class="bj-pred-dscore">${contentScore}/100</span>
           <span class="bj-pred-dtitle">score</span>
         </div>
         <div class="bj-pred-min-metrics">
-          <div class="bj-pred-min-met"><strong>${Y(y?.reach||0)}</strong><span>\u{1F441}\uFE0F alcance</span></div>
-          ${y?.completion!=null?`<div class="bj-pred-min-met"><strong>${(y.completion*100).toFixed(0)}%</strong><span>\u25B6\uFE0F completion</span></div>`:`<div class="bj-pred-min-met"><strong>${((y?.engagementRate||0)*100).toFixed(1)}%</strong><span>\u{1F49C} engagement</span></div>`}
-          ${y?.likes!=null?`<div class="bj-pred-min-met"><strong>${Y(y.likes)}</strong><span>\u2764\uFE0F likes</span></div>`:""}
-          ${y?.saves!=null?`<div class="bj-pred-min-met"><strong>${Y(y.saves)}</strong><span>\u{1F516} guardados</span></div>`:""}
-          ${y?.comments!=null?`<div class="bj-pred-min-met"><strong>${Y(y.comments)}</strong><span>\u{1F4AC} comentarios</span></div>`:""}
-          ${y?.shares!=null?`<div class="bj-pred-min-met"><strong>${Y(y.shares)}</strong><span>\u{1F501} compartidos</span></div>`:""}
-          ${y?.follows!=null?`<div class="bj-pred-min-met"><strong>${Y(y.follows)}</strong><span>\u2795 follows</span></div>`:""}
+          <div class="bj-pred-min-met"><strong>${fmtNum(predicted?.reach || 0)}</strong><span>👁️ alcance</span></div>
+          ${predicted?.completion != null ? `<div class="bj-pred-min-met"><strong>${(predicted.completion * 100).toFixed(0)}%</strong><span>▶️ completion</span></div>` : `<div class="bj-pred-min-met"><strong>${((predicted?.engagementRate || 0) * 100).toFixed(1)}%</strong><span>💜 engagement</span></div>`}
+          ${predicted?.likes != null ? `<div class="bj-pred-min-met"><strong>${fmtNum(predicted.likes)}</strong><span>❤️ likes</span></div>` : ''}
+          ${predicted?.saves != null ? `<div class="bj-pred-min-met"><strong>${fmtNum(predicted.saves)}</strong><span>🔖 guardados</span></div>` : ''}
+          ${predicted?.comments != null ? `<div class="bj-pred-min-met"><strong>${fmtNum(predicted.comments)}</strong><span>💬 comentarios</span></div>` : ''}
+          ${predicted?.shares != null ? `<div class="bj-pred-min-met"><strong>${fmtNum(predicted.shares)}</strong><span>🔁 compartidos</span></div>` : ''}
+          ${predicted?.follows != null ? `<div class="bj-pred-min-met"><strong>${fmtNum(predicted.follows)}</strong><span>➕ follows</span></div>` : ''}
         </div>
       </div>
 
       <div class="bj-pred-range">
         <span class="bj-pred-range-lbl">Rango de alcance</span>
         <div class="bj-pred-range-bar">
-          <div class="bj-pred-range-fill" style="width:${g}%;"></div>
-          <div class="bj-pred-range-dot" style="left:${g}%;"></div>
+          <div class="bj-pred-range-fill" style="width:${pct50}%;"></div>
+          <div class="bj-pred-range-dot" style="left:${pct50}%;"></div>
         </div>
         <div class="bj-pred-range-vals">
-          <span style="color:#ef4444;">${Y(c)} m\xEDn</span>
-          <span style="color:#a855f7;">${Y(s)} probable</span>
-          <span style="color:#10b981;">${Y(v)} \xF3ptimo</span>
+          <span style="color:#ef4444;">${fmtNum(p10)} mín</span>
+          <span style="color:#a855f7;">${fmtNum(p50)} probable</span>
+          <span style="color:#10b981;">${fmtNum(p90)} óptimo</span>
         </div>
       </div>
 
-      ${l}
-      ${r?`<div class="bj-pred-imps" style="margin-top:10px;">${r}</div>`:""}
-      ${t?`<div class="bj-pred-disclaimer">${a(t)}</div>`:""}
-    </div>`},be=(e,u,i)=>{const k=e?._viralScore??u?.strategicScore??80,m=k>=85?"bj-hp-s-hot":k>=70?"bj-hp-s-good":"bj-hp-s-ok",w=e?.carousel||null,n=Array.isArray(e?.carousels)&&e.carousels.length>=1?e.carousels:null,y=g=>{const p=g.length,r=b=>b==="hook"?"bj-ig-slide-hook":b==="cta"?"bj-ig-slide-cta":"",l=(b,$)=>$===0||b==="hook"?"\u{1F3A3} T\xEDtulo":$===p-1||b==="cta"?"\u{1F4E3} CTA":"\u{1F4CC}";return g.map((b,$)=>`
-      <div class="bj-ig-slide ${r(b.role)}">
+      ${verdictHtml}
+      ${impHtml ? `<div class="bj-pred-imps" style="margin-top:10px;">${impHtml}</div>` : ''}
+      ${disclaimer ? `<div class="bj-pred-disclaimer">${escape(disclaimer)}</div>` : ''}
+    </div>`;
+};
+
+const renderIgPlans = (igPlans, plan, enriched) => {
+  const score = igPlans?._viralScore ?? plan?.strategicScore ?? 80;
+  const scoreCls = score >= 85 ? 'bj-hp-s-hot' : score >= 70 ? 'bj-hp-s-good' : 'bj-hp-s-ok';
+
+  // ── Carrusel ──
+  const carousel = igPlans?.carousel || null;
+  const carousels = Array.isArray(igPlans?.carousels) && igPlans.carousels.length >= 1 ? igPlans.carousels : null;
+
+  const renderSlideList = (slsList) => {
+    const total = slsList.length;
+    const roleColor = (role) => (role === 'hook' ? 'bj-ig-slide-hook' : role === 'cta' ? 'bj-ig-slide-cta' : '');
+    const roleLabel = (role, idx) => {
+      if (idx === 0 || role === 'hook') return '🎣 Título';
+      if (idx === total - 1 || role === 'cta') return '📣 CTA';
+      return '📌';
+    };
+    return slsList
+      .map(
+        (sl, idx) => `
+      <div class="bj-ig-slide ${roleColor(sl.role)}">
         <div class="bj-ig-slide-num">
-          <div class="bj-ig-slide-n">${$+1}</div>
-          <div class="bj-ig-slide-nof">${$+1}/${p}</div>
-          <div class="bj-ig-slide-role-badge">${l(b.role,$)}</div>
+          <div class="bj-ig-slide-n">${idx + 1}</div>
+          <div class="bj-ig-slide-nof">${idx + 1}/${total}</div>
+          <div class="bj-ig-slide-role-badge">${roleLabel(sl.role, idx)}</div>
         </div>
         <div class="bj-ig-slide-body">
-          ${b.title?`<div class="bj-ig-slide-title">${a(b.title)}</div>`:""}
-          ${b.subtitle||b.body?`<div class="bj-ig-slide-subtitle">${a(b.subtitle||b.body)}</div>`:""}
-          ${b.bodyText?`<div class="bj-ig-slide-bodytext">${a(b.bodyText)}</div>`:""}
-          ${b.imageText?`<div class="bj-ig-slide-imgtext">\u270F\uFE0F ${a(b.imageText)}</div>`:""}
-          ${b.visual?`<div class="bj-ig-slide-visual">\u{1F5BC}\uFE0F ${a(b.visual)}</div>`:""}
+          ${sl.title ? `<div class="bj-ig-slide-title">${escape(sl.title)}</div>` : ''}
+          ${sl.subtitle || sl.body ? `<div class="bj-ig-slide-subtitle">${escape(sl.subtitle || sl.body)}</div>` : ''}
+          ${sl.bodyText ? `<div class="bj-ig-slide-bodytext">${escape(sl.bodyText)}</div>` : ''}
+          ${sl.imageText ? `<div class="bj-ig-slide-imgtext">✏️ ${escape(sl.imageText)}</div>` : ''}
+          ${sl.visual ? `<div class="bj-ig-slide-visual">🖼️ ${escape(sl.visual)}</div>` : ''}
         </div>
-      </div>`).join("")},h=(g,p)=>{const r=g?.slides||[],l=g?.captionHook||g?.hook||"",b=g?.captionCTA||"",$=g?.angle||`Opci\xF3n ${p+1}`;return`
+      </div>`,
+      )
+      .join('');
+  };
+
+  const renderCarouselCol = (cv, colIdx) => {
+    const sls = cv?.slides || [];
+    const hook = cv?.captionHook || cv?.hook || '';
+    const cta = cv?.captionCTA || '';
+    const angle = cv?.angle || `Opción ${colIdx + 1}`;
+    return `
       <div class="bj-car-col">
         <div class="bj-car-col-header">
-          <span class="bj-car-col-num">${p+1}</span>
-          <span class="bj-car-col-angle">${a($)}</span>
-          <span class="bj-car-col-count">${r.length} slides</span>
+          <span class="bj-car-col-num">${colIdx + 1}</span>
+          <span class="bj-car-col-angle">${escape(angle)}</span>
+          <span class="bj-car-col-count">${sls.length} slides</span>
         </div>
-        ${l?`<div class="bj-ig-caption-block bj-car-caption">
-          <div class="bj-ig-caption-row"><span class="bj-ig-caption-tag">\u{1F4E2} Hook</span><span class="bj-ig-caption-text">${a(l)}</span></div>
-          ${b?`<div class="bj-ig-caption-row"><span class="bj-ig-caption-tag">\u{1F4E3} CTA</span><span class="bj-ig-caption-cta">${a(b)}</span></div>`:""}
-        </div>`:""}
-        <div class="bj-ig-slides">${y(r)}</div>
-      </div>`},o=()=>{if(n)return`
+        ${
+          hook
+            ? `<div class="bj-ig-caption-block bj-car-caption">
+          <div class="bj-ig-caption-row"><span class="bj-ig-caption-tag">📢 Hook</span><span class="bj-ig-caption-text">${escape(hook)}</span></div>
+          ${cta ? `<div class="bj-ig-caption-row"><span class="bj-ig-caption-tag">📣 CTA</span><span class="bj-ig-caption-cta">${escape(cta)}</span></div>` : ''}
+        </div>`
+            : ''
+        }
+        <div class="bj-ig-slides">${renderSlideList(sls)}</div>
+      </div>`;
+  };
+
+  const renderCarousel = () => {
+    if (carousels) {
+      return `
         <div class="bj-ig-tab-panel" id="bj-ig-carousel">
           <div class="bj-car-grid">
-            ${n.map((l,b)=>h(l,b)).join("")}
+            ${carousels.map((cv, i) => renderCarouselCol(cv, i)).join('')}
           </div>
-        </div>`;const g=w?.slides||[],p=w?.captionHook||w?.hook||"",r=w?.captionCTA||"";return`
+        </div>`;
+    }
+    // Fallback — single carousel
+    const sls = carousel?.slides || [];
+    const hook = carousel?.captionHook || carousel?.hook || '';
+    const cta = carousel?.captionCTA || '';
+    return `
       <div class="bj-ig-tab-panel" id="bj-ig-carousel">
         <div class="bj-ig-carousel-header">
-          <div class="bj-ig-slide-count">${g.length} slides</div>
+          <div class="bj-ig-slide-count">${sls.length} slides</div>
         </div>
-        ${p?`<div class="bj-ig-caption-block">
-          <div class="bj-ig-caption-row"><span class="bj-ig-caption-tag">\u{1F4E2} Caption hook</span><span class="bj-ig-caption-text">${a(p)}</span></div>
-          ${r?`<div class="bj-ig-caption-row"><span class="bj-ig-caption-tag">\u{1F4E3} CTA caption</span><span class="bj-ig-caption-cta">${a(r)}</span></div>`:""}
-        </div>`:""}
-        <div class="bj-ig-slides">${y(g)}</div>
-      </div>`},t=e?.reel||null,d=Array.isArray(e?.reels)&&e.reels.length>=1?e.reels:null,z=(g,p)=>{const r=typeof g=="string"?g:g?.text||"",l=typeof g=="object"&&g.onScreen||"",b=typeof g=="object"&&g.visual||"";return`<div class="bj-reel-beat">
-      <span class="bj-hp-bn">${p+1}</span>
+        ${
+          hook
+            ? `<div class="bj-ig-caption-block">
+          <div class="bj-ig-caption-row"><span class="bj-ig-caption-tag">📢 Caption hook</span><span class="bj-ig-caption-text">${escape(hook)}</span></div>
+          ${cta ? `<div class="bj-ig-caption-row"><span class="bj-ig-caption-tag">📣 CTA caption</span><span class="bj-ig-caption-cta">${escape(cta)}</span></div>` : ''}
+        </div>`
+            : ''
+        }
+        <div class="bj-ig-slides">${renderSlideList(sls)}</div>
+      </div>`;
+  };
+
+  // ── Reel ──
+  const reel = igPlans?.reel || null;
+  const reels = Array.isArray(igPlans?.reels) && igPlans.reels.length >= 1 ? igPlans.reels : null;
+
+  const renderBeat = (b, bi) => {
+    const text = typeof b === 'string' ? b : b?.text || '';
+    const onScreen = typeof b === 'object' ? b.onScreen || '' : '';
+    const visual = typeof b === 'object' ? b.visual || '' : '';
+    return `<div class="bj-reel-beat">
+      <span class="bj-hp-bn">${bi + 1}</span>
       <div class="bj-reel-beat-body">
-        <div class="bj-reel-beat-text">${a(r)}</div>
-        ${l?`<div class="bj-reel-beat-onscreen">\u{1F4DD} ${a(l)}</div>`:""}
-        ${b?`<div class="bj-reel-beat-visual">\u{1F3AC} ${a(b)}</div>`:""}
+        <div class="bj-reel-beat-text">${escape(text)}</div>
+        ${onScreen ? `<div class="bj-reel-beat-onscreen">📝 ${escape(onScreen)}</div>` : ''}
+        ${visual ? `<div class="bj-reel-beat-visual">🎬 ${escape(visual)}</div>` : ''}
       </div>
-    </div>`},I=(g,p)=>{const r=g?.hookLayer||{},l=g?.script||{},b=Array.isArray(g?.hooks)?g.hooks:g?.hook?[{text:g.hook,style:""}]:[],$=g?.angle||`Opci\xF3n ${p+1}`;return`
+    </div>`;
+  };
+
+  const renderSingleReel = (rv, colIdx) => {
+    const hl = rv?.hookLayer || {};
+    const sc = rv?.script || {};
+    const hooks = Array.isArray(rv?.hooks) ? rv.hooks : rv?.hook ? [{ text: rv.hook, style: '' }] : [];
+    const angle = rv?.angle || `Opción ${colIdx + 1}`;
+    return `
       <div class="bj-car-col">
         <div class="bj-car-col-header">
-          <span class="bj-car-col-num">${p+1}</span>
-          <span class="bj-car-col-angle">${a($)}</span>
+          <span class="bj-car-col-num">${colIdx + 1}</span>
+          <span class="bj-car-col-angle">${escape(angle)}</span>
         </div>
-        ${b.length?`<div class="bj-reel-hooks-sec">
-          <div class="bj-hp-sec-h">\u{1F3A3} Hook</div>
+        ${
+          hooks.length
+            ? `<div class="bj-reel-hooks-sec">
+          <div class="bj-hp-sec-h">🎣 Hook</div>
           <div class="bj-reel-hooks-list">
-            ${b.map((j,f)=>`
-              <div class="bj-reel-hook-opt${f===0?" best":""}">
+            ${hooks
+              .map(
+                (h, hi) => `
+              <div class="bj-reel-hook-opt${hi === 0 ? ' best' : ''}">
                 <div class="bj-reel-hook-opt-body">
-                  <div class="bj-reel-hook-text">${a(j.text||j)}</div>
-                  ${j.style?`<div class="bj-reel-hook-style">${a(j.style)}</div>`:""}
+                  <div class="bj-reel-hook-text">${escape(h.text || h)}</div>
+                  ${h.style ? `<div class="bj-reel-hook-style">${escape(h.style)}</div>` : ''}
                 </div>
-              </div>`).join("")}
+              </div>`,
+              )
+              .join('')}
           </div>
-        </div>`:""}
-        ${r.videoText||r.openingFrame||r.imageDescription||r.poseExpression?`
+        </div>`
+            : ''
+        }
+        ${
+          hl.videoText || hl.openingFrame || hl.imageDescription || hl.poseExpression
+            ? `
         <div class="bj-hp-layers">
-          <div class="bj-hp-sec-h">\u{1F3AC} Primer frame</div>
-          ${r.videoText?`<div class="bj-hp-lrow"><span class="bj-hp-ltag">\u{1F4DD} Pantalla</span><span class="bj-hp-screen">${a(r.videoText)}</span></div>`:""}
-          ${r.openingFrame||r.imageDescription?`<div class="bj-hp-lrow"><span class="bj-hp-ltag">\u{1F5BC}\uFE0F Frame</span><span>${a(r.openingFrame||r.imageDescription)}</span></div>`:""}
-          ${r.poseExpression?`<div class="bj-hp-lrow"><span class="bj-hp-ltag">\u{1F3AD} Pose</span><span>${a(r.poseExpression)}</span></div>`:""}
-        </div>`:""}
-        ${l.apertura||l.beats?.length?`
+          <div class="bj-hp-sec-h">🎬 Primer frame</div>
+          ${hl.videoText ? `<div class="bj-hp-lrow"><span class="bj-hp-ltag">📝 Pantalla</span><span class="bj-hp-screen">${escape(hl.videoText)}</span></div>` : ''}
+          ${hl.openingFrame || hl.imageDescription ? `<div class="bj-hp-lrow"><span class="bj-hp-ltag">🖼️ Frame</span><span>${escape(hl.openingFrame || hl.imageDescription)}</span></div>` : ''}
+          ${hl.poseExpression ? `<div class="bj-hp-lrow"><span class="bj-hp-ltag">🎭 Pose</span><span>${escape(hl.poseExpression)}</span></div>` : ''}
+        </div>`
+            : ''
+        }
+        ${
+          sc.apertura || sc.beats?.length
+            ? `
         <div class="bj-hp-script-sec">
-          <div class="bj-hp-sec-h">\u{1F4DC} Gui\xF3n</div>
-          ${l.apertura?`<div class="bj-hp-apertura"><span class="bj-reel-time">0\u20133s</span>${a(l.apertura)}</div>`:""}
-          <div class="bj-reel-beats">${(l.beats||[]).map(z).join("")}</div>
-          ${l.cierre?`<div class="bj-hp-cierre">\u{1F3C1} ${a(l.cierre)}</div>`:""}
-        </div>`:""}
-        ${g?.cta?`<div class="bj-hp-cta-box">\u{1F4E3} ${a(g.cta)}</div>`:""}
-      </div>`},F=()=>d?`
+          <div class="bj-hp-sec-h">📜 Guión</div>
+          ${sc.apertura ? `<div class="bj-hp-apertura"><span class="bj-reel-time">0–3s</span>${escape(sc.apertura)}</div>` : ''}
+          <div class="bj-reel-beats">${(sc.beats || []).map(renderBeat).join('')}</div>
+          ${sc.cierre ? `<div class="bj-hp-cierre">🏁 ${escape(sc.cierre)}</div>` : ''}
+        </div>`
+            : ''
+        }
+        ${rv?.cta ? `<div class="bj-hp-cta-box">📣 ${escape(rv.cta)}</div>` : ''}
+      </div>`;
+  };
+
+  const renderReel = () => {
+    if (reels) {
+      return `
         <div class="bj-ig-tab-panel" id="bj-ig-reel" hidden>
           <div class="bj-reel-score-row">
-            <div class="bj-hp-score ${m}" style="--vs:${k}%;"><span class="bj-hp-score-n">${k}</span></div>
+            <div class="bj-hp-score ${scoreCls}" style="--vs:${score}%;"><span class="bj-hp-score-n">${score}</span></div>
             <div class="bj-reel-label">Viral Score Reel</div>
           </div>
           <div class="bj-car-grid">
-            ${d.map((g,p)=>I(g,p)).join("")}
+            ${reels.map((rv, i) => renderSingleReel(rv, i)).join('')}
           </div>
-        </div>`:`
+        </div>`;
+    }
+    // Fallback — single reel old style
+    return `
       <div class="bj-ig-tab-panel" id="bj-ig-reel" hidden>
         <div class="bj-reel-score-row">
-          <div class="bj-hp-score ${m}" style="--vs:${k}%;"><span class="bj-hp-score-n">${k}</span></div>
+          <div class="bj-hp-score ${scoreCls}" style="--vs:${score}%;"><span class="bj-hp-score-n">${score}</span></div>
           <div class="bj-reel-label">Viral Score Reel</div>
         </div>
-        ${t?I(t,0).replace('<div class="bj-car-col">','<div class="bj-car-col" style="max-width:none;">'):'<div style="color:#7878a0;padding:12px;">No hay plan de Reel disponible.</div>'}
-      </div>`,C=e?.stories||null,c=Array.isArray(e?.storiesVariants)&&e.storiesVariants.length>=1?e.storiesVariants:null,s=(g,p)=>{const r=g?.frames||[],l=g?.angle||`Opci\xF3n ${p+1}`,b=j=>j==="hook"?"bj-ig-frame-hook":j==="cta"?"bj-ig-frame-cta":"",$=j=>({video:"\u{1F3AC}",foto:"\u{1F4F7}",texto:"\u{1F4DD}",boomerang:"\u{1F501}"})[j]||"\u{1F5BC}\uFE0F";return`
+        ${reel ? renderSingleReel(reel, 0).replace('<div class="bj-car-col">', '<div class="bj-car-col" style="max-width:none;">') : '<div style="color:#7878a0;padding:12px;">No hay plan de Reel disponible.</div>'}
+      </div>`;
+  };
+
+  // ── Stories ──
+  const stories = igPlans?.stories || null;
+  const storiesVariants =
+    Array.isArray(igPlans?.storiesVariants) && igPlans.storiesVariants.length >= 1 ? igPlans.storiesVariants : null;
+
+  const renderSingleStories = (sv, colIdx) => {
+    const frames = sv?.frames || [];
+    const angle = sv?.angle || `Opción ${colIdx + 1}`;
+    const frameColor = (role) => (role === 'hook' ? 'bj-ig-frame-hook' : role === 'cta' ? 'bj-ig-frame-cta' : '');
+    const mediaIcon = (type) => ({ video: '🎬', foto: '📷', texto: '📝', boomerang: '🔁' })[type] || '🖼️';
+    return `
       <div class="bj-car-col">
         <div class="bj-car-col-header">
-          <span class="bj-car-col-num">${p+1}</span>
-          <span class="bj-car-col-angle">${a(l)}</span>
-          <span class="bj-car-col-count">${r.length} frames</span>
+          <span class="bj-car-col-num">${colIdx + 1}</span>
+          <span class="bj-car-col-angle">${escape(angle)}</span>
+          <span class="bj-car-col-count">${frames.length} frames</span>
         </div>
         <div class="bj-ig-frames">
-          ${r.map(j=>`
-            <div class="bj-ig-frame ${b(j.role)}">
+          ${frames
+            .map(
+              (fr) => `
+            <div class="bj-ig-frame ${frameColor(fr.role)}">
               <div class="bj-ig-frame-num">
-                <div class="bj-ig-frame-n">${j.n}</div>
-                ${j.mediaType?`<div class="bj-frame-mediatype">${$(j.mediaType)}${a(j.mediaType)}</div>`:""}
-                ${j.duration?`<div class="bj-frame-duration">${a(j.duration)}</div>`:""}
+                <div class="bj-ig-frame-n">${fr.n}</div>
+                ${fr.mediaType ? `<div class="bj-frame-mediatype">${mediaIcon(fr.mediaType)}${escape(fr.mediaType)}</div>` : ''}
+                ${fr.duration ? `<div class="bj-frame-duration">${escape(fr.duration)}</div>` : ''}
               </div>
               <div class="bj-ig-frame-body">
-                ${j.onScreenText||j.text?`<div class="bj-frame-onscreen">${a(j.onScreenText||j.text)}</div>`:""}
-                ${j.supportText?`<div class="bj-frame-support">${a(j.supportText)}</div>`:""}
-                ${j.mediaDescription||j.visual?`<div class="bj-frame-mediadesc">\u{1F5BC}\uFE0F ${a(j.mediaDescription||j.visual)}</div>`:""}
-                ${j.sticker&&j.sticker!=="ninguno"?`<div class="bj-ig-frame-sticker">\u{1F3AF} ${a(j.sticker)}</div>`:""}
+                ${fr.onScreenText || fr.text ? `<div class="bj-frame-onscreen">${escape(fr.onScreenText || fr.text)}</div>` : ''}
+                ${fr.supportText ? `<div class="bj-frame-support">${escape(fr.supportText)}</div>` : ''}
+                ${fr.mediaDescription || fr.visual ? `<div class="bj-frame-mediadesc">🖼️ ${escape(fr.mediaDescription || fr.visual)}</div>` : ''}
+                ${fr.sticker && fr.sticker !== 'ninguno' ? `<div class="bj-ig-frame-sticker">🎯 ${escape(fr.sticker)}</div>` : ''}
               </div>
-            </div>`).join("")}
+            </div>`,
+            )
+            .join('')}
         </div>
-      </div>`},v=()=>c?`
+      </div>`;
+  };
+
+  const renderStories = () => {
+    if (storiesVariants) {
+      return `
         <div class="bj-ig-tab-panel" id="bj-ig-stories" hidden>
           <div class="bj-car-grid">
-            ${c.map((g,p)=>s(g,p)).join("")}
+            ${storiesVariants.map((sv, i) => renderSingleStories(sv, i)).join('')}
           </div>
-        </div>`:`
+        </div>`;
+    }
+    // Fallback — single stories
+    return `
       <div class="bj-ig-tab-panel" id="bj-ig-stories" hidden>
-        ${C?s(C,0):'<div style="color:#7878a0;padding:12px;">No hay plan de Historia disponible.</div>'}
-      </div>`;return`
+        ${stories ? renderSingleStories(stories, 0) : '<div style="color:#7878a0;padding:12px;">No hay plan de Historia disponible.</div>'}
+      </div>`;
+  };
+
+  return `
     <div class="bj-ig-plans-wrap">
-      ${ue(u)}
-      <div class="bj-block-label" style="margin-bottom:12px;">\u{1F4F1} Formatos Instagram \u2014 eleg\xED c\xF3mo publicar</div>
+      ${renderStrategyPanel(plan)}
+      <div class="bj-block-label" style="margin-bottom:12px;">📱 Formatos Instagram — elegí cómo publicar</div>
       <div class="bj-ig-tabs">
-        <button class="bj-ig-tab active" data-tab="carousel">\u{1F3A0} Carrusel</button>
-        <button class="bj-ig-tab" data-tab="reel">\u{1F3AC} Reel</button>
-        <button class="bj-ig-tab" data-tab="stories">\u{1F4F1} Historia</button>
+        <button class="bj-ig-tab active" data-tab="carousel">🎠 Carrusel</button>
+        <button class="bj-ig-tab" data-tab="reel">🎬 Reel</button>
+        <button class="bj-ig-tab" data-tab="stories">📱 Historia</button>
       </div>
-      ${o()}
-      ${F()}
-      ${v()}
-      ${ge(u)}
-    </div>`},ge=e=>{const u=(e?.hookPlans||[]).slice(0,3),i=e?.recommendedFormat?.format||"carrusel";return`
+      ${renderCarousel()}
+      ${renderReel()}
+      ${renderStories()}
+      ${renderCarouselBuilder(plan)}
+    </div>`;
+};
+
+// ── Builder de carrusel — usa el plan/ángulo elegido + estética premium ──
+const renderCarouselBuilder = (plan) => {
+  const plans = (plan?.hookPlans || []).slice(0, 3);
+  const fmt = plan?.recommendedFormat?.format || 'carrusel';
+  return `
     <div class="bj-cb-card" id="bj-cb-card">
       <div class="bj-cb-head">
-        <span class="bj-cb-emoji">\u{1F3A8}</span>
+        <span class="bj-cb-emoji">🎨</span>
         <div>
-          <div class="bj-cb-title">Generar carrusel con tu est\xE9tica</div>
-          <div class="bj-cb-sub">Eleg\xED qu\xE9 plan(es) usar \xB7 colores \xB7 tipograf\xEDa \xB7 fondo \xB7 archivos \xB7 elementos. Formato base: <b>${a(i)}</b></div>
+          <div class="bj-cb-title">Generar carrusel con tu estética</div>
+          <div class="bj-cb-sub">Elegí qué plan(es) usar · colores · tipografía · fondo · archivos · elementos. Formato base: <b>${escape(fmt)}</b></div>
         </div>
       </div>
 
-      ${u.length?`
+      ${
+        plans.length
+          ? `
       <div class="bj-cb-plans">
-        <div class="bj-cb-label">\u{1F4CB} Eleg\xED 1 o m\xE1s planes (cada uno = 1 carrusel generado)</div>
+        <div class="bj-cb-label">📋 Elegí 1 o más planes (cada uno = 1 carrusel generado)</div>
         <div class="bj-cb-plan-grid">
-          ${u.map((k,m)=>`
-            <label class="bj-cb-plan ${m===0?"selected":""}">
-              <input type="checkbox" class="bj-cb-plan-cb" data-idx="${m}" ${m===0?"checked":""} />
+          ${plans
+            .map(
+              (p, i) => `
+            <label class="bj-cb-plan ${i === 0 ? 'selected' : ''}">
+              <input type="checkbox" class="bj-cb-plan-cb" data-idx="${i}" ${i === 0 ? 'checked' : ''} />
               <div class="bj-cb-plan-head">
-                <span class="bj-cb-plan-badge">PLAN ${m+1}${m===0?" \xB7 TOP":""}</span>
-                <span class="bj-cb-plan-score">${k.viralScore||80}/100</span>
+                <span class="bj-cb-plan-badge">PLAN ${i + 1}${i === 0 ? ' · TOP' : ''}</span>
+                <span class="bj-cb-plan-score">${p.viralScore || 80}/100</span>
               </div>
-              <div class="bj-cb-plan-hook">${a((k.hook||"").slice(0,100))}</div>
-            </label>`).join("")}
+              <div class="bj-cb-plan-hook">${escape((p.hook || '').slice(0, 100))}</div>
+            </label>`,
+            )
+            .join('')}
         </div>
-      </div>`:""}
+      </div>`
+          : ''
+      }
 
       <div class="bj-cb-grid">
         <label class="bj-cb-field">
-          <span>\u{1F3A8} Color de letra</span>
+          <span>🎨 Color de letra</span>
           <div class="bj-cb-color-row">
             <input id="cb-text-color" type="color" value="#FFFFFF" />
             <input id="cb-text-color-text" type="text" class="bj-input bj-input-sm" placeholder="#FFFFFF" value="#FFFFFF" />
           </div>
         </label>
         <label class="bj-cb-field">
-          <span>\u{1F5BC}\uFE0F Color de fondo</span>
+          <span>🖼️ Color de fondo</span>
           <div class="bj-cb-color-row">
             <input id="cb-bg-color" type="color" value="#0B0B0F" />
             <input id="cb-bg-color-text" type="text" class="bj-input bj-input-sm" placeholder="#0B0B0F" value="#0B0B0F" />
           </div>
         </label>
         <label class="bj-cb-field">
-          <span>\u2728 Color de acento</span>
+          <span>✨ Color de acento</span>
           <div class="bj-cb-color-row">
             <input id="cb-accent-color" type="color" value="#10F2B0" />
             <input id="cb-accent-color-text" type="text" class="bj-input bj-input-sm" placeholder="#10F2B0" value="#10F2B0" />
           </div>
         </label>
         <label class="bj-cb-field">
-          <span>\u{1F5BC}\uFE0F Imagen de fondo (opcional)</span>
+          <span>🖼️ Imagen de fondo (opcional)</span>
           <input id="cb-bg-image" type="file" class="bj-file" accept="image/*" />
         </label>
         <label class="bj-cb-field">
-          <span>\u{1F4F7} Foto protagonista (slide 1)</span>
+          <span>📷 Foto protagonista (slide 1)</span>
           <input id="cb-files" type="file" class="bj-file" accept="image/*" multiple />
         </label>
         <label class="bj-cb-field">
-          <span>\u270D\uFE0F Tipograf\xEDa</span>
+          <span>✍️ Tipografía</span>
           <select id="cb-font" class="bj-input bj-input-sm">
             <option value="serif-editorial" selected>Serif editorial (Georgia/Playfair)</option>
             <option value="sans-modern">Sans moderno (Inter/Helvetica)</option>
             <option value="serif-luxury">Serif luxury (Cormorant)</option>
             <option value="sans-bold">Sans bold (Inter Black)</option>
-            <option value="mono-numbers">Mono (SF Mono) \u2014 data</option>
+            <option value="mono-numbers">Mono (SF Mono) — data</option>
           </select>
         </label>
         <label class="bj-cb-field">
-          <span>\u{1F3AD} Mood (opcional, sobre-escribe colores)</span>
+          <span>🎭 Mood (opcional, sobre-escribe colores)</span>
           <select id="cb-mood" class="bj-input bj-input-sm">
-            <option value="">\u2014 usar mis colores \u2014</option>
+            <option value="">— usar mis colores —</option>
             <option value="premium">Premium (oscuro elegante)</option>
             <option value="editorial">Editorial (revista)</option>
             <option value="minimalista">Minimalista (blanco amplio)</option>
             <option value="brutal">Brutal (amarillo fuerte)</option>
             <option value="luxury">Luxury (dorado)</option>
             <option value="monochrome">Monocromo</option>
-            <option value="organico">Org\xE1nico</option>
-            <option value="techno">Techno (ne\xF3n)</option>
+            <option value="organico">Orgánico</option>
+            <option value="techno">Techno (neón)</option>
           </select>
         </label>
         <label class="bj-cb-field">
-          <span>\u{1F3A8} Paleta marca (texto extra)</span>
+          <span>🎨 Paleta marca (texto extra)</span>
           <input id="cb-colors" type="text" class="bj-input bj-input-sm" placeholder="ej: negro, verde menta" />
         </label>
         <label class="bj-cb-field bj-cb-full">
-          <span>\u2728 Elementos visuales del nicho</span>
-          <input id="cb-elements" type="text" class="bj-input bj-input-sm" placeholder="ej: laptop, gr\xE1ficos, plantas, mockups, ondas ne\xF3n..." />
+          <span>✨ Elementos visuales del nicho</span>
+          <input id="cb-elements" type="text" class="bj-input bj-input-sm" placeholder="ej: laptop, gráficos, plantas, mockups, ondas neón..." />
         </label>
       </div>
-      <button class="bj-btn bj-btn-primary bj-cb-go" id="bj-cb-go">\u{1F3A0} Generar carrusel(es)</button>
+      <button class="bj-btn bj-btn-primary bj-cb-go" id="bj-cb-go">🎠 Generar carrusel(es)</button>
       <div id="bj-cb-result" class="bj-cb-result"></div>
     </div>
     <style>
@@ -340,509 +620,964 @@ import{apiSafe as oe}from"../lib/api.js";import{escape as a}from"../lib/dom.js";
       @media(max-width:560px){.bj-cb-grid{grid-template-columns:1fr;}}
       .bj-cb-go{margin-top:6px;width:100%;}
       .bj-cb-result{margin-top:14px;}
-    </style>`},ue=e=>{const u=e?.strategy;if(!u)return"";const i=(n,y="")=>(n||[]).filter(Boolean).map(h=>`<span class="bj-st-chip ${y}">${a(String(h))}</span>`).join(""),k=u.hashtagStrategy||{},m=[...k.core||[],...k.niche||[],...k.trending||[]],w=n=>(n||[]).filter(Boolean).map(y=>`<li>${a(String(y))}</li>`).join("");return`
+    </style>`;
+};
+
+// Panel de estrategia account-aware — nicho, algoritmo, cadencia, hashtags, distribución, KPIs.
+const renderStrategyPanel = (plan) => {
+  const s = plan?.strategy;
+  if (!s) return '';
+  const chips = (arr, cls = '') =>
+    (arr || [])
+      .filter(Boolean)
+      .map((x) => `<span class="bj-st-chip ${cls}">${escape(String(x))}</span>`)
+      .join('');
+  const ht = s.hashtagStrategy || {};
+  const allTags = [...(ht.core || []), ...(ht.niche || []), ...(ht.trending || [])];
+  const list = (arr) =>
+    (arr || [])
+      .filter(Boolean)
+      .map((x) => `<li>${escape(String(x))}</li>`)
+      .join('');
+  return `
     <details class="bj-strategy">
       <summary class="bj-strategy-sum">
-        \u{1F9ED} Estrategia de cuenta
-        <span class="bj-st-niche">nicho: ${a(u.niche||"general")}${u.brandType?` \xB7 ${a(u.brandType)}`:""}</span>
+        🧭 Estrategia de cuenta
+        <span class="bj-st-niche">nicho: ${escape(s.niche || 'general')}${s.brandType ? ` · ${escape(s.brandType)}` : ''}</span>
       </summary>
       <div class="bj-strategy-body">
-        ${u.contentStyle?`<div class="bj-st-row"><span class="bj-st-k">\u{1F3AD} Estilo del nicho</span><span class="bj-st-v">${a(u.contentStyle)}</span></div>`:""}
-        ${u.cadence?`<div class="bj-st-row"><span class="bj-st-k">\u{1F4C5} Cadencia</span><span class="bj-st-v">${a(u.cadence)}</span></div>`:""}
-        ${(u.weekPlan||[]).length?`<div class="bj-st-row col"><span class="bj-st-k">\u{1F5D3}\uFE0F Calendario 7 d\xEDas</span><div class="bj-week">${u.weekPlan.map(n=>`<div class="bj-week-day"><span class="bj-week-d">${a(n.day)}</span><span class="bj-week-f">${a(n.format)}</span><span class="bj-week-a">${a(n.angle)}</span><span class="bj-week-w">${a(n.window)}</span></div>`).join("")}</div></div>`:""}
-        ${u.calendarMonthly?.slots?.length?`<div class="bj-st-row col"><span class="bj-st-k">\u{1F4C6} Calendario mensual (${u.calendarMonthly.totalSlots} posts)</span><details class="bj-month"><summary>Ver 4 semanas</summary><div class="bj-month-grid">${u.calendarMonthly.slots.map(n=>`<div class="bj-month-slot"><span class="bj-month-date">${a(n.date||"")}${n.time?" \xB7 "+a(n.time):""}</span><span class="bj-month-fmt">${a(n.format||n.type||"")}</span>${n.theme||n.idea?`<span class="bj-month-theme">${a(n.theme||n.idea)}</span>`:""}</div>`).join("")}</div></details></div>`:""}
-        ${(u.algorithmSignals||[]).length?`<div class="bj-st-row"><span class="bj-st-k">\u2699\uFE0F Se\xF1ales algoritmo</span><span class="bj-st-v">${i(u.algorithmSignals,"algo")}</span></div>`:""}
-        ${(u.postingWindows||[]).length?`<div class="bj-st-row"><span class="bj-st-k">\u23F0 Mejores horarios</span><span class="bj-st-v">${i(u.postingWindows)}</span></div>`:""}
-        ${m.length?`<div class="bj-st-row"><span class="bj-st-k">#\uFE0F\u20E3 Hashtags</span><span class="bj-st-v">${i(m,"tag")}</span></div>`:""}
-        ${(u.contentPillars||[]).length?`<div class="bj-st-row"><span class="bj-st-k">\u{1F3DB}\uFE0F Pilares</span><span class="bj-st-v">${i(u.contentPillars)}</span></div>`:""}
-        ${(u.ctaLadder||[]).length?`<div class="bj-st-row"><span class="bj-st-k">\u{1F4E3} Escalera CTA</span><span class="bj-st-v">${i(u.ctaLadder)}</span></div>`:""}
-        ${(u.distribution||[]).length?`<div class="bj-st-row col"><span class="bj-st-k">\u{1F680} Distribuci\xF3n</span><ul class="bj-st-ul">${w(u.distribution)}</ul></div>`:""}
-        ${(u.kpis||[]).length?`<div class="bj-st-row col"><span class="bj-st-k">\u{1F4CA} KPIs objetivo</span><ul class="bj-st-ul">${w(u.kpis)}</ul></div>`:""}
-        ${(u.riskFlags||[]).length?`<div class="bj-st-row col"><span class="bj-st-k">\u26A0\uFE0F Evitar (riesgo algoritmo)</span><ul class="bj-st-ul risk">${w(u.riskFlags)}</ul></div>`:""}
-        ${(u.monetization||[]).length?`<div class="bj-st-row"><span class="bj-st-k">\u{1F4B0} Monetizaci\xF3n</span><span class="bj-st-v">${i(u.monetization)}</span></div>`:""}
-        ${(u.topPlayersHint||[]).length?`<div class="bj-st-row"><span class="bj-st-k">\u{1F440} Referentes del nicho</span><span class="bj-st-v">${i(u.topPlayersHint)}</span><span class="bj-st-note">referencias, no garant\xEDa de handles vigentes</span></div>`:""}
+        ${s.contentStyle ? `<div class="bj-st-row"><span class="bj-st-k">🎭 Estilo del nicho</span><span class="bj-st-v">${escape(s.contentStyle)}</span></div>` : ''}
+        ${s.cadence ? `<div class="bj-st-row"><span class="bj-st-k">📅 Cadencia</span><span class="bj-st-v">${escape(s.cadence)}</span></div>` : ''}
+        ${(s.weekPlan || []).length ? `<div class="bj-st-row col"><span class="bj-st-k">🗓️ Calendario 7 días</span><div class="bj-week">${s.weekPlan.map((d) => `<div class="bj-week-day"><span class="bj-week-d">${escape(d.day)}</span><span class="bj-week-f">${escape(d.format)}</span><span class="bj-week-a">${escape(d.angle)}</span><span class="bj-week-w">${escape(d.window)}</span></div>`).join('')}</div></div>` : ''}
+        ${s.calendarMonthly?.slots?.length ? `<div class="bj-st-row col"><span class="bj-st-k">📆 Calendario mensual (${s.calendarMonthly.totalSlots} posts)</span><details class="bj-month"><summary>Ver 4 semanas</summary><div class="bj-month-grid">${s.calendarMonthly.slots.map((sl) => `<div class="bj-month-slot"><span class="bj-month-date">${escape(sl.date || '')}${sl.time ? ' · ' + escape(sl.time) : ''}</span><span class="bj-month-fmt">${escape(sl.format || sl.type || '')}</span>${sl.theme || sl.idea ? `<span class="bj-month-theme">${escape(sl.theme || sl.idea)}</span>` : ''}</div>`).join('')}</div></details></div>` : ''}
+        ${(s.algorithmSignals || []).length ? `<div class="bj-st-row"><span class="bj-st-k">⚙️ Señales algoritmo</span><span class="bj-st-v">${chips(s.algorithmSignals, 'algo')}</span></div>` : ''}
+        ${(s.postingWindows || []).length ? `<div class="bj-st-row"><span class="bj-st-k">⏰ Mejores horarios</span><span class="bj-st-v">${chips(s.postingWindows)}</span></div>` : ''}
+        ${allTags.length ? `<div class="bj-st-row"><span class="bj-st-k">#️⃣ Hashtags</span><span class="bj-st-v">${chips(allTags, 'tag')}</span></div>` : ''}
+        ${(s.contentPillars || []).length ? `<div class="bj-st-row"><span class="bj-st-k">🏛️ Pilares</span><span class="bj-st-v">${chips(s.contentPillars)}</span></div>` : ''}
+        ${(s.ctaLadder || []).length ? `<div class="bj-st-row"><span class="bj-st-k">📣 Escalera CTA</span><span class="bj-st-v">${chips(s.ctaLadder)}</span></div>` : ''}
+        ${(s.distribution || []).length ? `<div class="bj-st-row col"><span class="bj-st-k">🚀 Distribución</span><ul class="bj-st-ul">${list(s.distribution)}</ul></div>` : ''}
+        ${(s.kpis || []).length ? `<div class="bj-st-row col"><span class="bj-st-k">📊 KPIs objetivo</span><ul class="bj-st-ul">${list(s.kpis)}</ul></div>` : ''}
+        ${(s.riskFlags || []).length ? `<div class="bj-st-row col"><span class="bj-st-k">⚠️ Evitar (riesgo algoritmo)</span><ul class="bj-st-ul risk">${list(s.riskFlags)}</ul></div>` : ''}
+        ${(s.monetization || []).length ? `<div class="bj-st-row"><span class="bj-st-k">💰 Monetización</span><span class="bj-st-v">${chips(s.monetization)}</span></div>` : ''}
+        ${(s.topPlayersHint || []).length ? `<div class="bj-st-row"><span class="bj-st-k">👀 Referentes del nicho</span><span class="bj-st-v">${chips(s.topPlayersHint)}</span><span class="bj-st-note">referencias, no garantía de handles vigentes</span></div>` : ''}
       </div>
-    </details>`},me=e=>e?.length?`
+    </details>`;
+};
+
+const renderHookPlans = (hookPlans) => {
+  if (!hookPlans?.length) return '';
+  const plans = hookPlans.slice(0, 3);
+  return `
     <div class="bj-hp-grid-wrap">
-      <div class="bj-block-label" style="margin-bottom:10px;">\u{1F3A3} Planes de contenido \u2014 hook \xB7 gui\xF3n \xB7 cta</div>
+      <div class="bj-block-label" style="margin-bottom:10px;">🎣 Planes de contenido — hook · guión · cta</div>
       <div class="bj-hp-grid">
-        ${e.slice(0,3).map((i,k)=>{const m=i.viralScore??Math.round((.88-k*.04)*100),w=i.hookLayer||{},n=i.script||{},y=m>=85?"bj-hp-s-hot":m>=70?"bj-hp-s-good":"bj-hp-s-ok";return`
-          <div class="bj-hp-card${k===0?" top":""}">
+        ${plans
+          .map((hp, i) => {
+            const score = hp.viralScore ?? Math.round((0.88 - i * 0.04) * 100);
+            const hl = hp.hookLayer || {};
+            const sc = hp.script || {};
+            const scoreCls = score >= 85 ? 'bj-hp-s-hot' : score >= 70 ? 'bj-hp-s-good' : 'bj-hp-s-ok';
+            return `
+          <div class="bj-hp-card${i === 0 ? ' top' : ''}">
             <!-- score + hook -->
             <div class="bj-hp-card-top">
-              <div class="bj-hp-score ${y}" style="--vs:${m}%;">
-                <span class="bj-hp-score-n">${m}</span>
+              <div class="bj-hp-score ${scoreCls}" style="--vs:${score}%;">
+                <span class="bj-hp-score-n">${score}</span>
               </div>
-              <div class="bj-hp-hook-text">${a(i.hook)}${k===0?' <span class="bj-best-badge" style="font-size:9px;">\u2605 TOP</span>':""}</div>
+              <div class="bj-hp-hook-text">${escape(hp.hook)}${i === 0 ? ' <span class="bj-best-badge" style="font-size:9px;">★ TOP</span>' : ''}</div>
             </div>
             <!-- hook layer -->
-            ${w.videoText||w.imageDescription||w.poseExpression?`
+            ${
+              hl.videoText || hl.imageDescription || hl.poseExpression
+                ? `
             <div class="bj-hp-layers">
-              ${w.videoText?`<div class="bj-hp-lrow"><span class="bj-hp-ltag">\u{1F4DD}</span><span class="bj-hp-screen">${a(w.videoText)}</span></div>`:""}
-              ${w.imageDescription?`<div class="bj-hp-lrow"><span class="bj-hp-ltag">\u{1F5BC}\uFE0F</span><span>${a(w.imageDescription)}</span></div>`:""}
-              ${w.poseExpression?`<div class="bj-hp-lrow"><span class="bj-hp-ltag">\u{1F3AD}</span><span>${a(w.poseExpression)}</span></div>`:""}
-            </div>`:""}
-            <!-- gui\xF3n -->
-            ${n.apertura||n.beats?.length?`
+              ${hl.videoText ? `<div class="bj-hp-lrow"><span class="bj-hp-ltag">📝</span><span class="bj-hp-screen">${escape(hl.videoText)}</span></div>` : ''}
+              ${hl.imageDescription ? `<div class="bj-hp-lrow"><span class="bj-hp-ltag">🖼️</span><span>${escape(hl.imageDescription)}</span></div>` : ''}
+              ${hl.poseExpression ? `<div class="bj-hp-lrow"><span class="bj-hp-ltag">🎭</span><span>${escape(hl.poseExpression)}</span></div>` : ''}
+            </div>`
+                : ''
+            }
+            <!-- guión -->
+            ${
+              sc.apertura || sc.beats?.length
+                ? `
             <div class="bj-hp-script-sec">
-              <div class="bj-hp-sec-h">\u{1F4DC} Gui\xF3n</div>
-              ${n.apertura?`<div class="bj-hp-apertura">${a(n.apertura)}</div>`:""}
-              ${(n.beats||[]).map((h,o)=>`<div class="bj-hp-beat"><span class="bj-hp-bn">${o+1}</span><span>${a(h)}</span></div>`).join("")}
-              ${n.cierre?`<div class="bj-hp-cierre">${a(n.cierre)}</div>`:""}
-            </div>`:""}
+              <div class="bj-hp-sec-h">📜 Guión</div>
+              ${sc.apertura ? `<div class="bj-hp-apertura">${escape(sc.apertura)}</div>` : ''}
+              ${(sc.beats || []).map((b, bi) => `<div class="bj-hp-beat"><span class="bj-hp-bn">${bi + 1}</span><span>${escape(b)}</span></div>`).join('')}
+              ${sc.cierre ? `<div class="bj-hp-cierre">${escape(sc.cierre)}</div>` : ''}
+            </div>`
+                : ''
+            }
             <!-- cta -->
-            ${i.cta?`<div class="bj-hp-cta-box">\u{1F4E3} ${a(i.cta)}</div>`:""}
-          </div>`}).join("")}
+            ${hp.cta ? `<div class="bj-hp-cta-box">📣 ${escape(hp.cta)}</div>` : ''}
+          </div>`;
+          })
+          .join('')}
       </div>
-    </div>`:"",ve=(e,u)=>{if(!e)return"";const i=e.recommendedFormat,k=e.hookCandidates||[],m=e.postingWindows||[],w=e.algorithmChecklist||[],n=e.enriched||{},y=n.ctaOptions?.length?n.ctaOptions:e.ctaLadder||[],h=e.differentiationAngles||[],o=u==="instagram",t=n.automations?.length?n.automations.map(d=>({...K[d.action]||{},label:d.label||K[d.action]?.label,desc:d.desc,action:d.action})):[K[o?"carousel":"reel"],K.schedule,K.hashtags,K["ab-test"]];return`
+    </div>`;
+};
+
+const renderPlanResult = (plan, platform) => {
+  if (!plan) return '';
+  const fmt = plan.recommendedFormat;
+  const hooks = plan.hookCandidates || [];
+  const windows = plan.postingWindows || [];
+  const checklist = plan.algorithmChecklist || [];
+  const enriched = plan.enriched || {};
+  const ctaLadder = enriched.ctaOptions?.length ? enriched.ctaOptions : plan.ctaLadder || [];
+  const angles = plan.differentiationAngles || [];
+  const isIg = platform === 'instagram';
+
+  const autoList = enriched.automations?.length
+    ? enriched.automations.map((a) => ({
+        ...(AUTOMATION_MAP[a.action] || {}),
+        label: a.label || AUTOMATION_MAP[a.action]?.label,
+        desc: a.desc,
+        action: a.action,
+      }))
+    : [
+        AUTOMATION_MAP[isIg ? 'carousel' : 'reel'],
+        AUTOMATION_MAP.schedule,
+        AUTOMATION_MAP.hashtags,
+        AUTOMATION_MAP['ab-test'],
+      ];
+
+  return `
     <div class="bj-result">
 
       <!-- Score strip -->
       <div class="bj-score-strip">
-        <div class="bj-score-num">${e.strategicScore}</div>
+        <div class="bj-score-num">${plan.strategicScore}</div>
         <div class="bj-score-label">
-          <strong>Score estrat\xE9gico \xB7 ${a(i.format.toUpperCase())}</strong>
-          <span>${e.strategicScore>=80?"\u{1F525} Alta probabilidad de alcance":e.strategicScore>=60?"\u2705 Plan s\xF3lido":"\u26A0\uFE0F Mejorable \u2014 prob\xE1 otro \xE1ngulo"}</span>
-          <span style="font-size:11px;opacity:.75;">Fit ${(i.fit*100).toFixed(0)}% \xB7 ${o?"Agente Instagram":"Agente TikTok"}</span>
+          <strong>Score estratégico · ${escape(fmt.format.toUpperCase())}</strong>
+          <span>${plan.strategicScore >= 80 ? '🔥 Alta probabilidad de alcance' : plan.strategicScore >= 60 ? '✅ Plan sólido' : '⚠️ Mejorable — probá otro ángulo'}</span>
+          <span style="font-size:11px;opacity:.75;">Fit ${(fmt.fit * 100).toFixed(0)}% · ${isIg ? 'Agente Instagram' : 'Agente TikTok'}</span>
         </div>
       </div>
 
-      ${n.platformTip?`<div class="bj-tip-bar"><span class="bj-tip-icon">${o?"\u{1F4F8}":"\u{1F3B5}"}</span><span>${a(n.platformTip)}</span></div>`:""}
-      ${n.quickWin?`<div class="bj-quickwin">\u26A1 <strong>Quick win:</strong> ${a(n.quickWin)}</div>`:""}
+      ${enriched.platformTip ? `<div class="bj-tip-bar"><span class="bj-tip-icon">${isIg ? '📸' : '🎵'}</span><span>${escape(enriched.platformTip)}</span></div>` : ''}
+      ${enriched.quickWin ? `<div class="bj-quickwin">⚡ <strong>Quick win:</strong> ${escape(enriched.quickWin)}</div>` : ''}
 
       <!-- Formatos por plataforma -->
-      ${o?be(e.igPlans||(()=>{const d=k[0]?.hook||"",z=n.guion||{},I=(z.desarrollo||[]).map((F,C)=>({n:C+1,text:F,onScreen:n.onScreenText?.[C]||"",visual:n.cameraAngles?.[C+1]||""}));return{_viralScore:k[0]?.viralScore??Math.round((k[0]?.predictedStrength||.8)*100),carousel:{captionHook:d,captionCTA:n.ctaOptions?.[0]||"",slideCount:(z.desarrollo?.length||3)+2,slides:[{n:1,role:"hook",title:d,subtitle:z.apertura||"",bodyText:"",imageText:n.onScreenText?.[0]||"",visual:n.cameraAngles?.[0]||""},...(z.desarrollo||[]).map((F,C)=>({n:C+2,role:"content",title:`Punto ${C+1}`,subtitle:F,bodyText:"",imageText:"",visual:n.cameraAngles?.[C+1]||""})),{n:(z.desarrollo?.length||0)+2,role:"cta",title:"Guardalo \u{1F447}",subtitle:n.ctaOptions?.[0]||"",bodyText:n.ctaOptions?.[1]||"",imageText:"Guardalo \xB7 Compartilo \xB7 Seguime",visual:""}]},reel:{hooks:k.slice(0,3).map((F,C)=>({text:F.hook,style:C===0?"mejor opci\xF3n":`opci\xF3n ${C+1}`})),hookLayer:{videoText:n.onScreenText?.[0]?.split("\u2014")[0]?.trim()||"",openingFrame:n.cameraAngles?.[0]||"",poseExpression:n.cameraAngles?.[1]||""},script:{apertura:z.apertura||"",beats:I,cierre:z.cierre||""},cta:n.ctaOptions?.[0]||""},stories:{frames:[{n:1,role:"hook",mediaType:"video",mediaDescription:n.cameraAngles?.[0]||"",onScreenText:d,supportText:"",sticker:"Encuesta",duration:"5s"},...(z.desarrollo||[]).slice(0,2).map((F,C)=>({n:C+2,role:"content",mediaType:"foto",mediaDescription:"",onScreenText:F,supportText:"",sticker:"ninguno",duration:"5s"})),{n:Math.min(z.desarrollo?.length||0,2)+2,role:"cta",mediaType:"video",mediaDescription:"",onScreenText:n.ctaOptions?.[0]||"Link en bio \u{1F446}",supportText:"",sticker:"Link",duration:"7s"}]}}})(),e,n):me(e.hookPlans?.length?e.hookPlans:(()=>{const d=C=>String(C||"").trim().split(/\s+/).slice(0,3).join(" ").toUpperCase(),z=(C,c,s)=>s===0&&c?.length?c:["Contexto que valida el hook: por qu\xE9 esto importa ahora","Desarrollo central \u2014 dato, demostraci\xF3n o historia que sostiene la promesa","Prueba o resultado concreto \u2014 el payoff de lo que prometi\xF3 el hook","Cierre narrativo: qu\xE9 hacer con esta informaci\xF3n \u2192 CTA natural"],I=n.cameraAngles?.[0]||"Plano medio frontal mirando a c\xE1mara \u2014 transmite autoridad",F=n.cameraAngles?.[1]||"Directo a c\xE1mara, energ\xEDa confiada, gesticul\xE1 hacia la pantalla";return k.slice(0,3).map((C,c)=>({hook:C.hook,viralScore:C.viralScore??Math.round((C.predictedStrength||.8)*100),hookLayer:{videoText:c===0&&n.onScreenText?.[0]?(n.onScreenText[0]||"").split("\u2014")[0].trim():d(C.hook),imageDescription:I,poseExpression:F},script:{apertura:c===0&&n.guion?.apertura?n.guion.apertura:`Arranc\xE1 con energ\xEDa: "${C.hook.slice(0,50)}${C.hook.length>50?"...":""}" \u2014 mir\xE1 a c\xE1mara los primeros 2s`,beats:z(C.hook,n.guion?.desarrollo,c),cierre:c===0&&n.guion?.cierre?n.guion.cierre:n.ctaOptions?.[0]||"Guard\xE1 este video si te sirvi\xF3 \u{1F447}"},cta:n.ctaOptions?.[c]||n.ctaOptions?.[0]||null}))})())}
+      ${
+        isIg
+          ? renderIgPlans(
+              plan.igPlans ||
+                (() => {
+                  const topHook = hooks[0]?.hook || '';
+                  const g = enriched.guion || {};
+                  const beats = (g.desarrollo || []).map((d, i) => ({
+                    n: i + 1,
+                    text: d,
+                    onScreen: enriched.onScreenText?.[i] || '',
+                    visual: enriched.cameraAngles?.[i + 1] || '',
+                  }));
+                  return {
+                    _viralScore: hooks[0]?.viralScore ?? Math.round((hooks[0]?.predictedStrength || 0.8) * 100),
+                    carousel: {
+                      captionHook: topHook,
+                      captionCTA: enriched.ctaOptions?.[0] || '',
+                      slideCount: (g.desarrollo?.length || 3) + 2,
+                      slides: [
+                        {
+                          n: 1,
+                          role: 'hook',
+                          title: topHook,
+                          subtitle: g.apertura || '',
+                          bodyText: '',
+                          imageText: enriched.onScreenText?.[0] || '',
+                          visual: enriched.cameraAngles?.[0] || '',
+                        },
+                        ...(g.desarrollo || []).map((d, i) => ({
+                          n: i + 2,
+                          role: 'content',
+                          title: `Punto ${i + 1}`,
+                          subtitle: d,
+                          bodyText: '',
+                          imageText: '',
+                          visual: enriched.cameraAngles?.[i + 1] || '',
+                        })),
+                        {
+                          n: (g.desarrollo?.length || 0) + 2,
+                          role: 'cta',
+                          title: 'Guardalo 👇',
+                          subtitle: enriched.ctaOptions?.[0] || '',
+                          bodyText: enriched.ctaOptions?.[1] || '',
+                          imageText: 'Guardalo · Compartilo · Seguime',
+                          visual: '',
+                        },
+                      ],
+                    },
+                    reel: {
+                      hooks: hooks
+                        .slice(0, 3)
+                        .map((h, i) => ({ text: h.hook, style: i === 0 ? 'mejor opción' : `opción ${i + 1}` })),
+                      hookLayer: {
+                        videoText: enriched.onScreenText?.[0]?.split('—')[0]?.trim() || '',
+                        openingFrame: enriched.cameraAngles?.[0] || '',
+                        poseExpression: enriched.cameraAngles?.[1] || '',
+                      },
+                      script: { apertura: g.apertura || '', beats, cierre: g.cierre || '' },
+                      cta: enriched.ctaOptions?.[0] || '',
+                    },
+                    stories: {
+                      frames: [
+                        {
+                          n: 1,
+                          role: 'hook',
+                          mediaType: 'video',
+                          mediaDescription: enriched.cameraAngles?.[0] || '',
+                          onScreenText: topHook,
+                          supportText: '',
+                          sticker: 'Encuesta',
+                          duration: '5s',
+                        },
+                        ...(g.desarrollo || []).slice(0, 2).map((d, i) => ({
+                          n: i + 2,
+                          role: 'content',
+                          mediaType: 'foto',
+                          mediaDescription: '',
+                          onScreenText: d,
+                          supportText: '',
+                          sticker: 'ninguno',
+                          duration: '5s',
+                        })),
+                        {
+                          n: Math.min(g.desarrollo?.length || 0, 2) + 2,
+                          role: 'cta',
+                          mediaType: 'video',
+                          mediaDescription: '',
+                          onScreenText: enriched.ctaOptions?.[0] || 'Link en bio 👆',
+                          supportText: '',
+                          sticker: 'Link',
+                          duration: '7s',
+                        },
+                      ],
+                    },
+                  };
+                })(),
+              plan,
+              enriched,
+            )
+          : renderHookPlans(
+              plan.hookPlans?.length
+                ? plan.hookPlans
+                : (() => {
+                    const _deriveVideoText = (hookText) => {
+                      const words = String(hookText || '')
+                        .trim()
+                        .split(/\s+/);
+                      return words.slice(0, 3).join(' ').toUpperCase();
+                    };
+                    const _synthBeats = (hookText, guionDesarrollo, idx) => {
+                      if (idx === 0 && guionDesarrollo?.length) return guionDesarrollo;
+                      return [
+                        `Contexto que valida el hook: por qué esto importa ahora`,
+                        `Desarrollo central — dato, demostración o historia que sostiene la promesa`,
+                        `Prueba o resultado concreto — el payoff de lo que prometió el hook`,
+                        `Cierre narrativo: qué hacer con esta información → CTA natural`,
+                      ];
+                    };
+                    const _cameraAngle =
+                      enriched.cameraAngles?.[0] || 'Plano medio frontal mirando a cámara — transmite autoridad';
+                    const _poseBase =
+                      enriched.cameraAngles?.[1] || 'Directo a cámara, energía confiada, gesticulá hacia la pantalla';
+                    return hooks.slice(0, 3).map((h, i) => ({
+                      hook: h.hook,
+                      viralScore: h.viralScore ?? Math.round((h.predictedStrength || 0.8) * 100),
+                      hookLayer: {
+                        videoText:
+                          i === 0 && enriched.onScreenText?.[0]
+                            ? (enriched.onScreenText[0] || '').split('—')[0].trim()
+                            : _deriveVideoText(h.hook),
+                        imageDescription: _cameraAngle,
+                        poseExpression: _poseBase,
+                      },
+                      script: {
+                        apertura:
+                          i === 0 && enriched.guion?.apertura
+                            ? enriched.guion.apertura
+                            : `Arrancá con energía: "${h.hook.slice(0, 50)}${h.hook.length > 50 ? '...' : ''}" — mirá a cámara los primeros 2s`,
+                        beats: _synthBeats(h.hook, enriched.guion?.desarrollo, i),
+                        cierre:
+                          i === 0 && enriched.guion?.cierre
+                            ? enriched.guion.cierre
+                            : enriched.ctaOptions?.[0] || 'Guardá este video si te sirvió 👇',
+                      },
+                      cta: enriched.ctaOptions?.[i] || enriched.ctaOptions?.[0] || null,
+                    }));
+                  })(),
+            )
+      }
 
-      <!-- Gu\xEDa de producci\xF3n -->
-      ${n.cameraAngles?.length||n.onScreenText?.length||n.visualElements?.length?`
+      <!-- Guía de producción -->
+      ${
+        enriched.cameraAngles?.length || enriched.onScreenText?.length || enriched.visualElements?.length
+          ? `
       <div class="bj-block">
-        <div class="bj-block-label">\u{1F3A5} Gu\xEDa de producci\xF3n</div>
+        <div class="bj-block-label">🎥 Guía de producción</div>
         <div class="bj-prod-grid">
-          ${n.cameraAngles?.length?`<div class="bj-prod-col"><div class="bj-prod-col-h">\u{1F4F7} \xC1ngulos de c\xE1mara</div>${n.cameraAngles.map(d=>`<div class="bj-prod-item">${a(d)}</div>`).join("")}</div>`:""}
-          ${n.onScreenText?.length?`<div class="bj-prod-col"><div class="bj-prod-col-h">\u{1F4DD} Texto en pantalla</div>${n.onScreenText.map(d=>`<div class="bj-prod-item">${a(d)}</div>`).join("")}</div>`:""}
-          ${n.visualElements?.length?`<div class="bj-prod-col"><div class="bj-prod-col-h">\u2728 Elementos visuales</div>${n.visualElements.map(d=>`<div class="bj-prod-item">${a(d)}</div>`).join("")}</div>`:""}
+          ${enriched.cameraAngles?.length ? `<div class="bj-prod-col"><div class="bj-prod-col-h">📷 Ángulos de cámara</div>${enriched.cameraAngles.map((a) => `<div class="bj-prod-item">${escape(a)}</div>`).join('')}</div>` : ''}
+          ${enriched.onScreenText?.length ? `<div class="bj-prod-col"><div class="bj-prod-col-h">📝 Texto en pantalla</div>${enriched.onScreenText.map((t) => `<div class="bj-prod-item">${escape(t)}</div>`).join('')}</div>` : ''}
+          ${enriched.visualElements?.length ? `<div class="bj-prod-col"><div class="bj-prod-col-h">✨ Elementos visuales</div>${enriched.visualElements.map((v) => `<div class="bj-prod-item">${escape(v)}</div>`).join('')}</div>` : ''}
         </div>
-      </div>`:""}
+      </div>`
+          : ''
+      }
 
       <!-- Caption + Outline -->
-      ${n.captionDraft?`
+      ${
+        enriched.captionDraft
+          ? `
       <div class="bj-block">
         <div class="bj-block-label" style="display:flex;justify-content:space-between;align-items:center;">
-          <span>\u{1F4DD} Caption listo para publicar</span>
-          <button class="bj-copy-btn" data-copy="${a(n.captionDraft)}">\u{1F4CB} Copiar</button>
+          <span>📝 Caption listo para publicar</span>
+          <button class="bj-copy-btn" data-copy="${escape(enriched.captionDraft)}">📋 Copiar</button>
         </div>
-        <div class="bj-caption-draft">${a(n.captionDraft)}</div>
-        ${n.contentOutline?.length?`<div class="bj-block-label" style="margin-top:12px;">\u{1F5C2}\uFE0F Estructura</div>${n.contentOutline.map((d,z)=>`<div class="bj-outline-step"><span class="bj-outline-n">${z+1}</span><span>${a(d)}</span></div>`).join("")}`:""}
-      </div>`:""}
+        <div class="bj-caption-draft">${escape(enriched.captionDraft)}</div>
+        ${enriched.contentOutline?.length ? `<div class="bj-block-label" style="margin-top:12px;">🗂️ Estructura</div>${enriched.contentOutline.map((s, i) => `<div class="bj-outline-step"><span class="bj-outline-n">${i + 1}</span><span>${escape(s)}</span></div>`).join('')}` : ''}
+      </div>`
+          : ''
+      }
 
       <!-- Hashtags -->
-      ${n.hashtags?`
+      ${
+        enriched.hashtags
+          ? `
       <div class="bj-block">
-        <div class="bj-block-label">#\uFE0F\u20E3 Hashtags</div>
-        <div class="bj-hashtag-section"><span class="bj-ht-cat">Core</span>${(n.hashtags.core||[]).map(d=>`<span class="bj-ht-chip core">${a(d)}</span>`).join("")}</div>
-        <div class="bj-hashtag-section"><span class="bj-ht-cat">Nicho</span>${(n.hashtags.niche||[]).map(d=>`<span class="bj-ht-chip niche">${a(d)}</span>`).join("")}</div>
-        ${n.hashtags.trending?.length?`<div class="bj-hashtag-section"><span class="bj-ht-cat">Trending</span>${n.hashtags.trending.map(d=>`<span class="bj-ht-chip trending">${a(d)}</span>`).join("")}</div>`:""}
-        <button class="bj-copy-btn" style="margin-top:8px;" data-copy="${a([...n.hashtags.core||[],...n.hashtags.niche||[],...n.hashtags.trending||[]].join(" "))}">\u{1F4CB} Copiar todos</button>
-      </div>`:""}
+        <div class="bj-block-label">#️⃣ Hashtags</div>
+        <div class="bj-hashtag-section"><span class="bj-ht-cat">Core</span>${(enriched.hashtags.core || []).map((h) => `<span class="bj-ht-chip core">${escape(h)}</span>`).join('')}</div>
+        <div class="bj-hashtag-section"><span class="bj-ht-cat">Nicho</span>${(enriched.hashtags.niche || []).map((h) => `<span class="bj-ht-chip niche">${escape(h)}</span>`).join('')}</div>
+        ${enriched.hashtags.trending?.length ? `<div class="bj-hashtag-section"><span class="bj-ht-cat">Trending</span>${enriched.hashtags.trending.map((h) => `<span class="bj-ht-chip trending">${escape(h)}</span>`).join('')}</div>` : ''}
+        <button class="bj-copy-btn" style="margin-top:8px;" data-copy="${escape([...(enriched.hashtags.core || []), ...(enriched.hashtags.niche || []), ...(enriched.hashtags.trending || [])].join(' '))}">📋 Copiar todos</button>
+      </div>`
+          : ''
+      }
 
-      <!-- Timing + Se\xF1ales -->
+      <!-- Timing + Señales -->
       <div class="bj-grid">
-        <div class="bj-block"><div class="bj-block-label">\u23F0 Publicar hoy</div>${m.length?m.slice(0,3).map(d=>`<div class="bj-window">${a(d)}</div>`).join(""):'<div class="bj-muted">Cualquier momento</div>'}</div>
-        <div class="bj-block"><div class="bj-block-label">\u{1F9E0} Se\xF1ales a optimizar</div>${w.slice(0,3).map(d=>`<div class="bj-checklist-item"><strong>${a(d.signal)}</strong><span>${a(d.tactic)}</span></div>`).join("")}</div>
+        <div class="bj-block"><div class="bj-block-label">⏰ Publicar hoy</div>${
+          windows.length
+            ? windows
+                .slice(0, 3)
+                .map((w) => `<div class="bj-window">${escape(w)}</div>`)
+                .join('')
+            : '<div class="bj-muted">Cualquier momento</div>'
+        }</div>
+        <div class="bj-block"><div class="bj-block-label">🧠 Señales a optimizar</div>${checklist
+          .slice(0, 3)
+          .map(
+            (c) =>
+              `<div class="bj-checklist-item"><strong>${escape(c.signal)}</strong><span>${escape(c.tactic)}</span></div>`,
+          )
+          .join('')}</div>
       </div>
 
-      <!-- CTAs + \xC1ngulos -->
+      <!-- CTAs + Ángulos -->
       <div class="bj-grid">
         <div class="bj-block">
-          <div class="bj-block-label">\u{1F4E3} CTAs</div>
-          ${(n.ctaOptions?.length?n.ctaOptions:y).map(d=>`<div class="bj-cta">${a(d)}</div>`).join("")}
+          <div class="bj-block-label">📣 CTAs</div>
+          ${(enriched.ctaOptions?.length ? enriched.ctaOptions : ctaLadder).map((c) => `<div class="bj-cta">${escape(c)}</div>`).join('')}
         </div>
         <div class="bj-block">
-          <div class="bj-block-label">\u{1F3AF} \xC1ngulos diferenciados</div>
-          ${h.map(d=>`<div class="bj-angle">${a(d)}</div>`).join("")}
+          <div class="bj-block-label">🎯 Ángulos diferenciados</div>
+          ${angles.map((a) => `<div class="bj-angle">${escape(a)}</div>`).join('')}
         </div>
       </div>
 
-      ${e.riskFlags?.length?`<div class="bj-warning"><strong>\u26A0\uFE0F Riesgos:</strong><ul>${e.riskFlags.map(d=>`<li>${a(d)}</li>`).join("")}</ul></div>`:""}
+      ${plan.riskFlags?.length ? `<div class="bj-warning"><strong>⚠️ Riesgos:</strong><ul>${plan.riskFlags.map((r) => `<li>${escape(r)}</li>`).join('')}</ul></div>` : ''}
 
-      <!-- PREDICCIONES \u2014 al final, minimalistas -->
-      ${e.predictions?pe(e.predictions):""}
+      <!-- PREDICCIONES — al final, minimalistas -->
+      ${plan.predictions ? renderPredictionsCard(plan.predictions) : ''}
 
       <!-- Acciones -->
       <div class="bj-block">
-        <div class="bj-block-label">\u{1F680} Crear y publicar</div>
+        <div class="bj-block-label">🚀 Crear y publicar</div>
         <div class="bj-auto-grid">
-          <button class="bj-btn bj-btn-primary bj-auto-primary" id="bj-forge">\u2728 Generar ${a(i.format)} completo</button>
-          ${t.filter(d=>d?.label).map(d=>`<button class="bj-btn bj-btn-ghost bj-auto-action" data-route="${a(d?.route||"")}" data-endpoint="${a(d?.endpoint||"")}">${a(d?.label||"")}</button>`).join("")}
-          <button class="bj-btn bj-btn-ghost" id="bj-recalc">\u21BB Recalcular</button>
+          <button class="bj-btn bj-btn-primary bj-auto-primary" id="bj-forge">✨ Generar ${escape(fmt.format)} completo</button>
+          ${autoList
+            .filter((a) => a?.label)
+            .map(
+              (a) =>
+                `<button class="bj-btn bj-btn-ghost bj-auto-action" data-route="${escape(a?.route || '')}" data-endpoint="${escape(a?.endpoint || '')}">${escape(a?.label || '')}</button>`,
+            )
+            .join('')}
+          <button class="bj-btn bj-btn-ghost" id="bj-recalc">↻ Recalcular</button>
         </div>
       </div>
     </div>
-    <div id="bj-agency-host" class="ab-loading">\u{1F3DB}\uFE0F Cargando an\xE1lisis completo de agencia\u2026</div>`},te=e=>e?`
+    <div id="bj-agency-host" class="ab-loading">🏛️ Cargando análisis completo de agencia…</div>`;
+};
+
+const renderPredictionDetail = (pred) => {
+  if (!pred) return '';
+  const cls =
+    pred.virality === 'breakout-potential'
+      ? 'breakout'
+      : pred.virality === 'high-potential'
+        ? 'high'
+        : pred.virality === 'solid'
+          ? 'solid'
+          : 'mediocre';
+  return `
     <div class="bj-pred-overlay" id="bj-pred-overlay">
       <div class="bj-pred-card">
-        <button class="bj-pred-close" id="bj-pred-close">\u2715</button>
-        <div class="bj-pred-score bj-pred-${e.virality==="breakout-potential"?"breakout":e.virality==="high-potential"?"high":e.virality==="solid"?"solid":"mediocre"}">
-          <div class="bj-pred-num">${e.viralScore}</div>
+        <button class="bj-pred-close" id="bj-pred-close">✕</button>
+        <div class="bj-pred-score bj-pred-${cls}">
+          <div class="bj-pred-num">${pred.viralScore}</div>
           <div class="bj-pred-label">Viral Score</div>
-          <div class="bj-pred-class">${a(e.virality.replace("-"," "))}</div>
+          <div class="bj-pred-class">${escape(pred.virality.replace('-', ' '))}</div>
         </div>
         <div class="bj-pred-grid">
-          <div class="bj-pred-metric"><strong>${e.predicted.reach.toLocaleString("es-AR")}</strong><span>alcance predicho</span></div>
-          <div class="bj-pred-metric"><strong>${(e.predicted.engagementRate*100).toFixed(2)}%</strong><span>engagement rate</span></div>
-          ${e.predicted.completion!==null?`<div class="bj-pred-metric"><strong>${(e.predicted.completion*100).toFixed(0)}%</strong><span>completion</span></div>`:""}
-          <div class="bj-pred-metric"><strong>${e.predicted.saves}</strong><span>saves</span></div>
-          <div class="bj-pred-metric"><strong>${e.predicted.shares}</strong><span>shares</span></div>
-          <div class="bj-pred-metric"><strong>${e.predicted.comments}</strong><span>comments</span></div>
+          <div class="bj-pred-metric"><strong>${pred.predicted.reach.toLocaleString('es-AR')}</strong><span>alcance predicho</span></div>
+          <div class="bj-pred-metric"><strong>${(pred.predicted.engagementRate * 100).toFixed(2)}%</strong><span>engagement rate</span></div>
+          ${pred.predicted.completion !== null ? `<div class="bj-pred-metric"><strong>${(pred.predicted.completion * 100).toFixed(0)}%</strong><span>completion</span></div>` : ''}
+          <div class="bj-pred-metric"><strong>${pred.predicted.saves}</strong><span>saves</span></div>
+          <div class="bj-pred-metric"><strong>${pred.predicted.shares}</strong><span>shares</span></div>
+          <div class="bj-pred-metric"><strong>${pred.predicted.comments}</strong><span>comments</span></div>
         </div>
-        ${e.improvements?.length?`
+        ${
+          pred.improvements?.length
+            ? `
           <div class="bj-pred-improve">
-            <strong>\u{1F4A1} Mejoras posibles (techo ${e.ceilingScore}):</strong>
-            <ul>${e.improvements.map(i=>`<li>${a(typeof i=="string"?i:`[${i.priority}] ${i.action} \u2192 ${i.impact}`)}</li>`).join("")}</ul>
-          </div>`:""}
+            <strong>💡 Mejoras posibles (techo ${pred.ceilingScore}):</strong>
+            <ul>${pred.improvements.map((i) => `<li>${escape(typeof i === 'string' ? i : `[${i.priority}] ${i.action} → ${i.impact}`)}</li>`).join('')}</ul>
+          </div>`
+            : ''
+        }
       </div>
-    </div>`:"",U=(e,u="\u{1F4CB}")=>`<button class="ab-copy" data-copy="${a(e)}" title="Copiar">${u}</button>`,fe=e=>{if(!e?.canvas)return"";const{w:u,h:i}=e.canvas,m=170/i,w=Math.round(u*m),n=Math.round(i*m),y=e.zones?.noGo||[],h=e.zones?.good||[],o=(e.margin?.left||0)*m,t=(e.margin?.right||0)*m,d=(s,v,g)=>{let p=0,r=0,l=w,b=n;return s.edge==="top"?b=s.px*m:s.edge==="bottom"?(r=n-s.px*m,b=s.px*m):s.edge==="left"?l=s.px*m:s.edge==="right"&&(p=w-s.px*m,l=s.px*m),`<rect x="${p}" y="${r}" width="${l}" height="${b}" fill="${v}" opacity="0.55"/>
-      <text x="${p+l/2}" y="${r+b/2}" fill="#fff" font-size="7" text-anchor="middle" dominant-baseline="middle">${g} ${s.px}</text>`},z=o,I=(y.find(s=>s.edge==="top")?.px||h.find(s=>s.edge==="top")?.px||0)*m,F=(y.find(s=>s.edge==="bottom")?.px||h.find(s=>s.edge==="bottom")?.px||0)*m,C=w-o-t,c=n-I-F;return`
+    </div>`;
+};
+
+// ── Agency Brain renderer ────────────────────────────────────────────────────
+const copyBtn = (text, label = '📋') =>
+  `<button class="ab-copy" data-copy="${escape(text)}" title="Copiar">${label}</button>`;
+
+// Diagrama SVG de safe-zones (escala el canvas real a ~150px de alto)
+const renderSafeZoneDiagram = (spec) => {
+  if (!spec?.canvas) return '';
+  const { w, h } = spec.canvas;
+  const maxH = 170;
+  const scale = maxH / h;
+  const sw = Math.round(w * scale);
+  const sh = Math.round(h * scale);
+  const noGo = spec.zones?.noGo || [];
+  const good = spec.zones?.good || [];
+  const ml = (spec.margin?.left || 0) * scale;
+  const mr = (spec.margin?.right || 0) * scale;
+
+  const zoneRect = (z, fill, label) => {
+    let x = 0,
+      y = 0,
+      rw = sw,
+      rh = sh;
+    if (z.edge === 'top') {
+      rh = z.px * scale;
+    } else if (z.edge === 'bottom') {
+      y = sh - z.px * scale;
+      rh = z.px * scale;
+    } else if (z.edge === 'left') {
+      rw = z.px * scale;
+    } else if (z.edge === 'right') {
+      x = sw - z.px * scale;
+      rw = z.px * scale;
+    }
+    return `<rect x="${x}" y="${y}" width="${rw}" height="${rh}" fill="${fill}" opacity="0.55"/>
+      <text x="${x + rw / 2}" y="${y + rh / 2}" fill="#fff" font-size="7" text-anchor="middle" dominant-baseline="middle">${label} ${z.px}</text>`;
+  };
+
+  // safe central area
+  const safeX = ml;
+  const safeY = (noGo.find((z) => z.edge === 'top')?.px || good.find((z) => z.edge === 'top')?.px || 0) * scale;
+  const safeBottom =
+    (noGo.find((z) => z.edge === 'bottom')?.px || good.find((z) => z.edge === 'bottom')?.px || 0) * scale;
+  const safeW = sw - ml - mr;
+  const safeH = sh - safeY - safeBottom;
+
+  return `
   <div class="cs-diagram-wrap">
-    <svg viewBox="0 0 ${w} ${n}" width="${w}" height="${n}" class="cs-svg">
-      <rect x="0" y="0" width="${w}" height="${n}" fill="#1a1a2e" stroke="var(--border)" stroke-width="1"/>
-      ${h.length?`<rect x="${z}" y="${I}" width="${C}" height="${c}" fill="#10b981" opacity="0.18"/>`:`<rect x="${z}" y="${I}" width="${C}" height="${c}" fill="#10b981" opacity="0.22"/>`}
-      <text x="${z+C/2}" y="${I+c/2}" fill="#6ee7b7" font-size="8" font-weight="bold" text-anchor="middle" dominant-baseline="middle">SAFE</text>
-      ${y.map(s=>d(s,"#ef4444","NO-GO")).join("")}
-      ${h.map(s=>d(s,"#f59e0b","GOOD")).join("")}
-      ${e.visibleArea?`<rect x="1" y="1" width="${w-2}" height="${e.visibleArea.h*m-2}" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4 3"/>`:""}
+    <svg viewBox="0 0 ${sw} ${sh}" width="${sw}" height="${sh}" class="cs-svg">
+      <rect x="0" y="0" width="${sw}" height="${sh}" fill="#1a1a2e" stroke="var(--border)" stroke-width="1"/>
+      ${good.length ? `<rect x="${safeX}" y="${safeY}" width="${safeW}" height="${safeH}" fill="#10b981" opacity="0.18"/>` : `<rect x="${safeX}" y="${safeY}" width="${safeW}" height="${safeH}" fill="#10b981" opacity="0.22"/>`}
+      <text x="${safeX + safeW / 2}" y="${safeY + safeH / 2}" fill="#6ee7b7" font-size="8" font-weight="bold" text-anchor="middle" dominant-baseline="middle">SAFE</text>
+      ${noGo.map((z) => zoneRect(z, '#ef4444', 'NO-GO')).join('')}
+      ${good.map((z) => zoneRect(z, '#f59e0b', 'GOOD')).join('')}
+      ${spec.visibleArea ? `<rect x="1" y="1" width="${sw - 2}" height="${spec.visibleArea.h * scale - 2}" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4 3"/>` : ''}
     </svg>
     <div class="cs-dims">
-      <div class="cs-dim-main">${u}\xD7${i}</div>
-      <div class="cs-dim-aspect">${a(e.aspect||"")}</div>
+      <div class="cs-dim-main">${w}×${h}</div>
+      <div class="cs-dim-aspect">${escape(spec.aspect || '')}</div>
     </div>
-  </div>`},xe=(e,u)=>{if(!e)return"";const i=Object.entries(e);return i.length?`
+  </div>`;
+};
+
+const renderCanvasSpecs = (specs, platform) => {
+  if (!specs) return '';
+  const entries = Object.entries(specs);
+  if (!entries.length) return '';
+  return `
   <details class="ab-section">
-    <summary>\u{1F4D0} Medidas exactas + Safe-Zones (${u==="tiktok"?"TikTok":"Instagram"})</summary>
+    <summary>📐 Medidas exactas + Safe-Zones (${platform === 'tiktok' ? 'TikTok' : 'Instagram'})</summary>
     <div class="ab-section-body">
       <div class="cs-legend">
         <span><i class="cs-dot cs-red"></i> No-Go (no poner texto)</span>
         <span><i class="cs-dot cs-amber"></i> Good Zone</span>
         <span><i class="cs-dot cs-green"></i> Safe</span>
-        <span><i class="cs-dot cs-blue"></i> \xC1rea visible en feed</span>
+        <span><i class="cs-dot cs-blue"></i> Área visible en feed</span>
       </div>
       <div class="cs-grid">
-        ${i.map(([k,m])=>`
+        ${entries
+          .map(
+            ([key, s]) => `
         <div class="cs-card">
-          <div class="cs-card-title">${a(m.label||k)}</div>
-          ${fe(m)}
-          ${m.tip?`<div class="cs-tip">${a(m.tip)}</div>`:""}
-          ${m.visibleArea?`<div class="cs-visible">\u{1F441}\uFE0F Visible en feed: ${m.visibleArea.w}\xD7${m.visibleArea.h}</div>`:""}
-          <div class="cs-margins">M\xE1rgenes: ${m.margin?.left||0}px / ${m.margin?.right||0}px</div>
-        </div>`).join("")}
+          <div class="cs-card-title">${escape(s.label || key)}</div>
+          ${renderSafeZoneDiagram(s)}
+          ${s.tip ? `<div class="cs-tip">${escape(s.tip)}</div>` : ''}
+          ${s.visibleArea ? `<div class="cs-visible">👁️ Visible en feed: ${s.visibleArea.w}×${s.visibleArea.h}</div>` : ''}
+          <div class="cs-margins">Márgenes: ${s.margin?.left || 0}px / ${s.margin?.right || 0}px</div>
+        </div>`,
+          )
+          .join('')}
       </div>
     </div>
-  </details>`:""},he=e=>{if(!e||e.error)return`<div class="ab-error">\u26A0\uFE0F ${a(e?.error||"Error cargando an\xE1lisis")}</div>`;const u=(e.hooks||[]).map((t,d)=>`
-    <div class="ab-hook-row${d===0?" ab-hook-top":""}">
-      <div class="ab-hook-verbal">${a(t.verbal||"")}
-        ${U(t.verbal||"","\u{1F4CB}")}
-        ${d===0?'<span class="ab-badge">\u2605 MEJOR</span>':""}
+  </details>`;
+};
+
+const renderAgencyBrain = (d) => {
+  if (!d || d.error) return `<div class="ab-error">⚠️ ${escape(d?.error || 'Error cargando análisis')}</div>`;
+
+  const hookRows = (d.hooks || [])
+    .map(
+      (h, i) => `
+    <div class="ab-hook-row${i === 0 ? ' ab-hook-top' : ''}">
+      <div class="ab-hook-verbal">${escape(h.verbal || '')}
+        ${copyBtn(h.verbal || '', '📋')}
+        ${i === 0 ? '<span class="ab-badge">★ MEJOR</span>' : ''}
       </div>
       <div class="ab-hook-meta">
-        ${t.onScreenText?`<span class="ab-hook-screen">"${a(t.onScreenText)}"</span>`:""}
-        ${t.visual?`<span class="ab-hook-visual">\u{1F4F9} ${a(t.visual)}</span>`:""}
-        <span class="ab-hook-score">${t.score||0}/100</span>
+        ${h.onScreenText ? `<span class="ab-hook-screen">"${escape(h.onScreenText)}"</span>` : ''}
+        ${h.visual ? `<span class="ab-hook-visual">📹 ${escape(h.visual)}</span>` : ''}
+        <span class="ab-hook-score">${h.score || 0}/100</span>
       </div>
-    </div>`).join(""),i=e.captions||{},k=[i.carousel&&{fmt:"\u{1F3A0} Carrusel",text:i.carousel},i.reel&&{fmt:"\u{1F3AC} Reel",text:i.reel},i.story&&{fmt:"\u{1F4F1} Historia",text:i.story}].filter(Boolean).map(t=>`
+    </div>`,
+    )
+    .join('');
+
+  const cap = d.captions || {};
+  const captionRows = [
+    cap.carousel && { fmt: '🎠 Carrusel', text: cap.carousel },
+    cap.reel && { fmt: '🎬 Reel', text: cap.reel },
+    cap.story && { fmt: '📱 Historia', text: cap.story },
+  ]
+    .filter(Boolean)
+    .map(
+      (c) => `
     <div class="ab-caption-block">
-      <div class="ab-caption-fmt">${t.fmt} ${U(t.text)}</div>
-      <div class="ab-caption-text">${a(t.text)}</div>
-    </div>`).join(""),m=e.hashtags||{},w=(t,d)=>d?.length?`<div class="ab-ht-group"><span class="ab-ht-label">${t}</span>
-        <div class="ab-ht-tags">${d.map(z=>`<span class="ab-ht">${a(z)}</span>`).join("")}</div>
-        ${U(d.join(" "),"\u{1F4CB} Copiar bloque")}
-       </div>`:"",n=(e.viralIdeas||[]).map((t,d)=>`
+      <div class="ab-caption-fmt">${c.fmt} ${copyBtn(c.text)}</div>
+      <div class="ab-caption-text">${escape(c.text)}</div>
+    </div>`,
+    )
+    .join('');
+
+  const ht = d.hashtags || {};
+  const hashtagBlock = (label, tags) =>
+    tags?.length
+      ? `<div class="ab-ht-group"><span class="ab-ht-label">${label}</span>
+        <div class="ab-ht-tags">${tags.map((t) => `<span class="ab-ht">${escape(t)}</span>`).join('')}</div>
+        ${copyBtn(tags.join(' '), '📋 Copiar bloque')}
+       </div>`
+      : '';
+
+  const ideaRows = (d.viralIdeas || [])
+    .map(
+      (v, i) => `
     <div class="ab-idea">
-      <span class="ab-idea-n">${d+1}</span>
+      <span class="ab-idea-n">${i + 1}</span>
       <div>
-        <div class="ab-idea-concept">${a(t.concept||"")}</div>
+        <div class="ab-idea-concept">${escape(v.concept || '')}</div>
         <div class="ab-idea-meta">
-          <span class="ab-tag">${a(t.format||"")}</span>
-          <span class="ab-tag">\u23F1 ${t.creationMin||"?"} min</span>
-          <span class="ab-tag">\u{1F525} ${t.shareability||0}% share</span>
+          <span class="ab-tag">${escape(v.format || '')}</span>
+          <span class="ab-tag">⏱ ${v.creationMin || '?'} min</span>
+          <span class="ab-tag">🔥 ${v.shareability || 0}% share</span>
         </div>
       </div>
-    </div>`).join(""),y=(e.weekPlan||[]).map(t=>`
+    </div>`,
+    )
+    .join('');
+
+  const weekRows = (d.weekPlan || [])
+    .map(
+      (w) => `
     <div class="ab-week-row">
-      <span class="ab-week-day">${a(t.day)}</span>
-      <span class="ab-week-fmt">${a(t.format)}</span>
-      <span class="ab-week-angle">${a(t.angle)}</span>
-    </div>`).join(""),h=e.audience||{},o=e.storytelling?.structure||[];return`
+      <span class="ab-week-day">${escape(w.day)}</span>
+      <span class="ab-week-fmt">${escape(w.format)}</span>
+      <span class="ab-week-angle">${escape(w.angle)}</span>
+    </div>`,
+    )
+    .join('');
+
+  const aud = d.audience || {};
+  const storytelling = d.storytelling?.structure || [];
+
+  return `
   <details class="ab-brain ab-brain-outer">
     <summary class="ab-brain-summary">
-      <span class="ab-brain-title">\u{1F3DB}\uFE0F M\xE1s opciones \xB7 Paquete completo de agencia</span>
-      <span class="ab-brain-sub">hooks \xB7 captions \xB7 hashtags \xB7 ideas virales \xB7 audiencia \xB7 calendario \xB7 medidas \xB7 copywriting \xB7 matriz creativa</span>
+      <span class="ab-brain-title">🏛️ Más opciones · Paquete completo de agencia</span>
+      <span class="ab-brain-sub">hooks · captions · hashtags · ideas virales · audiencia · calendario · medidas · copywriting · matriz creativa</span>
     </summary>
     <div class="ab-brain-body">
 
     <details class="ab-section">
-      <summary>\u{1F3A3} Hooks Virales (${(e.hooks||[]).length} variantes)</summary>
-      <div class="ab-section-body">${u||"<em>Sin hooks</em>"}</div>
+      <summary>🎣 Hooks Virales (${(d.hooks || []).length} variantes)</summary>
+      <div class="ab-section-body">${hookRows || '<em>Sin hooks</em>'}</div>
     </details>
 
     <details class="ab-section">
-      <summary>\u270D\uFE0F Captions Listos para Publicar</summary>
+      <summary>✍️ Captions Listos para Publicar</summary>
       <div class="ab-section-body">
-        ${k||"<em>Sin captions</em>"}
-        ${i.hook_caption?`<div class="ab-caption-block"><div class="ab-caption-fmt">\u{1F3AF} Hook de apertura ${U(i.hook_caption)}</div><div class="ab-caption-text ab-hook-highlight">${a(i.hook_caption)}</div></div>`:""}
-        ${i.dm_script?`<div class="ab-caption-block"><div class="ab-caption-fmt">\u{1F4AC} Script DM ${U(i.dm_script)}</div><div class="ab-caption-text">${a(i.dm_script)}</div></div>`:""}
-        ${(i.ctas||[]).length?`<div class="ab-caption-block"><div class="ab-caption-fmt">\u{1F4E2} CTAs ${U((i.ctas||[]).join(" | "))}</div><div class="ab-cta-list">${(i.ctas||[]).map(t=>`<span class="ab-cta">${a(t)}</span>`).join("")}</div></div>`:""}
+        ${captionRows || '<em>Sin captions</em>'}
+        ${cap.hook_caption ? `<div class="ab-caption-block"><div class="ab-caption-fmt">🎯 Hook de apertura ${copyBtn(cap.hook_caption)}</div><div class="ab-caption-text ab-hook-highlight">${escape(cap.hook_caption)}</div></div>` : ''}
+        ${cap.dm_script ? `<div class="ab-caption-block"><div class="ab-caption-fmt">💬 Script DM ${copyBtn(cap.dm_script)}</div><div class="ab-caption-text">${escape(cap.dm_script)}</div></div>` : ''}
+        ${(cap.ctas || []).length ? `<div class="ab-caption-block"><div class="ab-caption-fmt">📢 CTAs ${copyBtn((cap.ctas || []).join(' | '))}</div><div class="ab-cta-list">${(cap.ctas || []).map((c) => `<span class="ab-cta">${escape(c)}</span>`).join('')}</div></div>` : ''}
       </div>
     </details>
 
     <details class="ab-section">
-      <summary>#\uFE0F\u20E3 Estrategia de Hashtags</summary>
+      <summary>#️⃣ Estrategia de Hashtags</summary>
       <div class="ab-section-body">
-        ${w("Nicho (alta relevancia)",m.niche)}
-        ${w("Broad (m\xE1s alcance)",m.broad)}
-        ${w("Mega (trending)",m.mega)}
-        ${m.recommended?.length?`<div class="ab-ht-group ab-ht-recommended"><span class="ab-ht-label">\u2705 Mix recomendado ${U(m.recommended.join(" "),"\u{1F4CB} Copiar todo")}</span><div class="ab-ht-tags">${(m.recommended||[]).map(t=>`<span class="ab-ht">${a(t)}</span>`).join("")}</div></div>`:""}
-        ${m.strategy?`<div class="ab-ht-strategy">${a(m.strategy)}</div>`:""}
+        ${hashtagBlock('Nicho (alta relevancia)', ht.niche)}
+        ${hashtagBlock('Broad (más alcance)', ht.broad)}
+        ${hashtagBlock('Mega (trending)', ht.mega)}
+        ${ht.recommended?.length ? `<div class="ab-ht-group ab-ht-recommended"><span class="ab-ht-label">✅ Mix recomendado ${copyBtn(ht.recommended.join(' '), '📋 Copiar todo')}</span><div class="ab-ht-tags">${(ht.recommended || []).map((t) => `<span class="ab-ht">${escape(t)}</span>`).join('')}</div></div>` : ''}
+        ${ht.strategy ? `<div class="ab-ht-strategy">${escape(ht.strategy)}</div>` : ''}
       </div>
     </details>
 
     <details class="ab-section">
-      <summary>\u{1F4A1} Ideas Virales de la Semana</summary>
-      <div class="ab-section-body">${n||"<em>Sin ideas</em>"}</div>
+      <summary>💡 Ideas Virales de la Semana</summary>
+      <div class="ab-section-body">${ideaRows || '<em>Sin ideas</em>'}</div>
     </details>
 
     <details class="ab-section">
-      <summary>\u{1F4C5} Plan 7 D\xEDas</summary>
-      <div class="ab-section-body ab-week">${y}</div>
+      <summary>📅 Plan 7 Días</summary>
+      <div class="ab-section-body ab-week">${weekRows}</div>
     </details>
 
     <details class="ab-section">
-      <summary>\u{1F9E0} Audiencia & Psicograf\xEDa</summary>
+      <summary>🧠 Audiencia & Psicografía</summary>
       <div class="ab-section-body">
-        ${h.painPoints?.length?`<div class="ab-aud-block"><strong>Dolores:</strong> ${h.painPoints.map(t=>`<span class="ab-tag">${a(t)}</span>`).join("")}</div>`:""}
-        ${h.dreamOutcomes?.length?`<div class="ab-aud-block"><strong>Sue\xF1os:</strong> ${h.dreamOutcomes.map(t=>`<span class="ab-tag ab-tag-green">${a(t)}</span>`).join("")}</div>`:""}
-        ${h.triggers?.length?`<div class="ab-aud-block"><strong>Triggers:</strong> ${h.triggers.map(t=>`<span class="ab-tag ab-tag-blue">${a(t)}</span>`).join("")}</div>`:""}
-        ${h.contentThatConverts?.length?`<div class="ab-aud-block"><strong>Qu\xE9 convierte:</strong> ${h.contentThatConverts.map(t=>`<span class="ab-tag ab-tag-purple">${a(t)}</span>`).join("")}</div>`:""}
-        ${h.angle?`<div class="ab-aud-angle">${a(h.angle)}</div>`:""}
+        ${aud.painPoints?.length ? `<div class="ab-aud-block"><strong>Dolores:</strong> ${aud.painPoints.map((p) => `<span class="ab-tag">${escape(p)}</span>`).join('')}</div>` : ''}
+        ${aud.dreamOutcomes?.length ? `<div class="ab-aud-block"><strong>Sueños:</strong> ${aud.dreamOutcomes.map((p) => `<span class="ab-tag ab-tag-green">${escape(p)}</span>`).join('')}</div>` : ''}
+        ${aud.triggers?.length ? `<div class="ab-aud-block"><strong>Triggers:</strong> ${aud.triggers.map((p) => `<span class="ab-tag ab-tag-blue">${escape(p)}</span>`).join('')}</div>` : ''}
+        ${aud.contentThatConverts?.length ? `<div class="ab-aud-block"><strong>Qué convierte:</strong> ${aud.contentThatConverts.map((p) => `<span class="ab-tag ab-tag-purple">${escape(p)}</span>`).join('')}</div>` : ''}
+        ${aud.angle ? `<div class="ab-aud-angle">${escape(aud.angle)}</div>` : ''}
       </div>
     </details>
 
-    ${e.niche?.trends2026?.length?`
+    ${
+      d.niche?.trends2026?.length
+        ? `
     <details class="ab-section">
-      <summary>\u{1F4C8} Tendencias 2026 en tu Nicho</summary>
+      <summary>📈 Tendencias 2026 en tu Nicho</summary>
       <div class="ab-section-body">
-        <div class="ab-trends">${(e.niche.trends2026||[]).map(t=>`<span class="ab-trend">${a(t)}</span>`).join("")}</div>
-        ${e.niche.topPlayers?.length?`<div class="ab-aud-block"><strong>Top cuentas:</strong> ${e.niche.topPlayers.map(t=>`<span class="ab-tag">${a(t)}</span>`).join("")}</div>`:""}
-        ${e.niche.monetization?.length?`<div class="ab-aud-block"><strong>Monetizaci\xF3n:</strong> ${e.niche.monetization.map(t=>`<span class="ab-tag ab-tag-green">${a(t)}</span>`).join("")}</div>`:""}
+        <div class="ab-trends">${(d.niche.trends2026 || []).map((t) => `<span class="ab-trend">${escape(t)}</span>`).join('')}</div>
+        ${d.niche.topPlayers?.length ? `<div class="ab-aud-block"><strong>Top cuentas:</strong> ${d.niche.topPlayers.map((p) => `<span class="ab-tag">${escape(p)}</span>`).join('')}</div>` : ''}
+        ${d.niche.monetization?.length ? `<div class="ab-aud-block"><strong>Monetización:</strong> ${d.niche.monetization.map((p) => `<span class="ab-tag ab-tag-green">${escape(p)}</span>`).join('')}</div>` : ''}
       </div>
-    </details>`:""}
+    </details>`
+        : ''
+    }
 
-    ${o.length?`
+    ${
+      storytelling.length
+        ? `
     <details class="ab-section">
-      <summary>\u{1F3AC} Gui\xF3n Storytelling (reel/v\xEDdeo)</summary>
+      <summary>🎬 Guión Storytelling (reel/vídeo)</summary>
       <div class="ab-section-body">
-        ${o.map(t=>`<div class="ab-beat"><span class="ab-beat-label">${a(t.beat)} <em>${a(t.sec||"")}</em></span><span class="ab-beat-text">${a(t.text)}</span></div>`).join("")}
+        ${storytelling.map((b) => `<div class="ab-beat"><span class="ab-beat-label">${escape(b.beat)} <em>${escape(b.sec || '')}</em></span><span class="ab-beat-text">${escape(b.text)}</span></div>`).join('')}
       </div>
-    </details>`:""}
+    </details>`
+        : ''
+    }
 
-    ${e.copy?.frameworks?`
+    ${
+      d.copy?.frameworks
+        ? `
     <details class="ab-section">
-      <summary>\u270D\uFE0F Copywriting Persuasivo \u2014 PAS \xB7 AIDA \xB7 BAB</summary>
+      <summary>✍️ Copywriting Persuasivo — PAS · AIDA · BAB</summary>
       <div class="ab-section-body">
-        ${["PAS","AIDA","BAB"].map(t=>{const d=e.copy.frameworks[t];return d?`<div class="ab-fw-block">
-            <div class="ab-fw-name">${t}</div>
-            ${d.caption_completo?`<div class="ab-caption-block"><div class="ab-caption-fmt">${t} completo ${U(d.caption_completo)}</div><div class="ab-caption-text">${a(d.caption_completo)}</div></div>`:""}
+        ${['PAS', 'AIDA', 'BAB']
+          .map((fw) => {
+            const f = d.copy.frameworks[fw];
+            if (!f) return '';
+            return `<div class="ab-fw-block">
+            <div class="ab-fw-name">${fw}</div>
+            ${f.caption_completo ? `<div class="ab-caption-block"><div class="ab-caption-fmt">${fw} completo ${copyBtn(f.caption_completo)}</div><div class="ab-caption-text">${escape(f.caption_completo)}</div></div>` : ''}
             <div class="ab-fw-steps">
-              ${t==="PAS"&&d.problema?`<div class="ab-fw-step"><span class="ab-fw-step-label">P \u2014 Problema</span><span>${a(d.problema)}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">A \u2014 Agitaci\xF3n</span><span>${a(d.agitacion||"")}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">S \u2014 Soluci\xF3n</span><span>${a(d.solucion||"")}</span></div>`:""}
-              ${t==="AIDA"&&d.atencion?`<div class="ab-fw-step"><span class="ab-fw-step-label">A \u2014 Atenci\xF3n</span><span>${a(d.atencion)}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">I \u2014 Inter\xE9s</span><span>${a(d.interes||"")}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">D \u2014 Deseo</span><span>${a(d.deseo||"")}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">A \u2014 Acci\xF3n</span><span>${a(d.accion||"")}</span></div>`:""}
-              ${t==="BAB"&&d.antes?`<div class="ab-fw-step"><span class="ab-fw-step-label">B \u2014 Antes</span><span>${a(d.antes)}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">A \u2014 Despu\xE9s</span><span>${a(d.despues||"")}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">B \u2014 Puente</span><span>${a(d.puente||"")}</span></div>`:""}
+              ${fw === 'PAS' && f.problema ? `<div class="ab-fw-step"><span class="ab-fw-step-label">P — Problema</span><span>${escape(f.problema)}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">A — Agitación</span><span>${escape(f.agitacion || '')}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">S — Solución</span><span>${escape(f.solucion || '')}</span></div>` : ''}
+              ${fw === 'AIDA' && f.atencion ? `<div class="ab-fw-step"><span class="ab-fw-step-label">A — Atención</span><span>${escape(f.atencion)}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">I — Interés</span><span>${escape(f.interes || '')}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">D — Deseo</span><span>${escape(f.deseo || '')}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">A — Acción</span><span>${escape(f.accion || '')}</span></div>` : ''}
+              ${fw === 'BAB' && f.antes ? `<div class="ab-fw-step"><span class="ab-fw-step-label">B — Antes</span><span>${escape(f.antes)}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">A — Después</span><span>${escape(f.despues || '')}</span></div><div class="ab-fw-step"><span class="ab-fw-step-label">B — Puente</span><span>${escape(f.puente || '')}</span></div>` : ''}
             </div>
-          </div>`:""}).join("")}
-        ${e.copy.frameworks.headline_options?.length?`<div class="ab-caption-block"><div class="ab-caption-fmt">\u{1F3AF} Headlines ${U((e.copy.frameworks.headline_options||[]).join(`
-`))}</div><div class="ab-cta-list">${(e.copy.frameworks.headline_options||[]).map(t=>`<span class="ab-cta">${a(t)}</span>`).join("")}</div></div>`:""}
-        ${e.copy.frameworks.micro_ctas?.length?`<div class="ab-caption-block"><div class="ab-caption-fmt">\u26A1 Micro-CTAs ${U((e.copy.frameworks.micro_ctas||[]).join(`
-`))}</div><div class="ab-cta-list">${(e.copy.frameworks.micro_ctas||[]).map(t=>`<span class="ab-cta">${a(t)}</span>`).join("")}</div></div>`:""}
-        ${e.copy.frameworks.objeciones_y_respuestas?.length?`
+          </div>`;
+          })
+          .join('')}
+        ${d.copy.frameworks.headline_options?.length ? `<div class="ab-caption-block"><div class="ab-caption-fmt">🎯 Headlines ${copyBtn((d.copy.frameworks.headline_options || []).join('\n'))}</div><div class="ab-cta-list">${(d.copy.frameworks.headline_options || []).map((h) => `<span class="ab-cta">${escape(h)}</span>`).join('')}</div></div>` : ''}
+        ${d.copy.frameworks.micro_ctas?.length ? `<div class="ab-caption-block"><div class="ab-caption-fmt">⚡ Micro-CTAs ${copyBtn((d.copy.frameworks.micro_ctas || []).join('\n'))}</div><div class="ab-cta-list">${(d.copy.frameworks.micro_ctas || []).map((c) => `<span class="ab-cta">${escape(c)}</span>`).join('')}</div></div>` : ''}
+        ${
+          d.copy.frameworks.objeciones_y_respuestas?.length
+            ? `
         <div class="ab-caption-block">
-          <div class="ab-caption-fmt">\u{1F6E1}\uFE0F Objeciones + respuestas</div>
-          ${(e.copy.frameworks.objeciones_y_respuestas||[]).map(t=>`<div class="ab-fw-step"><span class="ab-fw-step-label ab-obj">\u275D ${a(t.objecion)}</span><span class="ab-obj-flip">\u2192 ${a(t.flip)}</span></div>`).join("")}
-        </div>`:""}
+          <div class="ab-caption-fmt">🛡️ Objeciones + respuestas</div>
+          ${(d.copy.frameworks.objeciones_y_respuestas || []).map((o) => `<div class="ab-fw-step"><span class="ab-fw-step-label ab-obj">❝ ${escape(o.objecion)}</span><span class="ab-obj-flip">→ ${escape(o.flip)}</span></div>`).join('')}
+        </div>`
+            : ''
+        }
       </div>
-    </details>`:""}
+    </details>`
+        : ''
+    }
 
-    ${e.copy?.contentPillars?.length?`
+    ${
+      d.copy?.contentPillars?.length
+        ? `
     <details class="ab-section">
-      <summary>\u{1F3DB}\uFE0F Pilares de Contenido de tu Nicho</summary>
+      <summary>🏛️ Pilares de Contenido de tu Nicho</summary>
       <div class="ab-section-body">
-        ${(e.copy.contentPillars||[]).map(t=>`
+        ${(d.copy.contentPillars || [])
+          .map(
+            (p) => `
           <div class="ab-pillar">
-            <div class="ab-pillar-name">${a(t.pillar)} <span class="ab-tag">${a(t.format||"")}</span></div>
-            <div class="ab-pillar-sub">${(t.sub||[]).map(d=>`<span class="ab-tag ab-tag-blue">${a(d)}</span>`).join("")}</div>
-          </div>`).join("")}
-        <div class="ab-ht-strategy">${a(e.copy.funnel?.regla||"80/20 \u2014 80% valor, 20% pitch")}</div>
+            <div class="ab-pillar-name">${escape(p.pillar)} <span class="ab-tag">${escape(p.format || '')}</span></div>
+            <div class="ab-pillar-sub">${(p.sub || []).map((s) => `<span class="ab-tag ab-tag-blue">${escape(s)}</span>`).join('')}</div>
+          </div>`,
+          )
+          .join('')}
+        <div class="ab-ht-strategy">${escape(d.copy.funnel?.regla || '80/20 — 80% valor, 20% pitch')}</div>
       </div>
-    </details>`:""}
+    </details>`
+        : ''
+    }
 
-    ${e.copy?.contentPlan?.serie_educativa?`
+    ${
+      d.copy?.contentPlan?.serie_educativa
+        ? `
     <details class="ab-section">
-      <summary>\u{1F4DA} Serie de Contenido Educativo + Entretenimiento</summary>
+      <summary>📚 Serie de Contenido Educativo + Entretenimiento</summary>
       <div class="ab-section-body">
         <div class="ab-caption-block">
-          <div class="ab-caption-fmt">\u{1F4FA} ${a(e.copy.contentPlan.serie_educativa.nombre||"")}</div>
-          <div class="ab-caption-text">${a(e.copy.contentPlan.serie_educativa.descripcion||"")}</div>
+          <div class="ab-caption-fmt">📺 ${escape(d.copy.contentPlan.serie_educativa.nombre || '')}</div>
+          <div class="ab-caption-text">${escape(d.copy.contentPlan.serie_educativa.descripcion || '')}</div>
           <div class="ab-week" style="margin-top:8px;">
-            ${(e.copy.contentPlan.serie_educativa.episodios||[]).map(t=>`
+            ${(d.copy.contentPlan.serie_educativa.episodios || [])
+              .map(
+                (ep) => `
               <div class="ab-week-row">
-                <span class="ab-week-day">Ep ${t.n}</span>
-                <span class="ab-week-fmt">${a(t.formato||"")}</span>
-                <span class="ab-week-angle">${a(t.titulo||"")} \u2014 ${a(t.idea||"")}</span>
-              </div>`).join("")}
+                <span class="ab-week-day">Ep ${ep.n}</span>
+                <span class="ab-week-fmt">${escape(ep.formato || '')}</span>
+                <span class="ab-week-angle">${escape(ep.titulo || '')} — ${escape(ep.idea || '')}</span>
+              </div>`,
+              )
+              .join('')}
           </div>
         </div>
-        ${e.copy.contentPlan.contenido_educativo?.length?`<div class="ab-aud-block" style="flex-direction:column;gap:5px;"><strong>Educativo:</strong>${(e.copy.contentPlan.contenido_educativo||[]).map(t=>`<div class="ab-fw-step"><span class="ab-fw-step-label">${a(t.tipo)}</span><span>${a(t.titulo)} \u2014 ${a(t.descripcion)}</span></div>`).join("")}</div>`:""}
-        ${e.copy.contentPlan.contenido_entretenimiento?.length?`<div class="ab-aud-block" style="flex-direction:column;gap:5px;"><strong>Entretenimiento:</strong>${(e.copy.contentPlan.contenido_entretenimiento||[]).map(t=>`<div class="ab-fw-step"><span class="ab-fw-step-label">${a(t.tipo)}</span><span>${a(t.titulo)} \u2014 ${a(t.descripcion)}</span></div>`).join("")}</div>`:""}
-        ${e.copy.contentPlan.lead_magnet_sugerido?`<div class="ab-caption-block"><div class="ab-caption-fmt">\u{1F381} Lead Magnet</div><div class="ab-caption-text"><strong>${a(e.copy.contentPlan.lead_magnet_sugerido.nombre||"")}</strong> (${a(e.copy.contentPlan.lead_magnet_sugerido.formato||"")}) \u2014 ${a(e.copy.contentPlan.lead_magnet_sugerido.promesa||"")}</div></div>`:""}
-        ${e.copy.contentPlan.angulo_diferencial?`<div class="ab-aud-angle">\u{1F3AF} \xC1ngulo diferencial: ${a(e.copy.contentPlan.angulo_diferencial)}</div>`:""}
+        ${d.copy.contentPlan.contenido_educativo?.length ? `<div class="ab-aud-block" style="flex-direction:column;gap:5px;"><strong>Educativo:</strong>${(d.copy.contentPlan.contenido_educativo || []).map((c) => `<div class="ab-fw-step"><span class="ab-fw-step-label">${escape(c.tipo)}</span><span>${escape(c.titulo)} — ${escape(c.descripcion)}</span></div>`).join('')}</div>` : ''}
+        ${d.copy.contentPlan.contenido_entretenimiento?.length ? `<div class="ab-aud-block" style="flex-direction:column;gap:5px;"><strong>Entretenimiento:</strong>${(d.copy.contentPlan.contenido_entretenimiento || []).map((c) => `<div class="ab-fw-step"><span class="ab-fw-step-label">${escape(c.tipo)}</span><span>${escape(c.titulo)} — ${escape(c.descripcion)}</span></div>`).join('')}</div>` : ''}
+        ${d.copy.contentPlan.lead_magnet_sugerido ? `<div class="ab-caption-block"><div class="ab-caption-fmt">🎁 Lead Magnet</div><div class="ab-caption-text"><strong>${escape(d.copy.contentPlan.lead_magnet_sugerido.nombre || '')}</strong> (${escape(d.copy.contentPlan.lead_magnet_sugerido.formato || '')}) — ${escape(d.copy.contentPlan.lead_magnet_sugerido.promesa || '')}</div></div>` : ''}
+        ${d.copy.contentPlan.angulo_diferencial ? `<div class="ab-aud-angle">🎯 Ángulo diferencial: ${escape(d.copy.contentPlan.angulo_diferencial)}</div>` : ''}
       </div>
-    </details>`:""}
+    </details>`
+        : ''
+    }
 
-    ${e.copy?.funnel?.stages?.length?`
+    ${
+      d.copy?.funnel?.stages?.length
+        ? `
     <details class="ab-section">
-      <summary>\u{1F53B} Embudo de Contenido (Awareness \u2192 Conversion)</summary>
+      <summary>🔻 Embudo de Contenido (Awareness → Conversion)</summary>
       <div class="ab-section-body">
-        ${(e.copy.funnel.stages||[]).map(t=>`
+        ${(d.copy.funnel.stages || [])
+          .map(
+            (s) => `
           <div class="ab-pillar">
-            <div class="ab-pillar-name">${a(t.stage)} <span class="ab-tag">${a(t.ratio||"")}</span></div>
-            <div class="ab-pillar-sub" style="margin-bottom:4px;">${(t.content||[]).map(d=>`<span class="ab-tag">${a(d)}</span>`).join("")}</div>
-            <div style="font-size:11px;color:var(--text-tertiary,var(--fg-3));">KPIs: ${(t.kpis||[]).join(" \xB7 ")}</div>
-          </div>`).join("")}
-        <div class="ab-aud-angle">Mezcla recomendada \u2192 ${Object.entries(e.copy.funnel.mixRecommendado||{}).map(([t,d])=>`${t}: ${d}`).join(" \xB7 ")}</div>
+            <div class="ab-pillar-name">${escape(s.stage)} <span class="ab-tag">${escape(s.ratio || '')}</span></div>
+            <div class="ab-pillar-sub" style="margin-bottom:4px;">${(s.content || []).map((c) => `<span class="ab-tag">${escape(c)}</span>`).join('')}</div>
+            <div style="font-size:11px;color:var(--text-tertiary,var(--fg-3));">KPIs: ${(s.kpis || []).join(' · ')}</div>
+          </div>`,
+          )
+          .join('')}
+        <div class="ab-aud-angle">Mezcla recomendada → ${Object.entries(d.copy.funnel.mixRecommendado || {})
+          .map(([k, v]) => `${k}: ${v}`)
+          .join(' · ')}</div>
       </div>
-    </details>`:""}
+    </details>`
+        : ''
+    }
 
-    ${e.copy?.rules?.length?`
+    ${
+      d.copy?.rules?.length
+        ? `
     <details class="ab-section">
-      <summary>\u{1F4CF} Reglas de Oro del Copy</summary>
+      <summary>📏 Reglas de Oro del Copy</summary>
       <div class="ab-section-body">
-        ${(e.copy.rules||[]).map(t=>`<div class="ab-fw-step" style="border-color:#a855f730"><span class="ab-fw-step-label" style="color:#a855f7">\u2713</span><span>${a(t)}</span></div>`).join("")}
+        ${(d.copy.rules || []).map((r) => `<div class="ab-fw-step" style="border-color:#a855f730"><span class="ab-fw-step-label" style="color:#a855f7">✓</span><span>${escape(r)}</span></div>`).join('')}
       </div>
-    </details>`:""}
+    </details>`
+        : ''
+    }
 
-    ${e.andromeda?.featured?.length?`
+    ${
+      d.andromeda?.featured?.length
+        ? `
     <details class="ab-section">
-      <summary>\u{1F30C} Andr\xF3meda \u2014 Matriz Creativa (${e.andromeda.total||0} combinaciones \xFAnicas)</summary>
+      <summary>🌌 Andrómeda — Matriz Creativa (${d.andromeda.total || 0} combinaciones únicas)</summary>
       <div class="ab-section-body">
-        <div class="and-insight">${a(e.andromeda.insight||"")}</div>
+        <div class="and-insight">${escape(d.andromeda.insight || '')}</div>
 
-        <div class="and-featured-title">\u2B50 Top combinaciones para objetivo "${a(e.andromeda.goal||"")}"</div>
-        ${(e.andromeda.featured||[]).map((t,d)=>`
-        <div class="and-combo${d===0?" and-combo-top":""}">
+        <div class="and-featured-title">⭐ Top combinaciones para objetivo "${escape(d.andromeda.goal || '')}"</div>
+        ${(d.andromeda.featured || [])
+          .map(
+            (c, i) => `
+        <div class="and-combo${i === 0 ? ' and-combo-top' : ''}">
           <div class="and-combo-header">
-            <span class="and-angle">${a(t.angle)}</span>
-            <span class="and-sep">\xD7</span>
-            <span class="and-persona">${a(t.persona)}</span>
-            <span class="and-sep">\xD7</span>
-            <span class="and-format">${a(t.format)}</span>
-            ${d===0?'<span class="ab-badge">\u2605 BEST</span>':""}
+            <span class="and-angle">${escape(c.angle)}</span>
+            <span class="and-sep">×</span>
+            <span class="and-persona">${escape(c.persona)}</span>
+            <span class="and-sep">×</span>
+            <span class="and-format">${escape(c.format)}</span>
+            ${i === 0 ? '<span class="ab-badge">★ BEST</span>' : ''}
           </div>
           <div class="and-meta">
-            <span class="ab-tag">Awareness: ${a(t.awareness)}</span>
-            <span class="ab-tag">Estado: ${a(t.emotionalState)}</span>
-            <span class="ab-tag and-conv">Conversi\xF3n: ${a(t.conversionPotential||"")}</span>
+            <span class="ab-tag">Awareness: ${escape(c.awareness)}</span>
+            <span class="ab-tag">Estado: ${escape(c.emotionalState)}</span>
+            <span class="ab-tag and-conv">Conversión: ${escape(c.conversionPotential || '')}</span>
           </div>
-          ${t.hook_final||t.hook?`<div class="and-hook">"${a(t.hook_final||t.hook)}" ${U(t.hook_final||t.hook)}</div>`:""}
-          ${t.copy_body?`<div class="and-body">${a(t.copy_body)}</div>`:""}
+          ${c.hook_final || c.hook ? `<div class="and-hook">"${escape(c.hook_final || c.hook)}" ${copyBtn(c.hook_final || c.hook)}</div>` : ''}
+          ${c.copy_body ? `<div class="and-body">${escape(c.copy_body)}</div>` : ''}
           <div class="and-details">
-            <span><strong>Dolor:</strong> ${a(t.painAddressed||"")}</span>
-            <span><strong>Trigger:</strong> ${a(t.triggerUsed||"")}</span>
+            <span><strong>Dolor:</strong> ${escape(c.painAddressed || '')}</span>
+            <span><strong>Trigger:</strong> ${escape(c.triggerUsed || '')}</span>
           </div>
           <div class="and-cta">
-            <strong>CTA:</strong> ${a(t.cta_final||t.cta||"")} ${U(t.cta_final||t.cta||"")}
+            <strong>CTA:</strong> ${escape(c.cta_final || c.cta || '')} ${copyBtn(c.cta_final || c.cta || '')}
           </div>
-          ${t.why_this_works?`<div class="and-why">\u{1F4A1} ${a(t.why_this_works)}</div>`:""}
-          ${t.formatHook?`<div class="and-fmt-hint">\u{1F4F9} Formato tip: ${a(t.formatHook)}</div>`:""}
-        </div>`).join("")}
+          ${c.why_this_works ? `<div class="and-why">💡 ${escape(c.why_this_works)}</div>` : ''}
+          ${c.formatHook ? `<div class="and-fmt-hint">📹 Formato tip: ${escape(c.formatHook)}</div>` : ''}
+        </div>`,
+          )
+          .join('')}
 
-        ${e.andromeda.extras?.length?`
+        ${
+          d.andromeda.extras?.length
+            ? `
         <details class="and-extras">
-          <summary>+ ${e.andromeda.extras.length} combinaciones extra (sin expandir)</summary>
+          <summary>+ ${d.andromeda.extras.length} combinaciones extra (sin expandir)</summary>
           <div class="and-extras-grid">
-            ${(e.andromeda.extras||[]).map(t=>`
+            ${(d.andromeda.extras || [])
+              .map(
+                (c) => `
             <div class="and-extra-pill">
-              <span class="and-angle-sm">${a(t.angle)}</span>
-              <span class="and-sep">\xD7</span>
-              <span class="and-persona-sm">${a(t.persona)}</span>
-              <span class="and-sep">\xD7</span>
-              <span class="and-format-sm">${a(t.format)}</span>
-            </div>`).join("")}
+              <span class="and-angle-sm">${escape(c.angle)}</span>
+              <span class="and-sep">×</span>
+              <span class="and-persona-sm">${escape(c.persona)}</span>
+              <span class="and-sep">×</span>
+              <span class="and-format-sm">${escape(c.format)}</span>
+            </div>`,
+              )
+              .join('')}
           </div>
-        </details>`:""}
+        </details>`
+            : ''
+        }
 
         <details class="and-extras" style="margin-top:8px;">
-          <summary>\u{1F4D6} Ver todos los \xE1ngulos disponibles (${e.andromeda.allAngles?.length||0})</summary>
+          <summary>📖 Ver todos los ángulos disponibles (${d.andromeda.allAngles?.length || 0})</summary>
           <div class="and-angles-grid">
-            ${(e.andromeda.allAngles||[]).map(t=>`
+            ${(d.andromeda.allAngles || [])
+              .map(
+                (a) => `
             <div class="and-angle-card">
-              <div class="and-angle-name">${a(t.name)}</div>
-              <div class="and-angle-desc">${a(t.desc)}</div>
-              <div class="ab-pillar-sub">${(t.tags||[]).map(d=>`<span class="ab-tag">${a(d)}</span>`).join("")}</div>
-            </div>`).join("")}
+              <div class="and-angle-name">${escape(a.name)}</div>
+              <div class="and-angle-desc">${escape(a.desc)}</div>
+              <div class="ab-pillar-sub">${(a.tags || []).map((t) => `<span class="ab-tag">${escape(t)}</span>`).join('')}</div>
+            </div>`,
+              )
+              .join('')}
           </div>
         </details>
 
         <details class="and-extras" style="margin-top:8px;">
-          <summary>\u{1F465} Ver todas las Buyer Personas (${e.andromeda.allPersonas?.length||0})</summary>
+          <summary>👥 Ver todas las Buyer Personas (${d.andromeda.allPersonas?.length || 0})</summary>
           <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
-            ${(e.andromeda.allPersonas||[]).map(t=>`
+            ${(d.andromeda.allPersonas || [])
+              .map(
+                (p) => `
             <div class="and-persona-card">
-              <div class="and-angle-name">${a(t.name)} <span class="ab-tag">Awareness: ${a(t.awareness)}</span> <span class="ab-tag and-conv">Conv: ${a(t.conversion)}</span></div>
-              <div class="ab-pillar-sub" style="margin-top:4px;">${(t.pains||[]).map(d=>`<span class="ab-tag ab-tag-blue">${a(d)}</span>`).join("")}</div>
-              <div class="and-cta" style="margin-top:4px;"><strong>CTA ideal:</strong> ${a(t.ctaStyle)}</div>
-            </div>`).join("")}
+              <div class="and-angle-name">${escape(p.name)} <span class="ab-tag">Awareness: ${escape(p.awareness)}</span> <span class="ab-tag and-conv">Conv: ${escape(p.conversion)}</span></div>
+              <div class="ab-pillar-sub" style="margin-top:4px;">${(p.pains || []).map((pain) => `<span class="ab-tag ab-tag-blue">${escape(pain)}</span>`).join('')}</div>
+              <div class="and-cta" style="margin-top:4px;"><strong>CTA ideal:</strong> ${escape(p.ctaStyle)}</div>
+            </div>`,
+              )
+              .join('')}
           </div>
         </details>
       </div>
-    </details>`:""}
+    </details>`
+        : ''
+    }
 
-    ${e.timing?`
+    ${
+      d.timing
+        ? `
     <details class="ab-section">
-      <summary>\u23F0 Mejores horarios de publicaci\xF3n</summary>
+      <summary>⏰ Mejores horarios de publicación</summary>
       <div class="ab-section-body">
         <div class="ab-timing">
-          <span><strong>Horarios:</strong> ${(e.timing.best||[]).join(" \xB7 ")}</span>
-          <span><strong>D\xEDas:</strong> ${(e.timing.days||[]).join(", ")}</span>
-          <span><strong>Cadencia:</strong> ${e.timing.cadence||""}</span>
+          <span><strong>Horarios:</strong> ${(d.timing.best || []).join(' · ')}</span>
+          <span><strong>Días:</strong> ${(d.timing.days || []).join(', ')}</span>
+          <span><strong>Cadencia:</strong> ${d.timing.cadence || ''}</span>
         </div>
       </div>
-    </details>`:""}
+    </details>`
+        : ''
+    }
 
-    ${xe(e.canvasSpecs,e._meta?.platform)}
+    ${renderCanvasSpecs(d.canvasSpecs, d._meta?.platform)}
 
-    ${e.carouselRules?`
+    ${
+      d.carouselRules
+        ? `
     <details class="ab-section">
-      <summary>\u{1F3AF} Carrusel Viral \u2014 Qu\xE9 hacer vs Qu\xE9 NO</summary>
+      <summary>🎯 Carrusel Viral — Qué hacer vs Qué NO</summary>
       <div class="ab-section-body">
         <div class="cr-cols">
           <div class="cr-col cr-do">
-            <div class="cr-col-title">\u2705 VIRAL</div>
-            ${(e.carouselRules.dos||[]).map(t=>`<div class="cr-item"><span class="cr-head">${a(t.do)}</span><span class="cr-why">${a(t.why)}</span></div>`).join("")}
+            <div class="cr-col-title">✅ VIRAL</div>
+            ${(d.carouselRules.dos || []).map((r) => `<div class="cr-item"><span class="cr-head">${escape(r.do)}</span><span class="cr-why">${escape(r.why)}</span></div>`).join('')}
           </div>
           <div class="cr-col cr-dont">
-            <div class="cr-col-title">\u274C P\xC9SIMO</div>
-            ${(e.carouselRules.donts||[]).map(t=>`<div class="cr-item"><span class="cr-head">${a(t.dont)}</span><span class="cr-why">${a(t.why)}</span></div>`).join("")}
+            <div class="cr-col-title">❌ PÉSIMO</div>
+            ${(d.carouselRules.donts || []).map((r) => `<div class="cr-item"><span class="cr-head">${escape(r.dont)}</span><span class="cr-why">${escape(r.why)}</span></div>`).join('')}
           </div>
         </div>
-        <div class="cr-format-title">\u{1F4D0} Formato validado de ${(e.carouselRules.validatedFormat||[]).length} slides</div>
+        <div class="cr-format-title">📐 Formato validado de ${(d.carouselRules.validatedFormat || []).length} slides</div>
         <div class="cr-slides">
-          ${(e.carouselRules.validatedFormat||[]).map(t=>`
-            <div class="cr-slide cr-role-${a(t.role)}">
-              <span class="cr-slide-n">${t.slide}</span>
-              <span class="cr-slide-purpose">${a(t.purpose)}</span>
-              <span class="cr-slide-w">${a(t.textWeight)}</span>
-            </div>`).join("")}
+          ${(d.carouselRules.validatedFormat || [])
+            .map(
+              (s) => `
+            <div class="cr-slide cr-role-${escape(s.role)}">
+              <span class="cr-slide-n">${s.slide}</span>
+              <span class="cr-slide-purpose">${escape(s.purpose)}</span>
+              <span class="cr-slide-w">${escape(s.textWeight)}</span>
+            </div>`,
+            )
+            .join('')}
         </div>
-        ${e.carouselRules.dimensions?`<div class="ab-aud-angle">\u{1F4CF} ${a(e.carouselRules.dimensions.note||"")} Recomendado: ${e.carouselRules.dimensions.recommended.w}\xD7${e.carouselRules.dimensions.recommended.h} (${a(e.carouselRules.dimensions.recommended.aspect)})</div>`:""}
+        ${d.carouselRules.dimensions ? `<div class="ab-aud-angle">📏 ${escape(d.carouselRules.dimensions.note || '')} Recomendado: ${d.carouselRules.dimensions.recommended.w}×${d.carouselRules.dimensions.recommended.h} (${escape(d.carouselRules.dimensions.recommended.aspect)})</div>` : ''}
       </div>
-    </details>`:""}
+    </details>`
+        : ''
+    }
 
     </div>
   </details>
@@ -934,7 +1669,7 @@ import{apiSafe as oe}from"../lib/api.js";import{escape as a}from"../lib/dom.js";
     .ab-pillar{padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg,#0a0a0a);}
     .ab-pillar-name{font-size:13.5px;font-weight:800;color:var(--text-primary,var(--fg));margin-bottom:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
     .ab-pillar-sub{display:flex;flex-wrap:wrap;gap:5px;}
-    /* Andr\xF3meda */
+    /* Andrómeda */
     .and-insight{font-size:12px;color:var(--text-secondary,var(--fg-2));background:var(--bg,#0a0a0a);padding:8px 10px;border-radius:8px;border-left:3px solid #a855f7;margin-bottom:10px;}
     .and-featured-title{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#a855f7;margin-bottom:8px;}
     .and-combo{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--bg,#0a0a0a);display:flex;flex-direction:column;gap:6px;}
@@ -999,18 +1734,300 @@ import{apiSafe as oe}from"../lib/api.js";import{escape as a}from"../lib/dom.js";
     .cr-slide-n{font-weight:900;color:#a855f7;text-align:center;}
     .cr-slide-purpose{color:var(--text-primary,var(--fg));}
     .cr-slide-w{font-size:9.5px;font-weight:800;color:var(--text-tertiary,var(--fg-3));text-align:right;}
-  </style>`},ye=(e,u)=>{e.querySelectorAll(".bj-ig-tab").forEach(n=>{n.addEventListener("click",()=>{const y=n.dataset.tab;e.querySelectorAll(".bj-ig-tab").forEach(h=>h.classList.toggle("active",h===n)),e.querySelectorAll(".bj-ig-tab-panel").forEach(h=>{h.hidden=h.id!==`bj-ig-${y}`})})});const i=n=>e.querySelectorAll(n).forEach(y=>{y.addEventListener("click",async()=>{const h=y.dataset.copy||"";try{await navigator.clipboard.writeText(h),B("\u{1F4CB} Copiado","ok")}catch{B("No se pudo copiar","warn")}})});i(".bj-copy-btn"),i(".ab-copy"),e.querySelectorAll(".bj-auto-action").forEach(n=>{n.addEventListener("click",async()=>{const y=n.dataset.route,h=n.dataset.endpoint;if(y){window.location.hash=`#${y}`;return}if(h){n.disabled=!0;const o=q||"";try{const t=h.includes("hashtags")?{topic:o,format:R?.recommendedFormat?.format||"carrusel",hook:o}:h.includes("ab-tests")?{topic:o,contentType:R?.recommendedFormat?.format||"carrusel",variantCount:2}:{},z=await(await fetch(h,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(t)})).json().catch(()=>({}));if(h.includes("hashtags")&&z.total){try{await navigator.clipboard.writeText(z.total.join(" "))}catch{}B(`\u2705 ${z.total.length} hashtags copiados`,"ok")}else B("\u2705 Listo","ok")}catch{B("Error al ejecutar acci\xF3n","err")}n.disabled=!1}})});const k=e.querySelector("#bj-recalc");k&&k.addEventListener("click",()=>{R=null,ee=null,ie(e,u)});const m=e.querySelector("#bj-forge");m&&m.addEventListener("click",async()=>{if(!q){B("Escrib\xED un tema primero","warn");return}m.disabled=!0,m.textContent="\u2728 Generando contenido...";try{const y={reels:"reel",stories:"story",video:"reel",photo:"carousel",carousel:"carousel",feed:"carousel"}[R?.recommendedFormat?.format]||"carousel",h=await fetch("/api/forge/content",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"include",body:JSON.stringify({format:y,topic:q,platform:u,goal:N})});if(!h.ok){const z=await h.json().catch(()=>({}));B(z.error==="quota-exceeded"?"Llegaste al l\xEDmite \u2014 upgrade en /pricing":z.message||"Fall\xF3 generaci\xF3n","err"),m.disabled=!1,m.textContent="\u2728 Generar contenido completo";return}const o=await h.json();ee=o.prediction,B(`\u2705 Contenido generado \xB7 Score viral ${o.prediction.viralScore}/100`,"ok");const t=e.querySelector("#bj-pred-overlay");t&&t.remove(),e.insertAdjacentHTML("beforeend",te(o.prediction));const d=e.querySelector("#bj-pred-overlay");d?.querySelector("#bj-pred-close")?.addEventListener("click",()=>d.remove()),m.disabled=!1,m.textContent="\u2728 Generar otro"}catch{B("Error de red","err"),m.disabled=!1,m.textContent="\u2728 Generar contenido completo"}});const w=e.querySelector("#bj-predict");w&&w.addEventListener("click",async()=>{const n=R?.predictions;if(n){ee=n;const d=e.querySelector("#bj-pred-overlay");d&&d.remove(),e.insertAdjacentHTML("beforeend",te(n));const z=e.querySelector("#bj-pred-overlay");z?.querySelector("#bj-pred-close")?.addEventListener("click",()=>z.remove());return}if(!R?.topHook)return;const y=await fetch("/api/predict/virality",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({hook:R.topHook.hook,caption:`${R.topHook.hook}
+  </style>`;
+};
 
-${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#viral","#tips",`#${q.replace(/\s+/g,"")}`],format:R.recommendedFormat.format==="reels"?"reels":R.recommendedFormat.format,platform:u,thumbnail:{hasFace:!0,hasText:!0,highContrast:!0,brightColors:!0}})});if(!y.ok)return;const h=await y.json();ee=h;const o=e.querySelector("#bj-pred-overlay");o&&o.remove(),e.insertAdjacentHTML("beforeend",te(h));const t=e.querySelector("#bj-pred-overlay");t?.querySelector("#bj-pred-close")?.addEventListener("click",()=>t.remove())})},se={instagram:["\u{1F4F8} Agente Instagram analizando algoritmo IG\u2026","\u{1F3A3} Generando hooks para saves + shares\u2026","\u23F0 Calculando ventanas \xF3ptimas de publicaci\xF3n\u2026","\u{1F9E0} Enriqueciendo con IA especialista Instagram\u2026","\u{1F4CA} Corriendo modelos predictivos (Monte Carlo)\u2026","\u{1F3AF} Calculando score de viralidad y an\xE1lisis honesto\u2026"],tiktok:["\u{1F3B5} Agente TikTok analizando se\xF1ales FYP\u2026","\u{1F3A3} Generando hooks para completion rate m\xE1ximo\u2026","\u{1F50A} Evaluando formatos trending y audio\u2026","\u{1F9E0} Enriqueciendo con IA especialista TikTok\u2026","\u{1F4CA} Simulando distribuci\xF3n FYP (alta varianza)\u2026","\u{1F3AF} Calculando probabilidad real de viralidad\u2026"]},ie=async(e,u)=>{const i=e.querySelector("#bj-result-host");if(!i)return;const k=se[u]||se.instagram;let m=0;i.innerHTML=`<div class="bj-loading"><span class="spinner lg"></span><span id="bj-load-msg">${k[0]}</span></div>`;const w=setInterval(()=>{m=(m+1)%k.length;const n=e.querySelector("#bj-load-msg");n&&(n.textContent=k[m])},1200);try{const y=(await oe("/api/brand",null)).data||{},h=await fetch("/api/brujula/plan",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:q||"tu producto",platform:u,goal:N,brandNiche:X||y.niche||"",brandVoice:y.voice||"cercano",brandType:Z||"personal",accountId:Q||""})});if(clearInterval(w),!h.ok){i.innerHTML='<div class="bj-warning">Error generando plan. Reintent\xE1.</div>';return}R=await h.json(),i.innerHTML=ve(R,u),ye(e,u);const t=(await oe("/api/brand",null).catch(()=>({data:{}}))).data||{};fetch("/api/agency/brain/run",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({topic:q||"tu producto",platform:u,goal:N,niche:X||t.niche||R?._debug?.niche||"",brandVoice:t.voice||"",briefSnippet:R?.briefText||"",accountId:Q||""})}).then(d=>d.json()).then(d=>{const z=e.querySelector("#bj-agency-host");z&&(z.innerHTML=he(d),z.querySelectorAll(".ab-copy").forEach(I=>{I.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(I.dataset.copy||""),B("\u{1F4CB} Copiado","ok")}catch{B("No se pudo copiar","warn")}})}))}).catch(()=>{const d=e.querySelector("#bj-agency-host");d&&(d.innerHTML="")})}catch{clearInterval(w),i.innerHTML='<div class="bj-warning">Error de red. Reintent\xE1.</div>'}},je=()=>`
+const wireResultEvents = (root, platform) => {
+  // Instagram format tabs
+  root.querySelectorAll('.bj-ig-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      root.querySelectorAll('.bj-ig-tab').forEach((t) => t.classList.toggle('active', t === tab));
+      root.querySelectorAll('.bj-ig-tab-panel').forEach((p) => {
+        p.hidden = p.id !== `bj-ig-${target}`;
+      });
+    });
+  });
+
+  // Copy buttons (brujula plan + agency brain)
+  const wireCopy = (selector) =>
+    root.querySelectorAll(selector).forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const txt = btn.dataset.copy || '';
+        try {
+          await navigator.clipboard.writeText(txt);
+          toast('📋 Copiado', 'ok');
+        } catch {
+          toast('No se pudo copiar', 'warn');
+        }
+      });
+    });
+  wireCopy('.bj-copy-btn');
+  wireCopy('.ab-copy');
+
+  // Auto-action chips (navigate or API call)
+  root.querySelectorAll('.bj-auto-action').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const route = btn.dataset.route;
+      const endpoint = btn.dataset.endpoint;
+      if (route) {
+        window.location.hash = `#${route}`;
+        return;
+      }
+      if (endpoint) {
+        btn.disabled = true;
+        const topic = activeTopic || '';
+        try {
+          const body = endpoint.includes('hashtags')
+            ? { topic, format: cachedPlan?.recommendedFormat?.format || 'carrusel', hook: topic }
+            : endpoint.includes('ab-tests')
+              ? { topic, contentType: cachedPlan?.recommendedFormat?.format || 'carrusel', variantCount: 2 }
+              : {};
+          const r = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          const data = await r.json().catch(() => ({}));
+          if (endpoint.includes('hashtags') && data.total) {
+            try {
+              await navigator.clipboard.writeText(data.total.join(' '));
+            } catch {
+              /* noop */
+            }
+            toast(`✅ ${data.total.length} hashtags copiados`, 'ok');
+          } else {
+            toast('✅ Listo', 'ok');
+          }
+        } catch {
+          toast('Error al ejecutar acción', 'err');
+        }
+        btn.disabled = false;
+      }
+    });
+  });
+
+  const recalc = root.querySelector('#bj-recalc');
+  if (recalc)
+    recalc.addEventListener('click', () => {
+      cachedPlan = null;
+      cachedPrediction = null;
+      void compute(root, platform);
+    });
+
+  const forge = root.querySelector('#bj-forge');
+  if (forge)
+    forge.addEventListener('click', async () => {
+      if (!activeTopic) {
+        toast('Escribí un tema primero', 'warn');
+        return;
+      }
+      forge.disabled = true;
+      forge.textContent = '✨ Generando contenido...';
+      try {
+        const fmtMap = {
+          reels: 'reel',
+          stories: 'story',
+          video: 'reel',
+          photo: 'carousel',
+          carousel: 'carousel',
+          feed: 'carousel',
+        };
+        const format = fmtMap[cachedPlan?.recommendedFormat?.format] || 'carousel';
+        const r = await fetch('/api/forge/content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ format, topic: activeTopic, platform, goal: activeGoal }),
+        });
+        if (!r.ok) {
+          const data = await r.json().catch(() => ({}));
+          toast(
+            data.error === 'quota-exceeded'
+              ? 'Llegaste al límite — upgrade en /pricing'
+              : data.message || 'Falló generación',
+            'err',
+          );
+          forge.disabled = false;
+          forge.textContent = '✨ Generar contenido completo';
+          return;
+        }
+        const data = await r.json();
+        cachedPrediction = data.prediction;
+        toast(`✅ Contenido generado · Score viral ${data.prediction.viralScore}/100`, 'ok');
+        // Inyectar prediction detail
+        const existing = root.querySelector('#bj-pred-overlay');
+        if (existing) existing.remove();
+        root.insertAdjacentHTML('beforeend', renderPredictionDetail(data.prediction));
+        const overlay = root.querySelector('#bj-pred-overlay');
+        overlay?.querySelector('#bj-pred-close')?.addEventListener('click', () => overlay.remove());
+        forge.disabled = false;
+        forge.textContent = '✨ Generar otro';
+      } catch (err) {
+        toast('Error de red', 'err');
+        forge.disabled = false;
+        forge.textContent = '✨ Generar contenido completo';
+      }
+    });
+
+  const predBtn = root.querySelector('#bj-predict');
+  if (predBtn)
+    predBtn.addEventListener('click', async () => {
+      // Prefer inline predictions already computed by brujula plan endpoint
+      const pred = cachedPlan?.predictions;
+      if (pred) {
+        cachedPrediction = pred;
+        const existing = root.querySelector('#bj-pred-overlay');
+        if (existing) existing.remove();
+        root.insertAdjacentHTML('beforeend', renderPredictionDetail(pred));
+        const overlay = root.querySelector('#bj-pred-overlay');
+        overlay?.querySelector('#bj-pred-close')?.addEventListener('click', () => overlay.remove());
+        return;
+      }
+      // Fallback: call API directly if predictions not in plan
+      if (!cachedPlan?.topHook) return;
+      const r = await fetch('/api/predict/virality', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hook: cachedPlan.topHook.hook,
+          caption: `${cachedPlan.topHook.hook}\n\n${cachedPlan.ctaLadder[0] || ''}`,
+          hashtags: [
+            '#marketing',
+            '#ia',
+            '#contenido',
+            '#growth',
+            '#viral',
+            '#tips',
+            `#${activeTopic.replace(/\s+/g, '')}`,
+          ],
+          format: cachedPlan.recommendedFormat.format === 'reels' ? 'reels' : cachedPlan.recommendedFormat.format,
+          platform,
+          thumbnail: { hasFace: true, hasText: true, highContrast: true, brightColors: true },
+        }),
+      });
+      if (!r.ok) return;
+      const apiPred = await r.json();
+      cachedPrediction = apiPred;
+      const existing = root.querySelector('#bj-pred-overlay');
+      if (existing) existing.remove();
+      root.insertAdjacentHTML('beforeend', renderPredictionDetail(apiPred));
+      const overlay = root.querySelector('#bj-pred-overlay');
+      overlay?.querySelector('#bj-pred-close')?.addEventListener('click', () => overlay.remove());
+    });
+};
+
+const AGENT_MSGS = {
+  instagram: [
+    '📸 Agente Instagram analizando algoritmo IG…',
+    '🎣 Generando hooks para saves + shares…',
+    '⏰ Calculando ventanas óptimas de publicación…',
+    '🧠 Enriqueciendo con IA especialista Instagram…',
+    '📊 Corriendo modelos predictivos (Monte Carlo)…',
+    '🎯 Calculando score de viralidad y análisis honesto…',
+  ],
+  tiktok: [
+    '🎵 Agente TikTok analizando señales FYP…',
+    '🎣 Generando hooks para completion rate máximo…',
+    '🔊 Evaluando formatos trending y audio…',
+    '🧠 Enriqueciendo con IA especialista TikTok…',
+    '📊 Simulando distribución FYP (alta varianza)…',
+    '🎯 Calculando probabilidad real de viralidad…',
+  ],
+};
+
+const compute = async (root, platform) => {
+  const resultHost = root.querySelector('#bj-result-host');
+  if (!resultHost) return;
+
+  const msgs = AGENT_MSGS[platform] || AGENT_MSGS.instagram;
+  let msgIdx = 0;
+  resultHost.innerHTML = `<div class="bj-loading"><span class="spinner lg"></span><span id="bj-load-msg">${msgs[0]}</span></div>`;
+  const loadTimer = setInterval(() => {
+    msgIdx = (msgIdx + 1) % msgs.length;
+    const el = root.querySelector('#bj-load-msg');
+    if (el) el.textContent = msgs[msgIdx];
+  }, 1200);
+
+  try {
+    const brandRes = await apiSafe('/api/brand', null);
+    const brand = brandRes.data || {};
+
+    const r = await fetch('/api/brujula/plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic: activeTopic || 'tu producto',
+        platform,
+        goal: activeGoal,
+        brandNiche: activeNiche || brand.niche || '',
+        brandVoice: brand.voice || 'cercano',
+        brandType: activeBrandType || 'personal',
+        accountId: activeAccountId || '',
+      }),
+    });
+    clearInterval(loadTimer);
+    if (!r.ok) {
+      resultHost.innerHTML = '<div class="bj-warning">Error generando plan. Reintentá.</div>';
+      return;
+    }
+    cachedPlan = await r.json();
+    resultHost.innerHTML = renderPlanResult(cachedPlan, platform);
+    wireResultEvents(root, platform);
+
+    // Agency Brain — carga en background, no bloquea el plan
+    const brandRes2 = await apiSafe('/api/brand', null).catch(() => ({ data: {} }));
+    const brand2 = brandRes2.data || {};
+    fetch('/api/agency/brain/run', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        topic: activeTopic || 'tu producto',
+        platform,
+        goal: activeGoal,
+        niche: activeNiche || brand2.niche || cachedPlan?._debug?.niche || '',
+        brandVoice: brand2.voice || '',
+        briefSnippet: cachedPlan?.briefText || '',
+        accountId: activeAccountId || '',
+      }),
+    })
+      .then((res) => res.json())
+      .then((ab) => {
+        const host = root.querySelector('#bj-agency-host');
+        if (!host) return;
+        host.innerHTML = renderAgencyBrain(ab);
+        host.querySelectorAll('.ab-copy').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(btn.dataset.copy || '');
+              toast('📋 Copiado', 'ok');
+            } catch {
+              toast('No se pudo copiar', 'warn');
+            }
+          });
+        });
+      })
+      .catch(() => {
+        const host = root.querySelector('#bj-agency-host');
+        if (host) host.innerHTML = '';
+      });
+  } catch {
+    clearInterval(loadTimer);
+    resultHost.innerHTML = '<div class="bj-warning">Error de red. Reintentá.</div>';
+  }
+};
+
+// Run All Banner — botón gigante "Trabajar mi cuenta esta semana"
+const renderRunAllBanner = () => `
   <div class="ra-card" id="ra-card">
     <div class="ra-head">
-      <div class="ra-emoji">\u{1F916}</div>
+      <div class="ra-emoji">🤖</div>
       <div>
         <div class="ra-title">Trabajar mi cuenta esta semana</div>
-        <div class="ra-sub">1 click \u2192 an\xE1lisis del nicho + aprendizaje de m\xE9tricas + 3 carruseles + drafts de respuestas DM</div>
+        <div class="ra-sub">1 click → análisis del nicho + aprendizaje de métricas + 3 carruseles + drafts de respuestas DM</div>
       </div>
     </div>
-    <button class="ra-btn" id="ra-go">\u25B6 Ejecutar todo</button>
+    <button class="ra-btn" id="ra-go">▶ Ejecutar todo</button>
     <div id="ra-result" class="ra-result"></div>
   </div>
   <style>
@@ -1036,15 +2053,18 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
     .ra-dm{padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:var(--bg,rgba(255,255,255,.02));}
     .ra-dm-intent{display:inline-block;padding:2px 8px;background:rgba(168,85,247,.15);color:#A78BFA;font-size:10.5px;font-weight:800;border-radius:5px;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
     .ra-dm-reply{font-size:13px;color:var(--text-primary,var(--fg));line-height:1.5;}
-  </style>`,$e=()=>`
-  ${je()}
+  </style>`;
+
+// Account Studio — Computer Vision (audit feed / aprender de referentes) + loop de métricas reales.
+const renderAccountStudio = () => `
+  ${renderRunAllBanner()}
   <details class="bj-card bj-studio bj-studio-collapsed">
-    <summary class="bj-studio-summary">\u{1F6E0}\uFE0F M\xE1s herramientas <span class="bj-studio-sub">visi\xF3n de feed \xB7 auto-publicar \xB7 m\xE9tricas \xB7 conectar IG/TikTok</span></summary>
+    <summary class="bj-studio-summary">🛠️ Más herramientas <span class="bj-studio-sub">visión de feed · auto-publicar · métricas · conectar IG/TikTok</span></summary>
 
     <details class="bj-studio-panel">
-      <summary>\u{1F441}\uFE0F Analizar mi feed (Computer Vision)</summary>
+      <summary>👁️ Analizar mi feed (Computer Vision)</summary>
       <div class="bj-studio-body">
-        <p class="bj-studio-hint">Sub\xED 1-9 capturas de tu feed/posts. La IA eval\xFAa coherencia visual, detecta huecos y te dice qu\xE9 publicar.</p>
+        <p class="bj-studio-hint">Subí 1-9 capturas de tu feed/posts. La IA evalúa coherencia visual, detecta huecos y te dice qué publicar.</p>
         <input type="file" id="bj-vision-files" class="bj-file" accept="image/*" multiple />
         <button class="bj-btn bj-btn-secondary" id="bj-vision-go">Analizar feed</button>
         <div id="bj-vision-result" class="bj-studio-result"></div>
@@ -1052,9 +2072,9 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
     </details>
 
     <details class="bj-studio-panel">
-      <summary>\u{1F50D} Aprender de una cuenta exitosa</summary>
+      <summary>🔍 Aprender de una cuenta exitosa</summary>
       <div class="bj-studio-body">
-        <p class="bj-studio-hint">Sub\xED captura del perfil/feed de un referente de tu nicho. Extrae patrones replicables (sin copiar literal).</p>
+        <p class="bj-studio-hint">Subí captura del perfil/feed de un referente de tu nicho. Extrae patrones replicables (sin copiar literal).</p>
         <input type="file" id="bj-learn-files" class="bj-file" accept="image/*" multiple />
         <button class="bj-btn bj-btn-secondary" id="bj-learn-go">Analizar referente</button>
         <div id="bj-learn-result" class="bj-studio-result"></div>
@@ -1062,17 +2082,17 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
     </details>
 
     <details class="bj-studio-panel">
-      <summary>\u{1F517} Conectar Instagram / TikTok (publicar + m\xE9tricas reales)</summary>
+      <summary>🔗 Conectar Instagram / TikTok (publicar + métricas reales)</summary>
       <div class="bj-studio-body">
-        <p class="bj-studio-hint">Conect\xE1 tus cuentas v\xEDa API oficial para auto-publicar y traer m\xE9tricas reales autom\xE1ticamente. Requiere apps de Meta/TikTok configuradas.</p>
-        <div id="bj-connect-status" class="bj-studio-result">\u23F3 Cargando estado\u2026</div>
+        <p class="bj-studio-hint">Conectá tus cuentas vía API oficial para auto-publicar y traer métricas reales automáticamente. Requiere apps de Meta/TikTok configuradas.</p>
+        <div id="bj-connect-status" class="bj-studio-result">⏳ Cargando estado…</div>
       </div>
     </details>
 
     <details class="bj-studio-panel">
-      <summary>\u{1F4CA} Cargar resultados de un post (loop de aprendizaje)</summary>
+      <summary>📊 Cargar resultados de un post (loop de aprendizaje)</summary>
       <div class="bj-studio-body">
-        <p class="bj-studio-hint">Carg\xE1 las m\xE9tricas reales de un post publicado. El sistema aprende qu\xE9 funciona y ajusta tu estrategia.</p>
+        <p class="bj-studio-hint">Cargá las métricas reales de un post publicado. El sistema aprende qué funciona y ajusta tu estrategia.</p>
         <input id="bj-m-topic" class="bj-input bj-input-sm" type="text" placeholder="Tema del post" />
         <div class="bj-metric-grid">
           <select id="bj-m-format" class="bj-input bj-input-sm">
@@ -1090,18 +2110,18 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
     </details>
 
     <details class="bj-studio-panel">
-      <summary>\u{1F3A8} Brand Studio \u2014 Imagen de marca con tu foto</summary>
+      <summary>🎨 Brand Studio — Imagen de marca con tu foto</summary>
       <div class="bj-studio-body">
-        <p class="bj-studio-hint">Sub\xED tu(s) foto(s) autorizada(s). La IA las usa como protagonista, aplica tu estilo, colores de marca y elementos del nicho. Motor: Gemini nano-banana (foto\u2192imagen).</p>
+        <p class="bj-studio-hint">Subí tu(s) foto(s) autorizada(s). La IA las usa como protagonista, aplica tu estilo, colores de marca y elementos del nicho. Motor: Gemini nano-banana (foto→imagen).</p>
         <input type="file" id="bs-files" class="bj-file" accept="image/*" multiple />
         <select id="bs-template" class="bj-input bj-input-sm">
-          <option value="anuncio-ganador">\u{1F3C6} Anuncio ganador</option>
-          <option value="carrusel">\u{1F3A0} Carrusel seamless</option>
-          <option value="portada-reel">\u{1F3AC} Portada de Reel</option>
-          <option value="branding">\u{1F3A8} Identidad visual / Branding</option>
-          <option value="producto-mockup">\u{1F4E6} Mockup de producto</option>
+          <option value="anuncio-ganador">🏆 Anuncio ganador</option>
+          <option value="carrusel">🎠 Carrusel seamless</option>
+          <option value="portada-reel">🎬 Portada de Reel</option>
+          <option value="branding">🎨 Identidad visual / Branding</option>
+          <option value="producto-mockup">📦 Mockup de producto</option>
         </select>
-        <input id="bs-titulo" class="bj-input bj-input-sm" type="text" placeholder="T\xEDtulo principal / producto (ej: CarouselCode)" />
+        <input id="bs-titulo" class="bj-input bj-input-sm" type="text" placeholder="Título principal / producto (ej: CarouselCode)" />
         <div class="bj-metric-grid">
           <select id="bs-estilo" class="bj-input bj-input-sm">
             <option value="premium">Premium</option>
@@ -1111,7 +2131,7 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
             <option value="oscuro-glow">Oscuro con glow</option>
             <option value="colorido-genz">Colorido Gen-Z</option>
             <option value="corporativo">Corporativo</option>
-            <option value="organico">Org\xE1nico</option>
+            <option value="organico">Orgánico</option>
           </select>
           <input id="bs-colores" class="bj-input bj-input-sm" type="text" placeholder="Colores marca (ej: verde menta, negro)" />
           <select id="bs-formato" class="bj-input bj-input-sm">
@@ -1121,28 +2141,28 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
             <option value="profile">Perfil 1:1</option>
           </select>
         </div>
-        <input id="bs-elementos" class="bj-input bj-input-sm" type="text" placeholder="Elementos visibles del nicho (ej: laptop, gr\xE1ficos, dashboards)" />
-        <label style="font-size:12px;color:var(--text-secondary,var(--fg-2));display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="bs-refine" /> \u2728 Refinar calidad (FAL upscaler 2x \u2014 m\xE1s n\xEDtido, tarda m\xE1s)</label>
-        <button class="bj-btn bj-btn-secondary" id="bs-build">\u{1F441}\uFE0F Ver prompt</button>
-        <button class="bj-btn bj-btn-secondary" id="bs-go">\u2728 Generar imagen</button>
+        <input id="bs-elementos" class="bj-input bj-input-sm" type="text" placeholder="Elementos visibles del nicho (ej: laptop, gráficos, dashboards)" />
+        <label style="font-size:12px;color:var(--text-secondary,var(--fg-2));display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="bs-refine" /> ✨ Refinar calidad (FAL upscaler 2x — más nítido, tarda más)</label>
+        <button class="bj-btn bj-btn-secondary" id="bs-build">👁️ Ver prompt</button>
+        <button class="bj-btn bj-btn-secondary" id="bs-go">✨ Generar imagen</button>
         <div id="bs-result" class="bj-studio-result"></div>
       </div>
     </details>
 
     <details class="bj-studio-panel">
-      <summary>\u{1F9E0} Aprender de mi cuenta (sin subir nada)</summary>
+      <summary>🧠 Aprender de mi cuenta (sin subir nada)</summary>
       <div class="bj-studio-body">
-        <p class="bj-studio-hint">El sistema <b>se conecta a tu Instagram</b> (via Meta Graph API) y <b>TikTok</b> (si est\xE1n conectados en el panel "\u{1F517} Conectar Instagram/TikTok"), trae los \xFAltimos posts con sus m\xE9tricas reales, detecta <b>patrones ganadores</b> (formato, hook, horario) y los inyecta autom\xE1ticamente en TODAS las pr\xF3ximas generaciones. NO necesit\xE1s subir nada manualmente.</p>
-        <button class="bj-btn bj-btn-secondary" id="fb-go">\u{1F9E0} Analizar y aprender</button>
+        <p class="bj-studio-hint">El sistema <b>se conecta a tu Instagram</b> (via Meta Graph API) y <b>TikTok</b> (si están conectados en el panel "🔗 Conectar Instagram/TikTok"), trae los últimos posts con sus métricas reales, detecta <b>patrones ganadores</b> (formato, hook, horario) y los inyecta automáticamente en TODAS las próximas generaciones. NO necesitás subir nada manualmente.</p>
+        <button class="bj-btn bj-btn-secondary" id="fb-go">🧠 Analizar y aprender</button>
         <div id="fb-result" class="bj-studio-result"></div>
       </div>
     </details>
 
     <details class="bj-studio-panel">
-      <summary>\u{1F9EC} Gstack \u2014 Decisi\xF3n inteligente (meta-controller)</summary>
+      <summary>🧬 Gstack — Decisión inteligente (meta-controller)</summary>
       <div class="bj-studio-body">
-        <p class="bj-studio-hint">Describ\xED tu objetivo en lenguaje libre. El meta-controller elige <b>archetype + mood + roles IA</b> \xF3ptimos y ejecuta el m\xF3dulo correcto (carrusel/reel/historia/comunidad).</p>
-        <textarea id="gs-task" class="bj-input bj-input-sm" rows="2" placeholder='Ej: "Lanz\xE1 un carrusel para vender mi curso" o "Respond\xE9 este DM"'></textarea>
+        <p class="bj-studio-hint">Describí tu objetivo en lenguaje libre. El meta-controller elige <b>archetype + mood + roles IA</b> óptimos y ejecuta el módulo correcto (carrusel/reel/historia/comunidad).</p>
+        <textarea id="gs-task" class="bj-input bj-input-sm" rows="2" placeholder='Ej: "Lanzá un carrusel para vender mi curso" o "Respondé este DM"'></textarea>
         <div class="bj-metric-grid">
           <select id="gs-format" class="bj-input bj-input-sm">
             <option value="">Auto-detectar formato</option>
@@ -1152,31 +2172,31 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
           </select>
           <input id="gs-colors" class="bj-input bj-input-sm" type="text" placeholder="Colores marca (opcional)" />
         </div>
-        <button class="bj-btn bj-btn-secondary" id="gs-go">\u{1F9EC} Ejecutar Gstack</button>
+        <button class="bj-btn bj-btn-secondary" id="gs-go">🧬 Ejecutar Gstack</button>
         <div id="gs-result" class="bj-studio-result"></div>
       </div>
     </details>
 
     <details class="bj-studio-panel">
-      <summary>\u{1F4AC} Community Brain \u2014 CM inteligente (cultura \xB7 hilo \xB7 humor \xB7 contexto)</summary>
+      <summary>💬 Community Brain — CM inteligente (cultura · hilo · humor · contexto)</summary>
       <div class="bj-studio-body">
-        <p class="bj-studio-hint">El sistema <b>analiza profundo en 5 pasos</b>: autor (pa\xEDs, hilo previo), contexto del post, intent + emoci\xF3n + complejidad, razona la respuesta y la ajusta a la cultura regional. Usa humor solo cuando corresponde. Spam/troll \u2192 ignora sin gastar IA.</p>
+        <p class="bj-studio-hint">El sistema <b>analiza profundo en 5 pasos</b>: autor (país, hilo previo), contexto del post, intent + emoción + complejidad, razona la respuesta y la ajusta a la cultura regional. Usa humor solo cuando corresponde. Spam/troll → ignora sin gastar IA.</p>
         <div class="bj-tabs" style="display:flex;gap:6px;margin-bottom:6px;">
-          <button class="bj-btn bj-btn-secondary bj-tab-btn" data-ce="dm" style="flex:1;padding:6px;font-size:12px;">\u{1F4E8} DM</button>
-          <button class="bj-btn bj-btn-ghost bj-tab-btn" data-ce="comment" style="flex:1;padding:6px;font-size:12px;">\u{1F4AD} Comentario</button>
+          <button class="bj-btn bj-btn-secondary bj-tab-btn" data-ce="dm" style="flex:1;padding:6px;font-size:12px;">📨 DM</button>
+          <button class="bj-btn bj-btn-ghost bj-tab-btn" data-ce="comment" style="flex:1;padding:6px;font-size:12px;">💭 Comentario</button>
         </div>
-        <input id="ce-sender" class="bj-input bj-input-sm" type="text" placeholder="@handle del autor (opcional pero mejora an\xE1lisis y hilo)" />
-        <textarea id="ce-input" class="bj-input bj-input-sm" rows="3" placeholder="Peg\xE1 el DM/comentario recibido\u2026"></textarea>
+        <input id="ce-sender" class="bj-input bj-input-sm" type="text" placeholder="@handle del autor (opcional pero mejora análisis y hilo)" />
+        <textarea id="ce-input" class="bj-input bj-input-sm" rows="3" placeholder="Pegá el DM/comentario recibido…"></textarea>
         <input id="ce-context" class="bj-input bj-input-sm" type="text" placeholder="Contexto del post (solo comentarios, opcional)" style="display:none;" />
-        <button class="bj-btn bj-btn-secondary" id="ce-go">\u{1F9E0} Analizar y responder</button>
+        <button class="bj-btn bj-btn-secondary" id="ce-go">🧠 Analizar y responder</button>
         <div id="ce-result" class="bj-studio-result"></div>
       </div>
     </details>
 
     <details class="bj-studio-panel">
-      <summary>\u{1F4F1} Historias visuales (5 frames 9:16 con stickers)</summary>
+      <summary>📱 Historias visuales (5 frames 9:16 con stickers)</summary>
       <div class="bj-studio-body">
-        <p class="bj-studio-hint">Genera <b>5 frames visuales</b> (1080\xD71920) con texto vectorial, stickers (encuesta/pregunta/slider/quiz/link) y good-zones de IG respetadas. Toc\xE1 un frame para ampliar.</p>
+        <p class="bj-studio-hint">Genera <b>5 frames visuales</b> (1080×1920) con texto vectorial, stickers (encuesta/pregunta/slider/quiz/link) y good-zones de IG respetadas. Tocá un frame para ampliar.</p>
         <input type="file" id="se-file" class="bj-file" accept="image/*" />
         <div class="bj-metric-grid">
           <input id="se-colors" class="bj-input bj-input-sm" type="text" placeholder="Colores marca (ej: negro, menta)" />
@@ -1189,32 +2209,32 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
           </select>
           <input id="se-count" class="bj-input bj-input-sm" type="number" min="3" max="8" placeholder="Cantidad (3-8)" value="5" />
         </div>
-        <button class="bj-btn bj-btn-secondary" id="se-go">\u{1F4F1} Generar historias</button>
+        <button class="bj-btn bj-btn-secondary" id="se-go">📱 Generar historias</button>
         <div id="se-result" class="bj-studio-result"></div>
       </div>
     </details>
 
     <details class="bj-studio-panel">
-      <summary>\u{1F9EC} Niche Intelligence (estudio profundo del nicho + audiencia)</summary>
+      <summary>🧬 Niche Intelligence (estudio profundo del nicho + audiencia)</summary>
       <div class="bj-studio-body">
-        <p class="bj-studio-hint">El sistema corre <b>5 an\xE1lisis encadenados</b> (nicho profundo + perfil audiencia + mapa competitivo + oportunidades + s\xEDntesis con 3 roles IA) y cachea 7 d\xEDas. Despu\xE9s se inyecta autom\xE1ticamente en cada generaci\xF3n.</p>
-        <button class="bj-btn bj-btn-secondary" id="bj-intel-go">\u{1F9EC} Correr an\xE1lisis profundo</button>
+        <p class="bj-studio-hint">El sistema corre <b>5 análisis encadenados</b> (nicho profundo + perfil audiencia + mapa competitivo + oportunidades + síntesis con 3 roles IA) y cachea 7 días. Después se inyecta automáticamente en cada generación.</p>
+        <button class="bj-btn bj-btn-secondary" id="bj-intel-go">🧬 Correr análisis profundo</button>
         <div id="bj-intel-result" class="bj-studio-result"></div>
       </div>
     </details>
 
     <details class="bj-studio-panel">
-      <summary>\u{1F3A8} Conectar Canva (slides PRO con brand template)</summary>
+      <summary>🎨 Conectar Canva (slides PRO con brand template)</summary>
       <div class="bj-studio-body">
-        <p class="bj-studio-hint">Si conect\xE1s Canva, el carrusel usa tu <b>brand template oficial</b> (calidad pro, fuentes reales) en vez del composer SVG. Si no, el sistema usa el composer interno (tambi\xE9n legible, auto-fit safe-zones).</p>
-        <div id="bj-canva-status" class="bj-studio-result">\u23F3 Cargando estado de Canva\u2026</div>
+        <p class="bj-studio-hint">Si conectás Canva, el carrusel usa tu <b>brand template oficial</b> (calidad pro, fuentes reales) en vez del composer SVG. Si no, el sistema usa el composer interno (también legible, auto-fit safe-zones).</p>
+        <div id="bj-canva-status" class="bj-studio-result">⏳ Cargando estado de Canva…</div>
       </div>
     </details>
 
     <details class="bj-studio-panel">
-      <summary>\u{1F916} Piloto autom\xE1tico (crear + publicar solo)</summary>
+      <summary>🤖 Piloto automático (crear + publicar solo)</summary>
       <div class="bj-studio-body">
-        <p class="bj-studio-hint">El cerebro elige el mejor \xE1ngulo, escribe el copy, genera la imagen (con reglas virales) y \u2014 si tu cuenta est\xE1 conectada \u2014 <b>publica v\xEDa API oficial sin que hagas nada</b>. Sin foto = imagen IA; con foto = vos de protagonista.</p>
+        <p class="bj-studio-hint">El cerebro elige el mejor ángulo, escribe el copy, genera la imagen (con reglas virales) y — si tu cuenta está conectada — <b>publica vía API oficial sin que hagas nada</b>. Sin foto = imagen IA; con foto = vos de protagonista.</p>
         <input type="file" id="ap-files" class="bj-file" accept="image/*" multiple />
         <div class="bj-metric-grid">
           <select id="ap-format" class="bj-input bj-input-sm">
@@ -1224,16 +2244,16 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
           <input id="ap-colores" class="bj-input bj-input-sm" type="text" placeholder="Colores marca" />
           <input id="ap-elementos" class="bj-input bj-input-sm" type="text" placeholder="Elementos del nicho" />
         </div>
-        <label style="font-size:12px;color:var(--text-secondary,var(--fg-2));display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="ap-publish" /> \u{1F680} Auto-publicar (requiere cuenta conectada arriba)</label>
-        <button class="bj-btn bj-btn-secondary" id="ap-go">\u{1F916} Crear post aut\xF3nomo</button>
+        <label style="font-size:12px;color:var(--text-secondary,var(--fg-2));display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="ap-publish" /> 🚀 Auto-publicar (requiere cuenta conectada arriba)</label>
+        <button class="bj-btn bj-btn-secondary" id="ap-go">🤖 Crear post autónomo</button>
         <div id="ap-result" class="bj-studio-result"></div>
       </div>
     </details>
 
     <details class="bj-studio-panel">
-      <summary>\u{1F3DB}\uFE0F Consejo de agencia (6 agentes IA)</summary>
+      <summary>🏛️ Consejo de agencia (6 agentes IA)</summary>
       <div class="bj-studio-body">
-        <p class="bj-studio-hint">Orquesta 6 especialistas (research de nicho, audiencia, hooks, sonidos, visuales, estrategia) sobre el tema de arriba. M\xE1s profundo, usa m\xE1s IA.</p>
+        <p class="bj-studio-hint">Orquesta 6 especialistas (research de nicho, audiencia, hooks, sonidos, visuales, estrategia) sobre el tema de arriba. Más profundo, usa más IA.</p>
         <button class="bj-btn bj-btn-secondary" id="bj-council-go">Convocar consejo</button>
         <div id="bj-council-result" class="bj-studio-result"></div>
       </div>
@@ -1290,12 +2310,16 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
     .ap-lb-dl{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:#a855f7;color:#fff;text-decoration:none;padding:10px 22px;border-radius:24px;font-size:13px;font-weight:800;}
     .ap-lb-dl:hover{background:#9333ea;}
     @media(max-width:600px){.ap-lb-nav{width:44px;height:44px;font-size:28px;}.ap-lb-stage img{max-height:72vh;}}
-  </style>`;export const renderBrujula=async e=>{const u=await le();e.innerHTML=`
-    ${de(u)}
+  </style>`;
+
+export const renderBrujula = async (container) => {
+  const platform = await getPlatform();
+  container.innerHTML = `
+    ${renderHero(platform)}
     <div class="bj-shell">
-      ${ce(u)}
+      ${renderInputForm(platform)}
       <div id="bj-result-host"></div>
-      ${$e()}
+      ${renderAccountStudio()}
     </div>
     <style>
       .bj-topic-hint{margin-top:8px;padding:8px 12px;background:rgba(168,85,247,.07);border-left:3px solid #a855f7;border-radius:0 8px 8px 0;font-size:12.5px;color:var(--text-secondary,var(--fg-2));line-height:1.5;}
@@ -1458,7 +2482,7 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
       .bj-pred-risks{display:flex;flex-wrap:wrap;gap:6px;}
       .bj-pred-risk{font-size:11px;background:rgba(245,158,11,.08);color:#f59e0b;border:1px solid rgba(245,158,11,.25);padding:3px 9px;border-radius:999px;font-weight:600;}
       .bj-pred-disclaimer{margin-top:10px;font-size:11px;color:var(--text-tertiary,var(--fg-3));line-height:1.5;font-style:italic;text-align:center;padding-top:8px;border-top:1px solid var(--border-soft,rgba(17,18,22,.06));}
-      /* \u2500\u2500 HookPlans 3-col grid \u2500\u2500 */
+      /* ── HookPlans 3-col grid ── */
       .bj-hp-grid-wrap{background:var(--bg-card,#16171c);border:1px solid rgba(168,85,247,.25);border-radius:16px;padding:16px 18px;}
       .bj-hp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
       @media(max-width:900px){.bj-hp-grid{grid-template-columns:1fr;}}
@@ -1486,7 +2510,7 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
       .bj-hp-beat span:last-child{font-size:13px;color:#c4c4d0;line-height:1.45;}
       .bj-hp-cierre{font-size:13px;color:#d4d4e8;background:rgba(16,185,129,.10);border-left:3px solid #34d399;border-radius:0 8px 8px 0;padding:7px 10px;line-height:1.5;}
       .bj-hp-cta-box{font-size:13px;background:rgba(16,185,129,.10);border:1.5px solid rgba(52,211,153,.35);border-radius:9px;padding:8px 11px;color:#6ee7b7;font-weight:600;line-height:1.45;margin-top:2px;}
-      /* \u2500\u2500 Instagram format tabs \u2500\u2500 */
+      /* ── Instagram format tabs ── */
       .bj-ig-plans-wrap{background:var(--bg-card,#16171c);border:1px solid rgba(225,48,108,.25);border-radius:16px;padding:16px 18px;}
       .bj-ig-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
       .bj-ig-tab{padding:8px 18px;border-radius:999px;border:1.5px solid rgba(255,255,255,.12);background:transparent;color:#c4c4d0;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;}
@@ -1498,7 +2522,7 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
       .bj-strategy{margin-bottom:16px;border:1px solid rgba(168,85,247,.25);border-radius:14px;background:linear-gradient(135deg,rgba(168,85,247,.06),rgba(225,48,108,.04));overflow:hidden;}
       .bj-strategy-sum{cursor:pointer;list-style:none;padding:12px 14px;font-size:14px;font-weight:800;color:#f1f1f5;display:flex;align-items:center;gap:10px;flex-wrap:wrap;user-select:none;}
       .bj-strategy-sum::-webkit-details-marker{display:none;}
-      .bj-strategy-sum::after{content:'\u25BE';margin-left:auto;color:#a78bfa;font-size:12px;transition:transform .2s;}
+      .bj-strategy-sum::after{content:'▾';margin-left:auto;color:#a78bfa;font-size:12px;transition:transform .2s;}
       .bj-strategy[open] .bj-strategy-sum::after{transform:rotate(180deg);}
       .bj-st-niche{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#a78bfa;background:rgba(168,85,247,.16);border:1px solid rgba(168,85,247,.3);border-radius:20px;padding:2px 10px;}
       .bj-strategy-body{padding:4px 14px 14px;display:flex;flex-direction:column;gap:9px;}
@@ -1604,7 +2628,7 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
       .bj-frame-support{font-size:13px;color:#b4b4c8;line-height:1.4;margin-top:2px;}
       .bj-frame-mediadesc{font-size:12px;color:#7c7c90;font-style:italic;margin-top:3px;}
       .bj-ig-frame-sticker{font-size:12px;color:#c084fc;font-weight:700;}
-      /* \u2500\u2500 Guion \u2500\u2500 */
+      /* ── Guion ── */
       .bj-guion-apertura,.bj-guion-cierre{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:10px;margin-bottom:6px;font-size:13px;color:var(--text-primary,var(--fg));line-height:1.5;}
       .bj-guion-apertura{background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.18);}
       .bj-guion-cierre{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.20);}
@@ -1614,12 +2638,12 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
       .bj-guion-step:last-child{border:0;}
       .bj-guion-n{font-size:11px;font-weight:800;color:#a855f7;background:rgba(168,85,247,.12);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
       .bj-guion-step span{font-size:13px;color:var(--text-secondary,var(--fg-2));line-height:1.45;}
-      /* \u2500\u2500 Producci\xF3n \u2500\u2500 */
+      /* ── Producción ── */
       .bj-prod-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;}
       .bj-prod-col{display:flex;flex-direction:column;gap:6px;}
       .bj-prod-col-h{font-size:10px;font-weight:800;color:var(--text-tertiary,var(--fg-3));text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
       .bj-prod-item{font-size:12.5px;color:var(--text-secondary,var(--fg-2));padding:6px 10px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:8px;line-height:1.4;}
-      /* \u2500\u2500 Predicciones minimalistas \u2500\u2500 */
+      /* ── Predicciones minimalistas ── */
       .bj-pred-minimal{background:var(--bg-card,#fff);border:1px solid rgba(168,85,247,.20);border-radius:14px;padding:16px 18px;}
       .bj-pred-min-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
       .bj-pred-min-title{font-size:13px;font-weight:800;color:var(--text-primary,var(--fg));}
@@ -1637,136 +2661,1280 @@ ${R.ctaLadder[0]||""}`,hashtags:["#marketing","#ia","#contenido","#growth","#vir
       .bj-pred-range-dot{position:absolute;top:-3px;width:12px;height:12px;background:#a855f7;border-radius:50%;transform:translateX(-50%);box-shadow:0 0 0 3px rgba(168,85,247,.2);}
       .bj-pred-range-vals{display:flex;justify-content:space-between;font-size:10px;font-weight:700;}
       .bj-pred-verdict-simple{font-size:12.5px;font-style:italic;color:var(--text-secondary,var(--fg-2));border-left:3px solid #10b981;padding-left:10px;margin:10px 0;line-height:1.5;}
-    </style>`;const i=e;i.querySelectorAll(".bj-goal").forEach(c=>{c.addEventListener("click",()=>{N=c.dataset.goal,i.querySelectorAll(".bj-goal").forEach(s=>s.classList.toggle("active",s===c))})});const k=i.querySelector("#bj-topic"),m=i.querySelector("#bj-topic-hint");let w=null;const n={instagram:{awareness:"Reels",engagement:"Carrusel",conversion:"Carrusel + Stories",community:"Stories",sales:"Carrusel + Stories"},tiktok:{awareness:"Video",engagement:"Video",conversion:"Video + Stitch",community:"Video",sales:"Video + LIVE"}};k?.addEventListener("input",c=>{q=c.target.value.trim(),clearTimeout(w),q.length>=3&&m?w=setTimeout(()=>{const s=n[u]?.[N]||(u==="instagram"?"Carrusel":"Video");m.textContent=`Para "${q}" en ${u==="instagram"?"Instagram":"TikTok"} con objetivo "${N}" \u2192 formato recomendado: ${s}`,m.style.display="block"},400):m&&(m.style.display="none")}),i.querySelector("#bj-go")?.addEventListener("click",()=>{if(!q){B("Escrib\xED el tema sobre el cual vas a publicar","warn"),k?.focus();return}Q=(i.querySelector("#bj-account")?.value||"").trim(),X=(i.querySelector("#bj-niche")?.value||"").trim(),Z=i.querySelector("#bj-brandtype")?.value||"personal",ie(i,u)}),k?.addEventListener("keydown",c=>{c.key==="Enter"&&(c.preventDefault(),i.querySelector("#bj-go")?.click())});const y=c=>Promise.all([...c||[]].slice(0,9).map(s=>new Promise(v=>{const g=new FileReader;g.onload=()=>v(g.result),g.onerror=()=>v(null),g.readAsDataURL(s)}))).then(s=>s.filter(Boolean)),h=()=>({accountId:(i.querySelector("#bj-account")?.value||"").trim(),niche:(i.querySelector("#bj-niche")?.value||"").trim()}),o=c=>String(c??"").replace(/[&<>]/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;"})[s]),t=c=>`<ul>${(c||[]).map(s=>`<li>${o(typeof s=="string"?s:s.idea||s.tactic||JSON.stringify(s))}</li>`).join("")}</ul>`,d=async(c,s,v,g,p)=>{const r=i.querySelector(s)?.files,l=i.querySelector(v);if(!r?.length){l.innerHTML='<span style="color:#f59e0b;">Sub\xED al menos 1 imagen.</span>';return}g.disabled=!0,l.innerHTML="\u23F3 Analizando con visi\xF3n IA\u2026";try{const b=await y(r),{accountId:$,niche:j}=h(),x=await(await fetch(c,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accountId:$,niche:j,images:b})})).json();if(x.error){l.innerHTML=`<span style="color:#ef4444;">${o(x.message||x.error)}</span>`;return}l.innerHTML=p(x)}catch{l.innerHTML='<span style="color:#ef4444;">Error de red. Reintent\xE1.</span>'}finally{g.disabled=!1}};i.querySelector("#bj-vision-go")?.addEventListener("click",c=>d("/api/account/audit-feed","#bj-vision-files","#bj-vision-result",c.target,s=>`<div><span class="bj-vr-score">${s.coherenceScore??"\u2013"}/100</span> coherencia \xB7 ${o(s.visualStyle||"")} <em style="color:#7878a0;">(${o(s._provider||"ia")})</em></div>
-      ${s.weaknesses?.length?`<div class="bj-vr-block"><b>Debilidades</b>${t(s.weaknesses)}</div>`:""}
-      ${s.gaps?.length?`<div class="bj-vr-block"><b>Huecos en el feed</b>${t(s.gaps)}</div>`:""}
-      ${s.whatToAdd?.length?`<div class="bj-vr-block"><b>Qu\xE9 agregar</b>${t(s.whatToAdd.map(v=>`${v.idea} (${v.format})`))}</div>`:""}`)),i.querySelector("#bj-learn-go")?.addEventListener("click",c=>d("/api/account/learn-competitor","#bj-learn-files","#bj-learn-result",c.target,s=>`${s.visualPatterns?.length?`<div class="bj-vr-block"><b>Patrones visuales</b>${t(s.visualPatterns)}</div>`:""}
-      ${s.hookPatterns?.length?`<div class="bj-vr-block"><b>Patrones de hook</b>${t(s.hookPatterns)}</div>`:""}
-      ${s.whatYouCanApply?.length?`<div class="bj-vr-block"><b>Aplic\xE1 a tu cuenta</b>${t(s.whatYouCanApply.map(v=>`${v.tactic}: ${v.how}`))}</div>`:""}
-      ${s.avoid?.length?`<div class="bj-vr-block"><b>No copies</b>${t(s.avoid)}</div>`:""}`)),i.querySelector("#bj-m-go")?.addEventListener("click",async c=>{const s=i.querySelector("#bj-m-result"),{accountId:v}=h();if(!v){s.innerHTML='<span style="color:#f59e0b;">Pon\xE9 tu @cuenta arriba (en "Mi cuenta") para activar la memoria.</span>';return}const g=r=>{const l=i.querySelector(r)?.value;return l===""||l==null?null:Number(l)},p={topic:i.querySelector("#bj-m-topic")?.value||"",format:i.querySelector("#bj-m-format")?.value||"reel",reach:g("#bj-m-reach"),saves:g("#bj-m-saves"),shares:g("#bj-m-shares"),comments:g("#bj-m-comments"),follows:g("#bj-m-follows")};c.target.disabled=!0,s.innerHTML="\u23F3 Guardando\u2026";try{const b=(await(await fetch("/api/account/metrics",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accountId:v,entry:p})})).json()).insights||{};s.innerHTML=`<div style="color:#10b981;">\u2713 Guardado. Posts trackeados: ${b.postsTracked??0}</div>
-        ${b.bestFormat?`<div class="bj-vr-block"><b>Mejor formato</b>${o(b.bestFormat)} \xB7 tendencia: ${o(b.trend||"")}</div>`:""}
-        ${b.recommendations?.length?`<div class="bj-vr-block"><b>Recomendaciones</b>${t(b.recommendations)}</div>`:""}`}catch{s.innerHTML='<span style="color:#ef4444;">Error de red. Reintent\xE1.</span>'}finally{c.target.disabled=!1}}),i.querySelector("#bj-council-go")?.addEventListener("click",async c=>{const s=i.querySelector("#bj-council-result");if(!q){s.innerHTML='<span style="color:#f59e0b;">Escrib\xED un tema arriba primero.</span>';return}const{niche:v}=h();c.target.disabled=!0,s.innerHTML="\u23F3 Convocando 6 agentes\u2026 (puede tardar)";try{const p=await(await fetch("/api/growth/council/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:q,niche:v,platform:u,goal:N})})).json(),r=p.parts||p.result||p,l=p.strategy||r?.strategy||{},b=r?.agents||p.agents||{},$=Object.entries(b).map(([j,f])=>{const x=f?.summary||f?.insight||f?.recommendation||f?.output||(typeof f=="string"?f:"");return x?`<div class="bj-vr-block"><b>\u{1F464} ${o(j)}</b>${o(String(x).slice(0,400))}${String(x).length>400?"\u2026":""}</div>`:""}).join("");s.innerHTML=`<div style="color:#10b981;">\u2713 Consejo completado${p.runId?" ("+o(p.runId)+")":""}</div>
-        ${l.summary?`<div class="bj-vr-block"><b>\u{1F4CB} S\xEDntesis del consejo</b>${o(l.summary)}</div>`:""}
-        ${l.northStar?`<div class="bj-vr-block"><b>\u2B50 North star</b>${o(l.northStar)}</div>`:""}
-        ${Array.isArray(l.priorities)&&l.priorities.length?`<div class="bj-vr-block"><b>\u{1F3AF} Prioridades</b>${t(l.priorities)}</div>`:""}
-        ${$||'<div style="font-size:11.5px;color:var(--text-tertiary,var(--fg-3));font-style:italic;">Sin detalle por agente disponible.</div>'}`}catch{s.innerHTML='<span style="color:#ef4444;">Error. Reintent\xE1.</span>'}finally{c.target.disabled=!1}});let z="dm";i.querySelectorAll(".bj-tab-btn").forEach(c=>{c.addEventListener("click",()=>{z=c.dataset.ce,i.querySelectorAll(".bj-tab-btn").forEach(g=>{g.classList.toggle("bj-btn-secondary",g.dataset.ce===z),g.classList.toggle("bj-btn-ghost",g.dataset.ce!==z)});const s=i.querySelector("#ce-context");s&&(s.style.display=z==="comment"?"":"none");const v=i.querySelector("#ce-input");v&&(v.placeholder=z==="dm"?"Peg\xE1 el DM recibido\u2026":"Peg\xE1 el comentario recibido\u2026")})}),i.querySelector("#ce-go")?.addEventListener("click",async c=>{const s=i.querySelector("#ce-result"),v=(i.querySelector("#ce-input")?.value||"").trim();if(!v){s.innerHTML='<span style="color:#f59e0b;">Peg\xE1 el mensaje primero.</span>';return}const{accountId:g}=h(),p=(i.querySelector("#ce-sender")?.value||"").trim().replace(/^@/,"");c.target.disabled=!0,c.target.textContent="\u{1F9E0} Pensando (5 pasos)\u2026",s.innerHTML='<div style="color:#a78bfa;font-size:12px;">\u{1F9E0} Paso 1/5: analizando autor (@'+o(p||"anon")+")\u2026<br>\u{1F4C2} Paso 2/5: contexto del hilo\u2026<br>\u{1F3AF} Paso 3/5: intent profundo + emoci\xF3n\u2026<br>\u{1F4AD} Paso 4/5: razonando respuesta (calibrando humor/registro al pa\xEDs)\u2026<br>\u2728 Paso 5/5: ajustes finales\u2026</div>";try{const l=await(await fetch("/api/community/brain/respond",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accountId:g,sender:p,message:v,postContext:(i.querySelector("#ce-context")?.value||"").trim(),channel:z||"dm"})})).json();if(!l.ok){s.innerHTML=`<span style="color:#ef4444;">${o(l.error||"error")}</span>`;return}l.intent=l.analysis?.intent,l.confidence=(l.analysis?.complexity||1)/5,l.method=`5-step \xB7 ${l.author?.country||"GLOBAL"} \xB7 ${l.thinkingMs}ms`,l.reply=l.response?.reply,l.suggestedAction=l.response?.action,l.tone=l.response?.tone,l.archetype=l.response?.tone||"",l.personalization_used=`${l.author?.country||""} \xB7 ${l.author?.isReturning?`${l.author.previousInteractions} interacciones previas`:"primera vez"} \xB7 ${l.analysis?.humor_used?"humor activado":"sin humor"} \xB7 emoci\xF3n: ${l.analysis?.emotion}`;const b={lead_warm:"#10b981",curiosity:"#3b82f6",support:"#f59e0b",compliment:"#a855f7",spam:"#ef4444",troll:"#ef4444",neutral:"#9ca3af"}[l.intent]||"#9ca3af";s.innerHTML=`
+    </style>`;
+
+  const root = container;
+  root.querySelectorAll('.bj-goal').forEach((b) => {
+    b.addEventListener('click', () => {
+      activeGoal = b.dataset.goal;
+      root.querySelectorAll('.bj-goal').forEach((x) => x.classList.toggle('active', x === b));
+    });
+  });
+
+  const topicInput = root.querySelector('#bj-topic');
+  const topicHint = root.querySelector('#bj-topic-hint');
+  let hintTimer = null;
+
+  const PLATFORM_FORMAT_HINTS = {
+    instagram: {
+      awareness: 'Reels',
+      engagement: 'Carrusel',
+      conversion: 'Carrusel + Stories',
+      community: 'Stories',
+      sales: 'Carrusel + Stories',
+    },
+    tiktok: {
+      awareness: 'Video',
+      engagement: 'Video',
+      conversion: 'Video + Stitch',
+      community: 'Video',
+      sales: 'Video + LIVE',
+    },
+  };
+
+  topicInput?.addEventListener('input', (e) => {
+    activeTopic = e.target.value.trim();
+    clearTimeout(hintTimer);
+    if (activeTopic.length >= 3 && topicHint) {
+      hintTimer = setTimeout(() => {
+        const fmt = PLATFORM_FORMAT_HINTS[platform]?.[activeGoal] || (platform === 'instagram' ? 'Carrusel' : 'Video');
+        topicHint.textContent = `Para "${activeTopic}" en ${platform === 'instagram' ? 'Instagram' : 'TikTok'} con objetivo "${activeGoal}" → formato recomendado: ${fmt}`;
+        topicHint.style.display = 'block';
+      }, 400);
+    } else if (topicHint) {
+      topicHint.style.display = 'none';
+    }
+  });
+
+  root.querySelector('#bj-go')?.addEventListener('click', () => {
+    if (!activeTopic) {
+      toast('Escribí el tema sobre el cual vas a publicar', 'warn');
+      topicInput?.focus();
+      return;
+    }
+    activeAccountId = (root.querySelector('#bj-account')?.value || '').trim();
+    activeNiche = (root.querySelector('#bj-niche')?.value || '').trim();
+    activeBrandType = root.querySelector('#bj-brandtype')?.value || 'personal';
+    void compute(root, platform);
+  });
+
+  // Enter key on topic input triggers compute
+  topicInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      root.querySelector('#bj-go')?.click();
+    }
+  });
+
+  // ── Account Studio wiring (vision + metrics) ──
+  const filesToDataUrls = (fileList) =>
+    Promise.all(
+      [...(fileList || [])].slice(0, 9).map(
+        (f) =>
+          new Promise((resolve) => {
+            const fr = new FileReader();
+            fr.onload = () => resolve(fr.result);
+            fr.onerror = () => resolve(null);
+            fr.readAsDataURL(f);
+          }),
+      ),
+    ).then((arr) => arr.filter(Boolean));
+
+  const studioAccount = () => ({
+    accountId: (root.querySelector('#bj-account')?.value || '').trim(),
+    niche: (root.querySelector('#bj-niche')?.value || '').trim(),
+  });
+  const esc = (s) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+  const ul = (arr) =>
+    `<ul>${(arr || []).map((x) => `<li>${esc(typeof x === 'string' ? x : x.idea || x.tactic || JSON.stringify(x))}</li>`).join('')}</ul>`;
+
+  const runVision = async (endpoint, filesSel, outSel, btn, renderFn) => {
+    const files = root.querySelector(filesSel)?.files;
+    const out = root.querySelector(outSel);
+    if (!files?.length) {
+      out.innerHTML = '<span style="color:#f59e0b;">Subí al menos 1 imagen.</span>';
+      return;
+    }
+    btn.disabled = true;
+    out.innerHTML = '⏳ Analizando con visión IA…';
+    try {
+      const images = await filesToDataUrls(files);
+      const { accountId, niche } = studioAccount();
+      const r = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId, niche, images }),
+      });
+      const j = await r.json();
+      if (j.error) {
+        out.innerHTML = `<span style="color:#ef4444;">${esc(j.message || j.error)}</span>`;
+        return;
+      }
+      out.innerHTML = renderFn(j);
+    } catch {
+      out.innerHTML = '<span style="color:#ef4444;">Error de red. Reintentá.</span>';
+    } finally {
+      btn.disabled = false;
+    }
+  };
+
+  root.querySelector('#bj-vision-go')?.addEventListener('click', (e) =>
+    runVision(
+      '/api/account/audit-feed',
+      '#bj-vision-files',
+      '#bj-vision-result',
+      e.target,
+      (
+        j,
+      ) => `<div><span class="bj-vr-score">${j.coherenceScore ?? '–'}/100</span> coherencia · ${esc(j.visualStyle || '')} <em style="color:#7878a0;">(${esc(j._provider || 'ia')})</em></div>
+      ${j.weaknesses?.length ? `<div class="bj-vr-block"><b>Debilidades</b>${ul(j.weaknesses)}</div>` : ''}
+      ${j.gaps?.length ? `<div class="bj-vr-block"><b>Huecos en el feed</b>${ul(j.gaps)}</div>` : ''}
+      ${j.whatToAdd?.length ? `<div class="bj-vr-block"><b>Qué agregar</b>${ul(j.whatToAdd.map((w) => `${w.idea} (${w.format})`))}</div>` : ''}`,
+    ),
+  );
+
+  root.querySelector('#bj-learn-go')?.addEventListener('click', (e) =>
+    runVision(
+      '/api/account/learn-competitor',
+      '#bj-learn-files',
+      '#bj-learn-result',
+      e.target,
+      (
+        j,
+      ) => `${j.visualPatterns?.length ? `<div class="bj-vr-block"><b>Patrones visuales</b>${ul(j.visualPatterns)}</div>` : ''}
+      ${j.hookPatterns?.length ? `<div class="bj-vr-block"><b>Patrones de hook</b>${ul(j.hookPatterns)}</div>` : ''}
+      ${j.whatYouCanApply?.length ? `<div class="bj-vr-block"><b>Aplicá a tu cuenta</b>${ul(j.whatYouCanApply.map((w) => `${w.tactic}: ${w.how}`))}</div>` : ''}
+      ${j.avoid?.length ? `<div class="bj-vr-block"><b>No copies</b>${ul(j.avoid)}</div>` : ''}`,
+    ),
+  );
+
+  root.querySelector('#bj-m-go')?.addEventListener('click', async (e) => {
+    const out = root.querySelector('#bj-m-result');
+    const { accountId } = studioAccount();
+    if (!accountId) {
+      out.innerHTML =
+        '<span style="color:#f59e0b;">Poné tu @cuenta arriba (en "Mi cuenta") para activar la memoria.</span>';
+      return;
+    }
+    const num = (sel) => {
+      const v = root.querySelector(sel)?.value;
+      return v === '' || v == null ? null : Number(v);
+    };
+    const entry = {
+      topic: root.querySelector('#bj-m-topic')?.value || '',
+      format: root.querySelector('#bj-m-format')?.value || 'reel',
+      reach: num('#bj-m-reach'),
+      saves: num('#bj-m-saves'),
+      shares: num('#bj-m-shares'),
+      comments: num('#bj-m-comments'),
+      follows: num('#bj-m-follows'),
+    };
+    e.target.disabled = true;
+    out.innerHTML = '⏳ Guardando…';
+    try {
+      const r = await fetch('/api/account/metrics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId, entry }),
+      });
+      const j = await r.json();
+      const ins = j.insights || {};
+      out.innerHTML = `<div style="color:#10b981;">✓ Guardado. Posts trackeados: ${ins.postsTracked ?? 0}</div>
+        ${ins.bestFormat ? `<div class="bj-vr-block"><b>Mejor formato</b>${esc(ins.bestFormat)} · tendencia: ${esc(ins.trend || '')}</div>` : ''}
+        ${ins.recommendations?.length ? `<div class="bj-vr-block"><b>Recomendaciones</b>${ul(ins.recommendations)}</div>` : ''}`;
+    } catch {
+      out.innerHTML = '<span style="color:#ef4444;">Error de red. Reintentá.</span>';
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
+  root.querySelector('#bj-council-go')?.addEventListener('click', async (e) => {
+    const out = root.querySelector('#bj-council-result');
+    if (!activeTopic) {
+      out.innerHTML = '<span style="color:#f59e0b;">Escribí un tema arriba primero.</span>';
+      return;
+    }
+    const { niche } = studioAccount();
+    e.target.disabled = true;
+    out.innerHTML = '⏳ Convocando 6 agentes… (puede tardar)';
+    try {
+      const r = await fetch('/api/growth/council/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: activeTopic, niche, platform, goal: activeGoal }),
+      });
+      const j = await r.json();
+      const parts = j.parts || j.result || j;
+      const strat = j.strategy || parts?.strategy || {};
+      // Render textual de TODOS los agentes (sin JSON crudo)
+      const agents = parts?.agents || j.agents || {};
+      const agentRows = Object.entries(agents)
+        .map(([role, data]) => {
+          const txt =
+            data?.summary ||
+            data?.insight ||
+            data?.recommendation ||
+            data?.output ||
+            (typeof data === 'string' ? data : '');
+          if (!txt) return '';
+          return `<div class="bj-vr-block"><b>👤 ${esc(role)}</b>${esc(String(txt).slice(0, 400))}${String(txt).length > 400 ? '…' : ''}</div>`;
+        })
+        .join('');
+      out.innerHTML = `<div style="color:#10b981;">✓ Consejo completado${j.runId ? ' (' + esc(j.runId) + ')' : ''}</div>
+        ${strat.summary ? `<div class="bj-vr-block"><b>📋 Síntesis del consejo</b>${esc(strat.summary)}</div>` : ''}
+        ${strat.northStar ? `<div class="bj-vr-block"><b>⭐ North star</b>${esc(strat.northStar)}</div>` : ''}
+        ${Array.isArray(strat.priorities) && strat.priorities.length ? `<div class="bj-vr-block"><b>🎯 Prioridades</b>${ul(strat.priorities)}</div>` : ''}
+        ${agentRows || '<div style="font-size:11.5px;color:var(--text-tertiary,var(--fg-3));font-style:italic;">Sin detalle por agente disponible.</div>'}`;
+    } catch {
+      out.innerHTML = '<span style="color:#ef4444;">Error. Reintentá.</span>';
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
+  // ── Community Engine ──
+  let ceMode = 'dm';
+  root.querySelectorAll('.bj-tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      ceMode = btn.dataset.ce;
+      root.querySelectorAll('.bj-tab-btn').forEach((b) => {
+        b.classList.toggle('bj-btn-secondary', b.dataset.ce === ceMode);
+        b.classList.toggle('bj-btn-ghost', b.dataset.ce !== ceMode);
+      });
+      const ctxInput = root.querySelector('#ce-context');
+      if (ctxInput) ctxInput.style.display = ceMode === 'comment' ? '' : 'none';
+      const ta = root.querySelector('#ce-input');
+      if (ta) ta.placeholder = ceMode === 'dm' ? 'Pegá el DM recibido…' : 'Pegá el comentario recibido…';
+    });
+  });
+
+  root.querySelector('#ce-go')?.addEventListener('click', async (e) => {
+    const out = root.querySelector('#ce-result');
+    const text = (root.querySelector('#ce-input')?.value || '').trim();
+    if (!text) {
+      out.innerHTML = '<span style="color:#f59e0b;">Pegá el mensaje primero.</span>';
+      return;
+    }
+    const { accountId } = studioAccount();
+    const sender = (root.querySelector('#ce-sender')?.value || '').trim().replace(/^@/, '');
+    e.target.disabled = true;
+    e.target.textContent = '🧠 Pensando (5 pasos)…';
+    out.innerHTML = '<div style="color:#a78bfa;font-size:12px;">🧠 Paso 1/5: analizando autor (@' + esc(sender || 'anon') + ')…<br>📂 Paso 2/5: contexto del hilo…<br>🎯 Paso 3/5: intent profundo + emoción…<br>💭 Paso 4/5: razonando respuesta (calibrando humor/registro al país)…<br>✨ Paso 5/5: ajustes finales…</div>';
+    try {
+      const r = await fetch('/api/community/brain/respond', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accountId, sender,
+          message: text,
+          postContext: (root.querySelector('#ce-context')?.value || '').trim(),
+          channel: ceMode || 'dm',
+        }),
+      });
+      const j = await r.json();
+      if (!j.ok) {
+        out.innerHTML = `<span style="color:#ef4444;">${esc(j.error || 'error')}</span>`;
+        return;
+      }
+      // Adaptar al render existente (mapeo brain → format viejo)
+      j.intent = j.analysis?.intent;
+      j.confidence = (j.analysis?.complexity || 1) / 5;
+      j.method = `5-step · ${j.author?.country || 'GLOBAL'} · ${j.thinkingMs}ms`;
+      j.reply = j.response?.reply;
+      j.suggestedAction = j.response?.action;
+      j.tone = j.response?.tone;
+      j.archetype = j.response?.tone || '';
+      j.personalization_used = `${j.author?.country || ''} · ${j.author?.isReturning ? `${j.author.previousInteractions} interacciones previas` : 'primera vez'} · ${j.analysis?.humor_used ? 'humor activado' : 'sin humor'} · emoción: ${j.analysis?.emotion}`;
+      const intentColor =
+        {
+          lead_warm: '#10b981',
+          curiosity: '#3b82f6',
+          support: '#f59e0b',
+          compliment: '#a855f7',
+          spam: '#ef4444',
+          troll: '#ef4444',
+          neutral: '#9ca3af',
+        }[j.intent] || '#9ca3af';
+      out.innerHTML = `
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
-          <span style="background:${b};color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:800;text-transform:uppercase;">${o(l.intent)}</span>
-          <span style="font-size:10.5px;color:var(--text-tertiary,var(--fg-3));">conf: ${l.confidence?.toFixed(2)||"?"} \xB7 m\xE9todo: ${o(l.method||"")}</span>
-          ${l.archetype?`<span class="ab-tag">${o(l.archetype)}</span>`:""}
+          <span style="background:${intentColor};color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:800;text-transform:uppercase;">${esc(j.intent)}</span>
+          <span style="font-size:10.5px;color:var(--text-tertiary,var(--fg-3));">conf: ${j.confidence?.toFixed(2) || '?'} · método: ${esc(j.method || '')}</span>
+          ${j.archetype ? `<span class="ab-tag">${esc(j.archetype)}</span>` : ''}
         </div>
-        ${l.reply?`
-          <div class="bj-vr-block"><b>\u{1F4DD} Respuesta sugerida</b>
-            <div style="background:var(--bg,#0a0a0a);padding:10px;border-radius:8px;font-size:13px;line-height:1.55;border-left:3px solid ${b};">${o(l.reply)}</div>
-            <button class="bj-copy-btn" data-copy="${o(l.reply)}" style="margin-top:6px;">\u{1F4CB} Copiar</button>
-          </div>`:""}
-        <div class="bj-vr-block"><b>\u{1F3AF} Acci\xF3n sugerida</b>${o(l.suggestedAction||"ninguna")}${l.tone?` \xB7 tono: ${o(l.tone)}`:""}</div>
-        ${l.personalization_used?`<div class="bj-vr-block"><b>\u2728 Personalizaci\xF3n usada</b>${o(l.personalization_used)}</div>`:""}`,s.querySelector(".bj-copy-btn")?.addEventListener("click",async $=>{try{await navigator.clipboard.writeText($.target.dataset.copy),B("\u{1F4CB} Copiado","ok")}catch{}})}catch(r){s.innerHTML=`<span style="color:#ef4444;">${o(r?.message||"error")}</span>`}finally{c.target.disabled=!1,c.target.textContent="\u{1F9E0} Analizar y responder"}}),i.querySelector("#se-go")?.addEventListener("click",async c=>{const s=i.querySelector("#se-result");if(!q){s.innerHTML='<span style="color:#f59e0b;">Escrib\xED un tema arriba primero.</span>';return}const v=i.querySelector("#se-file")?.files?.[0],g=(i.querySelector("#se-colors")?.value||"").split(",").map($=>$.trim()).filter(Boolean),p=i.querySelector("#se-archetype")?.value||"cercano",r=parseInt(i.querySelector("#se-count")?.value||"5",10),{accountId:l,niche:b}=h();c.target.disabled=!0,s.innerHTML="\u{1F4F1} Generando frames visuales\u2026";try{let $=null;v&&($=(await y([v]))[0]);const f=await(await fetch("/api/stories/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:q,niche:b,goal:N,archetype:p,framesCount:r,brandColors:g,photoDataUrl:$,accountId:l})})).json();if(!f.ok){s.innerHTML=`<span style="color:#ef4444;">${o(f.error||"error")}</span>`;return}const x=f.frames||[];s.innerHTML=`
-        <div style="color:#10b981;font-size:12px;">\u2713 ${x.length} frames generados (1080\xD71920)</div>
+        ${
+          j.reply
+            ? `
+          <div class="bj-vr-block"><b>📝 Respuesta sugerida</b>
+            <div style="background:var(--bg,#0a0a0a);padding:10px;border-radius:8px;font-size:13px;line-height:1.55;border-left:3px solid ${intentColor};">${esc(j.reply)}</div>
+            <button class="bj-copy-btn" data-copy="${esc(j.reply)}" style="margin-top:6px;">📋 Copiar</button>
+          </div>`
+            : ''
+        }
+        <div class="bj-vr-block"><b>🎯 Acción sugerida</b>${esc(j.suggestedAction || 'ninguna')}${j.tone ? ` · tono: ${esc(j.tone)}` : ''}</div>
+        ${j.personalization_used ? `<div class="bj-vr-block"><b>✨ Personalización usada</b>${esc(j.personalization_used)}</div>` : ''}`;
+      out.querySelector('.bj-copy-btn')?.addEventListener('click', async (ev) => {
+        try {
+          await navigator.clipboard.writeText(ev.target.dataset.copy);
+          toast('📋 Copiado', 'ok');
+        } catch {}
+      });
+    } catch (err) {
+      out.innerHTML = `<span style="color:#ef4444;">${esc(err?.message || 'error')}</span>`;
+    } finally {
+      e.target.disabled = false;
+      e.target.textContent = '🧠 Analizar y responder';
+    }
+  });
+
+  // ── Stories Engine ──
+  root.querySelector('#se-go')?.addEventListener('click', async (e) => {
+    const out = root.querySelector('#se-result');
+    if (!activeTopic) {
+      out.innerHTML = '<span style="color:#f59e0b;">Escribí un tema arriba primero.</span>';
+      return;
+    }
+    const file = root.querySelector('#se-file')?.files?.[0];
+    const colors = (root.querySelector('#se-colors')?.value || '')
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean);
+    const archetype = root.querySelector('#se-archetype')?.value || 'cercano';
+    const framesCount = parseInt(root.querySelector('#se-count')?.value || '5', 10);
+    const { accountId, niche } = studioAccount();
+    e.target.disabled = true;
+    out.innerHTML = '📱 Generando frames visuales…';
+    try {
+      let photoDataUrl = null;
+      if (file) {
+        const list = await filesToDataUrls([file]);
+        photoDataUrl = list[0];
+      }
+      const r = await fetch('/api/stories/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: activeTopic,
+          niche,
+          goal: activeGoal,
+          archetype,
+          framesCount,
+          brandColors: colors,
+          photoDataUrl,
+          accountId,
+        }),
+      });
+      const j = await r.json();
+      if (!j.ok) {
+        out.innerHTML = `<span style="color:#ef4444;">${esc(j.error || 'error')}</span>`;
+        return;
+      }
+      const fr = j.frames || [];
+      out.innerHTML = `
+        <div style="color:#10b981;font-size:12px;">✓ ${fr.length} frames generados (1080×1920)</div>
         <div class="ap-slides">
-          ${x.map((P,M)=>`<div class="ap-slide" data-idx="${M}"><img src="${o(P.dataUrl)}" alt="frame ${P.n}" loading="lazy" /><span class="ap-slide-tag">${P.n}\xB7${o(P.role)}</span></div>`).join("")}
+          ${fr.map((f, idx) => `<div class="ap-slide" data-idx="${idx}"><img src="${esc(f.dataUrl)}" alt="frame ${f.n}" loading="lazy" /><span class="ap-slide-tag">${f.n}·${esc(f.role)}</span></div>`).join('')}
         </div>
-        <button class="bj-btn bj-btn-secondary" id="se-dl-all" style="margin-top:8px;">\u2B07\uFE0F Descargar todos los frames</button>`,s.querySelector("#se-dl-all")?.addEventListener("click",()=>{x.forEach((P,M)=>setTimeout(()=>{const T=document.createElement("a");T.href=P.dataUrl,T.download=`story-${P.n}.svg`,document.body.appendChild(T),T.click(),T.remove()},M*250))});const L=P=>{let M=P;const T=document.createElement("div");T.className="ap-lightbox";const O=()=>{const S=x[M];T.innerHTML=`
-            <button class="ap-lb-close">\u2715</button>
-            <button class="ap-lb-nav ap-lb-prev" ${M===0?"disabled":""}>\u2039</button>
-            <div class="ap-lb-stage"><img src="${o(S.dataUrl)}" /><div class="ap-lb-meta">Frame ${S.n} / ${x.length} \xB7 ${o(S.role)}${S.text?" \xB7 "+o(S.text):""}</div></div>
-            <button class="ap-lb-nav ap-lb-next" ${M===x.length-1?"disabled":""}>\u203A</button>
-            <a class="ap-lb-dl" href="${o(S.dataUrl)}" download="story-${S.n}.svg">\u2B07\uFE0F Descargar</a>`,T.querySelector(".ap-lb-close").onclick=()=>T.remove(),T.querySelector(".ap-lb-prev").onclick=()=>{M>0&&(M--,O())},T.querySelector(".ap-lb-next").onclick=()=>{M<x.length-1&&(M++,O())}};T.addEventListener("click",S=>{S.target===T&&T.remove()}),O(),document.body.appendChild(T)};s.querySelectorAll(".ap-slide").forEach(P=>P.addEventListener("click",()=>L(parseInt(P.dataset.idx,10)||0)))}catch($){s.innerHTML=`<span style="color:#ef4444;">${o($?.message||"error")}</span>`}finally{c.target.disabled=!1}}),i.querySelector("#fb-go")?.addEventListener("click",async c=>{const s=i.querySelector("#fb-result"),{accountId:v,niche:g}=h();if(!v){s.innerHTML='<span style="color:#f59e0b;">Pon\xE9 @cuenta arriba para que el sistema cachee aprendizajes.</span>';return}c.target.disabled=!0,s.innerHTML="\u{1F9E0} Analizando m\xE9tricas + sintetizando learnings\u2026";try{const r=await(await fetch("/api/feedback/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accountId:v,niche:g})})).json();if(!r.ok){s.innerHTML=`<span style="color:#ef4444;">${o(r.error||"error")}</span>`;return}if(!r.hasData){s.innerHTML=`<span style="color:#f59e0b;">${o(r.message)}</span>`;return}const l=r.patterns||{},b=r.learnings||{};s.innerHTML=`
-        <div style="color:#10b981;font-size:12px;">\u2713 Aprendido en ${Math.round(r.durationMs/1e3)}s \xB7 ${l.totalAnalyzed} posts \xB7 score promedio ${l.avgScore}${r.nicheCacheUpdated?" \xB7 cache de Inteligencia actualizada":""}</div>
-        ${b.summary?`<div class="bj-vr-block"><b>\u{1F4A1} Insight central</b>${o(b.summary)}</div>`:""}
-        ${b.doubleDownOn?`<div class="bj-vr-block"><b>\u{1F680} Doblar la apuesta en</b>${o(b.doubleDownOn)}</div>`:""}
-        <div class="bj-vr-block"><b>\u{1F3C6} Patrones ganadores</b>
-          <div>Formato: <span style="color:#10b981;font-weight:700;">${o(l.bestFormat||"-")}</span> \xB7 Hook: <span style="color:#3b82f6;font-weight:700;">${o(l.bestHookStyle||"-")}</span> \xB7 Horario: <span style="color:#a855f7;font-weight:700;">${o(l.bestHour||"-")}</span></div>
-          ${b.winningArchetype?`<div>Archetype recomendado: <span class="ab-tag ab-tag-purple">${o(b.winningArchetype)}</span></div>`:""}
+        <button class="bj-btn bj-btn-secondary" id="se-dl-all" style="margin-top:8px;">⬇️ Descargar todos los frames</button>`;
+
+      out.querySelector('#se-dl-all')?.addEventListener('click', () => {
+        fr.forEach((f, i) =>
+          setTimeout(() => {
+            const a = document.createElement('a');
+            a.href = f.dataUrl;
+            a.download = `story-${f.n}.svg`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          }, i * 250),
+        );
+      });
+
+      // Lightbox (reuse del autopilot)
+      const openLightbox = (startIdx) => {
+        let idx = startIdx;
+        const overlay = document.createElement('div');
+        overlay.className = 'ap-lightbox';
+        const render = () => {
+          const f = fr[idx];
+          overlay.innerHTML = `
+            <button class="ap-lb-close">✕</button>
+            <button class="ap-lb-nav ap-lb-prev" ${idx === 0 ? 'disabled' : ''}>‹</button>
+            <div class="ap-lb-stage"><img src="${esc(f.dataUrl)}" /><div class="ap-lb-meta">Frame ${f.n} / ${fr.length} · ${esc(f.role)}${f.text ? ' · ' + esc(f.text) : ''}</div></div>
+            <button class="ap-lb-nav ap-lb-next" ${idx === fr.length - 1 ? 'disabled' : ''}>›</button>
+            <a class="ap-lb-dl" href="${esc(f.dataUrl)}" download="story-${f.n}.svg">⬇️ Descargar</a>`;
+          overlay.querySelector('.ap-lb-close').onclick = () => overlay.remove();
+          overlay.querySelector('.ap-lb-prev').onclick = () => {
+            if (idx > 0) {
+              idx--;
+              render();
+            }
+          };
+          overlay.querySelector('.ap-lb-next').onclick = () => {
+            if (idx < fr.length - 1) {
+              idx++;
+              render();
+            }
+          };
+        };
+        overlay.addEventListener('click', (ev) => {
+          if (ev.target === overlay) overlay.remove();
+        });
+        render();
+        document.body.appendChild(overlay);
+      };
+      out
+        .querySelectorAll('.ap-slide')
+        .forEach((el) => el.addEventListener('click', () => openLightbox(parseInt(el.dataset.idx, 10) || 0)));
+    } catch (err) {
+      out.innerHTML = `<span style="color:#ef4444;">${esc(err?.message || 'error')}</span>`;
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
+  // ── Feedback Loop (memoria activa) ──
+  root.querySelector('#fb-go')?.addEventListener('click', async (e) => {
+    const out = root.querySelector('#fb-result');
+    const { accountId, niche } = studioAccount();
+    if (!accountId) {
+      out.innerHTML =
+        '<span style="color:#f59e0b;">Poné @cuenta arriba para que el sistema cachee aprendizajes.</span>';
+      return;
+    }
+    e.target.disabled = true;
+    out.innerHTML = '🧠 Analizando métricas + sintetizando learnings…';
+    try {
+      const r = await fetch('/api/feedback/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId, niche }),
+      });
+      const j = await r.json();
+      if (!j.ok) {
+        out.innerHTML = `<span style="color:#ef4444;">${esc(j.error || 'error')}</span>`;
+        return;
+      }
+      if (!j.hasData) {
+        out.innerHTML = `<span style="color:#f59e0b;">${esc(j.message)}</span>`;
+        return;
+      }
+      const p = j.patterns || {};
+      const l = j.learnings || {};
+      out.innerHTML = `
+        <div style="color:#10b981;font-size:12px;">✓ Aprendido en ${Math.round(j.durationMs / 1000)}s · ${p.totalAnalyzed} posts · score promedio ${p.avgScore}${j.nicheCacheUpdated ? ' · cache de Inteligencia actualizada' : ''}</div>
+        ${l.summary ? `<div class="bj-vr-block"><b>💡 Insight central</b>${esc(l.summary)}</div>` : ''}
+        ${l.doubleDownOn ? `<div class="bj-vr-block"><b>🚀 Doblar la apuesta en</b>${esc(l.doubleDownOn)}</div>` : ''}
+        <div class="bj-vr-block"><b>🏆 Patrones ganadores</b>
+          <div>Formato: <span style="color:#10b981;font-weight:700;">${esc(p.bestFormat || '-')}</span> · Hook: <span style="color:#3b82f6;font-weight:700;">${esc(p.bestHookStyle || '-')}</span> · Horario: <span style="color:#a855f7;font-weight:700;">${esc(p.bestHour || '-')}</span></div>
+          ${l.winningArchetype ? `<div>Archetype recomendado: <span class="ab-tag ab-tag-purple">${esc(l.winningArchetype)}</span></div>` : ''}
         </div>
-        ${b.recommendations?.length?`<div class="bj-vr-block"><b>\u{1F4CB} Recomendaciones (pr\xF3ximos 7 d\xEDas)</b>${t(b.recommendations)}</div>`:""}
-        ${b.redFlags?.length?`<div class="bj-vr-block"><b>\u{1F6A9} Red flags (no repetir)</b>${t(b.redFlags)}</div>`:""}
-        ${l.topPosts?.length?`<div class="bj-vr-block"><b>\u{1F947} Top posts</b>${t(l.topPosts.slice(0,3).map($=>`"${($.topic||"").slice(0,60)}" \xB7 ${$.format} \xB7 score ${$.score}`))}</div>`:""}
-        ${r.syncLog?.length?`<div class="bj-vr-block"><b>\u{1F50C} Sincronizaci\xF3n con cuentas conectadas</b>${t(r.syncLog)}</div>`:""}`}catch(p){s.innerHTML=`<span style="color:#ef4444;">${o(p?.message||"error")}</span>`}finally{c.target.disabled=!1}}),i.querySelector("#gs-go")?.addEventListener("click",async c=>{const s=i.querySelector("#gs-result"),v=(i.querySelector("#gs-task")?.value||"").trim();if(!v){s.innerHTML='<span style="color:#f59e0b;">Escrib\xED qu\xE9 quer\xE9s que haga (ej: "lanz\xE1 un carrusel sobre IA").</span>';return}const{accountId:g,niche:p}=h(),r=(i.querySelector("#gs-colors")?.value||"").split(",").map(b=>b.trim()).filter(Boolean),l=i.querySelector("#gs-format")?.value||null;c.target.disabled=!0,s.innerHTML="\u{1F9EC} Gstack decidiendo + ejecutando\u2026";try{const $=await(await fetch("/api/gstack/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({task:v,format:l,accountId:g,niche:p,topic:q||v,goal:N,platform:u,brandColors:r})})).json();if(!$.ok){s.innerHTML=`<span style="color:#ef4444;">${o($.error||"error")}: ${o($.message||"")}</span>`;return}const j=$.decision||{},f=$.output||{},x=Array.isArray(f.carouselSlides)?f.carouselSlides:[];s.innerHTML=`
-        <div style="color:#10b981;font-size:12px;">\u2713 Gstack ejecutado en ${Math.round($.durationMs/1e3)}s</div>
-        <div class="bj-vr-block"><b>\u{1F3AF} Decisi\xF3n del sistema</b>
-          <div>Voz elegida: <span style="color:#a855f7;font-weight:700;">${o(j.archetype)}</span> \xB7 Est\xE9tica: <span style="color:#3b82f6;font-weight:700;">${o(j.mood)}</span></div>
-          <div>Roles IA activos: ${(j.roles||[]).map(M=>`<span class="ab-tag ab-tag-purple">${o(M)}</span>`).join(" ")}</div>
-          <div>Formato: ${o(j.format||"estrategia general")} \xB7 Intenci\xF3n: ${o(j.intent||"crear contenido")} \xB7 Nicho: ${o(j.niche)}</div>
+        ${l.recommendations?.length ? `<div class="bj-vr-block"><b>📋 Recomendaciones (próximos 7 días)</b>${ul(l.recommendations)}</div>` : ''}
+        ${l.redFlags?.length ? `<div class="bj-vr-block"><b>🚩 Red flags (no repetir)</b>${ul(l.redFlags)}</div>` : ''}
+        ${p.topPosts?.length ? `<div class="bj-vr-block"><b>🥇 Top posts</b>${ul(p.topPosts.slice(0, 3).map((t) => `"${(t.topic || '').slice(0, 60)}" · ${t.format} · score ${t.score}`))}</div>` : ''}
+        ${j.syncLog?.length ? `<div class="bj-vr-block"><b>🔌 Sincronización con cuentas conectadas</b>${ul(j.syncLog)}</div>` : ''}`;
+    } catch (err) {
+      out.innerHTML = `<span style="color:#ef4444;">${esc(err?.message || 'error')}</span>`;
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
+  // ── Gstack meta-controller ──
+  root.querySelector('#gs-go')?.addEventListener('click', async (e) => {
+    const out = root.querySelector('#gs-result');
+    const task = (root.querySelector('#gs-task')?.value || '').trim();
+    if (!task) {
+      out.innerHTML =
+        '<span style="color:#f59e0b;">Escribí qué querés que haga (ej: "lanzá un carrusel sobre IA").</span>';
+      return;
+    }
+    const { accountId, niche } = studioAccount();
+    const colors = (root.querySelector('#gs-colors')?.value || '')
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean);
+    const format = root.querySelector('#gs-format')?.value || null;
+    e.target.disabled = true;
+    out.innerHTML = '🧬 Gstack decidiendo + ejecutando…';
+    try {
+      const r = await fetch('/api/gstack/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task,
+          format,
+          accountId,
+          niche,
+          topic: activeTopic || task,
+          goal: activeGoal,
+          platform,
+          brandColors: colors,
+        }),
+      });
+      const j = await r.json();
+      if (!j.ok) {
+        out.innerHTML = `<span style="color:#ef4444;">${esc(j.error || 'error')}: ${esc(j.message || '')}</span>`;
+        return;
+      }
+      const d = j.decision || {};
+      const o = j.output || {};
+      const slidesG = Array.isArray(o.carouselSlides) ? o.carouselSlides : [];
+      out.innerHTML = `
+        <div style="color:#10b981;font-size:12px;">✓ Gstack ejecutado en ${Math.round(j.durationMs / 1000)}s</div>
+        <div class="bj-vr-block"><b>🎯 Decisión del sistema</b>
+          <div>Voz elegida: <span style="color:#a855f7;font-weight:700;">${esc(d.archetype)}</span> · Estética: <span style="color:#3b82f6;font-weight:700;">${esc(d.mood)}</span></div>
+          <div>Roles IA activos: ${(d.roles || []).map((r) => `<span class="ab-tag ab-tag-purple">${esc(r)}</span>`).join(' ')}</div>
+          <div>Formato: ${esc(d.format || 'estrategia general')} · Intención: ${esc(d.intent || 'crear contenido')} · Nicho: ${esc(d.niche)}</div>
         </div>
-        ${(j.reasoning||[]).length?`<div class="bj-vr-block"><b>\u{1F9E0} Por qu\xE9 decidi\xF3 esto</b>${t(j.reasoning)}</div>`:""}
-        ${f.pending?`<div style="color:#f59e0b;">\u23F3 ${o(f.reason)}</div>`:""}
-        ${f.content?`<div class="bj-vr-block"><b>\u{1F4DD} Contenido generado</b>
-          ${f.content.hook?`<div><strong>Hook:</strong> ${o(f.content.hook)}</div>`:""}
-          ${f.content.caption?`<div style="margin-top:4px;"><strong>Caption:</strong> ${o(f.content.caption.slice(0,300))}${f.content.caption.length>300?"\u2026":""}</div>`:""}
-          ${f.content.angle?`<div style="margin-top:4px;"><strong>\xC1ngulo:</strong> ${o(f.content.angle)}</div>`:""}
-        </div>`:""}
-        ${x.length?`
-          <div class="bj-vr-block"><b>\u{1F5BC}\uFE0F Carrusel \xB7 ${x.length} slides</b> <span style="font-size:10.5px;color:#a78bfa;">(toc\xE1 uno para ampliar)</span></div>
-          <div class="ap-slides" id="gs-slides">${x.map((M,T)=>`<div class="ap-slide" data-idx="${T}"><img src="${o(M.dataUrl)}" alt="slide ${M.n}" loading="lazy" /><span class="ap-slide-tag">${M.n}${M.role?"\xB7"+o(M.role):""}</span></div>`).join("")}</div>
-        `:f.image?.url?`<div class="bj-vr-block"><b>\u{1F5BC}\uFE0F Imagen</b></div><div class="ap-slides"><div class="ap-slide" data-idx="0"><img src="${o(f.image.url)}" alt="output" loading="lazy" /><span class="ap-slide-tag">1</span></div></div>`:""}`;const L=x.length?x:f.image?.url?[{n:1,role:"output",dataUrl:f.image.url}]:[],P=M=>{let T=M;const O=document.createElement("div");O.className="ap-lightbox";const S=()=>{const E=L[T];E&&(O.innerHTML=`<button class="ap-lb-close">\u2715</button><button class="ap-lb-nav ap-lb-prev" ${T===0?"disabled":""}>\u2039</button><div class="ap-lb-stage"><img src="${o(E.dataUrl)}" /><div class="ap-lb-meta">Slide ${E.n} / ${L.length}${E.role?" \xB7 "+o(E.role):""}</div></div><button class="ap-lb-nav ap-lb-next" ${T===L.length-1?"disabled":""}>\u203A</button><a class="ap-lb-dl" href="${o(E.dataUrl)}" download="gstack-slide-${E.n}.svg">\u2B07\uFE0F Descargar</a>`,O.querySelector(".ap-lb-close").onclick=()=>O.remove(),O.querySelector(".ap-lb-prev").onclick=()=>{T>0&&(T--,S())},O.querySelector(".ap-lb-next").onclick=()=>{T<L.length-1&&(T++,S())})};O.addEventListener("click",E=>{E.target===O&&O.remove()}),S(),document.body.appendChild(O)};s.querySelectorAll(".ap-slide").forEach(M=>M.addEventListener("click",()=>P(parseInt(M.dataset.idx,10)||0)))}catch(b){s.innerHTML=`<span style="color:#ef4444;">${o(b?.message||"error")}</span>`}finally{c.target.disabled=!1}}),i.querySelector("#bj-intel-go")?.addEventListener("click",async c=>{const s=i.querySelector("#bj-intel-result"),{accountId:v,niche:g}=h();if(!v){s.innerHTML='<span style="color:#f59e0b;">Pon\xE9 @cuenta arriba (en "Mi cuenta") para cachear el an\xE1lisis.</span>';return}c.target.disabled=!0,s.innerHTML="\u{1F9EC} Corriendo 5 an\xE1lisis (nicho \u2192 audiencia \u2192 competencia \u2192 oportunidades \u2192 s\xEDntesis)\u2026";try{const r=await(await fetch("/api/intelligence/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:q,accountId:v,accountHandle:v,brandNiche:g,goal:N,force:!0})})).json();if(!r.ok){s.innerHTML=`<span style="color:#ef4444;">${o(r.error||"error")}</span>`;return}s.innerHTML=`
-        <div style="color:#10b981;font-size:12px;">\u2713 Intelligence cacheada (${Math.round(r.durationMs/1e3)}s)${r.fromCache?" \xB7 cache hit":""}</div>
-        <div class="bj-vr-block"><b>Nicho detectado</b>${o(r.niche?.primaryNiche||"")} (saturaci\xF3n: ${o(r.niche?.saturationLevel||"")} \xB7 monetizaci\xF3n: ${o(r.niche?.monetizationPotential||"")})</div>
-        ${r.summary?.mainAngle?`<div class="bj-vr-block"><b>\u{1F3AF} Posicionamiento</b>${o(r.summary.mainAngle)}</div>`:""}
-        ${r.summary?.differentiationPlay?`<div class="bj-vr-block"><b>\u26A1 Jugada diferenciaci\xF3n</b>${o(r.summary.differentiationPlay)}</div>`:""}
-        ${r.audience?.decisionTriggers?.length?`<div class="bj-vr-block"><b>\u{1F381} Triggers audiencia</b>${t(r.audience.decisionTriggers)}</div>`:""}
-        ${r.competitive?.contentGaps?.length?`<div class="bj-vr-block"><b>\u{1F48E} Gaps de contenido</b>${t(r.competitive.contentGaps)}</div>`:""}
-        ${r.opportunities?.top3Opportunities?.length?`<div class="bj-vr-block"><b>\u{1F680} Top 3 oportunidades</b>${t(r.opportunities.top3Opportunities.map(l=>`${l.opportunity} \u2192 ${l.action}`))}</div>`:""}
-        ${r.opportunities?.redFlags?.length?`<div class="bj-vr-block"><b>\u26A0\uFE0F NO hacer</b>${t(r.opportunities.redFlags)}</div>`:""}
-        ${r.audience?.icp?`<div class="bj-vr-block"><b>\u{1F465} Audiencia ideal (ICP)</b><div>Edad: ${o(r.audience.icp.ageRange||"-")} \xB7 G\xE9nero: ${o(r.audience.icp.gender||"-")} \xB7 Geo: ${(r.audience.icp.geo||[]).map(o).join(", ")}</div>${r.audience.icp.lifestyle?`<div>Estilo de vida: ${o(r.audience.icp.lifestyle)}</div>`:""}</div>`:""}
-        ${r.audience?.psychographics?.fears?.length?`<div class="bj-vr-block"><b>\u{1F630} Miedos de la audiencia</b>${t(r.audience.psychographics.fears)}</div>`:""}
-        ${r.audience?.psychographics?.aspirations?.length?`<div class="bj-vr-block"><b>\u{1F31F} Aspiraciones</b>${t(r.audience.psychographics.aspirations)}</div>`:""}
-        ${r.competitive?.differentiationPlay?`<div class="bj-vr-block"><b>\u{1F3AF} C\xF3mo diferenciarte</b>${o(r.competitive.differentiationPlay)}</div>`:""}
-        ${r.opportunities?.contentPillars?.length?`<div class="bj-vr-block"><b>\u{1F3DB}\uFE0F Pilares de contenido</b>${t(r.opportunities.contentPillars.map(l=>`${l.pillar} (${l["%mix"]||""})`))}</div>`:""}`}catch(p){s.innerHTML=`<span style="color:#ef4444;">${o(p?.message||"error")}</span>`}finally{c.target.disabled=!1}}),i.querySelectorAll(".bj-cb-plan-cb").forEach(c=>{c.addEventListener("change",()=>c.closest(".bj-cb-plan")?.classList.toggle("selected",c.checked))}),["text","bg","accent"].forEach(c=>{const s=i.querySelector(`#cb-${c}-color`),v=i.querySelector(`#cb-${c}-color-text`);s&&v&&(s.addEventListener("input",()=>{v.value=s.value.toUpperCase()}),v.addEventListener("input",()=>{/^#[0-9A-Fa-f]{6}$/.test(v.value)&&(s.value=v.value)}))}),i.querySelector("#bj-cb-go")?.addEventListener("click",async c=>{const s=i.querySelector("#bj-cb-result");if(!q){s.innerHTML='<span style="color:#f59e0b;">Escrib\xED un tema arriba primero.</span>';return}const v=[...i.querySelectorAll(".bj-cb-plan-cb:checked")].map(p=>parseInt(p.dataset.idx,10)),g=(v.length?v:[0]).map(p=>R?.hookPlans?.[p]).filter(Boolean);!g.length&&!R?.hookPlans?.length&&g.push({hook:q,cta:"Coment\xE1 si te sirvi\xF3"}),c.target.disabled=!0,s.innerHTML=`\u{1F3A8} Componiendo ${g.length} carrusel(es) con tu est\xE9tica\u2026`;try{const p=i.querySelector("#cb-files")?.files,r=p?.length?await y(p):[],l=[];for(const A of r)try{l.push(await F(A))}catch{}const b=i.querySelector("#cb-bg-image")?.files?.[0];let $=null;if(b){const A=await y([b]);A[0]&&($=await F(A[0]))}const{accountId:j,niche:f}=h(),x=(i.querySelector("#cb-colors")?.value||"").split(",").map(A=>A.trim()).filter(Boolean),L=(i.querySelector("#cb-elements")?.value||"").split(",").map(A=>A.trim()).filter(Boolean),P=i.querySelector("#cb-text-color-text")?.value||null,M=i.querySelector("#cb-bg-color-text")?.value||null,T=i.querySelector("#cb-accent-color-text")?.value||null,O=i.querySelector("#cb-mood")?.value||"",S=i.querySelector("#cb-font")?.value||"serif-editorial",E=[];for(const A of g){const D={topic:q,niche:f,goal:N,platform:u,format:"carousel",accountId:j,images:l,brandColors:x,extraElements:L,textColor:P,bgColor:M,accentColor:T,bgImage:$,hookOverride:A?.hook||"",ctaOverride:A?.cta||"",mood:O||"premium",fontStyle:S,autoPublish:!1};try{const V=await(await fetch("/api/autopilot/create-post",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(D)})).json();V.ok&&E.push(V)}catch{}}if(!E.length){s.innerHTML='<span style="color:#ef4444;">No se pudo generar ning\xFAn carrusel.</span>';return}s.innerHTML=`<div style="color:#10b981;font-size:12px;margin-bottom:10px;">\u2713 ${E.length} carrusel(es) generado(s) \xB7 tipograf\xEDa: ${o(S)} \xB7 texto: ${o(P||"")} \xB7 fondo: ${o(M||"")} \xB7 acento: ${o(T||"")}</div>`,E.forEach((A,D)=>{const H=A.carouselSlides||[],V=document.createElement("div");V.style.marginBottom="18px",V.innerHTML=`<div style="font-size:13px;font-weight:800;color:#a855f7;margin-bottom:6px;">\u{1F4CB} Carrusel del Plan ${D+1}</div>
-          ${H.length?`<div class="ap-slides" data-plan="${D}">${H.map((G,J)=>`<div class="ap-slide" data-idx="${J}"><img src="${o(G.dataUrl)}" alt="slide ${G.n}" loading="lazy" /><span class="ap-slide-tag">${G.n}${G.role?"\xB7"+o(G.role):""}</span></div>`).join("")}</div>
-            <button class="bj-btn bj-btn-secondary cb-dl-plan" data-plan="${D}" style="margin-top:6px;font-size:11.5px;">\u2B07\uFE0F Descargar slides del Plan ${D+1}</button>`:"<em>Sin slides</em>"}`,s.appendChild(V);const re=G=>{let J=G;const _=document.createElement("div");_.className="ap-lightbox";const ae=()=>{const W=H[J];W&&(_.innerHTML=`<button class="ap-lb-close">\u2715</button><button class="ap-lb-nav ap-lb-prev" ${J===0?"disabled":""}>\u2039</button><div class="ap-lb-stage"><img src="${o(W.dataUrl)}" /><div class="ap-lb-meta">Plan ${D+1} \xB7 Slide ${W.n}/${H.length}${W.role?" \xB7 "+o(W.role):""}</div></div><button class="ap-lb-nav ap-lb-next" ${J===H.length-1?"disabled":""}>\u203A</button><a class="ap-lb-dl" href="${o(W.dataUrl)}" download="plan${D+1}-slide-${W.n}.svg">\u2B07\uFE0F Descargar</a>`,_.querySelector(".ap-lb-close").onclick=()=>_.remove(),_.querySelector(".ap-lb-prev").onclick=()=>{J>0&&(J--,ae())},_.querySelector(".ap-lb-next").onclick=()=>{J<H.length-1&&(J++,ae())})};_.addEventListener("click",W=>{W.target===_&&_.remove()}),ae(),document.body.appendChild(_)};V.querySelectorAll(".ap-slide").forEach(G=>G.addEventListener("click",()=>re(parseInt(G.dataset.idx,10)||0))),V.querySelector(".cb-dl-plan")?.addEventListener("click",()=>H.forEach((G,J)=>setTimeout(()=>{const _=document.createElement("a");_.href=G.dataUrl,_.download=`plan${D+1}-slide-${G.n}.svg`,document.body.appendChild(_),_.click(),_.remove()},J*250)))})}catch(p){s.innerHTML=`<span style="color:#ef4444;">${o(p?.message||"error")}</span>`}finally{c.target.disabled=!1}}),i.querySelector("#ra-go")?.addEventListener("click",async c=>{const s=i.querySelector("#ra-result"),{accountId:v,niche:g}=h();c.target.disabled=!0,c.target.textContent="\u23F3 Ejecutando todo (puede tardar 30-50s)\u2026",s.innerHTML="";try{const r=await(await fetch("/api/runall/week",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accountId:v,topic:q,platform:u,goal:N,carouselCount:3})})).json();if(!r.ok){s.innerHTML=`<span style="color:#ef4444;">${o(r.error||"Error")}</span>`;return}const l=(r.timeline||[]).map(f=>`<div class="ra-tl-row ${o(f.status||"done")}"><span>+${(f.at/1e3).toFixed(1)}s</span><span>${o(f.icon||"\xB7")}</span><span>${o(f.text)}</span></div>`).join(""),b=(r.carousels||[]).map(f=>`
+        ${(d.reasoning || []).length ? `<div class="bj-vr-block"><b>🧠 Por qué decidió esto</b>${ul(d.reasoning)}</div>` : ''}
+        ${o.pending ? `<div style="color:#f59e0b;">⏳ ${esc(o.reason)}</div>` : ''}
+        ${
+          o.content
+            ? `<div class="bj-vr-block"><b>📝 Contenido generado</b>
+          ${o.content.hook ? `<div><strong>Hook:</strong> ${esc(o.content.hook)}</div>` : ''}
+          ${o.content.caption ? `<div style="margin-top:4px;"><strong>Caption:</strong> ${esc(o.content.caption.slice(0, 300))}${o.content.caption.length > 300 ? '…' : ''}</div>` : ''}
+          ${o.content.angle ? `<div style="margin-top:4px;"><strong>Ángulo:</strong> ${esc(o.content.angle)}</div>` : ''}
+        </div>`
+            : ''
+        }
+        ${
+          slidesG.length
+            ? `
+          <div class="bj-vr-block"><b>🖼️ Carrusel · ${slidesG.length} slides</b> <span style="font-size:10.5px;color:#a78bfa;">(tocá uno para ampliar)</span></div>
+          <div class="ap-slides" id="gs-slides">${slidesG.map((sl, idx) => `<div class="ap-slide" data-idx="${idx}"><img src="${esc(sl.dataUrl)}" alt="slide ${sl.n}" loading="lazy" /><span class="ap-slide-tag">${sl.n}${sl.role ? '·' + esc(sl.role) : ''}</span></div>`).join('')}</div>
+        `
+            : o.image?.url
+              ? `<div class="bj-vr-block"><b>🖼️ Imagen</b></div><div class="ap-slides"><div class="ap-slide" data-idx="0"><img src="${esc(o.image.url)}" alt="output" loading="lazy" /><span class="ap-slide-tag">1</span></div></div>`
+              : ''
+        }`;
+      // Lightbox
+      const allSlides = slidesG.length ? slidesG : o.image?.url ? [{ n: 1, role: 'output', dataUrl: o.image.url }] : [];
+      const openLB = (startIdx) => {
+        let i = startIdx;
+        const ov = document.createElement('div');
+        ov.className = 'ap-lightbox';
+        const render = () => {
+          const sl = allSlides[i];
+          if (!sl) return;
+          ov.innerHTML = `<button class="ap-lb-close">✕</button><button class="ap-lb-nav ap-lb-prev" ${i === 0 ? 'disabled' : ''}>‹</button><div class="ap-lb-stage"><img src="${esc(sl.dataUrl)}" /><div class="ap-lb-meta">Slide ${sl.n} / ${allSlides.length}${sl.role ? ' · ' + esc(sl.role) : ''}</div></div><button class="ap-lb-nav ap-lb-next" ${i === allSlides.length - 1 ? 'disabled' : ''}>›</button><a class="ap-lb-dl" href="${esc(sl.dataUrl)}" download="gstack-slide-${sl.n}.svg">⬇️ Descargar</a>`;
+          ov.querySelector('.ap-lb-close').onclick = () => ov.remove();
+          ov.querySelector('.ap-lb-prev').onclick = () => {
+            if (i > 0) {
+              i--;
+              render();
+            }
+          };
+          ov.querySelector('.ap-lb-next').onclick = () => {
+            if (i < allSlides.length - 1) {
+              i++;
+              render();
+            }
+          };
+        };
+        ov.addEventListener('click', (ev) => {
+          if (ev.target === ov) ov.remove();
+        });
+        render();
+        document.body.appendChild(ov);
+      };
+      out
+        .querySelectorAll('.ap-slide')
+        .forEach((el) => el.addEventListener('click', () => openLB(parseInt(el.dataset.idx, 10) || 0)));
+    } catch (err) {
+      out.innerHTML = `<span style="color:#ef4444;">${esc(err?.message || 'error')}</span>`;
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
+  // ── Niche Intelligence ──
+  root.querySelector('#bj-intel-go')?.addEventListener('click', async (e) => {
+    const out = root.querySelector('#bj-intel-result');
+    const { accountId, niche } = studioAccount();
+    if (!accountId) {
+      out.innerHTML =
+        '<span style="color:#f59e0b;">Poné @cuenta arriba (en "Mi cuenta") para cachear el análisis.</span>';
+      return;
+    }
+    e.target.disabled = true;
+    out.innerHTML = '🧬 Corriendo 5 análisis (nicho → audiencia → competencia → oportunidades → síntesis)…';
+    try {
+      const r = await fetch('/api/intelligence/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: activeTopic,
+          accountId,
+          accountHandle: accountId,
+          brandNiche: niche,
+          goal: activeGoal,
+          force: true,
+        }),
+      });
+      const j = await r.json();
+      if (!j.ok) {
+        out.innerHTML = `<span style="color:#ef4444;">${esc(j.error || 'error')}</span>`;
+        return;
+      }
+      out.innerHTML = `
+        <div style="color:#10b981;font-size:12px;">✓ Intelligence cacheada (${Math.round(j.durationMs / 1000)}s)${j.fromCache ? ' · cache hit' : ''}</div>
+        <div class="bj-vr-block"><b>Nicho detectado</b>${esc(j.niche?.primaryNiche || '')} (saturación: ${esc(j.niche?.saturationLevel || '')} · monetización: ${esc(j.niche?.monetizationPotential || '')})</div>
+        ${j.summary?.mainAngle ? `<div class="bj-vr-block"><b>🎯 Posicionamiento</b>${esc(j.summary.mainAngle)}</div>` : ''}
+        ${j.summary?.differentiationPlay ? `<div class="bj-vr-block"><b>⚡ Jugada diferenciación</b>${esc(j.summary.differentiationPlay)}</div>` : ''}
+        ${j.audience?.decisionTriggers?.length ? `<div class="bj-vr-block"><b>🎁 Triggers audiencia</b>${ul(j.audience.decisionTriggers)}</div>` : ''}
+        ${j.competitive?.contentGaps?.length ? `<div class="bj-vr-block"><b>💎 Gaps de contenido</b>${ul(j.competitive.contentGaps)}</div>` : ''}
+        ${j.opportunities?.top3Opportunities?.length ? `<div class="bj-vr-block"><b>🚀 Top 3 oportunidades</b>${ul(j.opportunities.top3Opportunities.map((o) => `${o.opportunity} → ${o.action}`))}</div>` : ''}
+        ${j.opportunities?.redFlags?.length ? `<div class="bj-vr-block"><b>⚠️ NO hacer</b>${ul(j.opportunities.redFlags)}</div>` : ''}
+        ${j.audience?.icp ? `<div class="bj-vr-block"><b>👥 Audiencia ideal (ICP)</b><div>Edad: ${esc(j.audience.icp.ageRange || '-')} · Género: ${esc(j.audience.icp.gender || '-')} · Geo: ${(j.audience.icp.geo || []).map(esc).join(', ')}</div>${j.audience.icp.lifestyle ? `<div>Estilo de vida: ${esc(j.audience.icp.lifestyle)}</div>` : ''}</div>` : ''}
+        ${j.audience?.psychographics?.fears?.length ? `<div class="bj-vr-block"><b>😰 Miedos de la audiencia</b>${ul(j.audience.psychographics.fears)}</div>` : ''}
+        ${j.audience?.psychographics?.aspirations?.length ? `<div class="bj-vr-block"><b>🌟 Aspiraciones</b>${ul(j.audience.psychographics.aspirations)}</div>` : ''}
+        ${j.competitive?.differentiationPlay ? `<div class="bj-vr-block"><b>🎯 Cómo diferenciarte</b>${esc(j.competitive.differentiationPlay)}</div>` : ''}
+        ${j.opportunities?.contentPillars?.length ? `<div class="bj-vr-block"><b>🏛️ Pilares de contenido</b>${ul(j.opportunities.contentPillars.map((p) => `${p.pillar} (${p['%mix'] || ''})`))}</div>` : ''}`;
+    } catch (err) {
+      out.innerHTML = `<span style="color:#ef4444;">${esc(err?.message || 'error')}</span>`;
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
+  // ── Carousel Builder (planes seleccionables + color pickers + bg image) ──
+  // Toggle plan card visual selection
+  root.querySelectorAll('.bj-cb-plan-cb').forEach((cb) => {
+    cb.addEventListener('change', () => cb.closest('.bj-cb-plan')?.classList.toggle('selected', cb.checked));
+  });
+  // Sync color picker ↔ text input
+  ['text', 'bg', 'accent'].forEach((k) => {
+    const picker = root.querySelector(`#cb-${k}-color`);
+    const text = root.querySelector(`#cb-${k}-color-text`);
+    if (picker && text) {
+      picker.addEventListener('input', () => {
+        text.value = picker.value.toUpperCase();
+      });
+      text.addEventListener('input', () => {
+        if (/^#[0-9A-Fa-f]{6}$/.test(text.value)) picker.value = text.value;
+      });
+    }
+  });
+
+  root.querySelector('#bj-cb-go')?.addEventListener('click', async (e) => {
+    const out = root.querySelector('#bj-cb-result');
+    if (!activeTopic) {
+      out.innerHTML = '<span style="color:#f59e0b;">Escribí un tema arriba primero.</span>';
+      return;
+    }
+    // Planes seleccionados
+    const checked = [...root.querySelectorAll('.bj-cb-plan-cb:checked')].map((c) => parseInt(c.dataset.idx, 10));
+    const selectedPlans = (checked.length ? checked : [0]).map((i) => cachedPlan?.hookPlans?.[i]).filter(Boolean);
+    if (!selectedPlans.length && !cachedPlan?.hookPlans?.length) {
+      // Sin planes cargados → usar topic directo
+      selectedPlans.push({ hook: activeTopic, cta: 'Comentá si te sirvió' });
+    }
+    e.target.disabled = true;
+    out.innerHTML = `🎨 Componiendo ${selectedPlans.length} carrusel(es) con tu estética…`;
+    try {
+      const files = root.querySelector('#cb-files')?.files;
+      const raws = files?.length ? await filesToDataUrls(files) : [];
+      const images = [];
+      for (const r of raws) {
+        try {
+          images.push(await shrinkImage(r));
+        } catch {}
+      }
+      const bgFile = root.querySelector('#cb-bg-image')?.files?.[0];
+      let bgImage = null;
+      if (bgFile) {
+        const dataUrls = await filesToDataUrls([bgFile]);
+        if (dataUrls[0]) bgImage = await shrinkImage(dataUrls[0]);
+      }
+      const { accountId, niche } = studioAccount();
+      const colors = (root.querySelector('#cb-colors')?.value || '')
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean);
+      const elements = (root.querySelector('#cb-elements')?.value || '')
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean);
+      const textColor = root.querySelector('#cb-text-color-text')?.value || null;
+      const bgColor = root.querySelector('#cb-bg-color-text')?.value || null;
+      const accentColor = root.querySelector('#cb-accent-color-text')?.value || null;
+      const mood = root.querySelector('#cb-mood')?.value || '';
+      const fontStyle = root.querySelector('#cb-font')?.value || 'serif-editorial';
+
+      // Por cada plan seleccionado → 1 carrusel
+      const allResults = [];
+      for (const p of selectedPlans) {
+        const payload = {
+          topic: activeTopic,
+          niche,
+          goal: activeGoal,
+          platform,
+          format: 'carousel',
+          accountId,
+          images,
+          brandColors: colors,
+          extraElements: elements,
+          textColor,
+          bgColor,
+          accentColor,
+          bgImage,
+          hookOverride: p?.hook || '',
+          ctaOverride: p?.cta || '',
+          mood: mood || 'premium',
+          fontStyle,
+          autoPublish: false,
+        };
+        try {
+          const r = await fetch('/api/autopilot/create-post', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const j = await r.json();
+          if (j.ok) allResults.push(j);
+        } catch {}
+      }
+
+      if (!allResults.length) {
+        out.innerHTML = '<span style="color:#ef4444;">No se pudo generar ningún carrusel.</span>';
+        return;
+      }
+
+      out.innerHTML = `<div style="color:#10b981;font-size:12px;margin-bottom:10px;">✓ ${allResults.length} carrusel(es) generado(s) · tipografía: ${esc(fontStyle)} · texto: ${esc(textColor || '')} · fondo: ${esc(bgColor || '')} · acento: ${esc(accentColor || '')}</div>`;
+      allResults.forEach((j, planIdx) => {
+        const slides = j.carouselSlides || [];
+        const sec = document.createElement('div');
+        sec.style.marginBottom = '18px';
+        sec.innerHTML = `<div style="font-size:13px;font-weight:800;color:#a855f7;margin-bottom:6px;">📋 Carrusel del Plan ${planIdx + 1}</div>
+          ${
+            slides.length
+              ? `<div class="ap-slides" data-plan="${planIdx}">${slides.map((sl, idx) => `<div class="ap-slide" data-idx="${idx}"><img src="${esc(sl.dataUrl)}" alt="slide ${sl.n}" loading="lazy" /><span class="ap-slide-tag">${sl.n}${sl.role ? '·' + esc(sl.role) : ''}</span></div>`).join('')}</div>
+            <button class="bj-btn bj-btn-secondary cb-dl-plan" data-plan="${planIdx}" style="margin-top:6px;font-size:11.5px;">⬇️ Descargar slides del Plan ${planIdx + 1}</button>`
+              : '<em>Sin slides</em>'
+          }`;
+        out.appendChild(sec);
+        // Lightbox por plan
+        const openLB = (startIdx) => {
+          let i = startIdx;
+          const ov = document.createElement('div');
+          ov.className = 'ap-lightbox';
+          const render = () => {
+            const sl = slides[i];
+            if (!sl) return;
+            ov.innerHTML = `<button class="ap-lb-close">✕</button><button class="ap-lb-nav ap-lb-prev" ${i === 0 ? 'disabled' : ''}>‹</button><div class="ap-lb-stage"><img src="${esc(sl.dataUrl)}" /><div class="ap-lb-meta">Plan ${planIdx + 1} · Slide ${sl.n}/${slides.length}${sl.role ? ' · ' + esc(sl.role) : ''}</div></div><button class="ap-lb-nav ap-lb-next" ${i === slides.length - 1 ? 'disabled' : ''}>›</button><a class="ap-lb-dl" href="${esc(sl.dataUrl)}" download="plan${planIdx + 1}-slide-${sl.n}.svg">⬇️ Descargar</a>`;
+            ov.querySelector('.ap-lb-close').onclick = () => ov.remove();
+            ov.querySelector('.ap-lb-prev').onclick = () => {
+              if (i > 0) {
+                i--;
+                render();
+              }
+            };
+            ov.querySelector('.ap-lb-next').onclick = () => {
+              if (i < slides.length - 1) {
+                i++;
+                render();
+              }
+            };
+          };
+          ov.addEventListener('click', (ev) => {
+            if (ev.target === ov) ov.remove();
+          });
+          render();
+          document.body.appendChild(ov);
+        };
+        sec
+          .querySelectorAll('.ap-slide')
+          .forEach((el) => el.addEventListener('click', () => openLB(parseInt(el.dataset.idx, 10) || 0)));
+        sec.querySelector('.cb-dl-plan')?.addEventListener('click', () =>
+          slides.forEach((sl, i) =>
+            setTimeout(() => {
+              const a = document.createElement('a');
+              a.href = sl.dataUrl;
+              a.download = `plan${planIdx + 1}-slide-${sl.n}.svg`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            }, i * 250),
+          ),
+        );
+      });
+    } catch (err) {
+      out.innerHTML = `<span style="color:#ef4444;">${esc(err?.message || 'error')}</span>`;
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
+  // ── Run All — Trabajar mi cuenta esta semana ──
+  root.querySelector('#ra-go')?.addEventListener('click', async (e) => {
+    const out = root.querySelector('#ra-result');
+    const { accountId, niche } = studioAccount();
+    e.target.disabled = true;
+    e.target.textContent = '⏳ Ejecutando todo (puede tardar 30-50s)…';
+    out.innerHTML = '';
+    try {
+      const r = await fetch('/api/runall/week', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId, topic: activeTopic, platform, goal: activeGoal, carouselCount: 3 }),
+      });
+      const j = await r.json();
+      if (!j.ok) {
+        out.innerHTML = `<span style="color:#ef4444;">${esc(j.error || 'Error')}</span>`;
+        return;
+      }
+      const tl = (j.timeline || [])
+        .map(
+          (ev) =>
+            `<div class="ra-tl-row ${esc(ev.status || 'done')}"><span>+${(ev.at / 1000).toFixed(1)}s</span><span>${esc(ev.icon || '·')}</span><span>${esc(ev.text)}</span></div>`,
+        )
+        .join('');
+      const carouselsHtml = (j.carousels || [])
+        .map(
+          (c) => `
         <div class="ra-day">
           <div class="ra-day-head">
-            <span class="ra-day-name">\u{1F4C5} ${o(f.day)} \xB7 ${o(f.theme)}</span>
-            ${f.score?`<span class="ra-day-score">${f.score}/100</span>`:""}
+            <span class="ra-day-name">📅 ${esc(c.day)} · ${esc(c.theme)}</span>
+            ${c.score ? `<span class="ra-day-score">${c.score}/100</span>` : ''}
           </div>
-          ${f.hook?`<div class="ra-day-hook">"${o(f.hook)}"</div>`:""}
-          ${(f.slides||[]).length?`<div class="ap-slides">${f.slides.map((x,L)=>`<div class="ap-slide" data-c-idx="${f.day}-${L}"><img src="${o(x.dataUrl)}" alt="slide ${x.n}" loading="lazy" /><span class="ap-slide-tag">${x.n}</span></div>`).join("")}</div>`:'<em style="font-size:11.5px;color:#FBBF24;">Sin slides (timeout o error)</em>'}
-        </div>`).join(""),$=(r.dmTemplates||[]).map(f=>`
+          ${c.hook ? `<div class="ra-day-hook">"${esc(c.hook)}"</div>` : ''}
+          ${(c.slides || []).length ? `<div class="ap-slides">${c.slides.map((sl, idx) => `<div class="ap-slide" data-c-idx="${c.day}-${idx}"><img src="${esc(sl.dataUrl)}" alt="slide ${sl.n}" loading="lazy" /><span class="ap-slide-tag">${sl.n}</span></div>`).join('')}</div>` : '<em style="font-size:11.5px;color:#FBBF24;">Sin slides (timeout o error)</em>'}
+        </div>`,
+        )
+        .join('');
+      const dmsHtml = (j.dmTemplates || [])
+        .map(
+          (d) => `
         <div class="ra-dm">
-          <span class="ra-dm-intent">${o(f.intent)}</span>
-          <div class="ra-dm-reply">${o(f.reply)}</div>
-          <button class="bj-copy-btn" data-copy="${o(f.reply)}" style="margin-top:6px;font-size:10.5px;">\u{1F4CB} Copiar</button>
-        </div>`).join("");s.innerHTML=`
+          <span class="ra-dm-intent">${esc(d.intent)}</span>
+          <div class="ra-dm-reply">${esc(d.reply)}</div>
+          <button class="bj-copy-btn" data-copy="${esc(d.reply)}" style="margin-top:6px;font-size:10.5px;">📋 Copiar</button>
+        </div>`,
+        )
+        .join('');
+      out.innerHTML = `
         <div class="ra-grp">
-          <div class="ra-grp-title">\u{1F4CA} Resumen ejecuci\xF3n (${Math.round(r.durationMs/1e3)}s)</div>
-          <div class="ra-timeline">${l}</div>
+          <div class="ra-grp-title">📊 Resumen ejecución (${Math.round(j.durationMs / 1000)}s)</div>
+          <div class="ra-timeline">${tl}</div>
         </div>
-        ${r.intel?.mainAngle?`<div class="ra-grp"><div class="ra-grp-title">\u{1F3AF} Posicionamiento</div><div style="font-size:13px;color:var(--text-primary,var(--fg));">${o(r.intel.mainAngle)}</div></div>`:""}
-        ${r.feedback?.learnings?.summary?`<div class="ra-grp"><div class="ra-grp-title">\u{1F9E0} Aprendizaje</div><div style="font-size:13px;color:var(--text-primary,var(--fg));">${o(r.feedback.learnings.summary)}</div></div>`:""}
-        ${r.carousels?.length?`<div class="ra-grp"><div class="ra-grp-title">\u{1F3A8} ${r.carousels.length} carruseles generados</div>${b}</div>`:""}
-        ${r.dmTemplates?.length?`<div class="ra-grp"><div class="ra-grp-title">\u{1F4AC} Templates DM listos</div>${$}</div>`:""}`,s.querySelectorAll(".bj-copy-btn").forEach(f=>f.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(f.dataset.copy),B("\u{1F4CB} Copiado","ok")}catch{}}));const j={};(r.carousels||[]).forEach(f=>{(f.slides||[]).forEach((x,L)=>{j[`${f.day}-${L}`]={...x,day:f.day}})}),s.querySelectorAll(".ap-slide").forEach(f=>{f.addEventListener("click",()=>{const x=j[f.dataset.cIdx];if(!x)return;const L=document.createElement("div");L.className="ap-lightbox",L.innerHTML=`<button class="ap-lb-close">\u2715</button><div class="ap-lb-stage"><img src="${o(x.dataUrl)}" /><div class="ap-lb-meta">${o(x.day)} \xB7 slide ${x.n}</div></div><a class="ap-lb-dl" href="${o(x.dataUrl)}" download="${o(x.day)}-slide-${x.n}.svg">\u2B07\uFE0F Descargar</a>`,L.querySelector(".ap-lb-close").onclick=()=>L.remove(),L.addEventListener("click",P=>{P.target===L&&L.remove()}),document.body.appendChild(L)})})}catch(p){s.innerHTML=`<span style="color:#ef4444;">${o(p?.message||"Error de red")}</span>`}finally{c.target.disabled=!1,c.target.textContent="\u25B6 Ejecutar todo"}});const I=async()=>{const c=i.querySelector("#bs-files")?.files,s=c?.length?await y(c):[],{niche:v}=h(),g=(i.querySelector("#bs-colores")?.value||"").split(",").map(f=>f.trim()).filter(Boolean),p=i.querySelector("#bs-template")?.value||"anuncio-ganador",r=i.querySelector("#bs-titulo")?.value||"",l=i.querySelector("#bs-estilo")?.value||"premium",b=i.querySelector("#bs-formato")?.value||"carousel",$=(i.querySelector("#bs-elementos")?.value||"").split(",").map(f=>f.trim()).filter(Boolean),j=!!i.querySelector("#bs-refine")?.checked;return{templateKey:p,images:s,brandColors:g,niche:v,platform:u,format:b,refine:j,extraElements:$,vars:{producto:r,titulo:r,marca:r,estilo:l,tema:q||r,hook:r,colores:g.join(", ")}}};i.querySelector("#bs-build")?.addEventListener("click",async c=>{const s=i.querySelector("#bs-result");c.target.disabled=!0,s.innerHTML="\u23F3 Armando prompt\u2026";try{const v=await I(),p=await(await fetch("/api/brand-studio/build-prompt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)})).json();s.innerHTML=p.prompt?`<div class="bj-vr-block"><b>Prompt generado</b><div style="background:var(--bg,#0a0a0a);padding:8px;border-radius:6px;font-size:12px;line-height:1.5;">${o(p.prompt)}</div></div>
-           <button class="bj-copy-btn" data-copy="${o(p.prompt)}">\u{1F4CB} Copiar prompt</button>`:`<span style="color:#ef4444;">${o(p.error||"error")}</span>`,s.querySelector(".bj-copy-btn")?.addEventListener("click",async r=>{try{await navigator.clipboard.writeText(r.target.dataset.copy),B("\u{1F4CB} Copiado","ok")}catch{}})}catch{s.innerHTML='<span style="color:#ef4444;">Error de red.</span>'}finally{c.target.disabled=!1}}),i.querySelector("#bs-go")?.addEventListener("click",async c=>{const s=i.querySelector("#bs-result");c.target.disabled=!0,s.innerHTML="\u{1F3A8} Generando imagen\u2026 (puede tardar 10-30s)";try{const v=await I(),p=await(await fetch("/api/brand-studio/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)})).json();p.url?s.innerHTML=`
-          <div style="color:#10b981;font-size:12px;">\u2713 Generado \xB7 ${o(p.provider||"")} \xB7 modo: ${o(p.mode||"")}${p.usedPhotos?` \xB7 us\xF3 ${p.usedPhotos} foto(s)`:""}${p.refined?` \xB7 \u2728 refinado (${o(p.refineProvider||"")})`:""}</div>
-          ${p.warning?`<div style="color:#f59e0b;font-size:11.5px;">${o(p.warning)}</div>`:""}
-          <img src="${o(p.url)}" alt="generada" style="max-width:100%;border-radius:10px;margin-top:8px;border:1px solid var(--border);" />
-          <a href="${o(p.url)}" download="feedia-marca.png" class="bj-btn bj-btn-secondary" style="margin-top:8px;text-decoration:none;display:inline-block;">\u2B07\uFE0F Descargar</a>`:s.innerHTML=`<span style="color:#ef4444;">${o(p.message||p.error||"No se pudo generar")}</span>`}catch{s.innerHTML='<span style="color:#ef4444;">Error de red. Reintent\xE1.</span>'}finally{c.target.disabled=!1}});const F=(c,s=1080,v=.82)=>new Promise(g=>{if(!c?.startsWith("data:image")){g(c);return}const p=new Image;p.onload=()=>{const r=Math.min(1,s/Math.max(p.width,p.height)),l=Math.round(p.width*r),b=Math.round(p.height*r),$=document.createElement("canvas");$.width=l,$.height=b,$.getContext("2d").drawImage(p,0,0,l,b),g($.toDataURL("image/jpeg",v))},p.onerror=()=>g(c),p.src=c});i.querySelector("#ap-go")?.addEventListener("click",async c=>{const s=i.querySelector("#ap-result");if(!q){s.innerHTML='<span style="color:#f59e0b;">Escrib\xED un tema arriba primero.</span>';return}c.target.disabled=!0,s.innerHTML="\u{1F916} El cerebro est\xE1 trabajando\u2026 (cerebro \u2192 imagen \u2192 validaci\xF3n \u2192 publicar)";try{const v=i.querySelector("#ap-files")?.files,g=v?.length?await y(v):[],p=[];for(const S of g)try{p.push(await F(S))}catch{}const{accountId:r,niche:l}=h(),b={topic:q,niche:l,goal:N,platform:u,format:i.querySelector("#ap-format")?.value||"carousel",accountId:r,images:p,brandColors:(i.querySelector("#ap-colores")?.value||"").split(",").map(S=>S.trim()).filter(Boolean),extraElements:(i.querySelector("#ap-elementos")?.value||"").split(",").map(S=>S.trim()).filter(Boolean),autoPublish:!!i.querySelector("#ap-publish")?.checked},$=new AbortController,j=setTimeout(()=>$.abort(),7e4);let f,x;try{f=await fetch("/api/autopilot/create-post",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b),signal:$.signal})}catch(S){clearTimeout(j),s.innerHTML=`<span style="color:#ef4444;">Error de red: ${o(S.message||"sin respuesta")}. Prob\xE1 sin foto o con foto m\xE1s chica.</span>`;return}if(clearTimeout(j),f.status===413){s.innerHTML='<span style="color:#f59e0b;">\u26A0\uFE0F Imagen demasiado pesada (>4.5MB). Vercel rechaz\xF3 el body. La comprimimos pero prob\xE1 una foto m\xE1s chica.</span>';return}if(f.status===504){s.innerHTML='<span style="color:#f59e0b;">\u23F0 Timeout del servidor (Vercel 60s). Hicimos demasiado en una sola llamada. Reintent\xE1 sin foto o con formato m\xE1s simple.</span>';return}if(!f.ok){const S=await f.text().catch(()=>"");s.innerHTML=`<span style="color:#ef4444;">HTTP ${f.status}: ${o(S.slice(0,200))}</span>`;return}try{x=await f.json()}catch{s.innerHTML='<span style="color:#ef4444;">Respuesta inv\xE1lida del servidor.</span>';return}if(!x.ok&&x.error){s.innerHTML=`<span style="color:#ef4444;">${o(x.error)}: ${o(x.message||"")}</span>`;return}const L=x.content||{},P=x.validation||{},M=x.status==="published"?"#10b981":x.status==="ready-for-review"?"#a855f7":"#f59e0b";s.innerHTML=`
-        <div style="color:${M};font-weight:700;font-size:13px;">\u25CF ${o(x.status)}${x.publish?.ok?" \u2014 \u2713 publicado (mediaId "+o(x.publish.mediaId||"")+")":""}</div>
-        <div style="font-size:11.5px;color:var(--text-tertiary,var(--fg-3));">${o(x.note||"")}</div>
-        ${L.angle?`<div class="bj-vr-block"><b>\xC1ngulo \xD7 Persona</b>${o(L.angle)} \xD7 ${o(L.persona||"")}</div>`:""}
-        ${L.hook?`<div class="bj-vr-block"><b>Hook</b>${o(L.hook)}</div>`:""}
-        ${L.caption?`<div class="bj-vr-block"><b>Caption</b>${o(L.caption)}</div>`:""}
-        ${L.hashtags?.length?`<div class="bj-vr-block"><b>Hashtags</b>${o(L.hashtags.join(" "))}</div>`:""}
-        ${P.prediction?`<div class="bj-vr-block"><b>Predicci\xF3n</b><span class="bj-vr-score">${P.prediction.viralScore??"\u2013"}/100</span> \xB7 ${o(P.prediction.virality||"")} \xB7 carrusel: ${o(P.carousel?.verdict||"")}</div>`:""}
-        ${Array.isArray(x.carouselSlides)&&x.carouselSlides.length?`
-          <div class="bj-vr-block"><b>Carrusel \xB7 ${x.carouselSlides.length} slides</b> <span style="font-size:10.5px;color:#a78bfa;">(toc\xE1 uno para ampliar)</span></div>
+        ${j.intel?.mainAngle ? `<div class="ra-grp"><div class="ra-grp-title">🎯 Posicionamiento</div><div style="font-size:13px;color:var(--text-primary,var(--fg));">${esc(j.intel.mainAngle)}</div></div>` : ''}
+        ${j.feedback?.learnings?.summary ? `<div class="ra-grp"><div class="ra-grp-title">🧠 Aprendizaje</div><div style="font-size:13px;color:var(--text-primary,var(--fg));">${esc(j.feedback.learnings.summary)}</div></div>` : ''}
+        ${j.carousels?.length ? `<div class="ra-grp"><div class="ra-grp-title">🎨 ${j.carousels.length} carruseles generados</div>${carouselsHtml}</div>` : ''}
+        ${j.dmTemplates?.length ? `<div class="ra-grp"><div class="ra-grp-title">💬 Templates DM listos</div>${dmsHtml}</div>` : ''}`;
+      // Wire copy
+      out.querySelectorAll('.bj-copy-btn').forEach((b) =>
+        b.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(b.dataset.copy);
+            toast('📋 Copiado', 'ok');
+          } catch {}
+        }),
+      );
+      // Lightbox slides
+      const allMap = {};
+      (j.carousels || []).forEach((c) => {
+        (c.slides || []).forEach((sl, idx) => {
+          allMap[`${c.day}-${idx}`] = { ...sl, day: c.day };
+        });
+      });
+      out.querySelectorAll('.ap-slide').forEach((el) => {
+        el.addEventListener('click', () => {
+          const sl = allMap[el.dataset.cIdx];
+          if (!sl) return;
+          const ov = document.createElement('div');
+          ov.className = 'ap-lightbox';
+          ov.innerHTML = `<button class="ap-lb-close">✕</button><div class="ap-lb-stage"><img src="${esc(sl.dataUrl)}" /><div class="ap-lb-meta">${esc(sl.day)} · slide ${sl.n}</div></div><a class="ap-lb-dl" href="${esc(sl.dataUrl)}" download="${esc(sl.day)}-slide-${sl.n}.svg">⬇️ Descargar</a>`;
+          ov.querySelector('.ap-lb-close').onclick = () => ov.remove();
+          ov.addEventListener('click', (ev) => {
+            if (ev.target === ov) ov.remove();
+          });
+          document.body.appendChild(ov);
+        });
+      });
+    } catch (err) {
+      out.innerHTML = `<span style="color:#ef4444;">${esc(err?.message || 'Error de red')}</span>`;
+    } finally {
+      e.target.disabled = false;
+      e.target.textContent = '▶ Ejecutar todo';
+    }
+  });
+
+  // ── Brand Studio (imagen con foto autorizada) ──
+  const bsPayload = async () => {
+    const files = root.querySelector('#bs-files')?.files;
+    const images = files?.length ? await filesToDataUrls(files) : [];
+    const { niche } = studioAccount();
+    const colores = (root.querySelector('#bs-colores')?.value || '')
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean);
+    const templateKey = root.querySelector('#bs-template')?.value || 'anuncio-ganador';
+    const titulo = root.querySelector('#bs-titulo')?.value || '';
+    const estilo = root.querySelector('#bs-estilo')?.value || 'premium';
+    const formato = root.querySelector('#bs-formato')?.value || 'carousel';
+    const elementos = (root.querySelector('#bs-elementos')?.value || '')
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean);
+    const refine = Boolean(root.querySelector('#bs-refine')?.checked);
+    return {
+      templateKey,
+      images,
+      brandColors: colores,
+      niche,
+      platform,
+      format: formato,
+      refine,
+      extraElements: elementos,
+      vars: {
+        producto: titulo,
+        titulo,
+        marca: titulo,
+        estilo,
+        tema: activeTopic || titulo,
+        hook: titulo,
+        colores: colores.join(', '),
+      },
+    };
+  };
+
+  root.querySelector('#bs-build')?.addEventListener('click', async (e) => {
+    const out = root.querySelector('#bs-result');
+    e.target.disabled = true;
+    out.innerHTML = '⏳ Armando prompt…';
+    try {
+      const p = await bsPayload();
+      const r = await fetch('/api/brand-studio/build-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(p),
+      });
+      const j = await r.json();
+      out.innerHTML = j.prompt
+        ? `<div class="bj-vr-block"><b>Prompt generado</b><div style="background:var(--bg,#0a0a0a);padding:8px;border-radius:6px;font-size:12px;line-height:1.5;">${esc(j.prompt)}</div></div>
+           <button class="bj-copy-btn" data-copy="${esc(j.prompt)}">📋 Copiar prompt</button>`
+        : `<span style="color:#ef4444;">${esc(j.error || 'error')}</span>`;
+      out.querySelector('.bj-copy-btn')?.addEventListener('click', async (ev) => {
+        try {
+          await navigator.clipboard.writeText(ev.target.dataset.copy);
+          toast('📋 Copiado', 'ok');
+        } catch {}
+      });
+    } catch {
+      out.innerHTML = '<span style="color:#ef4444;">Error de red.</span>';
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
+  root.querySelector('#bs-go')?.addEventListener('click', async (e) => {
+    const out = root.querySelector('#bs-result');
+    e.target.disabled = true;
+    out.innerHTML = '🎨 Generando imagen… (puede tardar 10-30s)';
+    try {
+      const p = await bsPayload();
+      const r = await fetch('/api/brand-studio/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(p),
+      });
+      const j = await r.json();
+      if (j.url) {
+        out.innerHTML = `
+          <div style="color:#10b981;font-size:12px;">✓ Generado · ${esc(j.provider || '')} · modo: ${esc(j.mode || '')}${j.usedPhotos ? ` · usó ${j.usedPhotos} foto(s)` : ''}${j.refined ? ` · ✨ refinado (${esc(j.refineProvider || '')})` : ''}</div>
+          ${j.warning ? `<div style="color:#f59e0b;font-size:11.5px;">${esc(j.warning)}</div>` : ''}
+          <img src="${esc(j.url)}" alt="generada" style="max-width:100%;border-radius:10px;margin-top:8px;border:1px solid var(--border);" />
+          <a href="${esc(j.url)}" download="feedia-marca.png" class="bj-btn bj-btn-secondary" style="margin-top:8px;text-decoration:none;display:inline-block;">⬇️ Descargar</a>`;
+      } else {
+        out.innerHTML = `<span style="color:#ef4444;">${esc(j.message || j.error || 'No se pudo generar')}</span>`;
+      }
+    } catch {
+      out.innerHTML = '<span style="color:#ef4444;">Error de red. Reintentá.</span>';
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
+  // ── Piloto automático (crear + publicar autónomo) ──
+  // Comprime imagen grande antes de mandar (evita Vercel 4.5MB body limit)
+  const shrinkImage = (dataUrl, maxSide = 1080, quality = 0.82) =>
+    new Promise((resolve) => {
+      if (!dataUrl?.startsWith('data:image')) {
+        resolve(dataUrl);
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale),
+          h = Math.round(img.height * scale);
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+
+  root.querySelector('#ap-go')?.addEventListener('click', async (e) => {
+    const out = root.querySelector('#ap-result');
+    if (!activeTopic) {
+      out.innerHTML = '<span style="color:#f59e0b;">Escribí un tema arriba primero.</span>';
+      return;
+    }
+    e.target.disabled = true;
+    out.innerHTML = '🤖 El cerebro está trabajando… (cerebro → imagen → validación → publicar)';
+    try {
+      const files = root.querySelector('#ap-files')?.files;
+      const rawImages = files?.length ? await filesToDataUrls(files) : [];
+      // Comprimí cada foto a max 1080px lado, 82% jpeg
+      const images = [];
+      for (const r of rawImages) {
+        try {
+          images.push(await shrinkImage(r));
+        } catch {
+          /* skip */
+        }
+      }
+      const { accountId, niche } = studioAccount();
+      const payload = {
+        topic: activeTopic,
+        niche,
+        goal: activeGoal,
+        platform,
+        format: root.querySelector('#ap-format')?.value || 'carousel',
+        accountId,
+        images,
+        brandColors: (root.querySelector('#ap-colores')?.value || '')
+          .split(',')
+          .map((c) => c.trim())
+          .filter(Boolean),
+        extraElements: (root.querySelector('#ap-elementos')?.value || '')
+          .split(',')
+          .map((c) => c.trim())
+          .filter(Boolean),
+        autoPublish: Boolean(root.querySelector('#ap-publish')?.checked),
+      };
+      const ctrl = new AbortController();
+      const tHandle = setTimeout(() => ctrl.abort(), 70000);
+      let r, j;
+      try {
+        r = await fetch('/api/autopilot/create-post', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: ctrl.signal,
+        });
+      } catch (netErr) {
+        clearTimeout(tHandle);
+        out.innerHTML = `<span style="color:#ef4444;">Error de red: ${esc(netErr.message || 'sin respuesta')}. Probá sin foto o con foto más chica.</span>`;
+        return;
+      }
+      clearTimeout(tHandle);
+      if (r.status === 413) {
+        out.innerHTML =
+          '<span style="color:#f59e0b;">⚠️ Imagen demasiado pesada (>4.5MB). Vercel rechazó el body. La comprimimos pero probá una foto más chica.</span>';
+        return;
+      }
+      if (r.status === 504) {
+        out.innerHTML =
+          '<span style="color:#f59e0b;">⏰ Timeout del servidor (Vercel 60s). Hicimos demasiado en una sola llamada. Reintentá sin foto o con formato más simple.</span>';
+        return;
+      }
+      if (!r.ok) {
+        const txt = await r.text().catch(() => '');
+        out.innerHTML = `<span style="color:#ef4444;">HTTP ${r.status}: ${esc(txt.slice(0, 200))}</span>`;
+        return;
+      }
+      try {
+        j = await r.json();
+      } catch {
+        out.innerHTML = '<span style="color:#ef4444;">Respuesta inválida del servidor.</span>';
+        return;
+      }
+      if (!j.ok && j.error) {
+        out.innerHTML = `<span style="color:#ef4444;">${esc(j.error)}: ${esc(j.message || '')}</span>`;
+        return;
+      }
+      const c = j.content || {};
+      const v = j.validation || {};
+      const statusColor =
+        j.status === 'published' ? '#10b981' : j.status === 'ready-for-review' ? '#a855f7' : '#f59e0b';
+      out.innerHTML = `
+        <div style="color:${statusColor};font-weight:700;font-size:13px;">● ${esc(j.status)}${j.publish?.ok ? ' — ✓ publicado (mediaId ' + esc(j.publish.mediaId || '') + ')' : ''}</div>
+        <div style="font-size:11.5px;color:var(--text-tertiary,var(--fg-3));">${esc(j.note || '')}</div>
+        ${c.angle ? `<div class="bj-vr-block"><b>Ángulo × Persona</b>${esc(c.angle)} × ${esc(c.persona || '')}</div>` : ''}
+        ${c.hook ? `<div class="bj-vr-block"><b>Hook</b>${esc(c.hook)}</div>` : ''}
+        ${c.caption ? `<div class="bj-vr-block"><b>Caption</b>${esc(c.caption)}</div>` : ''}
+        ${c.hashtags?.length ? `<div class="bj-vr-block"><b>Hashtags</b>${esc(c.hashtags.join(' '))}</div>` : ''}
+        ${v.prediction ? `<div class="bj-vr-block"><b>Predicción</b><span class="bj-vr-score">${v.prediction.viralScore ?? '–'}/100</span> · ${esc(v.prediction.virality || '')} · carrusel: ${esc(v.carousel?.verdict || '')}</div>` : ''}
+        ${
+          Array.isArray(j.carouselSlides) && j.carouselSlides.length
+            ? `
+          <div class="bj-vr-block"><b>Carrusel · ${j.carouselSlides.length} slides</b> <span style="font-size:10.5px;color:#a78bfa;">(tocá uno para ampliar)</span></div>
           <div class="ap-slides">
-            ${x.carouselSlides.map((S,E)=>`
-              <div class="ap-slide" data-idx="${E}">
-                <img src="${o(S.dataUrl)}" alt="slide ${S.n}" loading="lazy" />
-                <span class="ap-slide-tag">${S.n} \xB7 ${o(S.role)}</span>
-              </div>`).join("")}
+            ${j.carouselSlides
+              .map(
+                (sl, idx) => `
+              <div class="ap-slide" data-idx="${idx}">
+                <img src="${esc(sl.dataUrl)}" alt="slide ${sl.n}" loading="lazy" />
+                <span class="ap-slide-tag">${sl.n} · ${esc(sl.role)}</span>
+              </div>`,
+              )
+              .join('')}
           </div>
-          <button class="bj-btn bj-btn-secondary" id="ap-dl-all" style="margin-top:8px;">\u2B07\uFE0F Descargar todos los slides</button>
-        `:x.image?.url?`<img src="${o(x.image.url)}" alt="post" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" style="max-width:100%;border-radius:10px;margin-top:8px;border:1px solid var(--border);" />
-          <div style="display:none;color:#f59e0b;font-size:11.5px;">\u26A0\uFE0F La imagen no carg\xF3 (modo: ${o(x.image.mode||"")}). Prob\xE1 de nuevo o sin foto.</div>
-          <a href="${o(x.image.url)}" download="feedia-post.png" class="bj-btn bj-btn-secondary" style="margin-top:8px;text-decoration:none;display:inline-block;">\u2B07\uFE0F Descargar</a>`:`<div style="color:#f59e0b;font-size:11.5px;">\u26A0\uFE0F ${o(x.image?.error||"sin imagen")}</div>`}
-        <details style="margin-top:8px;"><summary style="cursor:pointer;font-size:11px;color:#a78bfa;">\u{1F4CB} Ver paso a paso de lo que hizo el sistema</summary><div style="font-size:11.5px;color:var(--text-secondary,var(--fg-2));padding:8px 0;line-height:1.6;">${(x.log||[]).map(S=>`<div>${o(S)}</div>`).join("")}</div></details>`,i.querySelector("#ap-dl-all")?.addEventListener("click",()=>{(x.carouselSlides||[]).forEach((S,E)=>{setTimeout(()=>{const A=document.createElement("a");A.href=S.dataUrl,A.download=`slide-${S.n}.svg`,document.body.appendChild(A),A.click(),A.remove()},E*250)})});const T=x.carouselSlides||[],O=S=>{let E=S;const A=document.createElement("div");A.className="ap-lightbox";const D=()=>{const H=T[E];A.innerHTML=`
-            <button class="ap-lb-close" aria-label="cerrar">\u2715</button>
-            <button class="ap-lb-nav ap-lb-prev" aria-label="anterior" ${E===0?"disabled":""}>\u2039</button>
+          <button class="bj-btn bj-btn-secondary" id="ap-dl-all" style="margin-top:8px;">⬇️ Descargar todos los slides</button>
+        `
+            : j.image?.url
+              ? `<img src="${esc(j.image.url)}" alt="post" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" style="max-width:100%;border-radius:10px;margin-top:8px;border:1px solid var(--border);" />
+          <div style="display:none;color:#f59e0b;font-size:11.5px;">⚠️ La imagen no cargó (modo: ${esc(j.image.mode || '')}). Probá de nuevo o sin foto.</div>
+          <a href="${esc(j.image.url)}" download="feedia-post.png" class="bj-btn bj-btn-secondary" style="margin-top:8px;text-decoration:none;display:inline-block;">⬇️ Descargar</a>`
+              : `<div style="color:#f59e0b;font-size:11.5px;">⚠️ ${esc(j.image?.error || 'sin imagen')}</div>`
+        }
+        <details style="margin-top:8px;"><summary style="cursor:pointer;font-size:11px;color:#a78bfa;">📋 Ver paso a paso de lo que hizo el sistema</summary><div style="font-size:11.5px;color:var(--text-secondary,var(--fg-2));padding:8px 0;line-height:1.6;">${(j.log || []).map((line) => `<div>${esc(line)}</div>`).join('')}</div></details>`;
+      // Descargar todos los slides
+      root.querySelector('#ap-dl-all')?.addEventListener('click', () => {
+        (j.carouselSlides || []).forEach((sl, i) => {
+          setTimeout(() => {
+            const a = document.createElement('a');
+            a.href = sl.dataUrl;
+            a.download = `slide-${sl.n}.svg`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          }, i * 250);
+        });
+      });
+      // Lightbox WhatsApp-style
+      const slidesArr = j.carouselSlides || [];
+      const openLightbox = (startIdx) => {
+        let idx = startIdx;
+        const overlay = document.createElement('div');
+        overlay.className = 'ap-lightbox';
+        const render = () => {
+          const sl = slidesArr[idx];
+          overlay.innerHTML = `
+            <button class="ap-lb-close" aria-label="cerrar">✕</button>
+            <button class="ap-lb-nav ap-lb-prev" aria-label="anterior" ${idx === 0 ? 'disabled' : ''}>‹</button>
             <div class="ap-lb-stage">
-              <img src="${o(H.dataUrl)}" alt="slide ${H.n}" />
-              <div class="ap-lb-meta">Slide ${H.n} / ${T.length} \xB7 ${o(H.role)} ${H.title?"\xB7 "+o(H.title):""}</div>
+              <img src="${esc(sl.dataUrl)}" alt="slide ${sl.n}" />
+              <div class="ap-lb-meta">Slide ${sl.n} / ${slidesArr.length} · ${esc(sl.role)} ${sl.title ? '· ' + esc(sl.title) : ''}</div>
             </div>
-            <button class="ap-lb-nav ap-lb-next" aria-label="siguiente" ${E===T.length-1?"disabled":""}>\u203A</button>
-            <a class="ap-lb-dl" href="${o(H.dataUrl)}" download="slide-${H.n}.svg">\u2B07\uFE0F Descargar</a>`,A.querySelector(".ap-lb-close").onclick=()=>A.remove(),A.querySelector(".ap-lb-prev").onclick=()=>{E>0&&(E--,D())},A.querySelector(".ap-lb-next").onclick=()=>{E<T.length-1&&(E++,D())}};A.addEventListener("click",H=>{H.target===A&&A.remove()}),document.addEventListener("keydown",function H(V){if(!document.body.contains(A)){document.removeEventListener("keydown",H);return}V.key==="Escape"&&A.remove(),V.key==="ArrowLeft"&&E>0&&(E--,D()),V.key==="ArrowRight"&&E<T.length-1&&(E++,D())}),D(),document.body.appendChild(A)};s.querySelectorAll(".ap-slide").forEach(S=>{S.addEventListener("click",()=>O(parseInt(S.dataset.idx,10)||0))})}catch(v){s.innerHTML=`<span style="color:#ef4444;">Error inesperado: ${o(v?.message||String(v))}</span>`}finally{c.target.disabled=!1}}),(async()=>{const c=i.querySelector("#bj-connect-status");if(c)try{const v=await(await fetch("/api/connect/status")).json(),g=(p,r,l,b)=>l.configured?l.connected?`<div class="bj-conn-row"><span class="bj-conn-name">${p}</span><span class="bj-conn-ok">\u2713 conectado${l.username?" @"+o(l.username):""}</span>${b||""}</div>`:`<div class="bj-conn-row"><span class="bj-conn-name">${p}</span><a class="bj-btn bj-btn-secondary bj-conn-btn" href="/api/connect/${r}/start">Conectar</a></div>`:`<div class="bj-conn-row"><span class="bj-conn-name">${p}</span><span class="bj-conn-warn">no configurado (faltan credenciales de la app)</span></div>`;c.innerHTML=g("Instagram","instagram",v.instagram,v.instagram.connected?'<button class="bj-copy-btn" id="bj-ig-sync">Traer m\xE9tricas</button>':"")+g("TikTok","tiktok",v.tiktok,""),i.querySelector("#bj-ig-sync")?.addEventListener("click",async p=>{p.target.disabled=!0,p.target.textContent="\u23F3";const{accountId:r}=h();try{const b=await(await fetch("/api/connect/instagram/sync",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accountId:r})})).json();p.target.textContent=b.ok?`\u2713 ${b.synced} posts`:b.message||"error"}catch{p.target.textContent="error"}})}catch{c.innerHTML='<span style="color:#ef4444;">No se pudo cargar el estado.</span>'}})(),(async()=>{const c=i.querySelector("#bj-canva-status");if(c)try{const v=await(await fetch("/api/canva/status")).json();v.configured?v.connected?c.innerHTML=`<span style="color:#10b981;">\u2713 Canva conectado \xB7 expira ${v.expiresAt?new Date(v.expiresAt).toLocaleString():"pronto"}</span>`:c.innerHTML='<a class="bj-btn bj-btn-secondary bj-conn-btn" href="/api/canva/start">Conectar Canva</a>':c.innerHTML='<span style="color:#f59e0b;font-size:12px;">no configurado \xB7 admin debe setear CANVA_CLIENT_ID/SECRET/REDIRECT_URI en Vercel (registrar app en canva.dev)</span>'}catch{c.innerHTML='<span style="color:#ef4444;">No se pudo cargar Canva.</span>'}})(),window.addEventListener("feedia:platform",()=>{renderBrujula(e)},{once:!0})};
+            <button class="ap-lb-nav ap-lb-next" aria-label="siguiente" ${idx === slidesArr.length - 1 ? 'disabled' : ''}>›</button>
+            <a class="ap-lb-dl" href="${esc(sl.dataUrl)}" download="slide-${sl.n}.svg">⬇️ Descargar</a>`;
+          overlay.querySelector('.ap-lb-close').onclick = () => overlay.remove();
+          overlay.querySelector('.ap-lb-prev').onclick = () => {
+            if (idx > 0) {
+              idx--;
+              render();
+            }
+          };
+          overlay.querySelector('.ap-lb-next').onclick = () => {
+            if (idx < slidesArr.length - 1) {
+              idx++;
+              render();
+            }
+          };
+        };
+        overlay.addEventListener('click', (ev) => {
+          if (ev.target === overlay) overlay.remove();
+        });
+        document.addEventListener('keydown', function onKey(ev) {
+          if (!document.body.contains(overlay)) {
+            document.removeEventListener('keydown', onKey);
+            return;
+          }
+          if (ev.key === 'Escape') overlay.remove();
+          if (ev.key === 'ArrowLeft' && idx > 0) {
+            idx--;
+            render();
+          }
+          if (ev.key === 'ArrowRight' && idx < slidesArr.length - 1) {
+            idx++;
+            render();
+          }
+        });
+        render();
+        document.body.appendChild(overlay);
+      };
+      out.querySelectorAll('.ap-slide').forEach((el) => {
+        el.addEventListener('click', () => openLightbox(parseInt(el.dataset.idx, 10) || 0));
+      });
+    } catch (err) {
+      out.innerHTML = `<span style="color:#ef4444;">Error inesperado: ${esc(err?.message || String(err))}</span>`;
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
+  // Conexiones IG/TikTok — carga estado + botones
+  const loadConnections = async () => {
+    const host = root.querySelector('#bj-connect-status');
+    if (!host) return;
+    try {
+      const r = await fetch('/api/connect/status');
+      const s = await r.json();
+      const row = (name, key, c, extra) => {
+        if (!c.configured)
+          return `<div class="bj-conn-row"><span class="bj-conn-name">${name}</span><span class="bj-conn-warn">no configurado (faltan credenciales de la app)</span></div>`;
+        if (c.connected)
+          return `<div class="bj-conn-row"><span class="bj-conn-name">${name}</span><span class="bj-conn-ok">✓ conectado${c.username ? ' @' + esc(c.username) : ''}</span>${extra || ''}</div>`;
+        return `<div class="bj-conn-row"><span class="bj-conn-name">${name}</span><a class="bj-btn bj-btn-secondary bj-conn-btn" href="/api/connect/${key}/start">Conectar</a></div>`;
+      };
+      host.innerHTML =
+        row(
+          'Instagram',
+          'instagram',
+          s.instagram,
+          s.instagram.connected ? '<button class="bj-copy-btn" id="bj-ig-sync">Traer métricas</button>' : '',
+        ) + row('TikTok', 'tiktok', s.tiktok, '');
+      root.querySelector('#bj-ig-sync')?.addEventListener('click', async (e) => {
+        e.target.disabled = true;
+        e.target.textContent = '⏳';
+        const { accountId } = studioAccount();
+        try {
+          const rr = await fetch('/api/connect/instagram/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accountId }),
+          });
+          const jj = await rr.json();
+          e.target.textContent = jj.ok ? `✓ ${jj.synced} posts` : jj.message || 'error';
+        } catch {
+          e.target.textContent = 'error';
+        }
+      });
+    } catch {
+      host.innerHTML = '<span style="color:#ef4444;">No se pudo cargar el estado.</span>';
+    }
+  };
+  void loadConnections();
+
+  // Canva status
+  (async () => {
+    const ch = root.querySelector('#bj-canva-status');
+    if (!ch) return;
+    try {
+      const r = await fetch('/api/canva/status');
+      const s = await r.json();
+      if (!s.configured)
+        ch.innerHTML = `<span style="color:#f59e0b;font-size:12px;">no configurado · admin debe setear CANVA_CLIENT_ID/SECRET/REDIRECT_URI en Vercel (registrar app en canva.dev)</span>`;
+      else if (s.connected)
+        ch.innerHTML = `<span style="color:#10b981;">✓ Canva conectado · expira ${s.expiresAt ? new Date(s.expiresAt).toLocaleString() : 'pronto'}</span>`;
+      else ch.innerHTML = `<a class="bj-btn bj-btn-secondary bj-conn-btn" href="/api/canva/start">Conectar Canva</a>`;
+    } catch {
+      ch.innerHTML = '<span style="color:#ef4444;">No se pudo cargar Canva.</span>';
+    }
+  })();
+
+  // Re-render if platform changes
+  window.addEventListener(
+    'feedia:platform',
+    () => {
+      void renderBrujula(container);
+    },
+    { once: true },
+  );
+};
