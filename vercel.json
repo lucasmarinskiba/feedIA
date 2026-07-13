@@ -1,4 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "npm run build && mkdir -p public && cp -r dist-static/* public/"
+  "buildCommand": "npm run build && mkdir -p public && cp -r dist-static/* public/",
+  "public": "public"
 }
