@@ -60,11 +60,11 @@ app.use((req: Request, res: Response) => {
       res.send(html);
     } catch (err) {
       console.error('[FeedIA] SPA fallback error:', err);
-      res.status(500).json({ error: 'Could not load UI', path: indexPath });
+      res.status(500).json({ error: 'SPA load failed', path: indexPath, ts: new Date().toISOString() });
     }
   } else {
     console.error('[FeedIA] index.html not found at', indexPath);
-    res.status(500).json({ error: 'UI not found', path: indexPath, publicDir, exists: existsSync(publicDir) });
+    res.status(500).json({ error: 'NO INDEX HTML FOUND', path: indexPath, publicDir, exists: existsSync(publicDir), ts: new Date().toISOString() });
   }
 });
 
