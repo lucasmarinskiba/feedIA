@@ -9,8 +9,47 @@
   ],
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/style\\.css",
+      "dest": "/dist-static/style.css",
+      "headers": {
+        "cache-control": "public, max-age=3600"
+      }
+    },
+    {
+      "src": "/app\\.js",
+      "dest": "/dist-static/app.js",
+      "headers": {
+        "cache-control": "public, max-age=3600"
+      }
+    },
+    {
+      "src": "/views/(.*)",
+      "dest": "/dist-static/views/$1",
+      "headers": {
+        "cache-control": "public, max-age=3600"
+      }
+    },
+    {
+      "src": "/lib/(.*)",
+      "dest": "/dist-static/lib/$1",
+      "headers": {
+        "cache-control": "public, max-age=3600"
+      }
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "/dist-static/js/$1",
+      "headers": {
+        "cache-control": "public, max-age=3600"
+      }
+    },
+    {
+      "src": "/api/(.*)",
       "dest": "/api/index.ts"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dist-static/index.html"
     }
   ]
 }
