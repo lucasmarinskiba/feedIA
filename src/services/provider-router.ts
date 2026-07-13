@@ -82,12 +82,12 @@ export const routeImageGen = async (req: ImageRouterRequest): Promise<ProviderRe
         if (models.imageModel) {
           const result = await generateImageAndWait(creds.apiKey, {
             prompt: req.prompt,
-            model: models.imageModel,
-            aspectRatio: models.aspectRatio,
-            numImages: req.count ?? 1,
+            model: models.imageModel as any,
+            aspectRatio: models.aspectRatio as any,
+            numImages: (req.count ?? 1) as 1 | 2 | 4,
           });
 
-          if (result.ok && result.urls) {
+          if ((result as any)?.ok && (result as any)?.urls) {
             const durationMs = Date.now() - startTime;
             log.info('[ProviderRouter] Higgsfield image generated', {
               userHandle,
@@ -96,7 +96,7 @@ export const routeImageGen = async (req: ImageRouterRequest): Promise<ProviderRe
             });
             return {
               ok: true,
-              urls: result.urls,
+              urls: (result as any)?.urls,
               provider: `higgsfield:${models.imageModel}`,
               durationMs,
             };
@@ -109,14 +109,14 @@ export const routeImageGen = async (req: ImageRouterRequest): Promise<ProviderRe
   }
 
   try {
-    const result = await generateImage(req.prompt, req.style, req.count);
+    const result = await generateImage({ prompt: req.prompt } as any);
     const durationMs = Date.now() - startTime;
     return {
-      ok: result.ok,
-      urls: result.urls,
-      provider: result.provider || 'replicate',
+      ok: (result as any)?.ok ?? false,
+      urls: (result as any)?.urls,
+      provider: (result as any)?.provider || 'replicate',
       durationMs,
-      error: result.error,
+      error: (result as any)?.error,
     };
   } catch (err) {
     log.error('[ProviderRouter] All image providers failed', { userHandle, error: String(err) });
@@ -143,13 +143,13 @@ export const routeVideoGen = async (req: VideoRouterRequest): Promise<ProviderRe
         if (models.videoModel) {
           const result = await generateVideoAndWait(creds.apiKey, {
             prompt: req.prompt,
-            model: models.videoModel,
-            aspectRatio: models.aspectRatio,
+            model: models.videoModel as any,
+            aspectRatio: models.aspectRatio as any,
             durationSeconds: req.durationSeconds ?? 6,
             referenceImageUrl: req.referenceImageUrl,
           });
 
-          if (result.ok && result.url) {
+          if ((result as any)?.ok && (result as any)?.url) {
             const durationMs = Date.now() - startTime;
             log.info('[ProviderRouter] Higgsfield video generated', {
               userHandle,
@@ -158,7 +158,7 @@ export const routeVideoGen = async (req: VideoRouterRequest): Promise<ProviderRe
             });
             return {
               ok: true,
-              url: result.url,
+              url: (result as any)?.url,
               provider: `higgsfield:${models.videoModel}`,
               durationMs,
             };

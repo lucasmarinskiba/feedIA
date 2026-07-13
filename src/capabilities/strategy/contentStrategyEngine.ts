@@ -52,10 +52,11 @@ const generateCandidates = (brand: BrandProfile, goalSignals: GoalSignals): Topi
   const pains = brand.audience.pains.slice(0, 3);
   const desires = brand.audience.desires.slice(0, 3);
   const niche = brand.niche;
-  const pillars = (Object.keys(goalSignals.pillarWeights) as ContentPillar[]).filter((p) => goalSignals.pillarWeights[p] >= 20);
+  const pillars = (Object.keys(goalSignals.pillarWeights) as ContentPillar[]).filter((p) => (goalSignals.pillarWeights[p] ?? 0) >= 20);
 
   for (const pillar of pillars) {
     const angles = PILLAR_ANGLES[pillar];
+    if (!angles) continue;
     for (const angle of angles) {
       const pain = pains[Math.floor(Math.random() * pains.length)] ?? 'dolor principal';
       const desire = desires[Math.floor(Math.random() * desires.length)] ?? 'deseo principal';

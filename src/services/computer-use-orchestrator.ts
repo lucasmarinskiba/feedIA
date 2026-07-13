@@ -117,7 +117,7 @@ export const executeEngagementTask = async (task: EngagementTask): Promise<Engag
 
   // 4. Get user's Browserless key and execute
   try {
-    const userBrowserlessKey = getBrowserlessKey(task.accountId);
+    const userBrowserlessKey = getBrowserlessKey(task.accountId) || undefined;
 
     const browserlessResult = await executeBrowserlessAction(task, token, userBrowserlessKey);
 

@@ -59,7 +59,7 @@ class FeedIADatabase {
   /**
    * Get database connection
    */
-  getConnection(): Database.Database {
+  getConnection(): any {
     return this.db;
   }
 

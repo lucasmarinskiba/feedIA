@@ -157,7 +157,7 @@ const runEngagementPollingCycle = async (): Promise<void> => {
     try {
       // Placeholder: real implementation fetches comments from Instagram/TikTok API
       // For now, mock 0 comments (production would call meta/tiktok endpoints)
-      const mockComments = []; // Real: fetch from API
+      const mockComments: Array<any> = []; // Real: fetch from API
       // const mockComments = [
       //   {
       //     id: `comment-${Date.now()}-1`,

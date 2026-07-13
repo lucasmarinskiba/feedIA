@@ -148,10 +148,10 @@ export const analyticsService = {
     const recentContent = analytics.content.filter((c) => c.postedAt >= cutoffDate);
 
     const followerGrowth =
-      recentMetrics.length > 1
-        ? ((recentMetrics[recentMetrics.length - 1].followers || 0) -
-            (recentMetrics[0].followers || 0)) /
-          (recentMetrics[0].followers || 1)
+      recentMetrics.length > 1 && recentMetrics[0] && recentMetrics[recentMetrics.length - 1]
+        ? ((recentMetrics[recentMetrics.length - 1]!.followers || 0) -
+            (recentMetrics[0]!.followers || 0)) /
+          (recentMetrics[0]!.followers || 1)
         : 0;
 
     const engagementRate =
@@ -214,7 +214,8 @@ export const analyticsService = {
     const dailyReach: { [key: string]: number[] } = {};
 
     for (const metric of recentMetrics) {
-      const dateKey = metric.timestamp.toISOString().split('T')[0];
+      const dateKey = metric.timestamp.toISOString().split('T')[0] || '';
+      if (!dateKey) continue;
       if (!dailyReach[dateKey]) {
         dailyReach[dateKey] = [];
       }
