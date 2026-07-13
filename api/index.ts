@@ -43,7 +43,11 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 app.get('/api/info', (req: Request, res: Response) => {
-  res.json({ name: 'FeedIA', version: '1.0.0', ok: true, publicDir });
+  res.json({ name: 'FeedIA', version: '1.0.0', ok: true });
+});
+
+app.get('/api/debug', (req: Request, res: Response) => {
+  res.json({ status: 'debug', publicDir, cwdExists: existsSync(publicDir), indexHtmlExists: existsSync(path.join(publicDir, 'index.html')) });
 });
 
 // SPA fallback: index.html for all other requests
