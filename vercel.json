@@ -1,20 +1,4 @@
 {
   "version": 2,
-  "buildCommand": "npm run build && cp -r dist-static/* public/",
-  "builds": [
-    {
-      "src": "api/index.ts",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/$1"
-    }
-  ]
+  "buildCommand": "npm run build && cp -r dist-static/* public/"
 }
