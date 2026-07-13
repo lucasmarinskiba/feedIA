@@ -30,7 +30,7 @@ const router = express.Router();
 router.get('/snapshot', (req: Request, res: Response): void => {
   try {
     // Mock brand for now (attach to request if user context exists)
-    const brand = BrandProfileSchema.parse({
+    const brand = (req as any).brand || BrandProfileSchema.parse({
       name: 'FeedIA Account',
       handle: '@feedia',
       visual: { palette: {}, typography: {}, style: 'modern', mood: 'professional' },
@@ -39,7 +39,7 @@ router.get('/snapshot', (req: Request, res: Response): void => {
       hashtagPools: {},
       contentPillars: [],
       brandStrategy: { positioning: '', voiceTone: '', valueProps: [] },
-    });
+    } as any);
 
     const snapshot = generateExecutiveDashboardSnapshot(brand);
 
@@ -62,7 +62,7 @@ router.get('/snapshot', (req: Request, res: Response): void => {
  */
 router.get('/growth', (req: Request, res: Response): void => {
   try {
-    const brand = BrandProfileSchema.parse({
+    const brand = (req as any).brand || BrandProfileSchema.parse({
       name: 'FeedIA Account',
       handle: '@feedia',
       visual: { palette: {}, typography: {}, style: 'modern', mood: 'professional' },
@@ -71,7 +71,7 @@ router.get('/growth', (req: Request, res: Response): void => {
       hashtagPools: {},
       contentPillars: [],
       brandStrategy: { positioning: '', voiceTone: '', valueProps: [] },
-    });
+    } as any);
 
     const growth = getGrowthTrajectory(brand);
 
@@ -94,7 +94,7 @@ router.get('/growth', (req: Request, res: Response): void => {
  */
 router.get('/platforms', (req: Request, res: Response): void => {
   try {
-    const brand = BrandProfileSchema.parse({
+    const brand = (req as any).brand || BrandProfileSchema.parse({
       name: 'FeedIA Account',
       handle: '@feedia',
       visual: { palette: {}, typography: {}, style: 'modern', mood: 'professional' },
@@ -103,7 +103,7 @@ router.get('/platforms', (req: Request, res: Response): void => {
       hashtagPools: {},
       contentPillars: [],
       brandStrategy: { positioning: '', voiceTone: '', valueProps: [] },
-    });
+    } as any);
 
     const comparison = getPlatformComparison(brand);
 
