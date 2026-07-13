@@ -4,11 +4,11 @@
   "public": "public",
   "routes": [
     {
-      "src": "^/api(/.*)?$",
+      "src": "/api/.*",
       "dest": "/api/index.ts"
     },
     {
-      "src": "^/health$",
+      "src": "/((?!api).*)",
       "dest": "/api/index.ts"
     }
   ]
