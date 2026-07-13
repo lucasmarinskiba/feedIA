@@ -40,6 +40,9 @@ import campaignRoutes from './api/campaign-routes.js';
 import analyticsRoutes from './api/analytics-routes.js';
 import socialListeningRoutes from './api/social-listening-routes.js';
 import growthStrategyRoutes from './api/growth-strategy-routes.js';
+import influencerRoutes from './api/influencer-routes.js';
+import adPerformanceRoutes from './api/ad-performance-routes.js';
+import automationSchedulerRoutes from './api/automation-scheduler-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -211,6 +214,15 @@ app.use('/api/listening', socialListeningRoutes);
 
 // Growth strategy routes (recommendations, strategy items, tracking, activation)
 app.use('/api/growth', growthStrategyRoutes);
+
+// Influencer CRM routes (prospect tracking, collaboration management, performance rating)
+app.use('/api/influencers', influencerRoutes);
+
+// Ad performance routes (Meta Ads, TikTok Ads, ROI tracking, optimization)
+app.use('/api/ads', adPerformanceRoutes);
+
+// Automation scheduler routes (post scheduling, engagement automation, periodic tasks)
+app.use('/api/automation', automationSchedulerRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 const STATIC_CANDIDATES = [
