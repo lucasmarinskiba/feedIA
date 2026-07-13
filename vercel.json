@@ -3,14 +3,14 @@
   "buildCommand": "npm run build",
   "builds": [
     {
-      "src": "api/_handler.ts",
+      "src": "src/server.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "api/_handler.ts"
+      "dest": "src/server.ts"
     }
   ]
 }
