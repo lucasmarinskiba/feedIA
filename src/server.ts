@@ -38,6 +38,8 @@ import editingRoutes from './api/editing-routes.js';
 import carouselEditingRoutes from './api/carousel-editing-routes.js';
 import campaignRoutes from './api/campaign-routes.js';
 import analyticsRoutes from './api/analytics-routes.js';
+import socialListeningRoutes from './api/social-listening-routes.js';
+import growthStrategyRoutes from './api/growth-strategy-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -203,6 +205,12 @@ app.use('/api/campaigns', campaignRoutes);
 
 // Analytics pipeline routes (real-time metrics, trends, performance, recommendations)
 app.use('/api/analytics', analyticsRoutes);
+
+// Social listening routes (mention tracking, hashtag monitoring, competitor analysis, sentiment)
+app.use('/api/listening', socialListeningRoutes);
+
+// Growth strategy routes (recommendations, strategy items, tracking, activation)
+app.use('/api/growth', growthStrategyRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 const STATIC_CANDIDATES = [
