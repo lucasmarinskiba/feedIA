@@ -3,7 +3,7 @@
   "buildCommand": "npm run build && mkdir -p public && cp -r dist-static/* public/",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/:path*",
       "destination": "/api"
     }
   ]
