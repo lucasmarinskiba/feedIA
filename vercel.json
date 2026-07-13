@@ -1,15 +1,14 @@
 {
   "version": 2,
   "buildCommand": "npm run build && mkdir -p public && cp -r dist-static/* public/",
-  "public": "public",
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)?",
-      "dest": "/api"
+      "source": "/api/(.*)",
+      "destination": "/api"
     },
     {
-      "src": "/((?!.*\\.[a-z]+$).*)",
-      "dest": "/index.html"
+      "source": "/((?!.*\\.\\w+$|^/public|^/api).*)",
+      "destination": "/index.html"
     }
   ]
 }
