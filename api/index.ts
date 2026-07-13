@@ -17,9 +17,42 @@ app.get('/api/info', (req: Request, res: Response) => {
   res.json({ name: 'FeedIA', version: '1.0.0', ok: true });
 });
 
-// SPA fallback: serve index.html for non-API routes
+// Static file serving - JS
+app.get('/:filename.js', (req: Request, res: Response) => {
+  const filePath = path.join(publicDir, req.params.filename + '.js');
+  if (existsSync(filePath)) {
+    try {
+      const content = readFileSync(filePath, 'utf-8');
+      res.setHeader('Content-Type', 'application/javascript');
+      res.send(content);
+    } catch {
+      res.status(500).json({ error: 'Error reading JS file' });
+    }
+  } else {
+    res.status(404).json({ error: 'JS file not found' });
+  }
+});
+
+// Static file serving - CSS
+app.get('/:filename.css', (req: Request, res: Response) => {
+  const filePath = path.join(publicDir, req.params.filename + '.css');
+  if (existsSync(filePath)) {
+    try {
+      const content = readFileSync(filePath, 'utf-8');
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+      res.send(content);
+    } catch {
+      res.status(500).json({ error: 'Error reading CSS file' });
+    }
+  } else {
+    res.status(404).json({ error: 'CSS file not found' });
+  }
+});
+
+// SPA fallback: serve index.html for non-API, non-static routes
 app.use((req: Request, res: Response) => {
-  if (req.path.startsWith('/api')) {
+  // Only treat explicit API paths as errors, not the root rewrite
+  if (req.path !== '/' && req.path.startsWith('/api')) {
     res.status(404).json({ error: 'API endpoint not found' });
     return;
   }
