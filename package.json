@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "build:prod": "tsc --project tsconfig.prod.json",
+    "build:prod": "esbuild src --outdir=dist --format=esm --platform=node",
     "start": "node --enable-source-maps dist/server.js",
     "dev": "tsx src/cli.ts",
     "agent": "tsx src/cli.ts agent",
