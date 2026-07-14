@@ -1,4 +1,4 @@
 {
   "version": 2,
-  "buildCommand": "npm run build && mkdir -p .vercel/output/static && cp -r dist-static/* .vercel/output/static/ && cp .vercel/output/static/index.html .vercel/output/static/404.html"
+  "buildCommand": "npm run build"
 }
