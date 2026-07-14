@@ -50,6 +50,16 @@ app.get('/api/debug', (req: Request, res: Response) => {
   res.json({ status: 'debug', publicDir, cwdExists: existsSync(publicDir), indexHtmlExists: existsSync(path.join(publicDir, 'index.html')) });
 });
 
+app.get('/api/files', (req: Request, res: Response) => {
+  try {
+    const fs = require('fs');
+    const files = fs.readdirSync(publicDir);
+    res.json({ publicDir, filesCount: files.length, files: files.slice(0, 20) });
+  } catch (err) {
+    res.json({ error: String(err), publicDir });
+  }
+});
+
 // SPA fallback: index.html for all other requests
 app.use((req: Request, res: Response) => {
   const indexPath = path.join(publicDir, 'index.html');
