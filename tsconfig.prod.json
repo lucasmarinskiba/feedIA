@@ -13,6 +13,7 @@
     "declarationMap": false,
     "sourceMap": false,
     "noImplicitReturns": false,
-    "noUncheckedIndexedAccess": false
+    "noUncheckedIndexedAccess": false,
+    "noEmitOnError": false
   }
 }
