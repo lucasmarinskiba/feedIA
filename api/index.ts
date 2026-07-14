@@ -38,20 +38,6 @@ app.use((req: Request, res: Response, next) => {
   next();
 });
 
-app.get('/', (req: Request, res: Response) => {
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.send(`<!DOCTYPE html>
-<html>
-<head><title>FeedIA</title></head>
-<body style="font-family:Arial;padding:20px;">
-<h1>✅ FeedIA Handler Working</h1>
-<p>Vercel is routing requests to api/index.ts handler.</p>
-<p>publicDir: ${publicDir}</p>
-<p><a href="/api/info">API Info</a> | <a href="/api/files">List Files</a></p>
-</body>
-</html>`);
-});
-
 app.get('/health', (req: Request, res: Response) => {
   res.json({ ok: true });
 });
