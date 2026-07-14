@@ -1,4 +1,4 @@
 {
   "version": 2,
-  "buildCommand": "npm run build && mkdir -p public && cp -r dist-static/* public/ && cp public/index.html public/404.html"
+  "buildCommand": "echo 'START BUILD' && npm run build && echo 'TS DONE' && ls -la dist-static/ && mkdir -p public && echo 'MKDIR DONE' && cp -r dist-static/* public/ && echo 'COPY DONE' && ls -la public/ && cp public/index.html public/404.html && echo 'BUILD SUCCESS'"
 }
