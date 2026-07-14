@@ -19,7 +19,7 @@ WORKDIR /app
 
 # Copy dependency manifests and install all deps (including dev)
 COPY package*.json ./
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Copy source and compile
 COPY tsconfig.json ./
