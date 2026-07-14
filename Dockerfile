@@ -44,10 +44,10 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-# Copy dependency manifests and install production deps only
+# Copy all deps (some runtime deps are incorrectly in devDependencies)
 COPY package.json pnpm-lock.yaml* ./
 ENV NODE_OPTIONS="--max-old-space-size=2048"
-RUN pnpm install --ignore-scripts --prod
+RUN pnpm install --ignore-scripts
 
 # Copy compiled code and runtime assets
 COPY --from=builder /app/dist ./dist
