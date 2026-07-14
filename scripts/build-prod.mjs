@@ -31,6 +31,19 @@ await build({
   outbase: 'src',
   bundle: false,
   target: 'node20',
+  // Add .js extension to relative imports (required for Node ESM)
+  plugins: [{
+    name: 'add-js-extension',
+    setup(build) {
+      build.onResolve({ filter: /^\.\.?\// }, args => {
+        // Only add .js if no extension present
+        if (!args.path.match(/\.[^/]+$/)) {
+          return { path: args.path + '.js', external: true };
+        }
+        return { path: args.path, external: true };
+      });
+    },
+  }],
 });
 
 console.log('Build complete.');
