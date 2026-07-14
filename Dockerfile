@@ -1,47 +1,54 @@
 # Multi-stage Dockerfile for FeedIA long-running workers.
 # Builds TypeScript inside the container so no pre-built dist/ is required.
+# Uses pnpm for memory efficiency.
 # Usage:
 #   docker build -t feedia-workers:latest .
 #   docker run --env-file .env.production feedia-workers:latest
 
 # ── Stage 1: builder ─────────────────────────────────────────────────────────
-FROM node:20-slim AS builder
+FROM node:20-alpine AS builder
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Install build tools for native modules (better-sqlite3)
-RUN apt-get update && apt-get install -y \
+RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
+    openssl-dev
 
 WORKDIR /app
 
 # Copy dependency manifests and install all deps (including dev)
-COPY package*.json ./
-RUN npm ci --ignore-scripts
+COPY package.json pnpm-lock.yaml* ./
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+RUN pnpm install --frozen-lockfile
 
 # Copy source and compile
 COPY tsconfig.json ./
 COPY src ./src
-RUN npm run build
+RUN pnpm run build
 
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
-FROM node:20-slim AS runtime
+FROM node:20-alpine AS runtime
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # better-sqlite3 must compile native bindings for this image too
-RUN apt-get update && apt-get install -y \
+RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
+    openssl-dev
 
 WORKDIR /app
 
 # Copy dependency manifests and install production deps only
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+COPY package.json pnpm-lock.yaml* ./
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+RUN pnpm install --frozen-lockfile --prod
 
 # Copy compiled code and runtime assets
 COPY --from=builder /app/dist ./dist

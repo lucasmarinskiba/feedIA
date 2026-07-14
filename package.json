@@ -40,8 +40,10 @@
       "eslint --fix"
     ]
   },
+  "packageManager": "pnpm@latest",
   "engines": {
-    "node": ">=20"
+    "node": ">=20",
+    "pnpm": ">=9"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.98.0",
