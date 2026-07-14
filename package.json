@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "build:prod": "tsc || true",
+    "build:prod": "node scripts/build-prod.mjs",
     "start": "node --enable-source-maps dist/server.js",
     "dev": "tsx src/cli.ts",
     "agent": "tsx src/cli.ts agent",
