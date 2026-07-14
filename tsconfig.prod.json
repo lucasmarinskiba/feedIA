@@ -8,6 +8,11 @@
     "strictBindCallApply": false,
     "strictPropertyInitialization": false,
     "noImplicitThis": false,
-    "alwaysStrict": false
+    "alwaysStrict": false,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "noImplicitReturns": false,
+    "noUncheckedIndexedAccess": false
   }
 }
