@@ -9,7 +9,7 @@
 FROM node:20-alpine AS builder
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.13.1 --activate
 
 # Install build tools for native modules (better-sqlite3)
 RUN apk add --no-cache \
@@ -23,7 +23,7 @@ WORKDIR /app
 # Copy dependency manifests and install all deps (including dev)
 COPY package.json pnpm-lock.yaml* ./
 ENV NODE_OPTIONS="--max-old-space-size=2048"
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # Copy source and compile
 COPY tsconfig.json ./
@@ -34,7 +34,7 @@ RUN pnpm run build
 FROM node:20-alpine AS runtime
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.13.1 --activate
 
 # better-sqlite3 must compile native bindings for this image too
 RUN apk add --no-cache \
@@ -48,7 +48,7 @@ WORKDIR /app
 # Copy dependency manifests and install production deps only
 COPY package.json pnpm-lock.yaml* ./
 ENV NODE_OPTIONS="--max-old-space-size=2048"
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --prod
 
 # Copy compiled code and runtime assets
 COPY --from=builder /app/dist ./dist
