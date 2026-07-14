@@ -23,7 +23,7 @@ WORKDIR /app
 # Copy dependency manifests and install all deps (including dev)
 COPY package.json pnpm-lock.yaml* ./
 ENV NODE_OPTIONS="--max-old-space-size=2048"
-RUN pnpm install
+RUN pnpm install --ignore-scripts
 
 # Copy source and compile
 COPY tsconfig.json ./
@@ -48,7 +48,7 @@ WORKDIR /app
 # Copy dependency manifests and install production deps only
 COPY package.json pnpm-lock.yaml* ./
 ENV NODE_OPTIONS="--max-old-space-size=2048"
-RUN pnpm install --prod
+RUN pnpm install --ignore-scripts --prod
 
 # Copy compiled code and runtime assets
 COPY --from=builder /app/dist ./dist
