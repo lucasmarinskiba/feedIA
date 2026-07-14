@@ -25,10 +25,9 @@ COPY package.json pnpm-lock.yaml* ./
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN pnpm install --ignore-scripts
 
-# Copy source and compile (skip lib type checking to avoid pre-existing TS errors)
-COPY tsconfig.json ./
-COPY src ./src
-RUN npx tsc --skipLibCheck
+# Copy everything else and compile
+COPY . .
+RUN pnpm run build
 
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
 FROM node:20-alpine AS runtime
