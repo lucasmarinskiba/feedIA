@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "node --enable-source-maps dist/cli.js",
+    "start": "node --enable-source-maps dist/server.js",
     "dev": "tsx src/cli.ts",
     "agent": "tsx src/cli.ts agent",
     "lint": "eslint \"src/**/*.ts\"",
