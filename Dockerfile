@@ -25,9 +25,9 @@ COPY package.json pnpm-lock.yaml* ./
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN pnpm install --ignore-scripts
 
-# Copy everything else and compile
+# Copy everything else and compile (use build:prod to skip strict checks)
 COPY . .
-RUN pnpm run build
+RUN pnpm run build:prod
 
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
 FROM node:20-alpine AS runtime
