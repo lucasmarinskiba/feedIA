@@ -61,7 +61,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "^3.1071.0",
+    "@aws-sdk/client-s3": "^3.1086.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/express": "^5.0.6",
     "@types/multer": "^2.2.0",
