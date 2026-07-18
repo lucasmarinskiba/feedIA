@@ -10,7 +10,6 @@ output
 src/skills/carrusel-instagram/.env
 # Exclude TypeScript source — Vercel only needs public/ and api/
 src
-scripts
 supabase
 feedIA
 tsconfig*.json
