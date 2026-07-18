@@ -8,5 +8,17 @@ output
 .env
 .env.local
 src/skills/carrusel-instagram/.env
+# Exclude TypeScript source — Vercel only needs public/ and api/
+src
+scripts
+supabase
+feedIA
+tsconfig*.json
+.githooks
+.agents
+.claude
+# Keep frontend and API functions
 !public/
 !public/**
+!api/
+!api/**
