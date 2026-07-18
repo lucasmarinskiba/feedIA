@@ -1,6 +1,6 @@
 ---
 name: brandkit
-description: Premium brand-kit image generation skill for creating high-end brand-guidelines boards, logo systems, identity decks, and visual-world presentations. Trained for minimalist, cinematic, editorial, dark-tech, luxury, cultural, security, gaming, developer-tool, and consumer-app brand systems. Optimized for intentional logo concepting, refined composition, sparse typography, strong symbolic meaning, premium mockups, art-directed imagery, and flexible grid layouts.
+description: Premium brand-kit image generation AND brand identity strategy skill. Covers visual generation (brand-guidelines boards, logo systems, identity decks) plus full brand identity knowledge base: correct terminology (logosímbolo, imagotipo, colores marcarios, tipografía corporativa, etc.), colorimetría, Manual de Identidad structure, typography rules, naming, and anti-patterns. Trained for minimalist, cinematic, editorial, dark-tech, luxury, cultural, security, gaming, developer-tool, and consumer-app brand systems.
 ---
 
 # BRANDKIT IMAGE GENERATION SKILL
@@ -796,3 +796,330 @@ The final result should be:
 - art-directed
 - implementation-friendly
 - stronger than normal AI-generated brand visuals
+
+---
+
+# BRAND IDENTITY KNOWLEDGE BASE
+
+*Trained from: "Branding Corporativo" (Capriotti), "El paso a paso para construir marcas inolvidables" (Doppler), "Branding: El arte de marcar corazones" (Hoyos).*
+
+This section prevents errors in vocabulary, typography, colors, and all brand identity components.
+
+---
+
+## VOCABULARIO EXACTO (Use These Terms — No Others)
+
+### Símbolos Identificadores (Brand Identity Elements)
+
+| Término correcto | Definición | Error común |
+|---|---|---|
+| **Logosímbolo** | Combinación de logotipo + símbolo en una unidad inseparable | Llamarlo solo "logo" o "logotipo" cuando tiene ícono |
+| **Logotipo** | El nombre de la marca escrito con tipografía propia y especial (solo texto) | Usar "logotipo" para referirse al ícono |
+| **Isotipo** | El símbolo/ícono solo, sin texto | Confundirlo con el logotipo |
+| **Imagotipo** | Texto + imagen que pueden usarse juntos O por separado | Confundirlo con el logosímbolo |
+| **Isologo** | Texto + imagen que NO pueden separarse | No distinguirlo del imagotipo |
+| **Fonotipo** | Nombre de la marca desde el punto de vista fonético / sonoro | Omitirlo en el análisis de marca |
+| **Eslogan / Lema** | Frase corta que acompaña la marca y resume su promesa | "Tagline", "slogan" son anglicismos aceptables pero preferir "eslogan" |
+| **Odotipo** | Aroma corporativo / fragancia de marca | Ignorarlo como componente |
+| **Marca sonora** | Jingle o logo sonoro | Confundirlo con el fonotipo |
+| **Colores marcarios** | Colores específicos que identifican la marca (con codificación técnica) | "Colores de la marca" sin especificar códigos |
+| **Gama cromática** | Paleta completa de colores corporativos | "Paleta" sin incluir variantes y usos |
+| **Tipografía corporativa** | Fuente(s) tipográficas oficiales de la marca | "Font de la marca" o selección arbitraria |
+| **Área de protección** | Espacio mínimo libre alrededor del logosímbolo donde no puede aparecer otro elemento | Ignorar el espacio libre alrededor del logo |
+| **Planimetría** | Grid/retícula de construcción proporcional del logosímbolo | No mostrar las proporciones geométricas del logo |
+| **Colorimetría** | Especificación técnica de los colores en TODOS los sistemas (Pantone, CMYK, RGB, HEX) | Dar solo el HEX y olvidar Pantone/CMYK para impresión |
+| **Racional de marca** | Justificación estratégica y conceptual de cada decisión de diseño | Diseñar sin explicar el "por qué" |
+| **Manual de Identidad** | Documento completo con normas de uso de todos los elementos visuales | "Brandbook", "guía de estilo" (son equivalentes pero el término técnico es Manual de Identidad) |
+| **Brand Equity** | Valor de la marca como activo (modelos Aaker, Keller, Y&R) | Confundir valor de marca con reconocimiento de logo |
+| **Naming** | Proceso estratégico de asignar nombre a la marca | Elegir nombre sin proceso |
+| **Rebranding** | Rediseño y renovación de identidad de marca | Cambio visual menor |
+| **Identidad Visual** | Expresión VISUAL de la identidad corporativa (≠ Identidad Corporativa) | Usar "Identidad Corporativa" cuando se habla solo del aspecto visual |
+| **Identidad Corporativa** | Conjunto de características centrales, perdurables y distintivas de la organización entera | Usarlo como sinónimo de "logo" o "identidad visual" |
+| **Imagen Corporativa** | Percepción que los públicos tienen de la organización (≠ Identidad) | Confundir Imagen (percepción externa) con Identidad (esencia interna) |
+| **Posicionamiento** | Lugar que ocupa la marca en la mente del consumidor vs competencia | "Cómo me ven" sin referencia a competencia |
+| **Top of Mind** | Primera marca recordada espontáneamente en una categoría | Primer lugar en ventas |
+| **Arquitectura de Marca** | Estructura y jerarquía del portfolio de marcas de una empresa | Diseño del logo |
+
+---
+
+## COMPONENTES DEL MANUAL DE IDENTIDAD
+
+Un Manual de Identidad completo debe incluir **estos elementos en este orden**:
+
+1. **Racional de marca** — Concepto, historia, filosofía detrás del diseño
+2. **Logosímbolo** — Versión principal completa
+3. **Variaciones del logosímbolo** — Horizontal, vertical, solo isotipo, solo logotipo
+4. **Planimetría / Construcción** — Grid geométrico, proporciones exactas
+5. **Área de protección** — Espacio libre mínimo alrededor del logo (en "x" = altura de letra)
+6. **Tamaños mínimos** — Tamaño más pequeño reproducible (≥ 15mm impreso, ≥ 50px digital)
+7. **Colores marcarios / Colorimetría** — Ver sección abajo
+8. **Usos correctos** — Sobre fondos claro, oscuro, fotográfico
+9. **Usos incorrectos (prohibiciones)** — Lo que NO se puede hacer con el logo
+10. **Tipografía corporativa** — Ver sección abajo
+11. **Aplicaciones** — Tarjetas, papelería, digital, señalética, uniformes, etc.
+
+**Anti-patrón**: Manual que solo tiene el logo en PNG y una paleta de colores = NO es un Manual de Identidad.
+
+---
+
+## COLORIMETRÍA — REGLAS TÉCNICAS
+
+### Sistemas de Color (Obligatorios en identidad de marca)
+
+| Sistema | Uso | Cuándo es obligatorio |
+|---|---|---|
+| **Pantone (PMS)** | Impresión de alta fidelidad, branding premium | Siempre que haya materiales impresos importantes |
+| **CMYK** | Impresión offset y digital | Toda aplicación impresa |
+| **RGB** | Pantallas y digital | Web, redes sociales, apps |
+| **HEX** | Web y código CSS | Digital / desarrollo |
+
+**Regla de oro**: Los 4 sistemas NUNCA dan el mismo color exacto. La conversión tiene tolerancias. El Pantone es la referencia master para impresión.
+
+### Psicología de Colores Marcarios
+
+| Color | Valores | Marcas típicas | Cuándo evitar |
+|---|---|---|---|
+| Azul | Confianza, profesionalismo, tecnología, seguridad | LinkedIn, Samsung, Facebook | Cuando se busca energía, cercanía emocional |
+| Rojo | Energía, pasión, urgencia, apetito | Coca-Cola, Netflix, YouTube | Marcas de salud, finanzas conservadoras |
+| Verde | Naturaleza, salud, sostenibilidad, éxito | Whole Foods, Spotify, Starbucks | Tecnología premium, lujo oscuro |
+| Amarillo/Dorado | Optimismo, calidez, lujo accesible | McDonald's, IKEA, Rolex | Seguridad, salud, tecnología seria |
+| Negro | Lujo, exclusividad, poder, sofisticación | Chanel, Apple, Gucci | Marcas infantiles, ecológicas |
+| Blanco | Pureza, simplicidad, clean | Apple, Tesla, Muji | No puede ser color primario solo |
+| Naranja | Creatividad, juventud, accesibilidad | Amazon, Fanta, Harley | Lujo, seguridad, salud |
+| Morado | Creatividad, magia, espiritualidad | Cadbury, Hallmark, Twitch | Comida, deportes masculinos |
+
+### Reglas Cromáticas para Brand Kit
+
+- **Máximo 4 colores** en el sistema primario (primario + secundario + 1-2 accentos)
+- **95% de marcas** usan 1-2 colores — no sobrecomplicar
+- **33% azul, 29% rojo, 28% negro/gris** — los más comunes en logos
+- Siempre incluir versión en **negro puro** y en **blanco puro** del logo
+- Fondos de color: probar el logo en todos los colores de la paleta
+- **Grises**: siempre usar grises con subtono (warm gray #8B7355 o cool gray #6B7280), nunca gris neutro puro (#808080) que se ve plano
+- **Contraste mínimo WCAG AA**: ratio 4.5:1 para texto sobre fondo de color
+
+### Anti-patrones de Color
+
+- ❌ Dar solo HEX y olvidar Pantone/CMYK
+- ❌ Más de 5 colores en el sistema primario
+- ❌ Colores que no funcionan en B&N
+- ❌ Azul genérico sin justificación estratégica
+- ❌ Gradientes como color principal (no son reproducibles en Pantone)
+- ❌ No testear sobre foto/fondo complejo
+
+---
+
+## TIPOGRAFÍA CORPORATIVA — REGLAS TÉCNICAS
+
+### Clasificación Tipográfica
+
+| Categoría | Características | Uso en branding |
+|---|---|---|
+| **Serif** (con remate) | Times, Garamond, Georgia | Tradición, confianza, editorial, lujo |
+| **Sans-serif** (sin remate) | Inter, Poppins, Montserrat | Moderno, digital, limpio |
+| **Slab serif** | Rockwell, Clarendon | Fuerza, rusticidad, impacto |
+| **Script / Cursiva** | Dancing Script, Pacifico | Creatividad, femenino, artesanal — SOLO como acento |
+| **Monospace** | JetBrains Mono, Courier | Tech, developer tools, código |
+| **Display / Decorativa** | Solo para titulares GRANDES, nunca para cuerpo de texto |
+
+### Jerarquía Tipográfica Obligatoria
+
+Un sistema tipográfico de marca debe definir al menos:
+
+1. **Tipografía primaria** — Para titulares, nombre de la marca, destacados
+   - Peso: Bold a Black (700-900)
+   - Tamaño display: 32-72px
+2. **Tipografía secundaria** — Para cuerpo de texto, descripciones
+   - Peso: Regular a Medium (400-500)
+   - Tamaño cuerpo: 14-18px, interlineado 1.4-1.6
+3. **Tipografía de acento** (opcional) — Script o decorativa para elementos especiales
+   - Peso: Light o Thin (300)
+   - Solo para énfasis, NUNCA como única tipografía
+
+### Pautas de Uso
+
+- **Titulares**: máx 8 palabras, máx 2 líneas, contraste alto
+- **Cuerpo**: máx 80 caracteres por línea para legibilidad
+- **Tamaño mínimo impreso**: 8pt; digital: 12px
+- **Interlineado (leading)**: 1.2-1.4 para titulares, 1.4-1.6 para cuerpo
+
+### Anti-patrones Tipográficos
+
+- ❌ **Arial, Helvetica, Times New Roman** — demasiado genéricas, sin personalidad de marca
+- ❌ Más de 2-3 familias tipográficas en el sistema (caos visual)
+- ❌ Script como tipografía principal (ilegible en tamaños pequeños)
+- ❌ ALL CAPS para cuerpo de texto (difícil de leer)
+- ❌ Mezclar estilos incompatibles (serif pesado + script + sans-serif geométrico)
+- ❌ No especificar peso exacto (decir "negrita" sin número: Bold=700, Black=900)
+- ❌ No incluir alternativas cuando la fuente es de pago
+
+---
+
+## TIPOS DE MARCA (Nomenclatura correcta)
+
+### Por Naturaleza o Estructura Visual
+
+| Tipo | Descripción | Ejemplo |
+|---|---|---|
+| **Logotipo** (wordmark) | Solo tipografía estilizada | Coca-Cola, Google, FedEx |
+| **Isotipo** (icon mark) | Solo símbolo/ícono | Manzana de Apple, estrella de Mercedes |
+| **Imagotipo** | Ícono + texto, pueden ir separados | Adidas, Lacoste |
+| **Isologo** | Ícono + texto fundidos, inseparables | Pizza Hut, Burger King |
+| **Logosímbolo** | Combinación de logotipo + símbolo (término general) | La mayoría de logos modernos |
+
+### Por Función
+
+- **Marca producto** — identifica un producto específico (Pepsi, Oreo)
+- **Marca corporativa** — identifica la empresa entera (Apple, Google)
+- **Marca personal** — identifica a un individuo (Gary Vee, Neil Patel)
+- **Marca país** — identifica una nación o región (Colombia, España)
+- **Denominación de origen** — garantiza origen geográfico (Champagne, Roquefort)
+- **Marca de certificación** — garantiza una característica (Fair Trade, Sello Ambiental)
+- **Marca colectiva** — identifica asociaciones o cooperativas
+
+---
+
+## NAMING — TIPOS Y CRITERIOS
+
+### Modelos Sintácticos de Nombre de Marca
+
+| Tipo | Definición | Ejemplo |
+|---|---|---|
+| **Descriptivo** | Describe la actividad directamente | Aerolíneas Argentinas, YouTube |
+| **Neologismo** | Combina dos conceptos en una palabra nueva | Facebook (face+book), Instagram (instant+telegram) |
+| **Abstracto** | Palabra inexistente sin significado previo | Lego, Kodak, Xerox |
+| **Sugerente** | Sugiere el beneficio directamente | SocialTools, Slack |
+| **Evocativo** | Parte de una raíz conocida, construye concepto nuevo | Amazon, Doppler |
+| **Asociativo** | Describe un concepto relacionado | Amazon (río más grande = tienda más grande) |
+
+### Criterios de Evaluación de Nombre
+
+- ✅ Simple de pronunciar y escribir en el idioma target
+- ✅ Disponible como dominio web (.com prioritario)
+- ✅ Sin connotaciones negativas en otros idiomas/culturas
+- ✅ Diferenciado en el sector (no suena igual a competidores)
+- ✅ Escalable (no limita el negocio a un producto o lugar)
+- ✅ Registrable como marca comercial
+
+---
+
+## ARQUITECTURA DE MARCA
+
+| Modelo | Descripción | Ejemplo | Usar cuando |
+|---|---|---|---|
+| **Monolítico** | Una sola marca para todo el portfolio | Yamaha, Apple, Virgin | La marca madre es muy fuerte |
+| **Marcas independientes** | Cada producto tiene su propia marca | Unilever (Dove, Skip, Knorr) | Productos muy distintos, targets distintos |
+| **Apoyo** | Submarcas con autonomía + respaldo de la marca madre | Making Sense / Doppler | Nuevos productos que necesitan credibilidad inicial |
+| **Mixto** | Combinación de modelos (resultado de fusiones/adquisiciones) | Nestlé | Empresas con historias de M&A complejas |
+
+---
+
+## IDENTIDAD CORPORATIVA vs IDENTIDAD VISUAL vs IMAGEN CORPORATIVA
+
+**Confusión más frecuente — aprender estas definiciones:**
+
+- **Identidad Corporativa** = QUÉ ES la organización (su ADN: valores, cultura, filosofía, comportamiento). Es interno e introspectivo.
+- **Identidad Visual** = CÓMO SE VE la organización (símbolo, logotipo, tipografía, colores). Es un instrumento de comunicación, NO es toda la identidad.
+- **Imagen Corporativa** = CÓMO LA VEN los públicos (percepción externa que se forma en la mente del público).
+
+**Jerarquía**: Identidad Corporativa → Comunicación Corporativa (incluye Identidad Visual) → Imagen Corporativa
+
+**Error grave**: Decir "vamos a crear la identidad corporativa" cuando solo se va a diseñar el logo = se está hablando de Identidad Visual.
+
+---
+
+## BRAND EQUITY — VALOR DE MARCA
+
+### Dimensiones del Valor de Marca (Modelo Aaker)
+
+1. **Lealtad de marca** — compra repetida
+2. **Conocimiento de marca** (brand awareness) — top of mind, reconocimiento, recuerdo
+3. **Calidad percibida** — percepción de calidad vs precio
+4. **Asociaciones de marca** — qué atributos/valores evoca
+5. **Otros activos** — patentes, relaciones canal, marcas registradas
+
+### Fases de Lealtad del Consumidor
+
+1. **Desconocimiento** — no puede diferenciarte de la competencia
+2. **Reconocimiento** — te recuerda pero no te elige
+3. **Preferencia** — te elige sobre competidores cuando tiene info
+4. **Lealtad** — te elige incluso cuando la competencia es funcionalmente superior
+
+---
+
+## ANTI-PATRONES GLOBALES DE BRAND KIT
+
+### Anti-patrones Conceptuales
+
+- ❌ Diseñar el logo antes de definir la estrategia de marca
+- ❌ Confundir Identidad Visual con Identidad Corporativa
+- ❌ Manual con solo el logo PNG y la paleta HEX (no es un Manual)
+- ❌ Nombre que limita el crecimiento futuro (ej: "CafeteríaBuenosAires" si luego escala globalmente)
+- ❌ Cambiar la identidad visual sin considerar la resistencia de consumidores leales (caso GAP)
+- ❌ Posicionamiento sin análisis de competencia
+
+### Anti-patrones Visuales
+
+- ❌ Tipografías corporativas: Arial, Helvetica, Times New Roman — sin personalidad
+- ❌ Logo que no funciona en blanco y negro
+- ❌ Logo no vectorizado (no escalable)
+- ❌ Más de 4 colores primarios en el sistema
+- ❌ Dar colores sin especificar Pantone + CMYK + RGB + HEX
+- ❌ Área de protección no definida
+- ❌ No tener versión en negativo (logo blanco sobre fondo oscuro)
+- ❌ Tamaños mínimos no especificados
+
+### Anti-patrones de Eslogan
+
+- ❌ Lema de más de 7 palabras (difícil recordar)
+- ❌ Eslogan genérico que podría aplicarse a cualquier marca
+- ❌ ALL CAPS en eslogan (pierde calidez)
+- ❌ Sin conexión emocional con la propuesta de valor
+
+---
+
+## CHECKLIST BRAND KIT COMPLETO
+
+Cuando el usuario pida crear o revisar una identidad de marca, verificar:
+
+### Elementos Obligatorios
+
+- [ ] **Naming**: nombre definido con tipo y criterios evaluados
+- [ ] **Logosímbolo principal**: versión completa (colores)
+- [ ] **Variaciones**: horizontal, vertical, solo isotipo, solo logotipo
+- [ ] **Versiones monocromáticas**: negro, blanco
+- [ ] **Planimetría**: grid de construcción del logo
+- [ ] **Área de protección**: definida en unidades relativas
+- [ ] **Tamaños mínimos**: digital y print
+- [ ] **Colores marcarios**: Pantone + CMYK + RGB + HEX de cada color
+- [ ] **Tipografía primaria**: familia + pesos + tamaños
+- [ ] **Tipografía secundaria**: familia + pesos + tamaños
+- [ ] **Usos correctos**: sobre fondo claro, oscuro, fotográfico
+- [ ] **Usos incorrectos**: mínimo 6 prohibiciones ilustradas
+- [ ] **Eslogan**: max 7 palabras, conexión emocional
+
+### Elementos Recomendados
+
+- [ ] **Racional de marca**: justificación conceptual de las decisiones
+- [ ] **Personalidad de marca**: 3-5 adjetivos que definen el carácter
+- [ ] **Tono de comunicación**: formal/informal, cercano/distante, etc.
+- [ ] **Aplicaciones**: tarjeta, membrete, firma email, perfil RRSS
+- [ ] **Dirección de imágenes**: tipo de fotografía/ilustración que usa la marca
+- [ ] **Iconografía**: estilo de íconos (outline, filled, duo-tone)
+
+---
+
+## PROMPT DE ACTIVACIÓN
+
+Cuando el usuario trabaje con Brand Kit, usar este frame mental antes de generar:
+
+```
+1. ESTRATEGIA: ¿Qué es esta marca? ¿Para quién? ¿Qué promesa hace?
+2. NOMENCLATURA: Usar términos técnicos correctos (logosímbolo, no "logo"; 
+   colores marcarios, no "paleta"; tipografía corporativa, no "font")
+3. COLOR: ¿Tiene los 4 sistemas? (Pantone + CMYK + RGB + HEX)
+4. TIPOGRAFÍA: ¿Hay jerarquía? (primaria bold + secundaria regular, sin Arial/Helvetica)
+5. LOGO: ¿Funciona en B&N? ¿Está vectorizado? ¿Tiene área de protección?
+6. MANUAL: ¿Tiene todos los componentes del checklist?
+7. ANTI-PATRONES: ¿Alguno de los errores comunes está presente?
+```

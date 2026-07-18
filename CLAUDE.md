@@ -228,3 +228,120 @@ Palette: [SELECTED_PALETTE]. No corporate. Avoid anti-patterns."
 - Tutoriales con tips: pinterest.com/pin/2eXJeP7ii, /pin/4zSaoXvPl (Clean Editorial)
 - Diseño con movimiento: pinterest.com/pin/3qbnKxArZ (Staggered, multi-element motion)
 - Prompts para carruseles: Combinar con Claude para idea generation antes de diseño
+
+---
+
+## Brand Kit Training — Identidad de Marca
+
+*Entrenamiento completo basado en: Capriotti "Branding Corporativo", Doppler "El paso a paso para construir marcas inolvidables", Hoyos "Branding: El arte de marcar corazones".*
+
+### Vocabulario Obligatorio (Términos Técnicos Exactos)
+
+**Símbolos identificadores** — componentes visuales de una marca:
+
+| Término | Definición |
+|---|---|
+| **Logosímbolo** | Logo + símbolo en unidad (lo que la gente llama "logo" normalmente) |
+| **Logotipo** | Solo el nombre escrito con tipografía especial (solo texto) |
+| **Isotipo** | Solo el símbolo/ícono, sin texto |
+| **Imagotipo** | Texto + imagen que pueden usarse por separado |
+| **Isologo** | Texto + imagen fundidos, inseparables |
+| **Fonotipo** | Cómo suena fonéticamente el nombre de marca |
+| **Eslogan/Lema** | Frase corta que resume la promesa de marca (máx 7 palabras) |
+| **Odotipo** | Aroma corporativo de la marca |
+| **Colores marcarios** | Colores oficiales de la marca (con Pantone + CMYK + RGB + HEX) |
+| **Gama cromática** | Paleta completa de colores corporativos |
+| **Tipografía corporativa** | Fuente(s) tipográficas oficiales de la marca |
+| **Área de protección** | Espacio mínimo libre alrededor del logosímbolo |
+| **Planimetría** | Grid de construcción proporcional del logosímbolo |
+| **Colorimetría** | Especificación técnica de colores en TODOS los sistemas |
+| **Racional de marca** | Justificación estratégica del concepto de diseño |
+| **Manual de Identidad** | Documento normativo completo de uso de la marca |
+| **Brand Equity** | Valor de la marca como activo (modelos Aaker/Keller) |
+| **Naming** | Proceso de asignar nombre a la marca |
+| **Rebranding** | Renovación de identidad de marca |
+| **Identidad Visual** | Expresión VISUAL de la identidad (≠ Identidad Corporativa) |
+| **Identidad Corporativa** | ADN completo de la organización (valores, cultura, filosofía) |
+| **Imagen Corporativa** | Percepción que los públicos tienen (resultado externo) |
+
+**Distinción crítica**: Identidad Corporativa (qué ES) → Identidad Visual (cómo SE VE) → Imagen Corporativa (cómo LA VEN).
+
+### Colorimetría — Reglas Técnicas
+
+- **4 sistemas siempre obligatorios**: Pantone (impresión premium) + CMYK (offset/digital) + RGB (pantallas) + HEX (web/código)
+- **Máximo 4 colores** en sistema primario
+- **95% de marcas** usan 1-2 colores — no sobrecomplicar
+- **Contraste mínimo** WCAG AA: 4.5:1 para texto sobre fondo de color
+- Siempre incluir versión **negro puro** y **blanco puro** del logo
+- Nunca gris neutro puro (#808080) — usar warm gray o cool gray con subtono
+- Gradientes NO son un color marcario (no son reproducibles en Pantone)
+
+**Psicología cromática básica**:
+- Azul → confianza, tecnología, profesional
+- Rojo → energía, urgencia, apetito
+- Verde → naturaleza, salud, crecimiento
+- Negro → lujo, poder, exclusividad
+- Amarillo/Dorado → optimismo, calidez, lujo accesible
+
+### Tipografía Corporativa — Reglas
+
+**Jerarquía mínima**:
+1. **Primaria** (titulares): Bold/Black (700-900), 32-72px
+2. **Secundaria** (cuerpo): Regular/Medium (400-500), 14-18px, interlineado 1.4-1.6
+3. **Acento** (opcional): Script o Thin, SOLO para énfasis
+
+**Anti-patrones tipográficos**:
+- ❌ Arial, Helvetica, Times New Roman — genéricas, sin personalidad de marca
+- ❌ Más de 2-3 familias tipográficas
+- ❌ Script como tipografía principal
+- ❌ ALL CAPS para cuerpo de texto
+- ❌ No especificar peso exacto (bold=700, black=900)
+
+### Tipos de Nombre de Marca (Naming)
+
+- **Descriptivo**: describe la actividad (YouTube, Aerolíneas Argentinas)
+- **Neologismo**: combina dos conceptos (Facebook = face+book)
+- **Abstracto**: palabra inexistente (Lego, Kodak)
+- **Sugerente**: sugiere el beneficio (Slack, SocialTools)
+- **Evocativo**: parte de raíz conocida (Amazon, Doppler)
+- **Asociativo**: describe un concepto relacionado (Lander = landing pages)
+
+### Checklist Brand Kit Completo
+
+Elementos obligatorios en cualquier identidad de marca:
+- [ ] Logosímbolo principal (color)
+- [ ] Variaciones (horizontal, vertical, isotipo solo, logotipo solo)
+- [ ] Versiones monocromáticas (negro, blanco)
+- [ ] Planimetría / grid de construcción
+- [ ] Área de protección definida
+- [ ] Tamaños mínimos (print y digital)
+- [ ] Colores marcarios: Pantone + CMYK + RGB + HEX de CADA color
+- [ ] Tipografía primaria y secundaria con pesos y tamaños
+- [ ] Usos correctos (sobre fondos claro, oscuro, fotográfico)
+- [ ] Usos incorrectos (mínimo 6 prohibiciones)
+- [ ] Eslogan (máx 7 palabras, conexión emocional)
+- [ ] Racional de marca (justificación conceptual)
+
+### Anti-patrones Globales de Brand Kit
+
+- ❌ Diseñar logo antes de definir estrategia de marca
+- ❌ Confundir Identidad Visual con Identidad Corporativa
+- ❌ Manual solo con PNG del logo y HEX — NO es un Manual de Identidad
+- ❌ Logo que no funciona en blanco y negro
+- ❌ Logo no vectorizado (no escalable)
+- ❌ Colores sin Pantone/CMYK (solo HEX)
+- ❌ Área de protección no definida
+- ❌ Eslogan genérico (podría aplicarse a cualquier marca)
+- ❌ Nombre que limita el crecimiento futuro
+
+### Agentes que usan este conocimiento
+
+**Brand Kit tool** + **Art Director** + **Visual QA**:
+```
+"Apply brand identity knowledge:
+- Use exact terminology (logosímbolo, colores marcarios, tipografía corporativa)
+- Specify ALL 4 color systems (Pantone + CMYK + RGB + HEX)
+- Typography: primary bold + secondary regular, NO Arial/Helvetica
+- Logo: test B&W, define protection area, specify minimum sizes
+- Validate against Brand Kit Checklist before output"
+```
