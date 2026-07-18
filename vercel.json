@@ -1,18 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "echo 'Static site'",
-  "outputDirectory": "public",
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "routes": [
-    {
-      "src": "/api/(.*)?",
-      "dest": "/api"
-    },
-    {
-      "src": "/(.*)",
-      "status": 200,
-      "dest": "/index.html"
-    }
-  ]
+  "buildCommand": "mkdir -p .vercel/output/static && cp -rp public/. .vercel/output/static/ && printf '{\"version\":3,\"routes\":[{\"src\":\"/api/(.*)\",\"dest\":\"/api/$1\"},{\"handle\":\"filesystem\"},{\"src\":\"/(.*)\",\"dest\":\"/index.html\",\"status\":200}]}' > .vercel/output/config.json",
+  "framework": null
 }
