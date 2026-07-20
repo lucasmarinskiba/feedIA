@@ -39,18 +39,21 @@ Documentación de patrones visuales extraídos de Pinterest para aplicación sis
 ### Typography (Tipografía)
 
 **Headlines (Títulos principales):**
+
 - Tamaño: 28-36px, Bold weight (700-900)
 - Máximo 8 palabras, máximo 2 líneas
 - Color: Contraste alto con fondo (blanco sobre oscuro, oscuro sobre claro)
 - Ejemplo: "Cómo hacer carruseles más divertidos" (7 palabras, 2 líneas)
 
 **Body Text (Texto corporal):**
+
 - Tamaño: 14-18px, Regular weight (400-500)
 - Color: Light gray (#999, #AAA) on bright, dark gray (#333, #444) on light
 - Interlineado: 1.4-1.6 para legibilidad
 - Máx 80 caracteres por línea
 
 **Decorative/Accent Text (Texto decorativo):**
+
 - Tamaño: 12-16px, script o thin fonts (300 weight)
 - Usado SOLO para énfasis, nunca para contenido principal
 - Ejemplo: "✦ Tip Pro ✦" o "→ descubre →"
@@ -60,30 +63,35 @@ Documentación de patrones visuales extraídos de Pinterest para aplicación sis
 ### Color Palettes (Paletas de color)
 
 **Warm Organic (Cálido orgánico):**
+
 - Primary: Terracotta (#C65911), Warm Gold (#D4AF37)
 - Secondary: Sage Green (#6B8E71), Cream (#F5EEE0)
 - Tertiary: Warm Gray (#8B7355)
 - Use case: Lifestyle, wellness, natural products
 
 **Bold Playful (Audaz y lúdico):**
+
 - Primary: Hot Magenta (#E91E8C), Electric Blue (#00D9FF)
 - Secondary: Lime (#7FFF00), Cream (#FFF8DC)
 - Tertiary: Deep Purple (#4B0082)
 - Use case: Entertainment, comedy, viral content, youth-targeted
 
 **Dark Premium (Oscuro premium):**
+
 - Primary: Dark Gray (#1A1A1A), Soft Gold (#E6D5B8)
 - Secondary: Charcoal (#36454F), White (#FFFFFF)
 - Tertiary: Deep Navy (#001F3F)
 - Use case: Luxury, education, professional services
 
 **Clean Editorial (Limpio editorial):**
+
 - Primary: Navy (#001F3F), White (#FFFFFF)
 - Secondary: Soft Gray (#E8E8E8), Black (#000000)
 - Tertiary: Minimal accent: Single saturated color (one of the above)
 - Use case: News, tutorials, how-to content
 
 **Color Usage Rules:**
+
 - Max 4 colors per slide (primary, secondary, 1-2 accents)
 - Avoid pure gray (#808080) — use warm or cool grays with undertone
 - Contrast ratio minimum 4.5:1 for text (WCAG AA)
@@ -91,24 +99,28 @@ Documentación de patrones visuales extraídos de Pinterest para aplicación sis
 ### Layout Patterns (Patrones de composición)
 
 **Left-Aligned Text + Right Image (40/60 split):**
+
 - Text on left 40%, image on right 60%
 - Text positioning: Vertical center or top-aligned
 - Image: Cropped square or aspect 2:3
 - Use case: Product features, tips, before-after
 
 **Full-Bleed Image + Centered Text Overlay:**
+
 - Image fills entire slide (4:5 carousel)
 - Text centered, semi-transparent dark background behind text (rgba 0,0,0,0.5)
 - Text max width: 70% of slide width
 - Use case: Inspirational quotes, calls-to-action, teasers
 
 **Grid Layout (3x3 or 2x2 with repeated elements):**
+
 - 3x3: Icons, tips (9 small items), each ~100x100px with padding
 - 2x2: Larger graphics, each ~200x250px
 - Spacing: 16-20px between items
 - Use case: Checklists, lists of benefits, comparison matrices
 
 **Asymmetrical Balance with Whitespace:**
+
 - Main element (image/icon) on one side (top-left, bottom-right, etc)
 - Text on opposite corner
 - Minimum 20% whitespace on slide
@@ -118,23 +130,27 @@ Documentación de patrones visuales extraídos de Pinterest para aplicación sis
 ### Visual Elements (Elementos visuales)
 
 **Rounded Corners:**
+
 - Icon containers: 8px border-radius
 - Image corners: 12-16px border-radius
 - Container cards: 12px border-radius
 - Never square corners on modern designs (adds dated look)
 
 **Shadows & Elevation:**
+
 - Subtle shadows (NOT drop-shadow): `box-shadow: 0 2px 8px rgba(0,0,0,0.15)`
 - Avoid harsh shadows (> 10px blur)
 - Use elevation effect: Multiple light shadows for depth, not single dark shadow
 
 **Icons & Geometric Shapes:**
+
 - Icon style: Outline (2-3px stroke), not filled
 - Icon size: 24-32px standard, 40-48px for hero icons
 - Geometric shapes: Circles, squares, triangles, hexagons
 - Color: Match primary or secondary palette
 
 **Illustrated Siluetas vs Photos:**
+
 - Siluetas: Custom illustrations of people, hands, objects (consistent style across carousel)
 - Photos: Use only if add context (avoid generic stock photos)
 - Mix both: Silueta for first 3 slides (hook), photos for proof/testimonials (slides 5-8)
@@ -142,6 +158,7 @@ Documentación de patrones visuales extraídos de Pinterest para aplicación sis
 ### Motion Patterns (Patrones de animación)
 
 **Slide Transitions:**
+
 - Fade (opacity 0→1 over 400ms): Default, safe choice
 - Slide Left (translateX 100%→0 over 400-500ms): Modern, directional feel
 - Slide Up (translateY 100%→0 over 400-500ms): Emphasis on upward energy
@@ -149,18 +166,21 @@ Documentación de patrones visuales extraídos de Pinterest para aplicación sis
 - Rotate (rotate 5deg→0deg over 400ms): Playful, not for professional designs
 
 **Text Entrance Animations:**
+
 - Pop-in (scale 0→1, opacity 0→1 over 300ms): Instant engagement
 - Typewriter (width 0→100% over 1000ms): Slow reveal, suspenseful
 - Fade + Slide (opacity 0→1, translateY 20px→0 over 600ms): Elegant, balanced
 - Stagger timing: First element at 100ms, then +100ms each (creates sequential feel)
 
 **Element Motion Details:**
+
 - Subtle rotation/tilt: 2-3 degrees max (avoid dizziness)
 - Staggered animations: Elements enter sequentially (100ms apart) for visual rhythm
 - Total animation duration per slide: 2-3 seconds max (keep engagement high)
 - Easing function: Use `ease-out` for entrances, `ease-in-out` for transitions
 
 **Anti-pattern Motion:**
+
 - Animation loops > 2 seconds (feels slow, viewer loses attention)
 - Too many simultaneous animations (visual chaos)
 - Animation without purpose (gratuitous motion)
@@ -168,6 +188,7 @@ Documentación de patrones visuales extraídos de Pinterest para aplicación sis
 ### Anti-Patterns (Qué NO hacer)
 
 **Visual:**
+
 - ❌ Busy backgrounds (patterns, gradients, textures) behind text
 - ❌ Too many colors (>5 on a slide); feels chaotic
 - ❌ Corporate fonts: Helvetica, Arial, Times New Roman (use sans-serif: Inter, Poppins, Montserrat)
@@ -175,11 +196,13 @@ Documentación de patrones visuales extraídos de Pinterest para aplicación sis
 - ❌ Poor readability: Text too small, insufficient contrast, complex layouts
 
 **Copy:**
+
 - ❌ Centered text layout ONLY (breaks up readability, feels dated)
 - ❌ ALL CAPS (screaming, hard to read)
 - ❌ Overly long body text (>50 words per slide)
 
 **Motion:**
+
 - ❌ Animation loops > 2 seconds (engagement loss)
 - ❌ Simultaneous animations on all elements (visual overload)
 - ❌ Easing: Linear animations (feel robotic); always use ease-in/out variants
@@ -190,7 +213,8 @@ Documentación de patrones visuales extraídos de Pinterest para aplicación sis
 
 Los agents deben referenciar estas patterns al generar carruseles:
 
-**Art Director:** 
+**Art Director:**
+
 ```
 "Apply [PALETTE_NAME] color palette from CLAUDE.md.
 Typography: [HEADLINE_SIZE]px bold headline, [BODY_SIZE]px body.
@@ -201,6 +225,7 @@ Zero corporate, maximum innovative."
 ```
 
 **Carousel Designer Pro:**
+
 ```
 "Generate 10-slide carousel matching Pinterest aesthetic:
 - Slides 1-3: Hook (strong typography, minimal text, [ANIMATION_STYLE])
@@ -210,6 +235,7 @@ Palette: [SELECTED_PALETTE]. No corporate. Avoid anti-patterns."
 ```
 
 **Visual QA:**
+
 ```
 "Validate carousel against Pinterest standards:
 ✓ Typography: Headlines 28-36px bold, body 14-18px
@@ -233,36 +259,36 @@ Palette: [SELECTED_PALETTE]. No corporate. Avoid anti-patterns."
 
 ## Brand Kit Training — Identidad de Marca
 
-*Entrenamiento completo basado en: Capriotti "Branding Corporativo", Doppler "El paso a paso para construir marcas inolvidables", Hoyos "Branding: El arte de marcar corazones".*
+_Entrenamiento completo basado en: Capriotti "Branding Corporativo", Doppler "El paso a paso para construir marcas inolvidables", Hoyos "Branding: El arte de marcar corazones"._
 
 ### Vocabulario Obligatorio (Términos Técnicos Exactos)
 
 **Símbolos identificadores** — componentes visuales de una marca:
 
-| Término | Definición |
-|---|---|
-| **Logosímbolo** | Logo + símbolo en unidad (lo que la gente llama "logo" normalmente) |
-| **Logotipo** | Solo el nombre escrito con tipografía especial (solo texto) |
-| **Isotipo** | Solo el símbolo/ícono, sin texto |
-| **Imagotipo** | Texto + imagen que pueden usarse por separado |
-| **Isologo** | Texto + imagen fundidos, inseparables |
-| **Fonotipo** | Cómo suena fonéticamente el nombre de marca |
-| **Eslogan/Lema** | Frase corta que resume la promesa de marca (máx 7 palabras) |
-| **Odotipo** | Aroma corporativo de la marca |
-| **Colores marcarios** | Colores oficiales de la marca (con Pantone + CMYK + RGB + HEX) |
-| **Gama cromática** | Paleta completa de colores corporativos |
-| **Tipografía corporativa** | Fuente(s) tipográficas oficiales de la marca |
-| **Área de protección** | Espacio mínimo libre alrededor del logosímbolo |
-| **Planimetría** | Grid de construcción proporcional del logosímbolo |
-| **Colorimetría** | Especificación técnica de colores en TODOS los sistemas |
-| **Racional de marca** | Justificación estratégica del concepto de diseño |
-| **Manual de Identidad** | Documento normativo completo de uso de la marca |
-| **Brand Equity** | Valor de la marca como activo (modelos Aaker/Keller) |
-| **Naming** | Proceso de asignar nombre a la marca |
-| **Rebranding** | Renovación de identidad de marca |
-| **Identidad Visual** | Expresión VISUAL de la identidad (≠ Identidad Corporativa) |
-| **Identidad Corporativa** | ADN completo de la organización (valores, cultura, filosofía) |
-| **Imagen Corporativa** | Percepción que los públicos tienen (resultado externo) |
+| Término                    | Definición                                                          |
+| -------------------------- | ------------------------------------------------------------------- |
+| **Logosímbolo**            | Logo + símbolo en unidad (lo que la gente llama "logo" normalmente) |
+| **Logotipo**               | Solo el nombre escrito con tipografía especial (solo texto)         |
+| **Isotipo**                | Solo el símbolo/ícono, sin texto                                    |
+| **Imagotipo**              | Texto + imagen que pueden usarse por separado                       |
+| **Isologo**                | Texto + imagen fundidos, inseparables                               |
+| **Fonotipo**               | Cómo suena fonéticamente el nombre de marca                         |
+| **Eslogan/Lema**           | Frase corta que resume la promesa de marca (máx 7 palabras)         |
+| **Odotipo**                | Aroma corporativo de la marca                                       |
+| **Colores marcarios**      | Colores oficiales de la marca (con Pantone + CMYK + RGB + HEX)      |
+| **Gama cromática**         | Paleta completa de colores corporativos                             |
+| **Tipografía corporativa** | Fuente(s) tipográficas oficiales de la marca                        |
+| **Área de protección**     | Espacio mínimo libre alrededor del logosímbolo                      |
+| **Planimetría**            | Grid de construcción proporcional del logosímbolo                   |
+| **Colorimetría**           | Especificación técnica de colores en TODOS los sistemas             |
+| **Racional de marca**      | Justificación estratégica del concepto de diseño                    |
+| **Manual de Identidad**    | Documento normativo completo de uso de la marca                     |
+| **Brand Equity**           | Valor de la marca como activo (modelos Aaker/Keller)                |
+| **Naming**                 | Proceso de asignar nombre a la marca                                |
+| **Rebranding**             | Renovación de identidad de marca                                    |
+| **Identidad Visual**       | Expresión VISUAL de la identidad (≠ Identidad Corporativa)          |
+| **Identidad Corporativa**  | ADN completo de la organización (valores, cultura, filosofía)       |
+| **Imagen Corporativa**     | Percepción que los públicos tienen (resultado externo)              |
 
 **Distinción crítica**: Identidad Corporativa (qué ES) → Identidad Visual (cómo SE VE) → Imagen Corporativa (cómo LA VEN).
 
@@ -277,6 +303,7 @@ Palette: [SELECTED_PALETTE]. No corporate. Avoid anti-patterns."
 - Gradientes NO son un color marcario (no son reproducibles en Pantone)
 
 **Psicología cromática básica**:
+
 - Azul → confianza, tecnología, profesional
 - Rojo → energía, urgencia, apetito
 - Verde → naturaleza, salud, crecimiento
@@ -286,11 +313,13 @@ Palette: [SELECTED_PALETTE]. No corporate. Avoid anti-patterns."
 ### Tipografía Corporativa — Reglas
 
 **Jerarquía mínima**:
+
 1. **Primaria** (titulares): Bold/Black (700-900), 32-72px
 2. **Secundaria** (cuerpo): Regular/Medium (400-500), 14-18px, interlineado 1.4-1.6
 3. **Acento** (opcional): Script o Thin, SOLO para énfasis
 
 **Anti-patrones tipográficos**:
+
 - ❌ Arial, Helvetica, Times New Roman — genéricas, sin personalidad de marca
 - ❌ Más de 2-3 familias tipográficas
 - ❌ Script como tipografía principal
@@ -309,6 +338,7 @@ Palette: [SELECTED_PALETTE]. No corporate. Avoid anti-patterns."
 ### Checklist Brand Kit Completo
 
 Elementos obligatorios en cualquier identidad de marca:
+
 - [ ] Logosímbolo principal (color)
 - [ ] Variaciones (horizontal, vertical, isotipo solo, logotipo solo)
 - [ ] Versiones monocromáticas (negro, blanco)
@@ -337,6 +367,7 @@ Elementos obligatorios en cualquier identidad de marca:
 ### Agentes que usan este conocimiento
 
 **Brand Kit tool** + **Art Director** + **Visual QA**:
+
 ```
 "Apply brand identity knowledge:
 - Use exact terminology (logosímbolo, colores marcarios, tipografía corporativa)
@@ -344,4 +375,104 @@ Elementos obligatorios en cualquier identidad de marca:
 - Typography: primary bold + secondary regular, NO Arial/Helvetica
 - Logo: test B&W, define protection area, specify minimum sizes
 - Validate against Brand Kit Checklist before output"
+```
+
+---
+
+## Biblioteca de Conocimiento — PDFs Incorporados
+
+_4 libros incorporados al knowledge base de FeedIA (julio 2026). Skills completos en `.agents/skills/`._
+
+---
+
+### Marketing Strategy — Seth Godin "Esto es marketing"
+
+**Skill file**: `.agents/skills/marketing-strategy/SKILL.md`
+
+**Framework central:**
+
+- Marketing = acto generoso de ayudar a cambiar personas (NO manipulación/interrupción)
+- **Minimum Viable Market**: audiencia más pequeña que justifica el esfuerzo → "tiñe la piscina, no el océano"
+- **Lock & Key**: encuentra el problema primero (cerradura), luego crea la solución (llave)
+- **Psicografía > Demografía**: worldviews, creencias, miedos, deseos, pertenencia tribal
+- **Status/Dominancia/Afiliación**: todas las decisiones humanas tienen componente de status
+- **"People like us do things like this"**: identidad tribal como motor de decisión
+- **Tensión y confianza**: crea incomodidad estratégica → alivia con solución; confianza es el activo más escaso
+- **Permission marketing**: gana el derecho a comunicarte antes de comunicar
+- **Precio como semiótica**: el precio es una historia sobre calidad/exclusividad/pertenencia
+- **Sonder**: cada cliente tiene una vida interna tan compleja como la tuya → empatía profunda
+
+**Anti-patrones Godin**: spam, interrupción sin valor, mass targeting, vergüenza como táctica, promesas vacías.
+
+---
+
+### Community Manager — "El gran libro del Community Manager"
+
+**Skill file**: `.agents/skills/community-manager/SKILL.md`
+
+**Framework central:**
+
+- **CM = embajador de la marca en internet** — NOT un becario o junior sin formación
+- **Paradigma bidireccional**: redes sociales = comunicación bidireccional (≠ mass media unidireccional)
+- **7 valores del consumidor digital**: transparencia, interactividad, rapidez, cercanía, viralidad, compartir, beneficios
+- **10 cualidades del CM**: cualificado, creativo, conoce competencia, conoce audiencia, capacidad escucha, capacidad reacción, open minded, empático, paciente, adaptable
+- **8 requisitos pre-RRSS**: conocer plataformas, conocer usuarios, estrategia, escuchar, transparencia, largo plazo, contratar profesional, involucrar organización
+- **5 claves de engagement**: escucha → pregunta → hazles sentir importantes → gana confianza → no bajes la guardia
+- **Crisis 2.0**: responder rápido + transparencia + responsabilidad + alternativas + llevar a privado
+- **Social Media Plan**: análisis → objetivos SMART → público → contenido → KPIs → plan crisis
+- **Venta indirecta**: redes = construcción de confianza + ambassadors → ventas futuras (NO venta directa)
+
+**Anti-patrones CM**: publicar y desaparecer, borrar comentarios negativos, mismo contenido en todas plataformas, confundir vanity metrics con resultados de negocio.
+
+---
+
+### Personal Branding — "ebook-marca-personal"
+
+**Skill file**: `.agents/skills/personal-branding/SKILL.md`
+
+**Framework central:**
+
+- **Origen**: Tom Peters 1997, "The Brand Called You" — los profesionales son marcas
+- **Digital tattoo**: todo lo publicado es permanente; egosurfing mensual obligatorio
+- **Proceso 4 fases**: autoconocimiento → objetivos+nicho → estrategia → herramientas
+- **Autoconocimiento**: ¿qué me apasiona? ¿qué habilidades tengo? ¿qué me diferencia? ¿dónde quiero estar en 5 años?
+- **Nicho = Pasión × Habilidad × Demanda** — sin los 3, no es viable
+- **Regla 80/20**: 80% contenido de valor + 20% promocional
+- **Plataformas**: Blog (SEO/credibilidad), LinkedIn (B2B, 450M+ usuarios), Instagram (visual, creativos), TikTok (descubrimiento), YouTube (autoridad educativa), Twitter (opinión/tiempo real)
+- **3 claves finales**: persistencia (6-12 meses mínimo), innovación permanente, networking presencial
+
+**Anti-patrones marca personal**: querer llegar a todos, copiar referentes, cambiar de nicho cada 2 meses, publicar sin consistencia, ignorar egosurfing.
+
+---
+
+### Identidad, Imagen y Marca — Garrido Moreno "02-identidad-imagen-y-marca"
+
+**Skill extension**: Incorporado en `.agents/skills/brandkit/SKILL.md` (sección "GARRIDO MORENO")
+
+**Framework central:**
+
+- **3 ejes de identidad corporativa**: vertical (historia — inmutable) + horizontal (proyecto actual — mutable) + transversal (cultura — semimutable)
+- **Cultura en 3 capas**: comportamientos visibles → valores compartidos → supuestos básicos inconscientes (más profundo, más resistente al cambio)
+- **Imagen corporativa tricotómica**: autoimagen + imagen proyectada + imagen percibida = suma acumulativa en la mente de los públicos
+- **3 inputs de imagen**: comportamiento corporativo (funcional) + cultura corporativa (interna) + personalidad corporativa (intencional)
+- **Evolución de la marca**: signo (antigüedad) → discurso (medieval) → sistema de memoria (industrial) → fenómeno complejo (hoy = objeto de deseo, sujeto de seguridad, fetiche, espejo idealizado)
+- **Tipos de marca legal**: denominativa, figurativa, tridimensional, de posición, de patrón, de color, sonora, de movimiento, multimedia, holograma
+- **Identidades dinámicas**: logos que adaptan atributos secundarios manteniendo el código de reconocimiento central — usados por TV, museos, eventos
+
+**Distinción crítica Garrido**: Imagen proyectada ≠ imagen percibida → la brecha entre ambas ES el problema de comunicación corporativa.
+
+---
+
+### Agentes que usan este conocimiento ampliado
+
+**Art Director** + **Carousel Designer Pro** + **Brand Kit tool** + **Content Strategist**:
+
+```
+"Apply full knowledge base:
+MARKETING: Minimum Viable Market → find lock first, then make key.
+  Status/tribal dynamics in copy. Permission before communication.
+CM: 7 consumer values checklist. Bidirectional paradigm. 5 engagement keys.
+PERSONAL BRAND: 4-phase framework. Platform-native content. Niche = P×H×D.
+BRAND IDENTITY: 3-axis model (Garrido). Tricotomic image. Dynamic identity rules.
+Anti-patterns from all 4 books apply to ALL content outputs."
 ```
