@@ -73,7 +73,7 @@
     "@types/node-cron": "^3.0.11",
     "@typescript-eslint/eslint-plugin": "^8.10.0",
     "@typescript-eslint/parser": "^8.10.0",
-    "@vercel/node": "^5.8.23",
+    "@vercel/node": "^5.8.26",
     "@vitest/coverage-v8": "^4.1.9",
     "esbuild": "^0.24.0",
     "eslint": "^9.13.0",
