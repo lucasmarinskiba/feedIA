@@ -591,15 +591,71 @@ Anti-patterns from all 4 books apply to ALL content outputs."
 
 ---
 
-### Agentes que usan la biblioteca completa (10 libros)
+### Viral Content — Jonah Berger "Contagious"
+
+**Skill file**: `.agents/skills/contagious/SKILL.md`
+
+**Framework central:**
+
+- **STEPPS**: Social Currency (compartimos lo que nos hace ver bien) + Triggers (cues ambientales frecuentes) + Emotion (alta activación: asombro/ira/excitación; nunca tristeza/contentamiento) + Public (behavioral residue + built to show) + Practical Value (info útil empaquetada para transmitir) + Stories (Trojan Horse donde producto es inseparable del relato).
+- **WOM stats**: Word of mouth = 10x más efectivo que publicidad. Solo 7% del WOM ocurre online — 93% offline. Diseñar para conversación presencial, no solo social media.
+- **Social Currency 3 mecanismos**: Inner Remarkability (sorprendente/inesperado) + Game Mechanics (status/progreso visible) + Exclusividad (acceso limitado).
+- **Triggers**: Top of mind = tip of tongue. Vincular producto a cues de alta frecuencia diaria (café, commute, comidas).
+- **Valuable Virality test**: ¿Puede alguien contar la historia sin mencionar el producto? Si sí → embeber más.
+- **Mensajero < Mensaje**: Contenido inherentemente viral se propaga independiente de quién lo comparte.
+
+**Anti-patrones Berger**: emociones baja activación (tristeza), producto invisible sin behavioral residue, historia sin producto incrustado, trigger infrecuente o sin contexto correcto, diseñar solo para social media ignorando 93% WOM offline.
+
+---
+
+### Pre-Suasión — Cialdini "Pre-Suasión"
+
+**Skill file**: `.agents/skills/presuasion/SKILL.md`
+
+**Framework central:**
+
+- **Core**: Los mejores persuasores preparan el terreno psicológico ANTES del mensaje. Pre-suasión = manipular atención y contexto para crear receptividad antes de la propuesta principal.
+- **Lo focal es causal**: Lo que recibe atención parece importante y causal. Dirigir atención al atributo más fuerte PRIMERO.
+- **Anchoring/Priming**: Primer número/concepto/imagen ancla toda evaluación posterior. Música alemana → 73% compra vino alemán. Mostrar precio alto primero → todo lo demás parece barato.
+- **Jim el vendedor**: Creó asociación de confianza ANTES del pitch — nunca afirmó ser confiable, logró que el prospecto concluyera solo.
+- **Atractores (automáticos)**: Sexo, amenaza, novedad — cerebro no puede ignorarlos. Usar en primeros segundos.
+- **Imanes (elegidos)**: Relevancia personal, incompletud (Zeigarnik), misterio — atención sostenida.
+- **Geografías persuasivas**: El entorno activa marcos mentales. Contexto de lujo → mayor disposición a pagar.
+- **Unidad (7° Principio)**: Identidad compartida (familia/lugar/tribu) + Actuar juntos (sincronía, co-creación, pedir consejo) = estado pre-suasivo más poderoso.
+- **Post-suasión**: Compromisos escritos + planes Si/Cuando→Entonces multiplican cumplimiento de intenciones.
+
+**Anti-patrones Pre-Suasión**: presentar mensaje sin preparar terreno, mostrar precio bajo primero, preguntas que activan marcos mentales opuestos al objetivo, no obtener compromiso específico después del sí.
+
+---
+
+### Online Writing — Nicolas Cole
+
+**Skill file**: `.agents/skills/online-writing/SKILL.md`
+
+**Framework central:**
+
+- **Platform First (no blog)**: Empezar en plataformas con distribución incorporada (Quora, LinkedIn, Medium, Twitter). Blogs propios carecen de mecanismo de descubrimiento — la distribución precede al contenido.
+- **The 1**: 1 pieza de contenido diario, 365 días. Cole: 1 respuesta/día en Quora → 3M views año 1. Ambos resultados ganan: práctica O audiencia.
+- **Universal > Nicho**: El expertise de nicho = credencial. El framing = lección de vida universal. Contenido sobre transformación personal llega a 1M+ views; contenido de nicho no.
+- **Headlines**: Elemento más importante. Las personas deciden leer basadas solo en el headline. Formatos: lista numerada / promesa de revelación / historia de transformación / contra-intuitivo / pregunta cargada.
+- **5 Forms of Proven Writing**: Actionable Guide / Curated List / Opinion / Story+Lesson / Data+Research. Rotar las 5 para variedad.
+- **Pillar Pieces**: 3-5 artículos ancla definitivos → tráfico compuesto durante años.
+- **Monetización**: Views → Autoridad → Consultoría ($100-500/hr) → Ghostwriting ($500-2,000/artículo) → Agencia ($5K-50K/cliente/mes). Cole: Digital Press $1M ARR en 10 meses.
+
+**Anti-patrones Cole**: empezar con blog propio, escribir solo con inspiración (sin consistencia), framing de nicho sin lección universal, headline vago, bloques de texto sin escaneo, perfeccionar en vez de publicar.
+
+---
+
+### Agentes que usan la biblioteca completa (13 libros)
 
 **All Agents** — activación completa:
 
 ```
-"Apply complete 10-book knowledge base:
+"Apply complete 13-book knowledge base:
 PSYCHOLOGY: Sistema 1 = design for automatic. Loss aversion framing. Peak-end rule. Cognitive ease.
 STORY: Customer as hero. SB7 Framework. 'If you confuse, you lose.' 3-level problem.
 PERSUASION: Stack 6 Cialdini principles. Reciprocity first. Real scarcity only.
+PRE-SUASION: Prime BEFORE message. Focal=causal. Anchor high first. Unity (7th principle). Post-suasion commitment.
 COPY: Channel existing desire. Match awareness level. Unique mechanism. Specificity = trust.
 MARKETING (Godin): Minimum Viable Market. Lock then key. Status + tribal signals.
 CM: Bidirectional paradigm. 5 engagement keys. Social listening before publishing.
@@ -607,8 +663,12 @@ PERSONAL BRAND: Niche = P×H×D. 80/20 content. Platform-native format.
 BRAND IDENTITY: 3-axis model + tricotomic image + colorimetría 4 systems.
 HABIT DESIGN: Hook Model (Trigger→Action→VarReward→Investment). B=MAT reduce friction. Vitamins→painkillers.
 EXPERT SECRETS: Mass movement 3 elements. New opportunity (never improvement). Big Domino. Epiphany Bridge. 1,000 True Fans.
+VIRAL (Berger): STEPPS audit every piece. 93% WOM offline. Trojan Horse stories. High-arousal emotion only. Behavioral residue.
+ONLINE WRITING: Platform first (not blog). Daily consistency. Universal > niche. Headline is the product. 5 Forms rotation.
 CROSS-PRINCIPLE: Loss aversion + scarcity + social proof = maximum urgency stack.
 HABIT+PERSUASION: Investment phase (Eyal) + commitment consistency (Cialdini) = compounding lock-in.
 EXPERT+STORY: Attractive character (Brunson) + guide positioning (Miller) = trust architecture.
-Anti-patterns from ALL 10 books apply to ALL content outputs."
+PRE-SUASION+VIRAL: Prime with STEPPS trigger first → message lands in primed mind = 2x effectiveness.
+WRITING+PERSONAL BRAND: Platform-native daily writing (Cole) + Niche P×H×D (Personal Brand) = authority flywheel.
+Anti-patterns from ALL 13 books apply to ALL content outputs."
 ```
