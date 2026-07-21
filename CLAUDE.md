@@ -646,17 +646,107 @@ Anti-patterns from all 4 books apply to ALL content outputs."
 
 ---
 
-### Agentes que usan la biblioteca completa (13 libros)
+### Win Friends — Dale Carnegie "How to Win Friends and Influence People"
+
+**Skill file**: `.agents/skills/win-friends/SKILL.md`
+
+**Framework central:**
+
+- **85% of success = human engineering, 15% = technical knowledge** — Interpersonal skill vs product knowledge.
+- **3 Fundamental Techniques**: (1) Don't criticize/condemn/complain, (2) Give genuine appreciation (specific, not flattery), (3) Awaken eager desire in the other (talk about THEIR wants, not yours).
+- **6 Ways to Like People**: Genuine interest + Smile + Remember names + Listen + Talk their interests + Make them feel important.
+- **12 Persuasion Principles**: Never say "you're wrong" → defensive. Let them talk. Admit YOUR mistakes first. Socratic questions build yes-momentum. Let idea be "theirs." Appeal to nobler motives. Dramatize ideas.
+- **9 Leadership Rules**: Begin with praise + indirect error feedback + own mistakes first + questions not orders + let them save face + praise improvement + give good reputation to live up to + make defect seem easy to fix + frame as privilege not obligation.
+
+**Anti-patrones Carnegie**: Criticize publicly. Generic praise. Talk your needs first. Try to win arguments. "You're wrong" framing. Fake interest.
+
+---
+
+### Obviously Awesome — April Dunford "Obviously Awesome: How to Nail Product Positioning"
+
+**Skill file**: `.agents/skills/obviously-awesome/SKILL.md`
+
+**Framework central:**
+
+- **Positioning = context setting**. Same product, wrong context = fails. Right context = obvious (Joshua Bell subway $32 vs Carnegie Hall $300).
+- **2 Traps**: (1) Product evolved, positioning didn't. (2) Market evolved, positioning didn't.
+- **5 Components**: Competitive Alternatives (what they'd use if you don't exist) → Unique Attributes (features alternatives lack) → Value Themes (why differences matter) → Target Market (who cares MOST) → Market Category (frame of reference).
+- **10-Step Process**: Understand loving customers → Form team → Align vocabulary → List true alternatives → Isolate attributes → Map to value → Determine who cares → Find market frame → Layer trend → Capture positioning.
+- **Weak positioning signals**: Customers love, prospects confused. Long sales cycles. High churn. Constant price pressure.
+
+**Anti-patrones Dunford**: Default positioning. Target "everyone". Features without value translation. Competitor list from internal perspective.
+
+---
+
+### Lean Startup — Eric Ries "The Lean Startup"
+
+**Skill file**: `.agents/skills/lean-startup/SKILL.md`
+
+**Framework central:**
+
+- **5 Principles**: Entrepreneurs everywhere (anyone under uncertainty). Entrepreneurship is management. Validated Learning (data over assumptions). Build-Measure-Learn loop. Innovation Accounting (learning metrics, not execution metrics).
+- **MVP** = minimum experiment (not mini-product). Types: Landing page → Concierge → Wizard of Oz → Minimum feature → Smoke test.
+- **Vanity vs Actionable Metrics**: Vanity (total users, downloads) always improve. Actionable (cohort retention, conversion funnels, NPS) inform decisions.
+- **Pivot or Persevere**: 10 types of pivot (zoom-in, zoom-out, customer segment, customer need, platform, business architecture, value capture, engine, channel, technology). Pivot when metrics don't respond to experiments.
+- **3 Growth Engines**: Sticky (retention: churn < acquisition). Viral (k-factor > 1). Paid (LTV/CAC > 3).
+- **5 Whys**: Trace systemic root cause, not surface quick-fix.
+
+**Anti-patrones Ries**: Rocket-ship planning. Vanity metrics. Building in secret. Scaling before product-market fit.
+
+---
+
+### Positioning — Al Ries & Jack Trout "Positioning: The Battle for Your Mind"
+
+**Skill file**: `.agents/skills/positioning/SKILL.md`
+
+**Framework central:**
+
+- **Battle = mind, not market** (6 inches of gray matter). Overcommunicated society: mind rejects most messages. Solution: BETTER positioning, not more communication.
+- **Mental Ladders**: Mind organizes products by category. Positions 1-2 remembered, 3+ not. Can't add rungs, only position against what exists.
+- **First > Better**: First in category captures mind-leadership (Hertz, Coca-Cola, Harvard).
+- **4 Strategies**: (1) Be leader (anchor position). (2) Follower (position against leader: Avis "We try harder"). (3) Reposition competitor (Tylenol: aspirina irritates stomach). (4) Find creneau (hole in mind: VW "Think Small" when all cars large).
+- **Name = most important decision**. Powerful names: memorable, evoke position, protegible. Traps: initials-only (invisible for new brands), generic descriptors.
+- **Line Extension Trap**: Using successful name for new products dilutes original position. Mental ladder can't hold multiple positions = name loses value.
+- **Outside-In > Inside-Out**: Start from prospect's perception (mind), not product specs. Customer perception = reality.
+
+**Anti-patrones Ries & Trout**: Line extension dilution. Try to out-advertise leader. Generic names. Inside-out thinking.
+
+---
+
+### Get Together — Bailey Richardson et al. "Get Together: How to Build Community"
+
+**Skill file**: `.agents/skills/get-together/SKILL.md`
+
+**Framework central:**
+
+- **"Build community WITH people, not FOR them"** — Community = audience that ACTS together (not just receives).
+- **Social Capital (Putnam)**: Reciprocal relationships = asset (like physical/human capital). Communities = social capital machines.
+- **3 Stages (9 Steps)**:
+  - **Spark**: (1) Pinpoint your people (WHO + WHY shared purpose) → (2) Do something together (activity = condition community exists) → (3) Get people talking (horizontal conversation, not just vertical to leader).
+  - **Stoke**: (4) Attract new folks (don't conjure motivation, attract already-passionate) → (5) Cultivate identity (name, rituals, values, history = "I am part of X") → (6) Pay attention who keeps showing up (future leaders).
+  - **Pass**: (7) Create more leaders (question every challenge: "WITH not FOR?") → (8) Supercharge (tools + training + visibility + autonomy) → (9) Celebrate (individual + collective = identity consolidation).
+- **Bonding vs Bridging**: Similar people (risk: homogeneity) vs Different people (diversity). Most communities do both.
+
+**Anti-patrones Richardson**: Build FOR (audience). No shared purpose. Leader only node. No identity cultivation. Wait for scale.
+
+---
+
+### Agentes que usan la biblioteca completa (18 libros)
 
 **All Agents** — activación completa:
 
 ```
-"Apply complete 13-book knowledge base:
+"Apply complete 18-book knowledge base:
+INTERPERSONAL (Carnegie): No criticize = no change. Genuine appreciation specific. Their desires first. Make feel important. Socratic yes-momentum. Leadership = create more leaders.
 PSYCHOLOGY: Sistema 1 = design for automatic. Loss aversion framing. Peak-end rule. Cognitive ease.
 STORY: Customer as hero. SB7 Framework. 'If you confuse, you lose.' 3-level problem.
+POSITIONING CONTEXT (Dunford): Context = everything. 5 components (alternatives, attributes, value, target, category). Start with TRUE alternatives, not sales list. 2 traps: product evolved / market evolved.
 PERSUASION: Stack 6 Cialdini principles. Reciprocity first. Real scarcity only.
 PRE-SUASION: Prime BEFORE message. Focal=causal. Anchor high first. Unity (7th principle). Post-suasion commitment.
 COPY: Channel existing desire. Match awareness level. Unique mechanism. Specificity = trust.
+LEAN STARTUP: Build-Measure-Learn loop. MVP = experiment not product. Validated learning over vanity metrics. 3 growth engines (Sticky/Viral/Paid). Pivot when metrics don't respond.
+MENTAL LADDERS (Ries & Trout): First > Better. Positions 1-2 remembered. Can't add rungs. Leader strategy vs follower. Reposition competitor. Find creneau. Outside-in not inside-out.
+COMMUNITY (Richardson): Build WITH not FOR. 3 stages + 9 steps. Spark (pinpoint + activity + talk) + Stoke (attract + identity + observe) + Pass (leaders + supercharge + celebrate). Community ≠ audience.
 MARKETING (Godin): Minimum Viable Market. Lock then key. Status + tribal signals.
 CM: Bidirectional paradigm. 5 engagement keys. Social listening before publishing.
 PERSONAL BRAND: Niche = P×H×D. 80/20 content. Platform-native format.
@@ -667,8 +757,11 @@ VIRAL (Berger): STEPPS audit every piece. 93% WOM offline. Trojan Horse stories.
 ONLINE WRITING: Platform first (not blog). Daily consistency. Universal > niche. Headline is the product. 5 Forms rotation.
 CROSS-PRINCIPLE: Loss aversion + scarcity + social proof = maximum urgency stack.
 HABIT+PERSUASION: Investment phase (Eyal) + commitment consistency (Cialdini) = compounding lock-in.
+CARNEGIE+COMMUNITY: Genuine appreciation (Carnegie) + Build WITH (Richardson) = deep trust + leader creation.
+DUNFORD+LEAN: Context positioning (Dunford) + MVP testing (Ries) = validate positioning with real market.
+POSITIONING+MENTAL LADDERS: Market category (Dunford) activates ladder (Ries/Trout) → messaging lands in mind already primed.
 EXPERT+STORY: Attractive character (Brunson) + guide positioning (Miller) = trust architecture.
 PRE-SUASION+VIRAL: Prime with STEPPS trigger first → message lands in primed mind = 2x effectiveness.
 WRITING+PERSONAL BRAND: Platform-native daily writing (Cole) + Niche P×H×D (Personal Brand) = authority flywheel.
-Anti-patterns from ALL 13 books apply to ALL content outputs."
+Anti-patterns from ALL 18 books apply to ALL content outputs."
 ```
