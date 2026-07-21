@@ -731,12 +731,98 @@ Anti-patterns from all 4 books apply to ALL content outputs."
 
 ---
 
-### Agentes que usan la biblioteca completa (18 libros)
+### Business of Belonging — David Spinks "The Business of Belonging"
+
+**Skill file**: `.agents/skills/business-of-belonging/SKILL.md`
+
+**Framework central:**
+
+- **Core**: Community = members ACT together (not just audience). Business value = SPACES outcomes (Support/Product/Acquisition/Contribution/Engagement/Success).
+- **4 Sense of Community Factors**: Membership (boundaries + emotional safety) + Influence (bidirectional) + Integration (fulfills needs) + Shared Emotional Connection (history + crisis bonds).
+- **SPACES Model**: Support (members → members), Product (innovation/feedback), Acquisition (WOM/SEO), Contribution (UGC), Engagement (retention/loyalty), Success (education/growth).
+- **3 Etapas + 9 Steps**: Spark (pinpoint + do + talk) → Stoke (attract + identity + observe) → Pass (leaders + supercharge + celebrate).
+- **Build WITH not FOR**: Autonomy vs top-down. Distribute control to edges. Social capital = reciprocal relationships.
+- **Bonding vs Bridging**: Similar people (risk: homogeneity) vs different (diversity). Both required.
+
+**Anti-patrones Spinks**: No shared action first, generic identity, CM as only node, vanity metrics (followers), underinvestment, build FOR not WITH.
+
+---
+
+### Priceless — William Poundstone "Priceless: The Myth of Fair Value"
+
+**Skill file**: `.agents/skills/priceless/SKILL.md`
+
+**Framework central:**
+
+- **Coherent Arbitrariness**: Prices constructed in minds, not found in markets. Valuations relative/stable; amounts absolute/arbitrary (context-dependent).
+- **Psychophysics Laws**: Weber's Law (perceive % change not $), Stevens Power Law (4x stimulus = 2x subjective), Adaptation Level (senses adapt to baseline).
+- **Anchoring & Adjustment**: Random number (10 vs 65) → 2x difference in estimates. First anchor insufficient mental adjustment → bias persists.
+- **Loss Aversion**: Perder $X = 2x más painful than ganar. Frame: "No pierdes" > "Ganas".
+- **Pricing Illusions**: 99¢ effect ($9.99 ≠ $10 perceptually = bargain signal), Decoy Pricing (3rd option makes mid-tier obvious), Prestige Pricing (8.7x price ≠ 1.5x quality).
+- **High Anchor First**: Price high → everything else = bargain. Invisible increases: shrink quantity not price.
+
+**Anti-patrones Poundstone**: Rational logic pricing, no high anchor first, low price early, matching competitors, forget 99-cent psychology.
+
+---
+
+### Action — Robert McKee & Bassim El-Wakil "Action: The Hero's Journey in the Art of Creative Writing"
+
+**Skill file**: `.agents/skills/action-mckee/SKILL.md`
+
+**Framework central:**
+
+- **Core Triad**: Hero = Altruism (sacrifices self for innocent) + Villain = Narcissism (indifferent to humanity) + Victim = Helplessness (can't save self).
+- **Core Value**: Life/Death binary drives tension.
+- **Mercy Scene** (Core Event): Hero helpless under villain → villain delays kill (gloating/torture/plan reveal) → hero outsmarts OR overpowers (no coincidence).
+- **4 Action Subgenres**: Adventure (natural forces), Epic (vs tyranny), Duel (hero vs villain 1-on-1), Thriller (vs psychopathic villain).
+- **5 Excitement Sources**: Rebellion vs Authority + Exploring Unknown + Coping with Frustration + Conquering Limitations + Breaking Taboos.
+- **10 Principal Genres + Action**: Crime/War/Epic/Horror/Political/Love/Enterprise/Social/Domestic (each with action-value intersection).
+
+**Anti-patrones McKee**: Absent villain (henchmen mercy scenes), obvious Achilles heel, clichéd distractions, coincidence saves, deus ex machina, villain less interesting than hero.
+
+---
+
+### Dialogue — Robert McKee "Dialogue: The Art of Verbal Action for Page, Stage, and Screen"
+
+**Skill file**: `.agents/skills/dialogue-mckee/SKILL.md`
+
+**Framework central:**
+
+- **Core**: "Dialogue is what characters do to each other." Words perform actions. Character speaks to want/change/defend/attack/seduce.
+- **3 Concentric Spheres**: Said (words spoken surface) → Unsaid (consciously withheld thoughts) → Unsayable (subconscious urges, only expressed through actions).
+- **Text vs Subtext**: Text = surface behavior (talking, greeting, complimenting). Subtext = TRUE ACTION under words (consoling? seducing? insulting?).
+- **3 Tracks**: Dramatized (characters to each other) + Narratized (to self/audience: soliloquy, VO) + Indirect (paraphrase previous scene).
+- **3 Functions**: Exposition (pass info without stopping momentum, exposition as ammunition) + Characterization (unique voice: vocab/syntax/tone/accent) + Action (dialogue carries character doing something, subtext=gerund).
+- **Medium Differences**: Theatre (heightened language OK) vs Film (naturalistic, image favored) vs Prose (full spectrum).
+
+**Anti-patrones McKee**: On-the-nose (character explains self), exposition lecture, redundancy (text = subtext no gap), purple prose without character voice, no distinction between inner/outer.
+
+---
+
+### Character — Robert McKee "Character: The Art of Building Dramatic Character for Page, Stage, and Screen"
+
+**Skill file**: `.agents/skills/character-mckee/SKILL.md`
+
+**Framework central:**
+
+- **Character ≠ Person**: People experience more than express. Characters express everything they experience (MORE complex than humans). Character = finished art (exists between curtain up/down).
+- **Characterization vs True Character**: Characterization = outer mask (age/dress/speech/job). True Character = inner nature revealed through RISK-FILLED choices under max stakes.
+- **Principle of Choice**: Character expresses true self through risky decisions under maximum stakes. No stakes = choice meaningless. Max stakes = most revealing.
+- **10 Writer Faculties**: Taste + Knowledge + Originality + Showmanship + Audience Awareness + Form Mastery + Hatred of Clichés + Moral Imagination + Ideal Self + Self-Knowledge.
+- **Dimensions = Contradiction**: Flat (one trait) vs Dimensional (opposing traits) vs Complex (2+ dimensions reveal layers). Example: Walter White = teacher vs kingpin.
+- **4 Research Methods**: Personal (emotional transformation) + Imaginative (360° observation) + Book-Bound (psychology/history validation) + Grounded (locate in reality, witness).
+- **6 Archetypes**: Protagonist, Antagonist, Mentor, Ally, Trickster, Guardian.
+
+**Anti-patrones McKee**: Cardboard roles, no dimensions, psychological clichés, melodrama, author mouthpiece (character explains author's beliefs), no research, vague characterization.
+
+---
+
+### Agentes que usan la biblioteca completa (23 libros)
 
 **All Agents** — activación completa:
 
 ```
-"Apply complete 18-book knowledge base:
+"Apply complete 23-book knowledge base:
 INTERPERSONAL (Carnegie): No criticize = no change. Genuine appreciation specific. Their desires first. Make feel important. Socratic yes-momentum. Leadership = create more leaders.
 PSYCHOLOGY: Sistema 1 = design for automatic. Loss aversion framing. Peak-end rule. Cognitive ease.
 STORY: Customer as hero. SB7 Framework. 'If you confuse, you lose.' 3-level problem.
@@ -746,7 +832,7 @@ PRE-SUASION: Prime BEFORE message. Focal=causal. Anchor high first. Unity (7th p
 COPY: Channel existing desire. Match awareness level. Unique mechanism. Specificity = trust.
 LEAN STARTUP: Build-Measure-Learn loop. MVP = experiment not product. Validated learning over vanity metrics. 3 growth engines (Sticky/Viral/Paid). Pivot when metrics don't respond.
 MENTAL LADDERS (Ries & Trout): First > Better. Positions 1-2 remembered. Can't add rungs. Leader strategy vs follower. Reposition competitor. Find creneau. Outside-in not inside-out.
-COMMUNITY (Richardson): Build WITH not FOR. 3 stages + 9 steps. Spark (pinpoint + activity + talk) + Stoke (attract + identity + observe) + Pass (leaders + supercharge + celebrate). Community ≠ audience.
+COMMUNITY (Richardson+Spinks): Build WITH not FOR (do together first, then attract). 3 stages + 9 steps. SPACES outcomes. Distributed control = sustainability. Social capital creation.
 MARKETING (Godin): Minimum Viable Market. Lock then key. Status + tribal signals.
 CM: Bidirectional paradigm. 5 engagement keys. Social listening before publishing.
 PERSONAL BRAND: Niche = P×H×D. 80/20 content. Platform-native format.
@@ -755,13 +841,18 @@ HABIT DESIGN: Hook Model (Trigger→Action→VarReward→Investment). B=MAT redu
 EXPERT SECRETS: Mass movement 3 elements. New opportunity (never improvement). Big Domino. Epiphany Bridge. 1,000 True Fans.
 VIRAL (Berger): STEPPS audit every piece. 93% WOM offline. Trojan Horse stories. High-arousal emotion only. Behavioral residue.
 ONLINE WRITING: Platform first (not blog). Daily consistency. Universal > niche. Headline is the product. 5 Forms rotation.
+PRICING PSYCHOLOGY (Poundstone): Coherent arbitrariness. Anchor high first (everything else = bargain). Weber's Law (perceive % not $). 99¢ illusion. Loss aversion framing. Prestige pricing hierarchy.
+NARRATIVE CRAFT (McKee Action+Dialogue+Character): Hero=altruism/Villain=narcissism/Victim=helplessness. Mercy scene core event. Dialogue=verbal action. Text vs subtext. Character=finished art (MORE complex than people). Risk-filled choices reveal true self.
 CROSS-PRINCIPLE: Loss aversion + scarcity + social proof = maximum urgency stack.
 HABIT+PERSUASION: Investment phase (Eyal) + commitment consistency (Cialdini) = compounding lock-in.
-CARNEGIE+COMMUNITY: Genuine appreciation (Carnegie) + Build WITH (Richardson) = deep trust + leader creation.
+CARNEGIE+COMMUNITY: Genuine appreciation (Carnegie) + Build WITH (Richardson/Spinks) = deep trust + leader creation + distributed autonomy.
 DUNFORD+LEAN: Context positioning (Dunford) + MVP testing (Ries) = validate positioning with real market.
 POSITIONING+MENTAL LADDERS: Market category (Dunford) activates ladder (Ries/Trout) → messaging lands in mind already primed.
 EXPERT+STORY: Attractive character (Brunson) + guide positioning (Miller) = trust architecture.
-PRE-SUASION+VIRAL: Prime with STEPPS trigger first → message lands in primed mind = 2x effectiveness.
+PRICING+PSYCHOLOGY: Anchoring (Poundstone) + Prospect Theory (Kahneman) + prestige signal (Cialdini) = 3-axis price architecture.
+PRE-SUASION+VIRAL: Prime with STEPPS trigger first (Poundstone anchor) → message lands in primed mind = 2x effectiveness.
 WRITING+PERSONAL BRAND: Platform-native daily writing (Cole) + Niche P×H×D (Personal Brand) = authority flywheel.
-Anti-patterns from ALL 18 books apply to ALL content outputs."
+NARRATIVE+DIALOGUE+CHARACTER: McKee craft applies to ALL copy: Subtext (what's REALLY happening) > text (surface words). Hero/Villain/Victim arcs in customer journey.
+COMMUNITY+PRICING: SPACES outcomes (Spinks) drives perceived value. Social proof (support members) anchors price psychology (Poundstone). Belonging justifies premium.
+Anti-patterns from ALL 23 books apply to ALL content outputs."
 ```
