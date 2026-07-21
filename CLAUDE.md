@@ -855,12 +855,102 @@ Anti-patterns from all 4 books apply to ALL content outputs."
 
 ---
 
-### Agentes que usan la biblioteca completa (25 libros)
+### The Mom Test — Rob Fitzpatrick "The Mom Test: How to Talk to Customers & Learn If Your Business is a Good Idea"
+
+**Skill file**: `.agents/skills/mom-test/SKILL.md`
+
+**Framework central:**
+
+- **Core Rule**: Don't ask "Is my business a good idea?" (invites lying). Ask questions that surface actual behavior/problems.
+- **The Mom Test**: Questions so good even your mom (who loves you) can't lie about them.
+- **Bad Questions** (invite lying): "Do you think this is a good idea?" + "Would you use this?" + "Is this a problem?"
+- **Good Questions** (surface truth): "What's the hardest part?" + "How are you solving this now?" + "When was the last time you...?"
+- **Specificity Matters**: "Sort of" / "I guess" = BS. "I tried X then Y then gave up" = real data.
+- **Commitment Signals**: Explicit (meet again, buy) + Monetary (prepay) + Effort (introduce, help) = real interest. Compliments without commitment = nothing.
+- **Target Practitioners**: People actively doing behavior, struggling now, spending money related. Avoid: friends, followers, polite people.
+
+**Anti-patrones Fitzpatrick**: Pitch before listen, ask feedback not problems, confirmation bias, weak metrics, ignoring red flags.
+
+---
+
+### Never Split the Difference — Chris Voss "Never Split the Difference: Negotiating as if Your Life Depended on It"
+
+**Skill file**: `.agents/skills/never-split-the-difference/SKILL.md`
+
+**Framework central:**
+
+- **Core**: Negotiation is NOT splitting differences. Use FBI hostage negotiator tactics (emotional intelligence > logic).
+- **Mirroring**: Repeat last 3 words with question intonation. Makes them explain deeper. Builds connection.
+- **Tactical Empathy**: Label emotions (not pity). "It sounds like X matters to you..." Identify REAL blocker (often hidden).
+- **Master "No"**: "Is there any reason you can't do X?" Safe space to say no. After: "What would work instead?" No = WHERE negotiation starts.
+- **Trigger "That's Right"**: Summarize their position from their view. "So what you're saying is X, Y, Z..." When they say "that's right" = real agreement.
+- **Calibrated Questions**: "How am I supposed to do that?" + "What would you need to make this work?" + "How does this affect timeline?" (Makes them solve WITH you.)
+- **Black Swan**: Unknown unknowns. Hidden assumptions/constraints. When found = unblocks everything.
+
+**Anti-patrones Voss**: Aggressive demands, logic-only, "yes" chasing, splitting differences, ignoring emotions.
+
+---
+
+### Traction — Gabriel Weinberg & Justin Mares "Traction: How Any Startup Can Achieve Explosive Growth"
+
+**Skill file**: `.agents/skills/traction/SKILL.md`
+
+**Framework central:**
+
+- **19 Traction Channels**: Viral + PR + Unconventional PR + SEO + Content + Speaking + Community + SEM + Social Ads + Offline Ads + Engineering as Marketing + Targeting Blogs + Existing Platforms + BD + Sales + Affiliates + Trade Shows + Offline Events + Email.
+- **Bullseye Framework**: Brainstorm (all 19) → Rank (effort/reach/confidence) → Prioritize (top 3-5) → Test (2-week sprints) → Focus (winner).
+- **Core Insight**: Most founders test only familiar channels (bias). Traction unpredictable. Test, don't predict. One channel usually dominates.
+- **Critical Path**: Single traction goal. Ignore everything not required. Minimum product. Minimum testing.
+- **Testing**: 2-week sprints per channel. Measure actual results. Iterate.
+- **Traction Thinking**: Technical/market/team risks easier with traction. Distribution failure > product failure (most common startup death).
+
+**Anti-patrones Weinberg**: Test all at once (spreads thin), dismiss without testing, expect overnight, poor metrics, give up early.
+
+---
+
+### Scientific Advertising — Claude C. Hopkins "Scientific Advertising" (1923)
+
+**Skill file**: `.agents/skills/scientific-advertising/SKILL.md`
+
+**Framework central:**
+
+- **Timeless Principles** (1920s still work today): Test everything. Measure results. Eliminate waste.
+- **Test Marketing**: Small tests before big spend. Coupon codes = proof of response. Track which ads produce customers (not impressions).
+- **Specificity > Vague**: "Reduces 40%, saves $200/year" > "Best product". Numbers = believable.
+- **Sampling & Couponing**: Risk-free trial. Money-back guarantee. Removes objection.
+- **Reason-Why Copy**: Every claim needs proof. "Our coffee is best" ❌. "Roast within 2 hours, stale = oxidized oils" ✅.
+- **Position for Market**: What do customers NEED? "Brake linings" = position as "Safety device". Frame around their desire.
+- **Benefit Not Feature**: Customers buy result. "Stay hot 12h" > "Triple-insulated walls".
+- **Social Proof + Risk Reversal**: How many use it. Testimonials. Numbers. Money-back.
+
+**Anti-patrones Hopkins**: Vague claims, no proof, feature-heavy, no tests, generic messaging.
+
+---
+
+### Blue Ocean Strategy — W. Chan Kim & Renée Mauborgne "Blue Ocean Strategy: How to Create Uncontested Market Space"
+
+**Skill file**: `.agents/skills/blue-ocean-strategy/SKILL.md`
+
+**Framework central:**
+
+- **Red Ocean vs Blue Ocean**: Red = compete on existing rules (price wars, low margins). Blue = create NEW rules (no competitors, uncontested).
+- **Four Actions Framework**: (1) Eliminate — What industry takes for granted? (2) Reduce — What below standard? (3) Raise — What above standard? (4) Create — What NEW value?
+- **Value Innovation**: Differentiation + low cost simultaneously (not either/or). ❌ Quality OR price. ✅ Quality AND low cost.
+- **Strategy Canvas**: Plot competing factors vs competitors. Visualize where you create gap (new value).
+- **Non-Customers**: Who COULD use but doesn't? Remove their barriers. Blue ocean growth = non-customers converted.
+- **Smart Pricing**: 80-90% of leader's price, 100% more features. Mass market attraction without undercutting.
+- **Examples**: Cirque (circus + art), Southwest (budget + fun), Tesla (electric + luxury), Minute Clinic (quick + cheap).
+
+**Anti-patrones Kim/Mauborgne**: Benchmark competitors, beat them on their factors, price wars, ignore non-customers, differentiation alone.
+
+---
+
+### Agentes que usan la biblioteca completa (30 libros)
 
 **All Agents** — activación completa:
 
 ```
-"Apply complete 25-book knowledge base:
+"Apply complete 30-book knowledge base:
 INTERPERSONAL (Carnegie): No criticize = no change. Genuine appreciation specific. Their desires first. Make feel important. Socratic yes-momentum. Leadership = create more leaders.
 PSYCHOLOGY: Sistema 1 = design for automatic. Loss aversion framing. Peak-end rule. Cognitive ease.
 STORY: Customer as hero. SB7 Framework. 'If you confuse, you lose.' 3-level problem.
@@ -883,6 +973,11 @@ PRICING PSYCHOLOGY (Poundstone): Coherent arbitrariness. Anchor high first (ever
 NARRATIVE CRAFT (McKee Action+Dialogue+Character): Hero=altruism/Villain=narcissism/Victim=helplessness. Mercy scene core event. Dialogue=verbal action. Text vs subtext. Character=finished art (MORE complex than people). Risk-filled choices reveal true self.
 IDEAS STICKINESS (Heath SUCCESs): Simple + Unexpected + Concrete + Credible + Emotional + Stories = memorable + effective. Generative analogies. Gap theory of curiosity. Velcro theory of memory. Identifiable victim. Challenge/Connection/Creativity plots.
 STORY MASTERY (McKee principles): Principles not rules. Archetypes not stereotypes. Forms not formulas. 10 writer faculties. Camera truth machine. Originality = form + content inseparable. Mastery before breaking conventions.
+CUSTOMER DISCOVERY (Fitzpatrick): Don't ask "Is idea good?" Ask about actual behavior/problems. Specificity wins. Commitment signals = real interest. Target practitioners, not friends.
+NEGOTIATION (Voss): Mirror + tactical empathy + master "no" + calibrated questions + find black swan. Emotion > logic. "That's right" = breakthrough.
+GROWTH CHANNELS (Weinberg): 19 channels. Bullseye framework: brainstorm → rank → prioritize → test → focus. One channel dominates. Distribution ≠ predictable.
+AD FUNDAMENTALS (Hopkins): Test, measure, eliminate waste. Specificity = credible. Reason-why. Sampling + guarantees. Benefits not features. Still works 100 years later.
+MARKET-CREATING (Kim/Mauborgne): Blue ocean = create new market (vs red ocean price wars). Four actions: eliminate, reduce, raise, create. Value innovation = differentiation + low cost.
 CROSS-PRINCIPLE: Loss aversion + scarcity + social proof = maximum urgency stack.
 HABIT+PERSUASION: Investment phase (Eyal) + commitment consistency (Cialdini) = compounding lock-in.
 CARNEGIE+COMMUNITY: Genuine appreciation (Carnegie) + Build WITH (Richardson/Spinks) = deep trust + leader creation + distributed autonomy.
@@ -896,5 +991,9 @@ NARRATIVE+DIALOGUE+CHARACTER: McKee craft applies to ALL copy: Subtext (what's R
 COMMUNITY+PRICING: SPACES outcomes (Spinks) drives perceived value. Social proof (support members) anchors price psychology (Poundstone). Belonging justifies premium.
 STICKINESS+PERSUASION: SUCCESs framework (Heath) + 6 Cialdini principles = double stack. Concrete details (Heath) + specific statistics (Cialdini authority).
 STORIES+NARRATIVE: 3-plot structure (Heath Challenge/Connection/Creativity) + McKee Story principles (archetypes, form mastery, camera truth).
-Anti-patterns from ALL 25 books apply to ALL content outputs."
+CUSTOMER LISTENING (Fitzpatrick) + OFFER (Hormozi) + LEADS (Hormozi) = validation loop. Discover via Mom Test → Build Grand Slam → Get leads via 4 ways.
+NEGOTIATION + OFFERS: Voss calibrated questions extract TRUE objections → Hormozi addresses in offer. "That's right" moment = deal.
+GROWTH (Traction) + POSITIONING (Blue Ocean): Test 19 channels with Bullseye. Winner channel becomes your blue ocean (uncontested within audience).
+AD COPY (Hopkins) + PLATFORM (Vaynerchuk): Test specific copy (Hopkins) on native platforms (Vaynerchuk). Measure via Traction channels.
+Anti-patterns from ALL 30 books apply to ALL content outputs."
 ```
