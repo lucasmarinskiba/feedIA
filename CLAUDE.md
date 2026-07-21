@@ -476,3 +476,97 @@ PERSONAL BRAND: 4-phase framework. Platform-native content. Niche = P×H×D.
 BRAND IDENTITY: 3-axis model (Garrido). Tricotomic image. Dynamic identity rules.
 Anti-patterns from all 4 books apply to ALL content outputs."
 ```
+
+---
+
+### Behavioral Economics — Kahneman "Thinking, Fast and Slow"
+
+**Skill file**: `.agents/skills/behavioral-economics/SKILL.md`
+
+**Framework central:**
+
+- **Sistema 1 vs Sistema 2**: Pensamiento rápido/automático/emocional vs lento/deliberado/racional. El 95% de decisiones de compra ocurren en Sistema 1.
+- **Heurísticas clave**: Disponibilidad (lo recordable = lo probable), Anclaje (primer número ancla todo), Representatividad (juzgamos por semejanza al estereotipo), Afecto (si me gusta, evalúo positivo en todo)
+- **Prospect Theory**: Aversión a pérdida — perder duele ~2x más que ganar satisface. "No pierdas X" > "Gana X"
+- **Peak-End Rule**: El recuerdo de una experiencia = momento pico + final. La duración no importa.
+- **Fluencia cognitiva**: Fácil de leer/entender = percibido como verdadero, de calidad, confiable
+- **WYSIATI**: "What You See Is All There Is" — el cerebro construye historias coherentes solo con info disponible
+- **Efecto Halo**: Primera impresión positiva contamina evaluación de todo lo demás
+- **Framing**: La misma info en distinto encuadre produce distintas decisiones ("90% de grasa" vs "10% libre de grasa")
+
+**Anti-patrones Kahneman**: argumentos racionales a audiencia fría, tipografía difícil, presentar precio barato primero, experiencia que termina sin impacto.
+
+---
+
+### StoryBrand — Donald Miller "Building a StoryBrand"
+
+**Skill file**: `.agents/skills/storybrand/SKILL.md`
+
+**Framework central:**
+
+- **Mantra**: "Si confundes, pierdes." El cliente es el héroe, la marca es el guía.
+- **SB7 Framework** (7 elementos): Personaje (cliente héroe) → Problema (3 niveles: externo/interno/filosófico) → Guía (empatía + autoridad) → Plan (proceso + acuerdo) → CTA (directo + transición) → Evitar fracaso → Éxito
+- **Test del Gruñido**: ¿Puede un hombre de las cavernas entender en 5 segundos qué ofreces, cómo mejora su vida, y cómo comprar?
+- **Problema interno > externo**: Los clientes compran soluciones a problemas internos (frustración, vergüenza, miedo) aunque piensen que compran por el externo
+- **Dos tipos de CTA**: Directo (compra) + Transición (lead magnet) — siempre ambos presentes
+- **Apple como caso**: "Think Different" = 2 palabras vs 9 páginas de specs. El cliente como creativo genial, Apple como herramienta.
+
+**Anti-patrones StoryBrand**: marca como héroe, CTA ambiguo, historia de la empresa en About, solo problema externo, promesas sin plan concreto.
+
+---
+
+### Persuasión — Cialdini "Influence"
+
+**Skill file**: `.agents/skills/persuasion/SKILL.md`
+
+**Framework central — 6 Armas de Influencia:**
+
+1. **Reciprocidad**: Dar primero genera obligación de devolver. Lead magnets de valor real crean deuda de reciprocidad.
+2. **Compromiso y Consistencia**: Micro-compromisos escalan a grandes compromisos. Pie en la puerta → challenges → conversión.
+3. **Prueba Social**: "Gente como yo hace/compra X". Testimonios de personas idénticas al buyer persona. Números concretos.
+4. **Simpatía**: Compramos a quienes nos gustan. Similitud + atractivo + elogios + familiaridad + asociación.
+5. **Autoridad**: "As Seen In", títulos, credenciales, case studies con números. La autoridad de terceros > la autoafirmada.
+6. **Escasez**: Amenaza de perder acceso → reactancia → deseo aumentado. Escasez real con razón comunicada.
+
+- **Click-Whirr**: Respuestas automáticas activadas por señales específicas (como pavo ante "pío-pío")
+- **Principio de contraste**: Mostrar premium primero → todo lo que sigue parece más barato
+
+**Anti-patrones Cialdini**: escasez falsa, reviews fabricados, autoridad inflada, reciprocidad con regalos de valor cero.
+
+---
+
+### Copywriting Avanzado — Eugene Schwartz "Breakthrough Advertising"
+
+**Skill file**: `.agents/skills/copywriting-advanced/SKILL.md`
+
+**Framework central:**
+
+- **Principio fundamental**: "El copy no crea deseo. Solo canaliza deseo ya existente." Identificar qué ya quiere el mercado → conectar producto a ese deseo.
+- **5 niveles de conciencia**: Unaware → Problem-aware → Solution-aware → Product-aware → Most Aware. Cada nivel requiere estrategia diferente.
+- **5 niveles de sofisticación**: A mayor sofisticación, mayor necesidad de mecanismo único (no solo promesa).
+- **El headline**: No vende el producto. Vende la lectura del siguiente párrafo. Completa pensamiento ya formado en la mente del lector.
+- **Unique Mechanism**: El método/proceso/ingrediente específico que hace funcionar tu solución. Hace irrelevante la competencia.
+- **Especificidad = credibilidad**: "4,723 clientes en 47 países" > "muchos clientes". Números específicos activan confianza automática.
+- **One-on-one**: Copy masivo debe sentirse como carta personal. Escribir para UNA persona específica.
+
+**Anti-patrones Schwartz**: promesa genérica en mercado sofisticado, nivel de conciencia incorrecto, crear deseo en vez de canalizar el existente, vaguedad donde deberían ir números.
+
+---
+
+### Agentes que usan la biblioteca completa (8 libros)
+
+**All Agents** — activación completa:
+
+```
+"Apply complete 8-book knowledge base:
+PSYCHOLOGY: Sistema 1 = design for automatic. Loss aversion framing. Peak-end rule. Cognitive ease.
+STORY: Customer as hero. SB7 Framework. 'If you confuse, you lose.' 3-level problem.
+PERSUASION: Stack 6 Cialdini principles. Reciprocity first. Real scarcity only.
+COPY: Channel existing desire. Match awareness level. Unique mechanism. Specificity = trust.
+MARKETING (Godin): Minimum Viable Market. Lock then key. Status + tribal signals.
+CM: Bidirectional paradigm. 5 engagement keys. Social listening before publishing.
+PERSONAL BRAND: Niche = P×H×D. 80/20 content. Platform-native format.
+BRAND IDENTITY: 3-axis model + tricotomic image + colorimetría 4 systems.
+CROSS-PRINCIPLE: Loss aversion + scarcity + social proof = maximum urgency stack.
+Anti-patterns from ALL 8 books apply to ALL content outputs."
+```
