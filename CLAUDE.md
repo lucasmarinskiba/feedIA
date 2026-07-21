@@ -817,12 +817,50 @@ Anti-patterns from all 4 books apply to ALL content outputs."
 
 ---
 
-### Agentes que usan la biblioteca completa (23 libros)
+### Made to Stick — Chip & Dan Heath "Made to Stick: Why Some Ideas Survive and Others Die"
+
+**Skill file**: `.agents/skills/made-to-stick/SKILL.md`
+
+**Framework central:**
+
+- **SUCCESs** (6 principles for sticky ideas): Simple (core + compact) + Unexpected (break pattern) + Concrete (specific details) + Credible (testable, powerful details) + Emotional (identifiable person, WIIFY) + Stories (Challenge/Connection/Creativity plots).
+- **Simple**: Extract core, strip excess. Generative analogies (X + Y = Z). High concept ("Jaws on spaceship"). Proverbs.
+- **Unexpected**: Gap theory of curiosity. Break guessing machine. Priming the gap before reveal.
+- **Concrete**: Velcro theory (specific hooks memory). Objects not abstractions. Brown eyes/blue eyes (observed > data).
+- **Credible**: Testable credentials. Powerful details (27g > "lots"). Sinatra Test. Human-scale translation.
+- **Emotional**: Identifiable victim > statistics. Mother Teresa principle. WIIFY (what's in it for YOU). Aspiration not baseline needs.
+- **Stories**: Challenge (hero overcomes) + Connection (people unite) + Creativity (novel use). Jared 425-pound dieter (inspiring transformation).
+- **Case Study**: Movie popcorn. "Bacon breakfast + Big Mac + fries + steak = 1 bag popcorn" → behavior change → theater chains dropped coconut oil.
+
+**Anti-patrones Heath**: Vague abstractions, unsubstantiated claims, generic stories, appeals to basic needs instead of aspirations.
+
+---
+
+### Story — Robert McKee "Story: Substance, Structure, Style, and the Principles of Screenwriting" (General Principles)
+
+**Skill file**: `.agents/skills/story-mckee/SKILL.md`
+
+**Framework central:**
+
+- **Principles not Rules**: Rules prescribe. Principles describe what works. Anxious writers follow rules. Rebels break them. Artists master form.
+- **Archetypes vs Stereotypes**: Archetype = universal conflict + culturally specific detail (travels, endures). Stereotype = narrow cultural specificity (stays home, dated, generic).
+- **Forms vs Formulas**: Forms = eternal patterns (Aristotle onward). Formulas = recipes guaranteeing success (don't exist). No Hollywood prototype.
+- **10 Writer Faculties**: Taste (disgust with banality) + Knowledge (research, experience) + Originality (unearth hidden truths) + Showmanship (entertain + reveal) + Audience Awareness (moment-by-moment) + Form Mastery (structure first) + Hatred of Clichés (know before breaking) + Moral Imagination (binaries deeply) + Ideal Self (write as best self) + Self-Knowledge (all creation in own humanity).
+- **Camera = Truth Machine**: X-ray revealing lies. No hiding (novelist hides behind prose, screenwriter nowhere). Every weak emotion magnified onscreen.
+- **Originality = Form + Content**: Original vision requires BOTH original form (structure/selection) AND original content (setting/character/idea), inseparable. Style = personal cosmology.
+- **Respect Audience**: IQ rises 25 points in theater. Emotionally vulnerable + intellectually sharp. Satisfy both. Stay one step ahead.
+- **Mastery Before Breaking**: Don't chase trends with first drafts. Write/rewrite until mature. Incomplete work invites meddling. Complete work ensures integrity.
+
+**Anti-patrones McKee**: Eccentricity ≠ originality. Auteur tricks (drawing attention to self). Rebellion without mastery. Formula chasing. Contempt for audience.
+
+---
+
+### Agentes que usan la biblioteca completa (25 libros)
 
 **All Agents** — activación completa:
 
 ```
-"Apply complete 23-book knowledge base:
+"Apply complete 25-book knowledge base:
 INTERPERSONAL (Carnegie): No criticize = no change. Genuine appreciation specific. Their desires first. Make feel important. Socratic yes-momentum. Leadership = create more leaders.
 PSYCHOLOGY: Sistema 1 = design for automatic. Loss aversion framing. Peak-end rule. Cognitive ease.
 STORY: Customer as hero. SB7 Framework. 'If you confuse, you lose.' 3-level problem.
@@ -843,6 +881,8 @@ VIRAL (Berger): STEPPS audit every piece. 93% WOM offline. Trojan Horse stories.
 ONLINE WRITING: Platform first (not blog). Daily consistency. Universal > niche. Headline is the product. 5 Forms rotation.
 PRICING PSYCHOLOGY (Poundstone): Coherent arbitrariness. Anchor high first (everything else = bargain). Weber's Law (perceive % not $). 99¢ illusion. Loss aversion framing. Prestige pricing hierarchy.
 NARRATIVE CRAFT (McKee Action+Dialogue+Character): Hero=altruism/Villain=narcissism/Victim=helplessness. Mercy scene core event. Dialogue=verbal action. Text vs subtext. Character=finished art (MORE complex than people). Risk-filled choices reveal true self.
+IDEAS STICKINESS (Heath SUCCESs): Simple + Unexpected + Concrete + Credible + Emotional + Stories = memorable + effective. Generative analogies. Gap theory of curiosity. Velcro theory of memory. Identifiable victim. Challenge/Connection/Creativity plots.
+STORY MASTERY (McKee principles): Principles not rules. Archetypes not stereotypes. Forms not formulas. 10 writer faculties. Camera truth machine. Originality = form + content inseparable. Mastery before breaking conventions.
 CROSS-PRINCIPLE: Loss aversion + scarcity + social proof = maximum urgency stack.
 HABIT+PERSUASION: Investment phase (Eyal) + commitment consistency (Cialdini) = compounding lock-in.
 CARNEGIE+COMMUNITY: Genuine appreciation (Carnegie) + Build WITH (Richardson/Spinks) = deep trust + leader creation + distributed autonomy.
@@ -854,5 +894,7 @@ PRE-SUASION+VIRAL: Prime with STEPPS trigger first (Poundstone anchor) → messa
 WRITING+PERSONAL BRAND: Platform-native daily writing (Cole) + Niche P×H×D (Personal Brand) = authority flywheel.
 NARRATIVE+DIALOGUE+CHARACTER: McKee craft applies to ALL copy: Subtext (what's REALLY happening) > text (surface words). Hero/Villain/Victim arcs in customer journey.
 COMMUNITY+PRICING: SPACES outcomes (Spinks) drives perceived value. Social proof (support members) anchors price psychology (Poundstone). Belonging justifies premium.
-Anti-patterns from ALL 23 books apply to ALL content outputs."
+STICKINESS+PERSUASION: SUCCESs framework (Heath) + 6 Cialdini principles = double stack. Concrete details (Heath) + specific statistics (Cialdini authority).
+STORIES+NARRATIVE: 3-plot structure (Heath Challenge/Connection/Creativity) + McKee Story principles (archetypes, form mastery, camera truth).
+Anti-patterns from ALL 25 books apply to ALL content outputs."
 ```
