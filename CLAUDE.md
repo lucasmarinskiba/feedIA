@@ -1012,12 +1012,49 @@ Anti-patterns from all 4 books apply to ALL content outputs."
 
 ---
 
-### Agentes que usan la biblioteca completa (34 libros)
+### Good to Great — Jim Collins "Good to Great: Why Some Companies Make the Leap... and Others Don't"
+
+**Skill file**: `.agents/skills/good-to-great/SKILL.md`
+
+**Framework central:**
+
+- **Level 5 Leadership**: Paradoja = humilde + feroz determinación. Atribuir éxito a otros, culpa personal. Gate a la grandeza.
+- **First Who Then What**: Obtén gente correcta en bus → luego define estrategia. Gente > planificación.
+- **Confront Brutal Facts**: Fe en victoria (largo plazo) + realidad dura (corto plazo). Sin negación.
+- **Hedgehog Concept**: 3 círculos (entiende profundamente + apasionado + impulsa economía). UNA idea enfocada.
+- **Culture of Discipline**: Gente autodisciplinada. Di no a ideas buenas. Libertad dentro framework.
+- **Technology Accelerators**: Amplifica lo existente (alineado Hedgehog), no es causa.
+- **Flywheel**: Empuje consistente → momento construye exponencial. No ruptura singular.
+- **Sustainability**: 15+ años via disciplina, cultura, sucesión planeada.
+
+**Anti-patrones Collins**: Complacencia con bueno, liderazgo Level 1-4 solamente, estrategia antes gente, negar hechos, enfoque disperso.
+
+---
+
+### The 4-Hour Workweek — Timothy Ferriss "The 4-Hour Workweek: Escape 9-5, Live Anywhere, and Join the New Rich"
+
+**Skill file**: `.agents/skills/4-hour-workweek/SKILL.md`
+
+**Framework central:**
+
+- **DEAL Framework**: D (Definition) → E (Elimination) → A (Automation) → L (Liberation). Diseño lifestyle AHORA, no a los 65.
+- **Definition**: ¿Lifestyle perfecto específico? Fear-setting reduce ansiedad. Sistemas > motivación.
+- **Parkinson's Law**: Trabajo expande para llenar tiempo. Comprimir timeline → mismo output en 1/4 tiempo.
+- **Elimination (80/20)**: 20% esfuerzo = 80% resultados. Elimina tareas bajo-retorno. Batch email (2x/día).
+- **Automation**: Outsourcing VAs $5-15/hr. Income autopilot (productos pasivos, licensing). Desacopla ingresos de tiempo.
+- **Liberation**: Disappearing Act (construye equipo sin ti). Mini-retirements (1-6 meses test lifestyle). Location arbitrage (earn USD, spend emerging = 3-4x poder).
+- **Relative Income**: $40K US ≠ $40K Thailand. Moneda + costo de vida = riqueza efectiva.
+
+**Anti-patrones Ferriss**: Caza ingresos absolutos, interrupciones constantes, perfeccionismo, queda 9-5 forever, ignora relaciones.
+
+---
+
+### Agentes que usan la biblioteca completa (36 libros)
 
 **All Agents** — activación completa:
 
 ```
-"Apply complete 34-book knowledge base:
+"Apply complete 36-book knowledge base:
 INTERPERSONAL (Carnegie): No criticize = no change. Genuine appreciation specific. Their desires first. Make feel important. Socratic yes-momentum. Leadership = create more leaders.
 PSYCHOLOGY: Sistema 1 = design for automatic. Loss aversion framing. Peak-end rule. Cognitive ease.
 STORY: Customer as hero. SB7 Framework. 'If you confuse, you lose.' 3-level problem.
@@ -1049,6 +1086,8 @@ BEHAVIORAL BIAS (Ariely): Irrationality systematic + predictable. Relativity (an
 PRODUCT-MARKET FIT (Olsen): 6-step Lean process: target customer → underserved needs → value proposition → MVP → prototype → test. Retention = kingpin. AARRR metrics. 5-8 users per round.
 SYSTEMS MASTERY (Holmes): 12 strategies × pigheaded discipline = automatic excellence. Scripts for every scenario. Sales team doesn't need 4,000 responses, needs 12 core executed 4,000 times. Body = machine.
 COMPLIANCE TRIGGERS (Cialdini): 6 weapons (reciprocity, commitment, social proof, authority, liking, scarcity) activate automatic "click-whirr" response. Combined triggers = maximum stack. Even word "because" activates.
+GREAT-COMPANY FOUNDATIONS (Collins): Level 5 (humble + fierce) leadership gate to greatness. First Who (people precede strategy). Hedgehog (3-circle focus). Flywheel (exponential momentum). Brutal facts (reality without denial).
+LIFESTYLE DESIGN (Ferriss): DEAL framework (Define freedom → Eliminate waste → Automate income → Liberate). Parkinson's Law (compress time). 80/20 ruthless. Outsource repetitive ($5-15/hr). Mini-retirements test lifestyle before commitment.
 CROSS-PRINCIPLE: Loss aversion + scarcity + social proof = maximum urgency stack.
 HABIT+PERSUASION: Investment phase (Eyal) + commitment consistency (Cialdini) = compounding lock-in.
 CARNEGIE+COMMUNITY: Genuine appreciation (Carnegie) + Build WITH (Richardson/Spinks) = deep trust + leader creation + distributed autonomy.
@@ -1070,5 +1109,11 @@ BIAS + PRICING (Ariely + Poundstone): Relativity anchoring (Ariely) + Psychophys
 DISCOVERY + MASTERY (Olsen + Holmes): Olsen 6-step finds what to build (PMF). Holmes 12 systems executes it (mastery). Together: find RIGHT thing + do it 4,000 times.
 TRIGGERS + BEHAVIORAL (Cialdini + Ariely): Cialdini triggers activate automatic. Ariely shows WHY they work (systematic irrationality). Combined = inevitable compliance (emotion + mechanism).
 GROWTH + BEHAVIORAL (Weinberg + Ariely): Test 19 channels (Weinberg Bullseye). Anchor each channel differently per audience psychology (Ariely relativity). Winner channel emerges via psychological fit, not luck.
-Anti-patterns from ALL 34 books apply to ALL content outputs."
+LEVEL 5 + ULTIMATE SALES (Collins + Holmes): Collins' Level 5 (humble + fierce) = Holmes' pigheaded discipline (execute 12 moves × 4,000 times). Both paradoxical: humble leadership + relentless execution.
+HEDGEHOG + OBVIOUSLY AWESOME (Collins + Dunford): Hedgehog 3-circle = Dunford's 5 components (alternatives/attributes/value/target/category). Both = clarity, focus, defensibility.
+FLYWHEEL + HOOKED (Collins + Eyal): Flywheel momentum (consistent push) = Hook Model loop (Trigger→Action→VarReward→Investment). Both create exponential adoption/engagement.
+BRUTAL FACTS + MOM TEST (Collins + Fitzpatrick): Collins' confronting facts = Fitzpatrick's specificity (avoid confirmation bias). Both require truth-seeking, not comfortable narratives.
+FERRISS + TRACTION (Ferriss + Weinberg): Ferriss elimination (80/20) = prioritize highest-ROI channel from 19 options. Ferriss automation (outsource, passive income) = Traction's channel depth.
+FERRISS + ULTIMATE SALES (Ferriss + Holmes): Both = system-based automation (Ferriss outsourcing VAs = Holmes preprogrammed responses). Reduce human cognitive load via systems.
+Anti-patterns from ALL 36 books apply to ALL content outputs."
 ```
