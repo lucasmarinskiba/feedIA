@@ -945,12 +945,79 @@ Anti-patterns from all 4 books apply to ALL content outputs."
 
 ---
 
-### Agentes que usan la biblioteca completa (30 libros)
+### Predictably Irrational — Dan Ariely "Predictably Irrational: The Hidden Forces That Shape Our Decisions"
+
+**Skill file**: `.agents/skills/predictably-irrational/SKILL.md`
+
+**Framework central:**
+
+- **Irracionalidad sistemática**: No somos racionales. Irracionalidad es predecible. Relatividad (todo es relativo, nunca absoluto). Efecto cero-costo (FREE es trigger psicológico).
+- **Normas sociales vs normas de mercado**: Mezclar mundos mata. Favores entre amigos = gratis (relación). "Pagas $20" = transaccional (relación muere). Dos mundos distintos.
+- **Sesgo de propiedad**: Valoramos más lo que tenemos. Mug: propietario lo valúa alto, no-propietario bajo. Sunk cost fallacy.
+- **Efecto de arousal**: Estado emocional (hot/cold) cambia decisiones. Hot = irracional. Cold = lógica. Hormonas > razón.
+- **Procrastinación**: Sabemos que procrastinamos ≠ nos detiene. Necesitamos estructura externa (deadline, stakes).
+- **Expectativas como realidad**: Precio caro = tastes better (cerebro procesa diferente). Expectativas literal determinan experiencia.
+- **Anchoring + Price**: Primer número ancla TODO. Mostrar precio alto primero → resto parece barato. Psicología, no lógica.
+
+**Anti-patrones Ariely**: Lógica pura (ignorar emociones), anchor bajo primero, esperar racionalidad, mezclar normas sociales con mercado.
+
+---
+
+### Lean Product Playbook — Dan Olsen "Lean Product Playbook: How to Innovate with Minimum Viable Products and Rapid Customer Feedback"
+
+**Skill file**: `.agents/skills/lean-product-playbook/SKILL.md`
+
+**Framework central:**
+
+- **Product-Market Fit**: Producto soluciona customer need mejor que alternativas. Cliente quiere usar. Escalado sigue naturalmente.
+- **6-Step Lean Process**: (1) Determine target customer (specific, not everyone) → (2) Identify underserved needs (importance vs satisfaction) → (3) Define value prop (strategy = saying no) → (4) Specify MVP (minimum to test) → (5) Create prototype (low fidelity OK) → (6) Test with customers (5-8 per round).
+- **Build-Measure-Learn Loop**: Hypothesis → Design → Build → Test → Learn → Pivot/Persevere. Retention = kingpin metric.
+- **AARRR Metrics**: Acquisition, Activation, Retention, Revenue, Referral. Retention manda (no return = no product).
+- **User Testing**: 5-8 users dimishing returns. Preguntas open-ended primero. Target customers, not friends.
+- **Kano Model**: Basic needs + Performance needs + Delighters. Jerarquía de necesidad.
+
+**Anti-patrones Olsen**: Build sin validation, wrong target customers, feature-first, vanity metrics, single test = done.
+
+---
+
+### Ultimate Sales Machine — Chet Holmes "The Ultimate Sales Machine: Turbocharge Your Business with Relentless Focus on 12 Key Strategies"
+
+**Skill file**: `.agents/skills/ultimate-sales-machine/SKILL.md`
+
+**Framework central:**
+
+- **Mastery = Repetición pigheaded**: No es talento innato. Mastery = pigheaded discipline + repetición hasta automático. 12 moves × 4,000 times > 4,000 moves × 1 time.
+- **Sistema para todo**: Sales objection? 10 respuestas listas (not 1). Customer complaint? Script per type. New employee? Trainable day 1.
+- **Karate analogy**: Holmes entrenaba defenderse de bouncing ball. Mes 1 = golpes constantes. Mes 3 = blocks most. Mes 6 = never touches. Same defensive moves, 4,000 times. Body = machine.
+- **12 Estrategias centrales**: Time management + Standards & Training + Effective Meetings + Strategy (9x impact via focus) + Hiring Superstars + Fast Cheap Customer Acquisition + Marketing Fundamentals + Visuals Compelling + Tactics Day-by-Day + Sales Skills + Follow-up & Bonding + Systems & Goals.
+- **Knowing ≠ Doing**: Gap enorme. Éxito = boring repetición de fundamentals. Mayoría sabe esto, no lo hace, falla.
+
+**Anti-patrones Holmes**: Winging it (inconsistencia), one-time training (olvido), no follow-up system, random hiring, meetings sin estructura.
+
+---
+
+### Influence: The Psychology of Persuasion — Robert Cialdini "Influence & Manipulation"
+
+**Skill file**: `.agents/skills/influence-cialdini/SKILL.md`
+
+**Framework central:**
+
+- **6 Weapons of Influence**: (1) Reciprocity (give first = creates debt), (2) Commitment & Consistency (small asks → escalating), (3) Social Proof (people like us do this), (4) Authority (titles, credentials, specificity), (5) Liking (similarity, compliments), (6) Scarcity (rare = valuable).
+- **Fixed-Action Patterns**: Humans have "tchip-whirr" triggers (like turkeys respond to sound, not bird). Triggers override reasoning. "Because" word itself activates compliance (Langer study: 93% yes even with no real reason).
+- **Turkey Experiment**: Turkey adopts weasel puppet WITH "tchip-tchip" recording. Stop recording → attacks again. Trigger = sound (not real baby). Automatic.
+- **Click-Whirr Compliance**: Triggers activate automático response (bypass reason). Combined triggers = powerful stack. FREE + SCARCE + AUTHORITY = maximum.
+- **Contraste Principle**: Random number (10 vs 65) → 2x difference in estimates. First anchor = insufficient adjustment → bias persists.
+
+**Anti-patrones Cialdini**: Authority sin specificity (unbelievable), scarcity falsa (trust destroyed), no social proof en decisión-heavy context, large first ask (no escalation), single trigger solo.
+
+---
+
+### Agentes que usan la biblioteca completa (34 libros)
 
 **All Agents** — activación completa:
 
 ```
-"Apply complete 30-book knowledge base:
+"Apply complete 34-book knowledge base:
 INTERPERSONAL (Carnegie): No criticize = no change. Genuine appreciation specific. Their desires first. Make feel important. Socratic yes-momentum. Leadership = create more leaders.
 PSYCHOLOGY: Sistema 1 = design for automatic. Loss aversion framing. Peak-end rule. Cognitive ease.
 STORY: Customer as hero. SB7 Framework. 'If you confuse, you lose.' 3-level problem.
@@ -978,6 +1045,10 @@ NEGOTIATION (Voss): Mirror + tactical empathy + master "no" + calibrated questio
 GROWTH CHANNELS (Weinberg): 19 channels. Bullseye framework: brainstorm → rank → prioritize → test → focus. One channel dominates. Distribution ≠ predictable.
 AD FUNDAMENTALS (Hopkins): Test, measure, eliminate waste. Specificity = credible. Reason-why. Sampling + guarantees. Benefits not features. Still works 100 years later.
 MARKET-CREATING (Kim/Mauborgne): Blue ocean = create new market (vs red ocean price wars). Four actions: eliminate, reduce, raise, create. Value innovation = differentiation + low cost.
+BEHAVIORAL BIAS (Ariely): Irrationality systematic + predictable. Relativity (anchor high first) + Zero-cost effect (FREE = psychological trigger) + Ownership bias (customers overvalue own choices) + Arousal effect (emotions override logic) + Expectations literal (expensive = works better).
+PRODUCT-MARKET FIT (Olsen): 6-step Lean process: target customer → underserved needs → value proposition → MVP → prototype → test. Retention = kingpin. AARRR metrics. 5-8 users per round.
+SYSTEMS MASTERY (Holmes): 12 strategies × pigheaded discipline = automatic excellence. Scripts for every scenario. Sales team doesn't need 4,000 responses, needs 12 core executed 4,000 times. Body = machine.
+COMPLIANCE TRIGGERS (Cialdini): 6 weapons (reciprocity, commitment, social proof, authority, liking, scarcity) activate automatic "click-whirr" response. Combined triggers = maximum stack. Even word "because" activates.
 CROSS-PRINCIPLE: Loss aversion + scarcity + social proof = maximum urgency stack.
 HABIT+PERSUASION: Investment phase (Eyal) + commitment consistency (Cialdini) = compounding lock-in.
 CARNEGIE+COMMUNITY: Genuine appreciation (Carnegie) + Build WITH (Richardson/Spinks) = deep trust + leader creation + distributed autonomy.
@@ -995,5 +1066,9 @@ CUSTOMER LISTENING (Fitzpatrick) + OFFER (Hormozi) + LEADS (Hormozi) = validatio
 NEGOTIATION + OFFERS: Voss calibrated questions extract TRUE objections → Hormozi addresses in offer. "That's right" moment = deal.
 GROWTH (Traction) + POSITIONING (Blue Ocean): Test 19 channels with Bullseye. Winner channel becomes your blue ocean (uncontested within audience).
 AD COPY (Hopkins) + PLATFORM (Vaynerchuk): Test specific copy (Hopkins) on native platforms (Vaynerchuk). Measure via Traction channels.
-Anti-patterns from ALL 30 books apply to ALL content outputs."
+BIAS + PRICING (Ariely + Poundstone): Relativity anchoring (Ariely) + Psychophysics (Poundstone) = dual-layer pricing. Anchor high → everything cheap (Ariely relatividad) + perceive % not $ (Poundstone Weber) = 2x perceived value.
+DISCOVERY + MASTERY (Olsen + Holmes): Olsen 6-step finds what to build (PMF). Holmes 12 systems executes it (mastery). Together: find RIGHT thing + do it 4,000 times.
+TRIGGERS + BEHAVIORAL (Cialdini + Ariely): Cialdini triggers activate automatic. Ariely shows WHY they work (systematic irrationality). Combined = inevitable compliance (emotion + mechanism).
+GROWTH + BEHAVIORAL (Weinberg + Ariely): Test 19 channels (Weinberg Bullseye). Anchor each channel differently per audience psychology (Ariely relativity). Winner channel emerges via psychological fit, not luck.
+Anti-patterns from ALL 34 books apply to ALL content outputs."
 ```
