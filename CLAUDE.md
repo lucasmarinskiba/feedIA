@@ -553,12 +553,50 @@ Anti-patterns from all 4 books apply to ALL content outputs."
 
 ---
 
-### Agentes que usan la biblioteca completa (8 libros)
+### Habit Design — Nir Eyal "Hooked"
+
+**Skill file**: `.agents/skills/hooked/SKILL.md`
+
+**Framework central:**
+
+- **Hook Model (4 fases)**: Trigger → Action → Variable Reward → Investment. Cada ciclo refuerza el hábito.
+- **Triggers**: External (notificación, email, icono) → Internal (emociones negativas: aburrimiento, soledad, ansiedad, FOMO). Objetivo: usuario crea asociación interna → llega sin ser llamado.
+- **B = MAT**: Behavior = Motivation × Ability × Trigger. Reducir fricción supera aumentar motivación.
+- **Variable Reward** (3 tipos): Tribe (validación social), Hunt (descubrimiento/recursos), Self (logro/maestría). La variabilidad genera dopamina anticipatoria. Recompensa predecible = sin hábito.
+- **Investment Phase**: Usuario almacena valor (contenido, datos, seguidores, reputación) → switching cost alto → mejora próximo ciclo.
+- **Habit Zone**: frecuencia × utilidad percibida. Sin frecuencia suficiente, ningún nivel de utilidad crea hábito automático.
+- **Vitaminas → Analgésicos**: Comienzan nice-to-have, se convierten en must-have una vez formado el hábito. "Un hábito es cuando no hacer la acción causa un poco de dolor."
+
+**Anti-patrones Eyal**: triggers externos sin ruta a trigger interno, recompensas predecibles, alta fricción en action phase, sin investment mechanic, frecuencia de uso demasiado baja.
+
+---
+
+### Expert Secrets — Russell Brunson "Expert Secrets"
+
+**Skill file**: `.agents/skills/expert-secrets/SKILL.md`
+
+**Framework central:**
+
+- **Mass Movement (3 elementos)**: Líder carismático/attractive character + causa futura mayor que el líder + nueva oportunidad (nunca mejora de lo existente).
+- **Nueva Oportunidad > Mejora**: Las mejoras obligan admitir error pasado → resistencia. Las oportunidades nuevas no tienen ese peso emocional.
+- **Attractive Character**: Mostrar AMBOS lados: de dónde venías (backstory) + dónde estás ahora. Certeza absoluta en el resultado. "Un capítulo adelante" es suficiente autoridad.
+- **Niche = Blue Ocean propio**: Core Market → Submarket → crear nicho nuevo (nunca entrar al blue ocean de otro). Validar: ¿emocionados? ¿apasionados irracionalmente? ¿willing AND able?
+- **Big Domino**: Una creencia que, si cae, colapsa todas las objeciones. Cada presentación tiene UN domino.
+- **Epiphany Bridge**: Historia que recrea la epifanía del experto en la mente del prospecto. Compran por emoción, justifican con lógica.
+- **False Belief Patterns**: 3 categorías: vehicle (el método no funciona) + internal (yo no puedo) + external (no funcionará para mí). Crear historia para cada una.
+- **The Stack**: Mostrar valor acumulado elemento por elemento → revelar precio que parece irresistible vs total.
+- **1,000 True Fans**: No necesitas millones. 1,000 personas que compren todo lo que produces = negocio sostenible.
+
+**Anti-patrones Brunson**: vender mejora en vez de nueva oportunidad, múltiples big dominos en una presentación, lógica antes que emoción, experto sin backstory visible, no abordar las 3 false belief patterns.
+
+---
+
+### Agentes que usan la biblioteca completa (10 libros)
 
 **All Agents** — activación completa:
 
 ```
-"Apply complete 8-book knowledge base:
+"Apply complete 10-book knowledge base:
 PSYCHOLOGY: Sistema 1 = design for automatic. Loss aversion framing. Peak-end rule. Cognitive ease.
 STORY: Customer as hero. SB7 Framework. 'If you confuse, you lose.' 3-level problem.
 PERSUASION: Stack 6 Cialdini principles. Reciprocity first. Real scarcity only.
@@ -567,6 +605,10 @@ MARKETING (Godin): Minimum Viable Market. Lock then key. Status + tribal signals
 CM: Bidirectional paradigm. 5 engagement keys. Social listening before publishing.
 PERSONAL BRAND: Niche = P×H×D. 80/20 content. Platform-native format.
 BRAND IDENTITY: 3-axis model + tricotomic image + colorimetría 4 systems.
+HABIT DESIGN: Hook Model (Trigger→Action→VarReward→Investment). B=MAT reduce friction. Vitamins→painkillers.
+EXPERT SECRETS: Mass movement 3 elements. New opportunity (never improvement). Big Domino. Epiphany Bridge. 1,000 True Fans.
 CROSS-PRINCIPLE: Loss aversion + scarcity + social proof = maximum urgency stack.
-Anti-patterns from ALL 8 books apply to ALL content outputs."
+HABIT+PERSUASION: Investment phase (Eyal) + commitment consistency (Cialdini) = compounding lock-in.
+EXPERT+STORY: Attractive character (Brunson) + guide positioning (Miller) = trust architecture.
+Anti-patterns from ALL 10 books apply to ALL content outputs."
 ```
