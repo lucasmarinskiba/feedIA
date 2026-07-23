@@ -6,12 +6,25 @@ import { readFileSync, existsSync, statSync } from 'fs';
 const app = express();
 const publicDir = path.join(process.cwd(), 'public');
 
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // Log config at startup
 console.log('[FeedIA]', 'publicDir:', publicDir, 'exists:', existsSync(publicDir));
 
+// Import orchestration routes
+try {
+  const orchestrationRoutes = require('../src/api/routes/index').default;
+  app.use('/api', orchestrationRoutes);
+  console.log('[FeedIA] Orchestration routes loaded');
+} catch (err) {
+  console.error('[FeedIA] Failed to load orchestration routes:', err);
+}
+
 // Serve static files with explicit middleware
 app.use((req: Request, res: Response, next) => {
-  if (req.path === '/' || req.path === '/api/info' || req.path === '/health') {
+  if (req.path === '/' || req.path.startsWith('/api/')) {
     return next();
   }
 
@@ -42,15 +55,16 @@ app.get('/health', (req: Request, res: Response) => {
   res.json({ ok: true });
 });
 
-app.get('/api/info', (req: Request, res: Response) => {
-  res.json({ name: 'FeedIA', version: '1.0.0', ok: true });
+app.get('/debug', (req: Request, res: Response) => {
+  res.json({
+    status: 'debug',
+    publicDir,
+    cwdExists: existsSync(publicDir),
+    indexHtmlExists: existsSync(path.join(publicDir, 'index.html')),
+  });
 });
 
-app.get('/api/debug', (req: Request, res: Response) => {
-  res.json({ status: 'debug', publicDir, cwdExists: existsSync(publicDir), indexHtmlExists: existsSync(path.join(publicDir, 'index.html')) });
-});
-
-app.get('/api/files', (req: Request, res: Response) => {
+app.get('/files', (req: Request, res: Response) => {
   try {
     const fs = require('fs');
     const files = fs.readdirSync(publicDir);
@@ -74,7 +88,13 @@ app.use((req: Request, res: Response) => {
     }
   } else {
     console.error('[FeedIA] index.html not found at', indexPath);
-    res.status(500).json({ error: 'NO INDEX HTML FOUND', path: indexPath, publicDir, exists: existsSync(publicDir), ts: new Date().toISOString() });
+    res.status(500).json({
+      error: 'NO INDEX HTML FOUND',
+      path: indexPath,
+      publicDir,
+      exists: existsSync(publicDir),
+      ts: new Date().toISOString(),
+    });
   }
 });
 
