@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e
+node scripts/check-frontend.mjs
+mkdir -p .vercel/output/static
+cp -rp public/. .vercel/output/static/
+printf '{"version":3,"routes":[{"src":"/api/(.*)","dest":"/api/$1"},{"handle":"filesystem"},{"src":"/(.*)","dest":"/index.html","status":200}]}' > .vercel/output/config.json

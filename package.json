@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:prod": "node scripts/build-prod.mjs",
     "start": "node --enable-source-maps dist/server.js",
     "dev": "tsx src/cli.ts",
     "agent": "tsx src/cli.ts agent",
@@ -40,8 +41,10 @@
       "eslint --fix"
     ]
   },
+  "packageManager": "pnpm@10.13.1",
   "engines": {
-    "node": ">=20"
+    "node": ">=20",
+    "pnpm": ">=9"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.98.0",
@@ -58,6 +61,7 @@
     "node-cron": "^3.0.3",
     "ora": "^8.1.0",
     "sharp": "^0.35.3",
+    "uuid": "^11.1.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

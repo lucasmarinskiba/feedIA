@@ -1,18 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "public": "public",
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "routes": [
-    {
-      "src": "/api/(.*)?",
-      "dest": "/api"
-    },
-    {
-      "src": "/(.*)",
-      "status": 200,
-      "dest": "/index.html"
-    }
-  ]
+  "buildCommand": "bash scripts/vercel-build.sh",
+  "framework": null
 }
