@@ -262,8 +262,8 @@ feedIADatabase
   })
   .catch((err) => log.error('[Server] initialization failed', err));
 
-if (false) {
-  // dead block — keeps remaining console.logs unreachable but parseable
+// Start server (Railway needs explicit listener)
+app.listen(PORT, () => {
   console.log(`✅ FeedIA Autonomous Generator running on http://localhost:${PORT}`);
   console.log(`📊 Batches: 28-61 base (6,770) + 62-95 parameterized (6,100) = 12,870 total`);
   console.log(`🔗 Prompt Endpoints:`);
@@ -435,6 +435,6 @@ if (false) {
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
   console.log(`   GET  /api/autonomy/database/stats`);
   console.log(`   GET  /api/autonomy/database/performance/:batchId`);
-}
+});
 
 export default app;
