@@ -48,9 +48,20 @@ import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
 import { BrandProfileSchema } from './config/types.js';
 import { startPollingScheduler } from './workers/metricsPollingOrchestrator.js';
+import helmet from 'helmet';
+import cors from 'cors';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
+
+// Security middleware
+app.use(helmet());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // Middleware
 app.use(express.json());
@@ -435,6 +446,30 @@ app.listen(PORT, () => {
   console.log(`   POST /api/autonomy/database/sync — sync Brain → SQL`);
   console.log(`   GET  /api/autonomy/database/stats`);
   console.log(`   GET  /api/autonomy/database/performance/:batchId`);
+});
+
+// Graceful shutdown
+const server = app.listen(PORT, () => {
+  log.info(`[Server] listening on port ${PORT}`);
+});
+
+process.on('SIGTERM', () => {
+  log.info('[Server] SIGTERM received, starting graceful shutdown');
+  server.close(() => {
+    log.info('[Server] HTTP server closed');
+    process.exit(0);
+  });
+
+  // Force shutdown after 30s
+  setTimeout(() => {
+    log.error('[Server] Forced shutdown after 30s timeout');
+    process.exit(1);
+  }, 30000);
+});
+
+process.on('SIGINT', () => {
+  log.info('[Server] SIGINT received');
+  process.emit('SIGTERM');
 });
 
 export default app;
