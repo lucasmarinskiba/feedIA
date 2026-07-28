@@ -41,7 +41,7 @@ WORKDIR /app
 
 # Copy dependency manifests and install production deps only
 COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm ci --ignore-scripts --omit=dev && npm cache clean --force
 
 # Copy compiled code and runtime assets
 COPY --from=builder /app/dist ./dist
