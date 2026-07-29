@@ -48,6 +48,7 @@ import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
 import { BrandProfileSchema } from './config/types.js';
 import { startPollingScheduler } from './workers/metricsPollingOrchestrator.js';
+import createStudioRoutes from './server/studioRoutes.js';
 import helmet from 'helmet';
 import cors from 'cors';
 
@@ -234,6 +235,9 @@ app.use('/api/ads', adPerformanceRoutes);
 
 // Automation scheduler routes (post scheduling, engagement automation, periodic tasks)
 app.use('/api/automation', automationSchedulerRoutes);
+
+// Studio routes (carousel, reel, stories, vision, predictor generation)
+app.use('/api/studio', createStudioRoutes(mockBrand));
 
 // Static files + SPA catch-all (must be after all /api routes)
 const STATIC_CANDIDATES = [
