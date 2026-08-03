@@ -37,7 +37,7 @@ import salaEjecutivaRoutes from './api/sala-ejecutiva-routes.js';
 import editingRoutes from './api/editing-routes.js';
 import carouselEditingRoutes from './api/carousel-editing-routes.js';
 import campaignRoutes from './api/campaign-routes.js';
-import analyticsRoutes from './api/analytics-routes.js';
+import { analyticsRoutes } from './api/analytics-routes.js';
 import socialListeningRoutes from './api/social-listening-routes.js';
 import growthStrategyRoutes from './api/growth-strategy-routes.js';
 import influencerRoutes from './api/influencer-routes.js';
@@ -51,18 +51,26 @@ import { startPollingScheduler } from './workers/metricsPollingOrchestrator.js';
 import createStudioRoutes from './server/studioRoutes.js';
 import helmet from 'helmet';
 import cors from 'cors';
+import carouselStorageRoutes from './api/carousel-storage-routes.js';
+import carouselUploadRoutes from './api/carousel-upload-routes.js';
+import securityRoutes from './api/security-routes.js';
+import videoStorageRoutes from './api/video-storage-routes.js';
+import carouselMetricsRoutes from './api/carousel-metrics-routes.js';
+import { carouselDB } from './db/postgres.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
 
 // Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || '*',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+);
 
 // Middleware
 app.use(express.json());
@@ -239,6 +247,19 @@ app.use('/api/automation', automationSchedulerRoutes);
 // Studio routes (carousel, reel, stories, vision, predictor generation)
 app.use('/api/studio', createStudioRoutes(mockBrand));
 
+// Carousel storage routes (Week 1-2: PostgreSQL CRUD + upload + compression + dedup)
+app.use(carouselStorageRoutes);
+app.use(carouselUploadRoutes);
+
+// Security routes (Week 3: 2FA + IP whitelist + audit + GDPR/CCPA)
+app.use(securityRoutes);
+
+// Video storage routes (Week 6: Premium tier video uploads to Backblaze B2 with encoding)
+app.use(videoStorageRoutes);
+
+// Carousel metrics routes (Week 6-7: Real-time engagement tracking with daily aggregation)
+app.use(carouselMetricsRoutes);
+
 // Static files + SPA catch-all (must be after all /api routes)
 const STATIC_CANDIDATES = [
   path.resolve(process.cwd(), 'dist-static'),
@@ -268,12 +289,11 @@ app.use((err: Error, req: Request, res: Response, _next: express.NextFunction) =
 });
 
 // Fire-and-forget init (serverless: no app.listen)
-feedIADatabase
-  .initialize()
+Promise.all([feedIADatabase.initialize(), carouselDB.initialize()])
   .then(() => {
     feedIAOrchestrator.initializeAgents();
     startPollingScheduler();
-    log.info('[Server] initialized with metrics polling scheduler');
+    log.info('[Server] initialized with metrics polling scheduler + carousel storage');
   })
   .catch((err) => log.error('[Server] initialization failed', err));
 
