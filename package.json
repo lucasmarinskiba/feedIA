@@ -31,7 +31,8 @@
     "workers": "node dist/workers/index.js",
     "workers:dev": "tsx src/workers/index.ts",
     "prepare": "node scripts/setup-hooks.mjs",
-    "canva:auth": "tsx scripts/get-canva-token.ts"
+    "canva:auth": "tsx scripts/get-canva-token.ts",
+    "migrate:wasabi-to-b2": "tsx scripts/migrate-wasabi-to-b2.ts"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,json,md,yml,yaml}": [
