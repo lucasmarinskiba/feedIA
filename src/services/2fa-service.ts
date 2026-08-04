@@ -61,12 +61,19 @@ class TwoFactorService {
         const digest = hmac.digest();
 
         // Dynamic truncation (RFC 4226)
-        const offset = digest[digest.length - 1] & 0xf;
+        const lastByte = digest[digest.length - 1];
+        if (lastByte === undefined) continue;
+        const offset = lastByte & 0xf;
+        const d0 = digest[offset];
+        const d1 = digest[offset + 1];
+        const d2 = digest[offset + 2];
+        const d3 = digest[offset + 3];
+        if (d0 === undefined || d1 === undefined || d2 === undefined || d3 === undefined) continue;
         const code = (
-          ((digest[offset] & 0x7f) << 24) |
-          ((digest[offset + 1] & 0xff) << 16) |
-          ((digest[offset + 2] & 0xff) << 8) |
-          (digest[offset + 3] & 0xff)
+          ((d0 & 0x7f) << 24) |
+          ((d1 & 0xff) << 16) |
+          ((d2 & 0xff) << 8) |
+          (d3 & 0xff)
         ) % 1000000;
 
         if (code === parseInt(token, 10)) {

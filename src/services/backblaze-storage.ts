@@ -161,7 +161,7 @@ class BackblazeStorage {
       const keyRegex = /<Key>([^<]+)<\/Key>/g;
       let match;
       while ((match = keyRegex.exec(text)) !== null) {
-        keys.push(match[1]);
+        if (match[1]) keys.push(match[1]);
       }
 
       return keys.map((key) => ({
@@ -202,7 +202,7 @@ class BackblazeStorage {
       const sizeRegex = /<Size>(\d+)<\/Size>/g;
       let match;
       while ((match = sizeRegex.exec(text)) !== null) {
-        sizes.push(parseInt(match[1], 10));
+        if (match[1]) sizes.push(parseInt(match[1], 10));
       }
 
       const totalBytes = sizes.reduce((sum, size) => sum + size, 0);

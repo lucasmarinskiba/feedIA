@@ -16,7 +16,7 @@ function getClientIp(req: Request): string {
   if (typeof forwarded === 'string') {
     return forwarded.split(',')[0].trim();
   }
-  return req.socket.remoteAddress || '0.0.0.0';
+  return req.socket?.remoteAddress || '0.0.0.0';
 }
 
 /**
