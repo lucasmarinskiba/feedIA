@@ -35,12 +35,7 @@ router.get('/mentions', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const mentions = await socialListeningService.getMentions(
-      accountHandle,
-      platform,
-      sentiment,
-      limit
-    );
+    const mentions = await socialListeningService.getMentions(accountHandle, platform, sentiment, limit);
 
     res.json({ ok: true, mentions });
   } catch (err) {
@@ -120,10 +115,7 @@ router.get('/competitor-mentions', async (req: Request, res: Response): Promise<
       return;
     }
 
-    const mentions = await socialListeningService.getCompetitorMentions(
-      competitorHandle,
-      limit
-    );
+    const mentions = await socialListeningService.getCompetitorMentions(competitorHandle, limit);
 
     res.json({ ok: true, mentions });
   } catch (err) {
@@ -143,11 +135,7 @@ router.get('/sentiment', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const analysis = await socialListeningService.getSentimentAnalysis(
-      accountHandle,
-      platform,
-      days
-    );
+    const analysis = await socialListeningService.getSentimentAnalysis(accountHandle, platform, days);
 
     res.json({ ok: true, sentiment: analysis });
   } catch (err) {

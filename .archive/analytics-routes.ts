@@ -1,9 +1,5 @@
 import { Router, Request, Response } from 'express';
-import {
-  analyticsService,
-  MetricSnapshot,
-  ContentMetrics,
-} from '../services/analytics-service';
+import { analyticsService, MetricSnapshot, ContentMetrics } from '../services/analytics-service';
 
 const router = Router();
 

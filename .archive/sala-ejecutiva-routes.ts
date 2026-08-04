@@ -30,16 +30,18 @@ const router = express.Router();
 router.get('/snapshot', (req: Request, res: Response): void => {
   try {
     // Mock brand for now (attach to request if user context exists)
-    const brand = (req as any).brand || BrandProfileSchema.parse({
-      name: 'FeedIA Account',
-      handle: '@feedia',
-      visual: { palette: {}, typography: {}, style: 'modern', mood: 'professional' },
-      goals: { primary: 'reach', metricsToWatch: ['reach', 'engagement', 'followers'] },
-      competitors: [],
-      hashtagPools: {},
-      contentPillars: [],
-      brandStrategy: { positioning: '', voiceTone: '', valueProps: [] },
-    } as any);
+    const brand =
+      (req as any).brand ||
+      BrandProfileSchema.parse({
+        name: 'FeedIA Account',
+        handle: '@feedia',
+        visual: { palette: {}, typography: {}, style: 'modern', mood: 'professional' },
+        goals: { primary: 'reach', metricsToWatch: ['reach', 'engagement', 'followers'] },
+        competitors: [],
+        hashtagPools: {},
+        contentPillars: [],
+        brandStrategy: { positioning: '', voiceTone: '', valueProps: [] },
+      } as any);
 
     const snapshot = generateExecutiveDashboardSnapshot(brand);
 
@@ -62,16 +64,18 @@ router.get('/snapshot', (req: Request, res: Response): void => {
  */
 router.get('/growth', (req: Request, res: Response): void => {
   try {
-    const brand = (req as any).brand || BrandProfileSchema.parse({
-      name: 'FeedIA Account',
-      handle: '@feedia',
-      visual: { palette: {}, typography: {}, style: 'modern', mood: 'professional' },
-      goals: { primary: 'reach', metricsToWatch: ['reach', 'engagement', 'followers'] },
-      competitors: [],
-      hashtagPools: {},
-      contentPillars: [],
-      brandStrategy: { positioning: '', voiceTone: '', valueProps: [] },
-    } as any);
+    const brand =
+      (req as any).brand ||
+      BrandProfileSchema.parse({
+        name: 'FeedIA Account',
+        handle: '@feedia',
+        visual: { palette: {}, typography: {}, style: 'modern', mood: 'professional' },
+        goals: { primary: 'reach', metricsToWatch: ['reach', 'engagement', 'followers'] },
+        competitors: [],
+        hashtagPools: {},
+        contentPillars: [],
+        brandStrategy: { positioning: '', voiceTone: '', valueProps: [] },
+      } as any);
 
     const growth = getGrowthTrajectory(brand);
 
@@ -94,16 +98,18 @@ router.get('/growth', (req: Request, res: Response): void => {
  */
 router.get('/platforms', (req: Request, res: Response): void => {
   try {
-    const brand = (req as any).brand || BrandProfileSchema.parse({
-      name: 'FeedIA Account',
-      handle: '@feedia',
-      visual: { palette: {}, typography: {}, style: 'modern', mood: 'professional' },
-      goals: { primary: 'reach', metricsToWatch: ['reach', 'engagement', 'followers'] },
-      competitors: [],
-      hashtagPools: {},
-      contentPillars: [],
-      brandStrategy: { positioning: '', voiceTone: '', valueProps: [] },
-    } as any);
+    const brand =
+      (req as any).brand ||
+      BrandProfileSchema.parse({
+        name: 'FeedIA Account',
+        handle: '@feedia',
+        visual: { palette: {}, typography: {}, style: 'modern', mood: 'professional' },
+        goals: { primary: 'reach', metricsToWatch: ['reach', 'engagement', 'followers'] },
+        competitors: [],
+        hashtagPools: {},
+        contentPillars: [],
+        brandStrategy: { positioning: '', voiceTone: '', valueProps: [] },
+      } as any);
 
     const comparison = getPlatformComparison(brand);
 
@@ -126,7 +132,7 @@ router.get('/platforms', (req: Request, res: Response): void => {
  */
 router.get('/campaigns', async (req: Request, res: Response): Promise<void> => {
   try {
-    const accountHandle = req.query.account as string || '@feedia';
+    const accountHandle = (req.query.account as string) || '@feedia';
     const campaigns = await campaignService.listCampaigns(accountHandle);
 
     const summary = {
@@ -153,7 +159,7 @@ router.get('/campaigns', async (req: Request, res: Response): Promise<void> => {
  */
 router.get('/analytics-summary', async (req: Request, res: Response): Promise<void> => {
   try {
-    const accountHandle = req.query.account as string || '@feedia';
+    const accountHandle = (req.query.account as string) || '@feedia';
     const platform = (req.query.platform as 'instagram' | 'tiktok') || 'instagram';
 
     const analytics = await analyticsService.loadAnalytics(accountHandle, platform);
@@ -194,9 +200,7 @@ router.get('/influencers', async (req: Request, res: Response): Promise<void> =>
       totalProspects: prospects.length,
       topPerformers: topPerformers,
       averageEngagement:
-        partners.length > 0
-          ? partners.reduce((sum, inf) => sum + inf.engagement_rate, 0) / partners.length
-          : 0,
+        partners.length > 0 ? partners.reduce((sum, inf) => sum + inf.engagement_rate, 0) / partners.length : 0,
     };
 
     log.info('[SalaEjecutiva] Influencers dashboard retrieved');
@@ -214,19 +218,15 @@ router.get('/influencers', async (req: Request, res: Response): Promise<void> =>
  */
 router.get('/ads', async (req: Request, res: Response): Promise<void> => {
   try {
-    const accountId = req.query.account as string || 'default';
+    const accountId = (req.query.account as string) || 'default';
     const activeCampaigns = await adPerformanceService.listCampaigns(accountId, 'active');
     const completedCampaigns = await adPerformanceService.listCampaigns(accountId, 'completed');
 
     const totalSpend = activeCampaigns.reduce((sum, c) => sum + c.performance.spend, 0);
-    const totalConversions = activeCampaigns.reduce(
-      (sum, c) => sum + c.performance.conversions,
-      0
-    );
+    const totalConversions = activeCampaigns.reduce((sum, c) => sum + c.performance.conversions, 0);
     const avgROAS =
       activeCampaigns.length > 0
-        ? activeCampaigns.reduce((sum, c) => sum + c.performance.roas, 0) /
-          activeCampaigns.length
+        ? activeCampaigns.reduce((sum, c) => sum + c.performance.roas, 0) / activeCampaigns.length
         : 0;
 
     const summary = {
@@ -253,7 +253,7 @@ router.get('/ads', async (req: Request, res: Response): Promise<void> => {
  */
 router.get('/automation', async (req: Request, res: Response): Promise<void> => {
   try {
-    const accountHandle = req.query.account as string || '@feedia';
+    const accountHandle = (req.query.account as string) || '@feedia';
     const activeTasks = await automationSchedulerService.listTasks(accountHandle, 'active');
     const pausedTasks = await automationSchedulerService.listTasks(accountHandle, 'paused');
 

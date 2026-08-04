@@ -155,7 +155,7 @@ router.post('/:campaignId/schedule', async (req: Request, res: Response): Promis
     const campaign = await campaignService.scheduleCampaign(
       campaignId,
       new Date(startDate),
-      endDate ? new Date(endDate) : undefined
+      endDate ? new Date(endDate) : undefined,
     );
 
     res.json({ ok: true, campaign });
