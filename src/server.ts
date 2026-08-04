@@ -48,6 +48,7 @@ import carouselMetricsRoutes from './api/carousel-metrics-routes.js';
 import carouselApiRoutes from './api/carousel-api-routes.js';
 import carouselQualityRoutes from './api/carousel-quality-routes.js';
 import carouselCreationRoutes from './api/carousel-creation-routes.js';
+import carouselAnalyticsRoutes from './api/carousel-analytics-routes.js';
 import { carouselDB } from './db/postgres.js';
 
 const app: Express = express();
@@ -230,6 +231,9 @@ app.use('/api/carousels/quality', carouselQualityRoutes);
 
 // Carousel creation pipeline routes (validation-gated creation)
 app.use('/api/carousels', carouselCreationRoutes);
+
+// Carousel analytics routes (metrics queries, trends, comparisons)
+app.use('/api/analytics', carouselAnalyticsRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 const STATIC_CANDIDATES = [
