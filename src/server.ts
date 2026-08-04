@@ -25,6 +25,7 @@ import creativityRoutes from './api/creativity-routes.js';
 import facialIdentityRoutes from './api/facial-identity-routes.js';
 import resolutionQualityRoutes from './api/resolution-quality-routes.js';
 import masterGenerateRoutes from './api/master-generate-routes.js';
+import generateRoutes from './api/generate-routes.js';
 import contentStrategyRoutes from './api/content-strategy-routes.js';
 import veoVideoRoutes from './api/veo-video-routes.js';
 import pollingStatusRoutes from './api/polling-status-routes.js';
@@ -189,6 +190,9 @@ app.use('/api/resolution', resolutionQualityRoutes);
 
 // Mount master pipeline (single-call: quality + refinement + ocurrencia + identity + consistency + resolution)
 app.use('/api/master', masterGenerateRoutes);
+
+// Mount prompt-to-content generation (DB prompts → Claude → slides)
+app.use('/api/generate', generateRoutes);
 
 // Mount content strategy routes (calendar + task list + content compass/Brújula + scripts)
 app.use('/api/strategy', contentStrategyRoutes);
