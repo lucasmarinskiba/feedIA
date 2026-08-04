@@ -34,16 +34,6 @@ import orchestrationRoutes from './api/orchestration-routes.js';
 import cacheManagementRoutes from './api/cache-management-routes.js';
 import engagementRoutes from './api/engagement-routes.js';
 import browserlessSettingsRoutes from './api/browserless-settings-routes.js';
-import salaEjecutivaRoutes from './api/sala-ejecutiva-routes.js';
-import editingRoutes from './api/editing-routes.js';
-import carouselEditingRoutes from './api/carousel-editing-routes.js';
-import campaignRoutes from './api/campaign-routes.js';
-import { analyticsRoutes } from './api/analytics-routes.js';
-import socialListeningRoutes from './api/social-listening-routes.js';
-import growthStrategyRoutes from './api/growth-strategy-routes.js';
-import influencerRoutes from './api/influencer-routes.js';
-import adPerformanceRoutes from './api/ad-performance-routes.js';
-import automationSchedulerRoutes from './api/automation-scheduler-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -52,8 +42,6 @@ import { startPollingScheduler } from './workers/metricsPollingOrchestrator.js';
 import createStudioRoutes from './server/studioRoutes.js';
 import helmet from 'helmet';
 import cors from 'cors';
-import carouselStorageRoutes from './api/carousel-storage-routes.js';
-import carouselUploadRoutes from './api/carousel-upload-routes.js';
 import securityRoutes from './api/security-routes.js';
 import videoStorageRoutes from './api/video-storage-routes.js';
 import carouselMetricsRoutes from './api/carousel-metrics-routes.js';
@@ -218,42 +206,9 @@ app.use('/api/engagement', engagementRoutes);
 // Browserless settings routes (per-user API key management for SaaS)
 app.use('/api/settings/browserless', browserlessSettingsRoutes);
 
-// Sala Ejecutiva routes (real-time metrics dashboard)
-app.use('/api/sala-ejecutiva', salaEjecutivaRoutes);
-
-// Editing routes (video/photo editing operations)
-app.use('/api/edit', editingRoutes);
-
-// Carousel editing routes (reorder, update text/image, add/delete slides, styling)
-app.use('/api/carousel', carouselEditingRoutes);
-
-// Campaign management routes (CRUD, content association, scheduling, metrics)
-app.use('/api/campaigns', campaignRoutes);
-
-// Analytics pipeline routes (real-time metrics, trends, performance, recommendations)
-app.use('/api/analytics', analyticsRoutes);
-
-// Social listening routes (mention tracking, hashtag monitoring, competitor analysis, sentiment)
-app.use('/api/listening', socialListeningRoutes);
-
-// Growth strategy routes (recommendations, strategy items, tracking, activation)
-app.use('/api/growth', growthStrategyRoutes);
-
-// Influencer CRM routes (prospect tracking, collaboration management, performance rating)
-app.use('/api/influencers', influencerRoutes);
-
-// Ad performance routes (Meta Ads, TikTok Ads, ROI tracking, optimization)
-app.use('/api/ads', adPerformanceRoutes);
-
-// Automation scheduler routes (post scheduling, engagement automation, periodic tasks)
-app.use('/api/automation', automationSchedulerRoutes);
 
 // Studio routes (carousel, reel, stories, vision, predictor generation)
 app.use('/api/studio', createStudioRoutes(mockBrand));
-
-// Carousel storage routes (Week 1-2: PostgreSQL CRUD + upload + compression + dedup)
-app.use(carouselStorageRoutes);
-app.use(carouselUploadRoutes);
 
 // Security routes (Week 3: 2FA + IP whitelist + audit + GDPR/CCPA)
 app.use(securityRoutes);
