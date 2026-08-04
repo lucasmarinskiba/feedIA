@@ -79,12 +79,14 @@ describe('Carousel Quality Validation', () => {
 
     it('should validate headline presence', () => {
       const slide = mockCarousel.slides[0];
+      if (!slide) throw new Error('No slide found');
       const valid = slide.headline && slide.headline.trim().length >= 3;
       expect(valid).toBe(true);
     });
 
     it('should validate CTA on last slide', () => {
       const lastSlide = mockCarousel.slides[mockCarousel.slides.length - 1];
+      if (!lastSlide) throw new Error('No last slide found');
       const valid = lastSlide.cta && lastSlide.cta.trim().length > 0;
       expect(valid).toBe(true);
     });
@@ -251,6 +253,7 @@ describe('Carousel Analytics', () => {
       const sorted = [...carousels].sort((a, b) => b.views - a.views);
       const ranked = sorted.map((c, idx) => ({ ...c, rank: idx + 1 }));
 
+      if (!ranked[0] || !ranked[1] || !ranked[2]) throw new Error('Ranking incomplete');
       expect(ranked[0].rank).toBe(1);
       expect(ranked[0].views).toBe(500);
       expect(ranked[1].rank).toBe(2);
