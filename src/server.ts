@@ -45,6 +45,9 @@ import cors from 'cors';
 import securityRoutes from './api/security-routes.js';
 import videoStorageRoutes from './api/video-storage-routes.js';
 import carouselMetricsRoutes from './api/carousel-metrics-routes.js';
+import carouselApiRoutes from './api/carousel-api-routes.js';
+import carouselQualityRoutes from './api/carousel-quality-routes.js';
+import carouselCreationRoutes from './api/carousel-creation-routes.js';
 import { carouselDB } from './db/postgres.js';
 
 const app: Express = express();
@@ -218,6 +221,15 @@ app.use(videoStorageRoutes);
 
 // Carousel metrics routes (Week 6-7: Real-time engagement tracking with daily aggregation)
 app.use(carouselMetricsRoutes);
+
+// Carousel API routes (storage, CRUD, persistence)
+app.use('/api/carousels', carouselApiRoutes);
+
+// Carousel quality validation routes (quality checks, approval workflow)
+app.use('/api/carousels/quality', carouselQualityRoutes);
+
+// Carousel creation pipeline routes (validation-gated creation)
+app.use('/api/carousels', carouselCreationRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 const STATIC_CANDIDATES = [
