@@ -43,6 +43,7 @@ export interface CarouselCreateRequest {
   slides: CarouselSlide[];
   platform: 'instagram' | 'tiktok' | 'linkedin';
   sourceCategory?: string;
+  brandIdentity?: Carousel['brandIdentity'];
 }
 
 export interface CarouselUpdateRequest {
