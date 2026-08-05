@@ -46,6 +46,9 @@ import { startPollingScheduler } from './workers/metricsPollingOrchestrator.js';
 import createStudioRoutes from './server/studioRoutes.js';
 import helmet from 'helmet';
 import cors from 'cors';
+import { apiKeyAuth, adminKeyAuth, attachKeyContext } from './middleware/auth.js';
+import { autoRateLimiter } from './middleware/rate-limiter.js';
+import { inputSanitizer } from './middleware/input-sanitizer.js';
 import securityRoutes from './api/security-routes.js';
 import videoStorageRoutes from './api/video-storage-routes.js';
 import carouselMetricsRoutes from './api/carousel-metrics-routes.js';
@@ -59,20 +62,72 @@ import { carouselDB } from './db/postgres.js';
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
 
-// Security middleware
-app.use(helmet());
+// ─── Security layer (order matters) ───────────────────────────────────────────
+
+// 1. HTTP security headers
 app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN || '*',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+    crossOriginEmbedderPolicy: false, // Allow image loading from CDNs
+    hsts: { maxAge: 31_536_000, includeSubDomains: true, preload: true },
   }),
 );
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// 2. CORS — explicit origin allowlist, never wildcard in production
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGIN ?? '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter((o) => o.length > 0);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (curl, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+      // In dev (no env set), allow all — warn loudly
+      if (ALLOWED_ORIGINS.length === 0) {
+        if (process.env.NODE_ENV === 'production') {
+          return callback(new Error('CORS: CORS_ORIGIN env var not set in production'));
+        }
+        return callback(null, true);
+      }
+      if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+      return callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+  }),
+);
+
+// 3. Attach key context (reads key from header, stores truncated hash for logs)
+app.use(attachKeyContext);
+
+// 4. Rate limiting (before auth — prevents brute force auth enumeration)
+app.use(autoRateLimiter);
+
+// 5. API key authentication
+app.use(apiKeyAuth);
+
+// 6. Body parsing with strict size limits (1MB prevents DoS via large payloads)
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+// 7. Input sanitization (after body parse, before route handlers)
+app.use(inputSanitizer);
+
+// ──────────────────────────────────────────────────────────────────────────────
 
 // Brand context middleware (mock)
 const mockBrand = BrandProfileSchema.parse({
@@ -173,8 +228,8 @@ app.use('/api/consistency', consistencyLockRoutes);
 // Mount football meme routes (@433 style viral designs)
 app.use('/api/football', footballMemeRoutes);
 
-// Mount admin dashboard (monitoring + metrics + optimization)
-app.use('/api/admin', adminDashboardRoutes);
+// Mount admin dashboard (monitoring + metrics + optimization) — requires admin key
+app.use('/api/admin', adminKeyAuth, adminDashboardRoutes);
 
 // Mount creativity/ocurrencia routes (wit analysis + twist injection + cliché removal)
 app.use('/api/creativity', creativityRoutes);
@@ -214,7 +269,6 @@ app.use('/api/engagement', engagementRoutes);
 
 // Browserless settings routes (per-user API key management for SaaS)
 app.use('/api/settings/browserless', browserlessSettingsRoutes);
-
 
 // Studio routes (carousel, reel, stories, vision, predictor generation)
 app.use('/api/studio', createStudioRoutes(mockBrand));
