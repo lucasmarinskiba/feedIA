@@ -307,6 +307,16 @@ try {
   log.warn('[Database] Failed to initialize real database, using mock fallback', error);
 }
 
+const mockDbConnection = {
+  prepare: (sql: string) => ({
+    run: (...args: any[]) => ({ changes: 0 }),
+    get: (...args: any[]) => null,
+    all: (...args: any[]) => [],
+  }),
+  exec: (sql: string) => undefined,
+  transaction: (fn: Function) => fn,
+};
+
 const mockDatabase = {
   initialize: async () => {
     log.warn('[MockDatabase] initialize called (real DB unavailable)');
@@ -318,7 +328,7 @@ const mockDatabase = {
   getPromptsByBatch: () => [],
   storeVariation: () => false,
   getStats: () => ({ tables: 0, totalRecords: 0 }),
-  getConnection: () => ({}),
+  getConnection: () => mockDbConnection,
   close: () => {
     log.info('[MockDatabase] close called');
   },
