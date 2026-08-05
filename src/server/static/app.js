@@ -36,6 +36,7 @@ const V = (path, name) => {
 
 const ROUTES = {
   feed: V('./views/feed.js', 'renderFeed'),
+  'carousel-metrics': V('./views/carouselMetrics.js', 'renderCarouselMetrics'),
   'studio-carousel': V('./views/studioCarousel.js', 'renderCarouselStudio'),
   'studio-reel': V('./views/studioReel.js', 'renderReelStudio'),
   'studio-stories': V('./views/studioStories.js', 'renderStoriesStudio'),
@@ -161,8 +162,10 @@ const ROUTE_LABELS = {
   'studio-manager':
     'Studio Manager · CU Brain · Master Brain · Queue · A/B Tests · DMs · Hashtags · Trending · Competidores',
   admin: 'Admin · Monitoreo · Métricas · Logs · Observabilidad · Sistema',
-  diseñador: 'Diseñador IA · Quitar fondo · Remove background · Upscale · Paleta · Tipografías · Slide HTML · Canva · Diseño gráfico · Instagram · TikTok',
-  visión: 'Visión IA · Computer Vision · Spy competidor · Analizar pantalla · Extraer métricas · Loop see-act · Verificar paso · Competencia · Screenshot',
+  diseñador:
+    'Diseñador IA · Quitar fondo · Remove background · Upscale · Paleta · Tipografías · Slide HTML · Canva · Diseño gráfico · Instagram · TikTok',
+  visión:
+    'Visión IA · Computer Vision · Spy competidor · Analizar pantalla · Extraer métricas · Loop see-act · Verificar paso · Competencia · Screenshot',
 };
 
 /* ══════════════════════════════════════════════════════════
@@ -231,10 +234,12 @@ const navigate = async (route) => {
     else console.error('[navigate] getView() null — #view not in DOM');
     /* Imágenes: lazy + decode async (no bloquean el primer pintado) */
     try {
-      getView().querySelectorAll('img:not([loading])').forEach((i) => {
-        i.loading = 'lazy';
-        i.decoding = 'async';
-      });
+      getView()
+        .querySelectorAll('img:not([loading])')
+        .forEach((i) => {
+          i.loading = 'lazy';
+          i.decoding = 'async';
+        });
     } catch {
       /* noop */
     }
