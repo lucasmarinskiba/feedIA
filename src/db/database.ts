@@ -318,6 +318,7 @@ const mockDatabase = {
   getPromptsByBatch: () => [],
   storeVariation: () => false,
   getStats: () => ({ tables: 0, totalRecords: 0 }),
+  getConnection: () => ({}),
   close: () => {
     log.info('[MockDatabase] close called');
   },
