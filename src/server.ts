@@ -1,8 +1,12 @@
 import express, { Express, Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { log } from './agent/logger.js';
 import { initSentry, captureException } from './observability/sentry.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Initialize error tracking before anything else can throw (no-op if SENTRY_DSN unset)
 initSentry();
@@ -240,11 +244,17 @@ app.use('/api/analytics', carouselAnalyticsRoutes);
 app.use('/api/carousel', carouselGenerationIntegrationRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
+// Use __dirname for absolute paths (works in Railway serverless env)
 const STATIC_CANDIDATES = [
+  path.resolve(__dirname, '../../dist-static'),
+  path.resolve(__dirname, './static'),
   path.resolve(process.cwd(), 'dist-static'),
   path.resolve(process.cwd(), 'src/server/static'),
 ];
 const staticDir = STATIC_CANDIDATES.find((d) => fs.existsSync(d)) ?? null;
+if (staticDir) {
+  log.info('[Server] Serving static files from', { staticDir });
+}
 if (staticDir) {
   app.use(express.static(staticDir));
   // SPA catch-all: serve index.html for all unmatched routes (express 5 compat: use app.use not app.get('*'))
