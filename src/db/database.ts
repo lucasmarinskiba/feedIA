@@ -301,10 +301,16 @@ class FeedIADatabase {
 // The fallback returns safe no-op values so routes don't crash entirely.
 let feedIADatabaseInstance: FeedIADatabase | null = null;
 
-try {
-  feedIADatabaseInstance = new FeedIADatabase();
-} catch (error) {
-  log.warn('[Database] Failed to initialize real database, using mock fallback', error);
+// Force mock database on Railway (ephemeral filesystem, no persistent SQLite)
+const isRailway = !!process.env.RAILWAY_SERVICE_NAME;
+if (isRailway) {
+  log.warn('[Database] Running on Railway — using mock database (ephemeral filesystem)');
+} else {
+  try {
+    feedIADatabaseInstance = new FeedIADatabase();
+  } catch (error) {
+    log.warn('[Database] Failed to initialize real database, using mock fallback', error);
+  }
 }
 
 const mockDbConnection = {
