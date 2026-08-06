@@ -19,9 +19,10 @@
 import { buildBrandPrompt, generateBrandedImage } from './_brandStudio.js';
 import { validateCarousel, carouselRulesPromptText, buildValidatedStructure } from './_carouselViralRules.js';
 import { predictVirality } from './_viralPredictor.js';
-import { igPublish, ttPublish, connectionStatus } from './_socialConnect.js';
+import { igPublish, igPublishCarousel, ttPublish, connectionStatus } from './_socialConnect.js';
 import { recordPlan } from './_accountMemory.js';
 import { composeCarousel, deriveSlidesText } from './_carouselComposer.js';
+import { hostCarouselSlides } from './_imageHost.js';
 import { askLLMJson } from './_llm.js';
 import { runAndromeda } from './_andromeda.js';
 import {
@@ -104,7 +105,15 @@ const tryCanvaSlides = async ({ scope, slidesText, brandColors, mood = 'premium'
     const jobId = exp?.job?.id;
     if (!jobId) continue;
     const urls = await pollCanvaExport(scope, jobId, 15000);
-    if (urls?.[0]) slideUrls.push({ role: sl.role, title: sl.title, body: sl.body, dataUrl: urls[0], canvaTemplateId: tplId, canvaTemplateName: tpl.title || tpl.name || '' });
+    if (urls?.[0])
+      slideUrls.push({
+        role: sl.role,
+        title: sl.title,
+        body: sl.body,
+        dataUrl: urls[0],
+        canvaTemplateId: tplId,
+        canvaTemplateName: tpl.title || tpl.name || '',
+      });
   }
   return slideUrls.length ? slideUrls : null;
 };
@@ -410,7 +419,26 @@ export const createAutonomousPost = async ({
     const conn = await connectionStatus(scope).catch(() => ({}));
     const fullCaption = `${caption}\n\n${cta}\n\n${hashtags.join(' ')}`.trim();
     if (platform === 'instagram' && conn?.instagram?.connected) {
-      if (publicUrl) {
+      if (format === 'carousel' && carouselSlides?.length >= 2) {
+        step(
+          `🖼️ Preparando ${carouselSlides.length} slides para publicar (rasterizando/hosteando los que hagan falta)…`,
+        );
+        const hosted = await withBudget(hostCarouselSlides(carouselSlides.map((s) => s.dataUrl)), Date.now() + 20_000, {
+          error: 'host-timeout',
+          message: 'Hosteo de slides pasó el budget (Vercel 60s).',
+        });
+        if (hosted.error) {
+          status = 'no-public-url';
+          step(`⚠️ No se pudieron hostear todos los slides (${hosted.message}).`);
+        } else {
+          step('📤 Publicando carrusel en Instagram (API oficial)…');
+          publishResult = await igPublishCarousel(scope, { imageUrls: hosted.urls, caption: fullCaption });
+          status = publishResult?.ok ? 'published' : 'publish-failed';
+        }
+      } else if (format === 'carousel') {
+        status = 'no-public-url';
+        step('⚠️ Carrusel sin suficientes slides para publicar (mínimo 2).');
+      } else if (publicUrl) {
         step('📤 Publicando en Instagram (API oficial)…');
         publishResult = await igPublish(scope, { imageUrl: publicUrl, caption: fullCaption });
         status = publishResult?.ok ? 'published' : 'publish-failed';
@@ -513,12 +541,14 @@ export const handleAutopilotCreate = async (req, res, path, m, body, ctx = {}) =
         scope: ctx.userId || 'anon',
       });
       if (ctx.userId) {
-        import('./_achievements.js').then(a => {
-          a.onWorkflowExecuted(ctx.userId).catch(() => {});
-          if (result?.status === 'published') {
-            a.onPostPublished(ctx.userId, {}).catch(() => {});
-          }
-        }).catch(() => {});
+        import('./_achievements.js')
+          .then((a) => {
+            a.onWorkflowExecuted(ctx.userId).catch(() => {});
+            if (result?.status === 'published') {
+              a.onPostPublished(ctx.userId, {}).catch(() => {});
+            }
+          })
+          .catch(() => {});
       }
       return json(200, { ok: true, ...result });
     } catch (e) {

@@ -141,6 +141,59 @@ export const igPublish = async (scope, { imageUrl, caption }) => {
   return { ok: true, mediaId: pj.id };
 };
 
+// Publica CARRUSEL en IG (2-10 imágenes): N children (is_carousel_item) →
+// container padre (media_type CAROUSEL) → publish. Todas las imageUrls
+// deben ser URLs públicas HTTPS (ver _imageHost.js para rasterizar+hostear
+// slides SVG antes de llamar acá).
+export const igPublishCarousel = async (scope, { imageUrls, caption }) => {
+  const t = await getToken(scope, 'instagram');
+  if (!t?.accessToken) return { error: 'not-connected', message: 'Conectá tu cuenta de Instagram primero.' };
+  if (!Array.isArray(imageUrls) || imageUrls.length < 2) {
+    return { error: 'no-media', message: 'Un carrusel necesita al menos 2 imágenes públicas.' };
+  }
+  if (imageUrls.length > 10) {
+    return { error: 'too-many', message: 'Instagram permite máximo 10 imágenes por carrusel.' };
+  }
+
+  // 1) crear un container hijo por cada slide
+  const childIds = [];
+  for (const imageUrl of imageUrls) {
+    const cr = await fetch(`${IG_GRAPH}/v21.0/${t.igUserId}/media`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ image_url: imageUrl, is_carousel_item: true, access_token: t.accessToken }),
+    });
+    const cj = await cr.json();
+    if (!cj.id)
+      return { error: 'child-container', message: JSON.stringify(cj).slice(0, 200), childrenCreated: childIds.length };
+    childIds.push(cj.id);
+  }
+
+  // 2) crear container padre referenciando los children
+  const pcr = await fetch(`${IG_GRAPH}/v21.0/${t.igUserId}/media`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      media_type: 'CAROUSEL',
+      children: childIds,
+      caption: caption || '',
+      access_token: t.accessToken,
+    }),
+  });
+  const pcj = await pcr.json();
+  if (!pcj.id) return { error: 'carousel-container', message: JSON.stringify(pcj).slice(0, 200) };
+
+  // 3) publicar
+  const pr = await fetch(`${IG_GRAPH}/v21.0/${t.igUserId}/media_publish`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ creation_id: pcj.id, access_token: t.accessToken }),
+  });
+  const pj = await pr.json();
+  if (!pj.id) return { error: 'publish', message: JSON.stringify(pj).slice(0, 200) };
+  return { ok: true, mediaId: pj.id, slideCount: childIds.length };
+};
+
 // Lee insights reales de los últimos posts → los registra en la memoria por cuenta.
 export const igSyncInsights = async (scope, accountId) => {
   const t = await getToken(scope, 'instagram');
