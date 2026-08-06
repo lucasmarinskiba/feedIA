@@ -17,7 +17,7 @@ import { getCapabilities } from './_capabilities.js';
 import * as store from './_store.js';
 
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || '';
-const FAL_KEY = process.env.FAL_API_KEY || '';
+const FAL_KEY = process.env.FAL_KEY || '';
 
 // Per-user daily cap para free users sin BYOK (protege pool compartido Groq)
 const FREE_NO_BYOK_DAILY_CAP = 20;

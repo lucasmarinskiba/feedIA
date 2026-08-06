@@ -26,7 +26,7 @@ const HF_KEY = process.env.HUGGINGFACE_API_KEY || '';
 const CF_AI_TOKEN = process.env.CLOUDFLARE_AI_TOKEN || '';
 const CF_AI_ACCOUNT = process.env.CLOUDFLARE_AI_ACCOUNT_ID || '';
 const REPLICATE_KEY = process.env.REPLICATE_API_TOKEN || '';
-const FAL_KEY = process.env.FAL_API_KEY || '';
+const FAL_KEY = process.env.FAL_KEY || '';
 const POLLINATIONS_VIDEO_TOKEN = process.env.POLLINATIONS_TOKEN || '';
 
 export const VIDEO_PROVIDERS = {
@@ -139,7 +139,7 @@ export const VIDEO_PROVIDERS = {
     costToDevPerSec: 0.1,
     bestFor: ['cinematic', 'storytelling', 'pro-content'],
     requiresKey: true,
-    keyName: 'FAL_API_KEY',
+    keyName: 'FAL_KEY',
     enabled: Boolean(FAL_KEY),
   },
   'fal-kling-1.6-standard': {

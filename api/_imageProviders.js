@@ -28,7 +28,7 @@ const CF_AI_TOKEN = process.env.CLOUDFLARE_AI_TOKEN || '';
 const CF_AI_ACCOUNT = process.env.CLOUDFLARE_AI_ACCOUNT_ID || '';
 const TOGETHER_KEY = process.env.TOGETHER_API_KEY || '';
 const REPLICATE_KEY = process.env.REPLICATE_API_TOKEN || '';
-const FAL_KEY = process.env.FAL_API_KEY || '';
+const FAL_KEY = process.env.FAL_KEY || '';
 const STABILITY_KEY = process.env.STABILITY_API_KEY || '';
 const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
 
@@ -152,7 +152,7 @@ export const IMAGE_PROVIDERS = {
     maxResolution: '1024x1024',
     costToDev: 0.0035,
     requiresKey: true,
-    keyName: 'FAL_API_KEY',
+    keyName: 'FAL_KEY',
     bestFor: ['production', 'fast'],
     enabled: Boolean(FAL_KEY),
   },
