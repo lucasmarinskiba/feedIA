@@ -46,6 +46,7 @@ import { startPollingScheduler } from './workers/metricsPollingOrchestrator.js';
 import createStudioRoutes from './server/studioRoutes.js';
 import helmet from 'helmet';
 import cors from 'cors';
+import compression from 'compression';
 import { apiKeyAuth, adminKeyAuth, attachKeyContext } from './middleware/auth.js';
 import { autoRateLimiter } from './middleware/rate-limiter.js';
 import { inputSanitizer } from './middleware/input-sanitizer.js';
@@ -84,7 +85,20 @@ app.use(
   }),
 );
 
-// 2. CORS — explicit origin allowlist, never wildcard in production
+// 2. Response compression (gzip/brotli) — cuts bandwidth on JSON-heavy
+// endpoints (prompt batches, carousel payloads). Skips already-compressed
+// content (images, video) via default filter, and requests with `x-no-compression`.
+app.use(
+  compression({
+    threshold: 1024, // don't bother compressing tiny responses
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) return false;
+      return compression.filter(req, res);
+    },
+  }),
+);
+
+// 3. CORS — explicit origin allowlist, never wildcard in production
 const ALLOWED_ORIGINS = (process.env.CORS_ORIGIN ?? '')
   .split(',')
   .map((o) => o.trim())
@@ -111,20 +125,20 @@ app.use(
   }),
 );
 
-// 3. Attach key context (reads key from header, stores truncated hash for logs)
+// 4. Attach key context (reads key from header, stores truncated hash for logs)
 app.use(attachKeyContext);
 
-// 4. Rate limiting (before auth — prevents brute force auth enumeration)
+// 5. Rate limiting (before auth — prevents brute force auth enumeration)
 app.use(autoRateLimiter);
 
-// 5. API key authentication
+// 6. API key authentication
 app.use(apiKeyAuth);
 
-// 6. Body parsing with strict size limits (1MB prevents DoS via large payloads)
+// 7. Body parsing with strict size limits (1MB prevents DoS via large payloads)
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-// 7. Input sanitization (after body parse, before route handlers)
+// 8. Input sanitization (after body parse, before route handlers)
 app.use(inputSanitizer);
 
 // ──────────────────────────────────────────────────────────────────────────────

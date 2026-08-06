@@ -128,6 +128,41 @@ CREATE TABLE IF NOT EXISTS favorite_prompts (
   FOREIGN KEY (prompt_id) REFERENCES prompts(id)
 );
 
+-- Polling Jobs (scheduled metrics/engagement/feedback checks for published posts)
+CREATE TABLE IF NOT EXISTS polling_jobs (
+  postId TEXT PRIMARY KEY,
+  accountId TEXT NOT NULL,
+  platform TEXT NOT NULL, -- instagram, tiktok
+  format TEXT NOT NULL, -- carousel, reel, story, tiktok-video, tiktok-photo
+  publishedAt INTEGER NOT NULL,
+  nextMetricsCheck INTEGER NOT NULL,
+  nextEngagementCheck INTEGER NOT NULL,
+  nextFeedbackCheck INTEGER NOT NULL,
+  createdAt INTEGER NOT NULL
+);
+
+-- Token Budgets (monthly LLM spend tracking per account)
+CREATE TABLE IF NOT EXISTS token_budgets (
+  accountId TEXT PRIMARY KEY,
+  monthlyBudget REAL NOT NULL,
+  spent REAL NOT NULL DEFAULT 0,
+  resetAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL
+);
+
+-- Prompt Cache (generated prompt reuse, TTL-based)
+CREATE TABLE IF NOT EXISTS prompt_cache (
+  key TEXT PRIMARY KEY,
+  pillar TEXT NOT NULL,
+  variant TEXT NOT NULL,
+  platform TEXT NOT NULL, -- instagram, tiktok
+  brandNiche TEXT NOT NULL,
+  prompt TEXT NOT NULL,
+  qualityScore REAL NOT NULL,
+  expiresAt INTEGER NOT NULL,
+  createdAt INTEGER NOT NULL
+);
+
 -- Indexes for search performance (standalone — valid SQLite syntax)
 CREATE INDEX IF NOT EXISTS idx_prompts_batch_category ON prompts(batch_id, category);
 CREATE INDEX IF NOT EXISTS idx_variations_prompt_tone ON prompt_variations(prompt_id, tone);
@@ -141,3 +176,5 @@ CREATE INDEX IF NOT EXISTS idx_analytics_performance ON analytics(engagement_rat
 CREATE INDEX IF NOT EXISTS idx_analytics_content ON analytics(generated_content_id);
 CREATE INDEX IF NOT EXISTS idx_brand_user ON brand_profiles(user_id);
 CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorite_prompts(user_id);
+CREATE INDEX IF NOT EXISTS idx_polling_jobs_feedback_check ON polling_jobs(nextFeedbackCheck);
+CREATE INDEX IF NOT EXISTS idx_prompt_cache_expires ON prompt_cache(expiresAt);

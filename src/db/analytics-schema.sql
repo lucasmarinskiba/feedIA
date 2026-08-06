@@ -10,13 +10,18 @@ CREATE TABLE IF NOT EXISTS carousel_analytics (
   source VARCHAR(50), -- instagram, tiktok, direct, etc
   user_agent VARCHAR(500),
   referrer VARCHAR(500),
-  created_at TIMESTAMP DEFAULT NOW(),
-  INDEX idx_carousel_id (carousel_id),
-  INDEX idx_user_id (user_id),
-  INDEX idx_created_at (created_at),
-  INDEX idx_event_type (event_type),
-  INDEX idx_carousel_event (carousel_id, event_type)
+  created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Inline `INDEX name (cols)` inside CREATE TABLE is MySQL syntax, not valid
+-- PostgreSQL — pool.query(sql) in migrate.ts runs the whole file as one
+-- statement, so this table (and its indexes) never actually got created.
+-- Standalone CREATE INDEX below is the PostgreSQL-valid form.
+CREATE INDEX IF NOT EXISTS idx_carousel_analytics_carousel_id ON carousel_analytics(carousel_id);
+CREATE INDEX IF NOT EXISTS idx_carousel_analytics_user_id ON carousel_analytics(user_id);
+CREATE INDEX IF NOT EXISTS idx_carousel_analytics_created_at ON carousel_analytics(created_at);
+CREATE INDEX IF NOT EXISTS idx_carousel_analytics_event_type ON carousel_analytics(event_type);
+CREATE INDEX IF NOT EXISTS idx_carousel_analytics_carousel_event ON carousel_analytics(carousel_id, event_type);
 
 -- Create carousel_metrics_daily table for aggregated metrics
 CREATE TABLE IF NOT EXISTS carousel_metrics_daily (
@@ -32,10 +37,11 @@ CREATE TABLE IF NOT EXISTS carousel_metrics_daily (
   clicks INT DEFAULT 0,
   engagement_rate DECIMAL(5, 2),
   created_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE (carousel_id, date),
-  INDEX idx_user_id_date (user_id, date),
-  INDEX idx_carousel_date (carousel_id, date)
+  UNIQUE (carousel_id, date)
 );
+
+CREATE INDEX IF NOT EXISTS idx_carousel_metrics_daily_user_date ON carousel_metrics_daily(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_carousel_metrics_daily_carousel_date ON carousel_metrics_daily(carousel_id, date);
 
 -- Add tier-based retention to users table (if not exists)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS analytics_retention_days INT DEFAULT 90;

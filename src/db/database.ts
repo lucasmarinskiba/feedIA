@@ -40,9 +40,51 @@ interface PromptVariationRecord {
   version: number;
 }
 
-class FeedIADatabase {
+interface CountRow {
+  count: number;
+}
+
+export interface DatabaseStats {
+  prompts: number;
+  variations: number;
+  images: number;
+  content: number;
+  timestamp: string;
+}
+
+export interface IFeedIADatabase {
+  getConnection(): Database.Database;
+  initialize(): Promise<void>;
+  storePrompt(prompt: PromptRecord): boolean;
+  storePromptsBatch(prompts: PromptRecord[]): number;
+  storeUserImage(image: UserImageRecord): string | null;
+  findMatchingPrompts(imageId: string, limit?: number): PromptVariationRecord[];
+  storeVariation(variation: PromptVariationRecord): boolean;
+  getPromptsByBatchCategory(batchId: string, category: string): PromptRecord[];
+  getPromptsByBatch(batchId: string): PromptRecord[];
+  getStats(): DatabaseStats;
+  close(): void;
+}
+
+class FeedIADatabase implements IFeedIADatabase {
   private db: Database.Database;
   private initialized = false;
+
+  // Prepared statements are compiled once (after schema init) and reused —
+  // db.prepare() recompiles SQL on every call, which is wasted work on hot
+  // paths like storePrompt/findMatchingPrompts under batch load.
+  private statements!: {
+    insertPrompt: Database.Statement;
+    insertUserImage: Database.Statement;
+    insertVariation: Database.Statement;
+    findMatchingPrompts: Database.Statement;
+    getPromptsByBatchCategory: Database.Statement;
+    getPromptsByBatch: Database.Statement;
+    countPrompts: Database.Statement;
+    countVariations: Database.Statement;
+    countImages: Database.Statement;
+    countContent: Database.Statement;
+  };
 
   constructor() {
     try {
@@ -59,12 +101,12 @@ class FeedIADatabase {
   /**
    * Get database connection
    */
-  getConnection(): any {
+  getConnection(): Database.Database {
     return this.db;
   }
 
   /**
-   * Initialize database schema
+   * Initialize database schema + compile prepared statements
    */
   async initialize(): Promise<void> {
     try {
@@ -72,6 +114,7 @@ class FeedIADatabase {
       const schema = fs.readFileSync(schemaPath, 'utf-8');
 
       this.db.exec(schema);
+      this.prepareStatements();
       this.initialized = true;
       log.info('[Database] Schema initialized');
     } catch (error) {
@@ -80,17 +123,50 @@ class FeedIADatabase {
     }
   }
 
+  private prepareStatements(): void {
+    this.statements = {
+      insertPrompt: this.db.prepare(`
+        INSERT INTO prompts (id, batch_id, category, base_template, placeholders, required_params, optional_params, specs)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `),
+      insertUserImage: this.db.prepare(`
+        INSERT INTO user_images (id, user_id, image_path, image_hash, features_json, embedding_vector)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `),
+      insertVariation: this.db.prepare(`
+        INSERT INTO prompt_variations (id, prompt_id, variation_text, tone, emotional_arc, duration, version)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `),
+      findMatchingPrompts: this.db.prepare(`
+        SELECT pv.* FROM prompt_variations pv
+        INNER JOIN prompt_matches pm ON pv.id = pm.prompt_variation_id
+        WHERE pm.user_image_id = ?
+        ORDER BY pm.similarity_score DESC
+        LIMIT ?
+      `),
+      getPromptsByBatchCategory: this.db.prepare(`
+        SELECT * FROM prompts
+        WHERE batch_id = ? AND category = ?
+        LIMIT 100
+      `),
+      getPromptsByBatch: this.db.prepare(`
+        SELECT * FROM prompts
+        WHERE batch_id = ?
+        ORDER BY id ASC
+      `),
+      countPrompts: this.db.prepare('SELECT COUNT(*) as count FROM prompts'),
+      countVariations: this.db.prepare('SELECT COUNT(*) as count FROM prompt_variations'),
+      countImages: this.db.prepare('SELECT COUNT(*) as count FROM user_images'),
+      countContent: this.db.prepare('SELECT COUNT(*) as count FROM generated_content'),
+    };
+  }
+
   /**
    * Store prompt in database
    */
   storePrompt(prompt: PromptRecord): boolean {
     try {
-      const stmt = this.db.prepare(`
-        INSERT INTO prompts (id, batch_id, category, base_template, placeholders, required_params, optional_params, specs)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `);
-
-      stmt.run(
+      this.statements.insertPrompt.run(
         prompt.id,
         prompt.batch_id,
         prompt.category,
@@ -98,7 +174,7 @@ class FeedIADatabase {
         prompt.placeholders,
         prompt.required_params,
         prompt.optional_params || null,
-        prompt.specs || null
+        prompt.specs || null,
       );
 
       return true;
@@ -113,10 +189,7 @@ class FeedIADatabase {
    */
   storePromptsBatch(prompts: PromptRecord[]): number {
     try {
-      const insertStmt = this.db.prepare(`
-        INSERT INTO prompts (id, batch_id, category, base_template, placeholders, required_params, optional_params, specs)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `);
+      const insertStmt = this.statements.insertPrompt;
 
       const transaction = this.db.transaction((batch: PromptRecord[]) => {
         let count = 0;
@@ -130,11 +203,11 @@ class FeedIADatabase {
               prompt.placeholders,
               prompt.required_params,
               prompt.optional_params || null,
-              prompt.specs || null
+              prompt.specs || null,
             );
             count++;
-          } catch (e) {
-            log.warn('[Database] Skipped prompt on batch insert', { id: prompt.id });
+          } catch (error) {
+            log.warn('[Database] Skipped prompt on batch insert', { id: prompt.id, error });
           }
         }
         return count;
@@ -154,18 +227,13 @@ class FeedIADatabase {
    */
   storeUserImage(image: UserImageRecord): string | null {
     try {
-      const stmt = this.db.prepare(`
-        INSERT INTO user_images (id, user_id, image_path, image_hash, features_json, embedding_vector)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `);
-
-      stmt.run(
+      this.statements.insertUserImage.run(
         image.id,
         image.user_id || null,
         image.image_path,
         image.image_hash,
         image.features_json,
-        image.embedding_vector || null
+        image.embedding_vector || null,
       );
 
       log.info('[Database] Image stored', { id: image.id, user: image.user_id });
@@ -181,16 +249,7 @@ class FeedIADatabase {
    */
   findMatchingPrompts(imageId: string, limit: number = 50): PromptVariationRecord[] {
     try {
-      const stmt = this.db.prepare(`
-        SELECT pv.* FROM prompt_variations pv
-        INNER JOIN prompt_matches pm ON pv.id = pm.prompt_variation_id
-        WHERE pm.user_image_id = ?
-        ORDER BY pm.similarity_score DESC
-        LIMIT ?
-      `);
-
-      const results = stmt.all(imageId, limit) as PromptVariationRecord[];
-      return results;
+      return this.statements.findMatchingPrompts.all(imageId, limit) as PromptVariationRecord[];
     } catch (error) {
       log.error('[Database] Find matching prompts failed', { imageId, error });
       return [];
@@ -202,19 +261,14 @@ class FeedIADatabase {
    */
   storeVariation(variation: PromptVariationRecord): boolean {
     try {
-      const stmt = this.db.prepare(`
-        INSERT INTO prompt_variations (id, prompt_id, variation_text, tone, emotional_arc, duration, version)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `);
-
-      stmt.run(
+      this.statements.insertVariation.run(
         variation.id,
         variation.prompt_id,
         variation.variation_text,
         variation.tone || null,
         variation.emotional_arc || null,
         variation.duration || null,
-        variation.version
+        variation.version,
       );
 
       return true;
@@ -229,13 +283,7 @@ class FeedIADatabase {
    */
   getPromptsByBatchCategory(batchId: string, category: string): PromptRecord[] {
     try {
-      const stmt = this.db.prepare(`
-        SELECT * FROM prompts
-        WHERE batch_id = ? AND category = ?
-        LIMIT 100
-      `);
-
-      return stmt.all(batchId, category) as PromptRecord[];
+      return this.statements.getPromptsByBatchCategory.all(batchId, category) as PromptRecord[];
     } catch (error) {
       log.error('[Database] Get prompts failed', { batchId, category, error });
       return [];
@@ -247,13 +295,7 @@ class FeedIADatabase {
    */
   getPromptsByBatch(batchId: string): PromptRecord[] {
     try {
-      const stmt = this.db.prepare(`
-        SELECT * FROM prompts
-        WHERE batch_id = ?
-        ORDER BY id ASC
-      `);
-
-      return stmt.all(batchId) as PromptRecord[];
+      return this.statements.getPromptsByBatch.all(batchId) as PromptRecord[];
     } catch (error) {
       log.error('[Database] Get batch prompts failed', { batchId, error });
       return [];
@@ -263,12 +305,12 @@ class FeedIADatabase {
   /**
    * Get library statistics
    */
-  getStats(): Record<string, any> {
+  getStats(): DatabaseStats {
     try {
-      const promptCount = (this.db.prepare('SELECT COUNT(*) as count FROM prompts').get() as any).count;
-      const variationCount = (this.db.prepare('SELECT COUNT(*) as count FROM prompt_variations').get() as any).count;
-      const imageCount = (this.db.prepare('SELECT COUNT(*) as count FROM user_images').get() as any).count;
-      const contentCount = (this.db.prepare('SELECT COUNT(*) as count FROM generated_content').get() as any).count;
+      const promptCount = (this.statements.countPrompts.get() as CountRow).count;
+      const variationCount = (this.statements.countVariations.get() as CountRow).count;
+      const imageCount = (this.statements.countImages.get() as CountRow).count;
+      const contentCount = (this.statements.countContent.get() as CountRow).count;
 
       return {
         prompts: promptCount,
@@ -279,7 +321,7 @@ class FeedIADatabase {
       };
     } catch (error) {
       log.error('[Database] Stats query failed', error);
-      return {};
+      return { prompts: 0, variations: 0, images: 0, content: 0, timestamp: new Date().toISOString() };
     }
   }
 
@@ -313,31 +355,25 @@ if (isRailway) {
   }
 }
 
-const mockDbConnection = {
-  prepare: (sql: string) => ({
-    run: (...args: any[]) => ({ changes: 0 }),
-    get: (...args: any[]) => null,
-    all: (...args: any[]) => [],
-  }),
-  exec: (sql: string) => undefined,
-  transaction: (fn: Function) => fn,
-};
-
-const mockDatabase = {
+const mockDatabase: IFeedIADatabase = {
+  getConnection: () => {
+    throw new Error('[MockDatabase] getConnection unavailable — real DB not initialized');
+  },
   initialize: async () => {
     log.warn('[MockDatabase] initialize called (real DB unavailable)');
     return Promise.resolve();
   },
-  storeUserImage: () => false,
   storePrompt: () => false,
+  storePromptsBatch: () => 0,
+  storeUserImage: () => null,
   findMatchingPrompts: () => [],
-  getPromptsByBatch: () => [],
   storeVariation: () => false,
-  getStats: () => ({ tables: 0, totalRecords: 0 }),
-  getConnection: () => mockDbConnection,
+  getPromptsByBatchCategory: () => [],
+  getPromptsByBatch: () => [],
+  getStats: () => ({ prompts: 0, variations: 0, images: 0, content: 0, timestamp: new Date().toISOString() }),
   close: () => {
     log.info('[MockDatabase] close called');
   },
 };
 
-export const feedIADatabase = (feedIADatabaseInstance || mockDatabase) as FeedIADatabase;
+export const feedIADatabase: IFeedIADatabase = feedIADatabaseInstance ?? mockDatabase;

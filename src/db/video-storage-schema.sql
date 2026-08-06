@@ -20,12 +20,16 @@ CREATE TABLE IF NOT EXISTS videos (
   encoding_status VARCHAR(20) DEFAULT 'queued', -- queued, encoding, complete, error
   instagram_url TEXT, -- 1080x1920 encoded version
   created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
-  INDEX idx_carousel_id (carousel_id),
-  INDEX idx_user_id (user_id),
-  INDEX idx_status (status),
-  INDEX idx_encoding_status (encoding_status)
+  updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Inline `INDEX name (cols)` inside CREATE TABLE is MySQL syntax, not valid
+-- PostgreSQL — migrate.ts runs the whole file as one pool.query(sql) call,
+-- so this table never actually got created against real Postgres.
+CREATE INDEX IF NOT EXISTS idx_videos_carousel_id ON videos(carousel_id);
+CREATE INDEX IF NOT EXISTS idx_videos_user_id ON videos(user_id);
+CREATE INDEX IF NOT EXISTS idx_videos_status ON videos(status);
+CREATE INDEX IF NOT EXISTS idx_videos_encoding_status ON videos(encoding_status);
 
 -- Add video storage quotas to pricing plans
 ALTER TABLE pricing_plans ADD COLUMN IF NOT EXISTS video_storage_gb INT DEFAULT 0;

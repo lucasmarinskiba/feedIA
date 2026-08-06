@@ -12,6 +12,33 @@
 import { log } from '../agent/logger.js';
 import { feedIADatabase } from '../db/database.js';
 
+interface PollingJobRow {
+  postId: string;
+  accountId: string;
+  platform: 'instagram' | 'tiktok';
+  format: 'carousel' | 'reel' | 'story' | 'tiktok-video' | 'tiktok-photo';
+  publishedAt: number;
+  nextMetricsCheck: number;
+  nextEngagementCheck: number;
+  nextFeedbackCheck: number;
+}
+
+interface BudgetRow {
+  monthlyBudget: number;
+  spent: number;
+  resetAt: number;
+}
+
+interface CachedPromptRow {
+  key: string;
+  pillar: string;
+  variant: string;
+  platform: 'instagram' | 'tiktok';
+  brandNiche: string;
+  prompt: string;
+  qualityScore: number;
+}
+
 /**
  * Save polling job to database
  */
@@ -26,13 +53,22 @@ export const persistPollingJob = async (
   nextFeedbackCheck: number,
 ): Promise<void> => {
   try {
-    const db = await feedIADatabase.getConnection();
+    const db = feedIADatabase.getConnection();
 
-    await db.run(
+    db.prepare(
       `INSERT OR REPLACE INTO polling_jobs
        (postId, accountId, platform, format, publishedAt, nextMetricsCheck, nextEngagementCheck, nextFeedbackCheck, createdAt)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [postId, accountId, platform, format, publishedAt, nextMetricsCheck, nextEngagementCheck, nextFeedbackCheck, Date.now()],
+    ).run(
+      postId,
+      accountId,
+      platform,
+      format,
+      publishedAt,
+      nextMetricsCheck,
+      nextEngagementCheck,
+      nextFeedbackCheck,
+      Date.now(),
     );
 
     log.debug('[Persistence] Polling job saved', { postId });
@@ -44,31 +80,21 @@ export const persistPollingJob = async (
 /**
  * Load polling jobs from database
  */
-export const loadPollingJobs = async (): Promise<
-  Array<{
-    postId: string;
-    accountId: string;
-    platform: 'instagram' | 'tiktok';
-    format: 'carousel' | 'reel' | 'story' | 'tiktok-video' | 'tiktok-photo';
-    publishedAt: number;
-    nextMetricsCheck: number;
-    nextEngagementCheck: number;
-    nextFeedbackCheck: number;
-  }>
-> => {
+export const loadPollingJobs = async (): Promise<PollingJobRow[]> => {
   try {
-    const db = await feedIADatabase.getConnection();
+    const db = feedIADatabase.getConnection();
 
-    const jobs = await db.all(
-      `SELECT postId, accountId, platform, format, publishedAt, nextMetricsCheck, nextEngagementCheck, nextFeedbackCheck
-       FROM polling_jobs
-       WHERE nextFeedbackCheck > ?`,
-      [Date.now() - 7 * 24 * 60 * 60 * 1000], // Last 7 days
-    );
+    const jobs = db
+      .prepare(
+        `SELECT postId, accountId, platform, format, publishedAt, nextMetricsCheck, nextEngagementCheck, nextFeedbackCheck
+         FROM polling_jobs
+         WHERE nextFeedbackCheck > ?`,
+      )
+      .all(Date.now() - 7 * 24 * 60 * 60 * 1000) as PollingJobRow[]; // Last 7 days
 
-    log.info('[Persistence] Polling jobs loaded', { count: jobs?.length || 0 });
+    log.info('[Persistence] Polling jobs loaded', { count: jobs.length });
 
-    return jobs || [];
+    return jobs;
   } catch (err) {
     log.error('[Persistence] Failed to load polling jobs', { error: String(err) });
     return [];
@@ -85,13 +111,12 @@ export const persistBudget = async (
   resetAt: number,
 ): Promise<void> => {
   try {
-    const db = await feedIADatabase.getConnection();
+    const db = feedIADatabase.getConnection();
 
-    await db.run(
+    db.prepare(
       `INSERT OR REPLACE INTO token_budgets (accountId, monthlyBudget, spent, resetAt, updatedAt)
        VALUES (?, ?, ?, ?, ?)`,
-      [accountId, monthlyBudget, spent, resetAt, Date.now()],
-    );
+    ).run(accountId, monthlyBudget, spent, resetAt, Date.now());
 
     log.debug('[Persistence] Budget saved', { accountId, spent });
   } catch (err) {
@@ -102,20 +127,19 @@ export const persistBudget = async (
 /**
  * Load token budget from database
  */
-export const loadBudget = async (accountId: string): Promise<{ monthlyBudget: number; spent: number; resetAt: number } | null> => {
+export const loadBudget = async (accountId: string): Promise<BudgetRow | null> => {
   try {
-    const db = await feedIADatabase.getConnection();
+    const db = feedIADatabase.getConnection();
 
-    const budget = await db.get(
-      `SELECT monthlyBudget, spent, resetAt FROM token_budgets WHERE accountId = ?`,
-      [accountId],
-    );
+    const budget = db
+      .prepare(`SELECT monthlyBudget, spent, resetAt FROM token_budgets WHERE accountId = ?`)
+      .get(accountId) as BudgetRow | undefined;
 
     if (budget) {
       log.debug('[Persistence] Budget loaded', { accountId, spent: budget.spent });
     }
 
-    return budget || null;
+    return budget ?? null;
   } catch (err) {
     log.error('[Persistence] Failed to load budget', { accountId, error: String(err) });
     return null;
@@ -136,13 +160,12 @@ export const persistCachedPrompt = async (
   expiresAt: number,
 ): Promise<void> => {
   try {
-    const db = await feedIADatabase.getConnection();
+    const db = feedIADatabase.getConnection();
 
-    await db.run(
+    db.prepare(
       `INSERT OR REPLACE INTO prompt_cache (key, pillar, variant, platform, brandNiche, prompt, qualityScore, expiresAt, createdAt)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [key, pillar, variant, platform, brandNiche, prompt, qualityScore, expiresAt, Date.now()],
-    );
+    ).run(key, pillar, variant, platform, brandNiche, prompt, qualityScore, expiresAt, Date.now());
 
     log.debug('[Persistence] Prompt cached', { key });
   } catch (err) {
@@ -153,33 +176,24 @@ export const persistCachedPrompt = async (
 /**
  * Load cached prompts from database (cleanup expired)
  */
-export const loadCachedPrompts = async (): Promise<
-  Array<{
-    key: string;
-    pillar: string;
-    variant: string;
-    platform: 'instagram' | 'tiktok';
-    brandNiche: string;
-    prompt: string;
-    qualityScore: number;
-  }>
-> => {
+export const loadCachedPrompts = async (): Promise<CachedPromptRow[]> => {
   try {
-    const db = await feedIADatabase.getConnection();
+    const db = feedIADatabase.getConnection();
 
     // Delete expired
-    await db.run(`DELETE FROM prompt_cache WHERE expiresAt < ?`, [Date.now()]);
+    db.prepare(`DELETE FROM prompt_cache WHERE expiresAt < ?`).run(Date.now());
 
-    const prompts = await db.all(
-      `SELECT key, pillar, variant, platform, brandNiche, prompt, qualityScore
-       FROM prompt_cache
-       WHERE expiresAt > ?`,
-      [Date.now()],
-    );
+    const prompts = db
+      .prepare(
+        `SELECT key, pillar, variant, platform, brandNiche, prompt, qualityScore
+         FROM prompt_cache
+         WHERE expiresAt > ?`,
+      )
+      .all(Date.now()) as CachedPromptRow[];
 
-    log.info('[Persistence] Cached prompts loaded', { count: prompts?.length || 0 });
+    log.info('[Persistence] Cached prompts loaded', { count: prompts.length });
 
-    return prompts || [];
+    return prompts;
   } catch (err) {
     log.error('[Persistence] Failed to load cached prompts', { error: String(err) });
     return [];
