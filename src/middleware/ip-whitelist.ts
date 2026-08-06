@@ -8,13 +8,41 @@ import { Request, Response, NextFunction } from 'express';
 import { carouselDB } from '../db/postgres.js';
 import { log } from '../agent/logger.js';
 
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: string;
+    }
+  }
+}
+
+interface UserPlanRow {
+  plan: string;
+}
+
+interface IpAddressRow {
+  ip_address: string;
+}
+
+interface WhitelistedIpRow {
+  ip_address: string;
+  description: string | null;
+  created_at: string;
+}
+
+export interface WhitelistedIp {
+  ip: string;
+  description: string | null;
+  created_at: string;
+}
+
 /**
  * Extract client IP from request
  */
 function getClientIp(req: Request): string {
   const forwarded = req.headers['x-forwarded-for'];
   if (typeof forwarded === 'string') {
-    return forwarded.split(',')[0].trim();
+    return forwarded.split(',')[0]?.trim() ?? '0.0.0.0';
   }
   return req.socket?.remoteAddress || '0.0.0.0';
 }
@@ -23,32 +51,36 @@ function getClientIp(req: Request): string {
  * IP whitelist middleware
  * Only allow if user's plan has IP whitelist enabled and IP is whitelisted
  */
-export const ipWhitelistMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const ipWhitelistMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Get user ID (assumes auth middleware sets this)
-    const userId = (req as any).userId;
+    const userId = req.userId;
 
     if (!userId) {
-      return next(); // No auth, skip IP check
+      next(); // No auth, skip IP check
+      return;
     }
 
     // Get user plan
-    const pool = (carouselDB as any).pool;
+    const pool = carouselDB.pool;
     if (!pool) {
-      return next(); // DB unavailable, skip
+      next(); // DB unavailable, skip
+      return;
     }
 
     const userResult = await pool.query(`SELECT plan FROM users WHERE id = $1`, [userId]);
 
     if (userResult.rows.length === 0) {
-      return res.status(401).json({ error: 'User not found' });
+      res.status(401).json({ error: 'User not found' });
+      return;
     }
 
-    const plan = (userResult.rows[0] as any).plan;
+    const plan = (userResult.rows[0] as UserPlanRow).plan;
 
     // Only Pro+ have IP whitelist
     if (plan === 'free') {
-      return next(); // No restriction
+      next(); // No restriction
+      return;
     }
 
     // Get whitelisted IPs for user
@@ -58,19 +90,21 @@ export const ipWhitelistMiddleware = async (req: Request, res: Response, next: N
 
     if (ipResult.rows.length === 0) {
       // No IPs whitelisted = deny access (Pro+ must configure)
-      return res.status(403).json({
+      res.status(403).json({
         error: 'No whitelisted IPs configured. Please add your IP in account settings.',
       });
+      return;
     }
 
-    const whitelistedIps = ipResult.rows.map((row: any) => row.ip_address);
+    const whitelistedIps = (ipResult.rows as IpAddressRow[]).map((row) => row.ip_address);
     const clientIp = getClientIp(req);
 
     if (!whitelistedIps.includes(clientIp)) {
       log.info('IP whitelist violation', { user_id: userId, client_ip: clientIp });
-      return res.status(403).json({
+      res.status(403).json({
         error: 'Access denied. Your IP is not whitelisted.',
       });
+      return;
     }
 
     // Log access
@@ -90,9 +124,9 @@ export const ipWhitelistMiddleware = async (req: Request, res: Response, next: N
 /**
  * Get whitelisted IPs for user
  */
-export async function getWhitelistedIps(userId: string): Promise<string[]> {
+export async function getWhitelistedIps(userId: string): Promise<WhitelistedIp[]> {
   try {
-    const pool = (carouselDB as any).pool;
+    const pool = carouselDB.pool;
     if (!pool) {
       return [];
     }
@@ -104,7 +138,7 @@ export async function getWhitelistedIps(userId: string): Promise<string[]> {
       [userId],
     );
 
-    return result.rows.map((row: any) => ({
+    return (result.rows as WhitelistedIpRow[]).map((row) => ({
       ip: row.ip_address,
       description: row.description,
       created_at: row.created_at,
@@ -120,7 +154,7 @@ export async function getWhitelistedIps(userId: string): Promise<string[]> {
  */
 export async function addWhitelistedIp(userId: string, ip: string, description?: string): Promise<boolean> {
   try {
-    const pool = (carouselDB as any).pool;
+    const pool = carouselDB.pool;
     if (!pool) {
       return false;
     }
@@ -150,7 +184,7 @@ export async function addWhitelistedIp(userId: string, ip: string, description?:
  */
 export async function removeWhitelistedIp(userId: string, ip: string): Promise<boolean> {
   try {
-    const pool = (carouselDB as any).pool;
+    const pool = carouselDB.pool;
     if (!pool) {
       return false;
     }
