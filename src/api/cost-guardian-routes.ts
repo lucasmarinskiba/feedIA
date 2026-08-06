@@ -8,8 +8,9 @@
  * POST /api/cost-guardian/revenue   — registrar ingreso (manual/stripe)
  * GET  /api/cost-guardian/status    — estado financiero unificado (?days=30)
  * GET  /api/cost-guardian/history   — historial de costos + ingresos (?limit=100)
- * POST /api/cost-guardian/config    — actualizar política (railway cost, ceiling, ratio)
- * GET  /api/cost-guardian/config    — leer política actual
+ * POST   /api/cost-guardian/config          — set/update fixed monthly costs, ceiling, ratio (merge por clave)
+ * GET    /api/cost-guardian/config          — leer política actual
+ * DELETE /api/cost-guardian/config/fixed-cost/:name — eliminar un costo fijo mensual
  */
 
 import express, { Request, Response } from 'express';
@@ -22,6 +23,7 @@ import {
   evaluateAndAlert,
   getConfig,
   updateConfig,
+  removeFixedMonthlyCost,
   getCostHistory,
   getRevenueHistory,
   type CostSource,
@@ -44,11 +46,16 @@ const RevenueSchema = z.object({
 
 const ConfigSchema = z
   .object({
-    railwayMonthlyCostUsd: z.number().nonnegative().optional(),
+    // Merge por clave — { railway: 20 } solo actualiza "railway", no borra las demás.
+    fixedMonthlyCosts: z.record(z.string(), z.number().nonnegative()).optional(),
     preRevenueCeilingUsd: z.number().positive().optional(),
     revenueRatioLimitPct: z.number().positive().max(100).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'At least one field required' });
+
+const RemoveFixedCostSchema = z.object({
+  name: z.string().min(1),
+});
 
 router.post('/cost', (req: Request, res: Response): void => {
   const parsed = CostSchema.safeParse(req.body);
@@ -121,6 +128,21 @@ router.post('/config', (req: Request, res: Response): void => {
     res.json({ ok: true, config });
   } catch (err) {
     log.error('[CostGuardianRoutes] Failed to update config', { error: String(err) });
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+router.delete('/config/fixed-cost/:name', (req: Request, res: Response): void => {
+  const parsed = RemoveFixedCostSchema.safeParse({ name: req.params.name });
+  if (!parsed.success) {
+    res.status(400).json({ ok: false, error: parsed.error.issues });
+    return;
+  }
+  try {
+    const config = removeFixedMonthlyCost(parsed.data.name);
+    res.json({ ok: true, config });
+  } catch (err) {
+    log.error('[CostGuardianRoutes] Failed to remove fixed cost', { error: String(err) });
     res.status(500).json({ ok: false, error: String(err) });
   }
 });

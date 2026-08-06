@@ -51,8 +51,13 @@ export interface RevenueEntry {
 }
 
 export interface CostGuardianConfig {
-  /** Costo mensual fijo de Railway en USD — vos lo actualizás cuando cambia el plan. */
-  railwayMonthlyCostUsd: number;
+  /**
+   * Costos fijos mensuales recurrentes en USD, por nombre libre — Railway,
+   * suscripción Claude Pro/Max, Backblaze, cualquier otro abono mensual.
+   * Cada uno se prorratea igual por la ventana consultada. Ejemplo:
+   * { railway: 20, "claude-pro": 20, backblaze: 6 }
+   */
+  fixedMonthlyCosts: Record<string, number>;
   /** Tope de gasto mensual en modo pre-revenue (sin ingresos aún). */
   preRevenueCeilingUsd: number;
   /** % de la recaudación que el gasto puede ocupar como máximo, en modo revenue. */
@@ -71,7 +76,7 @@ const PATH = resolve('data/runtime/costGuardianLedger.json');
 const MAX_ENTRIES = 2000; // ~años de historial diario antes de podar
 
 const DEFAULT_CONFIG: CostGuardianConfig = {
-  railwayMonthlyCostUsd: 0,
+  fixedMonthlyCosts: {},
   preRevenueCeilingUsd: 30, // conservador — pre-lanzamiento, sin usuarios pagos
   revenueRatioLimitPct: 30, // gasto ≤ 30% de lo recaudado, una vez que hay ingresos
 };
@@ -128,11 +133,34 @@ export const recordRevenue = (source: RevenueSource, amountUsd: number, descript
 
 export const getConfig = (): CostGuardianConfig => read().config;
 
-export const updateConfig = (patch: Partial<Omit<CostGuardianConfig, 'lastAlertedStatus'>>): CostGuardianConfig => {
+export interface CostGuardianConfigPatch {
+  /** Se mergea por clave dentro del mapa existente — no reemplaza el mapa entero. */
+  fixedMonthlyCosts?: Record<string, number>;
+  preRevenueCeilingUsd?: number;
+  revenueRatioLimitPct?: number;
+}
+
+export const updateConfig = (patch: CostGuardianConfigPatch): CostGuardianConfig => {
   const s = read();
-  s.config = { ...s.config, ...patch };
+  const { fixedMonthlyCosts, ...rest } = patch;
+  s.config = {
+    ...s.config,
+    ...rest,
+    fixedMonthlyCosts: { ...s.config.fixedMonthlyCosts, ...fixedMonthlyCosts },
+  };
   write(s);
   log.info('[CostGuardian] Config actualizada', patch);
+  return s.config;
+};
+
+/** Elimina una entrada del mapa de costos fijos (ej: se dio de baja Backblaze). */
+export const removeFixedMonthlyCost = (name: string): CostGuardianConfig => {
+  const s = read();
+  const remaining = { ...s.config.fixedMonthlyCosts };
+  delete remaining[name];
+  s.config.fixedMonthlyCosts = remaining;
+  write(s);
+  log.info('[CostGuardian] Costo fijo eliminado', { name });
   return s.config;
 };
 
@@ -156,7 +184,7 @@ export interface FinancialStatus {
   mode: 'pre-revenue' | 'revenue-ratio';
   llmSpendUsd: number;
   externalSpendUsd: number;
-  railwayProratedUsd: number;
+  fixedCostsProratedUsd: number;
   totalSpendUsd: number;
   revenueUsd: number;
   limitUsd: number; // techo aplicable según el modo
@@ -166,6 +194,7 @@ export interface FinancialStatus {
     costBySource: Record<string, number>;
     revenueBySource: Record<string, number>;
     llmByModel: Record<string, { calls: number; usd: number }>;
+    fixedMonthlyCostsProrated: Record<string, number>;
   };
 }
 
@@ -187,10 +216,17 @@ export const getFinancialStatus = (windowDays = 30): FinancialStatus => {
   const externalSpendUsd = sumInWindow(s.costs, sinceMs);
   const revenueUsd = sumInWindow(s.revenue, sinceMs);
 
-  // Railway es un costo fijo mensual — se prorratea por la ventana consultada.
-  const railwayProratedUsd = (s.config.railwayMonthlyCostUsd / 30) * windowDays;
+  // Costos fijos mensuales (Railway, suscripción Claude, Backblaze, etc) —
+  // cada uno se prorratea por la ventana consultada.
+  const fixedMonthlyCostsProrated: Record<string, number> = {};
+  let fixedCostsProratedUsd = 0;
+  for (const [name, monthlyUsd] of Object.entries(s.config.fixedMonthlyCosts)) {
+    const prorated = (monthlyUsd / 30) * windowDays;
+    fixedMonthlyCostsProrated[name] = Number(prorated.toFixed(4));
+    fixedCostsProratedUsd += prorated;
+  }
 
-  const totalSpendUsd = llmSpendUsd + externalSpendUsd + railwayProratedUsd;
+  const totalSpendUsd = llmSpendUsd + externalSpendUsd + fixedCostsProratedUsd;
 
   const mode: FinancialStatus['mode'] = revenueUsd > 0 ? 'revenue-ratio' : 'pre-revenue';
   const limitUsd =
@@ -209,7 +245,7 @@ export const getFinancialStatus = (windowDays = 30): FinancialStatus => {
     mode,
     llmSpendUsd: Number(llmSpendUsd.toFixed(4)),
     externalSpendUsd: Number(externalSpendUsd.toFixed(4)),
-    railwayProratedUsd: Number(railwayProratedUsd.toFixed(4)),
+    fixedCostsProratedUsd: Number(fixedCostsProratedUsd.toFixed(4)),
     totalSpendUsd: Number(totalSpendUsd.toFixed(4)),
     revenueUsd: Number(revenueUsd.toFixed(4)),
     limitUsd: Number(limitUsd.toFixed(4)),
@@ -219,6 +255,7 @@ export const getFinancialStatus = (windowDays = 30): FinancialStatus => {
       costBySource: groupBySource(s.costs, sinceMs),
       revenueBySource: groupBySource(s.revenue, sinceMs),
       llmByModel: llmToday.byModel,
+      fixedMonthlyCostsProrated,
     },
   };
 };
@@ -239,7 +276,7 @@ export const evaluateAndAlert = async (windowDays = 30): Promise<FinancialStatus
       title: `💰 Cost Guardian: gasto ${escalatedStatus === 'critical' ? 'supera el tope' : 'al 75%+'} (${modeLabel})`,
       body: [
         `Gasto total (${status.windowDays}d): $${status.totalSpendUsd.toFixed(2)} de $${status.limitUsd.toFixed(2)} (${status.usedPct}%)`,
-        `  LLM: $${status.llmSpendUsd.toFixed(2)} · Railway: $${status.railwayProratedUsd.toFixed(2)} · Otros: $${status.externalSpendUsd.toFixed(2)}`,
+        `  LLM: $${status.llmSpendUsd.toFixed(2)} · Fijos (Railway/Claude/Backblaze/etc): $${status.fixedCostsProratedUsd.toFixed(2)} · Otros: $${status.externalSpendUsd.toFixed(2)}`,
         status.mode === 'revenue-ratio'
           ? `Recaudación: $${status.revenueUsd.toFixed(2)}`
           : 'Sin recaudación registrada aún.',
