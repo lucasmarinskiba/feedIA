@@ -58,6 +58,7 @@ import carouselQualityRoutes from './api/carousel-quality-routes.js';
 import carouselCreationRoutes from './api/carousel-creation-routes.js';
 import carouselAnalyticsRoutes from './api/carousel-analytics-routes.js';
 import carouselGenerationIntegrationRoutes from './api/carousel-generation-integration-routes.js';
+import costGuardianRoutes from './api/cost-guardian-routes.js';
 import { carouselDB } from './db/postgres.js';
 
 const app: Express = express();
@@ -244,6 +245,9 @@ app.use('/api/football', footballMemeRoutes);
 
 // Mount admin dashboard (monitoring + metrics + optimization) — requires admin key
 app.use('/api/admin', adminKeyAuth, adminDashboardRoutes);
+
+// Mount cost guardian (spend vs revenue governance) — financial data, admin key required
+app.use('/api/cost-guardian', adminKeyAuth, costGuardianRoutes);
 
 // Mount creativity/ocurrencia routes (wit analysis + twist injection + cliché removal)
 app.use('/api/creativity', creativityRoutes);

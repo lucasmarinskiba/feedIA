@@ -5,6 +5,8 @@
  * Docs: https://platform.deepseek.com
  */
 
+import { recordUsage } from '../../agent/budget.js';
+
 export interface DeepSeekMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -77,10 +79,16 @@ export const deepseekChat = async (
     }
     const data = (await response.json()) as {
       choices: Array<{ message: { content: string } }>;
-      usage?: { total_tokens?: number };
+      usage?: { total_tokens?: number; prompt_tokens?: number; completion_tokens?: number };
       model: string;
     };
     const text = data.choices[0]?.message.content ?? '';
+    if (data.usage) {
+      recordUsage(data.model, {
+        input_tokens: data.usage.prompt_tokens ?? 0,
+        output_tokens: data.usage.completion_tokens ?? 0,
+      });
+    }
     return {
       ok: true,
       text,

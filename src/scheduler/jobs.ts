@@ -74,6 +74,7 @@ import { listDueScheduledPosts, updateCalendarPost } from '../database/calendarQ
 import { addJob } from '../workers/queue.js';
 import { generatePromiseReport, promiseReportToMarkdown } from '../capabilities/promiseRegistry/promiseReporter.js';
 import { auditContentForEmptyPromises } from '../capabilities/antiPromiseAuditor/antiPromiseAuditor.js';
+import type { StrategicBrief } from '../capabilities/strategy/index.js';
 
 export type JobName =
   | 'calendar-dispatcher'
@@ -247,7 +248,8 @@ export type JobName =
   | 'strategy-auto-tune'
   | 'ar-filter-refresh'
   | 'ar-preview-check'
-  | 'ar-campaign-track';
+  | 'ar-campaign-track'
+  | 'cost-guardian-daily-check';
 
 export interface JobDefinition {
   name: JobName;
@@ -1163,7 +1165,7 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
             ...plan.insights,
             '',
             ...plan.briefs.map(
-              (b: any, i: number) =>
+              (b: StrategicBrief, i: number) =>
                 `${i + 1}. [${b.format}] ${b.topic} — ${b.estimatedEngagement} engagement (confianza ${b.confidence}%) — ${b.bestDay} ${b.bestHour}`,
             ),
           ].join('\n'),
@@ -1214,10 +1216,7 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
       }
 
       // Fetch platform-specific data
-      const [igProfile, ttProfile] = await Promise.all([
-        fetchInstagramProfile(brand.id),
-        fetchTikTokProfile(brand.id),
-      ]);
+      const [igProfile, ttProfile] = await Promise.all([fetchInstagramProfile(brand.id), fetchTikTokProfile(brand.id)]);
 
       const today = new Date().toISOString().split('T')[0]!;
       const summary = getAccountSummary();
@@ -1234,7 +1233,9 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
         instagramFollowers: igProfile.real ? igProfile.followers : undefined,
         instagramTotalLikes: igProfile.real ? igProfile.likes : undefined,
       });
-      log.info(`[Jobs] growth-daily-snapshot: ${acc.followers} followers | IG: ${igProfile.followers} | TT: ${ttProfile.followers}`);
+      log.info(
+        `[Jobs] growth-daily-snapshot: ${acc.followers} followers | IG: ${igProfile.followers} | TT: ${ttProfile.followers}`,
+      );
       return snapshot;
     },
   },
@@ -1931,7 +1932,8 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
 
   {
     name: 'canva-template-health',
-    description: 'Valida que los Brand Templates de Canva configurados existan y contengan los campos de autofill esperados.',
+    description:
+      'Valida que los Brand Templates de Canva configurados existan y contengan los campos de autofill esperados.',
     defaultCron: '0 7 * * *',
     handler: async (): Promise<unknown> => {
       const report = await validateAllCanvaTemplates();
@@ -3121,6 +3123,21 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
         score: result.score,
         matches: result.matches.length,
       };
+    },
+  },
+
+  {
+    name: 'cost-guardian-daily-check',
+    description:
+      'Evalúa gasto total (LLM + Railway + externos) vs recaudación de los últimos 30 días. Alerta si supera el 75%/100% del techo aplicable (tope fijo pre-revenue, o % de recaudación una vez que hay ingresos).',
+    defaultCron: '0 9 * * *', // 9am diario
+    handler: async (): Promise<unknown> => {
+      const { evaluateAndAlert } = await import('../agent/costGuardian.js');
+      const status = await evaluateAndAlert(30);
+      log.info(
+        `[cost-guardian-daily-check] modo=${status.mode} gasto=$${status.totalSpendUsd} techo=$${status.limitUsd} (${status.usedPct}%) status=${status.status}`,
+      );
+      return status;
     },
   },
 ];

@@ -56,6 +56,8 @@ const PRICING: Array<{ match: RegExp; in: number; out: number }> = [
   { match: /opus/i, in: 15, out: 75 },
   { match: /sonnet/i, in: 3, out: 15 },
   { match: /haiku/i, in: 0.8, out: 4 },
+  { match: /deepseek-reasoner/i, in: 0.55, out: 2.19 },
+  { match: /deepseek/i, in: 0.27, out: 1.1 },
 ];
 const DEFAULT_PRICE = { in: 3, out: 15 };
 
