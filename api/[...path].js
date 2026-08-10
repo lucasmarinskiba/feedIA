@@ -91,6 +91,7 @@ import { handleToneGuardian } from './_toneGuardian.js';
 import { handleFAQDatabase } from './_faqDatabase.js';
 import { handleMentionTracker } from './_mentionTracker.js';
 import { handleCrisisAgent, shouldCircuitBreak } from './_crisisAgent.js';
+import { handleRevenueAttribution } from './_revenueAttribution.js';
 import { igProfile, ttProfile, igInsights, igMedia, igConnected } from './_social.js';
 import * as store from './_store.js';
 import * as cache from './_cache.js';
@@ -586,6 +587,27 @@ const innerHandler = async (req, res) => {
       if (await handleCrisisAgent(req, res, path, m, crBody || {}, { userId: crCtx?.user?.id || null })) return;
     } catch (err) {
       return json(res, 500, { error: 'crisis-agent', message: String(err) });
+    }
+  }
+
+  // ── Revenue Attribution (contenido → conversión → ROI) ────────────────────
+  if (path.startsWith('/api/revenue/')) {
+    let rvBody = req.body;
+    if (rvBody === undefined && (m === 'POST' || m === 'PATCH')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        rvBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        rvBody = {};
+      }
+    }
+    const rvCtx = await getSessionFromReq(req).catch(() => null);
+    try {
+      if (await handleRevenueAttribution(req, res, path, m, rvBody || {}, { userId: rvCtx?.user?.id || null })) return;
+    } catch (err) {
+      return json(res, 500, { error: 'revenue-attribution', message: String(err) });
     }
   }
 

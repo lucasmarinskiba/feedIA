@@ -27,6 +27,7 @@ import { askLLMJson } from './_llm.js';
 import { runAndromeda } from './_andromeda.js';
 import { guardOutput, loadVoiceForAccount } from './_toneGuardian.js';
 import { shouldCircuitBreak } from './_crisisAgent.js';
+import { recordPublication } from './_revenueAttribution.js';
 import {
   canvaStatus,
   createFromBrandTemplate,
@@ -490,6 +491,20 @@ export const createAutonomousPost = async ({
       } else {
         status = 'not-connected';
         step(`⚠️ Cuenta ${platform} no conectada. Conectala para auto-publicar.`);
+      }
+
+      // Registrar en Revenue Attribution si se publicó exitosamente
+      if (status === 'published') {
+        const estimatedCostLLM = 0.05; // heurística: ~5¢ por post generado
+        await recordPublication(scope, accountId || scope, {
+          platform,
+          format,
+          topic,
+          hook,
+          viralScore: prediction?.viralScore || 0,
+          costLLM: estimatedCostLLM,
+        }).catch(() => {});
+        step(`💰 Publicación registrada para atribución de ROI.`);
       }
     }
   }
