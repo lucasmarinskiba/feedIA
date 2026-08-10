@@ -687,6 +687,34 @@ const innerHandler = async (req, res) => {
     }
   }
 
+  // ── Dashboard endpoints (ROI, Fans, Leads pipeline) ──────────────────────────
+  if (path === '/api/dashboard/fans') {
+    const dashCtx = await getSessionFromReq(req).catch(() => null);
+    try {
+      if (await handleFansDashboard(req, res, path, m, {}, { userId: dashCtx?.user?.id || null })) return;
+    } catch (err) {
+      return json(res, 500, { error: 'fans-dashboard', message: String(err) });
+    }
+  }
+
+  if (path === '/api/dashboard/roi/explorer' || path === '/api/dashboard/roi/timeline') {
+    const dashCtx = await getSessionFromReq(req).catch(() => null);
+    try {
+      if (await handleRoiDashboards(req, res, path, m, {}, { userId: dashCtx?.user?.id || null })) return;
+    } catch (err) {
+      return json(res, 500, { error: 'roi-dashboard', message: String(err) });
+    }
+  }
+
+  if (path === '/api/dashboard/leads') {
+    const dashCtx = await getSessionFromReq(req).catch(() => null);
+    try {
+      if (await handleLeadsDashboard(req, res, path, m, {}, { userId: dashCtx?.user?.id || null })) return;
+    } catch (err) {
+      return json(res, 500, { error: 'leads-dashboard', message: String(err) });
+    }
+  }
+
   // ── Prompt Library (priming por nicho/arquetipo/mood + roles) ─────────────
   if (path.startsWith('/api/library/')) {
     let plBody = req.body;
