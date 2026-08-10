@@ -90,6 +90,7 @@ import { handleInfluencerImagination } from './_influencerImagination.js';
 import { handleToneGuardian } from './_toneGuardian.js';
 import { handleFAQDatabase } from './_faqDatabase.js';
 import { handleMentionTracker } from './_mentionTracker.js';
+import { handleCrisisAgent, shouldCircuitBreak } from './_crisisAgent.js';
 import { igProfile, ttProfile, igInsights, igMedia, igConnected } from './_social.js';
 import * as store from './_store.js';
 import * as cache from './_cache.js';
@@ -564,6 +565,27 @@ const innerHandler = async (req, res) => {
       if (await handleMentionTracker(req, res, path, m, mnBody || {}, { userId: mnCtx?.user?.id || null })) return;
     } catch (err) {
       return json(res, 500, { error: 'mention-tracker', message: String(err) });
+    }
+  }
+
+  // ── Crisis Agent (detección de crisis + circuit-breaker) ──────────────────
+  if (path.startsWith('/api/crisis/')) {
+    let crBody = req.body;
+    if (crBody === undefined && (m === 'POST' || m === 'PATCH')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        crBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        crBody = {};
+      }
+    }
+    const crCtx = await getSessionFromReq(req).catch(() => null);
+    try {
+      if (await handleCrisisAgent(req, res, path, m, crBody || {}, { userId: crCtx?.user?.id || null })) return;
+    } catch (err) {
+      return json(res, 500, { error: 'crisis-agent', message: String(err) });
     }
   }
 

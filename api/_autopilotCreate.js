@@ -26,6 +26,7 @@ import { hostCarouselSlides } from './_imageHost.js';
 import { askLLMJson } from './_llm.js';
 import { runAndromeda } from './_andromeda.js';
 import { guardOutput, loadVoiceForAccount } from './_toneGuardian.js';
+import { shouldCircuitBreak } from './_crisisAgent.js';
 import {
   canvaStatus,
   createFromBrandTemplate,
@@ -443,42 +444,53 @@ export const createAutonomousPost = async ({
   }
 
   if (autoPublish) {
-    const conn = await connectionStatus(scope).catch(() => ({}));
-    const fullCaption = `${caption}\n\n${cta}\n\n${hashtags.join(' ')}`.trim();
-    if (platform === 'instagram' && conn?.instagram?.connected) {
-      if (format === 'carousel' && carouselSlides?.length >= 2) {
-        step(
-          `🖼️ Preparando ${carouselSlides.length} slides para publicar (rasterizando/hosteando los que hagan falta)…`,
-        );
-        const hosted = await withBudget(hostCarouselSlides(carouselSlides.map((s) => s.dataUrl)), Date.now() + 20_000, {
-          error: 'host-timeout',
-          message: 'Hosteo de slides pasó el budget (Vercel 60s).',
-        });
-        if (hosted.error) {
-          status = 'no-public-url';
-          step(`⚠️ No se pudieron hostear todos los slides (${hosted.message}).`);
-        } else {
-          step('📤 Publicando carrusel en Instagram (API oficial)…');
-          publishResult = await igPublishCarousel(scope, { imageUrls: hosted.urls, caption: fullCaption });
-          status = publishResult?.ok ? 'published' : 'publish-failed';
-        }
-      } else if (format === 'carousel') {
-        status = 'no-public-url';
-        step('⚠️ Carrusel sin suficientes slides para publicar (mínimo 2).');
-      } else if (publicUrl) {
-        step('📤 Publicando en Instagram (API oficial)…');
-        publishResult = await igPublish(scope, { imageUrl: publicUrl, caption: fullCaption });
-        status = publishResult?.ok ? 'published' : 'publish-failed';
-      } else {
-        status = 'no-public-url';
-        step('⚠️ Imagen sin URL pública (FAL refine necesario para auto-publish).');
-      }
-    } else if (platform === 'tiktok' && conn?.tiktok?.connected) {
-      status = 'tiktok-needs-video';
-      step('⚠️ TikTok requiere video (no imagen). Usá un reel/video para auto-publish.');
+    // Crisis Agent: chequear circuit-breaker antes de publicar
+    const crisisActive = await shouldCircuitBreak(scope, accountId || scope).catch(() => false);
+    if (crisisActive) {
+      status = 'circuit-breaker-active';
+      step('🚨 CRISIS AGENT: Circuit-breaker activo. Auto-publish pausado hasta resolución.');
     } else {
-      status = 'not-connected';
-      step(`⚠️ Cuenta ${platform} no conectada. Conectala para auto-publicar.`);
+      const conn = await connectionStatus(scope).catch(() => ({}));
+      const fullCaption = `${caption}\n\n${cta}\n\n${hashtags.join(' ')}`.trim();
+      if (platform === 'instagram' && conn?.instagram?.connected) {
+        if (format === 'carousel' && carouselSlides?.length >= 2) {
+          step(
+            `🖼️ Preparando ${carouselSlides.length} slides para publicar (rasterizando/hosteando los que hagan falta)…`,
+          );
+          const hosted = await withBudget(
+            hostCarouselSlides(carouselSlides.map((s) => s.dataUrl)),
+            Date.now() + 20_000,
+            {
+              error: 'host-timeout',
+              message: 'Hosteo de slides pasó el budget (Vercel 60s).',
+            },
+          );
+          if (hosted.error) {
+            status = 'no-public-url';
+            step(`⚠️ No se pudieron hostear todos los slides (${hosted.message}).`);
+          } else {
+            step('📤 Publicando carrusel en Instagram (API oficial)…');
+            publishResult = await igPublishCarousel(scope, { imageUrls: hosted.urls, caption: fullCaption });
+            status = publishResult?.ok ? 'published' : 'publish-failed';
+          }
+        } else if (format === 'carousel') {
+          status = 'no-public-url';
+          step('⚠️ Carrusel sin suficientes slides para publicar (mínimo 2).');
+        } else if (publicUrl) {
+          step('📤 Publicando en Instagram (API oficial)…');
+          publishResult = await igPublish(scope, { imageUrl: publicUrl, caption: fullCaption });
+          status = publishResult?.ok ? 'published' : 'publish-failed';
+        } else {
+          status = 'no-public-url';
+          step('⚠️ Imagen sin URL pública (FAL refine necesario para auto-publish).');
+        }
+      } else if (platform === 'tiktok' && conn?.tiktok?.connected) {
+        status = 'tiktok-needs-video';
+        step('⚠️ TikTok requiere video (no imagen). Usá un reel/video para auto-publish.');
+      } else {
+        status = 'not-connected';
+        step(`⚠️ Cuenta ${platform} no conectada. Conectala para auto-publicar.`);
+      }
     }
   }
 
