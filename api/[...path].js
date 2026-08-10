@@ -96,6 +96,9 @@ import { handleFanRecognition } from './_fanRecognition.js';
 import { handleSelliaWebhook, syncSelliaWebhook } from './_selliaWebhook.js';
 import { handleCrisisAlerts } from './_crisisAlerts.js';
 import { handleRoiDashboard } from './_roiDashboard.js';
+import { handleFansDashboard } from './_dashboardFans.js';
+import { handleRoiDashboards } from './_dashboardRoi.js';
+import { handleLeadsDashboard } from './_dashboardLeads.js';
 import { igProfile, ttProfile, igInsights, igMedia, igConnected } from './_social.js';
 import * as store from './_store.js';
 import * as cache from './_cache.js';
@@ -602,6 +605,18 @@ const innerHandler = async (req, res) => {
       if (await handleRoiDashboard(req, res, path, m, {}, { userId: roiCtx?.user?.id || null })) return;
     } catch (err) {
       return json(res, 500, { error: 'roi-dashboard', message: String(err) });
+    }
+  }
+
+  // ── Dashboards (fans, roi explorer, leads pipeline) ──────────────────────
+  if (path.startsWith('/api/dashboard/')) {
+    const dbCtx = await getSessionFromReq(req).catch(() => null);
+    try {
+      if (await handleFansDashboard(req, res, path, m, {}, { userId: dbCtx?.user?.id || null })) return;
+      if (await handleRoiDashboards(req, res, path, m, {}, { userId: dbCtx?.user?.id || null })) return;
+      if (await handleLeadsDashboard(req, res, path, m, {}, { userId: dbCtx?.user?.id || null })) return;
+    } catch (err) {
+      return json(res, 500, { error: 'dashboard', message: String(err) });
     }
   }
 
