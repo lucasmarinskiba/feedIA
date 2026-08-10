@@ -134,6 +134,62 @@ export const generateWeeklyCalendar = ({
   };
 };
 
+// ── Dispatch automático — conecta el calendario generado con el publish real ──
+// Sin esto, generateWeeklyCalendar arma el plan pero nada lo ejecuta: quedaba
+// como un mockup. Llamado desde _alwaysOnScheduler.js en cada tick de un user
+// con plan Pro+ (mismo feature-gate que el generador).
+const MAX_DISPATCH_PER_TICK = 3; // evita ráfaga de publicaciones si el scheduler estuvo pausado
+
+// Timezone: igual que el generador, trabaja en horario naive (sin conversión
+// de zona horaria) — consistencia con cómo se generaron los slots, no una
+// limitación nueva introducida acá.
+export const dispatchDueCalendarSlots = async ({ userId, niche = '' }) => {
+  const calKey = `feedia:user:${userId}:calendar:latest`;
+  const cal = await store.get(calKey);
+  if (!cal || !cal.enabled || !Array.isArray(cal.slots) || cal.slots.length === 0) {
+    return { dispatched: 0, reason: 'no-calendar' };
+  }
+
+  const now = new Date().toISOString();
+  const nowKey = now.slice(0, 10) + now.slice(11, 16); // 'YYYY-MM-DDHH:MM', comparable lexicográficamente
+
+  const dueSlots = cal.slots.filter((s) => s.type === 'post' && !s.dispatched && s.date + s.time <= nowKey);
+  if (dueSlots.length === 0) return { dispatched: 0, reason: 'none-due' };
+
+  const { createAutonomousPost } = await import('./_autopilotCreate.js');
+  const toDispatch = dueSlots.slice(0, MAX_DISPATCH_PER_TICK);
+  const results = [];
+
+  for (const slot of toDispatch) {
+    try {
+      const result = await createAutonomousPost({
+        topic: slot.topicHint,
+        niche,
+        goal: slot.goal,
+        platform: slot.platform,
+        format: slot.format,
+        accountId: userId,
+        autoPublish: true,
+        scope: userId,
+      });
+      slot.dispatched = true;
+      slot.dispatchedAt = new Date().toISOString();
+      slot.dispatchResult = { status: result.status, note: result.note };
+      results.push({ slot: `${slot.date} ${slot.time}`, format: slot.format, status: result.status });
+    } catch (err) {
+      // Marca como dispatched igual — evita reintento infinito en fallo duro
+      // (ej: cuenta desconectada). El usuario ve el error en el calendario.
+      slot.dispatched = true;
+      slot.dispatchedAt = new Date().toISOString();
+      slot.dispatchResult = { status: 'error', error: String(err?.message || err).slice(0, 200) };
+      results.push({ slot: `${slot.date} ${slot.time}`, format: slot.format, status: 'error' });
+    }
+  }
+
+  await store.set(calKey, cal);
+  return { dispatched: results.length, remainingDue: dueSlots.length - results.length, results };
+};
+
 export const handleCalendar = async (req, res, path, m, body) => {
   if (path === '/api/calendar/generate' && m === 'POST') {
     const ctx = await getSessionFromReq(req);
