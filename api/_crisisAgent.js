@@ -11,6 +11,7 @@
 import { getMentionStats, getCriticalMentions } from './_mentionTracker.js';
 import { getProfile, saveProfile } from './_accountMemory.js';
 import { askLLM } from './_llm.js';
+import { triggerCrisisAlert } from './_crisisAlerts.js';
 
 // ── Severidad de crisis ───────────────────────────────────────────────────────
 
@@ -234,6 +235,11 @@ export const assessCrisis = async (scope, accountId) => {
   };
 
   await saveCrisisState(scope, accountId, newState);
+
+  // Dispara alertas si CRITICAL+
+  if (report.protocol.circuitBreakerActive) {
+    await triggerCrisisAlert(scope, accountId, report).catch(() => null);
+  }
 
   return report;
 };

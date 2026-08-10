@@ -93,6 +93,9 @@ import { handleMentionTracker } from './_mentionTracker.js';
 import { handleCrisisAgent, shouldCircuitBreak } from './_crisisAgent.js';
 import { handleRevenueAttribution } from './_revenueAttribution.js';
 import { handleFanRecognition } from './_fanRecognition.js';
+import { handleSelliaWebhook, syncSelliaWebhook } from './_selliaWebhook.js';
+import { handleCrisisAlerts } from './_crisisAlerts.js';
+import { handleRoiDashboard } from './_roiDashboard.js';
 import { igProfile, ttProfile, igInsights, igMedia, igConnected } from './_social.js';
 import * as store from './_store.js';
 import * as cache from './_cache.js';
@@ -586,8 +589,44 @@ const innerHandler = async (req, res) => {
     const crCtx = await getSessionFromReq(req).catch(() => null);
     try {
       if (await handleCrisisAgent(req, res, path, m, crBody || {}, { userId: crCtx?.user?.id || null })) return;
+      if (await handleCrisisAlerts(req, res, path, m, crBody || {}, { userId: crCtx?.user?.id || null })) return;
     } catch (err) {
       return json(res, 500, { error: 'crisis-agent', message: String(err) });
+    }
+  }
+
+  // ── ROI Dashboard (aggregación de métricas de negocio) ─────────────────────
+  if (path === '/api/roi/dashboard') {
+    const roiCtx = await getSessionFromReq(req).catch(() => null);
+    try {
+      if (await handleRoiDashboard(req, res, path, m, {}, { userId: roiCtx?.user?.id || null })) return;
+    } catch (err) {
+      return json(res, 500, { error: 'roi-dashboard', message: String(err) });
+    }
+  }
+
+  // ── SellIA Webhooks (conversión tracking + fan engagement) ───────────────
+  if (path === '/api/sellia/webhook' || path === '/api/sellia/sync') {
+    let slBody = req.body;
+    if (slBody === undefined && m === 'POST') {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        slBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        slBody = {};
+      }
+    }
+    const slCtx = await getSessionFromReq(req).catch(() => null);
+    try {
+      if (path === '/api/sellia/webhook') {
+        if (await handleSelliaWebhook(req, res, path, m, slBody || {}, { userId: slCtx?.user?.id || null })) return;
+      } else if (path === '/api/sellia/sync') {
+        if (await syncSelliaWebhook(req, res, path, m, slBody || {}, { userId: slCtx?.user?.id || null })) return;
+      }
+    } catch (err) {
+      return json(res, 500, { error: 'sellia-webhook', message: String(err) });
     }
   }
 
