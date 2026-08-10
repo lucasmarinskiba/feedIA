@@ -59,6 +59,7 @@ import carouselCreationRoutes from './api/carousel-creation-routes.js';
 import carouselAnalyticsRoutes from './api/carousel-analytics-routes.js';
 import carouselGenerationIntegrationRoutes from './api/carousel-generation-integration-routes.js';
 import costGuardianRoutes from './api/cost-guardian-routes.js';
+import selliaDashboardRoutes from './api/sellia-dashboard-routes.js';
 import { carouselDB } from './db/postgres.js';
 
 const app: Express = express();
@@ -314,6 +315,9 @@ app.use('/api/analytics', carouselAnalyticsRoutes);
 
 // Carousel generation integration routes (generate → validate → create pipeline)
 app.use('/api/carousel', carouselGenerationIntegrationRoutes);
+
+// SellIA dashboard routes (ROI, Fans VIP tiers, Lead pipeline)
+app.use('/api/dashboard', selliaDashboardRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 // Use __dirname for absolute paths (works in Railway serverless env)
