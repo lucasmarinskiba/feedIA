@@ -92,6 +92,7 @@ import { handleFAQDatabase } from './_faqDatabase.js';
 import { handleMentionTracker } from './_mentionTracker.js';
 import { handleCrisisAgent, shouldCircuitBreak } from './_crisisAgent.js';
 import { handleRevenueAttribution } from './_revenueAttribution.js';
+import { handleFanRecognition } from './_fanRecognition.js';
 import { igProfile, ttProfile, igInsights, igMedia, igConnected } from './_social.js';
 import * as store from './_store.js';
 import * as cache from './_cache.js';
@@ -608,6 +609,27 @@ const innerHandler = async (req, res) => {
       if (await handleRevenueAttribution(req, res, path, m, rvBody || {}, { userId: rvCtx?.user?.id || null })) return;
     } catch (err) {
       return json(res, 500, { error: 'revenue-attribution', message: String(err) });
+    }
+  }
+
+  // ── Fan Recognition + Lead Pipeline (VIPs + lead scoring) ──────────────────
+  if (path.startsWith('/api/fans/') || path.startsWith('/api/leads/')) {
+    let frBody = req.body;
+    if (frBody === undefined && (m === 'POST' || m === 'PATCH')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        frBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        frBody = {};
+      }
+    }
+    const frCtx = await getSessionFromReq(req).catch(() => null);
+    try {
+      if (await handleFanRecognition(req, res, path, m, frBody || {}, { userId: frCtx?.user?.id || null })) return;
+    } catch (err) {
+      return json(res, 500, { error: 'fan-recognition', message: String(err) });
     }
   }
 
