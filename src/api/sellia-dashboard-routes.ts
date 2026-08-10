@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 // @ts-ignore — Node handlers without types
-import { getFansDashboard } from '../../api/_dashboardFans.js';
+import { getFansDashboard } from '../../../api/_dashboardFans.js';
 // @ts-ignore — Node handlers without types
-import { getRoiExplorer, getRoiTimeline } from '../../api/_dashboardRoi.js';
+import { getRoiExplorer, getRoiTimeline } from '../../../api/_dashboardRoi.js';
 // @ts-ignore — Node handlers without types
-import { getLeadsPipeline } from '../../api/_dashboardLeads.js';
+import { getLeadsPipeline } from '../../../api/_dashboardLeads.js';
 
 const router = Router();
 
