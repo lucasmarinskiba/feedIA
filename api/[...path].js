@@ -88,6 +88,8 @@ import { handleCuExecutor } from './_cuExecutor.js';
 import { handleBrandAuthority } from './_brandAuthorityEngine.js';
 import { handleInfluencerImagination } from './_influencerImagination.js';
 import { handleToneGuardian } from './_toneGuardian.js';
+import { handleFAQDatabase } from './_faqDatabase.js';
+import { handleMentionTracker } from './_mentionTracker.js';
 import { igProfile, ttProfile, igInsights, igMedia, igConnected } from './_social.js';
 import * as store from './_store.js';
 import * as cache from './_cache.js';
@@ -520,6 +522,48 @@ const innerHandler = async (req, res) => {
       if (await handleToneGuardian(req, res, path, m, tgBody || {}, { userId: tgCtx?.user?.id || null })) return;
     } catch (err) {
       return json(res, 500, { error: 'tone-guardian', message: String(err) });
+    }
+  }
+
+  // ── FAQ Database (detección + respuestas de preguntas frecuentes) ────────────
+  if (path.startsWith('/api/faq/')) {
+    let fqBody = req.body;
+    if (fqBody === undefined && (m === 'POST' || m === 'PATCH')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        fqBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        fqBody = {};
+      }
+    }
+    const fqCtx = await getSessionFromReq(req).catch(() => null);
+    try {
+      if (await handleFAQDatabase(req, res, path, m, fqBody || {}, { userId: fqCtx?.user?.id || null })) return;
+    } catch (err) {
+      return json(res, 500, { error: 'faq-database', message: String(err) });
+    }
+  }
+
+  // ── Mention Tracker (tracking de menciones + sentiment) ────────────────────
+  if (path.startsWith('/api/mentions/')) {
+    let mnBody = req.body;
+    if (mnBody === undefined && (m === 'POST' || m === 'PATCH')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        mnBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        mnBody = {};
+      }
+    }
+    const mnCtx = await getSessionFromReq(req).catch(() => null);
+    try {
+      if (await handleMentionTracker(req, res, path, m, mnBody || {}, { userId: mnCtx?.user?.id || null })) return;
+    } catch (err) {
+      return json(res, 500, { error: 'mention-tracker', message: String(err) });
     }
   }
 
