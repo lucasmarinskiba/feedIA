@@ -25,6 +25,7 @@ import { composeCarousel, deriveSlidesText } from './_carouselComposer.js';
 import { hostCarouselSlides } from './_imageHost.js';
 import { askLLMJson } from './_llm.js';
 import { runAndromeda } from './_andromeda.js';
+import { guardOutput, loadVoiceForAccount } from './_toneGuardian.js';
 import {
   canvaStatus,
   createFromBrandTemplate,
@@ -302,7 +303,7 @@ export const createAutonomousPost = async ({
   const bestCombo = andromeda?.featured?.[0] || null;
   const hook = hookOverride || bestCombo?.hook_final || bestCombo?.hook || `Esto cambió mi forma de ver ${topic}`;
   const cta = ctaOverride || bestCombo?.cta_final || 'Comentá INFO 👇';
-  const caption = bestCombo?.copy_body || `${hook}. ${cta}`;
+  let caption = bestCombo?.copy_body || `${hook}. ${cta}`;
   // Hashtags fijos por nicho (sin LLM) — el hash heurístico está en _agencyBrain pero acá no lo importamos por peso
   const hashtags = [
     '#contenidodigital',
@@ -415,6 +416,32 @@ export const createAutonomousPost = async ({
   let status = 'ready-for-review';
   const publicUrl = img && !img.error && /^https?:\/\//.test(img.url || '') ? img.url : null;
 
+  // Tone Guardian: valida/corrige la voz de marca del caption final ANTES de
+  // publicar. Corre siempre que hay autoPublish — cada publicación automática
+  // (manual o disparada desde el calendario) pasa por acá, un solo punto de
+  // control en vez de que cada agente defina tono por su cuenta.
+  let toneCheck = null;
+  if (autoPublish) {
+    step('🎙️ Tone Guardian: validando voz de marca del caption…');
+    const voice = await loadVoiceForAccount(scope, accountId || scope).catch(() => null);
+    const guarded = await withBudget(
+      guardOutput(caption, 'caption', { voice: voice || undefined }),
+      Date.now() + 12_000,
+      null,
+    );
+    if (guarded) {
+      toneCheck = {
+        approved: guarded.approved,
+        score: guarded.finalScore,
+        rewritten: guarded.appliedRewrite,
+      };
+      if (guarded.appliedRewrite) {
+        step(`✍️ Caption ajustado por Tone Guardian (score ${guarded.initialScore}→${guarded.finalScore}).`);
+        caption = guarded.finalText;
+      }
+    }
+  }
+
   if (autoPublish) {
     const conn = await connectionStatus(scope).catch(() => ({}));
     const fullCaption = `${caption}\n\n${cta}\n\n${hashtags.join(' ')}`.trim();
@@ -483,6 +510,7 @@ export const createAutonomousPost = async ({
       angle: bestCombo?.angle || null,
       persona: bestCombo?.persona || null,
       whyThisWorks: bestCombo?.why_this_works || null,
+      toneCheck,
     },
     image: img?.url
       ? { url: img.url, provider: img.provider, refined: img.refined, mode: img.mode, usedPhotos: img.usedPhotos }
