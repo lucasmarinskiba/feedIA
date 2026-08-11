@@ -13,9 +13,14 @@ const router = Router();
 
 router.post('/webhook/conversion', async (req: Request, res: Response) => {
   try {
-    // Extract accountId from header
-    const headerAccountId = req.get('X-Account-ID');
-    const accountId = headerAccountId || 'test-account';
+    // Extract accountId from header, ensure it's a string
+    let accountId = req.get('X-Account-ID');
+    console.log('[conversion] raw header:', accountId, 'typeof:', typeof accountId);
+    if (typeof accountId !== 'string' || !accountId) {
+      accountId = String(req.headers['x-account-id'] || 'test-account');
+    }
+    accountId = String(accountId).trim();
+    console.log('[conversion] final accountId:', accountId, 'typeof:', typeof accountId);
     const result = await recordConversion(accountId, req.body);
     res.json(result);
   } catch (err) {
@@ -25,7 +30,11 @@ router.post('/webhook/conversion', async (req: Request, res: Response) => {
 
 router.post('/webhook/engagement', async (req: Request, res: Response) => {
   try {
-    const accountId = req.get('X-Account-ID') || 'test-account';
+    let accountId = req.get('X-Account-ID');
+    if (typeof accountId !== 'string' || !accountId) {
+      accountId = String(req.headers['x-account-id'] || 'test-account');
+    }
+    accountId = String(accountId).trim();
     const result = await recordFanEngagement(accountId, req.body);
     res.json(result);
   } catch (err) {
@@ -35,7 +44,11 @@ router.post('/webhook/engagement', async (req: Request, res: Response) => {
 
 router.post('/webhook/lead', async (req: Request, res: Response) => {
   try {
-    const accountId = req.get('X-Account-ID') || 'test-account';
+    let accountId = req.get('X-Account-ID');
+    if (typeof accountId !== 'string' || !accountId) {
+      accountId = String(req.headers['x-account-id'] || 'test-account');
+    }
+    accountId = String(accountId).trim();
     const result = await recordLeadSignal(accountId, req.body);
     res.json(result);
   } catch (err) {
@@ -45,7 +58,11 @@ router.post('/webhook/lead', async (req: Request, res: Response) => {
 
 router.get('/metrics', async (req: Request, res: Response) => {
   try {
-    const accountId = req.get('X-Account-ID') || 'test-account';
+    let accountId = req.get('X-Account-ID');
+    if (typeof accountId !== 'string' || !accountId) {
+      accountId = String(req.headers['x-account-id'] || 'test-account');
+    }
+    accountId = String(accountId).trim();
     const metrics = await getLiveMetrics(accountId);
     res.json(metrics);
   } catch (err) {
