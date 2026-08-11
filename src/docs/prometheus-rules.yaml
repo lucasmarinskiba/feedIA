@@ -1,0 +1,108 @@
+---
+# Prometheus Alert Rules for Phase 6-10
+# Deploy to Prometheus: copy to /etc/prometheus/rules/feedia-phase6-10.yml
+# Reload: curl -X POST http://localhost:9090/-/reload
+
+groups:
+  - name: phase6-10-alerts
+    interval: 30s
+    rules:
+      # ─── Webhook Errors ─────────────────────────────────────────────
+      - alert: HighWebhookErrorRate
+        expr: |
+          (
+            rate(conversions_recorded_total{status="error"}[5m]) +
+            rate(api_errors_total{endpoint=~"/realdata/webhook.*"}[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: webhooks
+        annotations:
+          summary: "Webhook error rate > 5% ({{ $value | humanizePercentage }})"
+          description: |
+            Conversions or fan engagement webhooks failing.
+            Check: validation errors, DB connectivity, auth.
+            Runbook: RUNBOOK_PHASE6-10.md#scenario-1
+
+      # ─── Anomaly Detection Stalled ──────────────────────────────────
+      - alert: AnomalyDetectionStalled
+        expr: increase(anomalies_detected_total[30m]) == 0
+        for: 30m
+        labels:
+          severity: warning
+          component: anomalies
+        annotations:
+          summary: "No anomalies detected in 30 minutes"
+          description: |
+            Anomaly detector not firing. Either:
+            - No baseline set (first account)
+            - Thresholds too strict
+            - Detector hung
+            Runbook: RUNBOOK_PHASE6-10.md#scenario-2
+
+      # ─── Circuit Breaker Open ───────────────────────────────────────
+      - alert: CircuitBreakerOpen
+        expr: circuit_breaker_state == 2
+        for: 1m
+        labels:
+          severity: critical
+          component: resilience
+        annotations:
+          summary: "Circuit breaker OPEN for {{ $labels.service }}"
+          description: |
+            > 5 failures in 60s window triggered breaker.
+            Auto-recovers after 30s if failures stop.
+            Runbook: RUNBOOK_PHASE6-10.md#scenario-4
+
+      # ─── API Latency High ───────────────────────────────────────────
+      - alert: HighWebhookLatency
+        expr: |
+          histogram_quantile(0.95, rate(webhook_latency_ms_bucket[5m])) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Webhook p95 latency > 1s ({{ $value | humanize }}ms)"
+          description: |
+            Processing slow. Check: DB queries, validation time, network.
+            Runbook: RUNBOOK_PHASE6-10.md#scenario-5
+
+      # ─── Database Connection Issues ─────────────────────────────────
+      - alert: DatabaseUnhealthy
+        expr: healthcheck_status{component="database"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database health check failing"
+          description: |
+            SQLite SELECT 1 timed out or failed.
+            Escalate to DB team.
+            Runbook: RUNBOOK_PHASE6-10.md#scenario-2
+
+      # ─── High Retry Rate ────────────────────────────────────────────
+      - alert: HighRetryRate
+        expr: |
+          rate(retry_attempts_total{success="false"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: resilience
+        annotations:
+          summary: "Retry failure rate > 10% ({{ $value | humanizePercentage }})"
+          description: |
+            Operations failing after max retries.
+            Check: transient errors, timeouts, API limits.
+
+---
+# Prometheus Scrape Config
+# Add to prometheus.yml:
+# - job_name: 'feedia-phase6-10'
+#   static_configs:
+#     - targets: ['localhost:3000']
+#   metrics_path: '/metrics'
+#   scrape_interval: 15s
+#   scrape_timeout: 10s
