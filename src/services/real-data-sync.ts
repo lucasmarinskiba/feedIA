@@ -9,6 +9,7 @@
 
 import { z } from 'zod';
 import { log } from '../agent/logger.js';
+import { getDb } from '../database/db.js';
 
 // ─── Validation Schemas ─────────────────────────────────────────────────
 
@@ -139,18 +140,44 @@ export const recordConversion = async (accountId: string | undefined, event: unk
       };
     }
 
-    // Step 4: Persist to DB (TODO: wire to MongoDB)
-    // const result = await db.conversions.insertOne({
-    //   ...validated,
-    //   accountId,
-    //   recordedAt: new Date(),
-    // });
+    // Step 4: Persist to SQLite DB
+    const db = getDb();
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS conversions (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL,
+        post_id TEXT NOT NULL,
+        value REAL NOT NULL,
+        timestamp TEXT NOT NULL,
+        source TEXT NOT NULL,
+        fan_id TEXT,
+        refunded BOOLEAN DEFAULT 0,
+        recorded_at TEXT DEFAULT (datetime('now')),
+        UNIQUE(account_id, post_id, timestamp)
+      )
+    `);
+
+    const convId = `conv-${accountId}-${validated.postId}-${Date.now()}`;
+    db.prepare(`
+      INSERT INTO conversions (id, account_id, post_id, value, timestamp, source, fan_id, refunded)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      convId,
+      accountId,
+      validated.postId,
+      validated.value,
+      validated.timestamp,
+      validated.source,
+      validated.fanId || null,
+      validated.refunded ? 1 : 0,
+    );
 
     log.info('[real-data-sync] conversion recorded', {
       accountId,
       postId: validated.postId,
       value: validated.value,
       source: validated.source,
+      id: convId,
     });
 
     // Step 5: Mark as processed in cache
@@ -203,12 +230,37 @@ export const recordFanEngagement = async (accountId: string | undefined, event: 
       return { success: true, idempotencyKey: naturalKey, duplicate: true };
     }
 
-    // TODO: Persist to MongoDB
-    // const result = await db.fans.updateOne(
-    //   { accountId, fanId: validated.fanId },
-    //   { $set: { ...validated, updatedAt: new Date() } },
-    //   { upsert: true }
-    // );
+    // Persist to SQLite DB
+    const db = getDb();
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS fan_engagement (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL,
+        fan_id TEXT NOT NULL,
+        engagement_score INTEGER NOT NULL,
+        last_activity TEXT NOT NULL,
+        tier TEXT NOT NULL,
+        total_spent REAL NOT NULL,
+        status TEXT NOT NULL,
+        updated_at TEXT DEFAULT (datetime('now')),
+        UNIQUE(account_id, fan_id)
+      )
+    `);
+
+    const engId = `eng-${accountId}-${validated.fanId}`;
+    db.prepare(`
+      INSERT OR REPLACE INTO fan_engagement (id, account_id, fan_id, engagement_score, last_activity, tier, total_spent, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      engId,
+      accountId,
+      validated.fanId,
+      validated.engagementScore,
+      validated.lastActivity,
+      validated.tier,
+      validated.totalSpent,
+      validated.status,
+    );
 
     log.info('[real-data-sync] engagement recorded', {
       accountId,
@@ -266,12 +318,37 @@ export const recordLeadSignal = async (accountId: string | undefined, event: unk
       return { success: true, idempotencyKey: naturalKey, duplicate: true };
     }
 
-    // TODO: Persist to MongoDB
-    // const result = await db.leads.updateOne(
-    //   { accountId, leadId: validated.leadId },
-    //   { $set: { ...validated, updatedAt: new Date() } },
-    //   { upsert: true }
-    // );
+    // Persist to SQLite DB
+    const db = getDb();
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS lead_signals (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL,
+        lead_id TEXT NOT NULL,
+        email TEXT NOT NULL,
+        score INTEGER NOT NULL,
+        signals TEXT,
+        stage TEXT NOT NULL,
+        value REAL NOT NULL,
+        updated_at TEXT DEFAULT (datetime('now')),
+        UNIQUE(account_id, lead_id)
+      )
+    `);
+
+    const sigId = `sig-${accountId}-${validated.leadId}`;
+    db.prepare(`
+      INSERT OR REPLACE INTO lead_signals (id, account_id, lead_id, email, score, signals, stage, value)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      sigId,
+      accountId,
+      validated.leadId,
+      validated.email,
+      validated.score,
+      JSON.stringify(validated.signals),
+      validated.stage,
+      validated.value,
+    );
 
     log.info('[real-data-sync] lead signal recorded', {
       accountId,
@@ -306,8 +383,7 @@ export const recordLeadSignal = async (accountId: string | undefined, event: unk
 };
 
 /**
- * Fetch live metrics from DB
- * TODO: Wire to MongoDB when available
+ * Fetch live metrics from SQLite DB
  */
 export const getLiveMetrics = async (
   accountId: string,
@@ -319,11 +395,39 @@ export const getLiveMetrics = async (
   timestamp: string;
 } | null> => {
   try {
-    // TODO: Implement real DB queries
+    const db = getDb();
+
+    // Conversions (last 7 days)
+    const convStmt = db.prepare(`
+      SELECT id, post_id, value, timestamp, source, fan_id, refunded
+      FROM conversions
+      WHERE account_id = ? AND datetime(timestamp) > datetime('now', '-7 days')
+      ORDER BY timestamp DESC
+    `);
+    const conversions = (convStmt.all(accountId) as unknown[]) ?? [];
+
+    // Fan engagement (active fans)
+    const fanStmt = db.prepare(`
+      SELECT fan_id, engagement_score, last_activity, tier, total_spent, status
+      FROM fan_engagement
+      WHERE account_id = ?
+      ORDER BY engagement_score DESC
+    `);
+    const fans = (fanStmt.all(accountId) as unknown[]) ?? [];
+
+    // Lead signals (active)
+    const leadStmt = db.prepare(`
+      SELECT lead_id, email, score, stage, value, signals
+      FROM lead_signals
+      WHERE account_id = ? AND stage IN ('new', 'contacted', 'qualified')
+      ORDER BY score DESC
+    `);
+    const leads = (leadStmt.all(accountId) as unknown[]) ?? [];
+
     return {
-      conversions: [],
-      fans: [],
-      leads: [],
+      conversions,
+      fans,
+      leads,
       accountId,
       timestamp: new Date().toISOString(),
     };

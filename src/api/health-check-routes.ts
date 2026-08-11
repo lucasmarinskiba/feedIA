@@ -11,6 +11,7 @@
 import { Router, Request, Response } from 'express';
 import { healthcheckStatusGauge, setHealthcheckStatus } from '../services/prometheus-metrics.js';
 import { info, warn, healthCheckLogger } from '../services/structured-logger.js';
+import { getDb } from '../database/db.js';
 
 const router = Router();
 
@@ -85,18 +86,17 @@ router.get('/health/detailed', async (_req: Request, res: Response): Promise<voi
 
 /**
  * Perform readiness checks on critical components
- *
- * TODO: Wire to actual DB/cache/API health endpoints
  */
 const performReadinessChecks = async (): Promise<ComponentHealth[]> => {
   const checks: ComponentHealth[] = [];
 
-  // Database check
+  // Database check (SQLite)
   try {
     const dbStart = Date.now();
-    // TODO: SELECT 1 FROM tables; -- actual DB health check
+    const db = getDb();
+    const result = db.prepare('SELECT 1 as ok').get() as Record<string, unknown> | undefined;
     const dbLatency = Date.now() - dbStart;
-    const dbHealthy = dbLatency < 1000; // Timeout if > 1s
+    const dbHealthy = result?.ok === 1 && dbLatency < 1000;
     checks.push({
       name: 'database',
       healthy: dbHealthy,
@@ -112,12 +112,12 @@ const performReadinessChecks = async (): Promise<ComponentHealth[]> => {
     setHealthcheckStatus('database', false);
   }
 
-  // Cache check
+  // Cache check (in-memory, always up)
   try {
     const cacheStart = Date.now();
-    // TODO: redis.ping() -- actual cache health check
+    // In-memory cache always up
     const cacheLatency = Date.now() - cacheStart;
-    const cacheHealthy = cacheLatency < 500; // Timeout if > 500ms
+    const cacheHealthy = cacheLatency < 100;
     checks.push({
       name: 'cache',
       healthy: cacheHealthy,
@@ -133,12 +133,16 @@ const performReadinessChecks = async (): Promise<ComponentHealth[]> => {
     setHealthcheckStatus('cache', false);
   }
 
-  // External API check
+  // External API check (Meta Graph API)
   try {
     const apiStart = Date.now();
-    // TODO: HEAD request to external API
+    const apiToken = process.env.META_ACCESS_TOKEN;
+    if (!apiToken) {
+      throw new Error('META_ACCESS_TOKEN not configured');
+    }
+    // TODO: HEAD request to Graph API
     const apiLatency = Date.now() - apiStart;
-    const apiHealthy = apiLatency < 2000; // Timeout if > 2s
+    const apiHealthy = apiLatency < 2000;
     checks.push({
       name: 'externalAPIs',
       healthy: apiHealthy,
