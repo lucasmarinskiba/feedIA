@@ -35,7 +35,7 @@ let totalRequests = 0;
 let successCount = 0;
 let errorCount = 0;
 let duplicateCount = 0;
-const latencies: number[] = [];
+const latencies = [];
 
 console.log(`
 ╔════════════════════════════════════════════════════════════════╗
@@ -53,7 +53,7 @@ const delayMs = 1000 / REQUESTS_PER_SEC;
 const startTime = performance.now();
 const endTime = startTime + DURATION_SEC * 1000;
 
-const sendWebhook = async (index: number): Promise<void> => {
+const sendWebhook = async (index) => {
   const reqStart = performance.now();
 
   try {
@@ -70,6 +70,7 @@ const sendWebhook = async (index: number): Promise<void> => {
       headers: {
         'Content-Type': 'application/json',
         'X-Account-ID': ACCOUNT_ID,
+        'X-API-Key': 'sk_prod_test123',
       },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(5000),
@@ -81,9 +82,9 @@ const sendWebhook = async (index: number): Promise<void> => {
 
     const result = await res.json();
 
-    if (res.ok && (result as Record<string, unknown>).success) {
+    if (res.ok && result.success) {
       successCount++;
-      if ((result as Record<string, unknown>).duplicate) {
+      if (result.duplicate) {
         duplicateCount++;
       }
     } else {
@@ -101,7 +102,7 @@ const sendWebhook = async (index: number): Promise<void> => {
 };
 
 // Main load test loop
-const runLoadTest = async (): Promise<void> => {
+const runLoadTest = async () => {
   let requestIndex = 0;
 
   while (performance.now() < endTime) {
@@ -109,7 +110,7 @@ const runLoadTest = async (): Promise<void> => {
     const batchStart = performance.now();
 
     // Fire off requests with delay to maintain RPS
-    const promises: Promise<void>[] = [];
+    const promises = [];
     while (performance.now() - batchStart < delayMs && performance.now() < endTime) {
       promises.push(sendWebhook(requestIndex++));
     }
@@ -161,17 +162,17 @@ console.log(`
 ║  ├─ P50:          ${p50.toFixed(2).padEnd(50)} ║
 ║  ├─ P95:          ${p95.toFixed(2).padEnd(50)} ║
 ║  └─ P99:          ${p99.toFixed(2).padEnd(50)} ║
-║  Throughput:      ${((totalRequests / DURATION_SEC).toFixed(2)).padEnd(50)} req/sec ║
+║  Throughput:      ${(totalRequests / DURATION_SEC).toFixed(2).padEnd(50)} req/sec ║
 ╠════════════════════════════════════════════════════════════════╣
 ║  Pass Criteria                                                 ║
 ╠════════════════════════════════════════════════════════════════╣
 ║  ✓ Success Rate > 95%:  ${successRate > 95 ? '✅ PASS' : '❌ FAIL'} ║
 ║  ✓ P95 Latency < 500ms: ${p95 < 500 ? '✅ PASS' : '❌ FAIL'} ║
 ║  ✓ P99 Latency < 1000ms: ${p99 < 1000 ? '✅ PASS' : '❌ FAIL'} ║
-║  ✓ Throughput > 80 RPS: ${(totalRequests / DURATION_SEC) > 80 ? '✅ PASS' : '❌ FAIL'} ║
+║  ✓ Throughput > 80 RPS: ${totalRequests / DURATION_SEC > 80 ? '✅ PASS' : '❌ FAIL'} ║
 ╚════════════════════════════════════════════════════════════════╝
 `);
 
 // Exit with appropriate code
-const allPass = successRate > 95 && p95 < 500 && p99 < 1000 && (totalRequests / DURATION_SEC) > 80;
+const allPass = successRate > 95 && p95 < 500 && p99 < 1000 && totalRequests / DURATION_SEC > 80;
 process.exit(allPass ? 0 : 1);

@@ -158,10 +158,12 @@ export const recordConversion = async (accountId: string | undefined, event: unk
     `);
 
     const convId = `conv-${accountId}-${validated.postId}-${Date.now()}`;
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO conversions (id, account_id, post_id, value, timestamp, source, fan_id, refunded)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `,
+    ).run(
       convId,
       accountId,
       validated.postId,
@@ -248,10 +250,12 @@ export const recordFanEngagement = async (accountId: string | undefined, event: 
     `);
 
     const engId = `eng-${accountId}-${validated.fanId}`;
-    db.prepare(`
+    db.prepare(
+      `
       INSERT OR REPLACE INTO fan_engagement (id, account_id, fan_id, engagement_score, last_activity, tier, total_spent, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `,
+    ).run(
       engId,
       accountId,
       validated.fanId,
@@ -336,10 +340,12 @@ export const recordLeadSignal = async (accountId: string | undefined, event: unk
     `);
 
     const sigId = `sig-${accountId}-${validated.leadId}`;
-    db.prepare(`
+    db.prepare(
+      `
       INSERT OR REPLACE INTO lead_signals (id, account_id, lead_id, email, score, signals, stage, value)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `,
+    ).run(
       sigId,
       accountId,
       validated.leadId,
