@@ -1,0 +1,513 @@
+openapi: 3.0.0
+info:
+  title: FeedIA Phase 6-10 API
+  description: Real Data Sync, Anomaly Detection, Autonomous Execution, Attribution, Predictive Models
+  version: 1.0.0
+  contact:
+    name: FeedIA Team
+    email: team@feedia.ai
+
+servers:
+  - url: https://api.feedia.app
+    description: Production
+  - url: http://localhost:3000
+    description: Development
+
+paths:
+  # ─── Real Data Sync (Webhooks) ──────────────────────────────────────
+
+  /api/realdata/webhook/conversion:
+    post:
+      tags:
+        - Real Data Sync
+      summary: Record conversion event
+      description: Log a purchase/conversion with metadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - postId
+                - value
+                - timestamp
+                - source
+              properties:
+                postId:
+                  type: string
+                  example: "post-abc123"
+                value:
+                  type: number
+                  example: 50
+                  description: Amount in USD
+                timestamp:
+                  type: string
+                  format: date-time
+                  example: "2026-01-01T10:00:00Z"
+                source:
+                  type: string
+                  enum: [instagram, sellia]
+                  example: instagram
+                fanId:
+                  type: string
+                  example: "fan-xyz789"
+                refunded:
+                  type: boolean
+                  default: false
+      responses:
+        "200":
+          description: Conversion recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  idempotencyKey:
+                    type: string
+                  duplicate:
+                    type: boolean
+                    description: true if duplicate detected
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+
+  /api/realdata/webhook/fan-engagement:
+    post:
+      tags:
+        - Real Data Sync
+      summary: Record fan engagement
+      description: Log like, save, follow, or story view
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fanId
+                - engagementScore
+                - lastActivity
+                - tier
+                - totalSpent
+                - status
+              properties:
+                fanId:
+                  type: string
+                engagementScore:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                lastActivity:
+                  type: string
+                  format: date-time
+                tier:
+                  type: string
+                  enum: [bronze, silver, gold, platinum]
+                totalSpent:
+                  type: number
+                status:
+                  type: string
+                  enum: [active, churned]
+      responses:
+        "200":
+          description: Engagement recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  idempotencyKey:
+                    type: string
+
+  /api/realdata/webhook/lead-signal:
+    post:
+      tags:
+        - Real Data Sync
+      summary: Record lead signal
+      description: Log prospect interaction (price question, demo request, etc)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - leadId
+                - email
+                - score
+                - stage
+              properties:
+                leadId:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                score:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                signals:
+                  type: array
+                  items:
+                    type: string
+                  example: ["price-question", "demo-request"]
+                stage:
+                  type: string
+                  enum: [new, contacted, qualified, converted]
+                value:
+                  type: number
+                  description: Deal value in USD
+      responses:
+        "200":
+          description: Lead signal recorded
+
+  /api/realdata/dashboard/{accountId}:
+    get:
+      tags:
+        - Real Data Sync
+      summary: Get live dashboard metrics
+      description: Aggregated conversions, fans, leads for account
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                  overview:
+                    type: object
+                    properties:
+                      totalFans:
+                        type: integer
+                      activeFans:
+                        type: integer
+                      retentionRate:
+                        type: string
+                  leads:
+                    type: object
+                  raw:
+                    type: object
+
+  # ─── Anomaly Detection ─────────────────────────────────────────────
+
+  /api/anomaly/scan:
+    post:
+      tags:
+        - Anomaly Detection
+      summary: Run anomaly detection
+      description: Scan for viral drops, churn acceleration, lead stalls, ROI collapse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accountId:
+                  type: string
+                viralScoreBaseline:
+                  type: number
+                viralScoreCurrent:
+                  type: number
+                churnBaselinePercent:
+                  type: number
+                churnCurrentPercent:
+                  type: number
+                lastLeadSignalTimestamp:
+                  type: string
+                  format: date-time
+                roiBaseline:
+                  type: number
+                roiCurrent:
+                  type: number
+      responses:
+        "200":
+          description: Anomaly scan results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                  anomalies:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          enum: [viralDrop, churnAcceleration, leadStall, roiCollapse]
+                        severity:
+                          type: string
+                          enum: [critical, high, medium]
+                        baseline:
+                          type: number
+                        current:
+                          type: number
+                        deviation:
+                          type: number
+                  hasAnomalies:
+                    type: boolean
+                  severity:
+                    type: string
+                    enum: [critical, high, medium, none]
+
+  # ─── Autonomous Execution ──────────────────────────────────────────
+
+  /api/execute/plan:
+    post:
+      tags:
+        - Autonomous Execution
+      summary: Build and execute action plan
+      description: Convert anomalies + agent decisions into executable actions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                anomalies:
+                  type: array
+                decisions:
+                  type: array
+                accountId:
+                  type: string
+      responses:
+        "200":
+          description: Execution plan built and started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  planId:
+                    type: string
+                  actions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                          enum: [pausePublication, scaleBudget, activateRetention, circuitBreak, notifyTeam]
+                        status:
+                          type: string
+                          enum: [pending, executing, completed, failed]
+
+  /api/execute/action/{id}:
+    get:
+      tags:
+        - Autonomous Execution
+      summary: Get action status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Action details
+
+  # ─── Predictive Models ─────────────────────────────────────────────
+
+  /api/predict/viral:
+    post:
+      tags:
+        - Predictive Models
+      summary: Predict viral score
+      description: Score 0-100 based on ROI, engagement, conversion rates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                roi:
+                  type: number
+                engagementRate:
+                  type: number
+                conversionRate:
+                  type: number
+      responses:
+        "200":
+          description: Viral score
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  score:
+                    type: number
+                    minimum: 0
+                    maximum: 100
+
+  /api/predict/churn:
+    post:
+      tags:
+        - Predictive Models
+      summary: Predict churn risk
+      description: Calculate churn probability 0-100%
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                daysSinceLastEngagement:
+                  type: number
+                engagementScore:
+                  type: number
+      responses:
+        "200":
+          description: Churn risk
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  riskPercent:
+                    type: number
+
+  # ─── Health & Metrics ──────────────────────────────────────────────
+
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Liveness check
+      description: Server up (200) or down (503)
+      responses:
+        "200":
+          description: Server is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [alive]
+                  timestamp:
+                    type: string
+
+  /health/ready:
+    get:
+      tags:
+        - Health
+      summary: Readiness check
+      description: Dependencies OK (200) or degraded (503)
+      responses:
+        "200":
+          description: Ready to accept traffic
+        "503":
+          description: Dependencies degraded
+
+  /health/detailed:
+    get:
+      tags:
+        - Health
+      summary: Detailed health status
+      description: Full system status with per-component breakdown
+      responses:
+        "200":
+          description: Health report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  components:
+                    type: object
+
+  /metrics:
+    get:
+      tags:
+        - Metrics
+      summary: Prometheus metrics
+      description: All metrics in Prometheus text format (for scrape targets)
+      responses:
+        "200":
+          description: Prometheus metrics
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /metrics/summary:
+    get:
+      tags:
+        - Metrics
+      summary: Metrics summary
+      description: JSON summary of key metrics
+      responses:
+        "200":
+          description: Metrics summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                  counters:
+                    type: object
+                  histograms:
+                    type: object
+                  gauges:
+                    type: object
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+tags:
+  - name: Real Data Sync
+    description: Webhook handlers for conversions, engagement, lead signals
+  - name: Anomaly Detection
+    description: Detect critical deviations from baseline
+  - name: Autonomous Execution
+    description: Execute agent decisions via APIs
+  - name: Predictive Models
+    description: ML models for viral score, churn, ROI, lead conversion
+  - name: Health
+    description: Liveness and readiness checks
+  - name: Metrics
+    description: Prometheus metrics and monitoring
