@@ -63,6 +63,7 @@ import selliaDashboardRoutes from './api/sellia-dashboard-routes.js';
 import predictiveRoutes from './api/predictive-routes.js';
 import orchestratorRoutes from './api/orchestrator-routes.js';
 import { carouselDB } from './db/postgres.js';
+import agencySimpleRoutes from './api/agency-simple-routes.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -326,6 +327,9 @@ app.use('/api/predict', predictiveRoutes);
 
 // Agent orchestrator (dashboard → predictions → decisions)
 app.use('/api/orchestrate', orchestratorRoutes);
+
+// TIER 7: Agency OS (campaign generation)
+app.use('/api/agency', agencySimpleRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 // Use __dirname for absolute paths (works in Railway serverless env)
