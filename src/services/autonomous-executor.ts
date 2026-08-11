@@ -106,10 +106,10 @@ export const executeAction = async (action: ExecutableAction, context: Execution
     } else if (action.type === 'notifyTeam') {
       const notifyResponse = await context.email.notifyTeam(action.reason, action.target);
       execution.apiResponse = notifyResponse;
-      const recipients: string[] = notifyResponse.recipients;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       execution.result = {
         notificationSent: true,
-        recipients,
+        recipients: (notifyResponse as any)?.recipients ?? [],
       };
     } else {
       throw new Error(`Unknown action type: ${action.type}`);
