@@ -57,6 +57,78 @@ export const retryAttemptCounter = new Counter({
   registers: [metricsRegistry],
 });
 
+// ─── Agency Agents Metrics ──────────────────────────────────────────────
+
+export const strategyLatencyHistogram = new Histogram({
+  name: 'agency_strategy_latency_ms',
+  help: 'Strategy director latency (ms)',
+  buckets: [500, 1000, 2000, 5000, 10000],
+  registers: [metricsRegistry],
+});
+
+export const strategyCounter = new Counter({
+  name: 'agency_strategy_total',
+  help: 'Total strategy generation calls',
+  labelNames: ['accountId', 'status'],
+  registers: [metricsRegistry],
+});
+
+export const artLatencyHistogram = new Histogram({
+  name: 'agency_art_latency_ms',
+  help: 'Art director latency (ms)',
+  buckets: [500, 1000, 2000, 5000, 10000],
+  registers: [metricsRegistry],
+});
+
+export const copyLatencyHistogram = new Histogram({
+  name: 'agency_copy_latency_ms',
+  help: 'Copywriter latency (ms)',
+  buckets: [500, 1000, 2000, 5000, 10000],
+  registers: [metricsRegistry],
+});
+
+export const communityLatencyHistogram = new Histogram({
+  name: 'agency_community_latency_ms',
+  help: 'Community manager latency (ms)',
+  buckets: [100, 250, 500, 1000, 2500],
+  registers: [metricsRegistry],
+});
+
+export const qaLatencyHistogram = new Histogram({
+  name: 'agency_qa_latency_ms',
+  help: 'QA validator latency (ms)',
+  buckets: [100, 250, 500, 1000, 2500],
+  registers: [metricsRegistry],
+});
+
+export const qaApprovalCounter = new Counter({
+  name: 'agency_qa_approvals_total',
+  help: 'Total QA approvals/rejections',
+  labelNames: ['status'],
+  registers: [metricsRegistry],
+});
+
+export const optimizerLatencyHistogram = new Histogram({
+  name: 'agency_optimizer_latency_ms',
+  help: 'Optimizer latency (ms)',
+  buckets: [100, 250, 500, 1000, 2500],
+  registers: [metricsRegistry],
+});
+
+export const agencyLatencyHistogram = new Histogram({
+  name: 'agency_orchestration_latency_ms',
+  help: 'Full agency orchestration latency (ms)',
+  buckets: [2000, 5000, 10000, 20000, 30000],
+  registers: [metricsRegistry],
+});
+
+export const agencyApprovalCounter = new Counter({
+  name: 'agency_campaigns_total',
+  help: 'Total campaigns created',
+  labelNames: ['status'],
+  registers: [metricsRegistry],
+});
+
 // ─── Histograms (distributions) ─────────────────────────────────────────
 
 export const webhookLatencyHistogram = new Histogram({

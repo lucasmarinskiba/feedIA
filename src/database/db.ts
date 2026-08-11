@@ -57,6 +57,51 @@ function initSchema(db: Database.Database): void {
       updated_at TEXT DEFAULT (datetime('now'))
     );
   `);
+  // Agency Campaigns (AI-generated campaigns)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS campaigns (
+      id TEXT PRIMARY KEY,
+      accountId TEXT NOT NULL REFERENCES accounts(id),
+      version INTEGER DEFAULT 1,
+      strategy TEXT,
+      art TEXT,
+      copy TEXT,
+      engagement TEXT,
+      validation TEXT,
+      status TEXT DEFAULT 'draft',
+      createdAt TEXT DEFAULT (datetime('now')),
+      updatedAt TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
+  // Agency Logs (orchestration trace)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS agency_logs (
+      id TEXT PRIMARY KEY,
+      campaignId TEXT REFERENCES campaigns(id),
+      agent TEXT NOT NULL,
+      input TEXT,
+      output TEXT,
+      latencyMs INTEGER,
+      cost REAL,
+      createdAt TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
+  // Optimization History (metric-driven refinements)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS optimization_history (
+      id TEXT PRIMARY KEY,
+      campaignId TEXT REFERENCES campaigns(id),
+      metric TEXT,
+      previousValue REAL,
+      newValue REAL,
+      adjustmentApplied TEXT,
+      reasoning TEXT,
+      createdAt TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
   // Migración incremental para tablas creadas antes de calendarQueue
   try {
     db.exec(`ALTER TABLE accounts ADD COLUMN onboarding_json TEXT;`);

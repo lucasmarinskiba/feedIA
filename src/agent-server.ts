@@ -26,6 +26,7 @@ import metricsRoutes from './api/metrics-routes.js';
 import realdataRoutes from './api/realdata-routes.js';
 import anomalyRoutes from './api/anomaly-routes.js';
 import executeRoutes from './api/execute-routes.js';
+import agencySimpleRoutes from './api/agency-simple-routes.js';
 
 const app = express();
 const PORT = process.env.AGENT_PORT || 3001;
@@ -51,6 +52,7 @@ app.use('/metrics', metricsRoutes);
 app.use('/api/realdata', realdataRoutes);
 app.use('/api/anomaly', anomalyRoutes);
 app.use('/api/execute', executeRoutes);
+app.use('/api/agency', agencySimpleRoutes);
 
 // Default route
 app.get('/', (_req: Request, res: Response) => {
@@ -74,6 +76,10 @@ app.get('/', (_req: Request, res: Response) => {
       webhooks: 'POST /api/realdata/webhook/{type}',
       anomaly: 'POST /api/anomaly/scan',
       execute: 'POST /api/execute/action',
+      agency_create: 'POST /api/agency/campaign/create (generate campaign)',
+      agency_get: 'GET /api/agency/campaign/:id (retrieve campaign)',
+      agency_metrics: 'GET /api/agency/campaign/:id/metrics (campaign analytics)',
+      agency_batch: 'POST /api/agency/batch/create (batch campaigns)',
     },
   });
 });
