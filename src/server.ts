@@ -61,6 +61,7 @@ import carouselGenerationIntegrationRoutes from './api/carousel-generation-integ
 import costGuardianRoutes from './api/cost-guardian-routes.js';
 import selliaDashboardRoutes from './api/sellia-dashboard-routes.js';
 import predictiveRoutes from './api/predictive-routes.js';
+import orchestratorRoutes from './api/orchestrator-routes.js';
 import { carouselDB } from './db/postgres.js';
 
 const app: Express = express();
@@ -322,6 +323,9 @@ app.use('/api/dashboard', selliaDashboardRoutes);
 
 // Predictive intelligence routes (viral score, churn risk, ROI forecast, lead conversion)
 app.use('/api/predict', predictiveRoutes);
+
+// Agent orchestrator (dashboard → predictions → decisions)
+app.use('/api/orchestrate', orchestratorRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 // Use __dirname for absolute paths (works in Railway serverless env)
