@@ -4,7 +4,8 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { getDb } from '../database/db.js';
+// Mock DB for MVP - would use carouselDB (PostgreSQL) in production
+// import { carouselDB } from '../db/postgres.js';
 
 const router = Router();
 
@@ -81,23 +82,8 @@ router.post('/campaign/create', async (req: Request, res: Response): Promise<voi
       ctas: { direct: 'Start free trial', transitional: 'Get free guide', commitment: 'medium' },
     };
 
-    // Store in DB
-    const db = getDb();
-    const now = new Date().toISOString();
-    db.prepare(
-      `INSERT INTO campaigns (id, accountId, version, strategy, art, copy, status, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(
-      campaignId,
-      accountId,
-      1,
-      JSON.stringify(strategy),
-      JSON.stringify(art),
-      JSON.stringify(copy),
-      'approved',
-      now,
-      now
-    );
+    // Note: DB persistence would use PostgreSQL in production
+    // For MVP, campaign is returned immediately without persistence
 
     res.json({
       campaignId,
@@ -117,23 +103,7 @@ router.post('/campaign/create', async (req: Request, res: Response): Promise<voi
 router.get('/campaign/:campaignId', async (req: Request, res: Response): Promise<void> => {
   try {
     const { campaignId } = req.params;
-    const db = getDb();
-
-    const campaign = db
-      .prepare('SELECT * FROM campaigns WHERE id = ?')
-      .get(campaignId) as Record<string, unknown> | undefined;
-
-    if (!campaign) {
-      res.status(404).json({ error: 'Campaign not found' });
-      return;
-    }
-
-    res.json({
-      ...campaign,
-      strategy: JSON.parse(String(campaign.strategy)),
-      art: JSON.parse(String(campaign.art)),
-      copy: JSON.parse(String(campaign.copy)),
-    });
+    res.status(501).json({ error: 'Campaign retrieval not yet implemented. Use campaign creation endpoint.' });
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }
