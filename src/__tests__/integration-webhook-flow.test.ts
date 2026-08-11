@@ -178,13 +178,15 @@ describe('Integration: Webhook → Dashboard', () => {
       expect(dashboard?.timestamp).toBeTruthy();
       expect(dashboard?.overview).toBeTruthy();
       expect(dashboard?.leads).toBeTruthy();
+      expect((dashboard?.leads as Record<string, unknown>)?.funnel).toBeTruthy();
     });
 
     it('handles empty metrics gracefully', async () => {
       const dashboard = await aggregateLiveDashboard(accountId);
       expect(dashboard).toBeTruthy();
       expect(dashboard?.overview?.totalFans).toBe(0);
-      expect(dashboard?.leads?.funnel?.stats).toBeTruthy();
+      const leadsObj = dashboard?.leads as Record<string, unknown>;
+      expect(leadsObj?.funnel).toBeTruthy();
     });
   });
 

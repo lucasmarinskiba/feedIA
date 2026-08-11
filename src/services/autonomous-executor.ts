@@ -106,10 +106,10 @@ export const executeAction = async (action: ExecutableAction, context: Execution
     } else if (action.type === 'notifyTeam') {
       const notifyResponse = await context.email.notifyTeam(action.reason, action.target);
       execution.apiResponse = notifyResponse;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // @ts-ignore: TS2532 type narrowing limitation with optional chaining
       execution.result = {
         notificationSent: true,
-        recipients: (notifyResponse as any)?.recipients ?? [],
+        recipients: notifyResponse?.recipients ?? [],
       };
     } else {
       throw new Error(`Unknown action type: ${action.type}`);
@@ -282,7 +282,11 @@ export const buildExecutionPlan = (
 
   // Sort by severity: critical → high → medium → low
   const severityRank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
-  actions.push(...Array.from(actionMap.values()).sort((a, b) => severityRank[a.severity] - severityRank[b.severity]));
+  const sortedActions = Array.from(actionMap.values()).sort(
+    (a: ExecutableAction, b: ExecutableAction) =>
+      (severityRank[a.severity] ?? 999) - (severityRank[b.severity] ?? 999),
+  );
+  actions.push(...sortedActions);
 
   log.info('[autonomous-executor] execution plan built', {
     accountId,

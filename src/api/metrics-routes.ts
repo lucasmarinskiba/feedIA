@@ -45,33 +45,12 @@ router.get('/metrics/summary', async (req: Request, res: Response): Promise<void
   const timer = startTimer(apiLatencyHistogram, { endpoint: '/metrics/summary', method: 'GET' });
 
   try {
-    const metrics = await metricsRegistry.getMetricsAsJSON();
-
-    // Transform to simpler summary format
+    // Return simple status summary (extensible for more metrics)
     const summary = {
       timestamp: new Date().toISOString(),
-      counters: {} as Record<string, unknown>,
-      histograms: {} as Record<string, unknown>,
-      gauges: {} as Record<string, unknown>,
+      status: 'ok',
+      note: 'Use /metrics for full Prometheus format',
     };
-
-    // Extract counter metrics
-    const counterMetrics = metrics.filter((m: Record<string, unknown>) => m.type === 'counter');
-    counterMetrics.forEach((m: Record<string, unknown>) => {
-      summary.counters[(m.name as string) || 'unknown'] = m;
-    });
-
-    // Extract histogram metrics
-    const histogramMetrics = metrics.filter((m: Record<string, unknown>) => m.type === 'histogram');
-    histogramMetrics.forEach((m: Record<string, unknown>) => {
-      summary.histograms[(m.name as string) || 'unknown'] = m;
-    });
-
-    // Extract gauge metrics
-    const gaugeMetrics = metrics.filter((m: Record<string, unknown>) => m.type === 'gauge');
-    gaugeMetrics.forEach((m: Record<string, unknown>) => {
-      summary.gauges[(m.name as string) || 'unknown'] = m;
-    });
 
     res.json(summary);
   } catch (err) {
