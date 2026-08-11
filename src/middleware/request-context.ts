@@ -42,7 +42,7 @@ const getOrGenerateRequestId = (req: Request): string => {
   if (traceParent) {
     // Format: version-trace_id-parent_id-trace_flags
     const parts = traceParent.split('-');
-    if (parts.length >= 2) {
+    if (parts.length >= 2 && parts[1]) {
       return parts[1]; // Extract trace_id
     }
   }
