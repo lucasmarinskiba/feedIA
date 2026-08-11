@@ -19,7 +19,7 @@ const router = Router();
  *
  * Standard endpoint for Prometheus scrape target
  */
-router.get('/metrics', async (req: Request, res: Response): Promise<void> => {
+router.get('/', async (req: Request, res: Response): Promise<void> => {
   const timer = startTimer(apiLatencyHistogram, { endpoint: '/metrics', method: 'GET' });
 
   try {
@@ -41,7 +41,7 @@ router.get('/metrics', async (req: Request, res: Response): Promise<void> => {
  *
  * Simpler format for dashboards that don't parse Prometheus text
  */
-router.get('/metrics/summary', async (req: Request, res: Response): Promise<void> => {
+router.get('/summary', async (req: Request, res: Response): Promise<void> => {
   const timer = startTimer(apiLatencyHistogram, { endpoint: '/metrics/summary', method: 'GET' });
 
   try {

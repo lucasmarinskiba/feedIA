@@ -38,6 +38,11 @@ app.use(apiKeyMiddleware);
 app.use(rateLimitMiddleware);
 app.use(auditLoggingMiddleware);
 
+// Test route (for debugging)
+app.get('/test', (req: Request, res: Response) => {
+  res.json({ test: 'ok', path: req.path });
+});
+
 // Health & Metrics (public)
 app.use('/health', healthCheckRoutes);
 app.use('/metrics', metricsRoutes);

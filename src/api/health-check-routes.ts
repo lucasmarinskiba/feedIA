@@ -9,8 +9,8 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { healthcheckStatusGauge, setHealthcheckStatus } from '../services/prometheus-metrics.js';
-import { info, warn, healthCheckLogger } from '../services/structured-logger.js';
+import { setHealthcheckStatus } from '../services/prometheus-metrics.js';
+import { info, warn } from '../services/structured-logger.js';
 import { getDb } from '../database/db.js';
 
 const router = Router();
@@ -36,7 +36,7 @@ const componentStatus: Map<string, ComponentHealth> = new Map([
  *
  * Returns 200 if server is up (regardless of dependencies)
  */
-router.get('/health', (_req: Request, res: Response): void => {
+router.get('/', (_req: Request, res: Response): void => {
   res.status(200).json({
     status: 'alive',
     timestamp: new Date().toISOString(),
@@ -49,7 +49,7 @@ router.get('/health', (_req: Request, res: Response): void => {
  *
  * Returns 200 if ready to accept traffic, 503 if degraded
  */
-router.get('/health/ready', async (_req: Request, res: Response): Promise<void> => {
+router.get('/ready', async (_req: Request, res: Response): Promise<void> => {
   const checks = await performReadinessChecks();
   const allHealthy = checks.every((c) => c.healthy);
 
@@ -68,7 +68,7 @@ router.get('/health/ready', async (_req: Request, res: Response): Promise<void> 
  *
  * Returns 200 with detailed per-component status
  */
-router.get('/health/detailed', async (_req: Request, res: Response): Promise<void> => {
+router.get('/detailed', async (_req: Request, res: Response): Promise<void> => {
   const details = await getDetailedHealthStatus();
   const allHealthy = Object.values(details.components).every((c) => c.healthy);
 
