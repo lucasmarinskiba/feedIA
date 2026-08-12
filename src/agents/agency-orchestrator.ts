@@ -6,7 +6,18 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 
-const client = new Anthropic();
+const initializeClient = () => {
+  try {
+    return new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+  } catch (err) {
+    console.error('[TIER 8] Failed to initialize Anthropic client:', err);
+    return null;
+  }
+};
+
+const client = initializeClient();
 
 export interface CampaignInput {
   accountId: string;
@@ -41,6 +52,8 @@ export interface CampaignOutput {
  * Strategy Director: Apply Godin + Miller frameworks
  */
 const strategyDirector = async (input: CampaignInput): Promise<Strategy> => {
+  if (!client) throw new Error('Anthropic client not initialized');
+
   const prompt = `You are a master strategist combining Seth Godin (Minimum Viable Market, lock & key),
 Donald Miller (SB7 Big Domino), Al Ries (Positioning), and Jim Collins (Hedgehog Concept).
 
@@ -72,6 +85,8 @@ Return JSON:
  * Copywriter: Generate CTAs + emotional hooks
  */
 const copywriter = async (strategy: Strategy): Promise<unknown> => {
+  if (!client) throw new Error('Anthropic client not initialized');
+
   const prompt = `You are a Schwartz + Cialdini master copywriter. Generate 5 headlines matching awareness levels.
 
 Big Domino: "${strategy.bigDomino}"
@@ -99,6 +114,8 @@ Return JSON:
  * Community Manager: Engagement loops + crisis protocol
  */
 const communityManager = async (strategy: Strategy): Promise<unknown> => {
+  if (!client) throw new Error('Anthropic client not initialized');
+
   const prompt = `You are a CM expert (7 consumer values, 5 engagement keys, SPACES outcomes).
 
 MVMarket: "${strategy.mvMarket}"
