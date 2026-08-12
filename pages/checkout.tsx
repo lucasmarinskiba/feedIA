@@ -6,13 +6,15 @@
 
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { tier } = router.query;
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [userId, setUserId] = useState('');
 
   const tierConfig = {
     free: { name: 'Starter', price: 0, campaigns: 5 },
@@ -22,26 +24,59 @@ export default function CheckoutPage() {
 
   const selectedTier = tierConfig[tier as keyof typeof tierConfig] || tierConfig.free;
 
+  // Initialize user from localStorage (or prompt for email)
+  useEffect(() => {
+    const stored = localStorage.getItem('user_id');
+    const storedEmail = localStorage.getItem('user_email');
+
+    if (stored) setUserId(stored);
+    if (storedEmail) setEmail(storedEmail);
+  }, []);
+
   const handleCheckout = async () => {
     try {
       setIsProcessing(true);
       setError(null);
 
-      if (selectedTier.price === 0) {
-        // Free tier: redirect immediately to app
-        setTimeout(() => {
-          window.location.href = `/#feed?tier=free&signup=true`;
-        }, 500);
+      // Validate email for paid tiers
+      if (selectedTier.price > 0 && !email) {
+        setError('Email required for paid subscriptions');
+        setIsProcessing(false);
         return;
       }
 
-      // Paid tier: simulate Stripe checkout (replace with real Stripe integration)
+      // Free tier: record in DB + redirect
+      if (selectedTier.price === 0) {
+        const userId = `free_${Date.now()}`;
+        localStorage.setItem('user_id', userId);
+        localStorage.setItem('user_email', email || `guest_${userId}@feedia.app`);
+
+        // Call backend to save free tier
+        await fetch('/api/billing/save-tier', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            email: email || `guest_${userId}@feedia.app`,
+            tier: 'free',
+          }),
+        }).catch(() => null); // Ignore errors, proceed anyway
+
+        setTimeout(() => {
+          window.location.href = `/#feed?tier=free&userId=${userId}&signup=true`;
+        }, 300);
+        return;
+      }
+
+      // Paid tier: create Stripe session (real)
       const response = await fetch('/api/billing/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tier,
-          successUrl: `${window.location.origin}/#feed?tier=${tier}&payment=success`,
+          email,
+          userId: userId || `guest_${Date.now()}`,
+          successUrl: `${window.location.origin}/#feed?tier=${tier}&payment=success&email=${encodeURIComponent(email)}`,
           cancelUrl: `${window.location.origin}/pricing?tier=${tier}`,
         }),
       });
@@ -49,13 +84,16 @@ export default function CheckoutPage() {
       const session = await response.json();
 
       if (session.url) {
-        // Redirect to Stripe checkout (or Vercel billing integration)
+        // Redirect to real Stripe checkout
         window.location.href = session.url;
+      } else if (session.sessionId) {
+        // Fallback: redirect to app with session ID (webhook will process async)
+        localStorage.setItem('user_id', userId);
+        localStorage.setItem('user_email', email);
+        window.location.href = `/#feed?tier=${tier}&payment=pending&sessionId=${session.sessionId}`;
       } else {
-        // Fallback: simulate payment success after 2s
-        setTimeout(() => {
-          window.location.href = `/#feed?tier=${tier}&payment=success`;
-        }, 2000);
+        setError('Failed to create checkout session');
+        setIsProcessing(false);
       }
     } catch (err) {
       setError(String(err));
@@ -92,12 +130,33 @@ export default function CheckoutPage() {
             boxShadow: '0 25px 50px rgba(0,0,0,0.15)',
           }}
         >
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '12px' }}>
-            Complete Your Purchase
-          </h1>
-          <p style={{ color: '#6b7280', marginBottom: '40px', fontSize: '1rem' }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '12px' }}>Complete Your Purchase</h1>
+          <p style={{ color: '#6b7280', marginBottom: '32px', fontSize: '1rem' }}>
             You're selecting the {selectedTier.name} tier
           </p>
+
+          {/* Email Input (for paid tiers) */}
+          {selectedTier.price > 0 && (
+            <div style={{ marginBottom: '32px' }}>
+              <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginBottom: '8px' }}>
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+          )}
 
           {/* Order Summary */}
           <div
@@ -134,9 +193,7 @@ export default function CheckoutPage() {
                 }}
               >
                 ${selectedTier.price}
-                <span style={{ fontSize: '0.75rem', color: '#6b7280', marginLeft: '4px' }}>
-                  /month
-                </span>
+                <span style={{ fontSize: '0.75rem', color: '#6b7280', marginLeft: '4px' }}>/month</span>
               </span>
             </div>
           </div>

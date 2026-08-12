@@ -65,6 +65,8 @@ import orchestratorRoutes from './api/orchestrator-routes.js';
 import { carouselDB } from './db/postgres.js';
 import agencySimpleRoutes from './api/agency-simple-routes.js';
 import conversionRoutes from './api/conversion-routes.js';
+import billingRoutes from './api/billing-routes.js';
+import { initializeUserTiersTable } from './db/user-tiers.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -335,6 +337,9 @@ app.use('/api/agency', agencySimpleRoutes);
 // TIER 8 Extension: Conversion + FOMO Strategy
 app.use('/api/conversion', conversionRoutes);
 
+// TIER 8 Extension: Billing + Tier Management (Stripe + Database)
+app.use('/api/billing', billingRoutes);
+
 // Static files + SPA catch-all (must be after all /api routes)
 // Use __dirname for absolute paths (works in Railway serverless env)
 const STATIC_CANDIDATES = [
@@ -370,11 +375,11 @@ app.use((err: Error, req: Request, res: Response, _next: express.NextFunction) =
 });
 
 // Fire-and-forget init (serverless: no app.listen)
-Promise.all([feedIADatabase.initialize(), carouselDB.initialize()])
+Promise.all([feedIADatabase.initialize(), carouselDB.initialize(), initializeUserTiersTable()])
   .then(() => {
     feedIAOrchestrator.initializeAgents();
     startPollingScheduler();
-    log.info('[Server] initialized with metrics polling scheduler + carousel storage');
+    log.info('[Server] initialized: metrics polling + carousel storage + billing/tiers');
   })
   .catch((err) => log.error('[Server] initialization failed', err));
 
