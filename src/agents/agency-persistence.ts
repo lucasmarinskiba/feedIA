@@ -1,9 +1,10 @@
 /**
  * Agency Persistence Layer (TIER 8 Phase 2)
  * PostgreSQL campaigns storage + retrieval
+ * Phase 5: Real PostgreSQL support via DATABASE_URL
  */
 
-import { carouselDB } from '../db/postgres.js';
+import { getPool, isRealDatabase } from '../db/postgres-real.js';
 import type { CampaignOutput } from './agency-orchestrator.js';
 
 /**
@@ -11,7 +12,10 @@ import type { CampaignOutput } from './agency-orchestrator.js';
  */
 export const initializeCampaignsTable = async (): Promise<void> => {
   try {
-    await carouselDB.pool.query(`
+    const dbStatus = isRealDatabase() ? 'real PostgreSQL' : 'mock pool';
+    console.log(`[TIER 8 Phase 5] Initializing campaigns table (${dbStatus})`);
+
+    await getPool().query(`
       CREATE TABLE IF NOT EXISTS agency_campaigns (
         id TEXT PRIMARY KEY,
         account_id TEXT NOT NULL,
@@ -42,7 +46,7 @@ export const initializeCampaignsTable = async (): Promise<void> => {
  */
 export const saveCampaign = async (campaign: CampaignOutput, accountId: string): Promise<void> => {
   try {
-    await carouselDB.pool.query(
+    await getPool().query(
       `INSERT INTO agency_campaigns
        (id, account_id, strategy, art, copy, engagement, validation, status, total_tokens, estimated_cost, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())`,
@@ -71,7 +75,7 @@ export const saveCampaign = async (campaign: CampaignOutput, accountId: string):
  */
 export const loadCampaign = async (campaignId: string): Promise<CampaignOutput | null> => {
   try {
-    const result = await carouselDB.pool.query(
+    const result = await getPool().query(
       `SELECT * FROM agency_campaigns WHERE id = $1`,
       [campaignId]
     );
@@ -106,12 +110,12 @@ export const listCampaigns = async (
   offset: number = 0
 ): Promise<{ campaigns: unknown[]; total: number }> => {
   try {
-    const countResult = await carouselDB.pool.query(
+    const countResult = await getPool().query(
       `SELECT COUNT(*) as count FROM agency_campaigns WHERE account_id = $1`,
       [accountId]
     );
 
-    const dataResult = await carouselDB.pool.query(
+    const dataResult = await getPool().query(
       `SELECT id, strategy, status, estimated_cost, created_at FROM agency_campaigns
        WHERE account_id = $1
        ORDER BY created_at DESC
@@ -134,7 +138,7 @@ export const listCampaigns = async (
  */
 export const updateCampaignStatus = async (campaignId: string, status: string): Promise<void> => {
   try {
-    await carouselDB.pool.query(
+    await getPool().query(
       `UPDATE agency_campaigns SET status = $1, updated_at = NOW() WHERE id = $2`,
       [status, campaignId]
     );
