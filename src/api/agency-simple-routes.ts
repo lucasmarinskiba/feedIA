@@ -5,6 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import { agencyOrchestrator } from '../agents/agency-orchestrator.js';
+import { saveCampaign, loadCampaign, listCampaigns, updateCampaignStatus, initializeCampaignsTable } from '../agents/agency-persistence.js';
 
 const router = Router();
 
@@ -34,6 +35,9 @@ router.post('/campaign/create', async (req: Request, res: Response): Promise<voi
 
     console.log(`[TIER 8] Orchestrating campaign for account=${accountId}`);
 
+    // Initialize DB table on first request
+    await initializeCampaignsTable();
+
     const campaign = await agencyOrchestrator({
       accountId,
       brief,
@@ -42,6 +46,9 @@ router.post('/campaign/create', async (req: Request, res: Response): Promise<voi
       budget,
       platforms,
     });
+
+    // TIER 8 Phase 2: Persist to PostgreSQL
+    await saveCampaign(campaign, accountId);
 
     res.json({
       campaignId: campaign.campaignId,
@@ -65,12 +72,36 @@ router.post('/campaign/create', async (req: Request, res: Response): Promise<voi
 
 /**
  * GET /api/agency/campaign/:campaignId
- * TODO: Retrieve from PostgreSQL
+ * TIER 8 Phase 2: Retrieve from PostgreSQL
  */
 router.get('/campaign/:campaignId', async (req: Request, res: Response): Promise<void> => {
   try {
     const { campaignId } = req.params;
-    res.status(501).json({ error: 'Campaign retrieval not yet implemented. Use campaign creation endpoint.' });
+    const campaign = await loadCampaign(campaignId);
+
+    if (!campaign) {
+      res.status(404).json({ error: 'Campaign not found' });
+      return;
+    }
+
+    res.json(campaign);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+/**
+ * GET /api/agency/campaigns
+ * List campaigns for account
+ */
+router.get('/campaigns', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const accountId = req.get('X-Account-ID') || 'test-account';
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    const result = await listCampaigns(accountId, limit, offset);
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }
