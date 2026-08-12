@@ -7,6 +7,15 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { metricsCollector } from './agency-metrics.js';
 
+// Sanitize user input for safe prompt inclusion
+const sanitizeInput = (input: string): string => {
+  return input
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .substring(0, 500); // Cap at 500 chars
+};
+
 const initializeClient = () => {
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
@@ -63,12 +72,17 @@ export interface CampaignOutput {
 const strategyDirector = async (input: CampaignInput): Promise<{ strategy: Strategy; inputTokens: number; outputTokens: number }> => {
   if (!client) throw new Error('ANTHROPIC_API_KEY not set. Fallback to mock.');
 
+  // Sanitize all user inputs to prevent prompt injection
+  const safeBrief = sanitizeInput(input.brief);
+  const safeAudience = sanitizeInput(input.targetAudience);
+  const safeGoals = input.goals.map(sanitizeInput).join(', ');
+
   const prompt = `You are a master strategist combining Seth Godin (Minimum Viable Market, lock & key),
 Donald Miller (SB7 Big Domino), Al Ries (Positioning), and Jim Collins (Hedgehog Concept).
 
-Brief: ${input.brief}
-Target Audience: ${input.targetAudience}
-Goals: ${input.goals.join(', ')}
+Brief: "${safeBrief}"
+Target Audience: "${safeAudience}"
+Goals: ${safeGoals}
 
 Return ONLY valid JSON (no markdown, no explanation):
 {
@@ -87,7 +101,14 @@ Return ONLY valid JSON (no markdown, no explanation):
   });
 
   const text = response.content?.[0]?.type === 'text' ? (response.content[0] as any).text : '{}';
-  const strategy = JSON.parse(text);
+
+  let strategy: Strategy;
+  try {
+    strategy = JSON.parse(text);
+  } catch (err) {
+    console.error('[TIER 8] JSON parse failed:', text.substring(0, 100));
+    throw new Error(`Invalid JSON from strategy director: ${String(err)}`);
+  }
 
   return {
     strategy,
@@ -105,9 +126,9 @@ const copywriter = async (strategy: Strategy): Promise<{ copy: unknown; inputTok
 
   const prompt = `You are a Schwartz + Cialdini master copywriter. Generate 5 headlines matching awareness levels.
 
-Big Domino: "${strategy.bigDomino}"
-MVMarket: "${strategy.mvMarket}"
-Content Pillars: ${strategy.contentPillars.join(', ')}
+Big Domino: "${sanitizeInput(strategy.bigDomino)}"
+MVMarket: "${sanitizeInput(strategy.mvMarket)}"
+Content Pillars: ${strategy.contentPillars.map(sanitizeInput).join(', ')}
 
 Return ONLY valid JSON (no markdown):
 {
@@ -123,7 +144,14 @@ Return ONLY valid JSON (no markdown):
   });
 
   const text = response.content?.[0]?.type === 'text' ? (response.content[0] as any).text : '{}';
-  const copy = JSON.parse(text);
+
+  let copy: unknown;
+  try {
+    copy = JSON.parse(text);
+  } catch (err) {
+    console.error('[TIER 8] JSON parse failed in copywriter:', text.substring(0, 100));
+    throw new Error(`Invalid JSON from copywriter: ${String(err)}`);
+  }
 
   return {
     copy,
@@ -141,8 +169,8 @@ const communityManager = async (strategy: Strategy): Promise<{ engagement: unkno
 
   const prompt = `You are a CM expert (7 consumer values, 5 engagement keys, SPACES outcomes).
 
-MVMarket: "${strategy.mvMarket}"
-Big Domino: "${strategy.bigDomino}"
+MVMarket: "${sanitizeInput(strategy.mvMarket)}"
+Big Domino: "${sanitizeInput(strategy.bigDomino)}"
 
 Return ONLY valid JSON:
 {
@@ -159,7 +187,14 @@ Return ONLY valid JSON:
   });
 
   const text = response.content?.[0]?.type === 'text' ? (response.content[0] as any).text : '{}';
-  const engagement = JSON.parse(text);
+
+  let engagement: unknown;
+  try {
+    engagement = JSON.parse(text);
+  } catch (err) {
+    console.error('[TIER 8] JSON parse failed in community manager:', text.substring(0, 100));
+    throw new Error(`Invalid JSON from community manager: ${String(err)}`);
+  }
 
   return {
     engagement,
@@ -255,7 +290,7 @@ export const agencyOrchestrator = async (input: CampaignInput): Promise<Campaign
     // Fallback to mock data
     const strategy = mockStrategy(input);
 
-    // Record failure metrics
+    // Record failure metrics (0 tokens, 0 cost — don't bill failed attempts)
     metricsCollector.recordCampaign(latencyMs, 0, 0, 'failed');
 
     return {
@@ -264,7 +299,7 @@ export const agencyOrchestrator = async (input: CampaignInput): Promise<Campaign
       art: { slides: Array.from({ length: 10 }, (_, i) => ({ id: i, layout: 'asymmetric' })) },
       copy: { headlines: [], ctas: {} },
       engagement: { listeningSchedule: 'mock', responseTemplates: {} },
-      validation: { approved: true, score: 0.7, issues: ['Using mock data due to API error'] },
+      validation: { approved: true, score: 0.7, issues: [`Mock fallback: ${String(err).substring(0, 100)}`] },
       totalTokens: 0,
       estimatedCost: 0,
     };

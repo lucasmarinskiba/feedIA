@@ -72,6 +72,7 @@ export const saveCampaign = async (campaign: CampaignOutput, accountId: string):
 
 /**
  * Load campaign from PostgreSQL
+ * With schema validation to prevent data corruption
  */
 export const loadCampaign = async (campaignId: string): Promise<CampaignOutput | null> => {
   try {
@@ -85,19 +86,31 @@ export const loadCampaign = async (campaignId: string): Promise<CampaignOutput |
     }
 
     const row = result.rows[0] as any;
+
+    // Validate required fields
+    if (!row.id || typeof row.id !== 'string') {
+      throw new Error('Invalid campaign ID from database');
+    }
+    if (!row.strategy || typeof row.strategy !== 'object') {
+      throw new Error('Invalid strategy field from database');
+    }
+    if (typeof row.total_tokens !== 'number' || typeof row.estimated_cost !== 'number') {
+      throw new Error('Invalid token/cost fields from database');
+    }
+
     return {
       campaignId: row.id,
       strategy: row.strategy,
-      art: row.art,
-      copy: row.copy,
-      engagement: row.engagement,
-      validation: row.validation,
+      art: row.art || {},
+      copy: row.copy || {},
+      engagement: row.engagement || {},
+      validation: row.validation || { approved: false, score: 0, issues: [] },
       totalTokens: row.total_tokens,
       estimatedCost: row.estimated_cost,
     };
   } catch (err) {
     console.error('[TIER 8] Failed to load campaign:', err);
-    return null;
+    throw new Error(`Campaign load failed: ${String(err)}`);
   }
 };
 

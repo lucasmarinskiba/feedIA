@@ -84,11 +84,17 @@ export const batchOrchestrator = async (
   accountId: string,
   workerCount: number = 3
 ): Promise<BatchResult> => {
+  // Validate worker count (prevent DOS via memory exhaustion)
+  const clampedWorkerCount = Math.max(1, Math.min(8, workerCount));
+  if (clampedWorkerCount !== workerCount) {
+    console.warn(`[BATCH] Worker count clamped: ${workerCount} → ${clampedWorkerCount}`);
+  }
+
   const batchId = `batch_${Date.now()}_${Math.random().toString(36).substring(7)}`;
   const startedAt = new Date().toISOString();
   const batchStartTime = Date.now();
 
-  console.log(`[BATCH] Processing ${inputs.length} campaigns (workers=${workerCount})`);
+  console.log(`[BATCH] Processing ${inputs.length} campaigns (workers=${clampedWorkerCount})`);
 
   const jobs: BatchJob[] = inputs.map((input, index) => ({
     index,
@@ -96,7 +102,7 @@ export const batchOrchestrator = async (
     status: 'pending',
   }));
 
-  const results = await processWorkerPool(jobs, workerCount, (completed, total) => {
+  const results = await processWorkerPool(jobs, clampedWorkerCount, (completed, total) => {
     console.log(`[BATCH] Progress: ${completed}/${total}`);
   });
 

@@ -11,9 +11,11 @@ interface QueryResult {
 
 interface PoolConnection {
   query: (sql: string, params?: unknown[]) => Promise<QueryResult>;
+  close?: () => Promise<void>;
 }
 
 let realPool: PoolConnection | null = null;
+let poolInstance: any = null; // Store reference to actual pg pool for cleanup
 
 // Try to load pg module
 const initializeRealPool = (): PoolConnection | null => {
@@ -26,25 +28,29 @@ const initializeRealPool = (): PoolConnection | null => {
       return null;
     }
 
-    const pool = new PostgresPool({
+    poolInstance = new PostgresPool({
       connectionString: process.env.DATABASE_URL,
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
+      statement_timeout: 30000, // 30s query timeout
     });
 
-    pool.on('error', (err: Error) => {
+    poolInstance.on('error', (err: Error) => {
       console.error('[PostgreSQL] Pool error:', err);
     });
 
     console.log('[PostgreSQL] Real connection pool initialized');
     return {
       query: async (sql: string, params?: unknown[]): Promise<QueryResult> => {
-        const result = await pool.query(sql, params);
+        const result = await poolInstance.query(sql, params);
         return {
           rows: result.rows,
           rowCount: result.rowCount || 0,
         };
+      },
+      close: async (): Promise<void> => {
+        await poolInstance.end();
       },
     };
   } catch (err) {
@@ -78,12 +84,12 @@ export const isRealDatabase = (): boolean => {
 };
 
 export const closePool = async (): Promise<void> => {
-  if (realPool && realPool !== mockPool) {
+  if (realPool && realPool !== mockPool && poolInstance) {
     console.log('[PostgreSQL] Closing connection pool');
     try {
-      // Type assertion needed because we don't have pg types
-      const poolInstance = (realPool as any).pool;
-      if (poolInstance) {
+      if (realPool.close) {
+        await realPool.close();
+      } else {
         await poolInstance.end();
       }
     } catch (err) {
