@@ -5,6 +5,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { metricsCollector } from './agency-metrics.js';
 
 const initializeClient = () => {
   try {
@@ -174,6 +175,7 @@ const mockStrategy = (input: CampaignInput): Strategy => ({
  */
 export const agencyOrchestrator = async (input: CampaignInput): Promise<CampaignOutput> => {
   const campaignId = `camp_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+  const startTime = Date.now();
   let totalTokens = 0;
 
   console.log(`[TIER 8] Orchestrating campaign ${campaignId}`);
@@ -207,15 +209,24 @@ export const agencyOrchestrator = async (input: CampaignInput): Promise<Campaign
     };
 
     const estimatedCost = (totalTokens / 1000000) * 3;
+    const latencyMs = Date.now() - startTime;
 
-    console.log(`[TIER 8] Campaign complete: ${totalTokens} tokens, $${estimatedCost.toFixed(4)}`);
+    console.log(`[TIER 8] Campaign complete: ${totalTokens} tokens, $${estimatedCost.toFixed(4)}, ${latencyMs}ms`);
+
+    // Record metrics
+    metricsCollector.recordCampaign(latencyMs, totalTokens, estimatedCost, 'success');
 
     return { campaignId, strategy, art, copy, engagement, validation, totalTokens, estimatedCost };
   } catch (err) {
+    const latencyMs = Date.now() - startTime;
     console.warn(`[TIER 8] LLM failed, using mock fallback: ${String(err)}`);
 
     // Fallback to mock data
     const strategy = mockStrategy(input);
+
+    // Record failure metrics
+    metricsCollector.recordCampaign(latencyMs, 0, 0, 'failed');
+
     return {
       campaignId,
       strategy,

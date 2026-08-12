@@ -5,6 +5,7 @@
 
 import { agencyOrchestrator, CampaignInput, CampaignOutput } from './agency-orchestrator.js';
 import { saveCampaign } from './agency-persistence.js';
+import { metricsCollector } from './agency-metrics.js';
 
 interface BatchJob {
   index: number;
@@ -85,6 +86,7 @@ export const batchOrchestrator = async (
 ): Promise<BatchResult> => {
   const batchId = `batch_${Date.now()}_${Math.random().toString(36).substring(7)}`;
   const startedAt = new Date().toISOString();
+  const batchStartTime = Date.now();
 
   console.log(`[BATCH] Processing ${inputs.length} campaigns (workers=${workerCount})`);
 
@@ -100,8 +102,12 @@ export const batchOrchestrator = async (
 
   const completed = results.filter((j) => j.status === 'complete').length;
   const failed = results.filter((j) => j.status === 'failed').length;
+  const batchDurationMs = Date.now() - batchStartTime;
 
   const completedAt = new Date().toISOString();
+
+  // Record batch metrics
+  metricsCollector.recordBatch(inputs.length, batchDurationMs, failed);
 
   console.log(`[BATCH] Complete: ${completed} success, ${failed} failed`);
 

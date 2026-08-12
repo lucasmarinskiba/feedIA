@@ -7,6 +7,7 @@ import { Router, Request, Response } from 'express';
 import { agencyOrchestrator } from '../agents/agency-orchestrator.js';
 import { batchOrchestrator } from '../agents/batch-orchestrator.js';
 import { saveCampaign, loadCampaign, listCampaigns, updateCampaignStatus, initializeCampaignsTable } from '../agents/agency-persistence.js';
+import { metricsCollector, getHealthCheck } from '../agents/agency-metrics.js';
 
 const router = Router();
 
@@ -146,6 +147,24 @@ router.post('/batch/create', async (req: Request, res: Response): Promise<void> 
     console.error('[TIER 8 Phase 3] Batch error:', err);
     res.status(500).json({ error: String(err) });
   }
+});
+
+/**
+ * GET /api/agency/health
+ * TIER 8 Phase 4: Health check + metrics
+ */
+router.get('/health', (req: Request, res: Response): void => {
+  const health = getHealthCheck();
+  res.json(health);
+});
+
+/**
+ * GET /api/agency/metrics
+ * TIER 8 Phase 4: Prometheus metrics format
+ */
+router.get('/metrics', (req: Request, res: Response): void => {
+  const prometheus = metricsCollector.getPrometheusFormat();
+  res.type('text/plain').send(prometheus);
 });
 
 export default router;
