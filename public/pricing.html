@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI Campaign Generator Pricing | FeedIA - Real Claude API from $79</title>
-  <meta name="description" content="Affordable AI campaign generation for creators & agencies. Free tier + Pro ($79/mo) + Agency ($499/mo). Real Claude API, batch processing, advanced analytics.">
-  <meta property="og:title" content="FeedIA Pricing - AI Campaigns from $79">
-  <meta property="og:description" content="Generate 50-500 campaigns/month with real Claude AI">
+  <title>Pricing Plans | FeedIA - AI Campaigns from Free to $499/mo</title>
+  <meta name="description" content="Flexible AI campaign generation pricing. Free (5/mo) | Pro $79/mo (50/mo, Real Claude) | Agency $499/mo (500/mo, Priority). Cancel anytime.">
+  <meta property="og:title" content="FeedIA Pricing - AI Campaigns $0-$499/mo">
+  <meta property="og:description" content="Choose your tier: Free, Pro ($79), or Agency ($499). Real Claude API, batch processing, 24/7 support.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://feedia.vercel.app/pricing">
   <link rel="canonical" href="https://feedia.vercel.app/pricing">
@@ -333,6 +333,100 @@
       transform: translateY(-2px);
       box-shadow: 0 25px 30px rgba(0,0,0,0.2);
     }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 80px;
+      box-shadow: var(--shadow-lg);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .comparison-table th {
+      background: var(--color-gradient);
+      color: white;
+      padding: 20px;
+      text-align: left;
+      font-weight: 700;
+    }
+
+    .comparison-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .comparison-table tr:hover {
+      background: rgba(37,99,235,0.02);
+    }
+
+    .comparison-table .feature-name {
+      font-weight: 600;
+    }
+
+    .comparison-table .highlight {
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .subscription-section {
+      background: linear-gradient(90deg, rgba(37,99,235,0.05), rgba(124,58,237,0.05));
+      padding: 60px 40px;
+      border-radius: 16px;
+      margin-bottom: 80px;
+    }
+
+    .subscription-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+    }
+
+    .subscription-item h4 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--color-text);
+    }
+
+    .subscription-item p {
+      color: var(--color-text-light);
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .price-highlight {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--color-primary);
+      margin: 12px 0;
+    }
+
+    .billing-cycle {
+      color: var(--color-success);
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin: 12px 0;
+    }
+
+    .feature-list li {
+      padding: 6px 0;
+      color: var(--color-text-light);
+      font-size: 0.9rem;
+    }
+
+    .feature-list li:before {
+      content: "✓ ";
+      color: var(--color-success);
+      font-weight: bold;
+      margin-right: 8px;
+    }
   </style>
 </head>
 <body>
@@ -430,6 +524,167 @@
           <button class="tier-cta" onclick="window.location.href='/checkout?tier=agency'">Claim Slot Now</button>
           <div class="tier-footer">$0.998/campaign • ROI: 1000%+</div>
         </div>
+      </div>
+    </section>
+
+    <!-- SUBSCRIPTION DETAILS -->
+    <section class="subscription-section">
+      <h2 style="font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 40px;">Subscription Details & Billing</h2>
+      <div class="subscription-grid">
+        <div class="subscription-item">
+          <h4>Free Tier</h4>
+          <p class="billing-cycle">Pay: Nothing</p>
+          <div class="price-highlight">$0/month</div>
+          <ul class="feature-list">
+            <li>5 campaigns/month</li>
+            <li>Mock LLM (basic)</li>
+            <li>Community support</li>
+            <li>No credit card</li>
+            <li>Cancel anytime</li>
+          </ul>
+          <p style="margin-top: 16px; font-size: 0.85rem; color: #f97316;">
+            Perfect for: Testing & learning the platform
+          </p>
+        </div>
+
+        <div class="subscription-item">
+          <h4>Professional</h4>
+          <p class="billing-cycle">Pay Monthly: $79 | Annual: $79×12 = $948/yr</p>
+          <div class="price-highlight">$79/month</div>
+          <p style="color: var(--color-success); font-weight: 600; font-size: 0.9rem; margin-bottom: 16px;">
+            Save $648/year with annual billing
+          </p>
+          <ul class="feature-list">
+            <li>50 campaigns/month</li>
+            <li>Real Claude API (Sonnet)</li>
+            <li>Custom brand kits</li>
+            <li>Advanced analytics</li>
+            <li>Email support (24h)</li>
+            <li>Batch 10 parallel</li>
+          </ul>
+          <p style="margin-top: 16px; font-size: 0.85rem; color: #f97316;">
+            Cost per campaign: $1.58 | ROI: 300-500%
+          </p>
+          <p style="margin-top: 8px; font-size: 0.85rem; color: var(--color-text-light);">
+            14-day free trial included • Cancel anytime
+          </p>
+        </div>
+
+        <div class="subscription-item">
+          <h4>Agency</h4>
+          <p class="billing-cycle">Pay Monthly: $499 | Annual: $499×9 = $4,491/yr</p>
+          <div class="price-highlight">$499/month</div>
+          <p style="color: var(--color-success); font-weight: 600; font-size: 0.9rem; margin-bottom: 16px;">
+            Get 3 months free with annual plan
+          </p>
+          <ul class="feature-list">
+            <li>500 campaigns/month</li>
+            <li>Claude API (priority queue)</li>
+            <li>Unlimited brand kits</li>
+            <li>Enterprise analytics</li>
+            <li>24/7 priority support</li>
+            <li>Batch 100 parallel</li>
+            <li>Webhooks + API access</li>
+            <li>Unlimited team members</li>
+          </ul>
+          <p style="margin-top: 16px; font-size: 0.85rem; color: #f97316;">
+            Cost per campaign: $0.998 | ROI: 1000%+
+          </p>
+          <p style="margin-top: 8px; font-size: 0.85rem; color: var(--color-text-light);">
+            Limited to 100 slots • 14-day trial included
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPARISON TABLE -->
+    <section style="margin-bottom: 80px;">
+      <h2 style="font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 40px;">Feature Comparison</h2>
+      <div style="overflow-x: auto;">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Free</th>
+              <th>Professional</th>
+              <th>Agency</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="feature-name">Campaigns/Month</td>
+              <td>5</td>
+              <td class="highlight">50</td>
+              <td class="highlight">500</td>
+            </tr>
+            <tr>
+              <td class="feature-name">LLM Quality</td>
+              <td>Mock</td>
+              <td class="highlight">Real Claude (Sonnet)</td>
+              <td class="highlight">Real Claude (Priority Queue)</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Batch Size</td>
+              <td>1</td>
+              <td class="highlight">10</td>
+              <td class="highlight">100</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Monthly Cost</td>
+              <td>$0</td>
+              <td class="highlight">$79</td>
+              <td class="highlight">$499</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Cost per Campaign</td>
+              <td>Free</td>
+              <td class="highlight">$1.58</td>
+              <td class="highlight">$0.998</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Custom Brand Kit</td>
+              <td>✗</td>
+              <td class="highlight">✓</td>
+              <td class="highlight">✓ Unlimited</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Analytics</td>
+              <td>Basic</td>
+              <td class="highlight">Advanced</td>
+              <td class="highlight">Enterprise</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Support</td>
+              <td>Community</td>
+              <td class="highlight">Email (24h)</td>
+              <td class="highlight">24/7 Priority</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Webhooks & API</td>
+              <td>✗</td>
+              <td>✗</td>
+              <td class="highlight">✓</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Team Members</td>
+              <td>1</td>
+              <td class="highlight">5</td>
+              <td class="highlight">Unlimited</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Money-back Guarantee</td>
+              <td class="highlight">N/A</td>
+              <td class="highlight">30 days</td>
+              <td class="highlight">30 days</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Estimated ROI</td>
+              <td>N/A</td>
+              <td class="highlight">300-500%</td>
+              <td class="highlight">1000%+</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
