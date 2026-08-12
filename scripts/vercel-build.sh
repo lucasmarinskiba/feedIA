@@ -12,4 +12,4 @@ cp -rp public/. .vercel/output/static/
 # removes the ambiguity. api/index.ts (a separate Express app, Phase 3
 # orchestration routes: /api/orchestrate, /api/generators, /api/info) is
 # routed there explicitly first so it isn't shadowed by the catch-all.
-printf '{"version":3,"routes":[{"src":"^/api/(orchestrate|generators|info)(/.*)?$","dest":"/api/index"},{"src":"^/api/.*$","dest":"/api/[...path]"},{"handle":"filesystem"},{"src":"/(.*)","dest":"/index.html","status":200}]}' > .vercel/output/config.json
+printf '{"version":3,"routes":[{"src":"^/api/(orchestrate|generators|info)(/.*)?$","dest":"/api/index"},{"src":"^/api/.*$","dest":"/api/[...path]"},{"handle":"filesystem"},{"src":"^/pricing/?$","dest":"/pricing.html"},{"src":"/(.*)","dest":"/index.html","status":200}]}' > .vercel/output/config.json
