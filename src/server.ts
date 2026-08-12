@@ -340,6 +340,16 @@ app.use('/api/conversion', conversionRoutes);
 // TIER 8 Extension: Billing + Tier Management (Stripe + Database)
 app.use('/api/billing', billingRoutes);
 
+// Pricing page (static, served before SPA catch-all)
+app.get('/pricing', (req: Request, res: Response) => {
+  const pricingPath = path.resolve(__dirname, '../../public/pricing.html');
+  if (fs.existsSync(pricingPath)) {
+    res.sendFile(pricingPath);
+  } else {
+    res.status(404).json({ error: 'Pricing page not found' });
+  }
+});
+
 // Static files + SPA catch-all (must be after all /api routes)
 // Use __dirname for absolute paths (works in Railway serverless env)
 const STATIC_CANDIDATES = [
