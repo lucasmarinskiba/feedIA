@@ -8,6 +8,7 @@ import { agencyOrchestrator } from '../agents/agency-orchestrator.js';
 import { batchOrchestrator } from '../agents/batch-orchestrator.js';
 import { saveCampaign, loadCampaign, listCampaigns, updateCampaignStatus, initializeCampaignsTable } from '../agents/agency-persistence.js';
 import { metricsCollector, getHealthCheck } from '../agents/agency-metrics.js';
+import { validateTierAccess } from '../middleware/tier-enforcer.js';
 
 const router = Router();
 
@@ -36,6 +37,19 @@ router.post('/campaign/create', async (req: Request, res: Response): Promise<voi
     }
 
     console.log(`[TIER 8] Orchestrating campaign for account=${accountId}`);
+
+    // TIER 8 Phase 7: Enforce tier limits (campaign count)
+    const tierValidation = await validateTierAccess(accountId, 1);
+    if (!tierValidation.allowed) {
+      console.warn(`[Tier Enforce] Campaign rejected for ${accountId}: ${tierValidation.reason}`);
+      res.status(403).json({
+        error: 'Campaign limit exceeded',
+        reason: tierValidation.reason,
+        tier: tierValidation.context?.tier || 'free',
+        campaignsRemaining: tierValidation.context?.campaignsRemaining || 0,
+      });
+      return;
+    }
 
     // Initialize DB table on first request
     await initializeCampaignsTable();
