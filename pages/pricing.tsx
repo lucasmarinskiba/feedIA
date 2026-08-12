@@ -5,6 +5,7 @@
  */
 
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import styles from '../styles/pricing.module.css';
 
@@ -41,8 +42,17 @@ const pricingSchema = {
 };
 
 export default function PricingPage() {
+  const router = useRouter();
   const [agencySlotsRemaining, setAgencySlotsRemaining] = useState(18);
   const [monthlySignups, setMonthlySignups] = useState(150);
+
+  const handleTierSelect = (tier: string) => {
+    router.push(`/checkout?tier=${tier}`);
+  };
+
+  const handleStartFree = () => {
+    router.push('/checkout?tier=free');
+  };
 
   useEffect(() => {
     // Simulate real-time slot depletion (adds urgency)
@@ -111,8 +121,12 @@ export default function PricingPage() {
           </div>
 
           <div className={styles.heroCtaContainer}>
-            <button className={styles.ctaPrimary}>Start Free (No Card Required)</button>
-            <button className={styles.ctaSecondary}>See What Pro Creates →</button>
+            <button className={styles.ctaPrimary} onClick={handleStartFree}>
+              Start Free (No Card Required)
+            </button>
+            <button className={styles.ctaSecondary} onClick={() => handleTierSelect('pro')}>
+              See What Pro Creates →
+            </button>
           </div>
         </section>
 
@@ -157,7 +171,9 @@ export default function PricingPage() {
                 <li>✗ No custom brand kit</li>
                 <li>✗ No analytics</li>
               </li>
-              <button className={styles.tierCta}>Start Free</button>
+              <button className={styles.tierCta} onClick={handleStartFree}>
+                Start Free
+              </button>
               <div className={styles.tierFooter}>Best for: Learning & testing</div>
             </div>
 
@@ -177,7 +193,9 @@ export default function PricingPage() {
                 <li>✓ Email support (24h)</li>
                 <li>✓ Batch 10 parallel</li>
               </li>
-              <button className={styles.tierCtaPrimary}>Start Pro Trial</button>
+              <button className={styles.tierCtaPrimary} onClick={() => handleTierSelect('pro')}>
+                Start Pro Trial
+              </button>
               <div className={styles.tierFooter}>$1.58/campaign • ROI: 300-500%</div>
             </div>
 
@@ -198,7 +216,11 @@ export default function PricingPage() {
                 <li>✓ Batch 100 parallel</li>
                 <li>✓ Webhooks + API access</li>
               </li>
-              <button className={`${styles.tierCtaPrimary} ${agencySlotsRemaining === 0 ? styles.tiersDisabled : ''}`}>
+              <button
+                className={`${styles.tierCtaPrimary} ${agencySlotsRemaining === 0 ? styles.tiersDisabled : ''}`}
+                onClick={() => handleTierSelect('agency')}
+                disabled={agencySlotsRemaining === 0}
+              >
                 {agencySlotsRemaining > 0 ? 'Claim Slot Now' : 'Join Waitlist'}
               </button>
               <div className={styles.tierFooter}>$0.998/campaign • ROI: 1000%+</div>
@@ -259,7 +281,9 @@ export default function PricingPage() {
             <h3>⏰ Limited-Time Offer</h3>
             <p>First 100 Annual subscribers get 3 months free + priority onboarding</p>
             <p className={styles.fomoSmall}>Only {Math.max(0, 100 - monthlySignups)} slots remaining</p>
-            <button className={styles.fomoButton}>Claim Annual Discount →</button>
+            <button className={styles.fomoButton} onClick={() => handleTierSelect('pro')}>
+              Claim Annual Discount →
+            </button>
           </div>
         </section>
 
@@ -314,7 +338,9 @@ export default function PricingPage() {
         <section className={styles.finalCta}>
           <h2>Ready to 10x Your Content?</h2>
           <p>Start free today. No credit card. No commitment.</p>
-          <button className={styles.ctaHuge}>Get Started Free →</button>
+          <button className={styles.ctaHuge} onClick={handleStartFree}>
+            Get Started Free →
+          </button>
           <p className={styles.ctaSmall}>Join 8,500+ creators generating campaigns with AI</p>
         </section>
       </main>
