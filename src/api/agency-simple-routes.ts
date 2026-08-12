@@ -5,6 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import { agencyOrchestrator } from '../agents/agency-orchestrator.js';
+import { batchOrchestrator } from '../agents/batch-orchestrator.js';
 import { saveCampaign, loadCampaign, listCampaigns, updateCampaignStatus, initializeCampaignsTable } from '../agents/agency-persistence.js';
 
 const router = Router();
@@ -109,20 +110,40 @@ router.get('/campaigns', async (req: Request, res: Response): Promise<void> => {
 
 /**
  * POST /api/agency/batch/create
- * TODO: Process multiple campaigns in parallel
+ * TIER 8 Phase 3: Process multiple campaigns in parallel with worker pool
  */
 router.post('/batch/create', async (req: Request, res: Response): Promise<void> => {
   try {
     const accountId = req.get('X-Account-ID') || 'test-account';
     const requests: CampaignRequest[] = req.body;
+    const workerCount = parseInt(req.get('X-Worker-Count') || '3');
 
     if (!Array.isArray(requests) || requests.length === 0) {
       res.status(400).json({ error: 'Expected array of campaign requests' });
       return;
     }
 
-    res.status(501).json({ error: 'Batch processing not yet implemented' });
+    console.log(`[TIER 8 Phase 3] Batch creating ${requests.length} campaigns (accountId=${accountId})`);
+
+    // Initialize DB table on first request
+    await initializeCampaignsTable();
+
+    // Convert to CampaignInput format
+    const inputs = requests.map((req: CampaignRequest) => ({
+      accountId,
+      brief: req.brief,
+      targetAudience: req.targetAudience,
+      goals: req.goals,
+      budget: req.budget,
+      platforms: req.platforms,
+    }));
+
+    // Process batch with worker pool
+    const batchResult = await batchOrchestrator(inputs, accountId, workerCount);
+
+    res.json(batchResult);
   } catch (err) {
+    console.error('[TIER 8 Phase 3] Batch error:', err);
     res.status(500).json({ error: String(err) });
   }
 });

@@ -80,7 +80,7 @@ export const loadCampaign = async (campaignId: string): Promise<CampaignOutput |
       return null;
     }
 
-    const row = result.rows[0];
+    const row = result.rows[0] as any;
     return {
       campaignId: row.id,
       strategy: row.strategy,
