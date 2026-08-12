@@ -1,0 +1,657 @@
+/* Pricing Landing Page - CSS Module */
+/* Pinterest aesthetic + FeedIA brand + Conversion psychology */
+
+:root {
+  --color-primary: #2563eb; /* Bold blue - trust + tech */
+  --color-secondary: #7c3aed; /* Purple - premium */
+  --color-success: #10b981; /* Green - growth */
+  --color-warning: #f97316; /* Orange - urgency */
+  --color-bg: #ffffff;
+  --color-text: #1f2937;
+  --color-text-light: #6b7280;
+  --color-border: #e5e7eb;
+  --color-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+  --shadow-xl: 0 20px 25px rgba(0,0,0,0.15);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ─── HERO SECTION ─────────────────────────────────────────────────────────── */
+
+.hero {
+  text-align: center;
+  padding: 120px 20px;
+  background: linear-gradient(180deg, rgba(37,99,235,0.05) 0%, rgba(124,58,237,0.05) 100%);
+  border-radius: 24px;
+  margin-bottom: 80px;
+}
+
+.heroTitle {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 20px;
+  color: var(--color-text);
+}
+
+.highlight {
+  display: block;
+  color: var(--color-primary);
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  color: var(--color-text-light);
+  max-width: 600px;
+  margin: 0 auto 40px;
+  line-height: 1.6;
+}
+
+.urgencyBanner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background-color: #fef3c7;
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
+  margin-bottom: 40px;
+  animation: pulse 2s infinite;
+}
+
+.urgencyIcon {
+  font-size: 1.5rem;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.heroCtaContainer {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.ctaPrimary {
+  padding: 16px 40px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.3s ease;
+}
+
+.ctaPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+  background: #1d4ed8;
+}
+
+.ctaSecondary {
+  padding: 16px 40px;
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ctaSecondary:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* ─── SOCIAL PROOF ─────────────────────────────────────────────────────────── */
+
+.socialProof {
+  margin-bottom: 80px;
+  padding: 60px 20px;
+  background: linear-gradient(90deg, rgba(37,99,235,0.02), rgba(124,58,237,0.02));
+  border-radius: 20px;
+}
+
+.statRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.stat {
+  text-align: center;
+}
+
+.statNumber {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: var(--color-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.statLabel {
+  font-size: 0.95rem;
+  color: var(--color-text-light);
+  margin-top: 8px;
+}
+
+/* ─── PRICING TIERS ────────────────────────────────────────────────────────── */
+
+.pricing {
+  margin-bottom: 80px;
+}
+
+.pricingTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.pricingSubtitle {
+  text-align: center;
+  color: var(--color-text-light);
+  margin-bottom: 60px;
+  font-size: 1.1rem;
+}
+
+.tiersContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 32px;
+}
+
+.tier {
+  padding: 40px;
+  border: 2px solid var(--color-border);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.tier:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+}
+
+.tierFree {
+  background: #f9fafb;
+}
+
+.tierPromotion {
+  border-color: var(--color-primary);
+  border-width: 2px;
+  background: linear-gradient(180deg, rgba(37,99,235,0.03), transparent);
+  transform: scale(1.05);
+}
+
+.tierAgency {
+  border-color: var(--color-secondary);
+  background: linear-gradient(180deg, rgba(124,58,237,0.05), transparent);
+}
+
+.tierBadge {
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  background: var(--color-primary);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.tierScarcity {
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  background: var(--color-warning);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.tierName {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  margin-top: 8px;
+}
+
+.tierPrice {
+  font-size: 3rem;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.currency {
+  font-size: 1.5rem;
+  vertical-align: super;
+}
+
+.period {
+  font-size: 1rem;
+  color: var(--color-text-light);
+  font-weight: 500;
+}
+
+.tierSavings {
+  color: var(--color-success);
+  font-weight: 600;
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+}
+
+.tierFeatures {
+  list-style: none;
+  margin-bottom: 32px;
+  flex-grow: 1;
+}
+
+.tierFeatures li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.95rem;
+  color: var(--color-text-light);
+}
+
+.tierFeatures li:last-child {
+  border-bottom: none;
+}
+
+.tierCta {
+  padding: 14px 24px;
+  background: var(--color-border);
+  color: var(--color-text);
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 16px;
+}
+
+.tierCta:hover {
+  background: var(--color-text-light);
+  color: white;
+}
+
+.tierCtaPrimary {
+  padding: 14px 24px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.tierCtaPrimary:hover {
+  background: #1d4ed8;
+}
+
+.tiersDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tierFooter {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+  text-align: center;
+}
+
+/* ─── COMPARISON TABLE ─────────────────────────────────────────────────────── */
+
+.comparison {
+  margin-bottom: 80px;
+  padding: 60px 0;
+}
+
+.comparison h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.comparisonTable {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: var(--shadow-lg);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.comparisonTable th {
+  background: var(--color-gradient);
+  color: white;
+  padding: 20px;
+  text-align: left;
+  font-weight: 700;
+}
+
+.comparisonTable td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.comparisonTable tr:hover {
+  background: rgba(37,99,235,0.02);
+}
+
+.comparisonTable .highlight {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* ─── FOMO SECTION ─────────────────────────────────────────────────────────── */
+
+.fomo {
+  background: var(--color-gradient);
+  color: white;
+  padding: 60px 40px;
+  border-radius: 16px;
+  text-align: center;
+  margin-bottom: 80px;
+}
+
+.fomoContent h3 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.fomoContent p {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.fomoSmall {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-bottom: 24px;
+}
+
+.fomoButton {
+  padding: 14px 32px;
+  background: white;
+  color: var(--color-primary);
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.fomoButton:hover {
+  transform: scale(1.05);
+}
+
+/* ─── TESTIMONIALS ─────────────────────────────────────────────────────────── */
+
+.testimonials {
+  margin-bottom: 80px;
+}
+
+.testimonials h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.testimonialGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+}
+
+.testimonialCard {
+  padding: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #f9fafb;
+  transition: all 0.3s ease;
+}
+
+.testimonialCard:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.stars {
+  color: #fbbf24;
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+}
+
+.testimonialCard p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+.testimonialAuthor {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+/* ─── FAQ ──────────────────────────────────────────────────────────────────── */
+
+.faq {
+  margin-bottom: 80px;
+}
+
+.faq h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.faqGrid {
+  display: grid;
+  gap: 16px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.faqItem {
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.faqItem:hover {
+  border-color: var(--color-primary);
+  background: rgba(37,99,235,0.02);
+}
+
+.faqItem summary {
+  font-weight: 600;
+  font-size: 1.05rem;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.faqItem summary::after {
+  content: '▼';
+  transition: transform 0.3s ease;
+  transform: rotate(-90deg);
+}
+
+.faqItem[open] summary::after {
+  transform: rotate(0deg);
+}
+
+.faqItem p {
+  margin-top: 16px;
+  color: var(--color-text-light);
+  line-height: 1.6;
+}
+
+/* ─── FINAL CTA ────────────────────────────────────────────────────────────── */
+
+.finalCta {
+  text-align: center;
+  padding: 80px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 20px;
+  margin-bottom: 60px;
+}
+
+.finalCta h2 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.finalCta p {
+  font-size: 1.1rem;
+  margin-bottom: 32px;
+}
+
+.ctaHuge {
+  padding: 18px 48px;
+  background: white;
+  color: var(--color-primary);
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-xl);
+}
+
+.ctaHuge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 25px 30px rgba(0,0,0,0.2);
+}
+
+.ctaSmall {
+  margin-top: 24px;
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+/* ─── RESPONSIVE ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 60px 20px;
+  }
+
+  .heroTitle {
+    font-size: 1.75rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1rem;
+  }
+
+  .tierPromotion {
+    transform: scale(1);
+  }
+
+  .tiersContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .statRow {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .comparisonTable {
+    font-size: 0.9rem;
+  }
+
+  .comparisonTable td,
+  .comparisonTable th {
+    padding: 12px;
+  }
+
+  .fomo {
+    padding: 40px 20px;
+  }
+
+  .finalCta {
+    padding: 60px 20px;
+  }
+
+  .finalCta h2 {
+    font-size: 1.75rem;
+  }
+}
+
+/* ─── PERFORMANCE ──────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
