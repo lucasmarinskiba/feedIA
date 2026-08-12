@@ -84,6 +84,7 @@ router.post('/campaign/create', async (req: Request, res: Response): Promise<voi
 
     // Note: DB persistence would use PostgreSQL in production
     // For MVP, campaign is returned immediately without persistence
+    const now = new Date().toISOString();
 
     res.json({
       campaignId,
