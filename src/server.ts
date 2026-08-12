@@ -64,6 +64,7 @@ import predictiveRoutes from './api/predictive-routes.js';
 import orchestratorRoutes from './api/orchestrator-routes.js';
 import { carouselDB } from './db/postgres.js';
 import agencySimpleRoutes from './api/agency-simple-routes.js';
+import conversionRoutes from './api/conversion-routes.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -330,6 +331,9 @@ app.use('/api/orchestrate', orchestratorRoutes);
 
 // TIER 7: Agency OS (campaign generation)
 app.use('/api/agency', agencySimpleRoutes);
+
+// TIER 8 Extension: Conversion + FOMO Strategy
+app.use('/api/conversion', conversionRoutes);
 
 // Static files + SPA catch-all (must be after all /api routes)
 // Use __dirname for absolute paths (works in Railway serverless env)
