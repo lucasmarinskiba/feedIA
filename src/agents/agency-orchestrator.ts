@@ -8,12 +8,19 @@ import Anthropic from '@anthropic-ai/sdk';
 import { metricsCollector } from './agency-metrics.js';
 
 const initializeClient = () => {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+
+  if (!apiKey) {
+    console.warn('[TIER 8 Phase 6] ANTHROPIC_API_KEY not set. Using mock fallback.');
+    return null;
+  }
+
   try {
-    return new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
+    const client = new Anthropic({ apiKey });
+    console.log('[TIER 8 Phase 6] Anthropic client initialized (real LLM)');
+    return client;
   } catch (err) {
-    console.error('[TIER 8] Failed to initialize Anthropic client:', err);
+    console.error('[TIER 8 Phase 6] Failed to initialize Anthropic client:', err);
     return null;
   }
 };
@@ -51,9 +58,10 @@ export interface CampaignOutput {
 
 /**
  * Strategy Director: Apply Godin + Miller frameworks
+ * Phase 6: Real Claude API with token tracking
  */
-const strategyDirector = async (input: CampaignInput): Promise<Strategy> => {
-  if (!client) throw new Error('Anthropic client not initialized');
+const strategyDirector = async (input: CampaignInput): Promise<{ strategy: Strategy; inputTokens: number; outputTokens: number }> => {
+  if (!client) throw new Error('ANTHROPIC_API_KEY not set. Fallback to mock.');
 
   const prompt = `You are a master strategist combining Seth Godin (Minimum Viable Market, lock & key),
 Donald Miller (SB7 Big Domino), Al Ries (Positioning), and Jim Collins (Hedgehog Concept).
@@ -62,7 +70,7 @@ Brief: ${input.brief}
 Target Audience: ${input.targetAudience}
 Goals: ${input.goals.join(', ')}
 
-Return JSON:
+Return ONLY valid JSON (no markdown, no explanation):
 {
   "mvMarket": "specific niche",
   "lockAndKey": {"lock": "problem identified", "key": "solution framed"},
@@ -79,14 +87,21 @@ Return JSON:
   });
 
   const text = response.content?.[0]?.type === 'text' ? (response.content[0] as any).text : '{}';
-  return JSON.parse(text);
+  const strategy = JSON.parse(text);
+
+  return {
+    strategy,
+    inputTokens: response.usage?.input_tokens || 0,
+    outputTokens: response.usage?.output_tokens || 0,
+  };
 };
 
 /**
  * Copywriter: Generate CTAs + emotional hooks
+ * Phase 6: Real Claude API with token tracking
  */
-const copywriter = async (strategy: Strategy): Promise<unknown> => {
-  if (!client) throw new Error('Anthropic client not initialized');
+const copywriter = async (strategy: Strategy): Promise<{ copy: unknown; inputTokens: number; outputTokens: number }> => {
+  if (!client) throw new Error('ANTHROPIC_API_KEY not set. Fallback to mock.');
 
   const prompt = `You are a Schwartz + Cialdini master copywriter. Generate 5 headlines matching awareness levels.
 
@@ -94,7 +109,7 @@ Big Domino: "${strategy.bigDomino}"
 MVMarket: "${strategy.mvMarket}"
 Content Pillars: ${strategy.contentPillars.join(', ')}
 
-Return JSON:
+Return ONLY valid JSON (no markdown):
 {
   "headlines": [{"text": "...", "level": "unaware|problem_aware|solution_aware|most_aware", "urgency": "low|medium|high"}],
   "ctas": {"direct": "...", "transitional": "...", "commitment": "medium"},
@@ -108,21 +123,28 @@ Return JSON:
   });
 
   const text = response.content?.[0]?.type === 'text' ? (response.content[0] as any).text : '{}';
-  return JSON.parse(text);
+  const copy = JSON.parse(text);
+
+  return {
+    copy,
+    inputTokens: response.usage?.input_tokens || 0,
+    outputTokens: response.usage?.output_tokens || 0,
+  };
 };
 
 /**
  * Community Manager: Engagement loops + crisis protocol
+ * Phase 6: Real Claude API with token tracking
  */
-const communityManager = async (strategy: Strategy): Promise<unknown> => {
-  if (!client) throw new Error('Anthropic client not initialized');
+const communityManager = async (strategy: Strategy): Promise<{ engagement: unknown; inputTokens: number; outputTokens: number }> => {
+  if (!client) throw new Error('ANTHROPIC_API_KEY not set. Fallback to mock.');
 
   const prompt = `You are a CM expert (7 consumer values, 5 engagement keys, SPACES outcomes).
 
 MVMarket: "${strategy.mvMarket}"
 Big Domino: "${strategy.bigDomino}"
 
-Return JSON:
+Return ONLY valid JSON:
 {
   "listeningSchedule": "3 scans/day",
   "responseTemplates": {"positive": "...", "negative": "...", "question": "...", "crisis": "..."},
@@ -137,7 +159,13 @@ Return JSON:
   });
 
   const text = response.content?.[0]?.type === 'text' ? (response.content[0] as any).text : '{}';
-  return JSON.parse(text);
+  const engagement = JSON.parse(text);
+
+  return {
+    engagement,
+    inputTokens: response.usage?.input_tokens || 0,
+    outputTokens: response.usage?.output_tokens || 0,
+  };
 };
 
 /**
@@ -183,18 +211,21 @@ export const agencyOrchestrator = async (input: CampaignInput): Promise<Campaign
   try {
     // Phase 1: Strategy
     console.log('[1/6] Strategy Director...');
-    const strategy = await strategyDirector(input);
-    totalTokens += 1200;
+    const stratResult = await strategyDirector(input);
+    const strategy = stratResult.strategy;
+    totalTokens += stratResult.inputTokens + stratResult.outputTokens;
 
     // Phase 2: Copy
     console.log('[2/6] Copywriter...');
-    const copy = await copywriter(strategy);
-    totalTokens += 800;
+    const copyResult = await copywriter(strategy);
+    const copy = copyResult.copy;
+    totalTokens += copyResult.inputTokens + copyResult.outputTokens;
 
     // Phase 3: Community
     console.log('[3/6] Community Manager...');
-    const engagement = await communityManager(strategy);
-    totalTokens += 800;
+    const engResult = await communityManager(strategy);
+    const engagement = engResult.engagement;
+    totalTokens += engResult.inputTokens + engResult.outputTokens;
 
     // Phase 4: QA
     console.log('[4/6] QA Validator...');
@@ -211,7 +242,7 @@ export const agencyOrchestrator = async (input: CampaignInput): Promise<Campaign
     const estimatedCost = (totalTokens / 1000000) * 3;
     const latencyMs = Date.now() - startTime;
 
-    console.log(`[TIER 8] Campaign complete: ${totalTokens} tokens, $${estimatedCost.toFixed(4)}, ${latencyMs}ms`);
+    console.log(`[TIER 8 Phase 6] Campaign complete: ${totalTokens} tokens, $${estimatedCost.toFixed(4)}, ${latencyMs}ms (REAL LLM)`);
 
     // Record metrics
     metricsCollector.recordCampaign(latencyMs, totalTokens, estimatedCost, 'success');
