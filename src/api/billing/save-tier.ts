@@ -34,7 +34,9 @@ export const saveTier = async (req: SaveTierRequest): Promise<SaveTierResponse> 
       };
     }
 
+    console.log('[SaveTier] Upserting:', { userId, email, tier });
     const result = await upsertUserTier(userId, email, tier, stripeCustomerId);
+    console.log('[SaveTier] Result:', { userId: result.userId, tier: result.tier });
 
     return {
       success: true,

@@ -88,17 +88,29 @@ const mockPool: PoolConnection = {
   },
 };
 
-// Get effective pool (priority: PostgreSQL → FileDB → Mock)
+// Get effective pool (priority: PostgreSQL → MemoryDB → Mock)
 export const getPool = (): PoolConnection => {
   if (!realPool) {
-    realPool = initializeRealPool() || initializeFilePool();
+    const pg = initializeRealPool();
+    if (pg) {
+      realPool = pg;
+      console.log('[Pool] Using PostgreSQL');
+    } else {
+      const mem = initializeFilePool();
+      if (mem) {
+        realPool = mem;
+        console.log('[Pool] Using MemoryDB (FileDB fallback)');
+      } else {
+        console.log('[Pool] Using Mock pool');
+      }
+    }
   }
   return realPool || mockPool;
 };
 
 export const isRealDatabase = (): boolean => {
   if (!realPool) {
-    realPool = initializeRealPool() || initializeFilePool();
+    getPool(); // Trigger initialization
   }
   return realPool !== null && realPool !== mockPool;
 };
