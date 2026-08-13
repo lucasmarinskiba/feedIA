@@ -341,6 +341,20 @@ app.use('/api/conversion', conversionRoutes);
 // TIER 8 Extension: Billing + Tier Management (Stripe + Database)
 app.use('/api/billing', billingRoutes);
 
+// Debug: Inspect MemoryDB state
+app.get('/api/debug/memorydb', (_req: Request, res: Response) => {
+  try {
+    const { getMemoryDBState } = await import('./db/sqlite-pool.js');
+    const state = getMemoryDBState();
+    res.json({
+      recordCount: state.user_tiers.length,
+      users: state.user_tiers.map((u) => ({ user_id: u.user_id, tier: u.tier, email: u.email })),
+    });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 // Pricing page (embedded HTML constant, served before SPA catch-all)
 app.get('/pricing', (req: Request, res: Response) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');

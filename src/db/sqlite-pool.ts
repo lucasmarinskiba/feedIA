@@ -39,7 +39,9 @@ interface Database {
 
 // Global in-memory DB cache (persists for lifetime of server process)
 let memoryDB: Database = { user_tiers: [] };
-const dbInitialized = false;
+
+// Export for debugging
+export const getMemoryDBState = (): Database => memoryDB;
 
 export const getFilePool = (): PoolConnection => {
   return {
