@@ -74,51 +74,85 @@ export const getFilePool = (): PoolConnection => {
   return {
     query: async (sql: string, _params?: unknown[]): Promise<QueryResult> => {
       const sqlLower = sql.toLowerCase();
+      const params = (_params || []) as (string | number | boolean | null)[];
 
-      // INSERT INTO user_tiers
+      // INSERT INTO user_tiers (with ON CONFLICT support)
       if (sqlLower.includes('insert into user_tiers')) {
-        const userId = (_params?.[0] as { user_id?: string })?.user_id || String(_params?.[1]);
-        const email = (_params?.[0] as { email?: string })?.email || String(_params?.[2]);
-        const tier = (_params?.[0] as { tier?: string })?.tier || String(_params?.[3]);
+        // Parse params: [$1=id, $2=user_id, $3=email, $4=tier, $5=stripe_customer_id, $6=campaigns_limit, $7=batch_limit, $8=custom_brand_kit, $9=analytics_depth, $10=support_level, $11=monthly_price]
+        const recordId = String(params[0]);
+        const userId = String(params[1]);
+        const email = String(params[2]);
+        const tier = String(params[3]) as 'free' | 'pro' | 'agency';
+        const stripeCustomerId = params[4] ? String(params[4]) : null;
+        const campaignsLimit = Number(params[5]) || 5;
+        const batchLimit = Number(params[6]) || 1;
+        const customBrandKit = params[7] === true || params[7] === 1;
+        const analyticsDepth = (params[8] || 'basic') as 'basic' | 'advanced';
+        const supportLevel = (params[9] || 'community') as 'community' | 'email' | '24h-priority';
+        const monthlyPrice = Number(params[10]) || 0;
 
-        const newTier: UserTier = {
-          id: `user_${userId}`,
-          user_id: userId,
-          email,
-          tier: (tier as 'free' | 'pro' | 'agency') || 'free',
-          campaigns_used_this_month: 0,
-          campaigns_limit: tier === 'pro' ? 50 : tier === 'agency' ? 500 : 5,
-          batch_limit: tier === 'pro' ? 10 : tier === 'agency' ? 100 : 1,
-          custom_brand_kit: tier !== 'free',
-          analytics_depth: tier === 'free' ? 'basic' : 'advanced',
-          support_level: tier === 'agency' ? '24h-priority' : tier === 'pro' ? 'email' : 'community',
-          monthly_price: tier === 'pro' ? 79 : tier === 'agency' ? 499 : 0,
-          subscription_end_date: null,
-          auto_renew: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
+        // Check if user exists (for ON CONFLICT behavior)
+        const existingIdx = dbCache.user_tiers.findIndex((u) => u.user_id === userId);
+        const now = new Date().toISOString();
 
-        dbCache.user_tiers.push(newTier);
-        saveDatabase();
-        return { rows: [{ id: newTier.id }], rowCount: 1 };
+        if (existingIdx >= 0) {
+          // Update existing
+          const existing = dbCache.user_tiers[existingIdx];
+          if (existing) {
+            existing.tier = tier;
+            existing.stripe_customer_id = stripeCustomerId || existing.stripe_customer_id;
+            existing.campaigns_limit = campaignsLimit;
+            existing.batch_limit = batchLimit;
+            existing.custom_brand_kit = customBrandKit;
+            existing.analytics_depth = analyticsDepth;
+            existing.support_level = supportLevel;
+            existing.monthly_price = monthlyPrice;
+            existing.updated_at = now;
+            saveDatabase();
+            return { rows: [existing], rowCount: 1 };
+          }
+        } else {
+          // Insert new
+          const newTier: UserTier = {
+            id: recordId,
+            user_id: userId,
+            email,
+            tier,
+            campaigns_used_this_month: 0,
+            campaigns_limit: campaignsLimit,
+            batch_limit: batchLimit,
+            custom_brand_kit: customBrandKit,
+            analytics_depth: analyticsDepth,
+            support_level: supportLevel,
+            monthly_price: monthlyPrice,
+            subscription_end_date: null,
+            auto_renew: true,
+            created_at: now,
+            updated_at: now,
+          };
+
+          dbCache.user_tiers.push(newTier);
+          saveDatabase();
+          return { rows: [newTier], rowCount: 1 };
+        }
       }
 
-      // SELECT FROM user_tiers WHERE user_id
+      // SELECT FROM user_tiers WHERE user_id = $1
       if (sqlLower.includes('select') && sqlLower.includes('user_tiers')) {
-        const userId = String(_params?.[0]);
+        const userId = String(params[0]);
         const user = dbCache.user_tiers.find((u) => u.user_id === userId);
         return { rows: user ? [user] : [], rowCount: user ? 1 : 0 };
       }
 
-      // UPDATE user_tiers
+      // UPDATE user_tiers (campaigns_used_this_month + 1 WHERE user_id = $2)
       if (sqlLower.includes('update user_tiers')) {
-        const userId = String(_params?.[0]);
+        const incrementBy = Number(params[0]) || 1;
+        const userId = String(params[1]);
         const idx = dbCache.user_tiers.findIndex((u) => u.user_id === userId);
         if (idx >= 0) {
           const tierRecord = dbCache.user_tiers[idx];
           if (tierRecord) {
-            tierRecord.campaigns_used_this_month += 1;
+            tierRecord.campaigns_used_this_month += incrementBy;
             tierRecord.updated_at = new Date().toISOString();
             saveDatabase();
             return { rows: [], rowCount: 1 };
@@ -127,7 +161,6 @@ export const getFilePool = (): PoolConnection => {
         return { rows: [], rowCount: 0 };
       }
 
-      // Generic fallback
       console.warn('[FileDB] Unhandled query:', sql.substring(0, 50));
       return { rows: [], rowCount: 0 };
     },
