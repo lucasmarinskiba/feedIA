@@ -342,7 +342,7 @@ app.use('/api/conversion', conversionRoutes);
 app.use('/api/billing', billingRoutes);
 
 // Debug: Inspect MemoryDB state
-app.get('/api/debug/memorydb', (_req: Request, res: Response) => {
+app.get('/api/debug/memorydb', async (_req: Request, res: Response): Promise<void> => {
   try {
     const { getMemoryDBState } = await import('./db/sqlite-pool.js');
     const state = getMemoryDBState();
