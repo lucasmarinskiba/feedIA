@@ -1,9 +1,12 @@
 /**
- * In-Memory Database Pool
- * JSON persistence for development/testing
+ * SQLite File-Based Database Pool
+ * Persistent JSON file storage for development/testing
  * Fallback when PostgreSQL unavailable
- * No dependencies - works everywhere
+ * Single-file DB survives process restarts + request isolation
  */
+
+import fs from 'fs';
+import path from 'path';
 
 interface QueryResult {
   rows: unknown[];
@@ -37,17 +40,41 @@ interface Database {
   user_tiers: UserTier[];
 }
 
-// Global in-memory DB cache (persists for lifetime of server process)
-let memoryDB: Database = { user_tiers: [] };
+const dbPath = path.join(process.cwd(), 'feedia-data.json');
+
+const loadDatabase = (): Database => {
+  try {
+    if (fs.existsSync(dbPath)) {
+      const data = fs.readFileSync(dbPath, 'utf-8');
+      const parsed = JSON.parse(data) as Database;
+      console.log('[SQLiteFile] Loaded DB:', { path: dbPath, userCount: parsed.user_tiers.length });
+      return parsed;
+    }
+  } catch (err) {
+    console.warn('[SQLiteFile] Load error:', err);
+  }
+  return { user_tiers: [] };
+};
+
+const saveDatabase = (db: Database): void => {
+  try {
+    fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+  } catch (err) {
+    console.error('[SQLiteFile] Save error:', err);
+  }
+};
 
 // Export for debugging
-export const getMemoryDBState = (): Database => memoryDB;
+export const getMemoryDBState = (): Database => loadDatabase();
 
 export const getFilePool = (): PoolConnection => {
   return {
     query: async (sql: string, _params?: unknown[]): Promise<QueryResult> => {
       const sqlLower = sql.toLowerCase();
       const params = (_params || []) as (string | number | boolean | null)[];
+
+      // Load fresh from disk on each query (ensures consistency across instances)
+      let db = loadDatabase();
 
       // INSERT INTO user_tiers (with ON CONFLICT support)
       if (sqlLower.includes('insert into user_tiers')) {
@@ -63,12 +90,12 @@ export const getFilePool = (): PoolConnection => {
         const supportLevel = (params[9] || 'community') as 'community' | 'email' | '24h-priority';
         const monthlyPrice = Number(params[10]) || 0;
 
-        const existingIdx = memoryDB.user_tiers.findIndex((u) => u.user_id === userId);
+        const existingIdx = db.user_tiers.findIndex((u) => u.user_id === userId);
         const now = new Date().toISOString();
 
         if (existingIdx >= 0) {
           // Update existing
-          const existing = memoryDB.user_tiers[existingIdx];
+          const existing = db.user_tiers[existingIdx];
           if (existing) {
             existing.tier = tier;
             existing.stripe_customer_id = stripeCustomerId || existing.stripe_customer_id;
@@ -79,7 +106,8 @@ export const getFilePool = (): PoolConnection => {
             existing.support_level = supportLevel;
             existing.monthly_price = monthlyPrice;
             existing.updated_at = now;
-            console.log('[MemoryDB] Updated user tier:', { userId, tier });
+            saveDatabase(db);
+            console.log('[SQLiteFile] Updated user tier:', { userId, tier });
             return { rows: [existing], rowCount: 1 };
           }
         } else {
@@ -102,8 +130,9 @@ export const getFilePool = (): PoolConnection => {
             updated_at: now,
           };
 
-          memoryDB.user_tiers.push(newTier);
-          console.log('[MemoryDB] Inserted user tier:', { userId, tier, dbSize: memoryDB.user_tiers.length });
+          db.user_tiers.push(newTier);
+          saveDatabase(db);
+          console.log('[SQLiteFile] Inserted user tier:', { userId, tier, dbSize: db.user_tiers.length });
           return { rows: [newTier], rowCount: 1 };
         }
       }
@@ -111,11 +140,8 @@ export const getFilePool = (): PoolConnection => {
       // SELECT FROM user_tiers WHERE user_id = $1
       if (sqlLower.includes('select') && sqlLower.includes('user_tiers')) {
         const userId = String(params[0] || '');
-        const user = memoryDB.user_tiers.find((u) => u.user_id === userId);
-        console.log('[MemoryDB] SELECT:', { userId, found: !!user, dbSize: memoryDB.user_tiers.length, allIds: memoryDB.user_tiers.map(u => u.user_id).join(','), paramCount: params.length, param0: params[0] });
-        if (!user && memoryDB.user_tiers.length > 0) {
-          console.warn('[MemoryDB] User not found!', { searching: userId, inDB: memoryDB.user_tiers.map(u => u.user_id) });
-        }
+        const user = db.user_tiers.find((u) => u.user_id === userId);
+        console.log('[SQLiteFile] SELECT user:', { userId, found: !!user, totalUsers: db.user_tiers.length });
         return { rows: user ? [user] : [], rowCount: user ? 1 : 0 };
       }
 
@@ -123,20 +149,21 @@ export const getFilePool = (): PoolConnection => {
       if (sqlLower.includes('update user_tiers')) {
         const incrementBy = Number(params[0]) || 1;
         const userId = String(params[1]);
-        const idx = memoryDB.user_tiers.findIndex((u) => u.user_id === userId);
+        const idx = db.user_tiers.findIndex((u) => u.user_id === userId);
         if (idx >= 0) {
-          const tierRecord = memoryDB.user_tiers[idx];
+          const tierRecord = db.user_tiers[idx];
           if (tierRecord) {
             tierRecord.campaigns_used_this_month += incrementBy;
             tierRecord.updated_at = new Date().toISOString();
-            console.log('[MemoryDB] Updated campaign usage:', { userId, newUsage: tierRecord.campaigns_used_this_month });
+            saveDatabase(db);
+            console.log('[SQLiteFile] Updated campaign usage:', { userId, newUsage: tierRecord.campaigns_used_this_month });
             return { rows: [], rowCount: 1 };
           }
         }
         return { rows: [], rowCount: 0 };
       }
 
-      console.warn('[MemoryDB] Unhandled query:', sql.substring(0, 50));
+      console.warn('[SQLiteFile] Unhandled query:', sql.substring(0, 50));
       return { rows: [], rowCount: 0 };
     },
   };
