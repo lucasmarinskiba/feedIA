@@ -109,6 +109,7 @@ export const getFilePool = (): PoolConnection => {
             existing.monthly_price = monthlyPrice;
             existing.updated_at = now;
             saveDatabase();
+            console.log('[FileDB] Updated user tier:', { userId, tier });
             return { rows: [existing], rowCount: 1 };
           }
         } else {
@@ -133,6 +134,7 @@ export const getFilePool = (): PoolConnection => {
 
           dbCache.user_tiers.push(newTier);
           saveDatabase();
+          console.log('[FileDB] Inserted user tier:', { userId, tier, dbSize: dbCache.user_tiers.length });
           return { rows: [newTier], rowCount: 1 };
         }
       }
@@ -141,6 +143,7 @@ export const getFilePool = (): PoolConnection => {
       if (sqlLower.includes('select') && sqlLower.includes('user_tiers')) {
         const userId = String(params[0]);
         const user = dbCache.user_tiers.find((u) => u.user_id === userId);
+        console.log('[FileDB] SELECT user:', { userId, found: !!user, dbSize: dbCache.user_tiers.length, allUserIds: dbCache.user_tiers.map(u => u.user_id) });
         return { rows: user ? [user] : [], rowCount: user ? 1 : 0 };
       }
 
