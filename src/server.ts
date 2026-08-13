@@ -342,11 +342,18 @@ app.use('/api/billing', billingRoutes);
 
 // Pricing page (static, served before SPA catch-all)
 app.get('/pricing', (req: Request, res: Response) => {
-  const pricingPath = path.resolve(__dirname, '../../public/pricing.html');
-  if (fs.existsSync(pricingPath)) {
+  const candidates = [
+    path.resolve(__dirname, '../../public/pricing.html'),
+    path.resolve(process.cwd(), 'public/pricing.html'),
+    path.join(process.cwd(), 'public', 'pricing.html'),
+    '/app/public/pricing.html',
+  ];
+  const pricingPath = candidates.find((p) => fs.existsSync(p));
+  if (pricingPath) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.sendFile(pricingPath);
   } else {
-    res.status(404).json({ error: 'Pricing page not found' });
+    res.status(404).json({ error: 'Pricing page not found', tried: candidates });
   }
 });
 
