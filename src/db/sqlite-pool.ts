@@ -1,12 +1,9 @@
 /**
- * File-based Database Pool
+ * In-Memory Database Pool
  * JSON persistence for development/testing
  * Fallback when PostgreSQL unavailable
- * No native dependencies - works everywhere
+ * No dependencies - works everywhere
  */
-
-import fs from 'fs';
-import path from 'path';
 
 interface QueryResult {
   rows: unknown[];
@@ -40,37 +37,11 @@ interface Database {
   user_tiers: UserTier[];
 }
 
-const dbPath = path.resolve(process.cwd(), 'feedia-dev.json');
-let dbCache: Database = { user_tiers: [] };
-
-const loadDatabase = (): void => {
-  try {
-    if (fs.existsSync(dbPath)) {
-      const data = fs.readFileSync(dbPath, 'utf-8');
-      dbCache = JSON.parse(data);
-      console.log('[FileDB] Loaded from', { dbPath, records: dbCache.user_tiers.length });
-    } else {
-      dbCache = { user_tiers: [] };
-      saveDatabase();
-      console.log('[FileDB] Initialized new database at', { dbPath });
-    }
-  } catch (err) {
-    console.error('[FileDB] Load error:', err);
-    dbCache = { user_tiers: [] };
-  }
-};
-
-const saveDatabase = (): void => {
-  try {
-    fs.writeFileSync(dbPath, JSON.stringify(dbCache, null, 2));
-  } catch (err) {
-    console.error('[FileDB] Save error:', err);
-  }
-};
+// Global in-memory DB cache (persists for lifetime of server process)
+let memoryDB: Database = { user_tiers: [] };
+const dbInitialized = false;
 
 export const getFilePool = (): PoolConnection => {
-  loadDatabase();
-
   return {
     query: async (sql: string, _params?: unknown[]): Promise<QueryResult> => {
       const sqlLower = sql.toLowerCase();
@@ -78,7 +49,6 @@ export const getFilePool = (): PoolConnection => {
 
       // INSERT INTO user_tiers (with ON CONFLICT support)
       if (sqlLower.includes('insert into user_tiers')) {
-        // Parse params: [$1=id, $2=user_id, $3=email, $4=tier, $5=stripe_customer_id, $6=campaigns_limit, $7=batch_limit, $8=custom_brand_kit, $9=analytics_depth, $10=support_level, $11=monthly_price]
         const recordId = String(params[0]);
         const userId = String(params[1]);
         const email = String(params[2]);
@@ -91,13 +61,12 @@ export const getFilePool = (): PoolConnection => {
         const supportLevel = (params[9] || 'community') as 'community' | 'email' | '24h-priority';
         const monthlyPrice = Number(params[10]) || 0;
 
-        // Check if user exists (for ON CONFLICT behavior)
-        const existingIdx = dbCache.user_tiers.findIndex((u) => u.user_id === userId);
+        const existingIdx = memoryDB.user_tiers.findIndex((u) => u.user_id === userId);
         const now = new Date().toISOString();
 
         if (existingIdx >= 0) {
           // Update existing
-          const existing = dbCache.user_tiers[existingIdx];
+          const existing = memoryDB.user_tiers[existingIdx];
           if (existing) {
             existing.tier = tier;
             existing.stripe_customer_id = stripeCustomerId || existing.stripe_customer_id;
@@ -108,8 +77,7 @@ export const getFilePool = (): PoolConnection => {
             existing.support_level = supportLevel;
             existing.monthly_price = monthlyPrice;
             existing.updated_at = now;
-            saveDatabase();
-            console.log('[FileDB] Updated user tier:', { userId, tier });
+            console.log('[MemoryDB] Updated user tier:', { userId, tier });
             return { rows: [existing], rowCount: 1 };
           }
         } else {
@@ -132,9 +100,8 @@ export const getFilePool = (): PoolConnection => {
             updated_at: now,
           };
 
-          dbCache.user_tiers.push(newTier);
-          saveDatabase();
-          console.log('[FileDB] Inserted user tier:', { userId, tier, dbSize: dbCache.user_tiers.length });
+          memoryDB.user_tiers.push(newTier);
+          console.log('[MemoryDB] Inserted user tier:', { userId, tier, dbSize: memoryDB.user_tiers.length });
           return { rows: [newTier], rowCount: 1 };
         }
       }
@@ -142,29 +109,29 @@ export const getFilePool = (): PoolConnection => {
       // SELECT FROM user_tiers WHERE user_id = $1
       if (sqlLower.includes('select') && sqlLower.includes('user_tiers')) {
         const userId = String(params[0]);
-        const user = dbCache.user_tiers.find((u) => u.user_id === userId);
-        console.log('[FileDB] SELECT user:', { userId, found: !!user, dbSize: dbCache.user_tiers.length, allUserIds: dbCache.user_tiers.map(u => u.user_id) });
+        const user = memoryDB.user_tiers.find((u) => u.user_id === userId);
+        console.log('[MemoryDB] SELECT user:', { userId, found: !!user, dbSize: memoryDB.user_tiers.length, allUserIds: memoryDB.user_tiers.map(u => u.user_id) });
         return { rows: user ? [user] : [], rowCount: user ? 1 : 0 };
       }
 
-      // UPDATE user_tiers (campaigns_used_this_month + 1 WHERE user_id = $2)
+      // UPDATE user_tiers (campaigns_used_this_month + increment WHERE user_id = $2)
       if (sqlLower.includes('update user_tiers')) {
         const incrementBy = Number(params[0]) || 1;
         const userId = String(params[1]);
-        const idx = dbCache.user_tiers.findIndex((u) => u.user_id === userId);
+        const idx = memoryDB.user_tiers.findIndex((u) => u.user_id === userId);
         if (idx >= 0) {
-          const tierRecord = dbCache.user_tiers[idx];
+          const tierRecord = memoryDB.user_tiers[idx];
           if (tierRecord) {
             tierRecord.campaigns_used_this_month += incrementBy;
             tierRecord.updated_at = new Date().toISOString();
-            saveDatabase();
+            console.log('[MemoryDB] Updated campaign usage:', { userId, newUsage: tierRecord.campaigns_used_this_month });
             return { rows: [], rowCount: 1 };
           }
         }
         return { rows: [], rowCount: 0 };
       }
 
-      console.warn('[FileDB] Unhandled query:', sql.substring(0, 50));
+      console.warn('[MemoryDB] Unhandled query:', sql.substring(0, 50));
       return { rows: [], rowCount: 0 };
     },
   };
