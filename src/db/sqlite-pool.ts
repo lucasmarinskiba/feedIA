@@ -110,9 +110,12 @@ export const getFilePool = (): PoolConnection => {
 
       // SELECT FROM user_tiers WHERE user_id = $1
       if (sqlLower.includes('select') && sqlLower.includes('user_tiers')) {
-        const userId = String(params[0]);
+        const userId = String(params[0] || '');
         const user = memoryDB.user_tiers.find((u) => u.user_id === userId);
-        console.log('[MemoryDB] SELECT user:', { userId, found: !!user, dbSize: memoryDB.user_tiers.length, allUserIds: memoryDB.user_tiers.map(u => u.user_id) });
+        console.log('[MemoryDB] SELECT:', { userId, found: !!user, dbSize: memoryDB.user_tiers.length, allIds: memoryDB.user_tiers.map(u => u.user_id).join(','), paramCount: params.length, param0: params[0] });
+        if (!user && memoryDB.user_tiers.length > 0) {
+          console.warn('[MemoryDB] User not found!', { searching: userId, inDB: memoryDB.user_tiers.map(u => u.user_id) });
+        }
         return { rows: user ? [user] : [], rowCount: user ? 1 : 0 };
       }
 
