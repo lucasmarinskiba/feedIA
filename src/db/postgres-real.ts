@@ -4,7 +4,7 @@
  * Uses pg for production, SQLite for dev/testing
  */
 
-import { getSQLitePool } from './sqlite-pool.js';
+import { getFilePool } from './sqlite-pool.js';
 
 interface QueryResult {
   rows: unknown[];
@@ -17,7 +17,12 @@ interface PoolConnection {
 }
 
 let realPool: PoolConnection | null = null;
-let poolInstance: any = null; // Store reference to actual pg pool for cleanup
+interface PgPoolType {
+  query: (sql: string, params?: unknown[]) => Promise<{ rows: unknown[]; rowCount: number }>;
+  on: (event: string, handler: (err: Error) => void) => void;
+  end: () => Promise<void>;
+}
+let poolInstance: PgPoolType | null = null; // Store reference to actual pg pool for cleanup
 
 // Try to load pg module
 const initializeRealPool = (): PoolConnection | null => {
@@ -43,16 +48,17 @@ const initializeRealPool = (): PoolConnection | null => {
     });
 
     console.log('[PostgreSQL] Real connection pool initialized');
+    const pool = poolInstance; // Capture for closure
     return {
       query: async (sql: string, params?: unknown[]): Promise<QueryResult> => {
-        const result = await poolInstance.query(sql, params);
+        const result = await pool.query(sql, params);
         return {
           rows: result.rows,
           rowCount: result.rowCount || 0,
         };
       },
       close: async (): Promise<void> => {
-        await poolInstance.end();
+        await pool.end();
       },
     };
   } catch (err) {
@@ -61,38 +67,38 @@ const initializeRealPool = (): PoolConnection | null => {
   }
 };
 
-// SQLite fallback
-const initializeSQLitePool = (): PoolConnection | null => {
+// File-based DB fallback (no native deps)
+const initializeFilePool = (): PoolConnection | null => {
   try {
-    const sqlitePool = getSQLitePool();
-    console.log('[SQLite] Fallback pool initialized (development)');
-    return sqlitePool;
+    const filePool = getFilePool();
+    console.log('[FileDB] Fallback pool initialized (development/testing)');
+    return filePool;
   } catch (err) {
-    console.warn('[SQLite] Failed to initialize:', String(err));
+    console.warn('[FileDB] Failed to initialize:', String(err));
     return null;
   }
 };
 
 // Mock pool fallback (no persistence)
 const mockPool: PoolConnection = {
-  query: async (sql: string, params?: unknown[]): Promise<QueryResult> => {
+  query: async (sql: string, _params?: unknown[]): Promise<QueryResult> => {
     console.log('[MockPool] Query:', sql.substring(0, 50), '...');
     // Return empty rows for all queries (no persistence)
     return { rows: [], rowCount: 0 };
   },
 };
 
-// Get effective pool (priority: PostgreSQL → SQLite → Mock)
+// Get effective pool (priority: PostgreSQL → FileDB → Mock)
 export const getPool = (): PoolConnection => {
   if (!realPool) {
-    realPool = initializeRealPool() || initializeSQLitePool();
+    realPool = initializeRealPool() || initializeFilePool();
   }
   return realPool || mockPool;
 };
 
 export const isRealDatabase = (): boolean => {
   if (!realPool) {
-    realPool = initializeRealPool() || initializeSQLitePool();
+    realPool = initializeRealPool() || initializeFilePool();
   }
   return realPool !== null && realPool !== mockPool;
 };
