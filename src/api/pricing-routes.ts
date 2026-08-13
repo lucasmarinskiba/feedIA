@@ -1,0 +1,737 @@
+export const PRICING_HTML = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pricing Plans | FeedIA - AI Campaigns from Free to $499/mo</title>
+  <meta name="description" content="Flexible AI campaign generation pricing. Free (5/mo) | Pro $79/mo (50/mo, Real Claude) | Agency $499/mo (500/mo, Priority). Cancel anytime.">
+  <meta property="og:title" content="FeedIA Pricing - AI Campaigns $0-$499/mo">
+  <meta property="og:description" content="Choose your tier: Free, Pro ($79), or Agency ($499). Real Claude API, batch processing, 24/7 support.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://feedia.vercel.app/pricing">
+  <link rel="canonical" href="https://feedia.vercel.app/pricing">
+  <style>
+    :root {
+      --color-primary: #2563eb;
+      --color-secondary: #7c3aed;
+      --color-success: #10b981;
+      --color-warning: #f97316;
+      --color-bg: #ffffff;
+      --color-text: #1f2937;
+      --color-text-light: #6b7280;
+      --color-border: #e5e7eb;
+      --color-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+      --shadow-xl: 0 20px 25px rgba(0,0,0,0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--color-text);
+      background-color: var(--color-bg);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 120px 20px;
+      background: linear-gradient(180deg, rgba(37,99,235,0.05) 0%, rgba(124,58,237,0.05) 100%);
+      border-radius: 24px;
+      margin-bottom: 80px;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 20px;
+      color: var(--color-text);
+    }
+
+    .hero-subtitle {
+      font-size: 1.25rem;
+      color: var(--color-text-light);
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+
+    .urgency-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 24px;
+      background-color: #fef3c7;
+      border: 2px solid #fbbf24;
+      border-radius: 12px;
+      margin-bottom: 40px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary, .btn-secondary {
+      padding: 16px 40px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: white;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-xl);
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--color-primary);
+      border: 2px solid var(--color-primary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--color-primary);
+      color: white;
+    }
+
+    .pricing-section {
+      margin-bottom: 80px;
+    }
+
+    .pricing-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .pricing-subtitle {
+      text-align: center;
+      color: var(--color-text-light);
+      margin-bottom: 60px;
+      font-size: 1.1rem;
+    }
+
+    .tiers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+    }
+
+    .tier-card {
+      padding: 40px;
+      border: 2px solid var(--color-border);
+      border-radius: 16px;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tier-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .tier-card.promo {
+      border-color: var(--color-primary);
+      background: linear-gradient(180deg, rgba(37,99,235,0.03), transparent);
+      transform: scale(1.05);
+    }
+
+    .tier-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .tier-price {
+      font-size: 3rem;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .tier-price-period {
+      font-size: 1rem;
+      color: var(--color-text-light);
+      font-weight: 500;
+    }
+
+    .tier-features {
+      list-style: none;
+      margin-bottom: 32px;
+      flex-grow: 1;
+    }
+
+    .tier-features li {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.95rem;
+      color: var(--color-text-light);
+    }
+
+    .tier-features li:last-child {
+      border-bottom: none;
+    }
+
+    .tier-cta {
+      padding: 14px 24px;
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 16px;
+      width: 100%;
+    }
+
+    .tier-cta:hover {
+      background: #1d4ed8;
+    }
+
+    .tier-footer {
+      font-size: 0.85rem;
+      color: var(--color-text-light);
+      text-align: center;
+    }
+
+    .stats-section {
+      margin-bottom: 80px;
+      padding: 60px 20px;
+      background: linear-gradient(90deg, rgba(37,99,235,0.02), rgba(124,58,237,0.02));
+      border-radius: 20px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 40px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: var(--color-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 0.95rem;
+      color: var(--color-text-light);
+      margin-top: 8px;
+    }
+
+    .faq-section {
+      margin-bottom: 80px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .faq-title {
+      font-size: 2rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .faq-item {
+      padding: 24px;
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .faq-item:hover {
+      border-color: var(--color-primary);
+      background: rgba(37,99,235,0.02);
+    }
+
+    .faq-question {
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .final-cta {
+      text-align: center;
+      padding: 80px 20px;
+      background: var(--color-gradient);
+      color: white;
+      border-radius: 20px;
+      margin-bottom: 60px;
+    }
+
+    .final-cta h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .final-cta p {
+      font-size: 1.1rem;
+      margin-bottom: 32px;
+    }
+
+    .btn-huge {
+      padding: 18px 48px;
+      background: white;
+      color: var(--color-primary);
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow-xl);
+      transition: all 0.3s ease;
+    }
+
+    .btn-huge:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 25px 30px rgba(0,0,0,0.2);
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 80px;
+      box-shadow: var(--shadow-lg);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .comparison-table th {
+      background: var(--color-gradient);
+      color: white;
+      padding: 20px;
+      text-align: left;
+      font-weight: 700;
+    }
+
+    .comparison-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .comparison-table tr:hover {
+      background: rgba(37,99,235,0.02);
+    }
+
+    .comparison-table .feature-name {
+      font-weight: 600;
+    }
+
+    .comparison-table .highlight {
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .subscription-section {
+      background: linear-gradient(90deg, rgba(37,99,235,0.05), rgba(124,58,237,0.05));
+      padding: 60px 40px;
+      border-radius: 16px;
+      margin-bottom: 80px;
+    }
+
+    .subscription-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+    }
+
+    .subscription-item h4 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--color-text);
+    }
+
+    .subscription-item p {
+      color: var(--color-text-light);
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .price-highlight {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--color-primary);
+      margin: 12px 0;
+    }
+
+    .billing-cycle {
+      color: var(--color-success);
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin: 12px 0;
+    }
+
+    .feature-list li {
+      padding: 6px 0;
+      color: var(--color-text-light);
+      font-size: 0.9rem;
+    }
+
+    .feature-list li:before {
+      content: "✓ ";
+      color: var(--color-success);
+      font-weight: bold;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <!-- HERO -->
+    <section class="hero">
+      <h1 class="hero-title">AI Campaigns That Convert</h1>
+      <p class="hero-subtitle">Generate 50-500 professional campaigns monthly. Real Claude API. Used by 8,500+ creators.</p>
+
+      <div class="urgency-banner">
+        <span>🔥</span>
+        <span>Only 18 Agency tier slots remaining</span>
+      </div>
+
+      <div class="hero-cta">
+        <button class="btn-primary" onclick="window.location.href='/checkout?tier=free'">Start Free (No Card Required)</button>
+        <button class="btn-secondary" onclick="window.location.href='/checkout?tier=pro'">See What Pro Creates →</button>
+      </div>
+    </section>
+
+    <!-- SOCIAL PROOF -->
+    <section class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-number">8,500+</div>
+          <div class="stat-label">Active Creators</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">2.4M+</div>
+          <div class="stat-label">Campaigns Created</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">4.9★</div>
+          <div class="stat-label">Average Rating</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">$1,200</div>
+          <div class="stat-label">Avg Revenue Gained</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING -->
+    <section class="pricing-section">
+      <h2 class="pricing-title">Choose Your Plan</h2>
+      <p class="pricing-subtitle">All tiers include 14-day free trial. No credit card required.</p>
+
+      <div class="tiers-grid">
+        <!-- FREE -->
+        <div class="tier-card">
+          <div class="tier-name">Starter</div>
+          <div class="tier-price">$<span>0</span><span class="tier-price-period">/mo</span></div>
+          <ul class="tier-features">
+            <li>✓ 5 campaigns/month</li>
+            <li>✓ Mock LLM (basic strategy)</li>
+            <li>✓ Community support</li>
+            <li>✗ No custom brand kit</li>
+            <li>✗ No analytics</li>
+          </ul>
+          <button class="tier-cta" onclick="window.location.href='/checkout?tier=free'">Start Free</button>
+          <div class="tier-footer">Best for: Learning & testing</div>
+        </div>
+
+        <!-- PRO -->
+        <div class="tier-card promo">
+          <div class="tier-name">Professional</div>
+          <div class="tier-price">$<span>79</span><span class="tier-price-period">/mo</span></div>
+          <p style="color: #10b981; font-weight: 600; margin-bottom: 24px; font-size: 0.95rem;">Save $648/yr vs monthly</p>
+          <ul class="tier-features">
+            <li>✓ 50 campaigns/month</li>
+            <li>✓ Real Claude API (Sonnet 3.5)</li>
+            <li>✓ Custom brand kit</li>
+            <li>✓ Advanced analytics</li>
+            <li>✓ Email support (24h)</li>
+            <li>✓ Batch 10 parallel</li>
+          </ul>
+          <button class="tier-cta" onclick="window.location.href='/checkout?tier=pro'">Start Pro Trial</button>
+          <div class="tier-footer">$1.58/campaign • ROI: 300-500%</div>
+        </div>
+
+        <!-- AGENCY -->
+        <div class="tier-card">
+          <div class="tier-name">Agency</div>
+          <div class="tier-price">$<span>499</span><span class="tier-price-period">/mo</span></div>
+          <p style="color: #10b981; font-weight: 600; margin-bottom: 24px; font-size: 0.95rem;">3 months free when annual</p>
+          <ul class="tier-features">
+            <li>✓ 500 campaigns/month</li>
+            <li>✓ Claude API (priority queue)</li>
+            <li>✓ Unlimited brand kits</li>
+            <li>✓ Enterprise analytics</li>
+            <li>✓ 24/7 priority support</li>
+            <li>✓ Batch 100 parallel</li>
+            <li>✓ Webhooks + API access</li>
+          </ul>
+          <button class="tier-cta" onclick="window.location.href='/checkout?tier=agency'">Claim Slot Now</button>
+          <div class="tier-footer">$0.998/campaign • ROI: 1000%+</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUBSCRIPTION DETAILS -->
+    <section class="subscription-section">
+      <h2 style="font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 40px;">Subscription Details & Billing</h2>
+      <div class="subscription-grid">
+        <div class="subscription-item">
+          <h4>Free Tier</h4>
+          <p class="billing-cycle">Pay: Nothing</p>
+          <div class="price-highlight">$0/month</div>
+          <ul class="feature-list">
+            <li>5 campaigns/month</li>
+            <li>Mock LLM (basic)</li>
+            <li>Community support</li>
+            <li>No credit card</li>
+            <li>Cancel anytime</li>
+          </ul>
+          <p style="margin-top: 16px; font-size: 0.85rem; color: #f97316;">
+            Perfect for: Testing & learning the platform
+          </p>
+        </div>
+
+        <div class="subscription-item">
+          <h4>Professional</h4>
+          <p class="billing-cycle">Pay Monthly: $79 | Annual: $79×12 = $948/yr</p>
+          <div class="price-highlight">$79/month</div>
+          <p style="color: var(--color-success); font-weight: 600; font-size: 0.9rem; margin-bottom: 16px;">
+            Save $648/year with annual billing
+          </p>
+          <ul class="feature-list">
+            <li>50 campaigns/month</li>
+            <li>Real Claude API (Sonnet)</li>
+            <li>Custom brand kits</li>
+            <li>Advanced analytics</li>
+            <li>Email support (24h)</li>
+            <li>Batch 10 parallel</li>
+          </ul>
+          <p style="margin-top: 16px; font-size: 0.85rem; color: #f97316;">
+            Cost per campaign: $1.58 | ROI: 300-500%
+          </p>
+          <p style="margin-top: 8px; font-size: 0.85rem; color: var(--color-text-light);">
+            14-day free trial included • Cancel anytime
+          </p>
+        </div>
+
+        <div class="subscription-item">
+          <h4>Agency</h4>
+          <p class="billing-cycle">Pay Monthly: $499 | Annual: $499×9 = $4,491/yr</p>
+          <div class="price-highlight">$499/month</div>
+          <p style="color: var(--color-success); font-weight: 600; font-size: 0.9rem; margin-bottom: 16px;">
+            Get 3 months free with annual plan
+          </p>
+          <ul class="feature-list">
+            <li>500 campaigns/month</li>
+            <li>Claude API (priority queue)</li>
+            <li>Unlimited brand kits</li>
+            <li>Enterprise analytics</li>
+            <li>24/7 priority support</li>
+            <li>Batch 100 parallel</li>
+            <li>Webhooks + API access</li>
+            <li>Unlimited team members</li>
+          </ul>
+          <p style="margin-top: 16px; font-size: 0.85rem; color: #f97316;">
+            Cost per campaign: $0.998 | ROI: 1000%+
+          </p>
+          <p style="margin-top: 8px; font-size: 0.85rem; color: var(--color-text-light);">
+            Limited to 100 slots • 14-day trial included
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPARISON TABLE -->
+    <section style="margin-bottom: 80px;">
+      <h2 style="font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 40px;">Feature Comparison</h2>
+      <div style="overflow-x: auto;">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Free</th>
+              <th>Professional</th>
+              <th>Agency</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="feature-name">Campaigns/Month</td>
+              <td>5</td>
+              <td class="highlight">50</td>
+              <td class="highlight">500</td>
+            </tr>
+            <tr>
+              <td class="feature-name">LLM Quality</td>
+              <td>Mock</td>
+              <td class="highlight">Real Claude (Sonnet)</td>
+              <td class="highlight">Real Claude (Priority Queue)</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Batch Size</td>
+              <td>1</td>
+              <td class="highlight">10</td>
+              <td class="highlight">100</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Monthly Cost</td>
+              <td>$0</td>
+              <td class="highlight">$79</td>
+              <td class="highlight">$499</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Cost per Campaign</td>
+              <td>Free</td>
+              <td class="highlight">$1.58</td>
+              <td class="highlight">$0.998</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Custom Brand Kit</td>
+              <td>✗</td>
+              <td class="highlight">✓</td>
+              <td class="highlight">✓ Unlimited</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Analytics</td>
+              <td>Basic</td>
+              <td class="highlight">Advanced</td>
+              <td class="highlight">Enterprise</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Support</td>
+              <td>Community</td>
+              <td class="highlight">Email (24h)</td>
+              <td class="highlight">24/7 Priority</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Webhooks & API</td>
+              <td>✗</td>
+              <td>✗</td>
+              <td class="highlight">✓</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Team Members</td>
+              <td>1</td>
+              <td class="highlight">5</td>
+              <td class="highlight">Unlimited</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Money-back Guarantee</td>
+              <td class="highlight">N/A</td>
+              <td class="highlight">30 days</td>
+              <td class="highlight">30 days</td>
+            </tr>
+            <tr>
+              <td class="feature-name">Estimated ROI</td>
+              <td>N/A</td>
+              <td class="highlight">300-500%</td>
+              <td class="highlight">1000%+</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq-section">
+      <h2 class="faq-title">Frequently Asked Questions</h2>
+
+      <div class="faq-item">
+        <div class="faq-question">What if I'm not satisfied?</div>
+        <p style="margin-top: 16px; color: var(--color-text-light);">30-day money-back guarantee, no questions asked. We're confident you'll love it — but if not, we'll refund 100%.</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Can I switch tiers anytime?</div>
+        <p style="margin-top: 16px; color: var(--color-text-light);">Yes. Upgrade or downgrade anytime. We'll pro-rate your billing automatically.</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Do you offer team accounts?</div>
+        <p style="margin-top: 16px; color: var(--color-text-light);">Yes. Agencies can add 5 team members to Pro tier. Agency tier supports unlimited team members.</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Is training included?</div>
+        <p style="margin-top: 16px; color: var(--color-text-light);">Pro & Agency tiers get personalized onboarding + access to our knowledge base. Agency gets 1-on-1 training.</p>
+      </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="final-cta">
+      <h2>Ready to 10x Your Content?</h2>
+      <p>Start free today. No credit card. No commitment.</p>
+      <button class="btn-huge" onclick="window.location.href='/checkout?tier=free'">Get Started Free →</button>
+      <p style="margin-top: 24px; font-size: 0.95rem; opacity: 0.95;">Join 8,500+ creators generating campaigns with AI</p>
+    </section>
+  </main>
+
+  <script>
+    // Track clicks for conversion analytics
+    document.querySelectorAll('[onclick*="checkout"]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const tier = new URL(btn.getAttribute('onclick').split("'")[1], window.location).searchParams.get('tier');
+        console.log('CTA click:', tier);
+      });
+    });
+  </script>
+</body>
+</html>
+`;

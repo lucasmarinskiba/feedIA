@@ -67,6 +67,7 @@ import agencySimpleRoutes from './api/agency-simple-routes.js';
 import conversionRoutes from './api/conversion-routes.js';
 import billingRoutes from './api/billing-routes.js';
 import { initializeUserTiersTable } from './db/user-tiers.js';
+import { PRICING_HTML } from './api/pricing-routes.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -340,21 +341,10 @@ app.use('/api/conversion', conversionRoutes);
 // TIER 8 Extension: Billing + Tier Management (Stripe + Database)
 app.use('/api/billing', billingRoutes);
 
-// Pricing page (static, served before SPA catch-all)
+// Pricing page (embedded HTML constant, served before SPA catch-all)
 app.get('/pricing', (req: Request, res: Response) => {
-  const candidates = [
-    path.resolve(__dirname, '../../public/pricing.html'),
-    path.resolve(process.cwd(), 'public/pricing.html'),
-    path.join(process.cwd(), 'public', 'pricing.html'),
-    '/app/public/pricing.html',
-  ];
-  const pricingPath = candidates.find((p) => fs.existsSync(p));
-  if (pricingPath) {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.sendFile(pricingPath);
-  } else {
-    res.status(404).json({ error: 'Pricing page not found', tried: candidates });
-  }
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(PRICING_HTML);
 });
 
 // Static files + SPA catch-all (must be after all /api routes)
