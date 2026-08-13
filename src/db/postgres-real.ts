@@ -1,8 +1,10 @@
 /**
- * PostgreSQL Real Connection Pool
- * Uses pg library for production database access
- * Fallback to mock when DATABASE_URL unavailable
+ * Database Connection Pool
+ * Priority: PostgreSQL → SQLite → Mock
+ * Uses pg for production, SQLite for dev/testing
  */
+
+import { getSQLitePool } from './sqlite-pool.js';
 
 interface QueryResult {
   rows: unknown[];
@@ -24,7 +26,7 @@ const initializeRealPool = (): PoolConnection | null => {
     const PostgresPool = require('pg').Pool;
 
     if (!process.env.DATABASE_URL) {
-      console.warn('[PostgreSQL] DATABASE_URL not set, using mock pool');
+      console.warn('[PostgreSQL] DATABASE_URL not set, trying SQLite...');
       return null;
     }
 
@@ -59,7 +61,19 @@ const initializeRealPool = (): PoolConnection | null => {
   }
 };
 
-// Mock pool fallback
+// SQLite fallback
+const initializeSQLitePool = (): PoolConnection | null => {
+  try {
+    const sqlitePool = getSQLitePool();
+    console.log('[SQLite] Fallback pool initialized (development)');
+    return sqlitePool;
+  } catch (err) {
+    console.warn('[SQLite] Failed to initialize:', String(err));
+    return null;
+  }
+};
+
+// Mock pool fallback (no persistence)
 const mockPool: PoolConnection = {
   query: async (sql: string, params?: unknown[]): Promise<QueryResult> => {
     console.log('[MockPool] Query:', sql.substring(0, 50), '...');
@@ -68,17 +82,17 @@ const mockPool: PoolConnection = {
   },
 };
 
-// Get effective pool
+// Get effective pool (priority: PostgreSQL → SQLite → Mock)
 export const getPool = (): PoolConnection => {
   if (!realPool) {
-    realPool = initializeRealPool();
+    realPool = initializeRealPool() || initializeSQLitePool();
   }
   return realPool || mockPool;
 };
 
 export const isRealDatabase = (): boolean => {
   if (!realPool) {
-    realPool = initializeRealPool();
+    realPool = initializeRealPool() || initializeSQLitePool();
   }
   return realPool !== null && realPool !== mockPool;
 };
