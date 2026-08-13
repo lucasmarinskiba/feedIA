@@ -26,7 +26,7 @@ interface CampaignRequest {
  */
 router.post('/campaign/create', async (req: Request, res: Response): Promise<void> => {
   try {
-    const accountId = req.get('X-Account-ID') || 'test-account';
+    const accountId = (req.body as CampaignRequest).userId || req.get('X-Account-ID') || 'test-account';
     const { brief, targetAudience, goals, budget, platforms } = req.body as CampaignRequest;
 
     if (!brief || !targetAudience || !goals || goals.length === 0) {
