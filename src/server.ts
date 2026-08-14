@@ -14,6 +14,7 @@ import promptGenerationRoutes from './api/prompt-generation-routes.js';
 import promptSelectionRoutes from './api/prompt-selection-routes.js';
 import qualityLoopRoutes from './api/quality-loop-routes.js';
 import strategicReasoningRoutes from './api/strategic-reasoning-routes.js';
+import multiAgentOrchestratorRoutes from './api/multi-agent-orchestrator-routes.js';
 import contentRoutes from './api/content-routes.js';
 import autonomyRoutes from './api/autonomy-routes.js';
 import parameterizedImageRoutes from './api/parameterized-image-routes.js';
@@ -224,6 +225,9 @@ app.use('/api/feedback', qualityLoopRoutes);
 
 // Mount strategic reasoning routes (competitive analysis, pricing, budget, positioning)
 app.use('/api/strategy', strategicReasoningRoutes);
+
+// Mount multi-agent orchestrator routes (Art Director ↔ Carousel Designer collaboration)
+app.use('/api/orchestrate', multiAgentOrchestratorRoutes);
 
 // Mount content generation routes
 app.use('/api/content', contentRoutes);

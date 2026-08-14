@@ -4,7 +4,10 @@
  * Analyzes patterns to optimize future ranking
  */
 
-import { getPool } from '../db/postgres-real.js';
+import { getFilePool } from '../db/sqlite-pool.js';
+
+// Mock feedback storage for development (SQLite pool doesn't support feedback tables yet)
+const mockFeedback = new Map<string, { batchId: number; rating: number; content?: string; createdAt: string }>();
 
 export interface FeedbackRecord {
   id: string;
@@ -43,16 +46,15 @@ export const saveFeedback = async (
     const feedbackId = `feedback_${userId}_${batchId}_${Date.now()}`;
     const now = new Date().toISOString();
 
-    // Try to save to DB
-    const pool = getPool();
-    await pool.query(
-      `INSERT INTO feedback (id, user_id, batch_id, rating, content, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       ON CONFLICT (user_id, batch_id) DO UPDATE SET rating = $4, updated_at = NOW()`,
-      [feedbackId, userId, batchId, rating, content, now],
-    );
+    // Mock storage (development)
+    mockFeedback.set(`${userId}:${batchId}`, {
+      batchId,
+      rating,
+      content,
+      createdAt: now,
+    });
 
-    console.log('[Feedback] Saved:', { userId, batchId, rating });
+    console.log('[Feedback] Saved (mock):', { userId, batchId, rating });
 
     return { success: true, feedbackId };
   } catch (err) {
