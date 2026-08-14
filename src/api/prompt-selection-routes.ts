@@ -4,7 +4,13 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { selectPromptsForUser, parseUserIntent, selectPromptBatches } from '../services/prompt-index.js';
+import {
+  selectPromptsForUser,
+  parseUserIntent,
+  selectPromptBatches,
+  type ContentFormat,
+  type ContentCategory,
+} from '../services/prompt-index.js';
 
 const router = Router();
 
@@ -44,7 +50,7 @@ router.post('/select', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const result = selectPromptsForUser(query, Math.min(topN, 5));
+    const result = await selectPromptsForUser(query, Math.min(topN, 5));
 
     console.log('[PromptSelect] Request:', { query: query.substring(0, 50), topN, result });
 
@@ -102,12 +108,12 @@ router.get('/batches/:format/:category', async (req: Request, res: Response): Pr
     const { format, category } = req.params;
 
     const intent = {
-      format: (format as any) || 'any',
-      category: (category as any) || 'any',
+      format: (format as ContentFormat) || ('any' as ContentFormat),
+      category: (category as ContentCategory) || ('any' as ContentCategory),
       topic: '',
     };
 
-    const batches = selectPromptBatches(intent, 100); // Get all matching
+    const batches = await selectPromptBatches(intent, 100); // Get all matching
 
     res.json({
       success: true,

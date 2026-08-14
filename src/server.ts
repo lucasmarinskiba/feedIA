@@ -12,6 +12,7 @@ const __dirname = path.dirname(__filename);
 initSentry();
 import promptGenerationRoutes from './api/prompt-generation-routes.js';
 import promptSelectionRoutes from './api/prompt-selection-routes.js';
+import qualityLoopRoutes from './api/quality-loop-routes.js';
 import contentRoutes from './api/content-routes.js';
 import autonomyRoutes from './api/autonomy-routes.js';
 import parameterizedImageRoutes from './api/parameterized-image-routes.js';
@@ -68,6 +69,7 @@ import agencySimpleRoutes from './api/agency-simple-routes.js';
 import conversionRoutes from './api/conversion-routes.js';
 import billingRoutes from './api/billing-routes.js';
 import { initializeUserTiersTable } from './db/user-tiers.js';
+import { initFeedbackSchema, initWeightsSchema } from './db/feedback-schema.js';
 import { PRICING_HTML } from './api/pricing-routes.js';
 
 const app: Express = express();
@@ -215,6 +217,9 @@ app.use('/api/prompts', promptGenerationRoutes);
 
 // Mount intelligent prompt selection routes
 app.use('/api/prompt-selection', promptSelectionRoutes);
+
+// Mount quality feedback loop routes (collect + analyze user ratings → retrain ranking)
+app.use('/api/feedback', qualityLoopRoutes);
 
 // Mount content generation routes
 app.use('/api/content', contentRoutes);
@@ -400,11 +405,17 @@ app.use((err: Error, req: Request, res: Response, _next: express.NextFunction) =
 });
 
 // Fire-and-forget init (serverless: no app.listen)
-Promise.all([feedIADatabase.initialize(), carouselDB.initialize(), initializeUserTiersTable()])
+Promise.all([
+  feedIADatabase.initialize(),
+  carouselDB.initialize(),
+  initializeUserTiersTable(),
+  initFeedbackSchema(),
+  initWeightsSchema(),
+])
   .then(() => {
     feedIAOrchestrator.initializeAgents();
     startPollingScheduler();
-    log.info('[Server] initialized: metrics polling + carousel storage + billing/tiers');
+    log.info('[Server] initialized: metrics polling + carousel storage + billing/tiers + quality feedback loop');
   })
   .catch((err) => log.error('[Server] initialization failed', err));
 

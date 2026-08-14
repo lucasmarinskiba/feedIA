@@ -5,7 +5,17 @@
  */
 
 export type ContentFormat = 'carousel' | 'story' | 'reel' | 'tiktok' | 'any';
-export type ContentCategory = 'product' | 'lifestyle' | 'educational' | 'entertainment' | 'viral' | 'brand' | 'personal' | 'food' | 'sports' | 'any';
+export type ContentCategory =
+  | 'product'
+  | 'lifestyle'
+  | 'educational'
+  | 'entertainment'
+  | 'viral'
+  | 'brand'
+  | 'personal'
+  | 'food'
+  | 'sports'
+  | 'any';
 
 export interface PromptMetadata {
   batchId: number;
@@ -81,8 +91,9 @@ const categoryBatchMap: Record<ContentCategory, number[]> = {
 
 /**
  * Score relevance of batch to user intent (0-1)
+ * Now includes quality boost from feedback ratings
  */
-function scoreBatch(batchId: number, intent: UserIntent): number {
+async function scoreBatch(batchId: number, intent: UserIntent): Promise<number> {
   let score = 0;
 
   // Format match (50% weight)
@@ -105,19 +116,31 @@ function scoreBatch(batchId: number, intent: UserIntent): number {
     score += topicScore * 0.2;
   }
 
+  // Apply quality boost from user feedback (dynamic weight)
+  try {
+    const { getQualityWeightBoost } = await import('./feedback-service.js');
+    const qualityBoost = await getQualityWeightBoost(batchId);
+    score *= qualityBoost;
+  } catch (err) {
+    // Fallback to unmodified score if feedback service unavailable
+    console.warn('[PromptIndex] Quality boost unavailable:', err);
+  }
+
   return score;
 }
 
 /**
- * Select best batches for user intent
+ * Select best batches for user intent (now async due to quality boost)
  */
-export function selectPromptBatches(intent: UserIntent, topN: number = 3): number[] {
+export async function selectPromptBatches(intent: UserIntent, topN: number = 3): Promise<number[]> {
   const allBatches = Object.keys(batchMetadata).map(Number);
 
-  const scored = allBatches.map((batchId) => ({
-    batchId,
-    score: scoreBatch(batchId, intent),
-  }));
+  const scored = await Promise.all(
+    allBatches.map(async (batchId) => ({
+      batchId,
+      score: await scoreBatch(batchId, intent),
+    })),
+  );
 
   return scored
     .sort((a, b) => b.score - a.score)
@@ -160,15 +183,18 @@ export function parseUserIntent(userMessage: string): UserIntent {
 }
 
 /**
- * Get prompt selection for user request
+ * Get prompt selection for user request (now async with quality boost)
  */
-export function selectPromptsForUser(userMessage: string, topN: number = 3): {
+export async function selectPromptsForUser(
+  userMessage: string,
+  topN: number = 3,
+): Promise<{
   intent: UserIntent;
   selectedBatches: number[];
   description: string;
-} {
+}> {
   const intent = parseUserIntent(userMessage);
-  const selectedBatches = selectPromptBatches(intent, topN);
+  const selectedBatches = await selectPromptBatches(intent, topN);
 
   const descriptions = selectedBatches
     .map((batchId) => `Batch ${batchId}: ${batchMetadata[batchId]?.description || 'General'}`)
