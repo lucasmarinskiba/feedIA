@@ -1,31 +1,28 @@
 /**
  * Billing API Routes
- * /api/billing/* endpoints for Stripe integration + tier management
+ * /api/billing/* endpoints for Mercado Pago integration + tier management
  */
 
 import { Router, Request, Response } from 'express';
-import { handleStripeWebhook } from './billing/stripe-webhook.js';
+import { handleMercadoPagoWebhook } from './billing/mercado-pago-webhook.js';
 import { createCheckoutSession } from './billing/create-checkout-session.js';
 import { saveTier } from './billing/save-tier.js';
 import { getTierInfo } from './user/tier.js';
 
 const router = Router();
 
-// Webhook: Stripe events (subscription updates)
-router.post('/webhook/stripe', async (req: Request, res: Response): Promise<void> => {
+// Webhook: Mercado Pago events (payment updates)
+router.post('/webhook/mercado-pago', async (req: Request, res: Response): Promise<void> => {
   try {
-    const buf = (req as unknown as { rawBody?: Buffer }).rawBody || Buffer.alloc(0);
-    const signature = req.headers['stripe-signature'] as string;
-
-    const result = await handleStripeWebhook(buf, signature);
+    const result = await handleMercadoPagoWebhook(req.body);
     res.status(result.success ? 200 : 400).json(result);
   } catch (err) {
-    console.error('[Billing] Webhook error:', err);
+    console.error('[Billing] MP Webhook error:', err);
     res.status(500).json({ error: String(err) });
   }
 });
 
-// Create Stripe checkout session
+// Create Mercado Pago checkout session
 router.post('/create-checkout-session', async (req: Request, res: Response): Promise<void> => {
   try {
     const result = await createCheckoutSession(req.body);

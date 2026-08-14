@@ -1,90 +1,101 @@
 /**
  * POST /api/billing/create-checkout-session
- * Create Stripe checkout session for tier upgrade
- * Integration: Stripe → webhook → user_tiers DB
+ * Mercado Pago subscription checkout for tier upgrades
+ * Integration: MP → webhook → user_tiers DB
  */
 
-import Stripe from 'stripe';
 import { Request, Response } from 'express';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock', {
-  apiVersion: '2024-12-18' as unknown as '2024-12-18',
-});
 
 export interface CheckoutSessionRequest {
   tier: 'pro' | 'agency';
   email?: string;
   userId?: string;
-  successUrl: string;
-  cancelUrl: string;
 }
 
 export interface CheckoutSessionResponse {
-  url: string | null;
-  sessionId: string;
+  url?: string;
+  preferenceId?: string;
   error?: string;
 }
 
+const tierConfig: Record<string, { price: number; reason: string }> = {
+  pro: { price: 79, reason: 'Monthly pro plan - 50 campaigns' },
+  agency: { price: 499, reason: 'Monthly agency plan - 500 campaigns' },
+};
+
 export const createCheckoutSession = async (req: CheckoutSessionRequest): Promise<CheckoutSessionResponse> => {
   try {
-    if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.startsWith('sk_test')) {
-      console.warn('[Stripe] Mock mode: no real API key. Returning mock session.');
+    const { tier, email, userId } = req;
+
+    if (!tier || !email || !userId) {
+      return { error: 'Missing required fields: tier, email, userId' };
+    }
+
+    const mpAccessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+    if (!mpAccessToken) {
+      console.warn('[MP Checkout] Access token not configured, returning mock');
       return {
-        url: req.successUrl,
-        sessionId: `mock_session_${Date.now()}`,
+        preferenceId: `mock_${tier}_${userId}`,
+        url: 'https://www.mercadopago.com.ar/checkout/v1/redirect?preference-id=mock',
       };
     }
 
-    const tierConfig = {
-      pro: {
-        price: 'price_1PriceProUSD', // Replace with real Stripe price ID
-        campaigns: 50,
-      },
-      agency: {
-        price: 'price_1PriceAgencyUSD', // Replace with real Stripe price ID
-        campaigns: 500,
-      },
-    };
-
-    const config = tierConfig[req.tier];
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'subscription',
-      line_items: [
+    const tierData = tierConfig[tier];
+    const preferencePayload = {
+      items: [
         {
-          price: config.price,
+          title: `FeedIA ${tier.toUpperCase()} Plan`,
+          description: tierData.reason,
           quantity: 1,
+          unit_price: tierData.price,
+          currency_id: 'ARS',
         },
       ],
-      customer_email: req.email,
-      client_reference_id: req.userId || `guest_${Date.now()}`,
-      subscription_data: {
-        metadata: {
-          tier: req.tier,
-          userId: req.userId || 'guest',
-          campaigns: config.campaigns,
-        },
+      payer: {
+        email,
       },
-      success_url: req.successUrl,
-      cancel_url: req.cancelUrl,
+      back_urls: {
+        success: 'https://feedia.vercel.app/#checkout-success',
+        failure: 'https://feedia.vercel.app/#checkout-failure',
+        pending: 'https://feedia.vercel.app/#checkout-pending',
+      },
+      auto_return: 'approved',
+      external_reference: `${userId}:${tier}`,
       metadata: {
-        tier: req.tier,
-        userId: req.userId || 'guest',
+        userId,
+        tier,
       },
+    };
+
+    const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${mpAccessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(preferencePayload),
     });
 
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('[MP Checkout] API error:', error);
+      return { error: `Mercado Pago error: ${error}` };
+    }
+
+    interface MercadoPagoPreference {
+      id: string;
+      init_point: string;
+    }
+    const pref = (await response.json()) as MercadoPagoPreference;
+
+    console.log('[MP Checkout] Created preference:', { prefId: pref.id, tier, userId });
     return {
-      url: session.url,
-      sessionId: session.id,
+      preferenceId: pref.id,
+      url: pref.init_point,
     };
   } catch (err) {
-    console.error('[Stripe] Session creation failed:', err);
-    return {
-      url: req.successUrl,
-      sessionId: `fallback_${Date.now()}`,
-      error: 'Stripe unavailable, fallback redirect',
-    };
+    console.error('[MP Checkout] Failed:', err);
+    return { error: String(err) };
   }
 };
 
@@ -96,5 +107,5 @@ export const checkoutSessionHandler = async (req: Request, res: Response): Promi
   }
 
   const result = await createCheckoutSession(req.body);
-  res.status(200).json(result);
+  res.status(result.error ? 400 : 200).json(result);
 };
