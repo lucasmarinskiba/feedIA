@@ -82,7 +82,7 @@ router.post('/start', async (req: Request, res: Response): Promise<void> => {
  */
 router.post('/:sessionId/art-director-proposal', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { sessionId } = req.params;
+    const { sessionId } = req.params as { sessionId: string };
     const { concept, visualStyle, mood } = req.body;
 
     const message = await artDirectorProposal(sessionId, { concept, visualStyle, mood });
@@ -114,7 +114,7 @@ router.post('/:sessionId/art-director-proposal', async (req: Request, res: Respo
  */
 router.post('/:sessionId/carousel-designer-response', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { sessionId } = req.params;
+    const { sessionId } = req.params as { sessionId: string };
     const { feasibility, suggestions, concerns } = req.body;
 
     const message = await carouselDesignerResponse(sessionId, { feasibility, suggestions, concerns });
@@ -145,7 +145,7 @@ router.post('/:sessionId/carousel-designer-response', async (req: Request, res: 
  */
 router.post('/:sessionId/art-director-refine', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { sessionId } = req.params;
+    const { sessionId } = req.params as { sessionId: string };
     const { adjustments, revisedConcept } = req.body;
 
     const message = await artDirectorRefine(sessionId, { adjustments, revisedConcept });
@@ -177,7 +177,7 @@ router.post('/:sessionId/art-director-refine', async (req: Request, res: Respons
  */
 router.post('/:sessionId/carousel-designer-validate', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { sessionId } = req.params;
+    const { sessionId } = req.params as { sessionId: string };
     const { isValid, readiness, notes } = req.body;
 
     const message = await carouselDesignerValidate(sessionId, { isValid, readiness, notes });
@@ -204,7 +204,7 @@ router.post('/:sessionId/carousel-designer-validate', async (req: Request, res: 
  */
 router.get('/:sessionId/history', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { sessionId } = req.params;
+    const { sessionId } = req.params as { sessionId: string };
 
     const history = getConversationHistory(sessionId);
     const session = getSession(sessionId);
@@ -235,7 +235,7 @@ router.get('/:sessionId/history', async (req: Request, res: Response): Promise<v
  */
 router.get('/:sessionId/session', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { sessionId } = req.params;
+    const { sessionId } = req.params as { sessionId: string };
 
     const session = getSession(sessionId);
 

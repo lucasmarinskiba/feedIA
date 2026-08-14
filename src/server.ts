@@ -301,9 +301,6 @@ app.use('/api/polling', pollingStatusRoutes);
 // Instagram OAuth routes (simplified: click → connect → auto-save token)
 app.use('/oauth/instagram', instagramOAuthRoutes);
 
-// Orchestration routes (central intelligence: analyze → plan → execute → track cost)
-app.use('/api/orchestrate', orchestrationRoutes);
-
 // Cache management routes (60% fewer API calls via prompt reuse)
 app.use('/api/cache', cacheManagementRoutes);
 
