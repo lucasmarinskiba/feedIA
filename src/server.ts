@@ -11,6 +11,7 @@ const __dirname = path.dirname(__filename);
 // Initialize error tracking before anything else can throw (no-op if SENTRY_DSN unset)
 initSentry();
 import promptGenerationRoutes from './api/prompt-generation-routes.js';
+import promptSelectionRoutes from './api/prompt-selection-routes.js';
 import contentRoutes from './api/content-routes.js';
 import autonomyRoutes from './api/autonomy-routes.js';
 import parameterizedImageRoutes from './api/parameterized-image-routes.js';
@@ -211,6 +212,9 @@ app.get('/health/scaling', (req: Request, res: Response) => {
 
 // Mount prompt generation routes
 app.use('/api/prompts', promptGenerationRoutes);
+
+// Mount intelligent prompt selection routes
+app.use('/api/prompt-selection', promptSelectionRoutes);
 
 // Mount content generation routes
 app.use('/api/content', contentRoutes);
