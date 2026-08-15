@@ -15,6 +15,7 @@ import promptSelectionRoutes from './api/prompt-selection-routes.js';
 import qualityLoopRoutes from './api/quality-loop-routes.js';
 import strategicReasoningRoutes from './api/strategic-reasoning-routes.js';
 import multiAgentOrchestratorRoutes from './api/multi-agent-orchestrator-routes.js';
+import roiCalculatorRoutes from './api/roi-calculator-routes.js';
 import contentRoutes from './api/content-routes.js';
 import autonomyRoutes from './api/autonomy-routes.js';
 import parameterizedImageRoutes from './api/parameterized-image-routes.js';
@@ -228,6 +229,9 @@ app.use('/api/strategy', strategicReasoningRoutes);
 
 // Mount multi-agent orchestrator routes (Art Director ↔ Carousel Designer collaboration)
 app.use('/api/orchestrate', multiAgentOrchestratorRoutes);
+
+// Mount ROI calculator routes (estimate cost per result, engagement, conversions)
+app.use('/api/roi', roiCalculatorRoutes);
 
 // Mount content generation routes
 app.use('/api/content', contentRoutes);
