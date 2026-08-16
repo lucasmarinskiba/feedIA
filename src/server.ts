@@ -17,6 +17,7 @@ import strategicReasoningRoutes from './api/strategic-reasoning-routes.js';
 import multiAgentOrchestratorRoutes from './api/multi-agent-orchestrator-routes.js';
 import roiCalculatorRoutes from './api/roi-calculator-routes.js';
 import smartBatchingRoutes from './api/smart-batching-routes.js';
+import autoFeedbackRoutes from './api/auto-feedback-routes.js';
 import contentRoutes from './api/content-routes.js';
 import autonomyRoutes from './api/autonomy-routes.js';
 import parameterizedImageRoutes from './api/parameterized-image-routes.js';
@@ -40,7 +41,6 @@ import contentStrategyRoutes from './api/content-strategy-routes.js';
 import veoVideoRoutes from './api/veo-video-routes.js';
 import pollingStatusRoutes from './api/polling-status-routes.js';
 import instagramOAuthRoutes from './api/instagram-oauth-routes.js';
-import orchestrationRoutes from './api/orchestration-routes.js';
 import cacheManagementRoutes from './api/cache-management-routes.js';
 import engagementRoutes from './api/engagement-routes.js';
 import browserlessSettingsRoutes from './api/browserless-settings-routes.js';
@@ -236,6 +236,9 @@ app.use('/api/roi', roiCalculatorRoutes);
 
 // Mount smart batching routes (auto-generate 30+ assets with optimized strategy)
 app.use('/api/batch', smartBatchingRoutes);
+
+// Mount auto feedback loop routes (track performance → auto-update weights)
+app.use('/api/auto-feedback', autoFeedbackRoutes);
 
 // Mount content generation routes
 app.use('/api/content', contentRoutes);

@@ -88,14 +88,15 @@ const AUDIENCE_MULTIPLIERS: Record<string, number> = {
 };
 
 export const calculateROI = (input: ROIInput): ROIOutput => {
-  const platform = input.platform || 'instagram';
+  const platform = input.platform ?? 'instagram';
   const niche = extractNiche(input.topic);
 
   // Get base benchmarks
-  const benchmark = BENCHMARKS[input.format]?.[niche] || BENCHMARKS[input.format]?.default || BENCHMARKS.carousel.default;
+  const benchmarkData = BENCHMARKS[input.format] ?? BENCHMARKS.carousel!;
+  const benchmark = (benchmarkData[niche] ?? benchmarkData.default)!;
 
   // Platform multiplier
-  const platformMult = PLATFORM_MULTIPLIERS[platform];
+  const platformMult = (PLATFORM_MULTIPLIERS[platform] ?? PLATFORM_MULTIPLIERS.instagram)!;
 
   // Audience multiplier
   const audienceMult = extractAudienceMultiplier(input.targetAudience);
@@ -156,14 +157,14 @@ const extractNiche = (topic: string): string => {
 
 const extractAudienceMultiplier = (audience: string): number => {
   const lower = audience.toLowerCase();
-  if (lower.includes('luxury') && lower.includes('budget')) return AUDIENCE_MULTIPLIERS.luxury_budget;
-  if (lower.includes('luxury') || lower.includes('premium') || lower.includes('high-income')) return AUDIENCE_MULTIPLIERS.luxury;
-  if (lower.includes('budget') || lower.includes('affordable') || lower.includes('value')) return AUDIENCE_MULTIPLIERS.budget;
-  if (lower.includes('gen z') || lower.includes('gen-z')) return AUDIENCE_MULTIPLIERS.gen_z;
-  if (lower.includes('millennial')) return AUDIENCE_MULTIPLIERS.millennial;
-  if (lower.includes('boomer') || lower.includes('senior')) return AUDIENCE_MULTIPLIERS.boomer;
-  if (lower.includes('professional') || lower.includes('b2b') || lower.includes('enterprise')) return AUDIENCE_MULTIPLIERS.professional;
-  return AUDIENCE_MULTIPLIERS.default;
+  if (lower.includes('luxury') && lower.includes('budget')) return AUDIENCE_MULTIPLIERS.luxury_budget!;
+  if (lower.includes('luxury') || lower.includes('premium') || lower.includes('high-income')) return AUDIENCE_MULTIPLIERS.luxury!;
+  if (lower.includes('budget') || lower.includes('affordable') || lower.includes('value')) return AUDIENCE_MULTIPLIERS.budget!;
+  if (lower.includes('gen z') || lower.includes('gen-z')) return AUDIENCE_MULTIPLIERS.gen_z!;
+  if (lower.includes('millennial')) return AUDIENCE_MULTIPLIERS.millennial!;
+  if (lower.includes('boomer') || lower.includes('senior')) return AUDIENCE_MULTIPLIERS.boomer!;
+  if (lower.includes('professional') || lower.includes('b2b') || lower.includes('enterprise')) return AUDIENCE_MULTIPLIERS.professional!;
+  return AUDIENCE_MULTIPLIERS.default!;
 };
 
 const isCommonNiche = (niche: string): boolean => {
@@ -226,7 +227,7 @@ export const compareFormats = (
   topic: string,
   targetAudience: string,
   budget: number,
-  platform?: string
+  platform?: 'instagram' | 'tiktok' | 'pinterest'
 ): ROIOutput[] => {
   return formats.map((format) =>
     calculateROI({
@@ -246,7 +247,7 @@ export const optimizeBudgetAllocation = (
   totalBudget: number,
   topic: string,
   targetAudience: string,
-  platform?: string
+  platform?: 'instagram' | 'tiktok' | 'pinterest'
 ): Record<string, { budget: number; conversions: number; roi: number }> => {
   const formats: Array<'carousel' | 'reel' | 'story' | 'static'> = ['carousel', 'reel', 'story'];
 
@@ -266,10 +267,13 @@ export const optimizeBudgetAllocation = (
   scores.sort((a, b) => b.roi - a.roi);
 
   // Allocate 50% to top, 35% to 2nd, 15% to 3rd
+  const topFormat = scores[0]?.format ?? 'carousel';
+  const midFormat = scores[1]?.format ?? 'reel';
+  const lowFormat = scores[2]?.format ?? 'story';
   const allocation = {
-    [scores[0].format]: totalBudget * 0.5,
-    [scores[1].format]: totalBudget * 0.35,
-    [scores[2].format]: totalBudget * 0.15,
+    [topFormat]: totalBudget * 0.5,
+    [midFormat]: totalBudget * 0.35,
+    [lowFormat]: totalBudget * 0.15,
   };
 
   // Calculate results for each allocation

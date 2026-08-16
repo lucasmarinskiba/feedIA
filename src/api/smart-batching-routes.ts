@@ -102,7 +102,7 @@ router.post('/plan', (req: Request, res: Response): void => {
  */
 router.post('/:batchId/execute', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { batchId } = req.params;
+    const batchId = String(req.params.batchId);
     const batch = activeBatches.get(batchId);
 
     if (!batch) {
@@ -142,7 +142,7 @@ router.post('/:batchId/execute', async (req: Request, res: Response): Promise<vo
  */
 router.get('/:batchId/status', (req: Request, res: Response): void => {
   try {
-    const { batchId } = req.params;
+    const batchId = String(req.params.batchId);
     const batch = activeBatches.get(batchId);
 
     if (!batch) {
@@ -173,7 +173,7 @@ router.get('/:batchId/status', (req: Request, res: Response): void => {
  */
 router.get('/:batchId/roadmap', (req: Request, res: Response): void => {
   try {
-    const { batchId } = req.params;
+    const batchId = String(req.params.batchId);
     const batch = activeBatches.get(batchId);
 
     if (!batch) {

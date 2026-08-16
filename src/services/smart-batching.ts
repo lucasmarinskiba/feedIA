@@ -126,7 +126,7 @@ export const generateSmartBatch = (goal: StrategyGoal): BatchResult => {
   const formatDist = FORMAT_DISTRIBUTION[goalType] || FORMAT_DISTRIBUTION.awareness;
 
   // Get topics for niche
-  const availableTopics = NICHE_TOPICS[goal.niche] || NICHE_TOPICS.business;
+  const availableTopics = (NICHE_TOPICS[goal.niche] ?? NICHE_TOPICS.business)!;
   const selectedTopics = availableTopics.slice(0, Math.ceil(availableTopics.length * 0.6));
 
   // Calculate assets needed
@@ -141,12 +141,12 @@ export const generateSmartBatch = (goal: StrategyGoal): BatchResult => {
     const formats: Array<'carousel' | 'reel' | 'story'> = ['carousel', 'reel', 'story'];
 
     formats.forEach((format) => {
-      const quantity = Math.ceil(assetsPerWeek * formatDist[format]);
+      const quantity = Math.ceil(assetsPerWeek * ((formatDist[format] ?? 0.33)!));
 
       if (quantity > 0) {
         // Rotate topics
         const topicIndex = (assetCounter + week) % selectedTopics.length;
-        const topic = selectedTopics[topicIndex];
+        const topic = selectedTopics[topicIndex]!;
 
         roadmap.push({
           week,
@@ -309,7 +309,7 @@ const calculateProductionTime = (roadmap: BatchPlan[]): string => {
   return `${Math.ceil(hours / 24)} days`;
 };
 
-const groupBy = <T extends Record<string, unknown>>(arr: T[], key: keyof T): Record<string, T[]> => {
+const groupBy = <T extends object>(arr: T[], key: keyof T): Record<string, T[]> => {
   return arr.reduce(
     (acc, item) => {
       const groupKey = String(item[key]);
