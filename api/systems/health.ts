@@ -21,6 +21,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       smartBatching: { enabled: true, endpoint: '/api/systems/batching/optimize' },
       autoFeedbackLoop: { enabled: true, endpoint: '/api/systems/feedback/record' },
       platformNativeOutput: { enabled: true, endpoint: '/api/systems/platform/format' },
+      audioIntelligence: { enabled: true, endpoint: '/api/systems/audio/trending' },
     },
     uptime: process.uptime(),
     version: '1.0.0',
