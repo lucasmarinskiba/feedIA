@@ -56,6 +56,11 @@ COPY supabase/migrations ./supabase/migrations
 
 ENV NODE_ENV=production
 ENV WORKERS_ENABLED=true
+EXPOSE 3000
 
-# Default command starts the worker orchestrator
-CMD ["node", "dist/workers/index.js"]
+# Health check for 14 rational systems
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/api/systems/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
+# Default command starts API server (serves 14 systems + worker orchestrator)
+CMD ["node", "dist/server.js"]
