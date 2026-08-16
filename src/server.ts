@@ -19,6 +19,7 @@ import roiCalculatorRoutes from './api/roi-calculator-routes.js';
 import smartBatchingRoutes from './api/smart-batching-routes.js';
 import autoFeedbackRoutes from './api/auto-feedback-routes.js';
 import platformNativeRoutes from './api/platform-native-routes.js';
+import rationalSystemsRoutes from './api/rational-systems-routes.js';
 import contentRoutes from './api/content-routes.js';
 import autonomyRoutes from './api/autonomy-routes.js';
 import parameterizedImageRoutes from './api/parameterized-image-routes.js';
@@ -243,6 +244,9 @@ app.use('/api/auto-feedback', autoFeedbackRoutes);
 
 // Mount platform-native output routes (format content for platform specs + scheduling)
 app.use('/api/platform-native', platformNativeRoutes);
+
+// Mount rational systems routes (all 10 autonomous backend systems)
+app.use('/api/systems', rationalSystemsRoutes);
 
 // Mount content generation routes
 app.use('/api/content', contentRoutes);
