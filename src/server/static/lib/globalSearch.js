@@ -1047,4 +1047,25 @@ const GS_STYLES = `
 .gs-empty-icon { font-size: 32px; margin-bottom: 8px; opacity: .5; }
 .gs-empty-text { font-size: 13px; margin-bottom: 6px; }
 .gs-empty-hint { font-size: 11.5px; color: var(--text-muted, #9CA3AF); }
+/* RED MIC BUTTON: Hola FeedIA */
+.gs-item[data-action="open-voice"] {
+  background: linear-gradient(135deg, #ff1744 0%, #d32f2f 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(255, 23, 68, 0.4) !important;
+  font-weight: 600;
+}
+.gs-item[data-action="open-voice"]:hover {
+  background: linear-gradient(135deg, #ff5252 0%, #ff1744 100%) !important;
+  box-shadow: 0 6px 16px rgba(255, 23, 68, 0.6) !important;
+}
+.gs-item[data-action="open-voice"] .gs-item-icon {
+  animation: pulse-red 2s infinite;
+}
+@keyframes pulse-red {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+.gs-item[data-action="open-voice"] .gs-item-desc {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
 `;
