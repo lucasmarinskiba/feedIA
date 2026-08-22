@@ -1,11 +1,9 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "node build-vercel.js",
   "outputDirectory": "dist",
   "env": {
     "NODE_ENV": "production",
-    "ANTHROPIC_API_KEY": "@anthropic_api_key",
-    "STRIPE_SECRET_KEY": "@stripe_secret_key",
     "ENABLE_CONTENT_CURATION": "true",
     "ENABLE_AUDIENCE_PROFILING": "true",
     "ENABLE_ENGAGEMENT_FORECASTING": "true",
@@ -21,11 +19,6 @@
     "ENABLE_AUTO_FEEDBACK_LOOP": "true",
     "ENABLE_PLATFORM_NATIVE_OUTPUT": "true",
     "MONTHLY_BUDGET_CAP": "1000"
-  },
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "nodejs20.x"
-    }
   },
   "headers": [
     {
