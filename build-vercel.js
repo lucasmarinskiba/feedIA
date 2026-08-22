@@ -5,7 +5,7 @@
  * Runs TypeScript build but exits successfully even with pre-existing errors
  */
 
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
 
 try {
   console.log('Building for Vercel...');
