@@ -57,9 +57,7 @@ export const clearGuidanceCache = (): void => {
   log.info('[Expert Cache] Cleared all cached guidance');
 };
 
-export const getCacheStats = (): { size: number; entries: string[] } => {
-  return {
+export const getCacheStats = (): { size: number; entries: string[] } => ({
     size: guidanceCache.size,
     entries: Array.from(guidanceCache.keys()),
-  };
-};
+  });

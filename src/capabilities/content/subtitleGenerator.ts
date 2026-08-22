@@ -75,9 +75,7 @@ const formatTimecode = (seconds: number): string => {
   return `${pad(hours)}:${pad(minutes)}:${pad(secs)},${pad(ms, 3)}`;
 };
 
-const pad = (num: number, digits = 2): string => {
-  return String(num).padStart(digits, '0');
-};
+const pad = (num: number, digits = 2): string => String(num).padStart(digits, '0');
 
 const splitSubtitleText = (text: string): string[] => {
   // Max 42 chars per line, 2 lines max per subtitle
@@ -120,17 +118,11 @@ const selectSubtitleStyle = (second: number, duration: number): string => {
   return 'cta'; // Bold, accent color
 };
 
-const generateSRT = (subtitles: Subtitle[]): string => {
-  return subtitles
-    .map((sub) => {
-      return `${sub.index}\n${sub.startTime} --> ${sub.endTime}\n${sub.text}\n`;
-    })
+const generateSRT = (subtitles: Subtitle[]): string => subtitles
+    .map((sub) => `${sub.index}\n${sub.startTime} --> ${sub.endTime}\n${sub.text}\n`)
     .join('\n');
-};
 
-export const exportSubtitlesAsSRT = (track: SubtitleTrack): string => {
-  return track.srtContent || generateSRT(track.subtitles);
-};
+export const exportSubtitlesAsSRT = (track: SubtitleTrack): string => track.srtContent || generateSRT(track.subtitles);
 
 export const exportSubtitlesAsVTT = (track: SubtitleTrack): string => {
   const vttContent = 'WEBVTT\n\n' + generateSRT(track.subtitles);

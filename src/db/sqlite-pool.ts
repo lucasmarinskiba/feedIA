@@ -67,14 +67,13 @@ const saveDatabase = (db: Database): void => {
 // Export for debugging
 export const getMemoryDBState = (): Database => loadDatabase();
 
-export const getFilePool = (): PoolConnection => {
-  return {
+export const getFilePool = (): PoolConnection => ({
     query: async (sql: string, _params?: unknown[]): Promise<QueryResult> => {
       const sqlLower = sql.toLowerCase();
       const params = (_params || []) as (string | number | boolean | null)[];
 
       // Load fresh from disk on each query (ensures consistency across instances)
-      let db = loadDatabase();
+      const db = loadDatabase();
 
       // INSERT INTO user_tiers (with ON CONFLICT support)
       if (sqlLower.includes('insert into user_tiers')) {
@@ -166,5 +165,4 @@ export const getFilePool = (): PoolConnection => {
       console.warn('[SQLiteFile] Unhandled query:', sql.substring(0, 50));
       return { rows: [], rowCount: 0 };
     },
-  };
-};
+  });

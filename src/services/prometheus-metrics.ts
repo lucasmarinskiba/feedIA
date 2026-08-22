@@ -220,9 +220,7 @@ export class MetricsTimer {
 export const startTimer = (
   histogram: Histogram,
   labels?: Record<string, string>,
-): MetricsTimer => {
-  return new MetricsTimer(histogram, labels);
-};
+): MetricsTimer => new MetricsTimer(histogram, labels);
 
 // ─── Metrics Export ─────────────────────────────────────────────────────
 
@@ -231,9 +229,7 @@ export const startTimer = (
  *
  * Used by GET /metrics endpoint
  */
-export const getMetricsText = async (): Promise<string> => {
-  return metricsRegistry.metrics();
-};
+export const getMetricsText = async (): Promise<string> => metricsRegistry.metrics();
 
 // ─── Batch Operations ───────────────────────────────────────────────────
 

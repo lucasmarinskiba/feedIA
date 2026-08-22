@@ -66,11 +66,11 @@ export const autoLoadBrandKit = async (userId: string): Promise<BrandKitSource> 
   };
 };
 
-const checkManualBrandKit = async (userId: string): Promise<BrandProfile | null> => {
+const checkManualBrandKit = async (userId: string): Promise<BrandProfile | null> => 
   // Query DB for user's saved brand profile
   // Mock: simulate DB lookup
-  return null;
-};
+   null
+;
 
 const loadFromCanva = async (userId: string): Promise<BrandProfile | null> => {
   // Call Canva Brand Kit API
@@ -78,7 +78,7 @@ const loadFromCanva = async (userId: string): Promise<BrandProfile | null> => {
   // Mock: return sample Canva brand
   log.debug(`[Brand Kit] Checking Canva for user: ${userId}`);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mock data uses legacy shape
+   
   return {
     id: `brand_${userId}_canva`,
     name: 'My Brand (Canva)',
@@ -97,7 +97,7 @@ const detectFromInstagram = async (userId: string): Promise<BrandProfile | null>
   // Mock: return sample Instagram brand
   log.debug(`[Brand Kit] Checking Instagram for user: ${userId}`);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mock data uses legacy shape
+   
   return {
     id: `brand_${userId}_ig`,
     name: 'My Instagram Brand',

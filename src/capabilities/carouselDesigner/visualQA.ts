@@ -21,7 +21,7 @@ export const validateAesthetic = (slides: unknown[], threshold: number = 70): QA
   let scoreDeduction = 0;
 
   // Check 1: Typography sizing
-  slides.forEach((slide: any, idx: any) => {
+  slides.forEach((slide: unknown, idx: unknown) => {
     const headlineSize = slide.typography?.headline?.size || 0;
     const bodySize = slide.typography?.body?.size || 0;
 
@@ -36,7 +36,7 @@ export const validateAesthetic = (slides: unknown[], threshold: number = 70): QA
   });
 
   // Check 2: Color palette completeness
-  slides.forEach((slide: any, idx: any) => {
+  slides.forEach((slide: unknown, idx: unknown) => {
     const palette = slide.colorPalette;
     if (!palette || !palette.primary || !palette.secondary) {
       issues.push(`Slide ${idx + 1}: Missing color palette (primary/secondary)`);
@@ -59,7 +59,7 @@ export const validateAesthetic = (slides: unknown[], threshold: number = 70): QA
     'asymmetrical-balance',
   ];
 
-  slides.forEach((slide: any, idx: any) => {
+  slides.forEach((slide: unknown, idx: unknown) => {
     if (!validPatterns.includes(slide.pinterestPattern)) {
       warnings.push(`Slide ${idx + 1}: Unknown layout pattern "${slide.pinterestPattern}"`);
       scoreDeduction += 3;
@@ -69,7 +69,7 @@ export const validateAesthetic = (slides: unknown[], threshold: number = 70): QA
   // Check 4: Animation validity
   const validAnimations = ['fade', 'slideLeft', 'slideUp', 'zoom', 'rotate'];
 
-  slides.forEach((slide: any, idx: any) => {
+  slides.forEach((slide: unknown, idx: unknown) => {
     const animType = slide.animation?.type;
     if (!validAnimations.includes(animType)) {
       warnings.push(`Slide ${idx + 1}: Invalid animation "${animType}"`);
@@ -131,8 +131,8 @@ export const autoFixAesthetic = (
   const fixes: string[] = [];
   const fixed = JSON.parse(JSON.stringify(slides)); // Deep copy
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fixed.forEach((slide: any, idx: number) => {
+   
+  fixed.forEach((slide: unknown, idx: number) => {
     // Fix 1: Headline size out of range
     const headlineSize = slide.typography?.headline?.size || 32;
     if (headlineSize < 28) {

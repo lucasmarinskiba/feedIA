@@ -116,8 +116,7 @@ const generateCTA = (topic: string): string => {
   return ctas[Math.floor(Math.random() * ctas.length)]!;
 };
 
-const generateHashtags = (topic: string): string[] => {
-  return [
+const generateHashtags = (topic: string): string[] => [
     `#${topic.replace(/\s+/g, '')}`,
     '#ReelsOfTheDay',
     '#VoiceTok',
@@ -125,4 +124,3 @@ const generateHashtags = (topic: string): string[] => {
     '#ForYou',
     '#MustWatch',
   ];
-};

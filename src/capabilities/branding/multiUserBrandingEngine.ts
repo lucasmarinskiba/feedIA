@@ -86,13 +86,11 @@ export const createUserBrandProfile = (
   return profile;
 };
 
-export const getUserBrandProfile = (userId: string): UserBrandProfile | null => {
-  return userBrands.get(userId) || null;
-};
+export const getUserBrandProfile = (userId: string): UserBrandProfile | null => userBrands.get(userId) || null;
 
 export const updateUserBrandLearnings = (
   userId: string,
-  learnings: any,
+  learnings: unknown,
 ): UserBrandProfile | null => {
   const profile = userBrands.get(userId);
   if (!profile) return null;
@@ -106,7 +104,7 @@ export const updateUserBrandLearnings = (
   return profile;
 };
 
-export const getPersonalizedGeneratorSettings = (userId: string): any => {
+export const getPersonalizedGeneratorSettings = (userId: string): unknown => {
   const profile = getUserBrandProfile(userId);
   if (!profile) return null;
   return {
@@ -118,16 +116,10 @@ export const getPersonalizedGeneratorSettings = (userId: string): any => {
   };
 };
 
-export const getAvailableFonts = (): string[] => {
-  return premiumFonts.map((f) => f.name);
-};
+export const getAvailableFonts = (): string[] => premiumFonts.map((f) => f.name);
 
-export const getFontsByCategory = (category: 'headline' | 'body' | 'display' | 'accent' | 'monospace' | 'script'): string[] => {
-  return premiumFonts.filter((f) => f.category === category).map((f) => f.name);
-};
+export const getFontsByCategory = (category: 'headline' | 'body' | 'display' | 'accent' | 'monospace' | 'script'): string[] => premiumFonts.filter((f) => f.category === category).map((f) => f.name);
 
-export const getFontPairings = (niche: string): any => {
-  return fontPairingsByNiche[niche] || fontPairingsByNiche['tech'];
-};
+export const getFontPairings = (niche: string): unknown => fontPairingsByNiche[niche] || fontPairingsByNiche['tech'];
 
 log.info('[Phase 21-25] Multi-User Branding Engine ✅ (20 premium fonts, philosophy-first)');

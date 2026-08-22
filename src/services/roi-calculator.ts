@@ -167,9 +167,7 @@ const extractAudienceMultiplier = (audience: string): number => {
   return AUDIENCE_MULTIPLIERS.default!;
 };
 
-const isCommonNiche = (niche: string): boolean => {
-  return ['skincare', 'fashion', 'fitness', 'food', 'business', 'education'].includes(niche);
-};
+const isCommonNiche = (niche: string): boolean => ['skincare', 'fashion', 'fitness', 'food', 'business', 'education'].includes(niche);
 
 const generateRecommendations = (
   input: ROIInput,
@@ -228,8 +226,7 @@ export const compareFormats = (
   targetAudience: string,
   budget: number,
   platform?: 'instagram' | 'tiktok' | 'pinterest'
-): ROIOutput[] => {
-  return formats.map((format) =>
+): ROIOutput[] => formats.map((format) =>
     calculateROI({
       format,
       topic,
@@ -238,7 +235,6 @@ export const compareFormats = (
       platform,
     })
   );
-};
 
 /**
  * Recommend optimal budget split across formats

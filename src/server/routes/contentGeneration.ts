@@ -13,8 +13,8 @@ import { executeGenerationPipeline, getContentPreview, publishContent } from '..
 
 // ── POST /api/content/generate ────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const generateContent = async (req: any, res: any): Promise<void> => {
+ 
+export const generateContent = async (req: unknown, res: unknown): Promise<void> => {
   try {
     const {userId, contentType, topic, emotion, templateId, platform, duration} = req.body;
 
@@ -54,8 +54,8 @@ export const generateContent = async (req: any, res: any): Promise<void> => {
 
 // ── GET /api/content/preview/:generationId ────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const previewContent = async (req: any, res: any): Promise<void> => {
+ 
+export const previewContent = async (req: unknown, res: unknown): Promise<void> => {
   try {
     const {generationId} = req.params;
     const {format} = req.query;
@@ -81,8 +81,8 @@ export const previewContent = async (req: any, res: any): Promise<void> => {
 
 // ── POST /api/content/publish ─────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const publishToSocial = async (req: any, res: any): Promise<void> => {
+ 
+export const publishToSocial = async (req: unknown, res: unknown): Promise<void> => {
   try {
     const {generationId, targetPlatforms, scheduling, caption} = req.body;
 
@@ -115,8 +115,8 @@ export const publishToSocial = async (req: any, res: any): Promise<void> => {
 
 // ── GET /api/content/templates ────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const listTemplates = async (_req: any, res: any): Promise<void> => {
+ 
+export const listTemplates = async (_req: unknown, res: unknown): Promise<void> => {
   try {
     const {getTopTemplates} = await import('../../capabilities/content/templateLibrary.js');
 
@@ -142,8 +142,8 @@ export const listTemplates = async (_req: any, res: any): Promise<void> => {
 
 // ── GET /api/content/brand-kit ────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getBrandKit = async (req: any, res: any): Promise<void> => {
+ 
+export const getBrandKit = async (req: unknown, res: unknown): Promise<void> => {
   try {
     const {userId} = req.query;
 

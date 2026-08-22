@@ -152,16 +152,16 @@ export const processPostComments = async (
     text: string;
     timestamp: number;
   }>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  _brand?: any,
+   
+  _brand?: unknown,
 ): Promise<{ responded: number; patterns: unknown }> => {
   try {
     // Record comments
     realtimeEngagementLoopService.recordComments(postId, comments);
 
     // Generate responses (in real use, these would be posted via IG API)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const responses: any[] = [];
+     
+    const responses: unknown[] = [];
     for (const comment of comments.slice(0, 5)) {
       // Top 5 by priority
       const response = realtimeEngagementLoopService.generateResponse(accountId, {

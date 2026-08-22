@@ -85,7 +85,7 @@ class MasterContentPipeline {
     let workingPrompt = basePrompt;
     let viralityScore: number | undefined;
     let viralityPotential: number | undefined;
-    let enrichedBriefForVariants: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    let enrichedBriefForVariants: unknown;  
     let agentDecision: AgentDecision | undefined;
     let platformRecommendation: string | undefined;
 

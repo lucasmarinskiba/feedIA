@@ -8,14 +8,12 @@ const router = Router();
 
 // ── Health ─────────────────────────────────────────────────────────────
 
-router.get('/health', (req: Request, res: Response) => {
-  return void res.json({
+router.get('/health', (req: Request, res: Response) => void res.json({
     status: 'ok',
     service: 'prompt-generation',
     batches: ['28-construction', '29-nano-banana'],
     message: 'Autonomous prompt generation online',
-  });
-});
+  }));
 
 // ── POST: Generate Prompt Variations ───────────────────────────────────
 

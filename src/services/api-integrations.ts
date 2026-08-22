@@ -74,8 +74,7 @@ const createInstagramContext = () => {
 
 // ─── Budget API (Internal) ───────────────────────────────────────────────
 
-const createBudgetContext = () => {
-  return {
+const createBudgetContext = () => ({
     getSpend: async (accountId: string) => {
       try {
         // TODO: Query internal budget service or DB
@@ -128,13 +127,11 @@ const createBudgetContext = () => {
         throw err;
       }
     },
-  };
-};
+  });
 
 // ─── Email Service (SendGrid/Mailgun) ────────────────────────────────────
 
-const createEmailContext = () => {
-  return {
+const createEmailContext = () => ({
     sendRetention: async (fanId: string, content: Record<string, unknown>) => {
       try {
         // TODO: Send via SendGrid/Mailgun
@@ -180,8 +177,7 @@ const createEmailContext = () => {
         throw err;
       }
     },
-  };
-};
+  });
 
 // ─── Export Combined Context ────────────────────────────────────────────
 
@@ -192,13 +188,11 @@ const createEmailContext = () => {
  * const context = createRealContext();
  * await executeAction(action, context);
  */
-export const createRealContext = (): ExecutionContext => {
-  return {
+export const createRealContext = (): ExecutionContext => ({
     instagram: createInstagramContext(),
     budgetAPI: createBudgetContext(),
     email: createEmailContext(),
-  };
-};
+  });
 
 export default {
   createRealContext,

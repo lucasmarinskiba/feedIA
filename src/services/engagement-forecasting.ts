@@ -128,8 +128,7 @@ export const compareForecastsForContent = (
   platform: 'instagram' | 'tiktok' | 'pinterest',
   audience: string,
   postingTime: string
-): EngagementForecast[] => {
-  return formats.map((format) =>
+): EngagementForecast[] => formats.map((format) =>
     forecastEngagement({
       format,
       topic,
@@ -138,7 +137,6 @@ export const compareForecastsForContent = (
       postingTime,
     })
   );
-};
 
 export const validateForecastAccuracy = (promptId: string, actualEngagement: number, actualImpressions: number): { accuracy: number; error: number } => {
   const forecast = forecastHistory.find((f) => f.promptId === promptId);

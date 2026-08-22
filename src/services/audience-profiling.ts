@@ -100,9 +100,7 @@ export const profileAudience = (
   };
 };
 
-export const getSegmentAffinities = (segmentId: string): Record<string, number> => {
-  return audienceSegments.get(segmentId)?.contentAffinities ?? {};
-};
+export const getSegmentAffinities = (segmentId: string): Record<string, number> => audienceSegments.get(segmentId)?.contentAffinities ?? {};
 
 export const predictSegmentBehavior = (segmentId: string): EngagementPattern => {
   const segment = audienceSegments.get(segmentId);
@@ -261,16 +259,14 @@ const inferRiskTolerance = (niche: string): string => {
   return 'Moderate risk tolerance';
 };
 
-const inferTopicAffinities = (segment: AudienceSegment): Record<string, number> => {
-  return {
+const inferTopicAffinities = (segment: AudienceSegment): Record<string, number> => ({
     'before-after': 0.9,
     tips: 0.85,
     educational: 0.8,
     lifestyle: 0.75,
     trending: 0.6,
     promotional: 0.3,
-  };
-};
+  });
 
 const inferFormatPreferences = (segment: AudienceSegment): Record<string, number> => {
   const prefs: Record<string, number> = {
@@ -287,12 +283,10 @@ const inferFormatPreferences = (segment: AudienceSegment): Record<string, number
   return prefs;
 };
 
-const inferTimePreferences = (segment: AudienceSegment): { bestDays: string[]; bestHours: number[] } => {
-  return {
+const inferTimePreferences = (segment: AudienceSegment): { bestDays: string[]; bestHours: number[] } => ({
     bestDays: ['Tuesday', 'Wednesday', 'Thursday'],
     bestHours: [9, 12, 18, 21],
-  };
-};
+  });
 
 const inferContentLength = (segment: AudienceSegment): 'short' | 'medium' | 'long' => {
   if (segment.behavior.contentPreference.includes('quick')) return 'short';

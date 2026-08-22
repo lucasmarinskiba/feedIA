@@ -214,8 +214,8 @@ class BrowserAutomationManager {
     const followers = parseInt(followersText?.match(/\d+/)?.[0] || '0');
 
     // Get engagement rate from recent posts
-    const postEngagement = await page.$$eval('[role="article"]', (posts: any[]) =>
-      posts.map((p: any) => ({
+    const postEngagement = await page.$$eval('[role="article"]', (posts: unknown[]) =>
+      posts.map((p: unknown) => ({
         likes: (p.querySelector('[aria-label*="like"]')?.textContent || '0').match(/\d+/)?.[0],
         comments: (p.querySelector('[aria-label*="comment"]')?.textContent || '0').match(/\d+/)?.[0],
       })),
@@ -223,7 +223,7 @@ class BrowserAutomationManager {
 
     const avgEngagement =
       postEngagement.reduce(
-        (sum: any, p: any) =>
+        (sum: unknown, p: unknown) =>
           sum + (parseInt(p.likes || '0') + parseInt(p.comments || '0')),
         0,
       ) / postEngagement.length || 0;
@@ -315,7 +315,7 @@ class BrowserAutomationManager {
 
 // ── PUBLIC API ──────────────────────────────────────────
 
-export async function automateInstagramPost(content: any): Promise<void> {
+export async function automateInstagramPost(content: unknown): Promise<void> {
   const manager = new BrowserAutomationManager();
   await manager.initializeBrowser();
   await manager.navigateToInstagram();
@@ -323,7 +323,7 @@ export async function automateInstagramPost(content: any): Promise<void> {
   await manager.closeBrowser();
 }
 
-export async function automateTikTokVideo(content: any): Promise<void> {
+export async function automateTikTokVideo(content: unknown): Promise<void> {
   const manager = new BrowserAutomationManager();
   await manager.initializeBrowser();
   await manager.navigateToTikTok();

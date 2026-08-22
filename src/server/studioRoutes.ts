@@ -11,7 +11,7 @@ const createStudioRoutes = (brand: BrandProfile) => {
     const method = (route.method || 'GET').toLowerCase();
     const pattern = route.pattern.replace(/^\/api\/studio/, ''); // Remove /api/studio prefix since router is mounted at /api/studio
 
-    const adapter = async (req: Request, res: Response, next: any) => {
+    const adapter = async (req: Request, res: Response, next: unknown) => {
       try {
         const ctx: RouteContext = {
           req: req as any, // Express Request acts like IncomingMessage for our purposes

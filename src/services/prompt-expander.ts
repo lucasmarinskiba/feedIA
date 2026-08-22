@@ -91,7 +91,7 @@ Generate now:
 
     const parsed = JSON.parse(jsonMatch[0]);
     const variations: ExpandedPrompt[] = parsed.variations.map(
-      (v: any, index: number) => ({
+      (v: unknown, index: number) => ({
         id: `${basePromptId}-${v.tone}-${Date.now()}-${index}`,
         prompt_id: basePromptId,
         tone: v.tone,
@@ -150,7 +150,7 @@ async function expandBatch(batch: string = 'batch-90'): Promise<Record<string, a
     // const prompts = feedIADatabase.getPromptsByBatch(batch);
 
     // For now, placeholder
-    const prompts: any[] = [];
+    const prompts: unknown[] = [];
 
     if (prompts.length === 0) {
       return { status: 'no_prompts_found', batch };

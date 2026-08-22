@@ -7,15 +7,15 @@
 import { AutonomousFeedIABrain } from '../autonomous/AUTONOMOUS_FEEDIA_BRAIN';
 
 interface BrainIntelligence {
-  accountPersonality: any;
+  accountPersonality: unknown;
   contentStrategy: string[];
   growthOpportunities: string[];
   viralTriggers: string[];
   postingSchedule: string[];
-  contentCalendar: any;
+  contentCalendar: unknown;
   audienceSegments: string[];
-  performanceMetrics: any;
-  competitorInsights: any;
+  performanceMetrics: unknown;
+  competitorInsights: unknown;
   recommendations: string[];
 }
 
@@ -300,15 +300,15 @@ class BrainToToolsHub {
 class InstagramToolAdapter {
   constructor(private context: ToolContext) {}
 
-  async setPlatformStrategy(strategy: any): Promise<void> {
+  async setPlatformStrategy(strategy: unknown): Promise<void> {
     console.log('[Instagram] Platform strategy set:', strategy);
   }
 
-  async activateContentFiltering(rules: any): Promise<void> {
+  async activateContentFiltering(rules: unknown): Promise<void> {
     console.log('[Instagram] Content filtering activated:', rules);
   }
 
-  async enableGrowthOptimization(config: any): Promise<void> {
+  async enableGrowthOptimization(config: unknown): Promise<void> {
     console.log('[Instagram] Growth optimization enabled:', config);
   }
 }
@@ -316,11 +316,11 @@ class InstagramToolAdapter {
 class TikTokToolAdapter {
   constructor(private context: ToolContext) {}
 
-  async setPlatformStrategy(strategy: any): Promise<void> {
+  async setPlatformStrategy(strategy: unknown): Promise<void> {
     console.log('[TikTok] Platform strategy set:', strategy);
   }
 
-  async enableViralOptimization(config: any): Promise<void> {
+  async enableViralOptimization(config: unknown): Promise<void> {
     console.log('[TikTok] Viral optimization enabled:', config);
   }
 }
@@ -328,11 +328,11 @@ class TikTokToolAdapter {
 class SalaToolAdapter {
   constructor(private context: ToolContext) {}
 
-  async setPlanningStrategy(strategy: any): Promise<void> {
+  async setPlanningStrategy(strategy: unknown): Promise<void> {
     console.log('[Sala] Planning strategy set:', strategy);
   }
 
-  async enableStrategyDashboard(config: any): Promise<void> {
+  async enableStrategyDashboard(config: unknown): Promise<void> {
     console.log('[Sala] Strategy dashboard enabled:', config);
   }
 }

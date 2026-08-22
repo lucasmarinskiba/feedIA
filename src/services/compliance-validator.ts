@@ -144,9 +144,7 @@ export const validateContent = (contentId: string, content: string, platform: st
   return check;
 };
 
-export const batchValidate = (contents: Array<{ contentId: string; text: string; platform: string }>): Array<ComplianceCheck> => {
-  return contents.map((c) => validateContent(c.contentId, c.text, c.platform));
-};
+export const batchValidate = (contents: Array<{ contentId: string; text: string; platform: string }>): Array<ComplianceCheck> => contents.map((c) => validateContent(c.contentId, c.text, c.platform));
 
 export const getComplianceStats = (): { totalChecked: number; approvalRate: number; commonViolations: string[] } => {
   const checks = Array.from(complianceChecks.values());
@@ -173,9 +171,7 @@ export const getComplianceStats = (): { totalChecked: number; approvalRate: numb
   return { totalChecked: checks.length, approvalRate, commonViolations };
 };
 
-export const getApprovedContent = (limit: number = 10): ComplianceCheck[] => {
-  return Array.from(complianceChecks.values())
+export const getApprovedContent = (limit: number = 10): ComplianceCheck[] => Array.from(complianceChecks.values())
     .filter((c) => c.isApproved)
     .sort((a, b) => b.complianceScore - a.complianceScore)
     .slice(0, limit);
-};

@@ -65,7 +65,7 @@ export const carouselStorageService = {
     const stmt = db.prepare('SELECT * FROM carousels WHERE user_id = ? ORDER BY created_at DESC LIMIT ?');
     const rows = stmt.all(userId, limit) as any[];
 
-    return rows.map((row: any) => ({
+    return rows.map((row: unknown) => ({
       id: row.id,
       userId: row.user_id,
       title: row.title,

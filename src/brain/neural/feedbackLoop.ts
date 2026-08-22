@@ -25,7 +25,7 @@ export class FeedbackLoop {
     });
   }
 
-  async recordMetrics(data: { batchId: string; prompts: any[]; metrics: any }): Promise<void> {
+  async recordMetrics(data: { batchId: string; prompts: unknown[]; metrics: unknown }): Promise<void> {
     this.metricsCache[data.batchId] = {
       timestamp: new Date().toISOString(),
       ...data,

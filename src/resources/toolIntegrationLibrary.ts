@@ -139,8 +139,7 @@ export const getToolFor = (task: string): Tool | null => {
   return toolLibrary.find(t => t.name === rec.recommendedTool) || null;
 };
 
-export const ingestTool = (tool: any): Tool => {
-  return {
+export const ingestTool = (tool: unknown): Tool => ({
     id: `tool-${Date.now()}`,
     name: tool.name,
     category: tool.category || 'design',
@@ -152,5 +151,4 @@ export const ingestTool = (tool: any): Tool => {
     pros: tool.pros || [],
     cons: tool.cons || [],
     alternatives: tool.alternatives || []
-  };
-};
+  });

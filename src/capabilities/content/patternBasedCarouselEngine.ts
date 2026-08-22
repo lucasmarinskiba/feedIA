@@ -199,7 +199,7 @@ export const generateCarouselPhase26 = (brief: CarouselBriefPhase26): GeneratedC
     throw new Error(`Pattern ${brief.patternName} not found`);
   }
 
-  const slides: CarouselSlidePhase26[] = template.slides.map((slide: any, idx: number) => ({
+  const slides: CarouselSlidePhase26[] = template.slides.map((slide: unknown, idx: number) => ({
     number: idx + 1,
     role: slide.role,
     headline: slide.headline,
@@ -222,7 +222,7 @@ export const generateCarouselPhase26 = (brief: CarouselBriefPhase26): GeneratedC
     format: brief.format,
     slides,
     metadata: {
-      structure: template.slides.map((s: any) => s.role).join(' → '),
+      structure: template.slides.map((s: unknown) => s.role).join(' → '),
       psychology: template.psychology,
       shareability: template.shareability,
       platformRecommendations: getPlatformRecommendations(brief.format),
@@ -293,8 +293,7 @@ const getPlatformRecommendations = (format: string): string[] => {
   return recommendations[format] || ['Multi-platform'];
 };
 
-const generateContentBrief = (brief: CarouselBriefPhase26, slides: CarouselSlidePhase26[]): string => {
-  return `
+const generateContentBrief = (brief: CarouselBriefPhase26, slides: CarouselSlidePhase26[]): string => `
 Generate ${brief.format} carousel for ${brief.industry} using ${brief.patternName} pattern:
 
 PATTERN STRUCTURE: ${slides.map(s => s.role).join(' → ')}
@@ -316,7 +315,6 @@ TONE: ${brief.tone || 'Professional'}
 Create compelling, conversion-focused content following this structure.
 Make each slide build on previous. Maintain coherent narrative.
 `;
-};
 
 // ── BATCH GENERATION ────────────────────────────────────────────────────
 

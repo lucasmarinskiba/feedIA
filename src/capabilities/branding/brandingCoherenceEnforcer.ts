@@ -43,13 +43,13 @@ export const generateBrandCoherenceReport = (userId: string, posts: PostAnalysis
   }
 
   const allColors = new Set(posts.flatMap((p) => p.colors));
-  let visualCoherence = Math.max(0, 100 - Math.max(0, allColors.size - 5) * 10);
+  const visualCoherence = Math.max(0, 100 - Math.max(0, allColors.size - 5) * 10);
 
   const allTones = new Set(posts.flatMap((p) => p.tone));
-  let messagingCoherence = Math.max(0, 100 - Math.max(0, allTones.size - 3) * 15);
+  const messagingCoherence = Math.max(0, 100 - Math.max(0, allTones.size - 3) * 15);
 
   const topics = new Set(posts.map((p) => p.topic));
-  let narrativeCoherence = topics.size <= 2 ? 95 : topics.size >= posts.length * 0.8 ? 40 : 70;
+  const narrativeCoherence = topics.size <= 2 ? 95 : topics.size >= posts.length * 0.8 ? 40 : 70;
 
   const overallCoherence = Math.round((visualCoherence + messagingCoherence + narrativeCoherence) / 3);
 

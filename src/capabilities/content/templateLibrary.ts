@@ -248,21 +248,13 @@ export const templateLibrary: ContentTemplate[] = [
   },
 ];
 
-export const getTemplatesByCategory = (category: string): ContentTemplate[] => {
-  return templateLibrary.filter((t) => t.category === category);
-};
+export const getTemplatesByCategory = (category: string): ContentTemplate[] => templateLibrary.filter((t) => t.category === category);
 
-export const getTemplatesByEmotion = (emotion: string): ContentTemplate[] => {
-  return templateLibrary.filter((t) => t.emotion === emotion);
-};
+export const getTemplatesByEmotion = (emotion: string): ContentTemplate[] => templateLibrary.filter((t) => t.emotion === emotion);
 
-export const getTemplatesByType = (type: string): ContentTemplate[] => {
-  return templateLibrary.filter((t) => t.type === type);
-};
+export const getTemplatesByType = (type: string): ContentTemplate[] => templateLibrary.filter((t) => t.type === type);
 
-export const getTopTemplates = (limit: number = 10): ContentTemplate[] => {
-  return [...templateLibrary].sort((a, b) => b.engagementPotential - a.engagementPotential).slice(0, limit);
-};
+export const getTopTemplates = (limit: number = 10): ContentTemplate[] => [...templateLibrary].sort((a, b) => b.engagementPotential - a.engagementPotential).slice(0, limit);
 
 export const searchTemplates = (query: string): ContentTemplate[] => {
   const q = query.toLowerCase();

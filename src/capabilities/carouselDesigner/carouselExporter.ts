@@ -168,7 +168,7 @@ export const createCarouselExport = async (
 const generateHTMLPreview = (slides: unknown[], css: string): string => {
   const slidesHTML = slides
     .map(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       (rawSlide: unknown, idx: number) => {
         const slide = rawSlide as any;
         return `

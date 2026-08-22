@@ -6,14 +6,8 @@ export interface GeneratedContent {
   [key: string]: unknown;
 }
 
-export const contentPipeline = async (input: unknown): Promise<GeneratedContent[]> => {
-  return [{ id: '1', type: 'stub', content: {} }];
-};
+export const contentPipeline = async (input: unknown): Promise<GeneratedContent[]> => [{ id: '1', type: 'stub', content: {} }];
 
-contentPipeline.generateCarousel = async (input: unknown): Promise<GeneratedContent[]> => {
-  return [{ id: '1', type: 'carousel', content: {} }];
-};
+contentPipeline.generateCarousel = async (input: unknown): Promise<GeneratedContent[]> => [{ id: '1', type: 'carousel', content: {} }];
 
-export const contentGenerationPipeline = async (input: unknown): Promise<unknown> => {
-  return { content: [], status: 'generated' };
-};
+export const contentGenerationPipeline = async (input: unknown): Promise<unknown> => ({ content: [], status: 'generated' });

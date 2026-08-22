@@ -197,13 +197,9 @@ export const analyzeTest = (testId: string): TestResult => {
   };
 };
 
-export const getActiveTests = (): ABTest[] => {
-  return Array.from(runningTests.values());
-};
+export const getActiveTests = (): ABTest[] => Array.from(runningTests.values());
 
-export const getCompletedTests = (): ABTest[] => {
-  return Array.from(completedTests.values());
-};
+export const getCompletedTests = (): ABTest[] => Array.from(completedTests.values());
 
 export const getTestInsights = (testId: string): { winnerReason: string; rolloutStrategy: string; nextTest: string } => {
   const test = completedTests.get(testId) || runningTests.get(testId);
@@ -230,8 +226,7 @@ export const getTestInsights = (testId: string): { winnerReason: string; rollout
 
 export const multivariatePrioritization = (
   testIds: string[]
-): Array<{ testId: string; priority: number; expectedImpact: number }> => {
-  return testIds.map((id) => {
+): Array<{ testId: string; priority: number; expectedImpact: number }> => testIds.map((id) => {
     const test = completedTests.get(id) || runningTests.get(id);
     if (!test || !test.winner) {
       return { testId: id, priority: 0, expectedImpact: 0 };
@@ -242,4 +237,3 @@ export const multivariatePrioritization = (
 
     return { testId: id, priority, expectedImpact: uplift };
   });
-};

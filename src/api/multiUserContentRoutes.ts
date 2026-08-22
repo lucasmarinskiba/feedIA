@@ -89,8 +89,8 @@ router.post('/:userId/learnings/update', (req: Request, res: Response): void => 
 router.post('/:userId/generate/batch', async (req: Request, res: Response): Promise<void> => {
   try {
     const { carousels = [], videos = [] } = req.body;
-    const carouselResults = await Promise.all(carousels.map((b: any) => generateSmartCarousel(b)));
-    const videoResults = await Promise.all(videos.map((b: any) => generateSmartVideo(b)));
+    const carouselResults = await Promise.all(carousels.map((b: unknown) => generateSmartCarousel(b)));
+    const videoResults = await Promise.all(videos.map((b: unknown) => generateSmartVideo(b)));
     res.json({ status: 'success', data: { carousels: carouselResults, videos: videoResults } });
   } catch (error) {
     res.status(500).json({ error: String(error) });
@@ -413,7 +413,7 @@ router.post('/:userId/patterns/batch-generate', (req: Request, res: Response) =>
 
     log.info(`[Phase 26] Batch generating ${patterns.length} carousels`);
 
-    const briefs = patterns.map((p: any, idx: number) => ({
+    const briefs = patterns.map((p: unknown, idx: number) => ({
       index: idx + 1,
       pattern: p.patternName,
       industry: p.industry,

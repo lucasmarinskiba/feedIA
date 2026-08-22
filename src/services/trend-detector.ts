@@ -140,8 +140,6 @@ export const predictTrendLifecycle = (trendName: string): { phases: Array<{ phas
   return { phases, recommendation };
 };
 
-export const getTrendingByNiche = (niche: string): Trend[] => {
-  return Array.from(currentTrends.values())
+export const getTrendingByNiche = (niche: string): Trend[] => Array.from(currentTrends.values())
     .filter((t) => t.category.toLowerCase().includes(niche.toLowerCase()))
     .sort((a, b) => b.momentum - a.momentum);
-};

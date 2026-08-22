@@ -61,7 +61,7 @@ export interface PromptUsageRecord {
 }
 
 export class PromptDatabase {
-  private db: any; // Placeholder for actual DB connection
+  private db: unknown; // Placeholder for actual DB connection
 
   constructor(connectionString?: string) {
     // In production: initialize actual DB connection (Supabase, PG, etc)

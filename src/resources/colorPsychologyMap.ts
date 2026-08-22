@@ -334,8 +334,7 @@ export const ingestColorPalette = (colors: {
   primary: string;
   secondary: string;
   accent: string;
-}, metadata: any): ColorPalette => {
-  return {
+}, metadata: unknown): ColorPalette => ({
     id: `palette-${Date.now()}`,
     name: metadata.name || 'Custom Palette',
     primary: colors.primary,
@@ -346,5 +345,4 @@ export const ingestColorPalette = (colors: {
     psychology: metadata.psychology || '',
     accessibilityRatio: metadata.accessibilityRatio || 4.5,
     examples: metadata.examples || []
-  };
-};
+  });

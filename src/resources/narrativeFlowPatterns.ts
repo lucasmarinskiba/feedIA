@@ -367,12 +367,9 @@ export const getFlowTemplate = (criteria: {
   industry: string;
   slideCount?: number;
   messageType: string;
-}): CarouselFlowPattern | null => {
-  return flowPatterns.find(p => p.industryFit.includes(criteria.industry)) || null;
-};
+}): CarouselFlowPattern | null => flowPatterns.find(p => p.industryFit.includes(criteria.industry)) || null;
 
-export const ingestCarouselFlow = (slides: any[], metadata: any): CarouselFlowPattern => {
-  return {
+export const ingestCarouselFlow = (slides: unknown[], metadata: unknown): CarouselFlowPattern => ({
     id: `flow-${Date.now()}`,
     name: metadata.name || 'Custom Flow',
     slides: slides.length,
@@ -383,5 +380,4 @@ export const ingestCarouselFlow = (slides: any[], metadata: any): CarouselFlowPa
     })),
     industryFit: metadata.industries || [],
     psychologyFlow: metadata.psychology || ''
-  };
-};
+  });

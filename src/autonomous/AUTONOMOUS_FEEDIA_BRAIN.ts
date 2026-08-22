@@ -37,11 +37,11 @@ class ContentSpecialist {
     const posts = vision.content.recentPosts || [];
 
     // Analyze tone
-    const tones = posts.map((p: any) => this.analyzeTone(p.caption));
+    const tones = posts.map((p: unknown) => this.analyzeTone(p.caption));
     const primaryTone = this.getMostCommon(tones) as AccountPersonality['vibe'];
 
     // Analyze format
-    const formats = posts.map((p: any) => p.format);
+    const formats = posts.map((p: unknown) => p.format);
     const primaryFormat = this.getMostCommon(formats);
 
     // Identify content pillars
@@ -112,7 +112,7 @@ class ContentSpecialist {
     return array.reduce((a, b) => (array.filter((x) => x === a).length > array.filter((x) => x === b).length ? a : b));
   }
 
-  private extractContentPillars(posts: any[]): Record<string, number> {
+  private extractContentPillars(posts: unknown[]): Record<string, number> {
     // Categorize posts by type, count percentages
     const pillars: Record<string, number> = {};
     const categories = posts.map((p) => p.category || 'general');
@@ -125,14 +125,14 @@ class ContentSpecialist {
     return pillars;
   }
 
-  private estimateGrowthStage(posts: any[], metrics: any): AccountPersonality['growthStage'] {
+  private estimateGrowthStage(posts: unknown[], metrics: unknown): AccountPersonality['growthStage'] {
     if (metrics.followers < 1000) return 'early';
     if (metrics.followers < 10000) return 'growth';
     if (metrics.followers < 100000) return 'mature';
     return 'viral';
   }
 
-  private detectBestPostingTimes(posts: any[]): string[] {
+  private detectBestPostingTimes(posts: unknown[]): string[] {
     // Analyze when top posts were published
     // Return: 3 best times to post (e.g., "9:00 AM", "12:30 PM", "8:00 PM")
     return ['9:00 AM', '12:30 PM', '8:00 PM'];
@@ -154,7 +154,7 @@ class ContentSpecialist {
     return {};
   }
 
-  private measureVibAlignment(post: any, personality: AccountPersonality): number {
+  private measureVibAlignment(post: unknown, personality: AccountPersonality): number {
     // Compare post vibe to account personality
     // Return 0-1 score
     return 0.8;
@@ -230,7 +230,7 @@ class GrowthSpecialist {
 // ── QUALITY ANALYZER AGENT ──────────────────────────
 
 class QualityAnalyzer {
-  async analyzeContentQuality(content: any): Promise<{
+  async analyzeContentQuality(content: unknown): Promise<{
     aestheticScore: number; // 0-100
     alignment: number; // 0-100
     recommendation: 'post' | 'revise' | 'discard';
@@ -269,7 +269,7 @@ class QualityAnalyzer {
     };
   }
 
-  private scoreAesthetics(content: any): number {
+  private scoreAesthetics(content: unknown): number {
     // Analyze: resolution, composition, color harmony, focus, lighting
     // Score 0-100
 
@@ -291,7 +291,7 @@ class QualityAnalyzer {
     return Math.min(100, score);
   }
 
-  private scoreAlignment(content: any): number {
+  private scoreAlignment(content: unknown): number {
     // Check if content matches account personality
     // 0-100 score
 

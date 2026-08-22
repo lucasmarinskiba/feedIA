@@ -195,12 +195,12 @@ export const scheduleDailyEngagementRoutine = async (accountId: string): Promise
 /**
  * Get engagement metrics (for feedback loop)
  */
-export const getEngagementMetrics = (accountId: string): { likes: number; comments: number; follows: number; reaches: number } => {
+export const getEngagementMetrics = (accountId: string): { likes: number; comments: number; follows: number; reaches: number } => 
   // TODO: Pull from account growth service + engagement tracking
-  return {
+   ({
     likes: 0,
     comments: 0,
     follows: 0,
     reaches: 0,
-  };
-};
+  })
+;

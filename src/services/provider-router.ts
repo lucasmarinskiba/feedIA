@@ -179,6 +179,4 @@ export const routeVideoGen = async (req: VideoRouterRequest): Promise<ProviderRe
   };
 };
 
-export const getUserProviderMode = (userHandle?: string): ProviderMode => {
-  return 'auto';
-};
+export const getUserProviderMode = (userHandle?: string): ProviderMode => 'auto';

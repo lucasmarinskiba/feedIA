@@ -21,8 +21,8 @@ interface WebSocketLike {
   on: (event: string, callback: (...args: unknown[]) => void) => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const wsOn = (ws: WebSocketLike, event: string, cb: (...args: any[]) => void): void => {
+ 
+const wsOn = (ws: WebSocketLike, event: string, cb: (...args: unknown[]) => void): void => {
   ws.on(event, cb as (...args: unknown[]) => void);
 };
 import { log } from '../agent/logger.js';

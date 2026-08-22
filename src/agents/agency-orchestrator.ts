@@ -8,13 +8,13 @@ import Anthropic from '@anthropic-ai/sdk';
 import { metricsCollector } from './agency-metrics.js';
 
 // Sanitize user input for safe prompt inclusion
-const sanitizeInput = (input: string): string => {
-  return input
+const sanitizeInput = (input: string): string => 
+   input
     .replace(/\\/g, '\\\\')
     .replace(/"/g, '\\"')
     .replace(/\n/g, '\\n')
-    .substring(0, 500); // Cap at 500 chars
-};
+    .substring(0, 500) // Cap at 500 chars
+;
 
 const initializeClient = () => {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -206,13 +206,11 @@ Return ONLY valid JSON:
 /**
  * QA Validator: Brand compliance + WCAG
  */
-const qaValidator = async (campaign: unknown): Promise<{ approved: boolean; score: number; issues: unknown[] }> => {
-  return {
+const qaValidator = async (campaign: unknown): Promise<{ approved: boolean; score: number; issues: unknown[] }> => ({
     approved: true,
     score: 0.92,
     issues: [],
-  };
-};
+  });
 
 /**
  * Fallback mock strategy (if LLM fails)

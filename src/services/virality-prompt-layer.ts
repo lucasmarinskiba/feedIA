@@ -42,8 +42,8 @@ export interface VirologyInjectionContext {
 }
 
 export interface EnrichedBrief {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  originalBrief: any;
+   
+  originalBrief: unknown;
   viralityGuidance: string[];
   injectionSource: 'baseline-analysis' | 'user-provided';
   predictions: {
@@ -86,8 +86,8 @@ export const getBaselineScore = async (context: VirologyInjectionContext): Promi
  */
 
 export const enrichBriefWithVirality = async (
-  brief: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-  baselineAnalysis: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+  brief: unknown,  
+  baselineAnalysis: unknown,  
   carouselFrameCount?: number,
   brandProfile?: BrandProfile,
 ): Promise<EnrichedBrief> => {
@@ -151,8 +151,8 @@ export const enrichBriefWithVirality = async (
  * Allocate improvement focus across carousel frames
  * E.g., Frame 1-2: Hook, Frame 3-5: Value, Frame 6-8: Proof, Frame 9-10: CTA
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const generateFrameGuidance = (improvements: any[], frameCount: number): EnrichedBrief['frameGuidance'] => {
+ 
+const generateFrameGuidance = (improvements: unknown[], frameCount: number): EnrichedBrief['frameGuidance'] => {
   const guidance: EnrichedBrief['frameGuidance'] = [];
 
   const hookImprovements = improvements.filter(
@@ -192,7 +192,7 @@ const generateFrameGuidance = (improvements: any[], frameCount: number): Enriche
  */
 
 export const applyViraLityLayer = async (
-  brief: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+  brief: unknown,  
   format: 'carousel' | 'reel' | 'story',
   platform: 'instagram' | 'tiktok',
   scoreControl?: VirologyInjectionContext,

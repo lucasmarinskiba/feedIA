@@ -292,7 +292,7 @@ export const studioToolsAPI = {
 // ── Phase 16: Content Coherence Validation ────────────────────
 
 export const validateWeeklyContentCoherence = async (
-  contentPieces: Array<{type: 'carousel' | 'video' | 'story' | 'reel'; data: any}>,
+  contentPieces: Array<{type: 'carousel' | 'video' | 'story' | 'reel'; data: unknown}>,
   brand?: BrandProfile,
 ): Promise<any> => {
   const {validateWeeklyCoherence} = await import('./contentCoherenceValidator.js');

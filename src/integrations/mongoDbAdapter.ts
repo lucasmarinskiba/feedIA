@@ -10,7 +10,7 @@ const MONGODB_URI = process.env['MONGODB_URI'];
 const DB_NAME = 'feedia';
 const JOBS_COLLECTION = 'carousel_jobs';
 
-let mongoClient: any = null;
+let mongoClient: unknown = null;
 
 /**
  * Initialize MongoDB connection (lazy-loaded on first use).

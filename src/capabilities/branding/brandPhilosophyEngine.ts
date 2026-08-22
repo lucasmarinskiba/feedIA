@@ -70,9 +70,7 @@ export const createBrandPhilosophy = (
 
 // ── GET BRAND PHILOSOPHY ───────────────────────────────────────────────────
 
-export const getBrandPhilosophy = (userId: string): BrandPhilosophy | null => {
-  return brandPhilosophies.get(userId) || null;
-};
+export const getBrandPhilosophy = (userId: string): BrandPhilosophy | null => brandPhilosophies.get(userId) || null;
 
 // ── UPDATE BRAND PHILOSOPHY ────────────────────────────────────────────────
 

@@ -32,9 +32,9 @@ export interface GenerationResult {
   contentType: string;
   topic: string;
   content: {
-    carousel?: any;
-    video?: any;
-    enrichment?: any;
+    carousel?: unknown;
+    video?: unknown;
+    enrichment?: unknown;
   };
   scores: {
     contentQuality: number;
@@ -80,7 +80,7 @@ export const executeGenerationPipeline = async (brief: UserContentBrief): Promis
     pipelineStages.push('content-generation');
     log.info('[Pipeline] Stage 3: Generating content...');
 
-    let generatedContent: any;
+    let generatedContent: unknown;
 
     if (brief.contentType === 'carousel') {
       const carouselBrief: CarouselBrief = {
@@ -106,11 +106,11 @@ export const executeGenerationPipeline = async (brief: UserContentBrief): Promis
     pipelineStages.push('enrichment');
     log.info('[Pipeline] Stage 4: Enriching with psychology + humor...');
 
-    let enrichedContent: any;
+    let enrichedContent: unknown;
 
     if (brief.contentType === 'carousel' && generatedContent.slides) {
       enrichedContent = await enrichCarouselWithEmotionAndHumor(
-        generatedContent.slides.map((s: any, idx: number) => ({
+        generatedContent.slides.map((s: unknown, idx: number) => ({
           number: idx + 1,
           headline: s.headline,
           body: s.body,
@@ -175,16 +175,16 @@ export const executeGenerationPipeline = async (brief: UserContentBrief): Promis
   }
 };
 
-const calculateContentQuality = (_content: any): number => {
+const calculateContentQuality = (_content: unknown): number => 
   // Score based on structure validity, completeness, coherence
   // Mock: return 75-90
-  return 80;
-};
+   80
+;
 
-const extractEmotionalScore = (enrichment: any): number => {
+const extractEmotionalScore = (enrichment: unknown): number => {
   // Extract from enrichment scores if available
   if (Array.isArray(enrichment)) {
-    const scores = enrichment.map((e: any) => e.enriched?.score?.overallEngagement || 0);
+    const scores = enrichment.map((e: unknown) => e.enriched?.score?.overallEngagement || 0);
     return Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length);
   }
 
@@ -208,15 +208,15 @@ export interface PreviewRequest {
   format?: 'web' | 'mobile' | 'instagram' | 'tiktok';
 }
 
-export const getContentPreview = async (_req: PreviewRequest): Promise<{previewHtml: string; platforms: string[]}> => {
+export const getContentPreview = async (_req: PreviewRequest): Promise<{previewHtml: string; platforms: string[]}> => 
   // Return HTML preview for web/mobile
   // OR native platform preview (Instagram, TikTok)
 
-  return {
+   ({
     previewHtml: '<div>Preview rendering...</div>',
     platforms: ['instagram', 'tiktok', 'youtube', 'facebook'],
-  };
-};
+  })
+;
 
 export interface PublishRequest {
   generationId: string;

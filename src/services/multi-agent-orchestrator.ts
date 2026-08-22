@@ -193,16 +193,12 @@ export const carouselDesignerValidate = async (
 /**
  * Get conversation history for a session
  */
-export const getConversationHistory = (sessionId: string): AgentMessage[] => {
-  return messageHistory.get(sessionId) || [];
-};
+export const getConversationHistory = (sessionId: string): AgentMessage[] => messageHistory.get(sessionId) || [];
 
 /**
  * Get session details
  */
-export const getSession = (sessionId: string): CollaborationSession | null => {
-  return sessions.get(sessionId) || null;
-};
+export const getSession = (sessionId: string): CollaborationSession | null => sessions.get(sessionId) || null;
 
 /**
  * Full collaboration loop (orchestrated)

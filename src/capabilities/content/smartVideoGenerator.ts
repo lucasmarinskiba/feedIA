@@ -297,9 +297,7 @@ const generateScenes = (
 
 // ── Generate Voiceover Script ──────────────────────────────────────────
 
-const generateVoiceoverScript = (scenes: VideoScene[]): string => {
-  return scenes.map((scene, i) => `[${scene.second}s - ${scene.duration}s] ${scene.voiceover}`).join('\n');
-};
+const generateVoiceoverScript = (scenes: VideoScene[]): string => scenes.map((scene, i) => `[${scene.second}s - ${scene.duration}s] ${scene.voiceover}`).join('\n');
 
 // ── Generate CTA ───────────────────────────────────────────────────────
 

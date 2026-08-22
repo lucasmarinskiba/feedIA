@@ -294,14 +294,12 @@ const validateNarrativeCoherence = (slides: NarrativeSlide[], _topic: string): s
   return issues;
 };
 
-const generateNarrativeRecommendations = (slides: NarrativeSlide[], _issues: string[]): string[] => {
-  return [
+const generateNarrativeRecommendations = (slides: NarrativeSlide[], _issues: string[]): string[] => [
     'Each slide must answer: "Why should I swipe to next?" If no answer = delete slide.',
     'Vary copy style: Headline-heavy, image-heavy, data-heavy slides alternating.',
     `Total flow: Hook (stop) → Curiosity (build) → Value (deliver) → Proof (believe) → CTA (act).`,
     'No filler slides. Every slide earns its real estate.',
   ];
-};
 
 const calculateNarrativeStrength = (slides: NarrativeSlide[], issues: string[]): number => {
   let score = 90;

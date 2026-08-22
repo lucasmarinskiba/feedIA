@@ -189,7 +189,7 @@ export const automationSchedulerService = {
         const [hoursStr, minutesStr] = timeStr.split(':');
         const hours = parseInt(hoursStr || '9', 10);
         const minutes = parseInt(minutesStr || '0', 10);
-        let next = new Date(now);
+        const next = new Date(now);
         next.setHours(isNaN(hours) ? 9 : hours, isNaN(minutes) ? 0 : minutes, 0, 0);
         if (next <= now) {
           next.setDate(next.getDate() + 1);
@@ -198,7 +198,7 @@ export const automationSchedulerService = {
 
       case 'weekly':
         if (!schedule.days_of_week || schedule.days_of_week.length === 0) return null;
-        let weekNext = new Date(now);
+        const weekNext = new Date(now);
         let daysAdded = 0;
         while (daysAdded < 7) {
           if (schedule.days_of_week.includes(weekNext.getDay())) {

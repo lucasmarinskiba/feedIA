@@ -16,9 +16,9 @@ interface AgentPhaseConfig {
 
 class GeneralistPhase {
   private outputCount = 0;
-  private trainingData: any[] = [];
+  private trainingData: unknown[] = [];
 
-  async executeGeneralist(input: any): Promise<any> {
+  async executeGeneralist(input: unknown): Promise<any> {
     const client = new Anthropic();
 
     // Phase 1: Broad pattern matching, multiple approaches
@@ -78,7 +78,7 @@ class SpecialistPhase {
     this.outputCount = startingOutputCount;
   }
 
-  async executeSpecialist(input: any, trainingData: any[]): Promise<any> {
+  async executeSpecialist(input: unknown, trainingData: unknown[]): Promise<any> {
     const client = new Anthropic();
 
     // Phase 2: Focus on domain, identify winning patterns
@@ -140,14 +140,14 @@ class ExpertPhase {
   private outputCount: number;
   private performanceScore: number = 90;
   private expertise: string;
-  private teachingModel: any = {};
+  private teachingModel: unknown = {};
 
   constructor(expertise: string, startingOutputCount: number = 1000) {
     this.expertise = expertise;
     this.outputCount = startingOutputCount;
   }
 
-  async executeExpert(input: any, specialistLearnings: any): Promise<any> {
+  async executeExpert(input: unknown, specialistLearnings: unknown): Promise<any> {
     const client = new Anthropic();
 
     // Phase 3: Expert in niche, can teach others
@@ -158,7 +158,7 @@ You have analyzed ${this.outputCount} cases. You see patterns others miss.
 Your expertise:
 ${Object.entries(this.teachingModel)
   .slice(0, 5)
-  .map(([key, value]: any) => `- ${key}: ${value}`)
+  .map(([key, value]: unknown) => `- ${key}: ${value}`)
   .join('\n')}
 
 Goal: Single BEST approach. High precision.
@@ -187,7 +187,7 @@ You're confident because you've seen 1000+ cases.`;
     };
   }
 
-  private generateTeachingContent(input: any, output: any): string {
+  private generateTeachingContent(input: unknown, output: unknown): string {
     return `Expert lesson: How to solve ${input.type || 'this problem'} like an expert.
 Pattern: ${this.expertise}
 Reasoning: [Extracted from 1000+ cases]
@@ -199,7 +199,7 @@ Next: Other agents should learn this.`;
     this.performanceScore = Math.min(99, this.performanceScore + 0.1);
   }
 
-  getTeachingModel(): any {
+  getTeachingModel(): unknown {
     return this.teachingModel; // Share with other agents
   }
 }
@@ -207,23 +207,23 @@ Next: Other agents should learn this.`;
 // ── PHASE ORCHESTRATOR ────────────────────────────────────────
 
 class AgentPhaseOrchestrator {
-  private agent: any;
+  private agent: unknown;
   private phase: AgentPhaseConfig;
-  private phaseHistory: any[] = [];
+  private phaseHistory: unknown[] = [];
 
   constructor(agentName: string) {
     this.phase = { phase: 1, outputCount: 0, performanceScore: 0 };
     this.agent = new GeneralistPhase();
   }
 
-  async executeWithPhaseManagement(input: any): Promise<any> {
+  async executeWithPhaseManagement(input: unknown): Promise<any> {
     // Check if phase complete, advance if needed
     if (this.agent.isPhaseComplete?.()) {
       this.advancePhase();
     }
 
     // Execute current phase
-    let output: any;
+    let output: unknown;
 
     if (this.phase.phase === 1) {
       output = await (this.agent as GeneralistPhase).executeGeneralist(input);
@@ -285,7 +285,7 @@ class AgentPhaseOrchestrator {
 
 // ── PUBLIC API ────────────────────────────────────────────────
 
-export async function executeAgentWithPhases(agentName: string, input: any): Promise<any> {
+export async function executeAgentWithPhases(agentName: string, input: unknown): Promise<any> {
   const orchestrator = new AgentPhaseOrchestrator(agentName);
 
   // Execute, automatically advance phases
@@ -299,7 +299,7 @@ export async function executeAgentWithPhases(agentName: string, input: any): Pro
 
 export async function trainAgentThroughPhases(
   agentName: string,
-  inputs: any[],
+  inputs: unknown[],
 ): Promise<{ finalPhase: number; performanceScore: number }> {
   const orchestrator = new AgentPhaseOrchestrator(agentName);
 

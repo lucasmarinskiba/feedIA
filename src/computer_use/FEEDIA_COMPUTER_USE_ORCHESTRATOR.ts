@@ -16,7 +16,7 @@ interface AutomationBrief {
   task: 'post_carousel' | 'post_reel' | 'post_story' | 'respond_comments' | 'analyze_account';
   platform: 'instagram' | 'tiktok' | 'both';
   topic?: string;
-  content?: any;
+  content?: unknown;
   targetAudience?: string;
   style?: string;
 }
@@ -25,8 +25,8 @@ interface AutomationResult {
   success: boolean;
   action: string;
   platform: string;
-  output?: any;
-  metrics?: any;
+  output?: unknown;
+  metrics?: unknown;
   errors?: string[];
 }
 
@@ -223,7 +223,7 @@ class FeedIAComputerUseOrchestrator {
     console.log('[FeedIA] Workflow: Respond to Comments');
 
     // Step 1: Extract comments from vision analysis (stub: no comments in ScreenshotAnalysis)
-    const comments: any[] = [];
+    const comments: unknown[] = [];
     console.log(`[FeedIA] Found ${comments.length} comments to respond to`);
 
     // Step 2: FeedIA Copy Engine generates personalized responses
@@ -296,7 +296,7 @@ class FeedIAComputerUseOrchestrator {
     return 'current_trending_audio'; // Placeholder
   }
 
-  private async convertCarouselToVideo(carousel: any): Promise<any> {
+  private async convertCarouselToVideo(carousel: unknown): Promise<any> {
     // Convert carousel slides to video format
     return {
       videoPath: '/tmp/carousel_video.mp4',
@@ -305,7 +305,7 @@ class FeedIAComputerUseOrchestrator {
     };
   }
 
-  private async generateCommentResponse(comment: any): Promise<string> {
+  private async generateCommentResponse(comment: unknown): Promise<string> {
     // Use FeedIA Copy Engine to generate personalized response
     const response = await (await import('../api/agentIntegrationLayer')).generateCarouselWithAgents({
       topic: `respond to: ${comment.text}`,
@@ -316,7 +316,7 @@ class FeedIAComputerUseOrchestrator {
     return response.content?.split('\n')[0] || 'Thanks for the comment!';
   }
 
-  private async generateAccountRecommendations(metrics: any, vision: ScreenshotAnalysis): Promise<string[]> {
+  private async generateAccountRecommendations(metrics: unknown, vision: ScreenshotAnalysis): Promise<string[]> {
     // Analyze metrics + vision, generate growth recommendations
     const recommendations: string[] = [];
 

@@ -19,8 +19,8 @@ import {
 
 // ── POST /api/research/pinterest/import ────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const importPinterestPin = async (req: any, res: any): Promise<void> => {
+ 
+export const importPinterestPin = async (req: unknown, res: unknown): Promise<void> => {
   try {
     const pinData: PinterestPinAnalysis = req.body;
 
@@ -49,8 +49,8 @@ export const importPinterestPin = async (req: any, res: any): Promise<void> => {
 
 // ── POST /api/research/pinterest/library ───────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const buildPinterestLibrary = async (req: any, res: any): Promise<void> => {
+ 
+export const buildPinterestLibrary = async (req: unknown, res: unknown): Promise<void> => {
   try {
     const {pins} = req.body;
 
@@ -86,8 +86,8 @@ export const buildPinterestLibrary = async (req: any, res: any): Promise<void> =
 
 // ── GET /api/research/pinterest/template ───────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getPinterestTemplate = async (_req: any, res: any): Promise<void> => {
+ 
+export const getPinterestTemplate = async (_req: unknown, res: unknown): Promise<void> => {
   try {
     log.info('[API] Pinterest research template requested');
 

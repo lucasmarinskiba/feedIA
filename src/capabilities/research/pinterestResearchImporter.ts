@@ -171,8 +171,7 @@ export const buildResearchLibrary = (pins: PinterestPinAnalysis[]): PinterestRes
 
 // ── Export template for manual Pinterest research ────────────────────
 
-export const generatePinterestResearchTemplate = (): string => {
-  return `
+export const generatePinterestResearchTemplate = (): string => `
 {
   "pinUrl": "https://pin.it/XXXXX",
   "title": "Carousel Title",
@@ -225,7 +224,6 @@ export const generatePinterestResearchTemplate = (): string => {
   "inspirationLevel": 90
 }
 `;
-};
 
 // ── Apply learnings to FeedIA brain ──────────────────────────────────
 

@@ -41,8 +41,8 @@ import { actionGate } from '../../glassbox/index.js';
 type CompressResult = { b64: string; mediaType: 'image/png'; sizeBytes: number; savedBytes: number };
 const compressScreenshot = (s: string, _opts?: unknown): CompressResult =>
   ({ b64: s, mediaType: 'image/png', sizeBytes: s.length, savedBytes: 0 });
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type MessageWithCache = { role?: string; content: any; cache?: boolean };
+ 
+type MessageWithCache = { role?: string; content: unknown; cache?: boolean };
 const pruneMessageHistory = (h: MessageWithCache[], _opts?: unknown): MessageWithCache[] => h;
 const withCacheBreakpoint = <T>(f: T): T => f;
 const clampCoordinate = (_x: number, _y: number, _w?: number, _h?: number): [number, number] => [0, 0];

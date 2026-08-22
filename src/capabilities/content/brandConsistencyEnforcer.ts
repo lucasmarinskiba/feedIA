@@ -236,7 +236,7 @@ export const validateContentCorrelation = (
 
   // Messaging coherence: Similar emotions/tones?
   const emotions = new Set(posts.map((p) => p.emotion));
-  let messagingCoherence = emotions.size === 1 ? 95 : emotions.size === 2 ? 75 : 50;
+  const messagingCoherence = emotions.size === 1 ? 95 : emotions.size === 2 ? 75 : 50;
 
   if (emotions.size > 2) {
     issues.push('Posts jump between emotions. Stick to 1-2 primary emotions.');

@@ -185,14 +185,12 @@ export const executeBatch = async (batch: BatchResult): Promise<BatchResult> => 
   const byFormat = groupBy(batch.roadmap, 'format');
 
   // Simulate parallel generation
-  const promises = Object.entries(byFormat).map(([format, plans]) => {
-    return new Promise((resolve) => {
+  const promises = Object.entries(byFormat).map(([format, plans]) => new Promise((resolve) => {
       setTimeout(() => {
         console.log(`[SmartBatch] Generated ${plans.reduce((s, p) => s + p.quantity, 0)} ${format}s`);
         resolve(true);
       }, Math.random() * 2000); // Simulate generation time
-    });
-  });
+    }));
 
   await Promise.all(promises);
 
@@ -309,8 +307,7 @@ const calculateProductionTime = (roadmap: BatchPlan[]): string => {
   return `${Math.ceil(hours / 24)} days`;
 };
 
-const groupBy = <T extends object>(arr: T[], key: keyof T): Record<string, T[]> => {
-  return arr.reduce(
+const groupBy = <T extends object>(arr: T[], key: keyof T): Record<string, T[]> => arr.reduce(
     (acc, item) => {
       const groupKey = String(item[key]);
       if (!acc[groupKey]) acc[groupKey] = [];
@@ -319,4 +316,3 @@ const groupBy = <T extends object>(arr: T[], key: keyof T): Record<string, T[]> 
     },
     {} as Record<string, T[]>
   );
-};

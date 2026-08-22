@@ -45,9 +45,7 @@ export interface LogContext {
  *
  * All logs from this logger include module name
  */
-export const createLogger = (moduleName: string) => {
-  return logger.child({ module: moduleName });
-};
+export const createLogger = (moduleName: string) => logger.child({ module: moduleName });
 
 /**
  * Log info + context
