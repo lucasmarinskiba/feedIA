@@ -77,6 +77,8 @@ import billingRoutes from './api/billing-routes.js';
 import { initializeUserTiersTable } from './db/user-tiers.js';
 import { initFeedbackSchema, initWeightsSchema } from './db/feedback-schema.js';
 import { PRICING_HTML } from './api/pricing-routes.js';
+import { registerTrendingRoutes } from './api/trending-endpoints.js';
+import { registerTiers5_15Routes } from './api/tiers5-15-bundled.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -373,6 +375,10 @@ app.use('/api/conversion', conversionRoutes);
 
 // TIER 8 Extension: Billing + Tier Management (Stripe + Database)
 app.use('/api/billing', billingRoutes);
+
+// TIERS 5-15: Autonomous Systems (Trending, Audience, A/B, ROI, etc.)
+registerTrendingRoutes(app);
+registerTiers5_15Routes(app);
 
 // Debug: Inspect MemoryDB state
 app.get('/api/debug/memorydb', async (_req: Request, res: Response): Promise<void> => {
