@@ -2,13 +2,13 @@
  * Tier 5: Trending Detection (System 9: Trends)
  */
 
-import type { Request, Response } from 'express';
+import type { Express, Request, Response } from 'express';
 import { query } from '../db/client.js';
 
 export const detectTrends = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
-    const { days = 7 } = req.query;
+    const userId = (req as unknown as { userId: string }).userId;
+    const { days = '7' } = req.query as { days?: string };
 
     const trendsResult = await query(
       `SELECT
@@ -22,47 +22,53 @@ export const detectTrends = async (req: Request, res: Response): Promise<void> =
       [userId]
     );
 
-    const trends = trendsResult.rows.map((row: any) => ({
-      campaignId: row.campaign_id,
-      events: row.current_events,
-      growth: row.prev_events ? ((row.current_events - row.prev_events) / row.prev_events * 100).toFixed(1) + '%' : 'new',
-    }));
+    const trends = trendsResult.rows.map((row: unknown) => {
+      const typedRow = row as { campaign_id: string; current_events: number; prev_events?: number };
+      return {
+        campaignId: typedRow.campaign_id,
+        events: typedRow.current_events,
+        growth: typedRow.prev_events ? ((typedRow.current_events - typedRow.prev_events) / typedRow.prev_events * 100).toFixed(1) + '%' : 'new',
+      };
+    });
 
     res.json({ trends, period: `${days} days` });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Trend detection failed' });
   }
 };
 
 export const getTrendingAudio = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { platform = 'tiktok', limit = 10 } = req.query;
+    const { platform = 'tiktok', limit = '10' } = req.query as { platform?: string; limit?: string };
 
     const result = await query(
       `SELECT * FROM audio_library
        WHERE platform = $1
        ORDER BY virality_score DESC, uses DESC
        LIMIT $2`,
-      [platform, parseInt(limit as string, 10)]
+      [platform, parseInt(limit, 10)]
     );
 
     res.json({
-      trending: result.rows.map((row: any) => ({
-        id: row.id,
-        name: row.audio_name,
-        artist: row.artist,
-        virality: row.virality_score,
-        uses: row.uses,
-        trend: row.trend_status,
-      })),
+      trending: result.rows.map((row: unknown) => {
+        const typedRow = row as { id: string; audio_name: string; artist: string; virality_score: number; uses: number; trend_status: string };
+        return {
+          id: typedRow.id,
+          name: typedRow.audio_name,
+          artist: typedRow.artist,
+          virality: typedRow.virality_score,
+          uses: typedRow.uses,
+          trend: typedRow.trend_status,
+        };
+      }),
       platform,
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Trending audio fetch failed' });
   }
 };
 
-export const registerTrendingRoutes = (app: any): void => {
+export const registerTrendingRoutes = (app: Express): void => {
   app.get('/api/trends/detect', (req: Request, res: Response) => detectTrends(req, res));
   app.get('/api/trends/audio', (req: Request, res: Response) => getTrendingAudio(req, res));
 };

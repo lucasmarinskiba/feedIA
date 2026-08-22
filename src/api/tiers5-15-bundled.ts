@@ -2,14 +2,14 @@
  * Tiers 5-15: Bundled Endpoints (Trending, Audience, A/B, ROI, Batching, Cost)
  */
 
-import type { Request, Response } from 'express';
+import type { Express, Request, Response } from 'express';
 import { query } from '../db/client.js';
 
 // ============ TIER 6: Audience Profiling ============
 export const createAudienceSegment = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
-    const { campaignId, name, segmentType, rules } = req.body;
+    const userId = (req as unknown as { userId: string }).userId;
+    const { campaignId, name, segmentType, rules } = req.body as { campaignId: string; name: string; segmentType: string; rules: unknown };
 
     const segmentId = crypto.randomUUID();
     await query(
@@ -19,23 +19,23 @@ export const createAudienceSegment = async (req: Request, res: Response): Promis
     );
 
     res.status(201).json({ id: segmentId, name, segmentType });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Segment creation failed' });
   }
 };
 
 export const listAudienceSegments = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
-    const { campaignId } = req.query;
+    const userId = (req as unknown as { userId: string }).userId;
+    const { campaignId } = req.query as { campaignId?: string };
 
-    let query_str = 'SELECT * FROM audience_segments WHERE user_id = $1';
-    const params = [userId];
-    if (campaignId) query_str += ' AND campaign_id = $2';
+    let queryStr = 'SELECT * FROM audience_segments WHERE user_id = $1';
+    const params: unknown[] = [userId];
+    if (campaignId) queryStr += ' AND campaign_id = $2';
 
-    const result = await query(query_str, params);
+    const result = await query(queryStr, params);
     res.json({ segments: result.rows });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Segment list failed' });
   }
 };
@@ -43,8 +43,8 @@ export const listAudienceSegments = async (req: Request, res: Response): Promise
 // ============ TIER 7: A/B Testing ============
 export const createABTest = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
-    const { campaignId, name, variantAId, variantBId } = req.body;
+    const userId = (req as unknown as { userId: string }).userId;
+    const { campaignId, name, variantAId, variantBId } = req.body as { campaignId: string; name: string; variantAId: string; variantBId: string };
 
     const testId = crypto.randomUUID();
     await query(
@@ -54,15 +54,15 @@ export const createABTest = async (req: Request, res: Response): Promise<void> =
     );
 
     res.status(201).json({ id: testId, status: 'running' });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'A/B test creation failed' });
   }
 };
 
 export const getABTestResults = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
-    const { testId } = req.params;
+    const userId = (req as unknown as { userId: string }).userId;
+    const { testId } = req.params as { testId: string };
 
     const result = await query('SELECT * FROM ab_tests WHERE id = $1 AND user_id = $2', [testId, userId]);
     if (result.rowCount === 0) {
@@ -70,7 +70,7 @@ export const getABTestResults = async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    const test = result.rows[0];
+    const test = result.rows[0] as { status: string; variant_a_id: string; variant_b_id: string };
     const metricsA = await query(
       'SELECT COUNT(*) as events FROM analytics_events WHERE content_id = $1',
       [test.variant_a_id]
@@ -87,7 +87,7 @@ export const getABTestResults = async (req: Request, res: Response): Promise<voi
       variantA: { events: metricsA.rows[0].events },
       variantB: { events: metricsB.rows[0].events },
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Results retrieval failed' });
   }
 };
@@ -95,8 +95,7 @@ export const getABTestResults = async (req: Request, res: Response): Promise<voi
 // ============ TIER 11: ROI Calculation ============
 export const calculateROI = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
-    const { campaignId } = req.query;
+    const userId = (req as unknown as { userId: string }).userId;
 
     const costResult = await query(
       'SELECT SUM(cost) as total FROM api_costs WHERE user_id = $1',
@@ -116,7 +115,7 @@ export const calculateROI = async (req: Request, res: Response): Promise<void> =
     const roi = cost > 0 ? ((revenue - cost) / cost * 100).toFixed(2) : 'N/A';
 
     res.json({ cost, revenue, roi: roi + '%', payback: cost > 0 ? (cost / revenue * 30).toFixed(1) + ' days' : 'N/A' });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'ROI calculation failed' });
   }
 };
@@ -124,8 +123,7 @@ export const calculateROI = async (req: Request, res: Response): Promise<void> =
 // ============ TIER 12: Smart Batching ============
 export const optimizeBatch = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
-    const { items } = req.body;
+    const { items } = req.body as { items: unknown[] };
 
     const optimization = {
       originalCount: items.length,
@@ -135,7 +133,7 @@ export const optimizeBatch = async (req: Request, res: Response): Promise<void> 
     };
 
     res.json(optimization);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Batch optimization failed' });
   }
 };
@@ -143,8 +141,8 @@ export const optimizeBatch = async (req: Request, res: Response): Promise<void> 
 // ============ TIER 14: Cost Guardian ============
 export const trackCost = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
-    const { provider, operation, cost, metadata } = req.body;
+    const userId = (req as unknown as { userId: string }).userId;
+    const { provider, operation, cost, metadata } = req.body as { provider: string; operation: string; cost: number; metadata?: unknown };
 
     const costId = crypto.randomUUID();
     await query(
@@ -154,14 +152,14 @@ export const trackCost = async (req: Request, res: Response): Promise<void> => {
     );
 
     res.status(201).json({ id: costId, cost });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Cost tracking failed' });
   }
 };
 
 export const getCostSummary = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
+    const userId = (req as unknown as { userId: string }).userId;
 
     const result = await query(
       `SELECT
@@ -175,7 +173,7 @@ export const getCostSummary = async (req: Request, res: Response): Promise<void>
     );
 
     res.json({ summary: result.rows });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Cost summary failed' });
   }
 };
@@ -183,35 +181,23 @@ export const getCostSummary = async (req: Request, res: Response): Promise<void>
 // ============ TIER 9: Sentiment Analysis (mock) ============
 export const analyzeSentiment = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { text } = req.body;
+    const { text } = req.body as { text: string };
     const sentiment = text.length > 100 ? 'positive' : 'neutral';
     res.json({ sentiment, score: 0.8, keywords: ['great', 'awesome'] });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Sentiment analysis failed' });
   }
 };
 
 // ============ Route Registration ============
-export const registerTiers5_15Routes = (app: any): void => {
-  // Tier 5: Trending (separate file)
-  // Tier 6: Audience
+export const registerTiers5_15Routes = (app: Express): void => {
   app.post('/api/audience/segments', (req: Request, res: Response) => createAudienceSegment(req, res));
   app.get('/api/audience/segments', (req: Request, res: Response) => listAudienceSegments(req, res));
-
-  // Tier 7: A/B Testing
   app.post('/api/abtest/create', (req: Request, res: Response) => createABTest(req, res));
   app.get('/api/abtest/:testId/results', (req: Request, res: Response) => getABTestResults(req, res));
-
-  // Tier 9: Sentiment
   app.post('/api/sentiment/analyze', (req: Request, res: Response) => analyzeSentiment(req, res));
-
-  // Tier 11: ROI
   app.get('/api/roi/calculate', (req: Request, res: Response) => calculateROI(req, res));
-
-  // Tier 12: Batching
   app.post('/api/batch/optimize', (req: Request, res: Response) => optimizeBatch(req, res));
-
-  // Tier 14: Cost
   app.post('/api/cost/track', (req: Request, res: Response) => trackCost(req, res));
   app.get('/api/cost/summary', (req: Request, res: Response) => getCostSummary(req, res));
 

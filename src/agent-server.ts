@@ -27,6 +27,8 @@ import realdataRoutes from './api/realdata-routes.js';
 import anomalyRoutes from './api/anomaly-routes.js';
 import executeRoutes from './api/execute-routes.js';
 import agencySimpleRoutes from './api/agency-simple-routes.js';
+import { registerTrendingRoutes } from './api/trending-endpoints.js';
+import { registerTiers5_15Routes } from './api/tiers5-15-bundled.js';
 
 const app = express();
 const PORT = process.env.AGENT_PORT || 3001;
@@ -53,6 +55,10 @@ app.use('/api/realdata', realdataRoutes);
 app.use('/api/anomaly', anomalyRoutes);
 app.use('/api/execute', executeRoutes);
 app.use('/api/agency', agencySimpleRoutes);
+
+// Tiers 5-15: Autonomous Systems
+registerTrendingRoutes(app);
+registerTiers5_15Routes(app);
 
 // Default route
 app.get('/', (_req: Request, res: Response) => {
