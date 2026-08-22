@@ -79,6 +79,8 @@ import { initFeedbackSchema, initWeightsSchema } from './db/feedback-schema.js';
 import { PRICING_HTML } from './api/pricing-routes.js';
 import { registerTrendingRoutes } from './api/trending-endpoints.js';
 import { registerTiers5_15Routes } from './api/tiers5-15-bundled.js';
+import { initRedis, isRedisReady, redisHealthCheck } from './cache/redis-client.js';
+import { authRateLimiter, apiRateLimiter } from './middleware/redis-rate-limiter.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -441,11 +443,13 @@ Promise.all([
   initializeUserTiersTable(),
   initFeedbackSchema(),
   initWeightsSchema(),
+  initRedis(), // Initialize Redis for caching + rate limiting
 ])
   .then(() => {
     feedIAOrchestrator.initializeAgents();
     startPollingScheduler();
-    log.info('[Server] initialized: metrics polling + carousel storage + billing/tiers + quality feedback loop');
+    const redisStatus = isRedisReady() ? '✅ Redis enabled' : '⚠️  Redis disabled';
+    log.info(`[Server] initialized: metrics polling + carousel storage + billing/tiers + quality feedback loop (${redisStatus})`);
   })
   .catch((err) => log.error('[Server] initialization failed', err));
 
