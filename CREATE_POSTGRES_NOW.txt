@@ -1,0 +1,71 @@
+🚀 CREATE POSTGRES EN RAILWAY — AHORA
+
+Estado actual:
+- ✅ Web service: Online
+- ❌ DATABASE_URL: MongoDB (no PostgreSQL)
+- ❌ No Postgres DB creada
+
+Qué hacer:
+
+1. Abre: https://railway.app/project/56f3ba0b-e6e0-4675-9645-e219b3629dab
+
+2. Click botón "New" (arriba derecha)
+
+3. Click "Database"
+
+4. Click "PostgreSQL"
+
+5. ESPERA: ~1 min (status: Building → Online)
+
+6. Railway crea automáticamente "postgres_production" service
+
+7. Click en "postgres_production" service
+
+8. Click "Connect" tab
+
+9. COPIA: "Postgres Connection String" (formato: postgresql://user:pass@host:5432/railway)
+
+10. Vuelve a "web" service
+
+11. Click "Variables" tab
+
+12. BUSCA: "DATABASE_URL" (ya existe con MongoDB)
+
+13. CLICK en DATABASE_URL para editar
+
+14. REEMPLAZA el valor:
+    - OLD: mongodb+srv://...
+    - NEW: postgresql://... (de paso 9)
+
+15. CLICK "Save"
+
+16. CLICK "Deploy" (espera ~30 seg)
+
+===
+
+DESPUÉS:
+- Railway auto-ejecuta migraciones
+- 18 tablas se crean en Postgres
+- App está 100% funcional
+
+VERIFY:
+curl https://web-production-fa7b5.up.railway.app/health
+
+Expected: {"status":"ok",...}
+
+Si error: railway logs --follow (mira logs)
+
+===
+
+Commando verificación rápida (después de setup):
+
+./test-postgres-setup.sh
+
+===
+
+Alternativa (si Railway UI no funciona):
+
+export DATABASE_URL="postgresql://..."
+railway variable DATABASE_URL "$DATABASE_URL"
+
+Pero Dashboard UI es más simple. Go!
