@@ -47,6 +47,11 @@
     "src/capabilities/quickReel/**",
     "src/capabilities/quickStory/**",
     "src/server/extendedRoutes.ts",
-    "src/studio/**"
+    "src/studio/**",
+    "src/services/prompt-expander.ts",
+    "src/services/smart-batching.ts",
+    "src/services/strategic-reasoning.ts",
+    "src/services/virality-prompt-layer.ts",
+    "src/skills/carousel-designer-pro.ts"
   ]
 }
