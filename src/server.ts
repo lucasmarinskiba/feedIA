@@ -93,6 +93,7 @@ import { registerContentStorageRoutes } from './api/content-storage-routes.js';
 import { registerSocialPublishingRoutes } from './api/social-publishing-routes.js';
 import { registerSocialAutomationRoutes } from './api/social-automation-complete.js';
 import { registerSocialIntelligenceRoutes } from './api/social-intelligence-agents.js';
+import { registerNeuralAgentRoutes } from './api/neural-agents.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -240,6 +241,9 @@ registerSocialAutomationRoutes(app);
 
 // Social intelligence agents (CM, growth, design, copy, strategy, niche expertise)
 registerSocialIntelligenceRoutes(app);
+
+// Neural agents (ML brain: prediction, learning, optimization, audience mapping)
+registerNeuralAgentRoutes(app);
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {
