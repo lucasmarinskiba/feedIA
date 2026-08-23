@@ -490,6 +490,36 @@ app.use((err: Error, req: Request, res: Response, _next: express.NextFunction) =
   });
 });
 
+// Auto-migrate DB on startup (fire-and-forget, non-blocking)
+async function runMigrationsIfNeeded(): Promise<void> {
+  try {
+    const { Pool } = (await import('pg')) as typeof import('pg');
+    const path = (await import('path')) as typeof import('path');
+    const fs = (await import('fs')) as typeof import('fs');
+
+    const connStr = process.env.DATABASE_URL || process.env.DATABASE_PRIVATE_URL;
+    if (!connStr) return; // Skip if no DB URL
+
+    const pool = new Pool({ connectionString: connStr, ssl: { rejectUnauthorized: false } });
+    const files = ['src/db/carousel-storage-schema.sql', 'src/db/video-storage-schema.sql', 'src/db/analytics-schema.sql'];
+
+    for (const file of files) {
+      const fpath = path.resolve(process.cwd(), file);
+      if (!fs.existsSync(fpath)) continue;
+      try {
+        const sql = fs.readFileSync(fpath, 'utf-8');
+        await pool.query(sql);
+        console.log(`✓ Migration: ${file}`);
+      } catch (e) {
+        console.error(`✗ Migration ${file}:`, e instanceof Error ? e.message : e);
+      }
+    }
+    await pool.end();
+  } catch (err) {
+    console.error('[Migrations] Error:', err);
+  }
+}
+
 // Fire-and-forget init (serverless: no app.listen)
 Promise.all([
   feedIADatabase.initialize(),
@@ -498,6 +528,7 @@ Promise.all([
   initFeedbackSchema(),
   initWeightsSchema(),
   initRedis(), // Initialize Redis for caching + rate limiting
+  runMigrationsIfNeeded(), // Run DB migrations
 ])
   .then(() => {
     feedIAOrchestrator.initializeAgents();
