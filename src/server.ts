@@ -91,6 +91,7 @@ import { register, login, logout, refresh, verifyJWT } from './api/auth-endpoint
 import { registerUserRoutes } from './api/user-routes.js';
 import { registerContentStorageRoutes } from './api/content-storage-routes.js';
 import { registerSocialPublishingRoutes } from './api/social-publishing-routes.js';
+import { registerSocialAutomationRoutes } from './api/social-automation-complete.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -232,6 +233,9 @@ registerContentStorageRoutes(app);
 
 // Social publishing routes (Instagram + TikTok posting)
 registerSocialPublishingRoutes(app);
+
+// Social automation routes (OAuth, scheduler, analytics, AI captions)
+registerSocialAutomationRoutes(app);
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {
@@ -556,6 +560,7 @@ async function runMigrationsIfNeeded(): Promise<void> {
       'src/db/carousel-storage-schema.sql',
       'src/db/video-storage-schema.sql',
       'src/db/analytics-schema.sql',
+      'src/db/social-automation-schema.sql',
     ];
 
     for (const file of files) {

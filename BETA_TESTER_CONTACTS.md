@@ -10,11 +10,11 @@
 
 | Name | Email | Role | Why | Status |
 |------|-------|------|-----|--------|
-| [Your Name] | lucasdmarin@gmail.com | Founder | System architect | ✅ Self |
-| [Add Name] | [email] | Creator/Influencer | UX perspective | ⏳ |
-| [Add Name] | [email] | Developer | API testing | ⏳ |
-| [Add Name] | [email] | QA/Tester | Edge cases | ⏳ |
-| [Add Name] | [email] | Marketing | Feature viability | ⏳ |
+| Lucas Marín | lucasdmarin@gmail.com | Founder | System architect | ✅ Self |
+| [Add Creator] | [their@email.com] | Creator/Influencer | Real IG/TikTok workflow | ⏳ Ready |
+| [Add Developer] | [dev@email.com] | Full Stack Dev | API + OAuth testing | ⏳ Ready |
+| [Add QA] | [qa@email.com] | QA Engineer | Edge cases & bugs | ⏳ Ready |
+| [Add PM] | [pm@email.com] | Product Manager | Launch readiness | ⏳ Ready |
 
 ---
 
