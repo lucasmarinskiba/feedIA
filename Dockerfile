@@ -44,10 +44,9 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-# Copy all deps (some runtime deps are incorrectly in devDependencies)
+# Copy all deps from builder (includes native modules)
+COPY --from=builder /app/node_modules ./node_modules
 COPY package.json pnpm-lock.yaml* ./
-ENV NODE_OPTIONS="--max-old-space-size=2048"
-RUN pnpm install --ignore-scripts
 
 # Copy compiled code and runtime assets
 COPY --from=builder /app/dist ./dist
