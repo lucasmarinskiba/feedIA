@@ -90,6 +90,7 @@ import { registerSeedEndpoint } from './api/seed-endpoint.js';
 import { register, login, logout, refresh, verifyJWT } from './api/auth-endpoints.js';
 import { registerUserRoutes } from './api/user-routes.js';
 import { registerContentStorageRoutes } from './api/content-storage-routes.js';
+import { registerSocialPublishingRoutes } from './api/social-publishing-routes.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -228,6 +229,9 @@ registerUserRoutes(app);
 
 // Content storage routes (posts, videos, carousels management)
 registerContentStorageRoutes(app);
+
+// Social publishing routes (Instagram + TikTok posting)
+registerSocialPublishingRoutes(app);
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {
