@@ -8,9 +8,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 async function runMigrations(): Promise<void> {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = process.env.DATABASE_URL || process.env.DATABASE_PRIVATE_URL;
   if (!connectionString) {
-    throw new Error('DATABASE_URL not set in environment');
+    throw new Error('DATABASE_URL or DATABASE_PRIVATE_URL not set in environment');
   }
 
   const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
