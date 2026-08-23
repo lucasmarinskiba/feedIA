@@ -87,6 +87,7 @@ import { initializeBillingTables } from './services/billing-manager.js';
 import { initializeWebhookTables } from './services/webhook-service.js';
 import featureFlagsRoutes from './api/feature-flags-routes.js';
 import { registerBootstrapRoutes } from './api/bootstrap-routes.js';
+import { registerSeedEndpoint } from './api/seed-endpoint.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -404,6 +405,9 @@ registerTiers5_15Routes(app);
 
 // Bootstrap: Seed data + system validation
 registerBootstrapRoutes(app);
+
+// Seed endpoint: HTTP POST to populate test data
+registerSeedEndpoint(app);
 
 // Debug: Inspect MemoryDB state
 app.get('/api/debug/memorydb', async (_req: Request, res: Response): Promise<void> => {
