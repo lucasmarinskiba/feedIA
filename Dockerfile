@@ -44,9 +44,12 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-# Copy all deps from builder (includes native modules)
-COPY --from=builder /app/node_modules ./node_modules
+# Copy dependency manifests
 COPY package.json pnpm-lock.yaml* ./
+
+# Reinstall prod deps in runtime (ensures native modules compile for this image)
+# Using --frozen-lockfile to match exact versions from pnpm-lock.yaml
+RUN pnpm install --frozen-lockfile --prod
 
 # Copy compiled code and runtime assets
 COPY --from=builder /app/dist ./dist
