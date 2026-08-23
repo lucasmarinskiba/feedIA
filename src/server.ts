@@ -429,10 +429,9 @@ if (staticDir) {
 // Admin: Run migrations
 app.post('/api/admin/migrate', adminKeyAuth, async (_req, res): Promise<void> => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { Pool } = require('pg');
-    const path = require('path');
-    const fs = require('fs');
+    const { Pool } = (await import('pg')) as typeof import('pg');
+    const path = (await import('path')) as typeof import('path');
+    const fs = (await import('fs')) as typeof import('fs');
 
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
