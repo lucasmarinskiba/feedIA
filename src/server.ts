@@ -426,6 +426,22 @@ if (staticDir) {
   });
 }
 
+// Admin: Seed test data (mock)
+app.post('/api/admin/seed', adminKeyAuth, async (_req, res): Promise<void> => {
+  res.json({
+    status: 'seeded',
+    testUsers: [
+      { id: 'user-1', email: 'test@feedia.dev', tier: 'pro' },
+      { id: 'user-2', email: 'test2@feedia.dev', tier: 'pro' },
+    ],
+    testCampaigns: [
+      { id: 'camp-1', user_id: 'user-1', title: 'Test Campaign', platform: 'instagram', status: 'active' },
+      { id: 'camp-2', user_id: 'user-1', title: 'Test Campaign 2', platform: 'tiktok', status: 'active' },
+    ],
+    note: 'Run actual migrations with: railway run npm run db:migrate',
+  });
+});
+
 // Admin: Run migrations
 app.post('/api/admin/migrate', adminKeyAuth, async (_req, res): Promise<void> => {
   try {
