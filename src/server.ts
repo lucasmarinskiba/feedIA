@@ -433,9 +433,9 @@ app.post('/api/admin/migrate', adminKeyAuth, async (_req, res): Promise<void> =>
     const path = (await import('path')) as typeof import('path');
     const fs = (await import('fs')) as typeof import('fs');
 
-    const connectionString = process.env.DATABASE_URL;
+    const connectionString = process.env.DATABASE_URL || process.env.DATABASE_PRIVATE_URL;
     if (!connectionString) {
-      res.status(500).json({ error: 'DATABASE_URL not set' });
+      res.status(500).json({ error: 'DATABASE_URL/DATABASE_PRIVATE_URL not set' });
       return;
     }
 
