@@ -86,6 +86,7 @@ import { authRateLimiter, apiRateLimiter } from './middleware/redis-rate-limiter
 import { initializeBillingTables } from './services/billing-manager.js';
 import { initializeWebhookTables } from './services/webhook-service.js';
 import featureFlagsRoutes from './api/feature-flags-routes.js';
+import { registerBootstrapRoutes } from './api/bootstrap-routes.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -400,6 +401,9 @@ app.use('/api/features', featureFlagsRoutes);
 // TIERS 5-15: Autonomous Systems (Trending, Audience, A/B, ROI, etc.)
 registerTrendingRoutes(app);
 registerTiers5_15Routes(app);
+
+// Bootstrap: Seed data + system validation
+registerBootstrapRoutes(app);
 
 // Debug: Inspect MemoryDB state
 app.get('/api/debug/memorydb', async (_req: Request, res: Response): Promise<void> => {
