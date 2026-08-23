@@ -1,0 +1,183 @@
+================================================================================
+                    FeedIA TIER 5-15 ENDPOINTS TEST REPORT
+                           DELIVERABLES INDEX
+================================================================================
+
+REPORT GENERATED: 2026-08-22 22:06:35 UTC
+BACKEND TESTED: https://web-production-fa7b5.up.railway.app
+TEST RESULTS: 6/21 passing (27% pass rate)
+
+================================================================================
+                         WHAT YOU NEED TO READ
+================================================================================
+
+START HERE (Quick Overview - 5 min):
+  File: README_TESTING_RESULTS.txt
+  Contents: Executive summary, findings, next steps
+
+DETAILED FINDINGS (Analysis - 15 min):
+  File: TIER_5_15_TEST_SUMMARY.txt
+  Contents: Breakdown by tier, critical issues, performance
+
+HOW TO FIX (Implementation - 20 min):
+  File: FIX_GUIDE_TIER_5_15_ENDPOINTS.md
+  Contents: Step-by-step fix instructions
+
+COMPLETE REFERENCE (Catalog - 10 min):
+  File: COMPLETE_ENDPOINT_INVENTORY.md
+  Contents: All 59+ endpoints, status, statistics
+
+DETAILED BREAKDOWN (Technical - 15 min):
+  File: ENDPOINT_TEST_RESULTS.md
+  Contents: Issue analysis, schema requirements
+
+================================================================================
+                         FILE DESCRIPTIONS
+================================================================================
+
+TEST SUITE (Executable):
+  test-endpoints.sh (9.9 KB)
+    - Bash script with 21 curl-based tests
+    - Tests Tiers 5-7, 9, 11-12, 14
+    - Run: bash test-endpoints.sh
+    - Results logged to /tmp/feedia-test-results-*.txt
+
+DOCUMENTATION (Markdown):
+  ENDPOINT_TEST_RESULTS.md (9.4 KB)
+    - Detailed analysis of each endpoint
+    - Issue identification and root causes
+    - Database schema requirements
+    - Priority-based recommendations
+
+  FIX_GUIDE_TIER_5_15_ENDPOINTS.md (14 KB)
+    - Step-by-step fix instructions
+    - Code examples (copy-paste ready)
+    - Testing procedures
+    - Deployment instructions
+
+  COMPLETE_ENDPOINT_INVENTORY.md (8.5 KB)
+    - Catalog of all 59+ endpoints
+    - Status breakdown by tier
+    - Summary statistics
+    - Next steps and priorities
+
+SUMMARIES (Text):
+  README_TESTING_RESULTS.txt (9.8 KB)
+    - Executive summary
+    - Quick findings
+    - Critical issues (short version)
+    - File locations and references
+
+  TIER_5_15_TEST_SUMMARY.txt (19 KB)
+    - Comprehensive findings
+    - Results by tier
+    - Critical issues (detailed)
+    - Performance analysis
+
+  TEST_REPORT_INDEX.txt (This file)
+    - Directory of deliverables
+    - Reading order recommendations
+    - Quick reference guide
+
+================================================================================
+                       QUICK REFERENCE
+================================================================================
+
+CURRENT STATUS:
+  Pass Rate: 27% (6/21 tests)
+  Working: Sentiment analysis, Batch operations, Health check
+  Broken: 13 database endpoints + 1 missing endpoint
+  Root Cause: Missing userId extraction in middleware
+
+CRITICAL ISSUE:
+  Location: src/middleware/request-context.ts
+  Impact: 13 endpoints return 500 error
+  Fix Time: 30 minutes
+  Effort: LOW (5 lines of code)
+
+TIME TO FIX:
+  Phase 1 (Critical): 1.5 hours
+    - userId extraction (30 min)
+    - Database schema (30 min)
+    - Readiness probe (15 min)
+
+  Phase 2 (Quality): 1 hour
+    - Error messages (45 min)
+    - Validation (15 min)
+
+  Total: 2.5 hours to production
+
+================================================================================
+                    QUICK FIX CHECKLIST
+================================================================================
+
+PHASE 1: CRITICAL FIX (1.5 hours)
+
+[  ] Read README_TESTING_RESULTS.txt
+[  ] Read FIX_GUIDE Issue #1
+[  ] Modify src/middleware/request-context.ts
+[  ] Run test-endpoints.sh
+[  ] Verify 13 more endpoints pass
+[  ] Check database tables exist
+[  ] Create missing tables if needed
+[  ] Add /health/ready endpoint
+[  ] Re-run test-endpoints.sh
+[  ] Verify 20/21 passing
+
+EXPECTED RESULT: 95% pass rate
+
+================================================================================
+                      HOW TO RUN TESTS
+================================================================================
+
+Basic:
+  bash test-endpoints.sh
+
+With Output to File:
+  bash test-endpoints.sh | tee test-output.txt
+
+Expected Result (Before Fixes):
+  Pass Rate: 27% (6/21)
+  Failed: 15 tests returning 500
+
+Expected Result (After Fixes):
+  Pass Rate: 95% (20/21)
+  Failed: 0 tests
+
+================================================================================
+                      KEY STATISTICS
+================================================================================
+
+TIER BREAKDOWN:
+  Tier 5 (Trends):       0% passing (0/4)
+  Tier 6 (Audience):     0% passing (0/2)
+  Tier 7 (A/B Tests):    0% passing (0/2)
+  Tier 9 (Sentiment):   100% passing (2/2) OK
+  Tier 11 (ROI):         0% passing (0/1)
+  Tier 12 (Batch):      100% passing (2/2) OK
+  Tier 14 (Cost):        0% passing (0/4)
+  Health:               50% passing (1/2)
+
+OVERALL: 27% passing (6/21)
+
+ROOT CAUSE:
+  - Missing userId: 62% of failures (13 endpoints)
+  - Missing endpoint: 6.7% of failures (1 endpoint)
+  - Other issues: 31.3% of failures (1 endpoint)
+
+================================================================================
+                     NEXT IMMEDIATE STEP
+================================================================================
+
+1. Open README_TESTING_RESULTS.txt
+2. Read the "CRITICAL ISSUES IDENTIFIED" section
+3. Read the "WHAT TO DO NEXT" section
+4. Begin with Issue #1 fix (userId extraction)
+
+Estimated time to production-ready: 2.5 hours
+
+================================================================================
+Document Version: 1.0
+Created: 2026-08-22 22:06:35 UTC
+Status: READY
+================================================================================

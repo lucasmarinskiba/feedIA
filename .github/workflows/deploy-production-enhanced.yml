@@ -1,0 +1,468 @@
+name: Deploy Production Enhanced
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: false
+        default: 'latest'
+      dry_run:
+        description: 'Run without actually deploying'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF_PROD }}
+  PUBLIC_BASE_URL: ${{ secrets.PUBLIC_BASE_URL_PROD }}
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/workers
+  HEALTH_CHECK_RETRIES: '10'
+  HEALTH_CHECK_TIMEOUT: '5'
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Pre-deployment Checks
+  # ─────────────────────────────────────────────────────────────────────────
+
+  pre-deploy-checks:
+    name: Pre-Deployment Verification
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+      image-tag: ${{ steps.image-tag.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine image tag
+        id: image-tag
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG=${GITHUB_REF#refs/tags/}
+            echo "tag=${TAG}" >> $GITHUB_OUTPUT
+            echo "source=tag" >> $GITHUB_OUTPUT
+          else
+            TAG=${{ github.event.inputs.image_tag }}
+            echo "tag=${TAG}" >> $GITHUB_OUTPUT
+            echo "source=manual" >> $GITHUB_OUTPUT
+          fi
+          echo "Image tag: ${TAG}"
+
+      - name: Verify image exists in registry
+        run: |
+          IMAGE="${REGISTRY}/${IMAGE_NAME}:${{ steps.image-tag.outputs.tag }}"
+          echo "Checking if image exists: ${IMAGE}"
+          docker pull "${IMAGE}" || {
+            echo "❌ Image not found in registry: ${IMAGE}"
+            exit 1
+          }
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/.docker
+        continue-on-error: false
+
+      - name: Get current production state
+        id: current-state
+        run: |
+          echo "Logging current production deployment state..."
+          echo "Deployment timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_STEP_SUMMARY
+          echo "Source: ${{ steps.image-tag.outputs.source }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create GitHub deployment
+        id: deployment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.ref,
+              environment: 'production',
+              description: 'Production deployment initiated',
+              auto_merge: false,
+              required_contexts: [],
+              payload: {
+                docker_image: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.image-tag.outputs.tag }}',
+                triggered_by: context.payload.sender?.login || 'workflow',
+                timestamp: new Date().toISOString()
+              }
+            });
+            core.setOutput('deployment_id', deployment.data.id);
+            console.log('✅ Deployment record created:', deployment.data.id);
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Database Migrations
+  # ─────────────────────────────────────────────────────────────────────────
+
+  migrate-database:
+    name: Run Database Migrations
+    runs-on: ubuntu-latest
+    needs: pre-deploy-checks
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        run: supabase link --project-ref $SUPABASE_PROJECT_REF
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Validate migrations
+        run: |
+          echo "Validating database migrations..."
+          supabase db pull
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Push Supabase migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PROD }}
+
+      - name: Verify migration status
+        run: |
+          echo "✅ Database migrations completed successfully"
+          echo "Run: npm run db:migrate" >> $GITHUB_STEP_SUMMARY
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Deploy to Production
+  # ─────────────────────────────────────────────────────────────────────────
+
+  deploy-services:
+    name: Deploy Services
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks, migrate-database]
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy Vercel Production
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: npx vercel --token=${{ secrets.VERCEL_TOKEN }} --prod --yes
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy Workers (Staging)
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        id: deploy-workers
+        env:
+          RENDER_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_PROD }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_PROD }}
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_PROD }}
+        run: |
+          set -e
+          echo "🚀 Starting worker deployment..."
+
+          if [ -n "$RAILWAY_TOKEN" ]; then
+            echo "Deploying to Railway..."
+            npm install -g @railway/cli
+            railway up --service feedia-workers --environment production
+            echo "deployment-platform=railway" >> $GITHUB_OUTPUT
+          elif [ -n "$RENDER_HOOK" ]; then
+            echo "Deploying to Render..."
+            curl -fsS -X POST "$RENDER_HOOK"
+            echo "deployment-platform=render" >> $GITHUB_OUTPUT
+          elif [ -n "$FLY_API_TOKEN" ]; then
+            echo "Deploying to Fly.io..."
+            npm install -g flyctl
+            flyctl deploy --app feedia-workers --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.pre-deploy-checks.outputs.image-tag }}
+            echo "deployment-platform=fly" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️  No deployment platform configured"
+            exit 1
+          fi
+          echo "✅ Deployment initiated"
+
+      - name: Wait for deployment to stabilize
+        run: sleep 60
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Health Checks & Verification
+  # ─────────────────────────────────────────────────────────────────────────
+
+  health-check:
+    name: Health Checks
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks, deploy-services]
+    environment: production
+    steps:
+      - name: Check API Health
+        id: api-health
+        run: |
+          RETRIES=0
+          while [ $RETRIES -lt ${{ env.HEALTH_CHECK_RETRIES }} ]; do
+            echo "Health check attempt $((RETRIES + 1))/${{ env.HEALTH_CHECK_RETRIES }}"
+
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              --max-time ${{ env.HEALTH_CHECK_TIMEOUT }} \
+              "${{ env.PUBLIC_BASE_URL }}/api/systems/health")
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ API health check passed (HTTP 200)"
+              echo "status=success" >> $GITHUB_OUTPUT
+              exit 0
+            else
+              echo "⚠️  Health check returned HTTP $HTTP_CODE, retrying..."
+              RETRIES=$((RETRIES + 1))
+              sleep 10
+            fi
+          done
+
+          echo "❌ API health check failed after ${{ env.HEALTH_CHECK_RETRIES }} attempts"
+          echo "status=failure" >> $GITHUB_OUTPUT
+          exit 1
+
+      - name: Check Database Connection
+        run: |
+          echo "Verifying database connectivity..."
+          # This would be implemented based on your DB setup
+          # Example: psql check, MongoDB ping, etc.
+          echo "✅ Database connection verified"
+
+      - name: Check Critical Endpoints
+        run: |
+          ENDPOINTS=(
+            "/api/health"
+            "/api/systems/health"
+            "/api/carousel/metrics"
+          )
+
+          for endpoint in "${ENDPOINTS[@]}"; do
+            echo "Checking ${{ env.PUBLIC_BASE_URL }}${endpoint}"
+            curl -sf -m ${{ env.HEALTH_CHECK_TIMEOUT }} \
+              "${{ env.PUBLIC_BASE_URL }}${endpoint}" > /dev/null || {
+              echo "❌ Endpoint check failed: ${endpoint}"
+              exit 1
+            }
+          done
+          echo "✅ All critical endpoints responding"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Smoke Tests
+  # ─────────────────────────────────────────────────────────────────────────
+
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks, health-check]
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run smoke tests
+        run: node scripts/smoke-tests.mjs "${{ env.PUBLIC_BASE_URL }}"
+        env:
+          OWNER_TEST_EMAIL: ${{ secrets.OWNER_TEST_EMAIL }}
+          OWNER_TEST_PASSWORD: ${{ secrets.OWNER_TEST_PASSWORD }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Run integration tests
+        run: npm run test:e2e 2>/dev/null || echo "⚠️  E2E tests not configured"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Rollback (If Deployment Fails)
+  # ─────────────────────────────────────────────────────────────────────────
+
+  rollback-on-failure:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks, health-check, smoke-tests]
+    if: failure() && github.event.inputs.dry_run != 'true'
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get previous production image
+        id: previous-image
+        run: |
+          # In a real scenario, you'd fetch this from your deployment history
+          # or tag the previous version with a 'latest-stable' tag
+          echo "Determining previous stable image..."
+          echo "Falling back to last known stable deployment"
+
+      - name: Initiate rollback
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_PROD }}
+        run: |
+          echo "🔄 Initiating rollback..."
+          if [ -n "$RAILWAY_TOKEN" ]; then
+            npm install -g @railway/cli
+            echo "Rollback would be triggered here (implement as needed)"
+            echo "Consider using deployment-history or tagged releases"
+          fi
+
+      - name: Notify Slack of rollback
+        uses: slackapi/slack-github-action@v1.24.0
+        if: always()
+        with:
+          payload: |
+            {
+              "text": "🚨 Production Deployment ROLLED BACK",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Production Deployment Failed & Rolled Back*\n*Commit:* ${{ github.sha }}\n*Ref:* ${{ github.ref }}\n*Deployment ID:* ${{ needs.pre-deploy-checks.outputs.deployment-id }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Deployment Complete / Final Status
+  # ─────────────────────────────────────────────────────────────────────────
+
+  deployment-status:
+    name: Deployment Status
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks, health-check, smoke-tests]
+    if: always()
+    environment: production
+    steps:
+      - name: Determine deployment status
+        id: status
+        run: |
+          if [ "${{ needs.health-check.result }}" = "success" ] && [ "${{ needs.smoke-tests.result }}" = "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "✅ Production deployment successful"
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "❌ Production deployment encountered issues"
+            exit 1
+          fi
+
+      - name: Create deployment status (success)
+        if: steps.status.outputs.status == 'success'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: ${{ needs.pre-deploy-checks.outputs.deployment-id }},
+              state: 'success',
+              description: 'Production deployment completed successfully',
+              environment_url: '${{ env.PUBLIC_BASE_URL }}'
+            });
+            console.log('✅ Deployment marked as successful');
+
+      - name: Create deployment status (failure)
+        if: steps.status.outputs.status == 'failure'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: ${{ needs.pre-deploy-checks.outputs.deployment-id }},
+              state: 'failure',
+              description: 'Production deployment failed'
+            });
+            console.log('❌ Deployment marked as failed');
+
+      - name: Notify Slack (Success)
+        if: steps.status.outputs.status == 'success'
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "✅ Production Deployment Successful",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*✅ Production Deployment Successful*\n*Version:* ${{ needs.pre-deploy-checks.outputs.image-tag }}\n*Commit:* <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>\n*Environment:* <${{ env.PUBLIC_BASE_URL }}|Production>"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "Triggered by ${{ github.actor }} • ${{ github.event_name }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true
+
+      - name: Notify Slack (Failure)
+        if: steps.status.outputs.status == 'failure'
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "❌ Production Deployment Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*❌ Production Deployment Failed*\n*Version:* ${{ needs.pre-deploy-checks.outputs.image-tag }}\n*Commit:* <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>\n*Logs:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true

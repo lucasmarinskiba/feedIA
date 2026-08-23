@@ -34,6 +34,7 @@ import qualityExpansionRoutes from './api/quality-expansion-routes.js';
 import consistencyLockRoutes from './api/consistency-lock-routes.js';
 import footballMemeRoutes from './api/football-meme-routes.js';
 import adminDashboardRoutes from './api/admin-dashboard-routes.js';
+import adminOpsRoutes from './api/admin-ops-routes.js';
 import creativityRoutes from './api/creativity-routes.js';
 import facialIdentityRoutes from './api/facial-identity-routes.js';
 import resolutionQualityRoutes from './api/resolution-quality-routes.js';
@@ -58,6 +59,7 @@ import compression from 'compression';
 import { apiKeyAuth, adminKeyAuth, attachKeyContext } from './middleware/auth.js';
 import { autoRateLimiter } from './middleware/rate-limiter.js';
 import { inputSanitizer } from './middleware/input-sanitizer.js';
+import userContextMiddleware from './middleware/user-context.js';
 import securityRoutes from './api/security-routes.js';
 import videoStorageRoutes from './api/video-storage-routes.js';
 import carouselMetricsRoutes from './api/carousel-metrics-routes.js';
@@ -81,6 +83,9 @@ import { registerTrendingRoutes } from './api/trending-endpoints.js';
 import { registerTiers5_15Routes } from './api/tiers5-15-bundled.js';
 import { initRedis, isRedisReady, redisHealthCheck } from './cache/redis-client.js';
 import { authRateLimiter, apiRateLimiter } from './middleware/redis-rate-limiter.js';
+import { initializeBillingTables } from './services/billing-manager.js';
+import { initializeWebhookTables } from './services/webhook-service.js';
+import featureFlagsRoutes from './api/feature-flags-routes.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -155,6 +160,9 @@ app.use(autoRateLimiter);
 
 // 6. API key authentication
 app.use(apiKeyAuth);
+
+// 6.5. User context (extract userId from headers or generate)
+app.use(userContextMiddleware);
 
 // 7. Body parsing with strict size limits (1MB prevents DoS via large payloads)
 app.use(express.json({ limit: '1mb' }));
@@ -294,6 +302,14 @@ app.use('/api/football', footballMemeRoutes);
 // Mount admin dashboard (monitoring + metrics + optimization) — requires admin key
 app.use('/api/admin', adminKeyAuth, adminDashboardRoutes);
 
+// Mount admin operations (user management, database operations, cache control) — requires admin key
+app.use('/api/admin', adminKeyAuth, adminOpsRoutes);
+
+// Serve admin dashboard UI
+app.get('/admin', adminKeyAuth, (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'server', 'static', 'admin-dashboard.html'));
+});
+
 // Mount cost guardian (spend vs revenue governance) — financial data, admin key required
 app.use('/api/cost-guardian', adminKeyAuth, costGuardianRoutes);
 
@@ -377,6 +393,9 @@ app.use('/api/conversion', conversionRoutes);
 
 // TIER 8 Extension: Billing + Tier Management (Stripe + Database)
 app.use('/api/billing', billingRoutes);
+
+// Feature Flags: Tier-based feature access control
+app.use('/api/features', featureFlagsRoutes);
 
 // TIERS 5-15: Autonomous Systems (Trending, Audience, A/B, ROI, etc.)
 registerTrendingRoutes(app);
@@ -527,6 +546,8 @@ Promise.all([
   initializeUserTiersTable(),
   initFeedbackSchema(),
   initWeightsSchema(),
+  initializeBillingTables(),
+  initializeWebhookTables(),
   initRedis(), // Initialize Redis for caching + rate limiting
   runMigrationsIfNeeded(), // Run DB migrations
 ])
@@ -534,7 +555,7 @@ Promise.all([
     feedIAOrchestrator.initializeAgents();
     startPollingScheduler();
     const redisStatus = isRedisReady() ? '✅ Redis enabled' : '⚠️  Redis disabled';
-    log.info(`[Server] initialized: metrics polling + carousel storage + billing/tiers + quality feedback loop (${redisStatus})`);
+    log.info(`[Server] initialized: metrics polling + carousel storage + billing/tiers + webhooks + quality feedback loop (${redisStatus})`);
   })
   .catch((err) => log.error('[Server] initialization failed', err));
 

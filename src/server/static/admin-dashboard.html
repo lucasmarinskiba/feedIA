@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FeedIA Admin Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --text-tertiary: #94a3b8;
+      --border: #475569;
+    }
+
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .nav-section {
+      margin-bottom: 25px;
+    }
+
+    .nav-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 12px;
+      padding: 0 10px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .nav-item:hover {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+    }
+
+    .nav-item.active {
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--primary);
+      border-left: 3px solid var(--primary);
+      padding-left: 9px;
+    }
+
+    .nav-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Main Content */
+    .main {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .topbar-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    /* Cards and Panels */
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .metric-change {
+      font-size: 12px;
+      margin-top: 8px;
+      color: var(--text-tertiary);
+    }
+
+    .metric-change.up {
+      color: var(--success);
+    }
+
+    .metric-change.down {
+      color: var(--danger);
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      background: rgba(99, 102, 241, 0.05);
+      border-bottom: 2px solid var(--border);
+    }
+
+    th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    tr:hover {
+      background: rgba(99, 102, 241, 0.03);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn.secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn.secondary:hover {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+    }
+
+    .btn.danger {
+      background: var(--danger);
+    }
+
+    .btn.danger:hover {
+      background: #dc2626;
+    }
+
+    .btn.success {
+      background: var(--success);
+    }
+
+    .btn.warning {
+      background: var(--warning);
+    }
+
+    .btn.small {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    /* Status badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge.success {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+
+    .badge.danger {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+    }
+
+    .badge.warning {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+
+    .badge.primary {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+    }
+
+    /* Modals */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-tertiary);
+      font-size: 24px;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    /* Status Indicators */
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.online {
+      background: var(--success);
+    }
+
+    .status-dot.offline {
+      background: var(--danger);
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%,
+      100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .tab-button {
+      padding: 12px 20px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .tab-button:hover {
+      color: var(--primary);
+    }
+
+    .tab-button.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Toast notifications */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      z-index: 2000;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+      }
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    .toast.success {
+      border-left: 4px solid var(--success);
+    }
+
+    .toast.error {
+      border-left: 4px solid var(--danger);
+    }
+
+    .toast.warning {
+      border-left: 4px solid var(--warning);
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Charts placeholder */
+    .chart {
+      width: 100%;
+      height: 300px;
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-tertiary);
+      border: 1px solid var(--border);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .content {
+        padding: 16px;
+      }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .flex {
+      display: flex;
+    }
+
+    .gap-2 {
+      gap: 8px;
+    }
+
+    .gap-4 {
+      gap: 16px;
+    }
+
+    .mt-4 {
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">🛡️ FeedIA</span>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Dashboard</div>
+        <div class="nav-item active" data-page="overview">
+          <span class="nav-icon">📊</span>
+          <span>Overview</span>
+        </div>
+        <div class="nav-item" data-page="agents">
+          <span class="nav-icon">🤖</span>
+          <span>Agents</span>
+        </div>
+        <div class="nav-item" data-page="cache">
+          <span class="nav-icon">⚡</span>
+          <span>Cache</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Management</div>
+        <div class="nav-item" data-page="users">
+          <span class="nav-icon">👥</span>
+          <span>Users</span>
+        </div>
+        <div class="nav-item" data-page="campaigns">
+          <span class="nav-icon">📱</span>
+          <span>Campaigns</span>
+        </div>
+        <div class="nav-item" data-page="database">
+          <span class="nav-icon">🗄️</span>
+          <span>Database</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Monitoring</div>
+        <div class="nav-item" data-page="alerts">
+          <span class="nav-icon">🔔</span>
+          <span>Alerts</span>
+        </div>
+        <div class="nav-item" data-page="logs">
+          <span class="nav-icon">📜</span>
+          <span>Logs</span>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="btn secondary" id="logout-btn" style="width: 100%">
+          🚪 Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main">
+      <div class="topbar">
+        <h1 class="topbar-title" id="page-title">Dashboard Overview</h1>
+        <div class="topbar-actions">
+          <button class="btn secondary small" id="refresh-btn">🔄 Refresh</button>
+          <div class="status" id="connection-status">
+            <span class="status-dot offline"></span>
+            <span>Connecting...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="content" id="page-content">
+        <!-- Content will be injected here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal" id="create-user-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Create Test User</h2>
+        <button class="modal-close" onclick="closeModal('create-user-modal')">✕</button>
+      </div>
+      <form id="create-user-form">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" required placeholder="test@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Tier</label>
+          <select name="tier" required>
+            <option value="free">Free</option>
+            <option value="pro">Pro</option>
+            <option value="enterprise">Enterprise</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" name="name" placeholder="User Name" />
+        </div>
+        <button type="submit" class="btn" style="width: 100%">Create User</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="upgrade-tier-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Upgrade User Tier</h2>
+        <button class="modal-close" onclick="closeModal('upgrade-tier-modal')">✕</button>
+      </div>
+      <form id="upgrade-tier-form">
+        <div class="form-group">
+          <label>User ID</label>
+          <input type="text" name="userId" required placeholder="user123" />
+        </div>
+        <div class="form-group">
+          <label>New Tier</label>
+          <select name="newTier" required>
+            <option value="free">Free</option>
+            <option value="pro">Pro</option>
+            <option value="enterprise">Enterprise</option>
+          </select>
+        </div>
+        <button type="submit" class="btn" style="width: 100%">Upgrade Tier</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ════════════════════════════════════════════════════════════════════════════
+    // Admin Dashboard Application
+    // ════════════════════════════════════════════════════════════════════════════
+
+    const API_BASE = '';
+    const ADMIN_KEY = localStorage.getItem('adminKey');
+
+    // Ensure admin authentication
+    if (!ADMIN_KEY) {
+      const key = prompt('Enter admin key:');
+      if (!key) {
+        alert('Admin key required');
+        window.location.href = '/';
+      } else {
+        localStorage.setItem('adminKey', key);
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // State Management
+    // ════════════════════════════════════════════════════════════════════════════
+
+    let state = {
+      currentPage: 'overview',
+      data: {},
+      autoRefresh: true,
+      connected: false,
+    };
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // API Functions
+    // ════════════════════════════════════════════════════════════════════════════
+
+    async function apiCall(endpoint, options = {}) {
+      try {
+        const headers = {
+          'Content-Type': 'application/json',
+          'X-Admin-Key': ADMIN_KEY,
+          ...options.headers,
+        };
+
+        const response = await fetch(`${API_BASE}${endpoint}`, {
+          ...options,
+          headers,
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem('adminKey');
+          window.location.href = '/';
+          return null;
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error(`API Error: ${endpoint}`, error);
+        showToast(`API Error: ${error.message}`, 'error');
+        return null;
+      }
+    }
+
+    async function loadOverviewData() {
+      const [summary, health, infra, cache, trends] = await Promise.all([
+        apiCall('/api/admin/summary'),
+        apiCall('/api/admin/health'),
+        apiCall('/api/admin/infra'),
+        apiCall('/api/admin/cache'),
+        apiCall('/api/admin/trends?window=60'),
+      ]);
+
+      state.data.overview = { summary, health, infra, cache, trends };
+      renderOverview();
+    }
+
+    async function loadAgentsData() {
+      const data = await apiCall('/api/admin/agents');
+      state.data.agents = data;
+      renderAgents();
+    }
+
+    async function loadCacheData() {
+      const data = await apiCall('/api/admin/cache');
+      state.data.cache = data;
+      renderCache();
+    }
+
+    async function loadErrorsData() {
+      const data = await apiCall('/api/admin/errors?limit=50');
+      state.data.errors = data;
+      renderLogs();
+    }
+
+    async function loadRecommendations() {
+      const data = await apiCall('/api/admin/recommendations');
+      return data;
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // Render Functions
+    // ════════════════════════════════════════════════════════════════════════════
+
+    function renderOverview() {
+      const { summary, health, cache, trends } = state.data.overview || {};
+
+      if (!summary) {
+        document.getElementById('page-content').innerHTML =
+          '<div class="card"><p>Loading...</p></div>';
+        return;
+      }
+
+      const exec = summary.executive_summary || {};
+
+      document.getElementById('page-content').innerHTML = `
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">System Status</div>
+            <div class="metric-value">
+              <span class="status-dot ${exec.systemStatus === 'healthy' ? 'online' : 'offline'}"></span>
+              ${exec.systemStatus || 'Unknown'}
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Quality Score</div>
+            <div class="metric-value">${exec.qualityScore || '0'}%</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Success Rate</div>
+            <div class="metric-value">${exec.successRate || '0'}%</div>
+            <div class="metric-change up">+2.3% today</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Error Rate</div>
+            <div class="metric-value">${exec.errorRate || '0'}%</div>
+            <div class="metric-change down">-0.5% today</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Prompts Total</div>
+            <div class="metric-value">${formatNumber(exec.totalPrompts || 0)}</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Content Generated</div>
+            <div class="metric-value">${formatNumber(exec.contentGenerated || 0)}</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🤖 Agents</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
+            <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+              <div class="metric-label">Active Agents</div>
+              <div style="font-size: 20px; font-weight: 700;">${exec.agents?.active || 0}</div>
+            </div>
+            <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+              <div class="metric-label">Avg Success Rate</div>
+              <div style="font-size: 20px; font-weight: 700;">${exec.agents?.avgSuccessRate || '0'}%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 Queue Status</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+            <div style="padding: 12px; text-align: center;">
+              <div class="metric-label">Pending</div>
+              <div style="font-size: 18px; font-weight: 700; color: var(--warning);">${exec.queue?.pending || 0}</div>
+            </div>
+            <div style="padding: 12px; text-align: center;">
+              <div class="metric-label">Processing</div>
+              <div style="font-size: 18px; font-weight: 700; color: var(--primary);">${exec.queue?.processing || 0}</div>
+            </div>
+            <div style="padding: 12px; text-align: center;">
+              <div class="metric-label">Completed</div>
+              <div style="font-size: 18px; font-weight: 700; color: var(--success);">${exec.queue?.completed || 0}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">⚡ Cache Performance</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
+            <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+              <div class="metric-label">Prompt Cache Hit Rate</div>
+              <div style="font-size: 20px; font-weight: 700;">${exec.caching?.promptCacheHitRate || '0'}%</div>
+            </div>
+            <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+              <div class="metric-label">Content Cache Hit Rate</div>
+              <div style="font-size: 20px; font-weight: 700;">${exec.caching?.contentCacheHitRate || '0'}%</div>
+            </div>
+          </div>
+        </div>
+
+        ${
+          exec.warnings && exec.warnings.length > 0
+            ? `
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">⚠️ Warnings</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${exec.warnings.map((w) => `<div style="padding: 12px; background: rgba(245, 158, 11, 0.1); border-left: 3px solid var(--warning); border-radius: 4px;">${escapeHtml(w)}</div>`).join('')}
+            </div>
+          </div>
+        `
+            : ''
+        }
+      `;
+    }
+
+    function renderAgents() {
+      const { agents } = state.data;
+
+      if (!agents) {
+        document.getElementById('page-content').innerHTML =
+          '<div class="card"><p>Loading agents...</p></div>';
+        return;
+      }
+
+      const rows = (agents.agents || [])
+        .map(
+          (agent) => `
+        <tr>
+          <td><strong>${escapeHtml(agent.id)}</strong></td>
+          <td>${escapeHtml(agent.specialization)}</td>
+          <td>${agent.tasksCompleted}</td>
+          <td><span class="badge success">${agent.successRate}</span></td>
+          <td>${agent.avgLatency}</td>
+          <td><span class="badge ${agent.errorRate > 5 ? 'danger' : 'success'}">${agent.errorRate}</span></td>
+        </tr>
+      `,
+        )
+        .join('');
+
+      document.getElementById('page-content').innerHTML = `
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🤖 Agent Metrics</div>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Agent ID</th>
+                  <th>Specialization</th>
+                  <th>Tasks Completed</th>
+                  <th>Success Rate</th>
+                  <th>Avg Latency</th>
+                  <th>Error Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCache() {
+      const { cache } = state.data;
+
+      if (!cache) {
+        document.getElementById('page-content').innerHTML =
+          '<div class="card"><p>Loading cache data...</p></div>';
+        return;
+      }
+
+      const caches = cache.caches || {};
+
+      const cacheRows = Object.entries(caches)
+        .map(
+          ([name, stats]) => `
+        <tr>
+          <td>${escapeHtml(name)}</td>
+          <td>${stats.hits || 0}</td>
+          <td>${stats.misses || 0}</td>
+          <td><strong>${(stats.hitRate || 0).toFixed(1)}%</strong></td>
+          <td>${formatBytes(stats.size || 0)}</td>
+        </tr>
+      `,
+        )
+        .join('');
+
+      document.getElementById('page-content').innerHTML = `
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Overall Hit Rate</div>
+            <div class="metric-value">${cache.overallHitRate || '0'}%</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Total Cache Size</div>
+            <div class="metric-value">${formatBytes(cache.totalSize || 0)}</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">⚡ Cache Performance</div>
+            <button class="btn small" onclick="clearCache()">Clear Cache</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Cache Type</th>
+                  <th>Hits</th>
+                  <th>Misses</th>
+                  <th>Hit Rate</th>
+                  <th>Size</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${cacheRows}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderUsers() {
+      document.getElementById('page-content').innerHTML = `
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">👥 Users Management</div>
+            <button class="btn small" onclick="openModal('create-user-modal')">+ Create User</button>
+          </div>
+          <div style="padding: 20px;">
+            <input type="text" placeholder="Search users by email..." id="user-search" style="margin-bottom: 16px;" />
+            <div id="users-table">
+              <p class="text-tertiary">Feature coming soon...</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📈 Subscription Management</div>
+          </div>
+          <button class="btn small" onclick="openModal('upgrade-tier-modal')" style="margin-bottom: 16px;">↑ Upgrade Tier</button>
+          <div id="subscriptions-table">
+            <p class="text-tertiary">Feature coming soon...</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCampaigns() {
+      document.getElementById('page-content').innerHTML = `
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📱 Campaigns Management</div>
+            <button class="btn secondary small">🔍 Search</button>
+          </div>
+          <div style="padding: 20px;">
+            <input type="text" placeholder="Search campaigns..." style="margin-bottom: 16px;" />
+            <table>
+              <thead>
+                <tr>
+                  <th>Campaign ID</th>
+                  <th>User</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-tertiary);">Feature coming soon...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDatabase() {
+      document.getElementById('page-content').innerHTML = `
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🗄️ Database Management</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <button class="btn" onclick="runMigration()">▶️ Run Migrations</button>
+            <button class="btn" onclick="seedDatabase()">🌱 Seed Test Data</button>
+            <button class="btn secondary" onclick="getDatabaseStatus()">📊 Get Status</button>
+            <button class="btn danger" onclick="confirm('Reset database?') && resetDatabase()">🔄 Reset DB</button>
+          </div>
+          <div id="db-status">
+            <p class="text-tertiary">Click "Get Status" to load database information...</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAlerts() {
+      document.getElementById('page-content').innerHTML = `
+        <div class="tabs">
+          <button class="tab-button active" onclick="switchTab(event, 'active-alerts')">Active Alerts</button>
+          <button class="tab-button" onclick="switchTab(event, 'alert-history')">History</button>
+        </div>
+
+        <div id="active-alerts" class="tab-content active">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🔔 Active Alerts</div>
+              <button class="btn danger small">Silence All</button>
+            </div>
+            <div style="padding: 20px;">
+              <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--success); border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+                <strong style="color: var(--success);">✓ System Healthy</strong>
+                <p style="font-size: 13px; margin-top: 4px; color: var(--text-secondary);">All systems operational</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="alert-history" class="tab-content">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📜 Alert History</div>
+            </div>
+            <p class="text-tertiary" style="padding: 20px;">Feature coming soon...</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLogs() {
+      loadErrorsData();
+
+      const { errors } = state.data;
+
+      if (!errors) {
+        document.getElementById('page-content').innerHTML =
+          '<div class="card"><p>Loading errors...</p></div>';
+        return;
+      }
+
+      const rows = (errors.errors || [])
+        .slice(0, 50)
+        .map(
+          (err) => `
+        <tr>
+          <td><code style="font-size: 11px;">${escapeHtml(err.id || '').slice(0, 8)}</code></td>
+          <td>${new Date(err.timestamp).toLocaleString()}</td>
+          <td><code>${escapeHtml(err.method || 'UNKNOWN')}</code></td>
+          <td>${escapeHtml(err.path || '')}</td>
+          <td><span class="badge danger">${escapeHtml((err.status || 500).toString())}</span></td>
+          <td><code style="font-size: 11px; color: var(--danger);">${escapeHtml((err.message || '').slice(0, 50))}</code></td>
+        </tr>
+      `,
+        )
+        .join('');
+
+      document.getElementById('page-content').innerHTML = `
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📜 Error Logs (Last 50)</div>
+            <button class="btn secondary small" onclick="location.reload()">🔄 Refresh</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Timestamp</th>
+                  <th>Method</th>
+                  <th>Path</th>
+                  <th>Status</th>
+                  <th>Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows || '<tr><td colspan="6" style="text-align: center; padding: 20px;">No errors recorded</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // Page Management
+    // ════════════════════════════════════════════════════════════════════════════
+
+    function navigateTo(page) {
+      state.currentPage = page;
+
+      document.querySelectorAll('.nav-item').forEach((item) => {
+        item.classList.toggle('active', item.dataset.page === page);
+      });
+
+      const titles = {
+        overview: '📊 Dashboard Overview',
+        agents: '🤖 Agent Metrics',
+        cache: '⚡ Cache Performance',
+        users: '👥 Users Management',
+        campaigns: '📱 Campaigns',
+        database: '🗄️ Database Management',
+        alerts: '🔔 Alerts',
+        logs: '📜 Error Logs',
+      };
+
+      document.getElementById('page-title').textContent = titles[page] || page;
+
+      switch (page) {
+        case 'overview':
+          loadOverviewData();
+          break;
+        case 'agents':
+          loadAgentsData();
+          break;
+        case 'cache':
+          loadCacheData();
+          break;
+        case 'users':
+          renderUsers();
+          break;
+        case 'campaigns':
+          renderCampaigns();
+          break;
+        case 'database':
+          renderDatabase();
+          break;
+        case 'alerts':
+          renderAlerts();
+          break;
+        case 'logs':
+          renderLogs();
+          break;
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // UI Utilities
+    // ════════════════════════════════════════════════════════════════════════════
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function switchTab(event, tabId) {
+      event.target.parentElement.querySelectorAll('.tab-button').forEach((btn) => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      document.querySelectorAll('.tab-content').forEach((tab) => {
+        tab.classList.remove('active');
+      });
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    function formatNumber(n) {
+      return new Intl.NumberFormat('en-US').format(n);
+    }
+
+    function formatBytes(bytes) {
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      if (bytes === 0) return '0 B';
+      const i = Math.floor(Math.log(bytes) / Math.log(1024));
+      return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+    }
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;',
+      };
+      return text.replace(/[&<>"']/g, (c) => map[c]);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // Admin Operations
+    // ════════════════════════════════════════════════════════════════════════════
+
+    async function clearCache() {
+      if (!confirm('Clear all caches?')) return;
+      const result = await apiCall('/api/cache/clear', { method: 'POST' });
+      if (result) {
+        showToast('Cache cleared successfully', 'success');
+        loadCacheData();
+      }
+    }
+
+    async function runMigration() {
+      if (!confirm('Run database migrations?')) return;
+      const result = await apiCall('/api/admin/migrate', { method: 'POST' });
+      if (result) {
+        showToast('Migrations completed', 'success');
+      }
+    }
+
+    async function seedDatabase() {
+      if (!confirm('Seed test data? This may take a moment.')) return;
+      const result = await apiCall('/api/admin/seed', { method: 'POST' });
+      if (result) {
+        showToast('Database seeded with test data', 'success');
+      }
+    }
+
+    async function getDatabaseStatus() {
+      const result = await apiCall('/api/admin/database-status');
+      if (result) {
+        document.getElementById('db-status').innerHTML = `
+          <div class="card">
+            <pre style="font-size: 12px; overflow-x: auto;">${JSON.stringify(result, null, 2)}</pre>
+          </div>
+        `;
+      }
+    }
+
+    async function resetDatabase() {
+      const result = await apiCall('/api/admin/database-reset', { method: 'POST' });
+      if (result) {
+        showToast('Database reset completed', 'success');
+      }
+    }
+
+    // Form handlers
+    document.getElementById('create-user-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const result = await apiCall('/api/admin/create-user', {
+        method: 'POST',
+        body: JSON.stringify(Object.fromEntries(formData)),
+      });
+      if (result) {
+        showToast('User created successfully', 'success');
+        closeModal('create-user-modal');
+        e.target.reset();
+      }
+    });
+
+    document.getElementById('upgrade-tier-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const result = await apiCall('/api/admin/upgrade-tier', {
+        method: 'POST',
+        body: JSON.stringify(Object.fromEntries(formData)),
+      });
+      if (result) {
+        showToast('Tier upgraded successfully', 'success');
+        closeModal('upgrade-tier-modal');
+        e.target.reset();
+      }
+    });
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // Event Listeners
+    // ════════════════════════════════════════════════════════════════════════════
+
+    document.querySelectorAll('.nav-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        navigateTo(item.dataset.page);
+      });
+    });
+
+    document.getElementById('refresh-btn')?.addEventListener('click', () => {
+      navigateTo(state.currentPage);
+    });
+
+    document.getElementById('logout-btn')?.addEventListener('click', () => {
+      localStorage.removeItem('adminKey');
+      window.location.href = '/';
+    });
+
+    // Close modals on background click
+    document.querySelectorAll('.modal').forEach((modal) => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('active');
+        }
+      });
+    });
+
+    // Connection status
+    function updateConnectionStatus() {
+      const status = document.getElementById('connection-status');
+      status.querySelector('.status-dot').className = 'status-dot online';
+      status.querySelector('span').textContent = 'Connected';
+      state.connected = true;
+    }
+
+    // Auto-refresh
+    setInterval(() => {
+      if (state.autoRefresh && state.connected) {
+        const page = state.currentPage;
+        if (page === 'overview') loadOverviewData();
+        if (page === 'agents') loadAgentsData();
+        if (page === 'cache') loadCacheData();
+        if (page === 'logs') loadErrorsData();
+      }
+    }, 5000);
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      updateConnectionStatus();
+      navigateTo('overview');
+    });
+  </script>
+</body>
+</html>

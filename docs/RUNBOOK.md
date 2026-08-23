@@ -1,172 +1,83 @@
-# Runbook operativo — FeedIA
+# FeedIA Operational Runbook
 
-Guía rápida para diagnosticar y resolver incidentes comunes en producción.
+## Incident Response
 
----
+### High Error Rate (5xx > 5%)
 
-## 1. Página en rojo / 500 en Vercel
+**Diagnosis**: Check /health endpoint, check railway logs
 
-### Síntomas
+**Fix**:
+1. Restart web service (Railway UI → Deploy → Restart)
+2. Restart Redis cluster if disconnected
+3. Check recent code changes, rollback if needed
+4. Monitor /metrics for error rate drop
 
-- `https://feedia.vercel.app` devuelve 500.
-- `/api/v1/health` no responde 200.
+### Rate Limit Spike (429)
 
-### Pasos
+**Causes**: DDoS, client bug, legitimate surge
 
-1. Revisar logs de Vercel:
+**Fix**:
+1. Check /metrics for top IP addresses
+2. Update CORS whitelist or rate limit if needed
+3. Clear Redis rate-limit buckets
 
-   ```bash
-   npx vercel logs feedia.vercel.app --token=<TOKEN>
-   ```
+### Slow Queries (P95 > 1s)
 
-2. Verificar que las serverless functions no fallen por variables faltantes:
+**Diagnosis**: Check /metrics for latency_ms
 
-   ```bash
-   curl https://feedia.vercel.app/api/v1/health
-   ```
+**Fix**:
+1. Check PostgreSQL slow query log
+2. Add missing indexes if needed
+3. Check cache hit rate (target > 60%)
 
-3. Si el error es de Supabase, revisar:
-   - `SUPABASE_SERVICE_ROLE_KEY` vigente.
-   - Proyecto Supabase no en pausa.
-   - RLS no bloquea queries admin.
+### Database Connection Pool Exhaustion
 
-4. Rollback:
-   - Vercel → Deployments → Promote previous deployment.
+**Symptoms**: "connect ECONNREFUSED"
 
----
+**Fix**:
+1. Kill long-running queries
+2. Increase pool size in src/db/client.ts
+3. Restart service
 
-## 2. Workers no consumen jobs
+### Out Of Memory Crash
 
-### Síntomas
+**Symptoms**: Service restarts repeatedly
 
-- Colas crecen en `/api/admin/monitoring`.
-- Ningún worker procesa jobs.
+**Fix**:
+1. Check memory usage on Railway dashboard
+2. Run load test to trigger leak
+3. Add LIMIT clauses to queries
+4. Restart service + monitor
 
-### Pasos
+## Deployment Procedures
 
-1. Verificar que el servicio de workers esté corriendo:
-   - Render/Railway/Fly dashboard.
+### Deploy to Staging
+```bash
+git push origin feature-branch
+# CI runs automatically: lint, type-check, tests
+# Auto-deploys to staging
+```
 
-2. Revisar logs de workers:
+### Deploy to Production
+```bash
+git tag -a v1.0.5 -m "Bump to 1.0.5"
+git push origin v1.0.5
+# GitHub Actions auto-deploys + health checks
+```
 
-   ```bash
-   # Render
-   render logs feedia-workers
+### Rollback
+```bash
+git tag -a v1.0.4-hotfix -m "Rollback to 1.0.4"
+git push origin v1.0.4-hotfix
+# Auto-deploys previous version
+```
 
-   # Fly
-   flyctl logs --app feedia-workers
-   ```
+## Scheduled Maintenance
 
-3. Verificar conexión Redis:
-
-   ```bash
-   npm run setup:redis
-   ```
-
-4. Reiniciar workers:
-   - Trigger deploy hook manualmente.
-   - O redeployar imagen anterior.
-
----
-
-## 3. Rate limits 429
-
-### Síntomas
-
-- Usuarios reciben 429.
-- Dashboard de monitoreo muestra créditos agotados.
-
-### Pasos
-
-1. Identificar si es por plan o por acción costosa:
-
-   ```bash
-   curl https://feedia.vercel.app/api/admin/stats
-   ```
-
-2. Si es legítimo:
-   - El usuario debe esperar al reset diario.
-   - O comprar credit pack.
-
-3. Si es falso positivo:
-   - Revisar `ACTION_COSTS` en `api/_rateLimit.js`.
-   - Considerar aumentar `PLAN_CREDITS`.
+- Daily: Monitor error rate, check cache hit rate
+- Weekly: Run load tests, review slow query logs
+- Monthly: VACUUM ANALYZE, rotate API keys
 
 ---
 
-## 4. Rollback de migración
-
-### Síntomas
-
-- Migración aplicada rompe la app.
-
-### Pasos
-
-1. **No hacer rollback destructivo** sin backup.
-2. Restaurar desde backup automático de Supabase:
-   - Supabase → Database → Backups → Restore.
-3. Si la migración tiene errores menores, crear migración correctora:
-   ```bash
-   supabase migration new fix_broken_migration
-   ```
-4. Aplicar corrección:
-   ```bash
-   supabase db push
-   ```
-
----
-
-## 5. Webhook de Meta no funciona
-
-### Síntomas
-
-- No llegan eventos de Instagram/TikTok.
-- Meta muestra error al registrar webhook.
-
-### Pasos
-
-1. Verificar `META_VERIFY_TOKEN` y `META_APP_SECRET`.
-2. Revisar que la URL del webhook sea pública:
-   ```bash
-   curl https://feedia.vercel.app/api/webhook/meta
-   ```
-3. Revisar firma de los payloads.
-4. Verificar logs de Vercel.
-
----
-
-## 6. Sentry reporta errores
-
-### Pasos
-
-1. Ir a Sentry dashboard.
-2. Filtrar por release/tag.
-3. Si el error es nuevo en un release:
-   - Rollback de Vercel/workers.
-   - Crear hotfix en `main` y taggear patch.
-
----
-
-## 7. Smoke tests fallan post-deploy
-
-### Pasos
-
-1. Correr manualmente:
-
-   ```bash
-   node scripts/smoke-tests.mjs https://feedia.vercel.app
-   ```
-
-2. Identificar cuál de los checks falla:
-   - `/api/v1/health` → revisar Vercel functions.
-   - `x-feedia-version` → revisar build de frontend.
-   - Security headers → revisar `vercel.json`.
-   - `/api/admin/monitoring` protegido → revisar auth.
-
----
-
-## 8. Contacto y escalación
-
-- Owner: `lucasdmarin@gmail.com`
-- Canal de alertas: webhook configurado en `ADMIN_WEBHOOK_URL`.
-- Repositorio: ver GitHub Actions para estado de CI/CD.
+**Version**: 1.0

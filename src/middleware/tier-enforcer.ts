@@ -1,9 +1,10 @@
 /**
  * Tier Enforcement Middleware
- * Validates user tier against app limits (campaigns/mo, batch size, etc.)
+ * Validates user tier against app limits (campaigns/mo, batch size, usage budget, etc.)
  */
 
 import { getUserTier, incrementCampaignUsage } from '../db/user-tiers.js';
+import { canProceed as canProceedBilling } from '../services/billing-manager.js';
 
 export interface TierContext {
   userId: string;
@@ -100,4 +101,58 @@ export const checkFeatureAccess = (
   };
 
   return features[tier][feature] ?? false;
+};
+
+/**
+ * Validate access considering both campaign limits and billing budget
+ */
+export const validateAccessWithBilling = async (
+  userId: string,
+  campaignCount: number = 1,
+  service: 'api_call' | 'content_generation' | 'image_upscale' | 'video_generation' = 'api_call',
+): Promise<{
+  allowed: boolean;
+  context: TierContext | null;
+  reason?: string;
+  billingStatus?: { budgetRemaining: number };
+}> => {
+  try {
+    // Check campaign tier limits
+    const tierResult = await validateTierAccess(userId, campaignCount);
+    if (!tierResult.allowed) {
+      return {
+        allowed: false,
+        context: tierResult.context,
+        reason: tierResult.reason,
+      };
+    }
+
+    // Check billing budget
+    const billingResult = await canProceedBilling(userId, service);
+    if (!billingResult.allowed) {
+      return {
+        allowed: false,
+        context: tierResult.context,
+        reason: billingResult.reason,
+        billingStatus: {
+          budgetRemaining: billingResult.budgetRemaining || 0,
+        },
+      };
+    }
+
+    return {
+      allowed: true,
+      context: tierResult.context,
+      billingStatus: {
+        budgetRemaining: billingResult.budgetRemaining || 0,
+      },
+    };
+  } catch (err) {
+    console.error('[TierEnforcer] Validation with billing error:', err);
+    return {
+      allowed: false,
+      context: null,
+      reason: 'Tier validation error',
+    };
+  }
 };

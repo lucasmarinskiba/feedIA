@@ -28,6 +28,7 @@
     "setup:redis": "node scripts/setup-redis.mjs",
     "setup:all": "node scripts/setup-all.mjs",
     "db:migrate": "tsx src/scripts/migrate.ts",
+    "seed:prod": "tsx src/scripts/seed-production-data.ts",
     "build:docker": "docker build -t feedia-workers:latest .",
     "workers": "node dist/workers/index.js",
     "workers:dev": "tsx src/workers/index.ts",
