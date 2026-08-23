@@ -81,13 +81,15 @@ import { initFeedbackSchema, initWeightsSchema } from './db/feedback-schema.js';
 import { PRICING_HTML } from './api/pricing-routes.js';
 import { registerTrendingRoutes } from './api/trending-endpoints.js';
 import { registerTiers5_15Routes } from './api/tiers5-15-bundled.js';
-import { initRedis, isRedisReady, redisHealthCheck } from './cache/redis-client.js';
-import { authRateLimiter, apiRateLimiter } from './middleware/redis-rate-limiter.js';
+import { initRedis, isRedisReady } from './cache/redis-client.js';
 import { initializeBillingTables } from './services/billing-manager.js';
 import { initializeWebhookTables } from './services/webhook-service.js';
 import featureFlagsRoutes from './api/feature-flags-routes.js';
 import { registerBootstrapRoutes } from './api/bootstrap-routes.js';
 import { registerSeedEndpoint } from './api/seed-endpoint.js';
+import { register, login, logout, refresh, verifyJWT } from './api/auth-endpoints.js';
+import { registerUserRoutes } from './api/user-routes.js';
+import { registerContentStorageRoutes } from './api/content-storage-routes.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -214,6 +216,18 @@ app.use((req: Request, res: Response, next) => {
   req.brand = mockBrand;
   next();
 });
+
+// Authentication routes (public — no API key required)
+app.post('/api/auth/register', register);
+app.post('/api/auth/login', login);
+app.post('/api/auth/refresh', refresh);
+app.post('/api/auth/logout', verifyJWT, logout);
+
+// User routes (require authentication)
+registerUserRoutes(app);
+
+// Content storage routes (posts, videos, carousels management)
+registerContentStorageRoutes(app);
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {
@@ -483,7 +497,12 @@ app.post('/api/admin/migrate', adminKeyAuth, async (_req, res): Promise<void> =>
     }
 
     const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
-    const schemaFiles = ['src/db/carousel-storage-schema.sql', 'src/db/video-storage-schema.sql', 'src/db/analytics-schema.sql'];
+    const schemaFiles = [
+      'src/db/users-schema.sql',
+      'src/db/carousel-storage-schema.sql',
+      'src/db/video-storage-schema.sql',
+      'src/db/analytics-schema.sql',
+    ];
     const results: string[] = [];
 
     for (const file of schemaFiles) {
@@ -528,7 +547,12 @@ async function runMigrationsIfNeeded(): Promise<void> {
     if (!connStr) return; // Skip if no DB URL
 
     const pool = new Pool({ connectionString: connStr, ssl: { rejectUnauthorized: false } });
-    const files = ['src/db/carousel-storage-schema.sql', 'src/db/video-storage-schema.sql', 'src/db/analytics-schema.sql'];
+    const files = [
+      'src/db/users-schema.sql',
+      'src/db/carousel-storage-schema.sql',
+      'src/db/video-storage-schema.sql',
+      'src/db/analytics-schema.sql',
+    ];
 
     for (const file of files) {
       const fpath = path.resolve(process.cwd(), file);
@@ -563,7 +587,9 @@ Promise.all([
     feedIAOrchestrator.initializeAgents();
     startPollingScheduler();
     const redisStatus = isRedisReady() ? '✅ Redis enabled' : '⚠️  Redis disabled';
-    log.info(`[Server] initialized: metrics polling + carousel storage + billing/tiers + webhooks + quality feedback loop (${redisStatus})`);
+    log.info(
+      `[Server] initialized: metrics polling + carousel storage + billing/tiers + webhooks + quality feedback loop (${redisStatus})`,
+    );
   })
   .catch((err) => log.error('[Server] initialization failed', err));
 
