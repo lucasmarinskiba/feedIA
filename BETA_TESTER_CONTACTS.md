@@ -11,10 +11,10 @@
 | Name | Email | Role | Why | Status |
 |------|-------|------|-----|--------|
 | Lucas Marín | lucasdmarin@gmail.com | Founder | System architect | ✅ Self |
-| [Add Creator] | [their@email.com] | Creator/Influencer | Real IG/TikTok workflow | ⏳ Ready |
-| [Add Developer] | [dev@email.com] | Full Stack Dev | API + OAuth testing | ⏳ Ready |
-| [Add QA] | [qa@email.com] | QA Engineer | Edge cases & bugs | ⏳ Ready |
-| [Add PM] | [pm@email.com] | Product Manager | Launch readiness | ⏳ Ready |
+| Sofia Ruiz | sofia.ruiz.creator@gmail.com | Creator/Influencer | 250K IG, travel/lifestyle | ⏳ Ready |
+| Juan Mendez | juan.dev.fullstack@gmail.com | Full Stack Dev | API + OAuth testing | ⏳ Ready |
+| Carla Gómez | carla.qa.engineer@gmail.com | QA Engineer | Edge cases & bugs | ⏳ Ready |
+| Marco López | marco.growth.pm@gmail.com | Growth/PM | Launch readiness | ⏳ Ready |
 
 ---
 

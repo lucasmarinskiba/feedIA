@@ -92,6 +92,7 @@ import { registerUserRoutes } from './api/user-routes.js';
 import { registerContentStorageRoutes } from './api/content-storage-routes.js';
 import { registerSocialPublishingRoutes } from './api/social-publishing-routes.js';
 import { registerSocialAutomationRoutes } from './api/social-automation-complete.js';
+import { registerSocialIntelligenceRoutes } from './api/social-intelligence-agents.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -236,6 +237,9 @@ registerSocialPublishingRoutes(app);
 
 // Social automation routes (OAuth, scheduler, analytics, AI captions)
 registerSocialAutomationRoutes(app);
+
+// Social intelligence agents (CM, growth, design, copy, strategy, niche expertise)
+registerSocialIntelligenceRoutes(app);
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {
