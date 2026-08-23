@@ -426,6 +426,45 @@ if (staticDir) {
   });
 }
 
+// Admin: Run migrations
+app.post('/api/admin/migrate', adminKeyAuth, async (_req, res): Promise<void> => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { Pool } = require('pg');
+    const path = require('path');
+    const fs = require('fs');
+
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      res.status(500).json({ error: 'DATABASE_URL not set' });
+      return;
+    }
+
+    const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
+    const schemaFiles = ['src/db/carousel-storage-schema.sql', 'src/db/video-storage-schema.sql', 'src/db/analytics-schema.sql'];
+    const results: string[] = [];
+
+    for (const file of schemaFiles) {
+      const filePath = path.resolve(process.cwd(), file);
+      if (!fs.existsSync(filePath)) {
+        results.push(`⊘ ${file} (not found)`);
+        continue;
+      }
+      const sql = fs.readFileSync(filePath, 'utf-8');
+      try {
+        await pool.query(sql);
+        results.push(`✓ ${file}`);
+      } catch (e) {
+        results.push(`✗ ${file}: ${e instanceof Error ? e.message : 'unknown'}`);
+      }
+    }
+    await pool.end();
+    res.json({ status: 'complete', results });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 // Error handler (4-arg signature required by Express)
 app.use((err: Error, req: Request, res: Response, _next: express.NextFunction) => {
   log.error('[Server] error', { error: err.message });
