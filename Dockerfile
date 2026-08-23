@@ -52,6 +52,7 @@ COPY package.json pnpm-lock.yaml* ./
 COPY --from=builder /app/dist ./dist
 COPY data ./data
 COPY supabase/migrations ./supabase/migrations
+COPY src/db ./src/db
 
 ENV NODE_ENV=production
 ENV WORKERS_ENABLED=true
