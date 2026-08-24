@@ -10,7 +10,7 @@ ALTER TABLE carousels ADD COLUMN IF NOT EXISTS video_model VARCHAR(50) DEFAULT '
 -- Create videos table for tracking individual video uploads
 CREATE TABLE IF NOT EXISTS videos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  carousel_id UUID NOT NULL REFERENCES carousels(id) ON DELETE CASCADE,
+  carousel_id TEXT NOT NULL REFERENCES carousels(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id),
   video_url TEXT NOT NULL,
   file_size_mb INT NOT NULL,

@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS user_api_keys (
 CREATE TABLE IF NOT EXISTS user_generated_content (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  carousel_id UUID REFERENCES carousels(id) ON DELETE CASCADE,
+  carousel_id TEXT REFERENCES carousels(id) ON DELETE CASCADE,
   content_type VARCHAR(20) NOT NULL, -- post, carousel, reel, story, video
   title TEXT,
   description TEXT,

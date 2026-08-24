@@ -4,7 +4,7 @@
 -- Create carousel_analytics table for raw event tracking
 CREATE TABLE IF NOT EXISTS carousel_analytics (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  carousel_id UUID NOT NULL REFERENCES carousels(id) ON DELETE CASCADE,
+  carousel_id TEXT NOT NULL REFERENCES carousels(id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
   event_type VARCHAR(20) NOT NULL, -- view, share, save, like, click
   source VARCHAR(50), -- instagram, tiktok, direct, etc
@@ -26,7 +26,7 @@ CREATE INDEX IF NOT EXISTS idx_carousel_analytics_carousel_event ON carousel_ana
 -- Create carousel_metrics_daily table for aggregated metrics
 CREATE TABLE IF NOT EXISTS carousel_metrics_daily (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  carousel_id UUID NOT NULL REFERENCES carousels(id) ON DELETE CASCADE,
+  carousel_id TEXT NOT NULL REFERENCES carousels(id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
   date DATE NOT NULL,
   views INT DEFAULT 0,
