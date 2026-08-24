@@ -78,11 +78,12 @@ export const initializeUserTiersTable = async (): Promise<void> => {
         subscription_end_date TIMESTAMP,
         auto_renew BOOLEAN DEFAULT true,
         created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW(),
-        INDEX idx_user_id (user_id),
-        INDEX idx_email (email),
-        INDEX idx_stripe_customer (stripe_customer_id)
+        updated_at TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE INDEX IF NOT EXISTS idx_user_tiers_user_id ON user_tiers (user_id);
+      CREATE INDEX IF NOT EXISTS idx_user_tiers_email ON user_tiers (email);
+      CREATE INDEX IF NOT EXISTS idx_user_tiers_stripe_customer ON user_tiers (stripe_customer_id);
     `);
 
     console.log('[UserTiers] Table initialized');

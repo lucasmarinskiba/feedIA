@@ -29,10 +29,11 @@ export const initializeCampaignsTable = async (): Promise<void> => {
         total_tokens INTEGER DEFAULT 0,
         estimated_cost DECIMAL(10, 6) DEFAULT 0,
         created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW(),
-        INDEX idx_account_id (account_id),
-        INDEX idx_created_at (created_at)
+        updated_at TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE INDEX IF NOT EXISTS idx_agency_campaigns_account_id ON agency_campaigns (account_id);
+      CREATE INDEX IF NOT EXISTS idx_agency_campaigns_created_at ON agency_campaigns (created_at);
     `);
     console.log('[TIER 8] Campaigns table initialized');
   } catch (err) {

@@ -47,10 +47,11 @@ export const initializeWebhookTables = async (): Promise<void> => {
         secret TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW(),
-        INDEX idx_user_id (user_id),
-        INDEX idx_active (active),
         UNIQUE(user_id, url)
       );
+
+      CREATE INDEX IF NOT EXISTS idx_webhook_subscriptions_user_id ON webhook_subscriptions (user_id);
+      CREATE INDEX IF NOT EXISTS idx_webhook_subscriptions_active ON webhook_subscriptions (active);
     `);
 
     // Webhook events queue
@@ -66,11 +67,12 @@ export const initializeWebhookTables = async (): Promise<void> => {
         status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'delivered', 'failed')),
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW(),
-        FOREIGN KEY (subscription_id) REFERENCES webhook_subscriptions(id) ON DELETE CASCADE,
-        INDEX idx_subscription_id (subscription_id),
-        INDEX idx_status (status),
-        INDEX idx_next_retry (next_retry)
+        FOREIGN KEY (subscription_id) REFERENCES webhook_subscriptions(id) ON DELETE CASCADE
       );
+
+      CREATE INDEX IF NOT EXISTS idx_webhook_events_subscription_id ON webhook_events (subscription_id);
+      CREATE INDEX IF NOT EXISTS idx_webhook_events_status ON webhook_events (status);
+      CREATE INDEX IF NOT EXISTS idx_webhook_events_next_retry ON webhook_events (next_retry);
     `);
 
     // Webhook delivery logs
@@ -84,10 +86,11 @@ export const initializeWebhookTables = async (): Promise<void> => {
         error_message TEXT,
         delivery_at TIMESTAMP DEFAULT NOW(),
         duration_ms INTEGER,
-        FOREIGN KEY (event_id) REFERENCES webhook_events(id) ON DELETE CASCADE,
-        INDEX idx_event_id (event_id),
-        INDEX idx_subscription_id (subscription_id)
+        FOREIGN KEY (event_id) REFERENCES webhook_events(id) ON DELETE CASCADE
       );
+
+      CREATE INDEX IF NOT EXISTS idx_webhook_delivery_logs_event_id ON webhook_delivery_logs (event_id);
+      CREATE INDEX IF NOT EXISTS idx_webhook_delivery_logs_subscription_id ON webhook_delivery_logs (subscription_id);
     `);
 
     console.log('[WebhookService] Webhook tables initialized');

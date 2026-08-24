@@ -76,11 +76,12 @@ export const initializeBillingTables = async (): Promise<void> => {
         service TEXT NOT NULL CHECK (service IN ('api_call', 'content_generation', 'image_upscale', 'video_generation')),
         cost_usd DECIMAL(10,6) NOT NULL,
         metadata JSONB DEFAULT '{}',
-        created_at TIMESTAMP DEFAULT NOW(),
-        INDEX idx_user_id (user_id),
-        INDEX idx_date (date),
-        INDEX idx_service (service)
+        created_at TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE INDEX IF NOT EXISTS idx_billing_usage_user_id ON billing_usage (user_id);
+      CREATE INDEX IF NOT EXISTS idx_billing_usage_date ON billing_usage (date);
+      CREATE INDEX IF NOT EXISTS idx_billing_usage_service ON billing_usage (service);
     `);
 
     // Billing transactions table
@@ -93,11 +94,12 @@ export const initializeBillingTables = async (): Promise<void> => {
         description TEXT,
         timestamp TIMESTAMP DEFAULT NOW(),
         metadata JSONB DEFAULT '{}',
-        created_at TIMESTAMP DEFAULT NOW(),
-        INDEX idx_user_id (user_id),
-        INDEX idx_timestamp (timestamp),
-        INDEX idx_type (transaction_type)
+        created_at TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE INDEX IF NOT EXISTS idx_billing_transactions_user_id ON billing_transactions (user_id);
+      CREATE INDEX IF NOT EXISTS idx_billing_transactions_timestamp ON billing_transactions (timestamp);
+      CREATE INDEX IF NOT EXISTS idx_billing_transactions_type ON billing_transactions (transaction_type);
     `);
 
     // Monthly usage summary table
@@ -111,10 +113,11 @@ export const initializeBillingTables = async (): Promise<void> => {
         overage_amount DECIMAL(10,2) DEFAULT 0,
         status TEXT DEFAULT 'active',
         created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW(),
-        INDEX idx_user_id (user_id),
-        INDEX idx_month_year (month_year)
+        updated_at TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE INDEX IF NOT EXISTS idx_billing_monthly_summary_user_id ON billing_monthly_summary (user_id);
+      CREATE INDEX IF NOT EXISTS idx_billing_monthly_summary_month_year ON billing_monthly_summary (month_year);
     `);
 
     console.log('[BillingManager] Tables initialized');
