@@ -1,7 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "node build-vercel.js",
-  "outputDirectory": "dist",
+  "buildCommand": "bash scripts/vercel-build.sh",
   "env": {
     "NODE_ENV": "production",
     "ENABLE_CONTENT_CURATION": "true",
