@@ -86,7 +86,7 @@ const runMetricsPollingCycle = async (): Promise<void> => {
   log.info('[MetricsPolling] Starting 4h metrics cycle');
 
   // Check if Instagram token is connected
-  const igToken = getInstagramToken();
+  const igToken = await getInstagramToken();
   if (igToken) {
     log.info('[MetricsPolling] Instagram token available — will use real metrics next cycle');
     // TODO: Call Instagram Graph API with igToken

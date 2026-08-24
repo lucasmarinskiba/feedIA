@@ -12,13 +12,57 @@
 
 import express, { Request, Response } from 'express';
 import { log } from '../agent/logger.js';
+import { getPool } from '../db/postgres-real.js';
 
 const router = express.Router();
 
-// Placeholder: real implementation uses userRegistry + OAuth lib
-// For MVP: just store token in-memory + .env
+const PLATFORM = 'instagram';
 
-const connectedAccounts: Map<string, { token: string; timestamp: number }> = new Map();
+interface StoredToken {
+  access_token: string;
+  account_id: string | null;
+  expires_at: Date | null;
+  updated_at: Date;
+}
+
+/**
+ * Persist a freshly issued token, replacing any previous one for this user.
+ * user_social_tokens has UNIQUE(user_id, platform), so reconnecting updates in
+ * place instead of accumulating rows.
+ */
+const saveToken = async (
+  userId: string,
+  accessToken: string,
+  accountId: string,
+  expiresInSeconds: number
+): Promise<void> => {
+  await getPool().query(
+    `INSERT INTO user_social_tokens (user_id, platform, access_token, account_id, expires_at, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+     ON CONFLICT (user_id, platform) DO UPDATE SET
+       access_token = EXCLUDED.access_token,
+       account_id = EXCLUDED.account_id,
+       expires_at = EXCLUDED.expires_at,
+       updated_at = NOW()`,
+    [userId, PLATFORM, accessToken, accountId, new Date(Date.now() + expiresInSeconds * 1000)]
+  );
+};
+
+/**
+ * Most recently refreshed non-expired token. Rows with a NULL expires_at are
+ * treated as still valid — Instagram omits expires_in on some exchanges.
+ */
+const loadTokens = async (): Promise<StoredToken[]> => {
+  const result = await getPool().query(
+    `SELECT access_token, account_id, expires_at, updated_at
+       FROM user_social_tokens
+      WHERE platform = $1
+        AND (expires_at IS NULL OR expires_at > NOW())
+      ORDER BY updated_at DESC`,
+    [PLATFORM]
+  );
+  return result.rows as StoredToken[];
+};
 
 // Where to send the user once the OAuth round-trip finishes. The API and the UI
 // are on different origins — this service answers on Railway, while the app the
@@ -34,15 +78,27 @@ const FRONTEND_URL = (
  * GET /oauth/instagram/connect
  * Redirects to Instagram authorization URL
  */
-router.get('/connect', (_req: Request, res: Response): void => {
+router.get('/connect', (req: Request, res: Response): void => {
   try {
     const clientId = process.env.INSTAGRAM_APP_ID || 'YOUR_APP_ID';
     const redirectUri = `${process.env.APP_URL || 'http://localhost:3000'}/oauth/instagram/callback`;
     const scope = 'instagram_business_basic,instagram_business_content_publish,instagram_business_manage_comments';
 
-    const instagramAuthUrl = `https://www.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code`;
+    // The token has to be filed against a FeedIA user, but the callback is a
+    // fresh request from Instagram carrying no session. Round-tripping the id
+    // through `state` is how social-automation-complete.ts already does it.
+    const { userId } = req.query as { userId?: string };
+    if (!userId) {
+      res.status(400).json({
+        ok: false,
+        error: 'userId query parameter required so the token can be stored against an account',
+      });
+      return;
+    }
 
-    log.info('[InstagramOAuth] Redirecting to Instagram login', { redirectUri });
+    const instagramAuthUrl = `https://www.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code&state=${encodeURIComponent(userId)}`;
+
+    log.info('[InstagramOAuth] Redirecting to Instagram login', { redirectUri, userId });
     res.redirect(instagramAuthUrl);
   } catch (err) {
     log.error('[InstagramOAuth] Connect failed', { error: String(err) });
@@ -61,6 +117,13 @@ router.get('/callback', async (req: Request, res: Response): Promise<void> => {
 
     if (!code) {
       res.status(400).json({ ok: false, error: 'No authorization code received' });
+      return;
+    }
+
+    // state carries the FeedIA user id set in /connect. Without it there is no
+    // account to file the token against, so fail rather than store it loose.
+    if (!state) {
+      res.status(400).json({ ok: false, error: 'Missing state — restart the connection from the app' });
       return;
     }
 
@@ -102,7 +165,12 @@ router.get('/callback', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const tokenData = (await tokenResponse.json()) as { access_token?: string; user_id?: string; error?: string };
+    const tokenData = (await tokenResponse.json()) as {
+      access_token?: string;
+      user_id?: string;
+      expires_in?: number;
+      error?: string;
+    };
 
     if (!tokenData.access_token) {
       log.error('[InstagramOAuth] No token in response', { response: tokenData });
@@ -110,11 +178,18 @@ router.get('/callback', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Store token in memory (production: database + encryption)
     const accountId = tokenData.user_id || `account-${Date.now()}`;
-    connectedAccounts.set(accountId, { token: tokenData.access_token, timestamp: Date.now() });
 
-    log.info('[InstagramOAuth] Token stored', { accountId, tokenLength: tokenData.access_token.length });
+    // Persisted rather than held in a Map: Railway replaces the container on
+    // every deploy and restart, and an in-memory token would silently strand
+    // every connected account.
+    await saveToken(state, tokenData.access_token, accountId, tokenData.expires_in || 3600);
+
+    log.info('[InstagramOAuth] Token stored', {
+      accountId,
+      userId: state,
+      tokenLength: tokenData.access_token.length,
+    });
 
     // Redirect to dashboard with success
     res.redirect(
@@ -130,18 +205,22 @@ router.get('/callback', async (req: Request, res: Response): Promise<void> => {
  * GET /oauth/instagram/status
  * Check if Instagram is connected
  */
-router.get('/status', (_req: Request, res: Response): void => {
+router.get('/status', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const connected = connectedAccounts.size > 0;
-    const accounts = Array.from(connectedAccounts.entries()).map(([id, data]) => ({
-      id,
-      connectedAt: new Date(data.timestamp).toISOString(),
+    const rows = await loadTokens();
+    const accounts = rows.map((row) => ({
+      id: row.account_id,
+      connectedAt: new Date(row.updated_at).toISOString(),
+      expiresAt: row.expires_at ? new Date(row.expires_at).toISOString() : null,
     }));
 
-    log.info('[InstagramOAuth] Status checked', { connected, accountCount: accounts.length });
+    log.info('[InstagramOAuth] Status checked', {
+      connected: accounts.length > 0,
+      accountCount: accounts.length,
+    });
     res.json({
       ok: true,
-      connected,
+      connected: accounts.length > 0,
       accounts,
     });
   } catch (err) {
@@ -154,7 +233,7 @@ router.get('/status', (_req: Request, res: Response): void => {
  * POST /oauth/instagram/disconnect
  * Revoke Instagram token
  */
-router.post('/disconnect', (req: Request, res: Response): void => {
+router.post('/disconnect', async (req: Request, res: Response): Promise<void> => {
   try {
     const { accountId } = req.body as { accountId: string };
 
@@ -163,9 +242,17 @@ router.post('/disconnect', (req: Request, res: Response): void => {
       return;
     }
 
-    connectedAccounts.delete(accountId);
-    log.info('[InstagramOAuth] Token revoked', { accountId });
+    const result = await getPool().query(
+      `DELETE FROM user_social_tokens WHERE platform = $1 AND account_id = $2`,
+      [PLATFORM, accountId]
+    );
 
+    if (result.rowCount === 0) {
+      res.status(404).json({ ok: false, error: `No connected account ${accountId}` });
+      return;
+    }
+
+    log.info('[InstagramOAuth] Token revoked', { accountId });
     res.json({ ok: true, message: `Disconnected from ${accountId}` });
   } catch (err) {
     log.error('[InstagramOAuth] Disconnect failed', { error: String(err) });
@@ -174,12 +261,21 @@ router.post('/disconnect', (req: Request, res: Response): void => {
 });
 
 /**
- * Get token for polling (used by metricsPollingOrchestrator)
+ * Get token for polling (used by metricsPollingOrchestrator).
+ *
+ * Async since tokens moved to PostgreSQL. Returns the most recently refreshed
+ * unexpired token, or null when nothing is connected or the database is
+ * unreachable — callers already treat null as "not connected", so a database
+ * problem degrades to skipping the cycle rather than throwing into a worker.
  */
-export const getInstagramToken = (): string | null => {
-  if (connectedAccounts.size === 0) return null;
-  const firstAccount = Array.from(connectedAccounts.values())[0];
-  return firstAccount?.token || null;
+export const getInstagramToken = async (): Promise<string | null> => {
+  try {
+    const rows = await loadTokens();
+    return rows[0]?.access_token ?? null;
+  } catch (err) {
+    log.error('[InstagramOAuth] Token lookup failed', { error: String(err) });
+    return null;
+  }
 };
 
 export default router;

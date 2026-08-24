@@ -77,7 +77,7 @@ export const executeEngagementTask = async (task: EngagementTask): Promise<Engag
   }
 
   // 2. Get OAuth token for account
-  const token = getInstagramToken();
+  const token = await getInstagramToken();
   if (!token) {
     log.warn('[ComputerUseOrchestrator] No token for account', { accountId: task.accountId });
     return {
