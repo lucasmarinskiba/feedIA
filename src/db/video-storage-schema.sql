@@ -31,16 +31,28 @@ CREATE INDEX IF NOT EXISTS idx_videos_user_id ON videos(user_id);
 CREATE INDEX IF NOT EXISTS idx_videos_status ON videos(status);
 CREATE INDEX IF NOT EXISTS idx_videos_encoding_status ON videos(encoding_status);
 
--- Add video storage quotas to pricing plans
-ALTER TABLE pricing_plans ADD COLUMN IF NOT EXISTS video_storage_gb INT DEFAULT 0;
-
--- Update existing pricing plans with video storage quotas
+-- Add video storage quotas to pricing plans.
+--
+-- pricing_plans is not created by any migration in this repo — tier limits live
+-- in user_tiers. The whole file is executed as a single query, so an unguarded
+-- ALTER against a missing table aborts everything after it, including the
+-- videos table above. Guarded so the statements still apply if the table is
+-- ever introduced, without blocking this migration in the meantime.
 -- Free: 0GB (no video support)
 -- Pro: 10GB (video support, no encoding)
 -- Premium: 1000GB (unlimited, with encoding)
-UPDATE pricing_plans SET video_storage_gb = 0 WHERE plan_name = 'free';
-UPDATE pricing_plans SET video_storage_gb = 10 WHERE plan_name = 'pro';
-UPDATE pricing_plans SET video_storage_gb = 1000 WHERE plan_name = 'premium';
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = current_schema() AND table_name = 'pricing_plans'
+  ) THEN
+    ALTER TABLE pricing_plans ADD COLUMN IF NOT EXISTS video_storage_gb INT DEFAULT 0;
+    UPDATE pricing_plans SET video_storage_gb = 0 WHERE plan_name = 'free';
+    UPDATE pricing_plans SET video_storage_gb = 10 WHERE plan_name = 'pro';
+    UPDATE pricing_plans SET video_storage_gb = 1000 WHERE plan_name = 'premium';
+  END IF;
+END $$;
 
 -- Create index for video storage tracking
 CREATE INDEX IF NOT EXISTS idx_videos_user_status ON videos(user_id, status);

@@ -88,7 +88,12 @@ CREATE TABLE IF NOT EXISTS ab_test_variants (
 );
 
 -- Webhook event log (for real-time metric updates)
-CREATE TABLE IF NOT EXISTS webhook_events (
+-- Inbound platform events (comment, like, share). Named social_webhook_events
+-- rather than webhook_events because webhook-service.ts already owns a table by
+-- that name for the *outbound* delivery queue, which has no user_id. Since both
+-- used CREATE TABLE IF NOT EXISTS, whichever ran second silently no-op'd and the
+-- index below then failed with: column "user_id" does not exist.
+CREATE TABLE IF NOT EXISTS social_webhook_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   platform VARCHAR(20) NOT NULL,
@@ -122,6 +127,6 @@ CREATE INDEX IF NOT EXISTS idx_content_metrics_platform ON user_content_metrics(
 CREATE INDEX IF NOT EXISTS idx_content_metrics_content ON user_content_metrics(content_id);
 CREATE INDEX IF NOT EXISTS idx_ab_variants_user ON ab_test_variants(user_id);
 CREATE INDEX IF NOT EXISTS idx_ab_variants_test ON ab_test_variants(test_id);
-CREATE INDEX IF NOT EXISTS idx_webhook_events_user ON webhook_events(user_id);
-CREATE INDEX IF NOT EXISTS idx_webhook_events_processed ON webhook_events(processed);
+CREATE INDEX IF NOT EXISTS idx_social_webhook_events_user ON social_webhook_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_social_webhook_events_processed ON social_webhook_events(processed);
 CREATE INDEX IF NOT EXISTS idx_content_calendar_user_date ON content_calendar(user_id, date);
