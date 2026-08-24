@@ -21,3 +21,12 @@ tsconfig*.json
 !public/**
 !api/
 !api/**
+
+# api/systems/** all import unguarded from ../../../src/services/*, which is
+# excluded above. These functions are also unreachable in practice — the
+# routes emitted by scripts/vercel-build.sh send every /api/* request to
+# api/[...path] before Vercel's filesystem-routed function matching runs, and
+# the equivalent 10 "rational systems" are served live by the Railway backend
+# (see src/server.ts, GET /api/systems/health). Excluding them stops Vercel
+# from trying (and failing) to bundle 22 functions with unresolvable imports.
+api/systems
