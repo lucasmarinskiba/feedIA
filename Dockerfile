@@ -22,11 +22,18 @@ COPY package.json pnpm-lock.yaml* ./
 # this comfortably below the container cap.
 ENV NODE_OPTIONS="--max-old-space-size=1536"
 
-# Scripts are NOT skipped here: better-sqlite3 sits in the server's import chain
-# and needs its native binding built (or a prebuilt fetched) for this exact base
-# image. Concurrency is capped because the default parallelism is what pushes
-# peak RSS over the builder's limit on a cold cache.
-RUN pnpm install --frozen-lockfile --child-concurrency=1 --network-concurrency=4
+# Lifecycle scripts stay off: package.json's `prepare` installs git hooks via
+# scripts/setup-hooks.mjs, which does not exist yet at this layer (and is
+# meaningless in an image with no .git). Concurrency is capped because default
+# parallelism is what pushes peak RSS over the builder's limit on a cold cache.
+RUN pnpm install --frozen-lockfile --ignore-scripts \
+    --child-concurrency=1 --network-concurrency=4
+
+# --ignore-scripts also suppresses the native builds, so rebuild exactly the two
+# packages that ship bindings. better-sqlite3 sits in the server's import chain;
+# sharp backs image processing. Both must be built for this base image's musl
+# libc rather than inherited from a glibc host.
+RUN pnpm rebuild better-sqlite3 sharp
 
 # Copy sources and compile. Tolerates the repo's pre-existing type errors in
 # files unrelated to the server entrypoint; esbuild still emits dist/.
@@ -34,8 +41,9 @@ COPY . .
 RUN pnpm run build:prod || true
 
 # Drop devDependencies so the runtime stage inherits a production-only tree.
-# Best-effort: a prune failure must not fail the image.
-RUN pnpm prune --prod || true
+# Best-effort: if this fails the image just carries devDependencies, which is
+# wasteful but harmless, so it must never fail the build.
+RUN pnpm prune --prod --ignore-scripts || pnpm prune --prod || true
 
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
 FROM node:20-alpine AS runtime
