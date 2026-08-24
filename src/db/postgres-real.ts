@@ -4,7 +4,14 @@
  * Uses pg for production, SQLite for dev/testing
  */
 
+import { createRequire } from 'node:module';
+
 import { getFilePool } from './sqlite-pool.js';
+
+// This file compiles to ESM, where `require` is not defined. createRequire gives
+// us a CommonJS-style loader so pg can stay an optional, lazily-resolved import
+// without making initializeRealPool async (which would ripple into every caller).
+const require = createRequire(import.meta.url);
 
 interface QueryResult {
   rows: unknown[];
@@ -27,7 +34,8 @@ let poolInstance: PgPoolType | null = null; // Store reference to actual pg pool
 // Try to load pg module
 const initializeRealPool = (): PoolConnection | null => {
   try {
-    // Dynamic import to avoid hard dependency
+    // Resolved lazily so a missing pg install degrades to SQLite instead of
+    // failing at module load.
     const PostgresPool = require('pg').Pool;
 
     if (!process.env.DATABASE_URL) {

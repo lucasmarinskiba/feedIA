@@ -610,8 +610,9 @@ Promise.all([
   })
   .catch((err) => log.error('[Server] initialization failed', err));
 
-// Start server (Railway needs explicit listener)
-app.listen(PORT, () => {
+// Start server (Railway needs explicit listener). This is the only listener —
+// the graceful-shutdown handlers below attach to this same instance.
+const server = app.listen(PORT, () => {
   console.log(`✅ FeedIA Autonomous Generator running on http://localhost:${PORT}`);
   console.log(`📊 Batches: 28-61 base (6,770) + 62-95 parameterized (6,100) = 12,870 total`);
   console.log(`🔗 Prompt Endpoints:`);
@@ -786,9 +787,7 @@ app.listen(PORT, () => {
 });
 
 // Graceful shutdown
-const server = app.listen(PORT, () => {
-  log.info(`[Server] listening on port ${PORT}`);
-});
+log.info(`[Server] listening on port ${PORT}`);
 
 process.on('SIGTERM', () => {
   log.info('[Server] SIGTERM received, starting graceful shutdown');
