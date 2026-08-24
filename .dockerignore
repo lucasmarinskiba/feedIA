@@ -6,5 +6,14 @@ api
 .env
 .env.*
 dist-static
-dist/*.map
 .github
+
+# Nested checkout (~388MB). Never part of the image; shipping it as build
+# context alone dwarfs the rest of the repo.
+feedIA
+
+# The builder recompiles dist/ from source, so any local copy is dead weight.
+dist
+
+tests
+memory
