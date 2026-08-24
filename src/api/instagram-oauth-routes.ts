@@ -20,6 +20,16 @@ const router = express.Router();
 
 const connectedAccounts: Map<string, { token: string; timestamp: number }> = new Map();
 
+// Where to send the user once the OAuth round-trip finishes. The API and the UI
+// are on different origins — this service answers on Railway, while the app the
+// user actually sees is the Vercel deployment — so a relative redirect would
+// land them on this service's JSON root instead of back in the product.
+const FRONTEND_URL = (
+  process.env.FRONTEND_URL ||
+  process.env.PUBLIC_BASE_URL ||
+  'https://feedia.vercel.app'
+).replace(/\/+$/, '');
+
 /**
  * GET /oauth/instagram/connect
  * Redirects to Instagram authorization URL
@@ -107,10 +117,12 @@ router.get('/callback', async (req: Request, res: Response): Promise<void> => {
     log.info('[InstagramOAuth] Token stored', { accountId, tokenLength: tokenData.access_token.length });
 
     // Redirect to dashboard with success
-    res.redirect(`/?instagram_connected=true&account=${accountId}`);
+    res.redirect(
+      `${FRONTEND_URL}/?instagram_connected=true&account=${encodeURIComponent(accountId)}`
+    );
   } catch (err) {
     log.error('[InstagramOAuth] Callback failed', { error: String(err) });
-    res.redirect(`/?instagram_error=${encodeURIComponent(String(err))}`);
+    res.redirect(`${FRONTEND_URL}/?instagram_error=${encodeURIComponent(String(err))}`);
   }
 });
 
