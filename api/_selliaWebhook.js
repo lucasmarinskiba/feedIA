@@ -9,8 +9,8 @@
  * Webhook flow: SellIA → POST /api/sellia/webhook → parse → dispatch
  */
 
-import { recordConversion, getPublicationROI } from './_revenueAttribution.js';
-import { recordEngagement, recordPurchase } from './_fanRecognition.js';
+import { recordConversion } from './_revenueAttribution.js';
+import { recordFanEngagement, recordFanPurchase } from './_fanRecognition.js';
 import { getProfile, saveProfile } from './_accountMemory.js';
 
 // ── Validar firma webhook (optional: si SellIA usa HMAC) ──────────────────────
@@ -55,7 +55,7 @@ const handleSale = async (scope, event) => {
   }
 
   // 2) Registrar fan engagement (compra)
-  const fanResult = await recordPurchase(scope, accountId, {
+  const fanResult = await recordFanPurchase(scope, accountId, {
     email: customerEmail,
     amount: totalAmount,
     currency,
@@ -87,7 +87,7 @@ const handleLeadQualified = async (scope, event) => {
   const accountId = scope;
 
   // Registrar fan engagement (lead interacción)
-  const fanResult = await recordEngagement(scope, accountId, {
+  const fanResult = await recordFanEngagement(scope, accountId, {
     email,
     type: 'lead-qualified',
     leadId,
