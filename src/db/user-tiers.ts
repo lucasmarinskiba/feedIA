@@ -113,7 +113,7 @@ export const upsertUserTier = async (
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
        ON CONFLICT (user_id) DO UPDATE SET
          tier = $4,
-         stripe_customer_id = COALESCE($5, stripe_customer_id),
+         stripe_customer_id = COALESCE($5, user_tiers.stripe_customer_id),
          campaigns_limit = $6,
          batch_limit = $7,
          custom_brand_kit = $8,
