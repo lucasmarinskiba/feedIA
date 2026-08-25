@@ -77,8 +77,10 @@ import agencySimpleRoutes from './api/agency-simple-routes.js';
 import conversionRoutes from './api/conversion-routes.js';
 import billingRoutes from './api/billing-routes.js';
 import subscriptionRoutes from './api/subscription-routes.js';
+import accountsRoutes from './api/accounts-routes.js';
 import { initializeUserTiersTable, resetMonthlyUsage } from './db/user-tiers.js';
 import { initializePaymentTokenTables } from './db/payments-tokens.js';
+import { initializeAccountsTables } from './db/accounts.js';
 import { initFeedbackSchema, initWeightsSchema } from './db/feedback-schema.js';
 import { PRICING_HTML } from './api/pricing-routes.js';
 import { registerTrendingRoutes } from './api/trending-endpoints.js';
@@ -431,6 +433,9 @@ app.use('/api/billing', billingRoutes);
 // Subscription Lifecycle: Payment renewal, token refresh, cancellation
 app.use('/api/subscription', subscriptionRoutes);
 
+// Multi-Account Management: Connect/disconnect accounts, per-account quotas
+app.use('/api/accounts', accountsRoutes);
+
 // Feature Flags: Tier-based feature access control
 app.use('/api/features', featureFlagsRoutes);
 
@@ -598,6 +603,7 @@ Promise.all([
   feedIADatabase.initialize(),
   carouselDB.initialize(),
   initializeUserTiersTable(),
+  initializeAccountsTables(),
   initializePaymentTokenTables(),
   initFeedbackSchema(),
   initWeightsSchema(),
