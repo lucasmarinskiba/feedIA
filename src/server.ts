@@ -544,7 +544,7 @@ app.post('/api/admin/migrate', adminKeyAuth, async (_req, res): Promise<void> =>
 
 // Error handler (4-arg signature required by Express)
 app.use((err: Error, req: Request, res: Response, _next: express.NextFunction) => {
-  log.error('[Server] error', { error: err.message });
+  log.error('[Server] error', { path: req.path, error: err.message, stack: err.stack });
   captureException(err, { path: req.path, method: req.method });
   res.status(500).json({
     error: 'Internal server error',

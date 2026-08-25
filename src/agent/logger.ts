@@ -6,18 +6,25 @@ type Level = keyof typeof levels;
 
 const enabled = (level: Level): boolean => levels[level] <= levels[(env.logLevel as Level) ?? 'info'];
 
+// Every level silently dropped its second (metadata/error) argument — every
+// log.error(msg, { error: err.message }) call across the app only ever
+// printed msg, discarding the actual error detail. Found while trying to
+// diagnose a production 500 that showed up in Railway's logs as four bare
+// "[Server] error" lines with no message, no stack, nothing to act on.
+const args = (extra?: unknown): unknown[] => (extra === undefined ? [] : [extra]);
+
 export const log = {
-  info: (msg: string, _extra?: unknown): void => {
-    if (enabled('info')) console.log(chalk.cyan('ℹ'), msg);
+  info: (msg: string, extra?: unknown): void => {
+    if (enabled('info')) console.log(chalk.cyan('ℹ'), msg, ...args(extra));
   },
-  warn: (msg: string, _extra?: unknown): void => {
-    if (enabled('warn')) console.warn(chalk.yellow('⚠'), msg);
+  warn: (msg: string, extra?: unknown): void => {
+    if (enabled('warn')) console.warn(chalk.yellow('⚠'), msg, ...args(extra));
   },
-  error: (msg: string, _extra?: unknown): void => {
-    if (enabled('error')) console.error(chalk.red('✖'), msg);
+  error: (msg: string, extra?: unknown): void => {
+    if (enabled('error')) console.error(chalk.red('✖'), msg, ...args(extra));
   },
-  debug: (msg: string, _extra?: unknown): void => {
-    if (enabled('debug')) console.log(chalk.gray('·'), msg);
+  debug: (msg: string, extra?: unknown): void => {
+    if (enabled('debug')) console.log(chalk.gray('·'), msg, ...args(extra));
   },
   step: (msg: string): void => {
     console.log(chalk.bold.magenta('▸'), chalk.bold(msg));
