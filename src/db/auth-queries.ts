@@ -58,8 +58,7 @@ export const createRefreshToken = async (userId: string): Promise<{ token: strin
  * Validate and rotate refresh token
  * Old token is deleted, new one issued
  */
-export const rotateRefreshToken = async (oldToken: string): Promise<{ token: string; expiresAt: Date } | null> => {
-  return transaction(async (client) => {
+export const rotateRefreshToken = async (oldToken: string): Promise<{ token: string; expiresAt: Date } | null> => transaction(async (client) => {
     // Verify old token exists and not expired
     const result = await client.query(
       `SELECT id, user_id FROM user_sessions
@@ -88,7 +87,6 @@ export const rotateRefreshToken = async (oldToken: string): Promise<{ token: str
 
     return { token: newToken, expiresAt };
   });
-};
 
 /**
  * Revoke all sessions for user (logout all devices)

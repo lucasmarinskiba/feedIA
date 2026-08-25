@@ -98,9 +98,7 @@ export const cacheSession = async (userId: string, sessionData: { token: string;
   await setCache(key, sessionData, ttl);
 };
 
-export const getSession = async (userId: string): Promise<{ token: string; expiresAt: number } | null> => {
-  return getCache(`session:${userId}`);
-};
+export const getSession = async (userId: string): Promise<{ token: string; expiresAt: number } | null> => getCache(`session:${userId}`);
 
 export const invalidateSession = async (userId: string): Promise<void> => {
   await deleteCache(`session:${userId}`);

@@ -96,7 +96,7 @@ const analyzeAccount = async (req: AuthRequest, res: Response): Promise<void> =>
       return;
     }
 
-    let accountData: Partial<AccountProfile> = {
+    const accountData: Partial<AccountProfile> = {
       platform: platform as 'instagram' | 'tiktok',
       accountId,
       username: 'unknown',

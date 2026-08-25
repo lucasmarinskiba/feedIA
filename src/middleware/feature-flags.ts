@@ -74,8 +74,7 @@ export const hasFeatureAccess = async (
 /**
  * Middleware for Express route protection
  */
-export const requireFeature = (feature: FeatureName) => {
-  return async (req: any, res: any, next: any): Promise<void> => {
+export const requireFeature = (feature: FeatureName) => async (req: any, res: any, next: any): Promise<void> => {
     try {
       const userId = req.userId || req.query.userId || req.body.userId;
 
@@ -101,7 +100,6 @@ export const requireFeature = (feature: FeatureName) => {
       res.status(500).json({ error: 'Feature access check failed' });
     }
   };
-};
 
 /**
  * Get all features for a user tier
@@ -125,13 +123,9 @@ export const getUserFeatures = async (userId: string): Promise<FeatureName[]> =>
 /**
  * Get feature details
  */
-export const getFeatureDetails = (feature: FeatureName): FeatureFlag | null => {
-  return featureFlags[feature] || null;
-};
+export const getFeatureDetails = (feature: FeatureName): FeatureFlag | null => featureFlags[feature] || null;
 
 /**
  * List all features
  */
-export const listAllFeatures = (): FeatureFlag[] => {
-  return Object.values(featureFlags);
-};
+export const listAllFeatures = (): FeatureFlag[] => Object.values(featureFlags);

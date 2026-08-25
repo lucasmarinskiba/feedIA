@@ -84,6 +84,7 @@ import { startMetricsPolling } from './services/metrics-polling.js';
 import { initializeUserTiersTable, resetMonthlyUsage } from './db/user-tiers.js';
 import { initializePaymentTokenTables } from './db/payments-tokens.js';
 import { initializeAccountsTables } from './db/accounts.js';
+import { initializeQuotaLogging } from './db/quota-log-init.js';
 import { initFeedbackSchema, initWeightsSchema } from './db/feedback-schema.js';
 import { PRICING_HTML } from './api/pricing-routes.js';
 import { registerTrendingRoutes } from './api/trending-endpoints.js';
@@ -614,6 +615,7 @@ Promise.all([
   initializeUserTiersTable(),
   initializeAccountsTables(),
   initializePaymentTokenTables(),
+  initializeQuotaLogging(),
   initFeedbackSchema(),
   initWeightsSchema(),
   initializeBillingTables(),

@@ -32,13 +32,13 @@ const getMigrations = async (client: PoolClient): Promise<Migration[]> => {
   return result.rows;
 };
 
-const splitSqlStatements = (sql: string): string[] => {
+const splitSqlStatements = (sql: string): string[] => 
   // Split by semicolon but preserve it
-  return sql
+   sql
     .split(';')
     .map((stmt) => stmt.trim())
-    .filter((stmt) => stmt.length > 0);
-};
+    .filter((stmt) => stmt.length > 0)
+;
 
 export const runMigrations = async (client: PoolClient): Promise<void> => {
   try {

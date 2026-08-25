@@ -5,8 +5,10 @@
  */
 
 import { Router, Request, Response } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import { log } from '../agent/logger.js';
 import { masterContentPipeline } from '../services/master-content-pipeline.js';
+import { quotaCheckMiddleware, chargeQuota } from '../middleware/quota-enforcer.js';
 import type { BrandProfile } from '../config/types.js';
 
 const router = Router();
@@ -75,11 +77,13 @@ router.post('/generate', async (req: Request, res: Response): Promise<void> => {
 
 /**
  * POST /api/master/generate-carousel
- * Run entire carousel (multiple frames) through pipeline in one call
+ * Run entire carousel (multiple frames) through pipeline in one call + quota enforcement
  */
-router.post('/generate-carousel', async (req: Request, res: Response): Promise<void> => {
+router.post('/generate-carousel', quotaCheckMiddleware('carousels', 1), async (req: Request, res: Response): Promise<void> => {
   try {
-    const brand = (req as any).brand as BrandProfile;
+    const generationId = uuidv4();
+    const extReq = req as unknown as Record<string, unknown>;
+    const brand = extReq.brand as BrandProfile;
     const {
       basePrompt,
       platform = 'instagram',
@@ -113,6 +117,11 @@ router.post('/generate-carousel', async (req: Request, res: Response): Promise<v
     const allReady = results.every(r => r.readyForGeneration);
     const avgQuality = Math.round(results.reduce((sum, r) => sum + r.qualityScore, 0) / results.length);
     const avgWit = Math.round(results.reduce((sum, r) => sum + r.witScore, 0) / results.length);
+
+    // Charge quota on successful generation
+    if (allReady) {
+      await chargeQuota(req, 'carousels', generationId);
+    }
 
     res.json({
       status: allReady ? 'ready' : 'needs_review',

@@ -1,12 +1,18 @@
 import { Router, Request, Response } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import { carouselCreationPipeline } from '../services/carousel-creation-pipeline.js';
 import { CarouselCreateRequest, Carousel } from '../db/carousel-schema.js';
+import { quotaCheckMiddleware, chargeQuota } from '../middleware/quota-enforcer.js';
+import { log } from '../agent/logger.js';
 
 const router = Router();
 
-// POST /api/carousels/create - Create with validation gate
-router.post('/create', async (req: Request, res: Response) => {
+// POST /api/carousels/create - Create with validation gate + quota enforcement
+router.post('/create', quotaCheckMiddleware('carousels', 1), async (req: Request, res: Response) => {
   try {
+    const userId = req.headers['x-user-id'] as string;
+    const generationId = uuidv4();
+
     const request = req.body as CarouselCreateRequest;
     const rejectOnCritical = req.query.rejectOnCritical !== 'false';
     const validateBefore = req.query.validateBefore !== 'false';
@@ -19,6 +25,15 @@ router.post('/create', async (req: Request, res: Response) => {
     });
 
     const statusCode = result.success ? 201 : result.validation?.isValid === false ? 400 : 500;
+
+    // Charge quota ONLY on success
+    if (result.success) {
+      const charged = await chargeQuota(req, 'carousels', generationId);
+      if (!charged) {
+        log.warn('[Carousel] Quota charge failed', { userId, generationId });
+      }
+    }
+
     return res.status(statusCode).json(result);
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
@@ -26,9 +41,10 @@ router.post('/create', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/carousels/batch-create - Create multiple carousels with validation
-router.post('/batch-create', async (req: Request, res: Response) => {
+// POST /api/carousels/batch-create - Create multiple carousels with validation + per-carousel quota
+router.post('/batch-create', quotaCheckMiddleware('carousels', 1), async (req: Request, res: Response) => {
   try {
+    const userId = req.headers['x-user-id'] as string;
     const requests = req.body as CarouselCreateRequest[];
     const rejectOnCritical = req.query.rejectOnCritical !== 'false';
     const validateBefore = req.query.validateBefore !== 'false';
@@ -39,12 +55,31 @@ router.post('/batch-create', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Expected array of carousel creation requests' });
     }
 
+    // Check total quota (not individual)
+    const { checkFormatQuota } = await import('../middleware/quota-enforcer.js');
+    const quotaCheck = await checkFormatQuota(userId, 'carousels', requests.length);
+    if (!quotaCheck.allowed) {
+      return res.status(403).json({
+        error: `Cannot create ${requests.length} carousels, quota only allows ${quotaCheck.limit - quotaCheck.used}`,
+        requested: requests.length,
+        used: quotaCheck.used,
+        limit: quotaCheck.limit,
+      });
+    }
+
     const result = await carouselCreationPipeline.createBatch(requests, {
       validateBefore,
       rejectOnCritical,
       trackCreation,
       continueOnError,
     });
+
+    // Charge quota for each successful carousel
+    if (result.succeeded > 0) {
+      for (let i = 0; i < result.succeeded; i++) {
+        await chargeQuota(req, 'carousels', `batch-${uuidv4()}`);
+      }
+    }
 
     const statusCode = result.failed === 0 ? 201 : result.succeeded === 0 ? 400 : 207;
     return res.status(statusCode).json(result);
