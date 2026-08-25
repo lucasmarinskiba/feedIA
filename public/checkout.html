@@ -66,6 +66,7 @@
       margin-bottom: 16px;
     }
     .tier-badge.free { background: rgba(16,185,129,0.12); color: var(--color-success); }
+    .tier-badge.starter { background: rgba(249,115,22,0.12); color: var(--color-warning); }
     .tier-badge.pro { background: rgba(37,99,235,0.12); color: var(--color-primary); }
     .tier-badge.agency { background: rgba(124,58,237,0.12); color: var(--color-secondary); }
 
@@ -202,9 +203,10 @@
     };
 
     const TIERS = {
-      free:   { label: 'Free',   price: '$0',   suffix: '/ month — 5 campaigns' },
-      pro:    { label: 'Pro',    price: '$79',  suffix: '/ month — 50 campaigns, real Claude API' },
-      agency: { label: 'Agency', price: '$499', suffix: '/ month — 500 campaigns, priority support' },
+      free:    { label: 'Free',    priceUsd: '$0',   priceArs: '$0 ARS',        suffix: '/ month — 5 pieces: 3 carousels, 2 stories' },
+      starter: { label: 'Starter', priceUsd: '$19',  priceArs: '$29.900 ARS',   suffix: '/ month — 20 pieces: 12 carousels, 6 stories, 2 videos' },
+      pro:     { label: 'Pro',     priceUsd: '$79',  priceArs: '$119.900 ARS',  suffix: '/ month — 50 pieces: 25 carousels, 15 stories, 10 videos' },
+      agency:  { label: 'Agency', priceUsd: '$499', priceArs: '$749.900 ARS', suffix: '/ month — 500 pieces: 250 carousels, 150 stories, 100 videos' },
     };
 
     const params = new URLSearchParams(window.location.search);
@@ -214,7 +216,8 @@
     document.getElementById('tierBadge').textContent = tierData.label;
     document.getElementById('tierBadge').className = 'tier-badge ' + tier;
     document.getElementById('tierTitle').textContent = tier === 'free' ? 'Start Free' : 'Upgrade to ' + tierData.label;
-    document.getElementById('tierPrice').innerHTML = '<strong>' + tierData.price + '</strong> ' + tierData.suffix;
+    document.getElementById('tierPrice').innerHTML = '<strong>' + tierData.priceUsd + '</strong> ' + tierData.suffix
+      + (tier !== 'free' ? '<br><span style="font-size:0.85rem">' + tierData.priceArs + ' con Mercado Pago</span>' : '');
 
     const isPaid = tier !== 'free';
     document.getElementById('freeAction').style.display = isPaid ? 'none' : 'block';

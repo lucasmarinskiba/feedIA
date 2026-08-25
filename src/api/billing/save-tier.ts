@@ -4,12 +4,12 @@
  */
 
 import { Request, Response } from 'express';
-import { upsertUserTier } from '../../db/user-tiers.js';
+import { upsertUserTier, type UserTier } from '../../db/user-tiers.js';
 
 export interface SaveTierRequest {
   userId: string;
   email: string;
-  tier: 'free' | 'pro' | 'agency';
+  tier: UserTier;
   stripeCustomerId?: string;
 }
 

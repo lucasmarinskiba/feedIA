@@ -5,9 +5,10 @@
  */
 
 import { Request, Response } from 'express';
+import { tierConfig, type UserTier } from '../../db/user-tiers.js';
 
 export interface CheckoutSessionRequest {
-  tier: 'pro' | 'agency';
+  tier: 'starter' | 'pro' | 'agency';
   email?: string;
   userId?: string;
 }
@@ -18,17 +19,17 @@ export interface CheckoutSessionResponse {
   error?: string;
 }
 
-const tierConfig: Record<string, { price: number; reason: string }> = {
-  pro: { price: 79, reason: 'Monthly pro plan - 50 campaigns' },
-  agency: { price: 499, reason: 'Monthly agency plan - 500 campaigns' },
-};
-
 export const createCheckoutSession = async (req: CheckoutSessionRequest): Promise<CheckoutSessionResponse> => {
   try {
     const { tier, email, userId } = req;
 
     if (!tier || !email || !userId) {
       return { error: 'Missing required fields: tier, email, userId' };
+    }
+
+    const tierData = tier !== ('free' as UserTier) ? tierConfig[tier] : undefined;
+    if (!tierData) {
+      return { error: `Invalid paid tier: ${tier}` };
     }
 
     const mpAccessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
@@ -40,14 +41,13 @@ export const createCheckoutSession = async (req: CheckoutSessionRequest): Promis
       };
     }
 
-    const tierData = tierConfig[tier];
     const preferencePayload = {
       items: [
         {
           title: `FeedIA ${tier.toUpperCase()} Plan`,
-          description: tierData.reason,
+          description: `Monthly ${tier} plan — ${tierData.campaignsLimit} content pieces/mo`,
           quantity: 1,
-          unit_price: tierData.price,
+          unit_price: tierData.monthlyPriceArs,
           currency_id: 'ARS',
         },
       ],

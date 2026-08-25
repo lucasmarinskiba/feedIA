@@ -23,6 +23,7 @@ import {
   processPendingWebhooks,
 } from '../services/webhook-service.js';
 import { hasFeatureAccess } from '../middleware/feature-flags.js';
+import { tierConfig } from '../db/user-tiers.js';
 
 const router = Router();
 
@@ -56,6 +57,12 @@ router.post('/stripe/checkout', async (req: Request, res: Response): Promise<voi
       return;
     }
 
+    const paidTierConfig = (tierConfig as Record<string, { monthlyPriceUsd: number } | undefined>)[tier];
+    if (tier === 'free' || !paidTierConfig) {
+      res.status(400).json({ error: `Invalid paid tier: ${tier}` });
+      return;
+    }
+
     // Check if Stripe is configured
     const stripeKey = process.env.STRIPE_SECRET_KEY;
     if (!stripeKey || stripeKey.startsWith('sk_test_mock')) {
@@ -82,7 +89,7 @@ router.post('/stripe/checkout', async (req: Request, res: Response): Promise<voi
             product_data: {
               name: `FeedIA ${tier.toUpperCase()} Plan`,
             },
-            unit_amount: tier === 'pro' ? 7900 : 49900, // $79 or $499
+            unit_amount: Math.round(paidTierConfig.monthlyPriceUsd * 100),
             recurring: {
               interval: 'month',
             },

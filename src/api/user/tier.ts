@@ -14,12 +14,34 @@ export interface GetTierResponse {
   campaignsUsed: number;
   campaignsRemaining: number;
   batchLimit: number;
+  carouselsLimit: number;
+  storiesLimit: number;
+  videosLimit: number;
+  profilesLimit: number;
+  storageGb: number;
   customBrandKit: boolean;
   analyticsDepth: string;
   supportLevel: string;
   subscriptionEndDate: string | null;
   error?: string;
 }
+
+const FREE_DEFAULTS = {
+  tier: 'free',
+  campaignsLimit: 5,
+  campaignsUsed: 0,
+  campaignsRemaining: 5,
+  batchLimit: 1,
+  carouselsLimit: 3,
+  storiesLimit: 2,
+  videosLimit: 0,
+  profilesLimit: 1,
+  storageGb: 0.5,
+  customBrandKit: false,
+  analyticsDepth: 'basic',
+  supportLevel: 'community',
+  subscriptionEndDate: null,
+} as const;
 
 export const getTierInfo = async (userId: string): Promise<GetTierResponse> => {
   try {
@@ -28,15 +50,7 @@ export const getTierInfo = async (userId: string): Promise<GetTierResponse> => {
     if (!tierRecord) {
       return {
         success: false,
-        tier: 'free',
-        campaignsLimit: 5,
-        campaignsUsed: 0,
-        campaignsRemaining: 5,
-        batchLimit: 1,
-        customBrandKit: false,
-        analyticsDepth: 'basic',
-        supportLevel: 'community',
-        subscriptionEndDate: null,
+        ...FREE_DEFAULTS,
         error: 'User tier not found, defaulting to free',
       };
     }
@@ -48,6 +62,11 @@ export const getTierInfo = async (userId: string): Promise<GetTierResponse> => {
       campaignsUsed: tierRecord.campaignsUsedThisMonth,
       campaignsRemaining: tierRecord.campaignsLimit - tierRecord.campaignsUsedThisMonth,
       batchLimit: tierRecord.batchLimit,
+      carouselsLimit: tierRecord.carouselsLimit,
+      storiesLimit: tierRecord.storiesLimit,
+      videosLimit: tierRecord.videosLimit,
+      profilesLimit: tierRecord.profilesLimit,
+      storageGb: tierRecord.storageGb,
       customBrandKit: tierRecord.customBrandKit,
       analyticsDepth: tierRecord.analyticsDepth,
       supportLevel: tierRecord.supportLevel,
@@ -57,15 +76,7 @@ export const getTierInfo = async (userId: string): Promise<GetTierResponse> => {
     console.error('[GetTier] Failed:', err);
     return {
       success: false,
-      tier: 'free',
-      campaignsLimit: 5,
-      campaignsUsed: 0,
-      campaignsRemaining: 5,
-      batchLimit: 1,
-      customBrandKit: false,
-      analyticsDepth: 'basic',
-      supportLevel: 'community',
-      subscriptionEndDate: null,
+      ...FREE_DEFAULTS,
       error: String(err),
     };
   }

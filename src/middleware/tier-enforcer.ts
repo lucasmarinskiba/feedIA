@@ -3,17 +3,17 @@
  * Validates user tier against app limits (campaigns/mo, batch size, usage budget, etc.)
  */
 
-import { getUserTier, incrementCampaignUsage } from '../db/user-tiers.js';
+import { getUserTier, incrementCampaignUsage, type UserTier } from '../db/user-tiers.js';
 import { canProceed as canProceedBilling } from '../services/billing-manager.js';
 
 export interface TierContext {
   userId: string;
-  tier: 'free' | 'pro' | 'agency';
+  tier: UserTier;
   campaignsRemaining: number;
   batchLimit: number;
   customBrandKit: boolean;
   analyticsDepth: 'basic' | 'advanced';
-  supportLevel: 'community' | 'email' | '24h-priority';
+  supportLevel: 'community' | 'email' | 'email-24h' | '24h-priority';
 }
 
 export const validateTierAccess = async (
@@ -91,11 +91,12 @@ export const validateBatchSize = (
 };
 
 export const checkFeatureAccess = (
-  tier: 'free' | 'pro' | 'agency',
+  tier: UserTier,
   feature: 'customBrandKit' | 'analytics' | 'api_access' | 'webhooks' | 'priority_support',
 ): boolean => {
   const features = {
     free: { customBrandKit: false, analytics: false, api_access: false, webhooks: false, priority_support: false },
+    starter: { customBrandKit: false, analytics: false, api_access: false, webhooks: false, priority_support: false },
     pro: { customBrandKit: true, analytics: true, api_access: false, webhooks: false, priority_support: false },
     agency: { customBrandKit: true, analytics: true, api_access: true, webhooks: true, priority_support: true },
   };

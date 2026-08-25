@@ -5,7 +5,7 @@
  */
 
 import { Request, Response } from 'express';
-import { upsertUserTier } from '../../db/user-tiers.js';
+import { upsertUserTier, type UserTier } from '../../db/user-tiers.js';
 
 interface MercadoPagoPayment {
   id: number;
@@ -109,7 +109,7 @@ async function processPaymentData(payment: MercadoPagoPayment): Promise<{ succes
 
     // Payment approved: update tier
     if (payment.status === 'approved') {
-      await upsertUserTier(userId, email, tier as 'pro' | 'agency', `mp_${payment.id}`);
+      await upsertUserTier(userId, email, tier as UserTier, `mp_${payment.id}`);
 
       console.log(`[MP Webhook] User ${userId} upgraded to ${tier}`, { paymentId: payment.id });
       return {

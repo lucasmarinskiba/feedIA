@@ -6,7 +6,7 @@
 
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
-import { upsertUserTier, linkStripeSubscription } from '../../db/user-tiers.js';
+import { upsertUserTier, linkStripeSubscription, type UserTier } from '../../db/user-tiers.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock', {
   apiVersion: '2024-12-18' as unknown as '2024-12-18',
@@ -55,7 +55,7 @@ async function processEvent(event: Stripe.Event): Promise<{ success: boolean; me
         const subscription = data as Stripe.Subscription;
         const metadata = subscription.metadata || {};
         const userId = metadata.userId || data.client_reference_id;
-        const tier = (metadata.tier as 'pro' | 'agency') || 'pro';
+        const tier = (metadata.tier as UserTier) || 'pro';
 
         if (!userId) {
           console.warn('[Stripe] No userId in subscription metadata');
