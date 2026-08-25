@@ -59,6 +59,7 @@ import { handleImageProviders } from './_imageProviders.js';
 import { handleVideoProviders } from './_videoProviders.js';
 import { handleVideoGeneration, handleVideoPublishing } from './_videoGeneration.js';
 import { handleAnalytics } from './_analytics.js';
+import { handleTemplates } from './_templates.js';
 import { handleCuRecipes } from './_cuRecipeLibrary.js';
 import { handleGrowthIntelligence } from './_growthIntelligence.js';
 import { handleEliteEngine } from './_eliteCreatorEngine.js';
@@ -1223,6 +1224,26 @@ const innerHandler = async (req, res) => {
       if (await handleVideoEditor(req, res, path, m, vBody || {})) return;
     } catch (err) {
       return json(res, 500, { error: 'video-editor' });
+    }
+  }
+
+  // ── Templates (content + workflow) ────────────────────────────────────
+  if (path.startsWith('/api/templates/')) {
+    let templateBody = req.body;
+    if (templateBody === undefined && (m === 'POST' || m === 'PUT')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        templateBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        templateBody = {};
+      }
+    }
+    try {
+      if (await handleTemplates(req, res, path, m, templateBody || {})) return;
+    } catch (err) {
+      return json(res, 500, { error: 'templates-handler' });
     }
   }
 
