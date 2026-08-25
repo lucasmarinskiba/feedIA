@@ -78,6 +78,9 @@ import conversionRoutes from './api/conversion-routes.js';
 import billingRoutes from './api/billing-routes.js';
 import subscriptionRoutes from './api/subscription-routes.js';
 import accountsRoutes from './api/accounts-routes.js';
+import oauthInstagramRoutes from './api/oauth-instagram-routes.js';
+import publishingRoutes from './api/publishing-routes.js';
+import { startMetricsPolling } from './services/metrics-polling.js';
 import { initializeUserTiersTable, resetMonthlyUsage } from './db/user-tiers.js';
 import { initializePaymentTokenTables } from './db/payments-tokens.js';
 import { initializeAccountsTables } from './db/accounts.js';
@@ -436,6 +439,12 @@ app.use('/api/subscription', subscriptionRoutes);
 // Multi-Account Management: Connect/disconnect accounts, per-account quotas
 app.use('/api/accounts', accountsRoutes);
 
+// OAuth: Instagram, TikTok, Facebook account authentication
+app.use('/api/oauth/instagram', oauthInstagramRoutes);
+
+// Publishing: Publish carousels/reels/stories to connected accounts
+app.use('/api/publish', publishingRoutes);
+
 // Feature Flags: Tier-based feature access control
 app.use('/api/features', featureFlagsRoutes);
 
@@ -616,6 +625,7 @@ Promise.all([
     feedIAOrchestrator.initializeAgents();
     startPollingScheduler();
     startMonthlyUsageResetScheduler();
+    startMetricsPolling(6);
     const redisStatus = isRedisReady() ? '✅ Redis enabled' : '⚠️  Redis disabled';
     log.info(
       `[Server] initialized: metrics polling + carousel storage + billing/tiers + webhooks + quality feedback loop (${redisStatus})`,
