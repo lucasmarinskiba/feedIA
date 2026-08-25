@@ -5,7 +5,6 @@ api
 .git
 .env
 .env.*
-dist-static
 .github
 
 # Nested checkout (~388MB). Never part of the image; shipping it as build
@@ -14,6 +13,11 @@ feedIA
 
 # The builder recompiles dist/ from source, so any local copy is dead weight.
 dist
+# NOTE: dist-static (dashboard SPA) is intentionally NOT ignored — nothing in
+# this Dockerfile regenerates it (that's scripts/build-static.mjs, run
+# separately), so the committed bundle needs to reach the builder as-is for
+# the runtime COPY --from=builder to find it. Excluding it here previously
+# left server.ts's staticDir null in every deployed container.
 
 tests
 memory

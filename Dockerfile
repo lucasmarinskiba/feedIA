@@ -65,7 +65,7 @@ COPY package.json pnpm-lock.yaml* ./
 # served raw {"status":"ok",...} instead of the app — the entire dashboard
 # was unreachable on Railway before this line existed).
 COPY --from=builder /app/dist ./dist
-COPY dist-static ./dist-static
+COPY --from=builder /app/dist-static ./dist-static
 COPY data ./data
 COPY supabase/migrations ./supabase/migrations
 COPY src/db ./src/db
