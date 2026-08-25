@@ -60,6 +60,8 @@ import { handleVideoProviders } from './_videoProviders.js';
 import { handleVideoGeneration, handleVideoPublishing } from './_videoGeneration.js';
 import { handleAnalytics } from './_analytics.js';
 import { handleTemplates } from './_templates.js';
+import { handleTeams } from './_teams.js';
+import { handleFeedback } from './_feedback.js';
 import { handleCuRecipes } from './_cuRecipeLibrary.js';
 import { handleGrowthIntelligence } from './_growthIntelligence.js';
 import { handleEliteEngine } from './_eliteCreatorEngine.js';
@@ -1297,6 +1299,46 @@ const innerHandler = async (req, res) => {
       } catch (err) {
         return json(res, 500, { error: 'publish-handler' });
       }
+    }
+  }
+
+  // ── Teams & Workspaces ─────────────────────────────────────────────────
+  if (path.startsWith('/api/teams/')) {
+    let teamsBody = req.body;
+    if (teamsBody === undefined && (m === 'POST' || m === 'PUT' || m === 'DELETE')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        teamsBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        teamsBody = {};
+      }
+    }
+    try {
+      if (await handleTeams(req, res, path, m, teamsBody || {})) return;
+    } catch (err) {
+      return json(res, 500, { error: 'teams-handler' });
+    }
+  }
+
+  // ── User Feedback Collection ───────────────────────────────────────────
+  if (path.startsWith('/api/feedback/')) {
+    let feedbackBody = req.body;
+    if (feedbackBody === undefined && (m === 'POST' || m === 'PUT')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        feedbackBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        feedbackBody = {};
+      }
+    }
+    try {
+      if (await handleFeedback(req, res, path, m, feedbackBody || {})) return;
+    } catch (err) {
+      return json(res, 500, { error: 'feedback-handler' });
     }
   }
 
