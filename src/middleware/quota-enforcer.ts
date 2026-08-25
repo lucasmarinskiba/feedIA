@@ -7,7 +7,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { log } from '../agent/logger.js';
 import { getPool } from '../db/postgres-real.js';
-import { getUserTier, tierConfig } from '../db/user-tiers.js';
+import { getOrCreateUserTier, tierConfig } from '../db/user-tiers.js';
 
 export interface QuotaContext {
   userId: string;
@@ -30,7 +30,7 @@ export const checkFormatQuota = async (
   requestedCount: number = 1,
 ): Promise<QuotaContext> => {
   try {
-    const tier = await getUserTier(userId);
+    const tier = await getOrCreateUserTier(userId);
     if (!tier) {
       return {
         userId,
@@ -40,7 +40,7 @@ export const checkFormatQuota = async (
         allowed: false,
         used: 0,
         limit: 0,
-        reason: 'User not found',
+        reason: 'User tier error',
       };
     }
 

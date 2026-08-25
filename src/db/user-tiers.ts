@@ -291,6 +291,59 @@ export const getUserTier = async (userId: string): Promise<UserTierRecord | null
 };
 
 /**
+ * Get user tier, auto-create as free if missing
+ * Used by quota enforcement to ensure all users have a tier record
+ */
+export const getOrCreateUserTier = async (userId: string): Promise<UserTierRecord> => {
+  try {
+    let tier = await getUserTier(userId);
+    if (tier) return tier;
+
+    // Create free tier user if not exists
+    tier = await upsertUserTier(userId, `${userId}@feedia.local`, 'free');
+    return tier;
+  } catch (err) {
+    console.error('[UserTiers] GetOrCreate failed:', err);
+    // Fallback: return synthetic free tier record
+    const config = tierConfig.free;
+    return {
+      userId,
+      email: `${userId}@feedia.local`,
+      tier: 'free',
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      mercadoPagoCustomerId: null,
+      mercadoPagoPreferenceId: null,
+      campaignsUsedThisMonth: 0,
+      campaignsLimit: config.campaignsLimit,
+      batchLimit: config.batchLimit,
+      carouselsLimit: config.carouselsLimit,
+      carouselsUsedThisMonth: 0,
+      storiesLimit: config.storiesLimit,
+      storiesUsedThisMonth: 0,
+      videosLimit: config.videosLimit,
+      videosUsedThisMonth: 0,
+      profilesLimit: config.profilesLimit,
+      storageGb: config.storageGb,
+      customBrandKit: config.customBrandKit,
+      analyticsDepth: config.analyticsDepth,
+      supportLevel: config.supportLevel,
+      monthlyPriceUsd: config.monthlyPriceUsd,
+      monthlyPriceArs: config.monthlyPriceArs,
+      subscriptionStatus: 'active',
+      subscriptionCycleStart: null,
+      subscriptionCycleEnd: null,
+      nextBillingDate: null,
+      lastPaymentDate: null,
+      paymentProvider: 'none',
+      autoRenew: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
+};
+
+/**
  * Record campaign usage
  */
 export const incrementCampaignUsage = async (userId: string, count: number = 1): Promise<boolean> => {
