@@ -310,7 +310,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleCapabilities(req, res, path, m)) return;
     } catch (err) {
-      return json(res, 500, { error: 'capabilities-handler', message: String(err) });
+      return json(res, 500, { error: 'capabilities-handler' });
     }
   }
 
@@ -330,7 +330,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleCalendar(req, res, path, m, cBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'calendar-handler', message: String(err) });
+      return json(res, 500, { error: 'calendar-handler' });
     }
   }
 
@@ -352,12 +352,12 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleFeedVision(req, res, path, m, aBody || {}, { userId: amUid })) return;
     } catch (err) {
-      return json(res, 500, { error: 'vision-handler', message: String(err) });
+      return json(res, 500, { error: 'vision-handler' });
     }
     try {
       if (await handleAccountMemory(req, res, path, m, aBody || {}, { userId: amUid })) return;
     } catch (err) {
-      return json(res, 500, { error: 'account-handler', message: String(err) });
+      return json(res, 500, { error: 'account-handler' });
     }
   }
 
@@ -378,7 +378,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleSocialConnect(req, res, path, m, scBody || {}, { userId: scCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'social-handler', message: String(err) });
+      return json(res, 500, { error: 'social-handler' });
     }
   }
 
@@ -399,7 +399,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleAgencyBrain(req, res, path, m, abBody || {}, { userId: abCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'agency-brain', message: String(err) });
+      return json(res, 500, { error: 'agency-brain' });
     }
   }
 
@@ -419,7 +419,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleAndromeda(req, res, path, m, andBody || {}, {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'andromeda', message: String(err) });
+      return json(res, 500, { error: 'andromeda' });
     }
   }
 
@@ -428,7 +428,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleCanvasSpecs(req, res, path, m)) return;
     } catch (err) {
-      return json(res, 500, { error: 'canvas-specs', message: String(err) });
+      return json(res, 500, { error: 'canvas-specs' });
     }
   }
 
@@ -448,7 +448,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleVisionLoop(req, res, path, m, vlBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'vision-loop', message: String(err) });
+      return json(res, 500, { error: 'vision-loop' });
     }
   }
 
@@ -468,7 +468,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleDesignTools(req, res, path, m, dtBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'design-tools', message: String(err) });
+      return json(res, 500, { error: 'design-tools' });
     }
   }
 
@@ -488,7 +488,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleCarouselRules(req, res, path, m, crBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'carousel-rules', message: String(err) });
+      return json(res, 500, { error: 'carousel-rules' });
     }
   }
 
@@ -509,7 +509,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleAutopilotCreate(req, res, path, m, apBody || {}, { userId: apCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'autopilot-create', message: String(err) });
+      return json(res, 500, { error: 'autopilot-create' });
     }
   }
 
@@ -530,7 +530,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleToneGuardian(req, res, path, m, tgBody || {}, { userId: tgCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'tone-guardian', message: String(err) });
+      return json(res, 500, { error: 'tone-guardian' });
     }
   }
 
@@ -551,7 +551,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleFAQDatabase(req, res, path, m, fqBody || {}, { userId: fqCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'faq-database', message: String(err) });
+      return json(res, 500, { error: 'faq-database' });
     }
   }
 
@@ -572,7 +572,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleMentionTracker(req, res, path, m, mnBody || {}, { userId: mnCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'mention-tracker', message: String(err) });
+      return json(res, 500, { error: 'mention-tracker' });
     }
   }
 
@@ -594,7 +594,7 @@ const innerHandler = async (req, res) => {
       if (await handleCrisisAgent(req, res, path, m, crBody || {}, { userId: crCtx?.user?.id || null })) return;
       if (await handleCrisisAlerts(req, res, path, m, crBody || {}, { userId: crCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'crisis-agent', message: String(err) });
+      return json(res, 500, { error: 'crisis-agent' });
     }
   }
 
@@ -604,7 +604,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleRoiDashboard(req, res, path, m, {}, { userId: roiCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'roi-dashboard', message: String(err) });
+      return json(res, 500, { error: 'roi-dashboard' });
     }
   }
 
@@ -616,7 +616,7 @@ const innerHandler = async (req, res) => {
       if (await handleRoiDashboards(req, res, path, m, {}, { userId: dbCtx?.user?.id || null })) return;
       if (await handleLeadsDashboard(req, res, path, m, {}, { userId: dbCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'dashboard', message: String(err) });
+      return json(res, 500, { error: 'dashboard' });
     }
   }
 
@@ -641,7 +641,7 @@ const innerHandler = async (req, res) => {
         if (await syncSelliaWebhook(req, res, path, m, slBody || {}, { userId: slCtx?.user?.id || null })) return;
       }
     } catch (err) {
-      return json(res, 500, { error: 'sellia-webhook', message: String(err) });
+      return json(res, 500, { error: 'sellia-webhook' });
     }
   }
 
@@ -662,7 +662,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleRevenueAttribution(req, res, path, m, rvBody || {}, { userId: rvCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'revenue-attribution', message: String(err) });
+      return json(res, 500, { error: 'revenue-attribution' });
     }
   }
 
@@ -683,7 +683,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleFanRecognition(req, res, path, m, frBody || {}, { userId: frCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'fan-recognition', message: String(err) });
+      return json(res, 500, { error: 'fan-recognition' });
     }
   }
 
@@ -693,7 +693,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleFansDashboard(req, res, path, m, {}, { userId: dashCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'fans-dashboard', message: String(err) });
+      return json(res, 500, { error: 'fans-dashboard' });
     }
   }
 
@@ -702,7 +702,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleRoiDashboards(req, res, path, m, {}, { userId: dashCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'roi-dashboard', message: String(err) });
+      return json(res, 500, { error: 'roi-dashboard' });
     }
   }
 
@@ -711,7 +711,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleLeadsDashboard(req, res, path, m, {}, { userId: dashCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'leads-dashboard', message: String(err) });
+      return json(res, 500, { error: 'leads-dashboard' });
     }
   }
 
@@ -731,7 +731,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handlePromptLibrary(req, res, path, m, plBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'prompt-library', message: String(err) });
+      return json(res, 500, { error: 'prompt-library' });
     }
   }
 
@@ -752,7 +752,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleCommunityEngine(req, res, path, m, ceBody || {}, { userId: ceCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'community-engine', message: String(err) });
+      return json(res, 500, { error: 'community-engine' });
     }
   }
 
@@ -773,7 +773,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleStoriesEngine(req, res, path, m, seBody || {}, { userId: seCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'stories-engine', message: String(err) });
+      return json(res, 500, { error: 'stories-engine' });
     }
   }
 
@@ -794,7 +794,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleCommunityBrain(req, res, path, m, cbBody || {}, { userId: cbCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'community-brain', message: String(err) });
+      return json(res, 500, { error: 'community-brain' });
     }
   }
 
@@ -814,7 +814,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleIntentParser(req, res, path, m, ipBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'intent-parser', message: String(err) });
+      return json(res, 500, { error: 'intent-parser' });
     }
   }
 
@@ -835,7 +835,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleElevenLabs(req, res, path, m, elBody || {}, { userId: elCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'elevenlabs', message: String(err) });
+      return json(res, 500, { error: 'elevenlabs' });
     }
   }
 
@@ -856,7 +856,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleRunAll(req, res, path, m, raBody || {}, { userId: raCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'run-all', message: String(err) });
+      return json(res, 500, { error: 'run-all' });
     }
   }
 
@@ -877,7 +877,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleHandsFree(req, res, path, m, hfBody || {}, { userId: hfCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'handsfree', message: String(err) });
+      return json(res, 500, { error: 'handsfree' });
     }
   }
 
@@ -886,7 +886,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleToolBoost(req, res, path, m)) return;
     } catch (err) {
-      return json(res, 500, { error: 'tool-boost', message: String(err) });
+      return json(res, 500, { error: 'tool-boost' });
     }
   }
 
@@ -907,7 +907,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleFeedbackLoop(req, res, path, m, fbBody || {}, { userId: fbCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'feedback-loop', message: String(err) });
+      return json(res, 500, { error: 'feedback-loop' });
     }
   }
 
@@ -928,7 +928,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleGstack(req, res, path, m, gsBody || {}, { userId: gsCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'gstack', message: String(err) });
+      return json(res, 500, { error: 'gstack' });
     }
   }
 
@@ -949,7 +949,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleNicheIntelligence(req, res, path, m, niBody || {}, { userId: niCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'niche-intelligence', message: String(err) });
+      return json(res, 500, { error: 'niche-intelligence' });
     }
   }
 
@@ -970,7 +970,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleCanvaConnect(req, res, path, m, cvBody || {}, { userId: cvCtx?.user?.id || null })) return;
     } catch (err) {
-      return json(res, 500, { error: 'canva-connect', message: String(err) });
+      return json(res, 500, { error: 'canva-connect' });
     }
   }
 
@@ -997,7 +997,7 @@ const innerHandler = async (req, res) => {
       )
         return;
     } catch (err) {
-      return json(res, 500, { error: 'brand-studio', message: String(err) });
+      return json(res, 500, { error: 'brand-studio' });
     }
   }
 
@@ -1017,7 +1017,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleApiKeys(req, res, path, m, kBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'apikeys-handler', message: String(err) });
+      return json(res, 500, { error: 'apikeys-handler' });
     }
   }
 
@@ -1037,7 +1037,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleWhiteLabel(req, res, path, m, wBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'whitelabel-handler', message: String(err) });
+      return json(res, 500, { error: 'whitelabel-handler' });
     }
   }
 
@@ -1046,7 +1046,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleAlwaysOnCron(req, res, path, m)) return;
     } catch (err) {
-      return json(res, 500, { error: 'cron-handler', message: String(err) });
+      return json(res, 500, { error: 'cron-handler' });
     }
   }
 
@@ -1055,7 +1055,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleCuRecipes(req, res, path, m)) return;
     } catch (err) {
-      return json(res, 500, { error: 'cu-recipes', message: String(err) });
+      return json(res, 500, { error: 'cu-recipes' });
     }
   }
 
@@ -1064,7 +1064,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleMasterOrchestrator(req, res, path, m)) return;
     } catch (err) {
-      return json(res, 500, { error: 'master-orchestrator', message: String(err) });
+      return json(res, 500, { error: 'master-orchestrator' });
     }
   }
 
@@ -1084,7 +1084,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleBrandAuthority(req, res, path, m, baBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'brand-authority', message: String(err) });
+      return json(res, 500, { error: 'brand-authority' });
     }
   }
 
@@ -1104,7 +1104,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleInfluencerImagination(req, res, path, m, imBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'imagination', message: String(err) });
+      return json(res, 500, { error: 'imagination' });
     }
   }
 
@@ -1124,7 +1124,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleLegendaryEngine(req, res, path, m, lBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'legendary-handler', message: String(err) });
+      return json(res, 500, { error: 'legendary-handler' });
     }
   }
 
@@ -1144,7 +1144,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleEliteVideoEditing(req, res, path, m, evBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'elite-video-handler', message: String(err) });
+      return json(res, 500, { error: 'elite-video-handler' });
     }
   }
 
@@ -1164,7 +1164,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleEliteEngine(req, res, path, m, eBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'elite-handler', message: String(err) });
+      return json(res, 500, { error: 'elite-handler' });
     }
   }
 
@@ -1184,7 +1184,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleGrowthIntelligence(req, res, path, m, iBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'intel-handler', message: String(err) });
+      return json(res, 500, { error: 'intel-handler' });
     }
   }
 
@@ -1193,14 +1193,14 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleImageProviders(req, res, path, m)) return;
     } catch (err) {
-      return json(res, 500, { error: 'img-providers', message: String(err) });
+      return json(res, 500, { error: 'img-providers' });
     }
   }
   if (path === '/api/providers/videos') {
     try {
       if (await handleVideoProviders(req, res, path, m)) return;
     } catch (err) {
-      return json(res, 500, { error: 'vid-providers', message: String(err) });
+      return json(res, 500, { error: 'vid-providers' });
     }
   }
 
@@ -1220,7 +1220,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleVideoEditor(req, res, path, m, vBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'video-editor', message: String(err) });
+      return json(res, 500, { error: 'video-editor' });
     }
   }
 
@@ -1243,13 +1243,13 @@ const innerHandler = async (req, res) => {
         const { handleFreeCarouselDemo } = await import('./_freeCarouselDemo.js');
         if (await handleFreeCarouselDemo(req, res, path, m, cuBody || {})) return;
       } catch (err) {
-        return json(res, 500, { error: 'carousel-demo', message: String(err) });
+        return json(res, 500, { error: 'carousel-demo' });
       }
     }
     try {
       if (await handleFreeCu(req, res, path, m, cuBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'freecu-handler', message: String(err) });
+      return json(res, 500, { error: 'freecu-handler' });
     }
   }
 
@@ -1269,7 +1269,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleByok(req, res, path, m, bBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'byok-handler', message: String(err) });
+      return json(res, 500, { error: 'byok-handler' });
     }
   }
 
@@ -1371,7 +1371,7 @@ const innerHandler = async (req, res) => {
       if (path === '/api/predict/virality' && (await handleViralPredictor(req, res, path, m, fBody || {}))) return;
       if (path === '/api/forge/content' && (await handleContentForge(req, res, path, m, fBody || {}))) return;
     } catch (err) {
-      return json(res, 500, { error: 'brain-handler', message: String(err) });
+      return json(res, 500, { error: 'brain-handler' });
     }
   }
 
@@ -1391,7 +1391,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleGate(req, res, path, m, gBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'gate-handler', message: String(err) });
+      return json(res, 500, { error: 'gate-handler' });
     }
   }
 
@@ -1418,7 +1418,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleBilling(req, res, path, m, bBody || {}, rawBody)) return;
     } catch (err) {
-      return json(res, 500, { error: 'billing-handler', message: String(err) });
+      return json(res, 500, { error: 'billing-handler' });
     }
   }
 
@@ -1438,7 +1438,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleSkills(req, res, path, m, parsedBody || {}, url.searchParams)) return;
     } catch (err) {
-      return json(res, 500, { error: 'skills-handler', message: String(err) });
+      return json(res, 500, { error: 'skills-handler' });
     }
   }
 
@@ -1465,7 +1465,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleWorkspace(req, res, path, m, wBody || {}, url.searchParams)) return;
     } catch (err) {
-      return json(res, 500, { error: 'workspace-handler', message: String(err) });
+      return json(res, 500, { error: 'workspace-handler' });
     }
   }
 
@@ -1485,7 +1485,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleBridge(req, res, path, m, bBody || {}, url.searchParams)) return;
     } catch (err) {
-      return json(res, 500, { error: 'bridge-handler', message: String(err) });
+      return json(res, 500, { error: 'bridge-handler' });
     }
   }
 
@@ -1530,7 +1530,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleUsers(req, res, path, m, uBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'users-handler', message: String(err) });
+      return json(res, 500, { error: 'users-handler' });
     }
   }
 
@@ -1778,7 +1778,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleAuth(req, res, path, m, {}, url.searchParams)) return;
     } catch (err) {
-      return json(res, 500, { error: 'auth-handler', message: String(err) });
+      return json(res, 500, { error: 'auth-handler' });
     }
   }
 
@@ -1805,7 +1805,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleGrowth(req, res, path, m, gBody || {}, url.searchParams)) return;
     } catch (err) {
-      return json(res, 500, { error: 'growth-handler', message: String(err) });
+      return json(res, 500, { error: 'growth-handler' });
     }
   }
 
@@ -2239,7 +2239,7 @@ const innerHandler = async (req, res) => {
     try {
       if (await handleCuExecutor(req, res, path, m, cuRunBody || {})) return;
     } catch (err) {
-      return json(res, 500, { error: 'cu-executor', message: String(err) });
+      return json(res, 500, { error: 'cu-executor' });
     }
   }
 

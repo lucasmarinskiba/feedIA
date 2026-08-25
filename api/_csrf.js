@@ -16,8 +16,14 @@
 
 import { createHmac } from 'node:crypto';
 
-const SECRET = process.env.CSRF_SECRET || 'feedia-csrf-dev-fallback-CHANGE-IN-PROD';
-const REQUIRED = (process.env.CSRF_REQUIRED ?? 'false') === 'true';
+const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+const SECRET = process.env.CSRF_SECRET || (isProd ? null : 'feedia-csrf-dev-fallback-only-for-local-dev');
+
+if (isProd && !SECRET) {
+  throw new Error('[CRITICAL] CSRF_SECRET must be set in production. Set a 32+ char random string.');
+}
+
+const REQUIRED = (process.env.CSRF_REQUIRED ?? 'true') === 'true';
 
 export const issueCsrf = (sessionToken) => {
   if (!sessionToken) return '';

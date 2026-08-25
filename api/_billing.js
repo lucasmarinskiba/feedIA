@@ -19,6 +19,7 @@
 
 import * as store from './_store.js';
 import { getSessionFromReq } from './_users.js';
+import { rateLimit, ipOf } from './_rateLimit.js';
 
 const SK = process.env.STRIPE_SECRET_KEY || '';
 const WHSEC = process.env.STRIPE_WEBHOOK_SECRET || '';
@@ -392,6 +393,9 @@ const verifyWebhook = (rawBody, signature) => {
 export const handleBilling = async (req, res, path, m, body, rawBody) => {
   // ─── Lista pública de planes ─────────────────────────────────────────
   if (path === '/api/billing/plans' && m === 'GET') {
+    // Rate limit: 100 requests per hour per IP
+    if (!(await rateLimit(req, res, `billing:plans:${ipOf(req)}`, 100, 3600))) return true;
+
     json(res, 200, {
       plans: Object.values(PLANS).map((p) => ({
         id: p.id,
@@ -489,13 +493,16 @@ export const handleBilling = async (req, res, path, m, body, rawBody) => {
       });
       json(res, 200, { url: session.url, sessionId: session.id });
     } catch (err) {
-      json(res, 500, { error: 'checkout-failed', message: String(err.message || err) });
+      json(res, 500, { error: 'checkout-failed' });
     }
     return true;
   }
 
   // ─── Credit Packs (overage video credits) ────────────────────────────
   if (path === '/api/billing/credit-packs' && m === 'GET') {
+    // Rate limit: 100 requests per hour per IP
+    if (!(await rateLimit(req, res, `billing:packs:${ipOf(req)}`, 100, 3600))) return true;
+
     json(res, 200, {
       packs: Object.values(CREDIT_PACKS).map((p) => ({
         id: p.id,

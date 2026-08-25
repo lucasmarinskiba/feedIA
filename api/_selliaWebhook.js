@@ -13,13 +13,26 @@ import { recordConversion } from './_revenueAttribution.js';
 import { recordFanEngagement, recordFanPurchase } from './_fanRecognition.js';
 import { getProfile, saveProfile } from './_accountMemory.js';
 
-// ── Validar firma webhook (optional: si SellIA usa HMAC) ──────────────────────
+// ── Validar firma webhook (obligatorio para production) ────────────────────────
 
 const validateWebhookSignature = (payload, signature, secret) => {
-  if (!secret || !signature) return true; // Skip si no configurado
   const crypto = require('crypto');
+  const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+
+  if (isProd && !secret) {
+    throw new Error('[CRITICAL] SELLIA_WEBHOOK_SECRET must be configured in production.');
+  }
+
+  if (!secret) return true; // Dev mode: skip if not configured
+  if (!signature) return false; // Reject if signature missing
+
   const hash = crypto.createHmac('sha256', secret).update(JSON.stringify(payload)).digest('hex');
-  return hash === signature;
+  // Use timing-safe comparison to prevent timing attacks
+  try {
+    return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(signature));
+  } catch {
+    return false; // Buffer lengths don't match
+  }
 };
 
 // ── Event handlers por tipo ───────────────────────────────────────────────────
@@ -231,7 +244,7 @@ export const handleSelliaWebhook = async (req, res, path, m, body, ctx = {}) => 
 
     return json(200, { ok: result?.ok || false, ...result });
   } catch (err) {
-    return json(500, { ok: false, error: String(err) });
+    return json(500, { ok: false, error: 'webhook-processing-failed' });
   }
 };
 
@@ -275,6 +288,6 @@ export const syncSelliaWebhook = async (req, res, path, m, body, ctx = {}) => {
 
     return json(200, { ok: result?.ok || false, ...result });
   } catch (err) {
-    return json(500, { ok: false, error: String(err) });
+    return json(500, { ok: false, error: 'webhook-processing-failed' });
   }
 };

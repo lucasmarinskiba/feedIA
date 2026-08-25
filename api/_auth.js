@@ -91,7 +91,7 @@ export const handleAuth = async (req, res, path, m, body, search) => {
       const j = await r.json();
       const tok = j?.access_token || j?.data?.access_token;
       if (!tok) {
-        html(res, 400, `<h2>No se pudo obtener el token</h2><pre>${JSON.stringify(j).slice(0, 500)}</pre>`);
+        html(res, 400, `<h2>No se pudo obtener el token</h2><p>Por favor, intenta de nuevo.</p>`);
         return true;
       }
 
@@ -119,7 +119,7 @@ export const handleAuth = async (req, res, path, m, body, search) => {
         '<h2>✅ TikTok conectado</h2><p>Tu cuenta de TikTok quedó anexada a FeedIA. Podés cerrar esta pestaña.</p><a href="/">Ir a FeedIA</a><script>setTimeout(()=>{location.href="/?connected=tiktok";},1500);</script>',
       );
     } catch (e) {
-      html(res, 500, `<h2>Error</h2><pre>${String(e)}</pre>`);
+      html(res, 500, `<h2>Error en autorización</h2><p>Por favor, intenta de nuevo más tarde.</p>`);
     }
     return true;
   }
@@ -213,7 +213,7 @@ export const handleAuth = async (req, res, path, m, body, search) => {
         '<h2>✅ Instagram conectado</h2><p>Tu cuenta de Instagram quedó anexada a FeedIA. Podés cerrar esta pestaña.</p><a href="/">Ir a FeedIA</a><script>setTimeout(()=>{location.href="/?connected=instagram";},1500);</script>',
       );
     } catch (e) {
-      html(res, 500, `<h2>Error</h2><pre>${String(e)}</pre>`);
+      html(res, 500, `<h2>Error en autorización</h2><p>Por favor, intenta de nuevo más tarde.</p>`);
     }
     return true;
   }

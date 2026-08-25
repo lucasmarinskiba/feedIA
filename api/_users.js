@@ -105,7 +105,12 @@ const verifyPassword = (password, hash, salt) => {
 const newId = () => `u_${crypto.randomBytes(10).toString('hex')}`;
 const newToken = () => crypto.randomBytes(32).toString('base64url');
 
-const OWNER_EMAIL = (process.env.OWNER_EMAIL || 'lucasdmarin@gmail.com').toLowerCase();
+const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+const OWNER_EMAIL = (process.env.OWNER_EMAIL || (isProd ? undefined : 'dev-owner@localhost')).toLowerCase();
+
+if (isProd && !process.env.OWNER_EMAIL) {
+  throw new Error('[CRITICAL] OWNER_EMAIL must be set in production.');
+}
 
 const sanitizeUser = (u) => ({
   id: u.id,

@@ -33,7 +33,8 @@ const isOwner = (user) => user && (user.role === 'owner' || user.plan === 'owner
  */
 export const rateLimit = async (req, res, key, limit, windowSec, opts = {}) => {
   if (!ENABLED) return true;
-  if (isOwner(opts.user)) return true;
+  // Owners get 10x limit but still are rate-limited
+  const actualLimit = isOwner(opts.user) ? limit * 10 : limit;
   const bucketKey = `feedia:rl:${key}`;
   let count;
   try {
@@ -42,19 +43,19 @@ export const rateLimit = async (req, res, key, limit, windowSec, opts = {}) => {
   } catch {
     return true; // si KV falla, no bloquees al usuario
   }
-  if (count > limit) {
+  if (count > actualLimit) {
     if (opts.user?.id) logRateLimit(opts.user.id, key).catch(() => undefined);
     if (!opts.skipResponse) {
       const remaining = await store.ttl(bucketKey).catch(() => windowSec);
       res.statusCode = 429;
       res.setHeader('retry-after', String(Math.max(1, remaining)));
       res.setHeader('content-type', 'application/json; charset=utf-8');
-      res.setHeader('x-ratelimit-limit', String(limit));
+      res.setHeader('x-ratelimit-limit', String(actualLimit));
       res.setHeader('x-ratelimit-remaining', '0');
       res.end(
         JSON.stringify({
           error: 'rate-limited',
-          limit,
+          limit: actualLimit,
           windowSec,
           retryAfterSec: Math.max(1, remaining),
           message: 'Demasiadas peticiones. Esperá un momento.',
@@ -64,8 +65,8 @@ export const rateLimit = async (req, res, key, limit, windowSec, opts = {}) => {
     return false;
   }
   if (!opts.skipResponse) {
-    res.setHeader('x-ratelimit-limit', String(limit));
-    res.setHeader('x-ratelimit-remaining', String(Math.max(0, limit - count)));
+    res.setHeader('x-ratelimit-limit', String(actualLimit));
+    res.setHeader('x-ratelimit-remaining', String(Math.max(0, actualLimit - count)));
   }
   return true;
 };
@@ -125,11 +126,11 @@ const usageKey = (userId) => `feedia:credits:usage:${userId}`;
  */
 export const checkCost = async (user, action) => {
   if (!user) return { allowed: false, remaining: 0, cost: 0, resetInSec: 0 };
-  if (user.role === 'owner' || user.plan === 'owner') {
-    return { allowed: true, remaining: 999999, cost: ACTION_COSTS[action] || 1, resetInSec: 0 };
-  }
+  // Owners get 10x credits but still have limits
+  const multiplier = user.role === 'owner' || user.plan === 'owner' ? 10 : 1;
   const cost = ACTION_COSTS[action] || 1;
-  const maxCredits = getPlanCredits(user.plan);
+  const baseCredits = getPlanCredits(user.plan);
+  const maxCredits = baseCredits * multiplier;
   const ck = creditKey(user.id);
   const uk = usageKey(user.id);
 

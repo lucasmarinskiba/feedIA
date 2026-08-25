@@ -2,6 +2,9 @@ node_modules/
 dist/
 .env
 .env.local
+.env.prod
+.env.production
+.env.*.local
 *.log
 .DS_Store
 .cache/
@@ -11,4 +14,6 @@ data/runtime/
 .vercel
 data/skill-jobs/
 .claude/settings.local.json
-.env.prod
+*.pem
+*.key
+.secrets/
