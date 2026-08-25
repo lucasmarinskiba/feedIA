@@ -58,8 +58,14 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY package.json pnpm-lock.yaml* ./
 
 # Compiled code and runtime assets. src/db carries schema.sql, which
-# database.ts reads from process.cwd() at startup.
+# database.ts reads from process.cwd() at startup. dist-static is the
+# dashboard SPA — server.ts's STATIC_CANDIDATES checks it first, and without
+# it here staticDir resolves to null, so express.static() never mounts and
+# every request just falls through to the JSON health/catch-all routes ('/'
+# served raw {"status":"ok",...} instead of the app — the entire dashboard
+# was unreachable on Railway before this line existed).
 COPY --from=builder /app/dist ./dist
+COPY dist-static ./dist-static
 COPY data ./data
 COPY supabase/migrations ./supabase/migrations
 COPY src/db ./src/db
