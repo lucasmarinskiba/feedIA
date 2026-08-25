@@ -57,6 +57,8 @@ import { handleAlwaysOnCron } from './_alwaysOnScheduler.js';
 import { handleVideoEditor } from './_videoEditor.js';
 import { handleImageProviders } from './_imageProviders.js';
 import { handleVideoProviders } from './_videoProviders.js';
+import { handleVideoGeneration, handleVideoPublishing } from './_videoGeneration.js';
+import { handleAnalytics } from './_analytics.js';
 import { handleCuRecipes } from './_cuRecipeLibrary.js';
 import { handleGrowthIntelligence } from './_growthIntelligence.js';
 import { handleEliteEngine } from './_eliteCreatorEngine.js';
@@ -1221,6 +1223,59 @@ const innerHandler = async (req, res) => {
       if (await handleVideoEditor(req, res, path, m, vBody || {})) return;
     } catch (err) {
       return json(res, 500, { error: 'video-editor' });
+    }
+  }
+
+  // ── Analytics (ROI, metrics, dashboard) ───────────────────────────────
+  if (path.startsWith('/api/analytics/')) {
+    let analyticsBody = req.body;
+    if (analyticsBody === undefined && (m === 'POST' || m === 'PUT')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        analyticsBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        analyticsBody = {};
+      }
+    }
+    try {
+      if (await handleAnalytics(req, res, path, m, analyticsBody || {})) return;
+    } catch (err) {
+      return json(res, 500, { error: 'analytics-handler' });
+    }
+  }
+
+  // ── Real Video Generation + Publishing ────────────────────────────────
+  if (path.startsWith('/api/video/') || path.startsWith('/api/publish/')) {
+    let vidBody = req.body;
+    if (vidBody === undefined && (m === 'POST' || m === 'PUT')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        vidBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        vidBody = {};
+      }
+    }
+
+    // Video generation
+    if (path.startsWith('/api/video/')) {
+      try {
+        if (await handleVideoGeneration(req, res, path, m, vidBody || {})) return;
+      } catch (err) {
+        return json(res, 500, { error: 'video-generation' });
+      }
+    }
+
+    // Publishing (Instagram + TikTok)
+    if (path.startsWith('/api/publish/')) {
+      try {
+        if (await handleVideoPublishing(req, res, path, m, vidBody || {})) return;
+      } catch (err) {
+        return json(res, 500, { error: 'publish-handler' });
+      }
     }
   }
 
