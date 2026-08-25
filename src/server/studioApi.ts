@@ -28,7 +28,50 @@ import {
 } from '../capabilities/render/index.js';
 import { routeImageGen } from '../services/provider-router.js';
 import type { BrandProfile, ContentFormat } from '../config/types.js';
-import { json, type RouteDefinition } from './http.js';
+import { json, type RouteContext, type RouteDefinition } from './http.js';
+import { checkFormatQuota, commitFormatUsage } from '../middleware/tier-enforcer.js';
+import type { ContentFormat as TierContentFormat } from '../db/user-tiers.js';
+
+/**
+ * userContextMiddleware attaches req.userId on the live Express Request
+ * before this handler runs (RouteContext.req is typed as the raw Node
+ * IncomingMessage, but createStudioRoutes casts the real Express req through
+ * unchanged — the property is really there at runtime).
+ */
+const getRequestUserId = (req: RouteContext['req']): string =>
+  (req as unknown as { userId?: string }).userId || 'test-user';
+
+/**
+ * Gate a studio generation call against the caller's monthly quota for that
+ * format. Returns the userId to pass to commitFormatUsage() once generation
+ * actually succeeds, or null if blocked (the 402 response is already written
+ * in that case — the caller should return immediately without generating).
+ * Deliberately does NOT consume the quota itself: consuming here would charge
+ * a user's quota for a request that then fails downstream (LLM error, etc).
+ */
+const enforceFormatQuota = async (
+  ctx: Pick<RouteContext, 'req' | 'res'>,
+  format: TierContentFormat,
+): Promise<string | null> => {
+  const userId = getRequestUserId(ctx.req);
+  const result = await checkFormatQuota(userId, format);
+  if (!result.allowed) {
+    // 402 + error:'quota-exceeded' matches what public/lib/api.js already
+    // detects to fire the feedia:quotaExceeded event — public/app.js has a
+    // fully-built upgrade modal listening for it, so this reuses that instead
+    // of needing new frontend handling per studio view.
+    json(ctx.res, 402, {
+      error: 'quota-exceeded',
+      reason: result.reason,
+      used: result.used,
+      limit: result.limit,
+      currentPlan: result.currentPlan,
+      upgradeUrl: '/pricing',
+    });
+    return null;
+  }
+  return userId;
+};
 
 interface CarruselBody {
   idea: string;
@@ -126,24 +169,31 @@ export const buildStudioRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'POST',
     pattern: '/api/studio/carrusel',
-    handler: async ({ res, body }) => {
+    handler: async (ctx) => {
+      const { res, body } = ctx;
       const b = body as CarruselBody;
       if (!b.idea) return json(res, 400, { error: 'idea requerida' });
+      const quotaUserId = await enforceFormatQuota(ctx, 'carousels');
+      if (!quotaUserId) return;
       const carrusel = await createCarrusel(brand, b.idea, b.longitud ?? 'medio');
       const previews = carrusel.slides.map((s) => ({
         numero: s.numero,
         rol: s.rolEnNarrativa,
         dataUrl: svgToDataUrl(renderCarruselSlideSvg(s, brand, carrusel.slides.length)),
       }));
+      await commitFormatUsage(quotaUserId, 'carousels');
       json(res, 200, { carrusel, previews });
     },
   },
   {
     method: 'POST',
     pattern: '/api/studio/reel',
-    handler: async ({ res, body }) => {
+    handler: async (ctx) => {
+      const { res, body } = ctx;
       const b = body as ReelBody;
       if (!b.tema) return json(res, 400, { error: 'tema requerido' });
+      const quotaUserId = await enforceFormatQuota(ctx, 'videos');
+      if (!quotaUserId) return;
       const rawReel = await createReel(brand, b.tema, b.duracion ?? 30);
       // Map beats to frontend-expected structure
       const BEAT_TIPOS = ['gancho', 'tension', 'desarrollo', 'climax', 'resolucion', 'cta'];
@@ -165,16 +215,20 @@ export const buildStudioRoutes = (brand: BrandProfile): RouteDefinition[] => [
       };
       const svgs = renderReelStoryboardSvg(rawReel.beats, brand);
       const previews = svgs.map((svg) => ({ dataUrl: svgToDataUrl(svg) }));
+      await commitFormatUsage(quotaUserId, 'videos');
       json(res, 200, { reel, previews });
     },
   },
   {
     method: 'POST',
     pattern: '/api/studio/stories',
-    handler: async ({ res, body }) => {
+    handler: async (ctx) => {
+      const { res, body } = ctx;
       const b = body as StoriesBody;
       const evento = b.evento ?? b.mensaje;
       if (!evento) return json(res, 400, { error: 'mensaje/evento requerido' });
+      const quotaUserId = await enforceFormatQuota(ctx, 'stories');
+      if (!quotaUserId) return;
       const cantidad = b.cantidad ?? b.cantidadFrames ?? 5;
       const rawStory = await createStorySequence(brand, evento, cantidad);
       // Map slides to frontend-expected frame structure
@@ -197,6 +251,7 @@ export const buildStudioRoutes = (brand: BrandProfile): RouteDefinition[] => [
       const previews = rawStory.slides.map((slide) => ({
         dataUrl: svgToDataUrl(renderStoryFrameSvg(slide, brand)),
       }));
+      await commitFormatUsage(quotaUserId, 'stories');
       json(res, 200, { stories, previews });
     },
   },

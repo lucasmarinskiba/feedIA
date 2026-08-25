@@ -17,8 +17,11 @@ export interface UserTierRecord {
   campaignsLimit: number;
   batchLimit: number;
   carouselsLimit: number;
+  carouselsUsedThisMonth: number;
   storiesLimit: number;
+  storiesUsedThisMonth: number;
   videosLimit: number;
+  videosUsedThisMonth: number;
   profilesLimit: number;
   storageGb: number;
   customBrandKit: boolean;
@@ -119,8 +122,11 @@ export const initializeUserTiersTable = async (): Promise<void> => {
         campaigns_limit INTEGER NOT NULL,
         batch_limit INTEGER NOT NULL,
         carousels_limit INTEGER NOT NULL DEFAULT 3,
+        carousels_used_this_month INTEGER NOT NULL DEFAULT 0,
         stories_limit INTEGER NOT NULL DEFAULT 2,
+        stories_used_this_month INTEGER NOT NULL DEFAULT 0,
         videos_limit INTEGER NOT NULL DEFAULT 0,
+        videos_used_this_month INTEGER NOT NULL DEFAULT 0,
         profiles_limit INTEGER NOT NULL DEFAULT 1,
         storage_gb NUMERIC(10,2) NOT NULL DEFAULT 0.5,
         custom_brand_kit BOOLEAN DEFAULT false,
@@ -138,8 +144,11 @@ export const initializeUserTiersTable = async (): Promise<void> => {
       -- Table pre-dates the starter tier + per-format quotas: add the new
       -- columns/values for deployments where it already exists.
       ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS carousels_limit INTEGER NOT NULL DEFAULT 3;
+      ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS carousels_used_this_month INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS stories_limit INTEGER NOT NULL DEFAULT 2;
+      ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS stories_used_this_month INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS videos_limit INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS videos_used_this_month INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS profiles_limit INTEGER NOT NULL DEFAULT 1;
       ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS storage_gb NUMERIC(10,2) NOT NULL DEFAULT 0.5;
       ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS monthly_price_usd DECIMAL(10,2) DEFAULT 0;
@@ -276,15 +285,54 @@ export const incrementCampaignUsage = async (userId: string, count: number = 1):
   }
 };
 
+export type ContentFormat = 'carousels' | 'stories' | 'videos';
+
+const FORMAT_COLUMN: Record<ContentFormat, string> = {
+  carousels: 'carousels_used_this_month',
+  stories: 'stories_used_this_month',
+  videos: 'videos_used_this_month',
+};
+
 /**
- * Reset monthly usage (call on 1st of month)
+ * Record usage for a specific content format (carousel/story/video), plus the
+ * shared campaigns_used_this_month total — every piece counts against both
+ * its format quota and the tier's overall monthly quota.
+ */
+export const incrementFormatUsage = async (
+  userId: string,
+  format: ContentFormat,
+  count: number = 1,
+): Promise<boolean> => {
+  try {
+    const column = FORMAT_COLUMN[format];
+    const result = await getPool().query(
+      `UPDATE user_tiers
+       SET ${column} = ${column} + $1,
+           campaigns_used_this_month = campaigns_used_this_month + $1,
+           updated_at = NOW()
+       WHERE user_id = $2`,
+      [count, userId],
+    );
+
+    return (result.rowCount || 0) > 0;
+  } catch (err) {
+    console.error('[UserTiers] Format usage increment failed:', err);
+    return false;
+  }
+};
+
+/**
+ * Reset monthly usage (call on 1st of month). Applies to every tier,
+ * including free — "5 free/month" should mean every month, not "5 free ever".
  */
 export const resetMonthlyUsage = async (): Promise<void> => {
   try {
     await getPool().query(
       `UPDATE user_tiers
-       SET campaigns_used_this_month = 0
-       WHERE tier != 'free'`,
+       SET campaigns_used_this_month = 0,
+           carousels_used_this_month = 0,
+           stories_used_this_month = 0,
+           videos_used_this_month = 0`,
     );
 
     console.log('[UserTiers] Monthly usage reset');
@@ -335,8 +383,11 @@ function parseUserTierRecord(row: Record<string, unknown>): UserTierRecord {
     campaignsLimit: Number(row.campaigns_limit || 5),
     batchLimit: Number(row.batch_limit || 1),
     carouselsLimit: Number(row.carousels_limit ?? 3),
+    carouselsUsedThisMonth: Number(row.carousels_used_this_month ?? 0),
     storiesLimit: Number(row.stories_limit ?? 2),
+    storiesUsedThisMonth: Number(row.stories_used_this_month ?? 0),
     videosLimit: Number(row.videos_limit ?? 0),
+    videosUsedThisMonth: Number(row.videos_used_this_month ?? 0),
     profilesLimit: Number(row.profiles_limit ?? 1),
     storageGb: Number(row.storage_gb ?? 0.5),
     customBrandKit: Boolean(row.custom_brand_kit || false),

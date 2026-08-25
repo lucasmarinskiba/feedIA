@@ -76,7 +76,7 @@ import { carouselDB } from './db/postgres.js';
 import agencySimpleRoutes from './api/agency-simple-routes.js';
 import conversionRoutes from './api/conversion-routes.js';
 import billingRoutes from './api/billing-routes.js';
-import { initializeUserTiersTable } from './db/user-tiers.js';
+import { initializeUserTiersTable, resetMonthlyUsage } from './db/user-tiers.js';
 import { initFeedbackSchema, initWeightsSchema } from './db/feedback-schema.js';
 import { PRICING_HTML } from './api/pricing-routes.js';
 import { registerTrendingRoutes } from './api/trending-endpoints.js';
@@ -603,12 +603,36 @@ Promise.all([
   .then(() => {
     feedIAOrchestrator.initializeAgents();
     startPollingScheduler();
+    startMonthlyUsageResetScheduler();
     const redisStatus = isRedisReady() ? '✅ Redis enabled' : '⚠️  Redis disabled';
     log.info(
       `[Server] initialized: metrics polling + carousel storage + billing/tiers + webhooks + quality feedback loop (${redisStatus})`,
     );
   })
   .catch((err) => log.error('[Server] initialization failed', err));
+
+// Monthly tier usage reset — resetMonthlyUsage() existed but was never called
+// from anywhere, so campaigns/carousels/stories/videos_used_this_month only
+// ever went up. A free user who used their 3 carousels once stayed blocked
+// forever, not "per month" as advertised. Checked daily (not monthly) so a
+// server restart around the 1st doesn't skip the reset entirely; the in-memory
+// guard just stops it firing more than once per process per day — running it
+// twice would be harmless anyway (resetting 0 to 0), this just avoids the
+// noise of doing it on every request.
+let lastMonthlyResetCheck: string | null = null;
+const startMonthlyUsageResetScheduler = (): void => {
+  const checkAndReset = async (): Promise<void> => {
+    const now = new Date();
+    const todayKey = now.toISOString().slice(0, 10); // YYYY-MM-DD
+    if (now.getUTCDate() !== 1 || lastMonthlyResetCheck === todayKey) return;
+    lastMonthlyResetCheck = todayKey;
+    await resetMonthlyUsage();
+  };
+  checkAndReset().catch((err) => log.error('[Server] Monthly usage reset check failed', err));
+  setInterval(() => {
+    checkAndReset().catch((err) => log.error('[Server] Monthly usage reset check failed', err));
+  }, 24 * 60 * 60 * 1000);
+};
 
 // Start server (Railway needs explicit listener). This is the only listener —
 // the graceful-shutdown handlers below attach to this same instance.

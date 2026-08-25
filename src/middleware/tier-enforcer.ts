@@ -3,7 +3,14 @@
  * Validates user tier against app limits (campaigns/mo, batch size, usage budget, etc.)
  */
 
-import { getUserTier, incrementCampaignUsage, type UserTier } from '../db/user-tiers.js';
+import {
+  getUserTier,
+  incrementCampaignUsage,
+  incrementFormatUsage,
+  upsertUserTier,
+  type UserTier,
+  type ContentFormat,
+} from '../db/user-tiers.js';
 import { canProceed as canProceedBilling } from '../services/billing-manager.js';
 
 export interface TierContext {
@@ -73,6 +80,112 @@ export const validateTierAccess = async (
       reason: 'Tier validation error',
     };
   }
+};
+
+const FORMAT_LABELS: Record<ContentFormat, string> = {
+  carousels: 'carousels',
+  stories: 'stories',
+  videos: 'videos (reels/TikTok)',
+};
+
+/**
+ * Per-format gate: checks the format-specific quota (carouselsLimit,
+ * storiesLimit, videosLimit) AND the tier's overall campaignsLimit — both
+ * must have room, since every piece counts against its format bucket and the
+ * shared total. Read-only — does NOT increment usage. Call
+ * commitFormatUsage() only after generation actually succeeds; incrementing
+ * here would charge a user's quota for a request that then fails downstream
+ * (e.g. an LLM provider error), which is exactly the bug this split avoids.
+ *
+ * Auto-provisions a free-tier row for first-time userIds. The studio pages
+ * (carrusel/reel/stories) call generation directly without ever visiting
+ * /checkout, so requiring a pre-existing user_tiers row would reject every
+ * brand-new visitor. Lazily creating one on first use keeps that self-serve
+ * flow working; explicit signup via /checkout still upgrades the same row.
+ */
+export interface FormatQuotaResult {
+  allowed: boolean;
+  context: TierContext | null;
+  reason?: string;
+  // Matches the payload public/app.js's `feedia:quotaExceeded` listener
+  // already renders (used/limit/currentPlan/upgradeUrl) — reuse that
+  // existing modal instead of building a second one.
+  used?: number;
+  limit?: number;
+  currentPlan?: string;
+}
+
+export const checkFormatQuota = async (
+  userId: string,
+  format: ContentFormat,
+  count: number = 1,
+): Promise<FormatQuotaResult> => {
+  try {
+    let tierRecord = await getUserTier(userId);
+
+    if (!tierRecord) {
+      tierRecord = await upsertUserTier(userId, `${userId}@anon.feedia.app`, 'free');
+    }
+
+    const formatLimit =
+      format === 'carousels' ? tierRecord.carouselsLimit : format === 'stories' ? tierRecord.storiesLimit : tierRecord.videosLimit;
+    const formatUsed =
+      format === 'carousels'
+        ? tierRecord.carouselsUsedThisMonth
+        : format === 'stories'
+          ? tierRecord.storiesUsedThisMonth
+          : tierRecord.videosUsedThisMonth;
+    const formatRemaining = formatLimit - formatUsed;
+    const campaignsRemaining = tierRecord.campaignsLimit - tierRecord.campaignsUsedThisMonth;
+
+    const context: TierContext = {
+      userId,
+      tier: tierRecord.tier,
+      campaignsRemaining,
+      batchLimit: tierRecord.batchLimit,
+      customBrandKit: tierRecord.customBrandKit,
+      analyticsDepth: tierRecord.analyticsDepth,
+      supportLevel: tierRecord.supportLevel,
+    };
+
+    if (formatRemaining < count) {
+      return {
+        allowed: false,
+        context,
+        reason: `Llegaste al límite mensual de ${FORMAT_LABELS[format]} de tu plan.`,
+        used: formatUsed,
+        limit: formatLimit,
+        currentPlan: tierRecord.tier,
+      };
+    }
+    if (campaignsRemaining < count) {
+      return {
+        allowed: false,
+        context,
+        reason: 'Llegaste al límite mensual de contenido de tu plan.',
+        used: tierRecord.campaignsUsedThisMonth,
+        limit: tierRecord.campaignsLimit,
+        currentPlan: tierRecord.tier,
+      };
+    }
+
+    return { allowed: true, context };
+  } catch (err) {
+    console.error('[TierEnforcer] Format quota check failed:', err);
+    return {
+      allowed: false,
+      context: null,
+      reason: 'Tier validation error',
+    };
+  }
+};
+
+/**
+ * Commit usage after a generation call has actually succeeded. Never call
+ * this before the content is generated — see checkFormatQuota's docstring.
+ */
+export const commitFormatUsage = async (userId: string, format: ContentFormat, count: number = 1): Promise<void> => {
+  await incrementFormatUsage(userId, format, count);
 };
 
 export const validateBatchSize = (

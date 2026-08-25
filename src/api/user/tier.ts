@@ -15,8 +15,11 @@ export interface GetTierResponse {
   campaignsRemaining: number;
   batchLimit: number;
   carouselsLimit: number;
+  carouselsUsed: number;
   storiesLimit: number;
+  storiesUsed: number;
   videosLimit: number;
+  videosUsed: number;
   profilesLimit: number;
   storageGb: number;
   customBrandKit: boolean;
@@ -33,8 +36,11 @@ const FREE_DEFAULTS = {
   campaignsRemaining: 5,
   batchLimit: 1,
   carouselsLimit: 3,
+  carouselsUsed: 0,
   storiesLimit: 2,
+  storiesUsed: 0,
   videosLimit: 0,
+  videosUsed: 0,
   profilesLimit: 1,
   storageGb: 0.5,
   customBrandKit: false,
@@ -63,8 +69,11 @@ export const getTierInfo = async (userId: string): Promise<GetTierResponse> => {
       campaignsRemaining: tierRecord.campaignsLimit - tierRecord.campaignsUsedThisMonth,
       batchLimit: tierRecord.batchLimit,
       carouselsLimit: tierRecord.carouselsLimit,
+      carouselsUsed: tierRecord.carouselsUsedThisMonth,
       storiesLimit: tierRecord.storiesLimit,
+      storiesUsed: tierRecord.storiesUsedThisMonth,
       videosLimit: tierRecord.videosLimit,
+      videosUsed: tierRecord.videosUsedThisMonth,
       profilesLimit: tierRecord.profilesLimit,
       storageGb: tierRecord.storageGb,
       customBrandKit: tierRecord.customBrandKit,
