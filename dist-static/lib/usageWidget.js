@@ -71,11 +71,21 @@ const render = (info) => {
   const remainingCarousels = Math.max(0, (info.carouselsLimit ?? 0) - (info.carouselsUsed ?? 0));
   const estSlides = remainingCarousels * AVG_SLIDES_PER_CAROUSEL;
 
+  // Subscription status badge
+  const statusBadge = info.subscriptionStatus && info.subscriptionStatus !== 'active'
+    ? `<div class="usage-dd-status-badge ${info.subscriptionStatus}">⚠️ ${escapeHtml(info.subscriptionStatus)}</div>`
+    : '';
+
+  // Renewal info from subscription cycle
+  const renewalDate = info.subscriptionCycleEnd || info.resetsAt;
+  const renewalText = renewalDate ? fmtRemaining(renewalDate) : 'N/A';
+
   dd.innerHTML = `
     <div class="usage-dd-header">
       <strong>Cupo mensual</strong>
       <span class="usage-dd-plan">${escapeHtml(info.tier || 'free')}</span>
     </div>
+    ${statusBadge}
     ${renderRow({
       icon: '🖼️',
       label: 'Carruseles',
@@ -91,9 +101,26 @@ const render = (info) => {
     })}
     <div class="usage-dd-reset">
       <span>🔄</span>
-      <span>Se reinicia en ${escapeHtml(fmtRemaining(info.resetsAt))}</span>
+      <span>Se reinicia en ${escapeHtml(renewalText)}</span>
     </div>
+    ${info.subscriptionStatus === 'failed_payment' ? `
+      <div class="usage-dd-warning">
+        <p>❌ Pago fallido</p>
+        <a href="/api/subscription/subscription/retry-payment" class="usage-dd-action">Reintentar pago</a>
+      </div>
+    ` : ''}
+    ${info.subscriptionStatus === 'canceled' ? `
+      <div class="usage-dd-warning">
+        <p>📍 Suscripción cancelada</p>
+        <a href="/api/subscription/subscription/reactivate" class="usage-dd-action">Reactivar</a>
+      </div>
+    ` : ''}
     ${info.tier === 'free' || info.tier === 'starter' ? `<a class="usage-dd-upgrade" href="/pricing">Ver planes →</a>` : ''}
+    ${info.paymentProvider && info.paymentProvider !== 'none' ? `
+      <div class="usage-dd-footer">
+        <small>Próximo pago: ${info.nextBillingDate ? escapeHtml(new Date(info.nextBillingDate).toLocaleDateString('es-AR')) : 'N/A'}</small>
+      </div>
+    ` : ''}
   `;
 };
 

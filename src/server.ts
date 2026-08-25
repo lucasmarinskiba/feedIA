@@ -76,7 +76,9 @@ import { carouselDB } from './db/postgres.js';
 import agencySimpleRoutes from './api/agency-simple-routes.js';
 import conversionRoutes from './api/conversion-routes.js';
 import billingRoutes from './api/billing-routes.js';
+import subscriptionRoutes from './api/subscription-routes.js';
 import { initializeUserTiersTable, resetMonthlyUsage } from './db/user-tiers.js';
+import { initializePaymentTokenTables } from './db/payments-tokens.js';
 import { initFeedbackSchema, initWeightsSchema } from './db/feedback-schema.js';
 import { PRICING_HTML } from './api/pricing-routes.js';
 import { registerTrendingRoutes } from './api/trending-endpoints.js';
@@ -426,6 +428,9 @@ app.use('/api/conversion', conversionRoutes);
 // TIER 8 Extension: Billing + Tier Management (Stripe + Database)
 app.use('/api/billing', billingRoutes);
 
+// Subscription Lifecycle: Payment renewal, token refresh, cancellation
+app.use('/api/subscription', subscriptionRoutes);
+
 // Feature Flags: Tier-based feature access control
 app.use('/api/features', featureFlagsRoutes);
 
@@ -593,6 +598,7 @@ Promise.all([
   feedIADatabase.initialize(),
   carouselDB.initialize(),
   initializeUserTiersTable(),
+  initializePaymentTokenTables(),
   initFeedbackSchema(),
   initWeightsSchema(),
   initializeBillingTables(),
@@ -629,9 +635,12 @@ const startMonthlyUsageResetScheduler = (): void => {
     await resetMonthlyUsage();
   };
   checkAndReset().catch((err) => log.error('[Server] Monthly usage reset check failed', err));
-  setInterval(() => {
-    checkAndReset().catch((err) => log.error('[Server] Monthly usage reset check failed', err));
-  }, 24 * 60 * 60 * 1000);
+  setInterval(
+    () => {
+      checkAndReset().catch((err) => log.error('[Server] Monthly usage reset check failed', err));
+    },
+    24 * 60 * 60 * 1000,
+  );
 };
 
 // Start server (Railway needs explicit listener). This is the only listener —

@@ -11658,3 +11658,59 @@ details[open] > summary::after {
   text-align: center;
   padding: 8px 0;
 }
+.usage-dd-status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.usage-dd-status-badge.failed_payment {
+  background: var(--crit-bg, rgba(220, 38, 38, 0.1));
+  color: var(--crit, #dc2626);
+}
+.usage-dd-status-badge.canceled {
+  background: var(--warn-bg, rgba(245, 158, 11, 0.1));
+  color: var(--warn, #f59e0b);
+}
+.usage-dd-status-badge.expired {
+  background: var(--warn-bg, rgba(245, 158, 11, 0.1));
+  color: var(--warn, #f59e0b);
+}
+.usage-dd-warning {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(220, 38, 38, 0.08);
+  border-left: 3px solid var(--crit, #dc2626);
+  margin: 8px 0;
+}
+.usage-dd-warning p {
+  margin: 0 0 6px;
+  font-size: 11px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.usage-dd-action {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: var(--crit, #dc2626);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.usage-dd-action:hover {
+  opacity: 0.85;
+}
+.usage-dd-footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-soft, rgba(255, 255, 255, 0.06));
+  font-size: 10px;
+  color: var(--text-tertiary);
+}

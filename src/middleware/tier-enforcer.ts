@@ -8,6 +8,7 @@ import {
   incrementCampaignUsage,
   incrementFormatUsage,
   upsertUserTier,
+  checkAndResetSubscriptionQuotas,
   type UserTier,
   type ContentFormat,
 } from '../db/user-tiers.js';
@@ -121,6 +122,9 @@ export const checkFormatQuota = async (
   count: number = 1,
 ): Promise<FormatQuotaResult> => {
   try {
+    // Check if subscription cycle has ended and reset quotas if needed
+    await checkAndResetSubscriptionQuotas(userId);
+
     let tierRecord = await getUserTier(userId);
 
     if (!tierRecord) {
@@ -128,7 +132,11 @@ export const checkFormatQuota = async (
     }
 
     const formatLimit =
-      format === 'carousels' ? tierRecord.carouselsLimit : format === 'stories' ? tierRecord.storiesLimit : tierRecord.videosLimit;
+      format === 'carousels'
+        ? tierRecord.carouselsLimit
+        : format === 'stories'
+          ? tierRecord.storiesLimit
+          : tierRecord.videosLimit;
     const formatUsed =
       format === 'carousels'
         ? tierRecord.carouselsUsedThisMonth

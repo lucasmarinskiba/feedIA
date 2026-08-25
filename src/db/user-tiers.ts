@@ -7,12 +7,17 @@ import { getPool } from '../db/postgres-real.js';
 
 export type UserTier = 'free' | 'starter' | 'pro' | 'agency';
 
+export type SubscriptionStatus = 'active' | 'expired' | 'canceled' | 'failed_payment' | 'pending' | 'trial';
+export type PaymentProvider = 'mercado_pago' | 'stripe' | 'none';
+
 export interface UserTierRecord {
   userId: string;
   email: string;
   tier: UserTier;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
+  mercadoPagoCustomerId: string | null;
+  mercadoPagoPreferenceId: string | null;
   campaignsUsedThisMonth: number;
   campaignsLimit: number;
   batchLimit: number;
@@ -29,10 +34,15 @@ export interface UserTierRecord {
   supportLevel: 'community' | 'email' | 'email-24h' | '24h-priority';
   monthlyPriceUsd: number;
   monthlyPriceArs: number;
+  subscriptionStatus: SubscriptionStatus;
+  subscriptionCycleStart: Date | null;
+  subscriptionCycleEnd: Date | null;
+  nextBillingDate: Date | null;
+  lastPaymentDate: Date | null;
+  paymentProvider: PaymentProvider;
+  autoRenew: boolean;
   createdAt: Date;
   updatedAt: Date;
-  subscriptionEndDate: Date | null;
-  autoRenew: boolean;
 }
 
 // Per-format monthly quotas. "videos" covers reels + TikTok content — both are
@@ -118,6 +128,8 @@ export const initializeUserTiersTable = async (): Promise<void> => {
         tier TEXT NOT NULL CHECK (tier IN ('free', 'starter', 'pro', 'agency')),
         stripe_customer_id TEXT,
         stripe_subscription_id TEXT,
+        mercado_pago_customer_id TEXT,
+        mercado_pago_preference_id TEXT,
         campaigns_used_this_month INTEGER DEFAULT 0,
         campaigns_limit INTEGER NOT NULL,
         batch_limit INTEGER NOT NULL,
@@ -135,7 +147,12 @@ export const initializeUserTiersTable = async (): Promise<void> => {
         monthly_price DECIMAL(10,2) DEFAULT 0,
         monthly_price_usd DECIMAL(10,2) DEFAULT 0,
         monthly_price_ars DECIMAL(12,2) DEFAULT 0,
-        subscription_end_date TIMESTAMP,
+        subscription_status TEXT DEFAULT 'active' CHECK (subscription_status IN ('active', 'expired', 'canceled', 'failed_payment', 'pending', 'trial')),
+        subscription_cycle_start TIMESTAMP,
+        subscription_cycle_end TIMESTAMP,
+        next_billing_date TIMESTAMP,
+        last_payment_date TIMESTAMP,
+        payment_provider TEXT DEFAULT 'none' CHECK (payment_provider IN ('mercado_pago', 'stripe', 'none')),
         auto_renew BOOLEAN DEFAULT true,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
@@ -153,6 +170,14 @@ export const initializeUserTiersTable = async (): Promise<void> => {
       ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS storage_gb NUMERIC(10,2) NOT NULL DEFAULT 0.5;
       ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS monthly_price_usd DECIMAL(10,2) DEFAULT 0;
       ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS monthly_price_ars DECIMAL(12,2) DEFAULT 0;
+      ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS mercado_pago_customer_id TEXT;
+      ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS mercado_pago_preference_id TEXT;
+      ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'active';
+      ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS subscription_cycle_start TIMESTAMP;
+      ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS subscription_cycle_end TIMESTAMP;
+      ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS next_billing_date TIMESTAMP;
+      ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS last_payment_date TIMESTAMP;
+      ALTER TABLE user_tiers ADD COLUMN IF NOT EXISTS payment_provider TEXT DEFAULT 'none';
 
       DO $$
       BEGIN
@@ -324,20 +349,103 @@ export const incrementFormatUsage = async (
 /**
  * Reset monthly usage (call on 1st of month). Applies to every tier,
  * including free — "5 free/month" should mean every month, not "5 free ever".
+ * Also resets for users with subscription cycles that have ended.
  */
 export const resetMonthlyUsage = async (): Promise<void> => {
   try {
+    // Reset for calendar month (free/legacy)
     await getPool().query(
       `UPDATE user_tiers
        SET campaigns_used_this_month = 0,
            carousels_used_this_month = 0,
            stories_used_this_month = 0,
-           videos_used_this_month = 0`,
+           videos_used_this_month = 0
+       WHERE payment_provider = 'none' OR subscription_cycle_end IS NULL`,
+    );
+
+    // Reset for subscription-cycle users whose cycle has ended
+    await getPool().query(
+      `UPDATE user_tiers
+       SET campaigns_used_this_month = 0,
+           carousels_used_this_month = 0,
+           stories_used_this_month = 0,
+           videos_used_this_month = 0,
+           subscription_cycle_start = NOW(),
+           subscription_cycle_end = NOW() + INTERVAL '1 month'
+       WHERE payment_provider != 'none'
+         AND subscription_cycle_end IS NOT NULL
+         AND subscription_cycle_end <= NOW()`,
     );
 
     console.log('[UserTiers] Monthly usage reset');
   } catch (err) {
     console.error('[UserTiers] Reset failed:', err);
+  }
+};
+
+/**
+ * Check if user's quota should be reset based on subscription cycle
+ * (independent of calendar month). Called before checking quota.
+ */
+export const checkAndResetSubscriptionQuotas = async (userId: string): Promise<void> => {
+  try {
+    const tier = await getUserTier(userId);
+    if (!tier || !tier.subscriptionCycleEnd) return;
+
+    const now = new Date();
+    if (tier.subscriptionCycleEnd <= now) {
+      // Cycle ended, reset quotas and advance cycle
+      await getPool().query(
+        `UPDATE user_tiers
+         SET campaigns_used_this_month = 0,
+             carousels_used_this_month = 0,
+             stories_used_this_month = 0,
+             videos_used_this_month = 0,
+             subscription_cycle_start = $1,
+             subscription_cycle_end = $2
+         WHERE user_id = $3`,
+        [now, new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000), userId],
+      );
+    }
+  } catch (err) {
+    console.error('[UserTiers] Subscription quota check failed:', err);
+  }
+};
+
+/**
+ * Link Mercado Pago subscription to user
+ */
+export const linkMercadoPagoSubscription = async (
+  userId: string,
+  customerId: string,
+  preferenceId: string,
+  _tier: UserTier,
+): Promise<boolean> => {
+  try {
+    const now = new Date();
+    const cycleEnd = new Date(now);
+    cycleEnd.setMonth(cycleEnd.getMonth() + 1);
+    cycleEnd.setDate(1);
+
+    const result = await getPool().query(
+      `UPDATE user_tiers
+       SET mercado_pago_customer_id = $1,
+           mercado_pago_preference_id = $2,
+           payment_provider = 'mercado_pago',
+           subscription_status = 'active',
+           subscription_cycle_start = $3,
+           subscription_cycle_end = $4,
+           next_billing_date = $4,
+           auto_renew = true,
+           updated_at = NOW()
+       WHERE user_id = $5`,
+      [customerId, preferenceId, now, cycleEnd, userId],
+    );
+
+    return (result.rowCount || 0) > 0;
+  } catch (err) {
+    console.error('[UserTiers] Mercado Pago link failed:', err);
+    return false;
   }
 };
 
@@ -355,7 +463,10 @@ export const linkStripeSubscription = async (
       `UPDATE user_tiers
        SET stripe_customer_id = $1,
            stripe_subscription_id = $2,
-           subscription_end_date = $3,
+           payment_provider = 'stripe',
+           subscription_status = 'active',
+           subscription_cycle_end = $3,
+           next_billing_date = $3,
            auto_renew = true,
            updated_at = NOW()
        WHERE user_id = $4`,
@@ -370,6 +481,133 @@ export const linkStripeSubscription = async (
 };
 
 /**
+ * Update subscription status (payment success/failure/cancellation)
+ */
+export const updateSubscriptionStatus = async (
+  userId: string,
+  status: SubscriptionStatus,
+  lastPaymentDate?: Date,
+): Promise<boolean> => {
+  try {
+    const result = await getPool().query(
+      `UPDATE user_tiers
+       SET subscription_status = $1,
+           last_payment_date = COALESCE($2, last_payment_date),
+           updated_at = NOW()
+       WHERE user_id = $3`,
+      [status, lastPaymentDate || null, userId],
+    );
+
+    return (result.rowCount || 0) > 0;
+  } catch (err) {
+    console.error('[UserTiers] Status update failed:', err);
+    return false;
+  }
+};
+
+/**
+ * Check if subscription is currently valid (not expired/canceled/failed)
+ */
+export const isSubscriptionActive = async (userId: string): Promise<boolean> => {
+  try {
+    const tier = await getUserTier(userId);
+    if (!tier) return false;
+
+    const now = new Date();
+    const statusOk = tier.subscriptionStatus === 'active' || tier.subscriptionStatus === 'trial';
+    const notExpired = !tier.subscriptionCycleEnd || tier.subscriptionCycleEnd > now;
+
+    return statusOk && notExpired;
+  } catch (err) {
+    console.error('[UserTiers] Active check failed:', err);
+    return false;
+  }
+};
+
+/**
+ * Renew subscription for next cycle (called after successful payment)
+ */
+export const renewSubscription = async (userId: string): Promise<boolean> => {
+  try {
+    const now = new Date();
+    const cycleEnd = new Date(now);
+    cycleEnd.setMonth(cycleEnd.getMonth() + 1);
+    cycleEnd.setDate(1);
+
+    const result = await getPool().query(
+      `UPDATE user_tiers
+       SET subscription_status = 'active',
+           subscription_cycle_start = $1,
+           subscription_cycle_end = $2,
+           next_billing_date = $2,
+           last_payment_date = $1,
+           campaigns_used_this_month = 0,
+           carousels_used_this_month = 0,
+           stories_used_this_month = 0,
+           videos_used_this_month = 0,
+           updated_at = NOW()
+       WHERE user_id = $3`,
+      [now, cycleEnd, userId],
+    );
+
+    return (result.rowCount || 0) > 0;
+  } catch (err) {
+    console.error('[UserTiers] Renewal failed:', err);
+    return false;
+  }
+};
+
+/**
+ * Cancel subscription
+ */
+export const cancelSubscription = async (userId: string): Promise<boolean> => {
+  try {
+    const result = await getPool().query(
+      `UPDATE user_tiers
+       SET subscription_status = 'canceled',
+           auto_renew = false,
+           updated_at = NOW()
+       WHERE user_id = $1`,
+      [userId],
+    );
+
+    return (result.rowCount || 0) > 0;
+  } catch (err) {
+    console.error('[UserTiers] Cancellation failed:', err);
+    return false;
+  }
+};
+
+/**
+ * Reactivate canceled subscription
+ */
+export const reactivateSubscription = async (userId: string): Promise<boolean> => {
+  try {
+    const now = new Date();
+    const cycleEnd = new Date(now);
+    cycleEnd.setMonth(cycleEnd.getMonth() + 1);
+    cycleEnd.setDate(1);
+
+    const result = await getPool().query(
+      `UPDATE user_tiers
+       SET subscription_status = 'active',
+           subscription_cycle_start = $1,
+           subscription_cycle_end = $2,
+           next_billing_date = $2,
+           auto_renew = true,
+           updated_at = NOW()
+       WHERE user_id = $3`,
+      [now, cycleEnd, userId],
+    );
+
+    return (result.rowCount || 0) > 0;
+  } catch (err) {
+    console.error('[UserTiers] Reactivation failed:', err);
+    return false;
+  }
+};
+
+/**
  * Parse database row to UserTierRecord
  */
 function parseUserTierRecord(row: Record<string, unknown>): UserTierRecord {
@@ -379,6 +617,8 @@ function parseUserTierRecord(row: Record<string, unknown>): UserTierRecord {
     tier: (row.tier as UserTier) || 'free',
     stripeCustomerId: (row.stripe_customer_id as string | null) || null,
     stripeSubscriptionId: (row.stripe_subscription_id as string | null) || null,
+    mercadoPagoCustomerId: (row.mercado_pago_customer_id as string | null) || null,
+    mercadoPagoPreferenceId: (row.mercado_pago_preference_id as string | null) || null,
     campaignsUsedThisMonth: Number(row.campaigns_used_this_month || 0),
     campaignsLimit: Number(row.campaigns_limit || 5),
     batchLimit: Number(row.batch_limit || 1),
@@ -395,11 +635,14 @@ function parseUserTierRecord(row: Record<string, unknown>): UserTierRecord {
     supportLevel: (row.support_level as 'community' | 'email' | 'email-24h' | '24h-priority') || 'community',
     monthlyPriceUsd: Number(row.monthly_price_usd ?? row.monthly_price ?? 0),
     monthlyPriceArs: Number(row.monthly_price_ars || 0),
+    subscriptionStatus: (row.subscription_status as SubscriptionStatus) || 'active',
+    subscriptionCycleStart: row.subscription_cycle_start ? new Date(String(row.subscription_cycle_start)) : null,
+    subscriptionCycleEnd: row.subscription_cycle_end ? new Date(String(row.subscription_cycle_end)) : null,
+    nextBillingDate: row.next_billing_date ? new Date(String(row.next_billing_date)) : null,
+    lastPaymentDate: row.last_payment_date ? new Date(String(row.last_payment_date)) : null,
+    paymentProvider: (row.payment_provider as PaymentProvider) || 'none',
+    autoRenew: Boolean(row.auto_renew || true),
     createdAt: new Date(String(row.created_at || Date.now())),
     updatedAt: new Date(String(row.updated_at || Date.now())),
-    subscriptionEndDate: row.subscription_end_date
-      ? new Date(String(row.subscription_end_date))
-      : null,
-    autoRenew: Boolean(row.auto_renew || true),
   };
 }
