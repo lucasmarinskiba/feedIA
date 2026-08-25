@@ -30,6 +30,67 @@
 - No realizar commits con errores de linting pendientes.
 - Si el proyecto usa un pre-commit hook (por ejemplo con Husky), no omitirlo con `--no-verify`.
 
+## Política de Seguridad (Crítico)
+
+### Protección de Credenciales
+
+- **Nunca commitar archivos `.env*`** (incluidos `.env`, `.env.prod`, `.env.production`, `.env.local`)
+- **.gitignore OBLIGATORIO**: contiene `.env*`, `*.pem`, `*.key`, `.secrets/`
+- **Rotación de keys**: Todas las API keys expuestas deben rotarse INMEDIATAMENTE en producción
+- **Git history limpieza**: Si keys accidentalmente commiteadas, usar `git filter-branch` para eliminar de todo el historial
+
+### Production Environment Variables (REQUERIDOS)
+
+```bash
+# CSRF Security
+CSRF_SECRET=<32+ caracteres aleatorios>
+CSRF_REQUIRED=true
+
+# Owner Email (sin fallback)
+OWNER_EMAIL=<email-produccion>
+
+# Webhook Secrets
+SELLIA_WEBHOOK_SECRET=<random-string>
+
+# Stripe
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Vercel OIDC (regenerar en Project Settings)
+VERCEL_OIDC_TOKEN=<regenerated-token>
+```
+
+### Error Handling (Seguridad)
+
+- ❌ **NUNCA exponer stack traces** a clientes en respuestas 5xx
+- ✅ **SIEMPRE retornar mensajes genéricos**: `{ error: 'handler-name' }` sin `message: String(err)`
+- ✅ **Loguear internamente**: errores detallados en logs internos, nunca en respuestas HTTP
+- ✅ **Log masking**: Nunca loguear tokens, passwords, API keys, datos sensibles
+
+### Rate Limiting
+
+- Todos los endpoints públicos deben tener rate limiting (ej: 100 requests/hora/IP)
+- Owners reciben 10x limit pero siguen siendo limitados (no bypass ilimitado)
+- Validar límites por tier de subscripción en endpoints de generación de contenido
+
+### Webhook Validation
+
+- Validación de firma OBLIGATORIA en producción (timing-safe comparison)
+- Si no hay `WEBHOOK_SECRET` en producción, crash inmediato (no allow-all fallback)
+- Usar `crypto.timingSafeEqual()` nunca comparación string simple
+
+### Data Protection
+
+- No guardar tokens/credenciales en localStorage (usar httpOnly cookies)
+- Masking de datos sensibles en todas las respuestas (campos: password, secret, token, apiKey, etc.)
+- Sanitizar inputs: validar null bytes, limitar tamaños (max 10KB), remover espacios excesivos
+
+### Testing Security
+
+- Auditoría de seguridad después de cada cambio crítico (payment, auth, credentials)
+- No mergear cambios sin validar que no expongan credenciales
+- Pre-commit hook debe detectar patrones de secrets (sk_live_, whsec_, etc.)
+
 ---
 
 ## Pinterest Design Patterns
