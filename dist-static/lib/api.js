@@ -66,12 +66,32 @@ const readCookie = (name) => {
   return match ? decodeURIComponent(match.split('=').slice(1).join('=')) : '';
 };
 
+// Same identity used at signup in checkout.html (localStorage key
+// feedia_user_id) — carrying it here means a signed-up user's real tier
+// (and quota usage) follows them into the studios, and a first-time visitor
+// gets a stable per-browser id instead of every anonymous request sharing
+// the backend's 'test-user' default.
+export const getUserId = () => {
+  try {
+    let id = localStorage.getItem('feedia_user_id');
+    if (!id) {
+      id = crypto.randomUUID ? crypto.randomUUID() : 'u-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+      localStorage.setItem('feedia_user_id', id);
+    }
+    return id;
+  } catch {
+    return null; // localStorage unavailable (private mode, etc.) — let backend fall back
+  }
+};
+
 const doFetch = async (path, opts) => {
   let res;
   try {
     const method = opts.method ?? (opts.body ? 'POST' : 'GET');
     const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
     const headers = { 'content-type': 'application/json' };
+    const userId = getUserId();
+    if (userId) headers['x-user-id'] = userId;
     if (isMutation) {
       const csrf = readCookie('feedia_csrf');
       if (csrf) headers['x-csrf-token'] = csrf;

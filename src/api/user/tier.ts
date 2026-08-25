@@ -26,8 +26,18 @@ export interface GetTierResponse {
   analyticsDepth: string;
   supportLevel: string;
   subscriptionEndDate: string | null;
+  // Next 1st-of-month UTC — matches the exact trigger condition
+  // startMonthlyUsageResetScheduler() in server.ts checks (now.getUTCDate() ===
+  // 1), so this date is when usage actually goes back to 0, not an estimate.
+  resetsAt: string;
   error?: string;
 }
+
+const nextResetDate = (): string => {
+  const now = new Date();
+  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0));
+  return next.toISOString();
+};
 
 const FREE_DEFAULTS = {
   tier: 'free',
@@ -49,6 +59,8 @@ const FREE_DEFAULTS = {
   subscriptionEndDate: null,
 } as const;
 
+const buildFreeDefaults = () => ({ ...FREE_DEFAULTS, resetsAt: nextResetDate() });
+
 export const getTierInfo = async (userId: string): Promise<GetTierResponse> => {
   try {
     const tierRecord = await getUserTier(userId);
@@ -56,7 +68,7 @@ export const getTierInfo = async (userId: string): Promise<GetTierResponse> => {
     if (!tierRecord) {
       return {
         success: false,
-        ...FREE_DEFAULTS,
+        ...buildFreeDefaults(),
         error: 'User tier not found, defaulting to free',
       };
     }
@@ -80,12 +92,13 @@ export const getTierInfo = async (userId: string): Promise<GetTierResponse> => {
       analyticsDepth: tierRecord.analyticsDepth,
       supportLevel: tierRecord.supportLevel,
       subscriptionEndDate: tierRecord.subscriptionEndDate?.toISOString() || null,
+      resetsAt: nextResetDate(),
     };
   } catch (err) {
     console.error('[GetTier] Failed:', err);
     return {
       success: false,
-      ...FREE_DEFAULTS,
+      ...buildFreeDefaults(),
       error: String(err),
     };
   }

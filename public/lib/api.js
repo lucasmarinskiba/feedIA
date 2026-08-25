@@ -71,7 +71,7 @@ const readCookie = (name) => {
 // (and quota usage) follows them into the studios, and a first-time visitor
 // gets a stable per-browser id instead of every anonymous request sharing
 // the backend's 'test-user' default.
-const getUserId = () => {
+export const getUserId = () => {
   try {
     let id = localStorage.getItem('feedia_user_id');
     if (!id) {

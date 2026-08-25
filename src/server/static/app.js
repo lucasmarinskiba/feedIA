@@ -2,6 +2,7 @@ import { initVoiceUI } from './lib/voiceUI.js';
 import { initChatbotUI } from './lib/chatbotUI.js';
 import { toast } from './lib/toast.js';
 import { initTopbar, refreshTopbarState } from './lib/topbar.js';
+import { initUsageWidget } from './lib/usageWidget.js';
 import { initGlobalSearch } from './lib/globalSearch.js';
 import { initPlatformSwitcher } from './lib/platform.js';
 import { initShortcuts, openShortcuts } from './lib/shortcuts.js';
@@ -549,6 +550,7 @@ window.__feediaRouteSearch = (q) => {
   if (match) navigate(match[0]);
 };
 initTopbar();
+initUsageWidget();
 window.__refreshTopbar = refreshTopbarState;
 
 /* Global search · autocomplete + keyboard nav + quick actions */

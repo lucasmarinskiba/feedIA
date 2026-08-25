@@ -11535,3 +11535,126 @@ details[open] > summary::after {
   font-size: 13px;
   text-align: center;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   USAGE WIDGET — Cupo mensual (carruseles/videos) en el topbar
+   Theme-aware vía var() tokens (--bg-card, --text-primary, etc.) — se adapta
+   solo a claro/oscuro, mismo mecanismo que el resto de la app.
+   ══════════════════════════════════════════════════════════════════════════════ */
+.usage-widget {
+  position: relative;
+  display: inline-flex;
+}
+#topbar-usage.open {
+  background: var(--bg-hover, rgba(255, 255, 255, 0.08));
+  color: var(--accent, #d4af37);
+}
+.usage-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 300px;
+  max-width: calc(100vw - 24px);
+  background: var(--bg-card-2, #1a1f25);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  animation: cua-dd-enter 0.18s ease-out;
+}
+.usage-dd-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.usage-dd-header strong {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.usage-dd-plan {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft, rgba(212, 175, 55, 0.12));
+  color: var(--accent, #d4af37);
+}
+.usage-dd-row {
+  margin-bottom: 12px;
+}
+.usage-dd-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+.usage-dd-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.usage-dd-count {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.usage-dd-bar-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-hover, rgba(255, 255, 255, 0.08));
+  overflow: hidden;
+}
+.usage-dd-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ok, #31a24c);
+  transition: width 0.3s var(--ease, ease);
+}
+.usage-dd-bar-fill.warn {
+  background: var(--warn, #f59e0b);
+}
+.usage-dd-bar-fill.crit {
+  background: var(--crit, #dc2626);
+}
+.usage-dd-sub {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+.usage-dd-reset {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 1px solid var(--border-soft, rgba(255, 255, 255, 0.06));
+}
+.usage-dd-upgrade {
+  display: block;
+  text-align: center;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f09433, #e1306c 35%, #a855f7 65%, #22d3ee);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.usage-dd-empty {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 8px 0;
+}
