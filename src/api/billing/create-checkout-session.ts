@@ -60,6 +60,11 @@ export const createCheckoutSession = async (req: CheckoutSessionRequest): Promis
         pending: 'https://feedia.vercel.app/#checkout-pending',
       },
       auto_return: 'approved',
+      // Without this, Mercado Pago has nowhere to send the payment.approved
+      // event — the preference gets created and the user can pay, but
+      // upsertUserTier() in mercado-pago-webhook.ts never runs, so a real
+      // payment would never actually upgrade the account.
+      notification_url: 'https://feedia-production.up.railway.app/api/billing/webhook/mercado-pago',
       external_reference: `${userId}:${tier}`,
       metadata: {
         userId,
