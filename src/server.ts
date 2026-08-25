@@ -262,6 +262,18 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
+// API health endpoint (for monitoring + offline banner detection)
+app.get('/api/health', (req: Request, res: Response) => {
+  res.json({
+    status: 'ok',
+    service: 'feedIA-api',
+    version: '2026-08-25',
+    endpoints: 85,
+    features: ['quota-enforcement', 'multi-account', 'oauth', 'metrics-polling'],
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Scaling layer health
 app.get('/health/scaling', (req: Request, res: Response) => {
   res.json({
