@@ -8,6 +8,7 @@
  */
 
 import { Router, Request, Response } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import { log } from '../agent/logger.js';
 import { generateSmartCarousel, type CarouselBrief } from '../capabilities/content/smartCarouselGenerator.js';
 import { generateSmartVideo, type VideoBrief } from '../capabilities/content/smartVideoGenerator.js';
@@ -16,6 +17,7 @@ import {
   generateCarouselWithAgents,
   generateVideoWithAgents,
 } from './agentIntegrationLayer.js';
+import { quotaCheckMiddleware, chargeQuota } from '../middleware/quota-enforcer.js';
 
 const router = Router();
 
@@ -72,7 +74,7 @@ router.get('/patterns', (req: Request, res: Response) => {
 
 /**
  * POST /api/extended/carousel/generate
- * Generate carousel using Pinterest patterns + psychology
+ * Generate carousel using Pinterest patterns + psychology + quota enforcement
  *
  * Body:
  * {
@@ -85,8 +87,9 @@ router.get('/patterns', (req: Request, res: Response) => {
  *
  * Response: Carousel with slides, design system, retention curve
  */
-router.post('/carousel/generate', async (req: Request, res: Response): Promise<void> => {
+router.post('/carousel/generate', quotaCheckMiddleware('carousels', 1), async (req: Request, res: Response): Promise<void> => {
   try {
+    const generationId = uuidv4();
     const brief: CarouselBrief = req.body;
 
     log.info(
@@ -113,6 +116,9 @@ router.post('/carousel/generate', async (req: Request, res: Response): Promise<v
       `[Extended Routes] ✓ Carousel generated: ${carousel.slideCount} slides, retention=${carousel.metadata.averageRetention}%`,
     );
 
+    // Charge quota on success
+    await chargeQuota(req, 'carousels', generationId);
+
     res.json({
       status: 'success',
       data: {
@@ -132,7 +138,7 @@ router.post('/carousel/generate', async (req: Request, res: Response): Promise<v
 
 /**
  * POST /api/extended/video/generate
- * Generate video script using Pinterest patterns
+ * Generate video script using Pinterest patterns + quota enforcement
  *
  * Body:
  * {
@@ -145,8 +151,9 @@ router.post('/carousel/generate', async (req: Request, res: Response): Promise<v
  *
  * Response: Video script with scenes, hook, CTA, retention curve
  */
-router.post('/video/generate', async (req: Request, res: Response): Promise<void> => {
+router.post('/video/generate', quotaCheckMiddleware('videos', 1), async (req: Request, res: Response): Promise<void> => {
   try {
+    const generationId = uuidv4();
     const brief: VideoBrief = req.body;
 
     log.info(
@@ -176,6 +183,9 @@ router.post('/video/generate', async (req: Request, res: Response): Promise<void
     log.info(
       `[Extended Routes] ✓ Video generated: ${video.duration}s ${video.platform}, ${video.scenes.length} scenes, retention=${video.metadata.averageRetention}%`,
     );
+
+    // Charge quota on success
+    await chargeQuota(req, 'videos', generationId);
 
     res.json({
       status: 'success',

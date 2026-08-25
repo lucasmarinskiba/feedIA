@@ -5,8 +5,10 @@
  */
 
 import { Router, Request, Response } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import { log } from '../agent/logger.js';
 import { videoPromptEngine } from '../services/video-prompt-engine.js';
+import { quotaCheckMiddleware, chargeQuota } from '../middleware/quota-enforcer.js';
 import type { BrandProfile } from '../config/types.js';
 
 const router = Router();
@@ -108,15 +110,28 @@ router.post('/parameterized-prompt', async (req: Request, res: Response): Promis
 
 /**
  * POST /api/video/batch-generate
- * Generate multiple video prompts in parallel
+ * Generate multiple video prompts in parallel + quota enforcement
  */
-router.post('/batch-generate', async (req: Request, res: Response): Promise<void> => {
+router.post('/batch-generate', quotaCheckMiddleware('videos', 1), async (req: Request, res: Response): Promise<void> => {
   try {
-    const brand = (req as any).brand as BrandProfile;
+    const { checkFormatQuota } = await import('../middleware/quota-enforcer.js');
+    const userId = req.headers['x-user-id'] as string;
+    const extReq = req as unknown as Record<string, unknown>;
+    const brand = extReq.brand as BrandProfile;
     const { requests } = req.body as { requests: VideoPromptRequest[] };
 
     if (!requests || !Array.isArray(requests) || requests.length === 0) {
       return void res.status(400).json({ error: 'requests array required' });
+    }
+
+    // Check quota for batch count
+    const quotaCheck = await checkFormatQuota(userId, 'videos', requests.length);
+    if (!quotaCheck.allowed) {
+      return void res.status(403).json({
+        error: `Cannot generate ${requests.length} videos, only ${quotaCheck.limit - quotaCheck.used} remaining`,
+        requested: requests.length,
+        available: quotaCheck.limit - quotaCheck.used,
+      });
     }
 
     if (requests.length > 10) {
@@ -146,6 +161,11 @@ router.post('/batch-generate', async (req: Request, res: Response): Promise<void
         });
       })
       .filter((p): p is NonNullable<typeof p> => p != null);
+
+    // Charge quota for each generated prompt
+    for (let i = 0; i < generatedPrompts.length; i++) {
+      await chargeQuota(req, 'videos', `param-${uuidv4()}`);
+    }
 
     res.json({
       status: 'success',

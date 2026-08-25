@@ -6,8 +6,10 @@
  */
 
 import { Router, Request, Response } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import { log } from '../agent/logger.js';
 import { videoPromptEngine } from '../services/video-prompt-engine.js';
+import { quotaCheckMiddleware, chargeQuota } from '../middleware/quota-enforcer.js';
 import type { BrandProfile } from '../config/types.js';
 
 const router = Router();
@@ -31,11 +33,13 @@ interface Batch93Request {
 
 /**
  * POST /api/video/batch-92/generate
- * Generate vertical engagement prompt (9:16, 15sec TikTok/Instagram Reels)
+ * Generate vertical engagement prompt (9:16, 15sec TikTok/Instagram Reels) + quota enforcement
  */
-router.post('/batch-92/generate', async (req: Request, res: Response): Promise<void> => {
+router.post('/batch-92/generate', quotaCheckMiddleware('videos', 1), async (req: Request, res: Response): Promise<void> => {
   try {
-    const brand = (req as any).brand as BrandProfile;
+    const generationId = uuidv4();
+    const extReq = req as unknown as Record<string, unknown>;
+    const brand = extReq.brand as BrandProfile;
     const { engagementType, persona, product, duration = 15, userImage } = req.body as Batch92Request;
 
     if (!engagementType || !persona || !product) {
@@ -81,6 +85,9 @@ router.post('/batch-92/generate', async (req: Request, res: Response): Promise<v
       });
     }
 
+    // Charge quota on success
+    await chargeQuota(req, 'videos', generationId);
+
     res.json({
       status: 'success',
       batch: 'batch-92',
@@ -102,15 +109,28 @@ router.post('/batch-92/generate', async (req: Request, res: Response): Promise<v
 
 /**
  * POST /api/video/batch-92/batch-generate
- * Generate multiple vertical engagement prompts
+ * Generate multiple vertical engagement prompts + quota enforcement
  */
-router.post('/batch-92/batch-generate', async (req: Request, res: Response): Promise<void> => {
+router.post('/batch-92/batch-generate', quotaCheckMiddleware('videos', 1), async (req: Request, res: Response): Promise<void> => {
   try {
-    const brand = (req as any).brand as BrandProfile;
+    const { checkFormatQuota } = await import('../middleware/quota-enforcer.js');
+    const userId = req.headers['x-user-id'] as string;
+    const extReq = req as unknown as Record<string, unknown>;
+    const brand = extReq.brand as BrandProfile;
     const { requests } = req.body as { requests: Batch92Request[] };
 
     if (!requests || !Array.isArray(requests) || requests.length === 0) {
       return void res.status(400).json({ error: 'requests array required' });
+    }
+
+    // Check quota for batch count
+    const quotaCheck = await checkFormatQuota(userId, 'videos', requests.length);
+    if (!quotaCheck.allowed) {
+      return void res.status(403).json({
+        error: `Cannot generate ${requests.length} videos, only ${quotaCheck.limit - quotaCheck.used} remaining`,
+        requested: requests.length,
+        available: quotaCheck.limit - quotaCheck.used,
+      });
     }
 
     if (requests.length > 10) {
@@ -143,6 +163,11 @@ router.post('/batch-92/batch-generate', async (req: Request, res: Response): Pro
       })
       .filter((p): p is NonNullable<typeof p> => p !== null);
 
+    // Charge quota for each generated prompt
+    for (let i = 0; i < generatedPrompts.length; i++) {
+      await chargeQuota(req, 'videos', `batch-92-${uuidv4()}`);
+    }
+
     res.json({
       status: 'success',
       batch: 'batch-92',
@@ -163,11 +188,13 @@ router.post('/batch-92/batch-generate', async (req: Request, res: Response): Pro
 
 /**
  * POST /api/video/batch-93/generate
- * Generate ultra-detailed reference pattern prompt
+ * Generate ultra-detailed reference pattern prompt + quota enforcement
  */
-router.post('/batch-93/generate', async (req: Request, res: Response): Promise<void> => {
+router.post('/batch-93/generate', quotaCheckMiddleware('videos', 1), async (req: Request, res: Response): Promise<void> => {
   try {
-    const brand = (req as any).brand as BrandProfile;
+    const generationId = uuidv4();
+    const extReq = req as unknown as Record<string, unknown>;
+    const brand = extReq.brand as BrandProfile;
     const { referencePattern, persona, location, product, duration = 15, userImage } = req.body as Batch93Request;
 
     if (!referencePattern || !persona) {
@@ -222,6 +249,9 @@ router.post('/batch-93/generate', async (req: Request, res: Response): Promise<v
       });
     }
 
+    // Charge quota on success
+    await chargeQuota(req, 'videos', generationId);
+
     res.json({
       status: 'success',
       batch: 'batch-93',
@@ -243,15 +273,28 @@ router.post('/batch-93/generate', async (req: Request, res: Response): Promise<v
 
 /**
  * POST /api/video/batch-93/batch-generate
- * Generate multiple reference pattern prompts
+ * Generate multiple reference pattern prompts + quota enforcement
  */
-router.post('/batch-93/batch-generate', async (req: Request, res: Response): Promise<void> => {
+router.post('/batch-93/batch-generate', quotaCheckMiddleware('videos', 1), async (req: Request, res: Response): Promise<void> => {
   try {
-    const brand = (req as any).brand as BrandProfile;
+    const { checkFormatQuota } = await import('../middleware/quota-enforcer.js');
+    const userId = req.headers['x-user-id'] as string;
+    const extReq = req as unknown as Record<string, unknown>;
+    const brand = extReq.brand as BrandProfile;
     const { requests } = req.body as { requests: Batch93Request[] };
 
     if (!requests || !Array.isArray(requests) || requests.length === 0) {
       return void res.status(400).json({ error: 'requests array required' });
+    }
+
+    // Check quota for batch count
+    const quotaCheck = await checkFormatQuota(userId, 'videos', requests.length);
+    if (!quotaCheck.allowed) {
+      return void res.status(403).json({
+        error: `Cannot generate ${requests.length} videos, only ${quotaCheck.limit - quotaCheck.used} remaining`,
+        requested: requests.length,
+        available: quotaCheck.limit - quotaCheck.used,
+      });
     }
 
     if (requests.length > 10) {
@@ -284,6 +327,11 @@ router.post('/batch-93/batch-generate', async (req: Request, res: Response): Pro
         });
       })
       .filter((p): p is NonNullable<typeof p> => p !== null);
+
+    // Charge quota for each generated prompt
+    for (let i = 0; i < generatedPrompts.length; i++) {
+      await chargeQuota(req, 'videos', `batch-93-${uuidv4()}`);
+    }
 
     res.json({
       status: 'success',
