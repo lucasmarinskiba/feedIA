@@ -355,12 +355,19 @@ if (isRailway) {
   }
 }
 
+const stubDatabase = {
+  prepare: () => ({ run: () => undefined, all: () => [], get: () => null, exec: () => undefined }),
+  transaction: (fn: (data: any) => any) => fn,
+  exec: () => undefined,
+  pragma: () => undefined,
+  close: () => undefined,
+};
+
 const mockDatabase: IFeedIADatabase = {
   getConnection: () => {
     log.warn('[MockDatabase] getConnection called (ephemeral/mock DB)');
-    // Return a safe no-op object that won't crash callers
-    // The real DB isn't available (Vercel/Railway ephemeral), so just return null-like behavior
-    return null as any;
+    // Return stub DB with no-op methods so callers don't crash
+    return stubDatabase as any;
   },
   initialize: async () => {
     log.warn('[MockDatabase] initialize called (real DB unavailable)');
