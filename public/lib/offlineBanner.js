@@ -5,12 +5,13 @@
    Si N fallos consecutivos → muestra banner. Cuando vuelve → desaparece con fade.
    ══════════════════════════════════════════════════════════════════════════════ */
 
-const PING_INTERVAL_MS = 60_000;
-const FAIL_THRESHOLD = 4; // 4 fallos consecutivos (≈4min) para considerar offline
+const PING_INTERVAL_MS = 30_000; // Ping cada 30s (was 60s, faster recovery detection)
+const FAIL_THRESHOLD = 6; // 6 fallos consecutivos (≈3min) para considerar offline (was 4)
 let failures = 0;
 let bannerEl = null;
 let timer = null;
 let isOnline = true;
+let lastFailureTime = 0;
 
 const escapeHtml = (s) =>
   String(s ?? '').replace(
@@ -23,13 +24,13 @@ const showBanner = () => {
   bannerEl = document.createElement('div');
   bannerEl.id = 'feedia-offline-banner';
   bannerEl.innerHTML = `
-    <div class="ob-icon">📡</div>
+    <div class="ob-icon">🔄</div>
     <div class="ob-body">
-      <strong>Sin conexión al backend</strong>
-      <div class="ob-sub">La UI sigue funcionando con datos locales. Cuando vuelva el servidor, se sincroniza automáticamente.</div>
+      <strong>Servidor desconectado</strong>
+      <div class="ob-sub">Trabajando con caché local. Se sincronizará automáticamente cuando vuelva.</div>
     </div>
-    <button class="ob-retry" id="ob-retry">↻ Reintentar</button>
-    <button class="ob-close" id="ob-close" aria-label="Ocultar">✕</button>`;
+    <button class="ob-retry" id="ob-retry">Reintentar ahora</button>
+    <button class="ob-close" id="ob-close" aria-label="Descartar">✕</button>`;
   document.body.appendChild(bannerEl);
 
   bannerEl.querySelector('#ob-retry').addEventListener('click', () => {
@@ -67,25 +68,27 @@ const ping = async (manual = false) => {
     }
     if (!res.ok) throw new Error('not ok');
     if (!res.headers.get('content-type')?.includes('json')) throw new Error('html response');
-    // Online
+    // Online: reiniciar contador y ocultar banner sin ruido
     failures = 0;
     if (!isOnline) {
       isOnline = true;
-      // Toast suave de "volvió"
-      if (typeof window.__feediaToast === 'function') {
-        window.__feediaToast('✓ Backend conectado', 'ok');
+      // Auto-sync + auto-hide sin notificación ruidosa (la sincronización silenciosa)
+      hideBanner();
+      // Soft toast: "Backend restaurado" (no aparece para reconexiones rápidas <30s)
+      if (lastFailureTime && Date.now() - lastFailureTime > 30_000) {
+        if (typeof window.__feediaToast === 'function') {
+          window.__feediaToast('✓ Backend restaurado', 'ok');
+        }
       }
     }
-    hideBanner();
   } catch {
     failures++;
+    lastFailureTime = Date.now();
     if (failures >= FAIL_THRESHOLD) {
       isOnline = false;
       showBanner();
     }
-    if (manual && failures > 0) {
-      // Sin toast, el botón Reintentar ya da feedback visual
-    }
+    // Sin toast en failures: el banner ya da feedback visual
   }
 };
 
