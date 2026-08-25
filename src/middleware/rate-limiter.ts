@@ -118,6 +118,19 @@ export const rateLimiter =
 export const autoRateLimiter = (req: Request, res: Response, next: NextFunction): void => {
   const path = req.path;
 
+  // Static assets (dashboard SPA: app.js, style.css, dozens of lib/*.js and
+  // views/*.js) never hit /api, /oauth, or /health, so they fell through to
+  // the 'api' group's 60/min default — one page load easily requests more
+  // than 60 JS/CSS files before a single real API call happens, so real
+  // users hit 429s on the assets themselves and the dashboard failed to
+  // finish loading. These are static, cacheable, side-effect-free reads —
+  // skip rate limiting entirely rather than just moving them to a bigger
+  // bucket, since express.static's own ETag/Cache-Control already handles load.
+  if (!path.startsWith('/api') && !path.startsWith('/oauth')) {
+    next();
+    return;
+  }
+
   let group: RateLimitGroup = 'api';
 
   if (
@@ -134,9 +147,10 @@ export const autoRateLimiter = (req: Request, res: Response, next: NextFunction)
     group = 'ai';
   } else if (path.startsWith('/oauth') || path.startsWith('/api/settings')) {
     group = 'auth';
-  } else if (path.startsWith('/health')) {
-    group = 'public';
   }
+  // Note: /health is exempted above (doesn't start with /api or /oauth), so
+  // the 'public' group is currently unused — kept in LIMITS for any future
+  // non-api, non-oauth route that still wants a rate-limited-but-generous tier.
 
   return rateLimiter(group)(req, res, next);
 };
