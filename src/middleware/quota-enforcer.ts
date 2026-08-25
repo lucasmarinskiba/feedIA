@@ -44,13 +44,12 @@ export const checkFormatQuota = async (
       };
     }
 
-    // Get tier limits
-    const tierLimits = tierConfig[tier.tier];
-    const formatKey = `${format}Limit` as keyof typeof tierLimits;
+    // Get tier limits (use tier object directly instead of config re-lookup)
     const usageKey = `${format}UsedThisMonth` as keyof typeof tier;
+    const limitKey = `${format}Limit` as keyof typeof tier;
 
-    const limit = (tierLimits[formatKey] || 0) as number;
-    const used = (tier[usageKey] || 0) as number;
+    const limit = (tier[limitKey] as number) || 0;
+    const used = (tier[usageKey] as number) || 0;
     const available = limit - used;
 
     const allowed = available >= requestedCount;
