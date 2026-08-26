@@ -7,8 +7,21 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { videoStorage } from '../services/video-storage.js';
-import { carouselDB } from '../db/postgres.js';
+import { queryOneAs } from '../db/typed-queries.js';
 import { log } from '../agent/logger.js';
+
+interface UserPlanRow {
+  plan: string;
+}
+
+interface CarouselCheckRow {
+  id?: string;
+  user_id?: string;
+}
+
+interface VideoCheckRow {
+  user_id: string;
+}
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 * 1024 } }); // 5GB max
@@ -34,17 +47,12 @@ router.post('/api/carousels/:carousel_id/videos', upload.single('video'), async 
     }
 
     // Check plan
-    const pool = (carouselDB as unknown as Record<string, any>).pool; // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (!pool) {
-      return res.status(500).json({ error: 'Database unavailable' });
-    }
-
-    const planResult = await pool.query(`SELECT plan FROM users WHERE id = $1`, [userId]);
-    if (planResult.rows.length === 0) {
+    const userPlan = await queryOneAs<UserPlanRow>(`SELECT plan FROM users WHERE id = $1`, [userId]);
+    if (!userPlan) {
       return res.status(401).json({ error: 'User not found' });
     }
 
-    const plan = planResult.rows[0].plan;
+    const plan = userPlan.plan;
     if (plan !== 'premium') {
       return res.status(403).json({ error: 'Video storage requires Premium tier' });
     }
@@ -56,8 +64,8 @@ router.post('/api/carousels/:carousel_id/videos', upload.single('video'), async 
     }
 
     // Verify carousel ownership
-    const carouselResult = await pool.query(`SELECT user_id FROM carousels WHERE id = $1`, [carouselId]);
-    if (carouselResult.rows.length === 0 || carouselResult.rows[0].user_id !== userId) {
+    const carousel = await queryOneAs<CarouselCheckRow>(`SELECT user_id FROM carousels WHERE id = $1`, [carouselId]);
+    if (!carousel || carousel.user_id !== userId) {
       return res.status(403).json({ error: 'Not authorized to upload to this carousel' });
     }
 
@@ -84,15 +92,10 @@ router.post('/api/carousels/:carousel_id/videos', upload.single('video'), async 
 router.get('/api/carousels/:carousel_id/videos', async (req: Request, res: Response) => {
   try {
     const carouselId = req.params.carousel_id as string;
-    const pool = (carouselDB as unknown as Record<string, any>).pool; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-    if (!pool) {
-      return res.status(500).json({ error: 'Database unavailable' });
-    }
 
     // Verify carousel exists
-    const carouselResult = await pool.query(`SELECT id FROM carousels WHERE id = $1`, [carouselId]);
-    if (carouselResult.rows.length === 0) {
+    const carousel = await queryOneAs<{ id: string }>(`SELECT id FROM carousels WHERE id = $1`, [carouselId]);
+    if (!carousel) {
       return res.status(404).json({ error: 'Carousel not found' });
     }
 
@@ -145,18 +148,13 @@ router.delete('/api/videos/:video_id', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const pool = (carouselDB as unknown as Record<string, any>).pool; // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (!pool) {
-      return res.status(500).json({ error: 'Database unavailable' });
-    }
-
     // Verify ownership
-    const videoResult = await pool.query(`SELECT user_id FROM videos WHERE id = $1`, [videoId]);
-    if (videoResult.rows.length === 0) {
+    const video = await queryOneAs<VideoCheckRow>(`SELECT user_id FROM videos WHERE id = $1`, [videoId]);
+    if (!video) {
       return res.status(404).json({ error: 'Video not found' });
     }
 
-    if (videoResult.rows[0].user_id !== userId) {
+    if (video.user_id !== userId) {
       return res.status(403).json({ error: 'Not authorized to delete this video' });
     }
 
