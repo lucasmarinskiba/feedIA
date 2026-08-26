@@ -1,4 +1,5 @@
 /**
+import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
  * Seed Endpoint — Execute seed via HTTP
  * POST /api/admin/seed — Populates test data
  */
@@ -22,7 +23,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
     });
 
     try {
-      await pool.query('SELECT NOW()');
+      await executeMutation('SELECT NOW()');
       result.steps.push({ name: 'Database connection', status: 'ok' });
     } catch (e) {
       result.steps.push({ name: 'Database connection', status: 'failed' });
@@ -39,7 +40,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
       // Insert test users
       for (let i = 1; i <= seedUsers; i++) {
         const tier = i % 3 === 0 ? 'agency' : i % 2 === 0 ? 'pro' : 'free';
-        await pool.query(
+        await executeMutation(
           `INSERT INTO users (id, email, name, tier, plan, created_at, updated_at)
            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
            ON CONFLICT(id) DO NOTHING`,
@@ -52,7 +53,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
       for (let i = 1; i <= seedCampaigns; i++) {
         const platforms = ['instagram', 'tiktok', 'youtube'];
         const platform = platforms[i % 3];
-        await pool.query(
+        await executeMutation(
           `INSERT INTO campaigns (id, user_id, title, platform, status, created_at, updated_at)
            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
            ON CONFLICT(id) DO NOTHING`,
@@ -65,7 +66,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
       for (let i = 1; i <= seedEvents; i++) {
         const eventTypes = ['view', 'like', 'share', 'save', 'click'];
         const eventType = eventTypes[i % 5];
-        await pool.query(
+        await executeMutation(
           `INSERT INTO carousel_analytics (id, carousel_id, user_id, event_type, created_at)
            VALUES ($1, $2, $3, $4, NOW())
            ON CONFLICT(id) DO NOTHING`,
@@ -81,7 +82,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
 
       // Insert audience segments
       for (let i = 1; i <= 50; i++) {
-        await pool.query(
+        await executeMutation(
           `INSERT INTO audience_segments (id, user_id, campaign_id, name, segment_type, created_at, updated_at)
            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
            ON CONFLICT(id) DO NOTHING`,
@@ -98,7 +99,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
 
       // Insert A/B tests
       for (let i = 1; i <= 20; i++) {
-        await pool.query(
+        await executeMutation(
           `INSERT INTO ab_tests (id, user_id, campaign_id, name, variant_a_id, variant_b_id, status, created_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
            ON CONFLICT(id) DO NOTHING`,
