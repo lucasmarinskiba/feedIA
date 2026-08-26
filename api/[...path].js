@@ -17,7 +17,7 @@
 import * as d from './_demo.js';
 import { handleSkills } from './_skills.js';
 import { handleGrowth } from './_growth.js';
-import { handleAuth as handleAuthLegacy } from './_auth.js';
+import { handleAuth } from './_auth.js';
 import { handleUsers, getSessionFromReq } from './_users.js';
 import { handleBilling } from './_billing.js';
 import { handleGate, gateRequest } from './_gate.js';
@@ -65,10 +65,8 @@ import { handleAnalytics } from './_analytics.js';
 import { handleTemplates } from './_templates.js';
 import { handleTeams } from './_teams.js';
 import { handleFeedback } from './_feedback.js';
-import { handleAuth } from './_auth-real.js';
 import { handleEmail } from './_email.js';
 import { handleStorage } from './_storage.js';
-import { handleAdmin } from './_admin.js';
 import { handleCuRecipes } from './_cuRecipeLibrary.js';
 import { handleGrowthIntelligence } from './_growthIntelligence.js';
 import { handleEliteEngine } from './_eliteCreatorEngine.js';
@@ -1309,26 +1307,6 @@ const innerHandler = async (req, res) => {
     }
   }
 
-  // ── Authentication (JWT + Sessions) ───────────────────────────────────
-  if (path.startsWith('/api/auth/')) {
-    let authBody = req.body;
-    if (authBody === undefined && (m === 'POST' || m === 'PUT')) {
-      try {
-        const chunks = [];
-        for await (const c of req) chunks.push(c);
-        const raw = Buffer.concat(chunks).toString('utf-8');
-        authBody = raw ? JSON.parse(raw) : {};
-      } catch {
-        authBody = {};
-      }
-    }
-    try {
-      if (await handleAuth(req, res, path, m, authBody || {})) return;
-    } catch (err) {
-      return json(res, 500, { error: 'auth-handler' });
-    }
-  }
-
   // ── Email Notifications (SendGrid) ─────────────────────────────────────
   if (path.startsWith('/api/email/')) {
     let emailBody = req.body;
@@ -1366,26 +1344,6 @@ const innerHandler = async (req, res) => {
       if (await handleStorage(req, res, path, m, storageBody || {})) return;
     } catch (err) {
       return json(res, 500, { error: 'storage-handler' });
-    }
-  }
-
-  // ── Admin Dashboard (User/Billing/Content Management) ────────────────────
-  if (path.startsWith('/api/admin/')) {
-    let adminBody = req.body;
-    if (adminBody === undefined && (m === 'POST' || m === 'PUT' || m === 'DELETE')) {
-      try {
-        const chunks = [];
-        for await (const c of req) chunks.push(c);
-        const raw = Buffer.concat(chunks).toString('utf-8');
-        adminBody = raw ? JSON.parse(raw) : {};
-      } catch {
-        adminBody = {};
-      }
-    }
-    try {
-      if (await handleAdmin(req, res, path, m, adminBody || {})) return;
-    } catch (err) {
-      return json(res, 500, { error: 'admin-handler' });
     }
   }
 
@@ -1706,23 +1664,30 @@ const innerHandler = async (req, res) => {
     }
   }
 
-  // ── Auth de usuarios (register/login/logout/me/connections) ────────────
+  // ── Auth de usuarios (register/login/logout/me/connections/password) ────
   // ⚠️ Va ANTES del OAuth de redes y del catch-all demo, porque captura
-  // /api/auth/{register,login,logout,me,connections,disconnect}.
+  // /api/auth/{register,signup,login,logout,me,connections,disconnect,password*}.
   if (
     path === '/api/auth/register' ||
+    path === '/api/auth/signup' ||
     path === '/api/auth/login' ||
     path === '/api/auth/logout' ||
     path === '/api/auth/me' ||
     path === '/api/auth/connections' ||
-    path === '/api/auth/disconnect'
+    path === '/api/auth/disconnect' ||
+    path === '/api/auth/password' ||
+    path === '/api/auth/password/reset-request' ||
+    path === '/api/auth/password/reset-confirm'
   ) {
     // Rate-limit por IP: defensa brute-force
     if (path === '/api/auth/login' && m === 'POST') {
       if (!(await rateLimit(req, res, `login:${ipOf(req)}`, LIMITS.login.limit, LIMITS.login.window))) return;
     }
-    if (path === '/api/auth/register' && m === 'POST') {
+    if ((path === '/api/auth/register' || path === '/api/auth/signup') && m === 'POST') {
       if (!(await rateLimit(req, res, `register:${ipOf(req)}`, LIMITS.register.limit, LIMITS.register.window))) return;
+    }
+    if (path.startsWith('/api/auth/password/reset') && m === 'POST') {
+      if (!(await rateLimit(req, res, `login:${ipOf(req)}`, LIMITS.login.limit, LIMITS.login.window))) return;
     }
     let uBody = req.body;
     if (uBody === undefined && (m === 'POST' || m === 'PUT')) {
@@ -1916,7 +1881,7 @@ const innerHandler = async (req, res) => {
     }
     if (path === '/api/settings/connections' && m === 'GET') {
       try {
-        if (await handleAuthLegacy(req, res, '/api/auth/connections', 'GET', {}, url.searchParams)) return;
+        if (await handleUsers(req, res, '/api/auth/connections', 'GET', {})) return;
       } catch {
         /* fallback */
       }
@@ -1924,7 +1889,7 @@ const innerHandler = async (req, res) => {
     }
     if (path === '/api/settings/disconnect' && m === 'POST') {
       try {
-        if (await handleAuthLegacy(req, res, '/api/auth/disconnect', 'POST', sBody, url.searchParams)) return;
+        if (await handleUsers(req, res, '/api/auth/disconnect', 'POST', sBody)) return;
       } catch {
         /* fallback */
       }
@@ -1993,7 +1958,7 @@ const innerHandler = async (req, res) => {
   // ── OAuth de redes (Instagram + TikTok Login Kit) ──────────────────────
   if (path.startsWith('/api/auth/')) {
     try {
-      if (await handleAuthLegacy(req, res, path, m, {}, url.searchParams)) return;
+      if (await handleAuth(req, res, path, m, {}, url.searchParams)) return;
     } catch (err) {
       return json(res, 500, { error: 'auth-handler' });
     }

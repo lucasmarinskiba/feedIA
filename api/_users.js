@@ -9,18 +9,27 @@
  *   feedia:user:{userId}:token:{platform}  → OAuth token blob (set by _auth.js)
  *   feedia:user:{userId}:connections       → ["instagram","tiktok"]
  *
+ * Fuente de verdad ÚNICA de usuarios/sesiones (unificado 2026-08-26 — antes
+ * existía un segundo sistema paralelo en desuso, _auth-real.js, con JWT +
+ * Map in-memory sin persistencia real; se retiró a favor de este).
+ *
  * Endpoints handled here:
  *   POST /api/auth/register   { email, password, displayName, plan? }
+ *   POST /api/auth/signup     alias de register (mismo flujo, misma sesión)
  *   POST /api/auth/login      { email, password }
  *   POST /api/auth/logout
  *   GET  /api/auth/me
  *   GET  /api/auth/connections
  *   POST /api/auth/disconnect { platform }
+ *   PUT  /api/auth/password   { old_password, new_password } — requiere sesión
+ *   POST /api/auth/password/reset-request { email } — envía email con token (1h)
+ *   POST /api/auth/password/reset-confirm { token, new_password }
  */
 
 import crypto from 'node:crypto';
 import * as store from './_store.js';
 import { issueCsrf } from './_csrf.js';
+import { emailService } from './_email.js';
 
 // CSRF cookie (no HttpOnly — el frontend la lee).
 const buildCsrfCookie = (sessionToken, expiresAt) => {
@@ -159,14 +168,14 @@ const createSession = async (userId, req) => {
 };
 
 export const handleUsers = async (req, res, path, m, body) => {
-  // ── Register ────────────────────────────────────────────────────────────
-  if (path === '/api/auth/register' && m === 'POST') {
+  // ── Register (alias: /api/auth/signup — mismo flujo, misma fuente de verdad) ──
+  if ((path === '/api/auth/register' || path === '/api/auth/signup') && m === 'POST') {
     const b = body || {};
     const email = String(b.email || '')
       .trim()
       .toLowerCase();
     const password = String(b.password || '');
-    const displayName = String(b.displayName || '').trim();
+    const displayName = String(b.displayName || b.name || '').trim();
     const plan = String(b.plan || 'free');
 
     if (!email || !password || !displayName) {
@@ -332,6 +341,94 @@ export const handleUsers = async (req, res, path, m, body) => {
       return true;
     }
     await store.del(`feedia:user:${ctx.user.id}:token:${platform}`);
+    json(res, 200, { ok: true });
+    return true;
+  }
+
+  // ── Cambio de password (requiere sesión + password actual) ────────────────
+  if (path === '/api/auth/password' && m === 'PUT') {
+    const ctx = await getSessionFromReq(req);
+    if (!ctx) {
+      json(res, 401, { error: 'no session' });
+      return true;
+    }
+    const { old_password, new_password } = body || {};
+    if (!old_password || !new_password) {
+      json(res, 400, { error: 'old_password, new_password requeridos' });
+      return true;
+    }
+    if (String(new_password).length < 8) {
+      json(res, 400, { error: 'new_password mínimo 8 caracteres' });
+      return true;
+    }
+    let ok = false;
+    try {
+      ok = verifyPassword(old_password, ctx.user.passwordHash, ctx.user.passwordSalt);
+    } catch {
+      ok = false;
+    }
+    if (!ok) {
+      json(res, 400, { error: 'password actual incorrecta' });
+      return true;
+    }
+    const { hash, salt } = hashPassword(new_password);
+    await store.set(`feedia:user:${ctx.user.id}`, { ...ctx.user, passwordHash: hash, passwordSalt: salt });
+    json(res, 200, { ok: true });
+    return true;
+  }
+
+  // ── Password reset — request (envía email con token, sin revelar si el email existe) ──
+  const RESET_TOKEN_TTL_SEC = 3600; // 1h
+  if (path === '/api/auth/password/reset-request' && m === 'POST') {
+    const email = String((body || {}).email || '')
+      .trim()
+      .toLowerCase();
+    if (!email) {
+      json(res, 400, { error: 'email requerido' });
+      return true;
+    }
+    const userId = await store.get(`feedia:user:byEmail:${email}`);
+    if (userId) {
+      const token = newToken();
+      await store.set(`feedia:passwordreset:${token}`, { userId, email });
+      await store.expire(`feedia:passwordreset:${token}`, RESET_TOKEN_TTL_SEC);
+      try {
+        await emailService.send(email, 'password_reset', { reset_token: token });
+      } catch {
+        /* best-effort — no bloquea la respuesta */
+      }
+    }
+    // Respuesta idéntica exista o no el email — evita user enumeration.
+    json(res, 200, { ok: true, message: 'Si el email existe, se envió un link de recuperación.' });
+    return true;
+  }
+
+  // ── Password reset — confirm (token + nueva password) ──────────────────────
+  if (path === '/api/auth/password/reset-confirm' && m === 'POST') {
+    const { token, new_password } = body || {};
+    if (!token || !new_password) {
+      json(res, 400, { error: 'token, new_password requeridos' });
+      return true;
+    }
+    if (String(new_password).length < 8) {
+      json(res, 400, { error: 'new_password mínimo 8 caracteres' });
+      return true;
+    }
+    const resetKey = `feedia:passwordreset:${token}`;
+    const reset = await store.get(resetKey);
+    if (!reset) {
+      json(res, 400, { error: 'token inválido o expirado' });
+      return true;
+    }
+    const user = await store.get(`feedia:user:${reset.userId}`);
+    if (!user) {
+      json(res, 404, { error: 'usuario no encontrado' });
+      return true;
+    }
+    const { hash, salt } = hashPassword(new_password);
+    await store.set(`feedia:user:${user.id}`, { ...user, passwordHash: hash, passwordSalt: salt });
+    await store.del(resetKey);
+    await clearAuthFails(user.email);
     json(res, 200, { ok: true });
     return true;
   }
