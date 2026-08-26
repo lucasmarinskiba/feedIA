@@ -37,7 +37,7 @@ router.get('/list', async (req: Request, res: Response) => {
 
     const accounts = await getUserAccounts(userId);
 
-    res.json({
+    return res.json({
       userId,
       tier: tier.tier,
       maxAccounts: tier.tier === 'free' ? 1 : tier.tier === 'starter' ? 3 : tier.tier === 'pro' ? 6 : 20,
@@ -52,7 +52,7 @@ router.get('/list', async (req: Request, res: Response) => {
     });
   } catch (err) {
     log.error('[Accounts List] Error', { error: String(err) });
-    res.status(500).json({ error: 'Failed to list accounts' });
+    return res.status(500).json({ error: 'Failed to list accounts' });
   }
 });
 
@@ -80,7 +80,7 @@ router.get('/:accountId', async (req: Request, res: Response) => {
       videos: tier.videosLimit,
     });
 
-    res.json({
+    return res.json({
       account: {
         id: account.id,
         platform: account.platform,
@@ -97,7 +97,7 @@ router.get('/:accountId', async (req: Request, res: Response) => {
     });
   } catch (err) {
     log.error('[Accounts Get] Error', { error: String(err) });
-    res.status(500).json({ error: 'Failed to get account' });
+    return res.status(500).json({ error: 'Failed to get account' });
   }
 });
 
@@ -147,7 +147,7 @@ router.post('/connect/:platform', async (req: Request, res: Response) => {
 
     log.info('[Accounts] Connected', { userId, platform, handle: accountHandle });
 
-    res.json({
+    return res.json({
       ok: true,
       account: {
         id: account.id,
@@ -157,7 +157,7 @@ router.post('/connect/:platform', async (req: Request, res: Response) => {
     });
   } catch (err) {
     log.error('[Accounts Connect] Error', { error: String(err) });
-    res.status(500).json({ error: 'Connection failed' });
+    return res.status(500).json({ error: 'Connection failed' });
   }
 });
 
@@ -181,10 +181,10 @@ router.delete('/:accountId', async (req: Request, res: Response) => {
 
     log.info('[Accounts] Disconnected', { userId, accountId, handle: account.accountHandle });
 
-    res.json({ ok: true, message: 'Account disconnected' });
+    return res.json({ ok: true, message: 'Account disconnected' });
   } catch (err) {
     log.error('[Accounts Disconnect] Error', { error: String(err) });
-    res.status(500).json({ error: 'Disconnection failed' });
+    return res.status(500).json({ error: 'Disconnection failed' });
   }
 });
 
@@ -211,10 +211,10 @@ router.put('/:accountId/quota', async (req: Request, res: Response) => {
     const success = await updateAccountQuotaPercent(accountId, percent);
     if (!success) return res.status(500).json({ error: 'Update failed' });
 
-    res.json({ ok: true, quotaPercent: percent });
+    return res.json({ ok: true, quotaPercent: percent });
   } catch (err) {
     log.error('[Accounts Quota] Error', { error: String(err) });
-    res.status(500).json({ error: 'Quota update failed' });
+    return res.status(500).json({ error: 'Quota update failed' });
   }
 });
 
@@ -240,7 +240,7 @@ router.post('/:accountId/check-quota', async (req: Request, res: Response) => {
 
     const result = await checkAccountFormatQuota(accountId, format, count || 1);
 
-    res.json({
+    return res.json({
       allowed: result.allowed,
       used: result.used,
       limit: result.limit,
@@ -249,7 +249,7 @@ router.post('/:accountId/check-quota', async (req: Request, res: Response) => {
     });
   } catch (err) {
     log.error('[Accounts Check Quota] Error', { error: String(err) });
-    res.status(500).json({ error: 'Quota check failed' });
+    return res.status(500).json({ error: 'Quota check failed' });
   }
 });
 
@@ -288,10 +288,10 @@ router.post('/:accountId/content/record', async (req: Request, res: Response) =>
 
     log.info('[Accounts] Content recorded', { userId, accountId, contentId, format });
 
-    res.json({ ok: true, contentId: content.id });
+    return res.json({ ok: true, contentId: content.id });
   } catch (err) {
     log.error('[Accounts Record Content] Error', { error: String(err) });
-    res.status(500).json({ error: 'Failed to record content' });
+    return res.status(500).json({ error: 'Failed to record content' });
   }
 });
 
@@ -314,10 +314,10 @@ router.put('/:accountId/content/:contentId/metrics', async (req: Request, res: R
     const success = await updateContentMetrics(contentId, metrics);
     if (!success) return res.status(404).json({ error: 'Content not found' });
 
-    res.json({ ok: true });
+    return res.json({ ok: true });
   } catch (err) {
     log.error('[Accounts Update Metrics] Error', { error: String(err) });
-    res.status(500).json({ error: 'Update failed' });
+    return res.status(500).json({ error: 'Update failed' });
   }
 });
 

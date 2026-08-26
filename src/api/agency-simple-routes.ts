@@ -30,7 +30,7 @@ router.post('/campaign/create', async (req: Request, res: Response): Promise<voi
     const { brief, targetAudience, goals, budget, platforms } = req.body as CampaignRequest;
 
     if (!brief || !targetAudience || !goals || goals.length === 0) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'Missing required fields: brief, targetAudience, goals (array)',
       });
       return;
@@ -42,7 +42,7 @@ router.post('/campaign/create', async (req: Request, res: Response): Promise<voi
     const tierValidation = await validateTierAccess(accountId, 1);
     if (!tierValidation.allowed) {
       console.warn(`[Tier Enforce] Campaign rejected for ${accountId}: ${tierValidation.reason}`);
-      res.status(403).json({
+      return res.status(403).json({
         error: 'Campaign limit exceeded',
         reason: tierValidation.reason,
         tier: tierValidation.context?.tier || 'free',
@@ -66,7 +66,7 @@ router.post('/campaign/create', async (req: Request, res: Response): Promise<voi
     // TIER 8 Phase 2: Persist to PostgreSQL
     await saveCampaign(campaign, accountId);
 
-    res.json({
+    return res.json({
       campaignId: campaign.campaignId,
       status: 'approved',
       strategy: campaign.strategy,
@@ -82,7 +82,7 @@ router.post('/campaign/create', async (req: Request, res: Response): Promise<voi
     });
   } catch (err) {
     console.error('[TIER 8] Orchestration error:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -96,13 +96,13 @@ router.get('/campaign/:campaignId', async (req: Request, res: Response): Promise
     const campaign = await loadCampaign(campaignId);
 
     if (!campaign) {
-      res.status(404).json({ error: 'Campaign not found' });
+      return res.status(404).json({ error: 'Campaign not found' });
       return;
     }
 
-    res.json(campaign);
+    return res.json(campaign);
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -117,9 +117,9 @@ router.get('/campaigns', async (req: Request, res: Response): Promise<void> => {
     const offset = parseInt(req.query.offset as string) || 0;
 
     const result = await listCampaigns(accountId, limit, offset);
-    res.json(result);
+    return res.json(result);
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -134,7 +134,7 @@ router.post('/batch/create', async (req: Request, res: Response): Promise<void> 
     const workerCount = parseInt(req.get('X-Worker-Count') || '3');
 
     if (!Array.isArray(requests) || requests.length === 0) {
-      res.status(400).json({ error: 'Expected array of campaign requests' });
+      return res.status(400).json({ error: 'Expected array of campaign requests' });
       return;
     }
 
@@ -156,10 +156,10 @@ router.post('/batch/create', async (req: Request, res: Response): Promise<void> 
     // Process batch with worker pool
     const batchResult = await batchOrchestrator(inputs, accountId, workerCount);
 
-    res.json(batchResult);
+    return res.json(batchResult);
   } catch (err) {
     console.error('[TIER 8 Phase 3] Batch error:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -169,7 +169,7 @@ router.post('/batch/create', async (req: Request, res: Response): Promise<void> 
  */
 router.get('/health', (req: Request, res: Response): void => {
   const health = getHealthCheck();
-  res.json(health);
+  return res.json(health);
 });
 
 /**

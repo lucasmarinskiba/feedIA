@@ -31,9 +31,9 @@ export const detectTrends = async (req: Request, res: Response): Promise<void> =
       };
     });
 
-    res.json({ trends, period: `${days} days` });
+    return res.json({ trends, period: `${days} days` });
   } catch {
-    res.status(500).json({ error: 'Trend detection failed' });
+    return res.status(500).json({ error: 'Trend detection failed' });
   }
 };
 
@@ -49,7 +49,7 @@ export const getTrendingAudio = async (req: Request, res: Response): Promise<voi
       [platform, parseInt(limit, 10)]
     );
 
-    res.json({
+    return res.json({
       trending: result.rows.map((row: unknown) => {
         const typedRow = row as { id: string; audio_name: string; artist: string; virality_score: number; uses: number; trend_status: string };
         return {
@@ -64,7 +64,7 @@ export const getTrendingAudio = async (req: Request, res: Response): Promise<voi
       platform,
     });
   } catch {
-    res.status(500).json({ error: 'Trending audio fetch failed' });
+    return res.status(500).json({ error: 'Trending audio fetch failed' });
   }
 };
 

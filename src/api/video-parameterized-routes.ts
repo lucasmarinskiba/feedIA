@@ -89,7 +89,7 @@ router.post('/parameterized-prompt', async (req: Request, res: Response): Promis
       });
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       prompt: generatedPrompt,
       template: {
@@ -104,7 +104,7 @@ router.post('/parameterized-prompt', async (req: Request, res: Response): Promis
     });
   } catch (error) {
     log.error('[VideoParameterizedRoutes] Prompt generation error', error);
-    res.status(500).json({ error: 'Prompt generation failed' });
+    return res.status(500).json({ error: 'Prompt generation failed' });
   }
 });
 
@@ -167,7 +167,7 @@ router.post('/batch-generate', quotaCheckMiddleware('videos', 1), async (req: Re
       await chargeQuota(req, 'videos', `param-${uuidv4()}`);
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       totalRequested: requests.length,
       totalGenerated: generatedPrompts.length,
@@ -179,7 +179,7 @@ router.post('/batch-generate', quotaCheckMiddleware('videos', 1), async (req: Re
     });
   } catch (error) {
     log.error('[VideoParameterizedRoutes] Batch generation error', error);
-    res.status(500).json({ error: 'Batch generation failed' });
+    return res.status(500).json({ error: 'Batch generation failed' });
   }
 });
 
@@ -192,7 +192,7 @@ router.get('/library-status', async (req: Request, res: Response) => {
     const libraryStatus = videoPromptEngine.getLibraryStatus();
     const templates = videoPromptEngine.listTemplates();
 
-    res.json({
+    return res.json({
       status: 'operational',
       library: libraryStatus,
       templates: {
@@ -213,7 +213,7 @@ router.get('/library-status', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[VideoParameterizedRoutes] Status error', error);
-    res.status(500).json({ error: 'Failed to get library status' });
+    return res.status(500).json({ error: 'Failed to get library status' });
   }
 });
 
@@ -230,7 +230,7 @@ router.get('/templates', async (req: Request, res: Response) => {
       templates = templates.filter(t => t.category === category);
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       total: templates.length,
       templates: templates.map(t => ({
@@ -243,7 +243,7 @@ router.get('/templates', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[VideoParameterizedRoutes] Templates list error', error);
-    res.status(500).json({ error: 'Failed to list templates' });
+    return res.status(500).json({ error: 'Failed to list templates' });
   }
 });
 
@@ -299,7 +299,7 @@ router.post('/batch-expand', async (req: Request, res: Response): Promise<void> 
       }
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       baseParams,
       totalVariations: expandedPrompts.length,
@@ -311,7 +311,7 @@ router.post('/batch-expand', async (req: Request, res: Response): Promise<void> 
     });
   } catch (error) {
     log.error('[VideoParameterizedRoutes] Batch expand error', error);
-    res.status(500).json({ error: 'Batch expand failed' });
+    return res.status(500).json({ error: 'Batch expand failed' });
   }
 });
 

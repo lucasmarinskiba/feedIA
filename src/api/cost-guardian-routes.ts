@@ -60,30 +60,30 @@ const RemoveFixedCostSchema = z.object({
 router.post('/cost', (req: Request, res: Response): void => {
   const parsed = CostSchema.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ ok: false, error: parsed.error.issues });
+    return res.status(400).json({ ok: false, error: parsed.error.issues });
     return;
   }
   try {
     const entry = recordExternalCost(parsed.data.source as CostSource, parsed.data.amountUsd, parsed.data.description);
-    res.json({ ok: true, entry });
+    return res.json({ ok: true, entry });
   } catch (err) {
     log.error('[CostGuardianRoutes] Failed to record cost', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
 router.post('/revenue', (req: Request, res: Response): void => {
   const parsed = RevenueSchema.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ ok: false, error: parsed.error.issues });
+    return res.status(400).json({ ok: false, error: parsed.error.issues });
     return;
   }
   try {
     const entry = recordRevenue(parsed.data.source as RevenueSource, parsed.data.amountUsd, parsed.data.description);
-    res.json({ ok: true, entry });
+    return res.json({ ok: true, entry });
   } catch (err) {
     log.error('[CostGuardianRoutes] Failed to record revenue', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
@@ -92,58 +92,58 @@ router.get('/status', async (req: Request, res: Response): Promise<void> => {
     const days = Number(req.query.days) || 30;
     const evaluate = req.query.evaluate === 'true';
     const status = evaluate ? await evaluateAndAlert(days) : getFinancialStatus(days);
-    res.json({ ok: true, status });
+    return res.json({ ok: true, status });
   } catch (err) {
     log.error('[CostGuardianRoutes] Failed to get status', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
 router.get('/history', (req: Request, res: Response): void => {
   try {
     const limit = Number(req.query.limit) || 100;
-    res.json({
+    return res.json({
       ok: true,
       costs: getCostHistory(limit),
       revenue: getRevenueHistory(limit),
     });
   } catch (err) {
     log.error('[CostGuardianRoutes] Failed to get history', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
 router.get('/config', (_req: Request, res: Response): void => {
-  res.json({ ok: true, config: getConfig() });
+  return res.json({ ok: true, config: getConfig() });
 });
 
 router.post('/config', (req: Request, res: Response): void => {
   const parsed = ConfigSchema.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ ok: false, error: parsed.error.issues });
+    return res.status(400).json({ ok: false, error: parsed.error.issues });
     return;
   }
   try {
     const config = updateConfig(parsed.data);
-    res.json({ ok: true, config });
+    return res.json({ ok: true, config });
   } catch (err) {
     log.error('[CostGuardianRoutes] Failed to update config', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
 router.delete('/config/fixed-cost/:name', (req: Request, res: Response): void => {
   const parsed = RemoveFixedCostSchema.safeParse({ name: req.params.name });
   if (!parsed.success) {
-    res.status(400).json({ ok: false, error: parsed.error.issues });
+    return res.status(400).json({ ok: false, error: parsed.error.issues });
     return;
   }
   try {
     const config = removeFixedMonthlyCost(parsed.data.name);
-    res.json({ ok: true, config });
+    return res.json({ ok: true, config });
   } catch (err) {
     log.error('[CostGuardianRoutes] Failed to remove fixed cost', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 

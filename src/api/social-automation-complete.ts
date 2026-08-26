@@ -50,7 +50,7 @@ const instagramAuthorize = async (req: AuthRequest, res: Response): Promise<void
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -60,9 +60,9 @@ const instagramAuthorize = async (req: AuthRequest, res: Response): Promise<void
 
     const authUrl = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code&state=${userId}`;
 
-    res.json({ authUrl, message: 'Redirect user to this URL' });
+    return res.json({ authUrl, message: 'Redirect user to this URL' });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 };
 
@@ -76,7 +76,7 @@ const instagramCallback = async (req: Request, res: Response): Promise<void> => 
     const userId = state;
 
     if (!code || !userId) {
-      res.status(400).json({ error: 'Missing code or state' });
+      return res.status(400).json({ error: 'Missing code or state' });
       return;
     }
 
@@ -102,7 +102,7 @@ const instagramCallback = async (req: Request, res: Response): Promise<void> => 
     };
 
     if (!tokenData.access_token) {
-      res.status(400).json({ error: 'Failed to get access token' });
+      return res.status(400).json({ error: 'Failed to get access token' });
       return;
     }
 
@@ -126,9 +126,9 @@ const instagramCallback = async (req: Request, res: Response): Promise<void> => 
       [userId, 'instagram', token.token, new Date(token.expiresAt)]
     );
 
-    res.json({ success: true, message: 'Instagram connected', userId });
+    return res.json({ success: true, message: 'Instagram connected', userId });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 };
 
@@ -140,7 +140,7 @@ const tiktokAuthorize = async (req: AuthRequest, res: Response): Promise<void> =
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -150,9 +150,9 @@ const tiktokAuthorize = async (req: AuthRequest, res: Response): Promise<void> =
 
     const authUrl = `https://www.tiktok.com/v1/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code&state=${userId}`;
 
-    res.json({ authUrl, message: 'Redirect user to this URL' });
+    return res.json({ authUrl, message: 'Redirect user to this URL' });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 };
 
@@ -166,7 +166,7 @@ const tiktokCallback = async (req: Request, res: Response): Promise<void> => {
     const userId = state;
 
     if (!code || !userId) {
-      res.status(400).json({ error: 'Missing code or state' });
+      return res.status(400).json({ error: 'Missing code or state' });
       return;
     }
 
@@ -190,7 +190,7 @@ const tiktokCallback = async (req: Request, res: Response): Promise<void> => {
     };
 
     if (!tokenData.access_token) {
-      res.status(400).json({ error: 'Failed to get access token' });
+      return res.status(400).json({ error: 'Failed to get access token' });
       return;
     }
 
@@ -216,9 +216,9 @@ const tiktokCallback = async (req: Request, res: Response): Promise<void> => {
       [userId, 'tiktok', token.token, token.refreshToken, new Date(token.expiresAt)]
     );
 
-    res.json({ success: true, message: 'TikTok connected', userId });
+    return res.json({ success: true, message: 'TikTok connected', userId });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 };
 
@@ -234,20 +234,20 @@ const schedulePost = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { contentId, publishAt, platforms = ['instagram', 'tiktok'], caption } = req.body;
 
     if (!contentId || !publishAt) {
-      res.status(400).json({ error: 'Missing contentId or publishAt' });
+      return res.status(400).json({ error: 'Missing contentId or publishAt' });
       return;
     }
 
     const scheduledTime = new Date(publishAt);
     if (scheduledTime < new Date()) {
-      res.status(400).json({ error: 'Schedule time must be in future' });
+      return res.status(400).json({ error: 'Schedule time must be in future' });
       return;
     }
 
@@ -273,14 +273,14 @@ const schedulePost = async (req: AuthRequest, res: Response): Promise<void> => {
     // Store in schedule queue (Redis or cron)
     // For MVP: use setInterval check or external scheduler
 
-    res.json({
+    return res.json({
       success: true,
       scheduledPostId: result.rows[0].id,
       scheduledAt: scheduledTime,
       message: `Post scheduled for ${scheduledTime.toISOString()}`,
     });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 };
 
@@ -292,14 +292,14 @@ const batchPublish = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { posts, platforms = ['instagram', 'tiktok'] } = req.body;
 
     if (!Array.isArray(posts) || posts.length === 0) {
-      res.status(400).json({ error: 'Posts array required' });
+      return res.status(400).json({ error: 'Posts array required' });
       return;
     }
 
@@ -334,9 +334,9 @@ const batchPublish = async (req: AuthRequest, res: Response): Promise<void> => {
       }
     }
 
-    res.json({ success: true, published: results.length, results });
+    return res.json({ success: true, published: results.length, results });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 };
 
@@ -354,13 +354,13 @@ const getAnalytics = async (req: AuthRequest, res: Response): Promise<void> => {
     const { platform } = req.params as { platform: string };
 
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const token = tokenStore.get(`${userId}:${platform}`);
     if (!token) {
-      res.status(400).json({ error: `${platform} not connected` });
+      return res.status(400).json({ error: `${platform} not connected` });
       return;
     }
 
@@ -370,17 +370,17 @@ const getAnalytics = async (req: AuthRequest, res: Response): Promise<void> => {
         `https://graph.instagram.com/v18.0/me/insights?metric=impressions,reach,profile_views&access_token=${token.token}`
       );
       const data = await insightsResponse.json();
-      res.json({ platform: 'instagram', insights: data });
+      return res.json({ platform: 'instagram', insights: data });
     } else if (platform === 'tiktok') {
       // Get TikTok analytics
       const analyticsResponse = await fetch('https://open.tiktokapis.com/v1/video/list', {
         headers: { Authorization: `Bearer ${token.token}` },
       });
       const data = await analyticsResponse.json();
-      res.json({ platform: 'tiktok', videos: data });
+      return res.json({ platform: 'tiktok', videos: data });
     }
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 };
 
@@ -392,7 +392,7 @@ const getDashboard = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -408,14 +408,14 @@ const getDashboard = async (req: AuthRequest, res: Response): Promise<void> => {
       [userId]
     );
 
-    res.json({
+    return res.json({
       totalPosts: result.rows[0].total_posts,
       instagramViews: result.rows[0].instagram_views,
       tiktokViews: result.rows[0].tiktok_views,
       avgEngagement: result.rows[0].avg_engagement,
     });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 };
 
@@ -433,7 +433,7 @@ const generateCaption = async (req: AuthRequest, res: Response): Promise<void> =
     const { contentType, topic, tone = 'engaging', platform = 'instagram' } = req.body;
 
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -460,9 +460,9 @@ const generateCaption = async (req: AuthRequest, res: Response): Promise<void> =
     const data = (await response.json()) as { content?: Array<{ text: string }> };
     const caption = data.content?.[0]?.text || '';
 
-    res.json({ caption, platform });
+    return res.json({ caption, platform });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 };
 
@@ -474,7 +474,7 @@ const getTemplates = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -483,9 +483,9 @@ const getTemplates = async (req: AuthRequest, res: Response): Promise<void> => {
       [userId]
     );
 
-    res.json({ templates: result.rows });
+    return res.json({ templates: result.rows });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 };
 

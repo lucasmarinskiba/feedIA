@@ -36,14 +36,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const { email, password, username } = req.body;
 
     if (!email || !password) {
-      res.status(400).json({ error: 'Email and password required' });
+      return res.status(400).json({ error: 'Email and password required' });
       return;
     }
 
     // Check if user exists
     const existing = await getUserByEmail(email);
     if (existing) {
-      res.status(409).json({ error: 'User already exists' });
+      return res.status(409).json({ error: 'User already exists' });
       return;
     }
 
@@ -61,7 +61,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       expiresIn: JWT_EXPIRY,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       user: { id: user.id, email: user.email, username: user.username },
       accessToken,
       refreshToken,
@@ -69,7 +69,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (err) {
     console.error('[Auth] Register error:', err);
-    res.status(500).json({ error: 'Registration failed' });
+    return res.status(500).json({ error: 'Registration failed' });
   }
 };
 
@@ -82,21 +82,21 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      res.status(400).json({ error: 'Email and password required' });
+      return res.status(400).json({ error: 'Email and password required' });
       return;
     }
 
     // Get user
     const user = await getUserByEmail(email);
     if (!user) {
-      res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Invalid email or password' });
       return;
     }
 
     // Verify password
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
-      res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Invalid email or password' });
       return;
     }
 
@@ -111,7 +111,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       expiresIn: JWT_EXPIRY,
     });
 
-    res.json({
+    return res.json({
       user: { id: user.id, email: user.email, username: user.username },
       accessToken,
       refreshToken,
@@ -119,7 +119,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (err) {
     console.error('[Auth] Login error:', err);
-    res.status(500).json({ error: 'Login failed' });
+    return res.status(500).json({ error: 'Login failed' });
   }
 };
 
@@ -132,14 +132,14 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
     const { refreshToken } = req.body;
 
     if (!refreshToken) {
-      res.status(400).json({ error: 'Refresh token required' });
+      return res.status(400).json({ error: 'Refresh token required' });
       return;
     }
 
     // Rotate refresh token
     const newTokens = await rotateRefreshToken(refreshToken);
     if (!newTokens) {
-      res.status(401).json({ error: 'Invalid or expired refresh token' });
+      return res.status(401).json({ error: 'Invalid or expired refresh token' });
       return;
     }
 
@@ -149,14 +149,14 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
       expiresIn: JWT_EXPIRY,
     });
 
-    res.json({
+    return res.json({
       accessToken,
       refreshToken: newTokens.token,
       expiresIn: JWT_EXPIRY,
     });
   } catch (err) {
     console.error('[Auth] Refresh error:', err);
-    res.status(500).json({ error: 'Token refresh failed' });
+    return res.status(500).json({ error: 'Token refresh failed' });
   }
 };
 
@@ -168,15 +168,15 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = (req as any).userId; // Set by auth middleware
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     await revokeAllSessions(userId);
-    res.json({ message: 'Logged out from all devices' });
+    return res.json({ message: 'Logged out from all devices' });
   } catch (err) {
     console.error('[Auth] Logout error:', err);
-    res.status(500).json({ error: 'Logout failed' });
+    return res.status(500).json({ error: 'Logout failed' });
   }
 };
 
@@ -189,7 +189,7 @@ export const verifyJWT = (req: Request, res: Response, next: () => void): void =
     const token = authHeader?.replace('Bearer ', '');
 
     if (!token) {
-      res.status(401).json({ error: 'Missing authorization token' });
+      return res.status(401).json({ error: 'Missing authorization token' });
       return;
     }
 
@@ -197,6 +197,6 @@ export const verifyJWT = (req: Request, res: Response, next: () => void): void =
     (req as any).userId = (decoded as any).userId;
     next();
   } catch (err) {
-    res.status(401).json({ error: 'Invalid token' });
+    return res.status(401).json({ error: 'Invalid token' });
   }
 };

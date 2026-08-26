@@ -32,7 +32,7 @@ router.post('/expand-single', async (req: Request, res: Response): Promise<void>
 
     const result = await expandAndStore(promptId, promptText);
 
-    res.json({
+    return res.json({
       status: 'success',
       expansion: result,
       message: '6 variations generated (1 per tone: emotional/entertaining/polemic/education/humor/debate)',
@@ -41,7 +41,7 @@ router.post('/expand-single', async (req: Request, res: Response): Promise<void>
     });
   } catch (error) {
     log.error('[PromptExpansion] Single expansion error', error);
-    res.status(500).json({ error: 'Expansion failed' });
+    return res.status(500).json({ error: 'Expansion failed' });
   }
 });
 
@@ -63,7 +63,7 @@ router.post('/super-expand', async (req: Request, res: Response): Promise<void> 
 
     const result = await superExpandAndStore(promptId, promptText);
 
-    res.json({
+    return res.json({
       status: 'success',
       expansion: result,
       message: '12 variations generated (2x standard: emotional, entertaining, polemic, education, humor, debate + aspirational, introspective, energetic, calm, authoritative, playful)',
@@ -73,7 +73,7 @@ router.post('/super-expand', async (req: Request, res: Response): Promise<void> 
     });
   } catch (error) {
     log.error('[PromptExpansion] Super-expand error', error);
-    res.status(500).json({ error: 'Super-expand failed' });
+    return res.status(500).json({ error: 'Super-expand failed' });
   }
 });
 
@@ -96,7 +96,7 @@ router.post('/expand-batch', async (req: Request, res: Response) => {
       log.error('[PromptExpansion] Batch expansion error', error);
     });
 
-    res.json({
+    return res.json({
       status: 'queued',
       batch,
       message: 'Batch expansion started. Check /api/prompts/expansion-status for progress.',
@@ -107,7 +107,7 @@ router.post('/expand-batch', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[PromptExpansion] Batch request error', error);
-    res.status(500).json({ error: 'Batch request failed' });
+    return res.status(500).json({ error: 'Batch request failed' });
   }
 });
 
@@ -119,7 +119,7 @@ router.get('/expansion-status', async (req: Request, res: Response) => {
   try {
     const status = await getExpansionStatus();
 
-    res.json({
+    return res.json({
       status: 'operational',
       library: status.library,
       expansion: status.expansion_info,
@@ -128,7 +128,7 @@ router.get('/expansion-status', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[PromptExpansion] Status check error', error);
-    res.status(500).json({ error: 'Status check failed' });
+    return res.status(500).json({ error: 'Status check failed' });
   }
 });
 
@@ -137,7 +137,7 @@ router.get('/expansion-status', async (req: Request, res: Response) => {
  * Expansion strategy + capacity info
  */
 router.get('/expansion-info', async (req: Request, res: Response) => {
-  res.json({
+  return res.json({
     status: 'operational',
     strategy: 'LLM-powered variation generation (Claude API)',
     capacity: {

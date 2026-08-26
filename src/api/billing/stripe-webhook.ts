@@ -131,7 +131,7 @@ async function processEvent(event: Stripe.Event): Promise<{ success: boolean; me
 // Express route handler
 export const stripeWebhookHandler = async (req: Request, res: Response): Promise<void> => {
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
     return;
   }
 
@@ -141,9 +141,9 @@ export const stripeWebhookHandler = async (req: Request, res: Response): Promise
 
     const result = await handleStripeWebhook(buf, signature);
 
-    res.status(result.success ? 200 : 400).json(result);
+    return res.status(result.success ? 200 : 400).json(result);
   } catch (err) {
     console.error('[Stripe Webhook Route] Error:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 };

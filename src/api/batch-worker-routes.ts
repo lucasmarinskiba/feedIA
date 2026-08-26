@@ -30,7 +30,7 @@ router.post('/expand-all', async (req: Request, res: Response) => {
       brand: brand?.name,
     });
 
-    res.json({
+    return res.json({
       status: 'queued',
       jobs: [
         { jobId: videoJobId, batch: 'batch-90', type: 'video', prompts: 3450 },
@@ -46,7 +46,7 @@ router.post('/expand-all', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[BatchWorker] Expand all failed', error);
-    res.status(500).json({ error: 'Batch expansion failed', message: String(error) });
+    return res.status(500).json({ error: 'Batch expansion failed', message: String(error) });
   }
 });
 
@@ -64,7 +64,7 @@ router.post('/expand-batch', async (req: Request, res: Response): Promise<void> 
 
     const jobId = await batchExpansionWorker.queueBatchExpansion(batchId);
 
-    res.json({
+    return res.json({
       status: 'queued',
       jobId,
       batchId,
@@ -74,7 +74,7 @@ router.post('/expand-batch', async (req: Request, res: Response): Promise<void> 
     });
   } catch (error) {
     log.error('[BatchWorker] Expand batch failed', error);
-    res.status(500).json({ error: 'Batch expansion failed', message: String(error) });
+    return res.status(500).json({ error: 'Batch expansion failed', message: String(error) });
   }
 });
 
@@ -97,7 +97,7 @@ router.get('/status/:jobId', async (req: Request, res: Response): Promise<void> 
         ? 'Completed'
         : 'Queued';
 
-    res.json({
+    return res.json({
       jobId,
       batch: job.batch_id,
       status: job.status,
@@ -116,7 +116,7 @@ router.get('/status/:jobId', async (req: Request, res: Response): Promise<void> 
     });
   } catch (error) {
     log.error('[BatchWorker] Status check failed', error);
-    res.status(500).json({ error: 'Status check failed' });
+    return res.status(500).json({ error: 'Status check failed' });
   }
 });
 
@@ -130,7 +130,7 @@ router.get('/jobs', async (req: Request, res: Response) => {
     const queueLength = batchExpansionWorker.getQueueLength();
     const isRunning = batchExpansionWorker.isWorkerRunning();
 
-    res.json({
+    return res.json({
       status: isRunning ? 'processing' : 'idle',
       workerRunning: isRunning,
       queueLength,
@@ -148,7 +148,7 @@ router.get('/jobs', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[BatchWorker] Jobs list failed', error);
-    res.status(500).json({ error: 'Jobs list failed' });
+    return res.status(500).json({ error: 'Jobs list failed' });
   }
 });
 
@@ -162,7 +162,7 @@ router.get('/health', async (req: Request, res: Response) => {
     const queueLength = batchExpansionWorker.getQueueLength();
     const jobs = batchExpansionWorker.listJobs();
 
-    res.json({
+    return res.json({
       status: 'ok',
       worker: {
         running: isRunning,
@@ -179,7 +179,7 @@ router.get('/health', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[BatchWorker] Health check failed', error);
-    res.status(500).json({ error: 'Health check failed' });
+    return res.status(500).json({ error: 'Health check failed' });
   }
 });
 

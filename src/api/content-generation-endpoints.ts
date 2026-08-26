@@ -20,7 +20,7 @@ export const generateContent = async (req: Request, res: Response): Promise<void
     const { campaignId, type, quantity = 1, prompt } = req.body;
 
     if (!campaignId || !type) {
-      res.status(400).json({ error: 'campaignId and type required' });
+      return res.status(400).json({ error: 'campaignId and type required' });
       return;
     }
 
@@ -31,7 +31,7 @@ export const generateContent = async (req: Request, res: Response): Promise<void
     );
 
     if (campaignResult.rowCount === 0) {
-      res.status(404).json({ error: 'Campaign not found' });
+      return res.status(404).json({ error: 'Campaign not found' });
       return;
     }
 
@@ -75,7 +75,7 @@ export const generateContent = async (req: Request, res: Response): Promise<void
       generatedContent.push(content);
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       jobId,
       generated: quantity,
       content: generatedContent.map((c) => ({
@@ -87,7 +87,7 @@ export const generateContent = async (req: Request, res: Response): Promise<void
     });
   } catch (err) {
     console.error('[Content] Generation error:', err);
-    res.status(500).json({ error: 'Content generation failed' });
+    return res.status(500).json({ error: 'Content generation failed' });
   }
 };
 
@@ -103,14 +103,14 @@ export const getContent = async (req: Request, res: Response): Promise<void> => 
     const result = await query('SELECT * FROM content WHERE id = $1 AND user_id = $2', [id, userId]);
 
     if (result.rowCount === 0) {
-      res.status(404).json({ error: 'Content not found' });
+      return res.status(404).json({ error: 'Content not found' });
       return;
     }
 
-    res.json(result.rows[0]);
+    return res.json(result.rows[0]);
   } catch (err) {
     console.error('[Content] Get error:', err);
-    res.status(500).json({ error: 'Retrieval failed' });
+    return res.status(500).json({ error: 'Retrieval failed' });
   }
 };
 
@@ -131,7 +131,7 @@ export const publishContent = async (req: Request, res: Response): Promise<void>
     );
 
     if (result.rowCount === 0) {
-      res.status(404).json({ error: 'Content not found or not ready' });
+      return res.status(404).json({ error: 'Content not found or not ready' });
       return;
     }
 
@@ -150,7 +150,7 @@ export const publishContent = async (req: Request, res: Response): Promise<void>
       [id, userId, 'published', platform, 1]
     );
 
-    res.json({
+    return res.json({
       message: 'Content published',
       id,
       platform,
@@ -158,7 +158,7 @@ export const publishContent = async (req: Request, res: Response): Promise<void>
     });
   } catch (err) {
     console.error('[Content] Publish error:', err);
-    res.status(500).json({ error: 'Publishing failed' });
+    return res.status(500).json({ error: 'Publishing failed' });
   }
 };
 
@@ -194,13 +194,13 @@ export const listContent = async (req: Request, res: Response): Promise<void> =>
       [...params, parseInt(limit as string, 10), parseInt(offset as string, 10)]
     );
 
-    res.json({
+    return res.json({
       content: result.rows,
       total: result.rowCount,
     });
   } catch (err) {
     console.error('[Content] List error:', err);
-    res.status(500).json({ error: 'List retrieval failed' });
+    return res.status(500).json({ error: 'List retrieval failed' });
   }
 };
 
@@ -220,15 +220,15 @@ export const deleteContent = async (req: Request, res: Response): Promise<void> 
     );
 
     if (result.rowCount === 0) {
-      res.status(400).json({ error: 'Cannot delete published content' });
+      return res.status(400).json({ error: 'Cannot delete published content' });
       return;
     }
 
     await query('DELETE FROM content WHERE id = $1', [id]);
 
-    res.json({ message: 'Content deleted' });
+    return res.json({ message: 'Content deleted' });
   } catch (err) {
     console.error('[Content] Delete error:', err);
-    res.status(500).json({ error: 'Deletion failed' });
+    return res.status(500).json({ error: 'Deletion failed' });
   }
 };

@@ -58,10 +58,10 @@ export const saveTier = async (req: SaveTierRequest): Promise<SaveTierResponse> 
 // Express route handler
 export const saveTierHandler = async (req: Request, res: Response): Promise<void> => {
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
     return;
   }
 
   const result = await saveTier(req.body);
-  res.status(result.success ? 200 : 400).json(result);
+  return res.status(result.success ? 200 : 400).json(result);
 };

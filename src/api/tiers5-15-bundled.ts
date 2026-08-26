@@ -18,9 +18,9 @@ export const createAudienceSegment = async (req: Request, res: Response): Promis
       [segmentId, userId, campaignId, name, segmentType, JSON.stringify(rules)]
     );
 
-    res.status(201).json({ id: segmentId, name, segmentType });
+    return res.status(201).json({ id: segmentId, name, segmentType });
   } catch {
-    res.status(500).json({ error: 'Segment creation failed' });
+    return res.status(500).json({ error: 'Segment creation failed' });
   }
 };
 
@@ -34,9 +34,9 @@ export const listAudienceSegments = async (req: Request, res: Response): Promise
     if (campaignId) queryStr += ' AND campaign_id = $2';
 
     const result = await query(queryStr, params);
-    res.json({ segments: result.rows });
+    return res.json({ segments: result.rows });
   } catch {
-    res.status(500).json({ error: 'Segment list failed' });
+    return res.status(500).json({ error: 'Segment list failed' });
   }
 };
 
@@ -53,9 +53,9 @@ export const createABTest = async (req: Request, res: Response): Promise<void> =
       [testId, campaignId, userId, name, variantAId, variantBId, 'running']
     );
 
-    res.status(201).json({ id: testId, status: 'running' });
+    return res.status(201).json({ id: testId, status: 'running' });
   } catch {
-    res.status(500).json({ error: 'A/B test creation failed' });
+    return res.status(500).json({ error: 'A/B test creation failed' });
   }
 };
 
@@ -66,7 +66,7 @@ export const getABTestResults = async (req: Request, res: Response): Promise<voi
 
     const result = await query('SELECT * FROM ab_tests WHERE id = $1 AND user_id = $2', [testId, userId]);
     if (result.rowCount === 0) {
-      res.status(404).json({ error: 'Test not found' });
+      return res.status(404).json({ error: 'Test not found' });
       return;
     }
 
@@ -80,7 +80,7 @@ export const getABTestResults = async (req: Request, res: Response): Promise<voi
       [test.variant_b_id]
     );
 
-    res.json({
+    return res.json({
       testId,
       status: test.status,
       winner: metricsA.rows[0].events > metricsB.rows[0].events ? 'A' : 'B',
@@ -88,7 +88,7 @@ export const getABTestResults = async (req: Request, res: Response): Promise<voi
       variantB: { events: metricsB.rows[0].events },
     });
   } catch {
-    res.status(500).json({ error: 'Results retrieval failed' });
+    return res.status(500).json({ error: 'Results retrieval failed' });
   }
 };
 
@@ -114,9 +114,9 @@ export const calculateROI = async (req: Request, res: Response): Promise<void> =
     const revenue = revenueResult.rows[0]?.estimated_revenue || 0;
     const roi = cost > 0 ? ((revenue - cost) / cost * 100).toFixed(2) : 'N/A';
 
-    res.json({ cost, revenue, roi: roi + '%', payback: cost > 0 ? (cost / revenue * 30).toFixed(1) + ' days' : 'N/A' });
+    return res.json({ cost, revenue, roi: roi + '%', payback: cost > 0 ? (cost / revenue * 30).toFixed(1) + ' days' : 'N/A' });
   } catch {
-    res.status(500).json({ error: 'ROI calculation failed' });
+    return res.status(500).json({ error: 'ROI calculation failed' });
   }
 };
 
@@ -132,9 +132,9 @@ export const optimizeBatch = async (req: Request, res: Response): Promise<void> 
       recommendation: 'Group into batches of 5 for optimal API usage',
     };
 
-    res.json(optimization);
+    return res.json(optimization);
   } catch {
-    res.status(500).json({ error: 'Batch optimization failed' });
+    return res.status(500).json({ error: 'Batch optimization failed' });
   }
 };
 
@@ -151,9 +151,9 @@ export const trackCost = async (req: Request, res: Response): Promise<void> => {
       [costId, userId, provider, operation, cost, JSON.stringify(metadata || {})]
     );
 
-    res.status(201).json({ id: costId, cost });
+    return res.status(201).json({ id: costId, cost });
   } catch {
-    res.status(500).json({ error: 'Cost tracking failed' });
+    return res.status(500).json({ error: 'Cost tracking failed' });
   }
 };
 
@@ -172,9 +172,9 @@ export const getCostSummary = async (req: Request, res: Response): Promise<void>
       [userId]
     );
 
-    res.json({ summary: result.rows });
+    return res.json({ summary: result.rows });
   } catch {
-    res.status(500).json({ error: 'Cost summary failed' });
+    return res.status(500).json({ error: 'Cost summary failed' });
   }
 };
 
@@ -183,9 +183,9 @@ export const analyzeSentiment = async (req: Request, res: Response): Promise<voi
   try {
     const { text } = req.body as { text: string };
     const sentiment = text.length > 100 ? 'positive' : 'neutral';
-    res.json({ sentiment, score: 0.8, keywords: ['great', 'awesome'] });
+    return res.json({ sentiment, score: 0.8, keywords: ['great', 'awesome'] });
   } catch {
-    res.status(500).json({ error: 'Sentiment analysis failed' });
+    return res.status(500).json({ error: 'Sentiment analysis failed' });
   }
 };
 

@@ -88,7 +88,7 @@ router.post('/batch-92/generate', quotaCheckMiddleware('videos', 1), async (req:
     // Charge quota on success
     await chargeQuota(req, 'videos', generationId);
 
-    res.json({
+    return res.json({
       status: 'success',
       batch: 'batch-92',
       prompt,
@@ -103,7 +103,7 @@ router.post('/batch-92/generate', quotaCheckMiddleware('videos', 1), async (req:
     });
   } catch (error) {
     log.error('[Batch92] Generation error', error);
-    res.status(500).json({ error: 'Batch 92 generation failed' });
+    return res.status(500).json({ error: 'Batch 92 generation failed' });
   }
 });
 
@@ -168,7 +168,7 @@ router.post('/batch-92/batch-generate', quotaCheckMiddleware('videos', 1), async
       await chargeQuota(req, 'videos', `batch-92-${uuidv4()}`);
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       batch: 'batch-92',
       totalRequested: requests.length,
@@ -182,7 +182,7 @@ router.post('/batch-92/batch-generate', quotaCheckMiddleware('videos', 1), async
     });
   } catch (error) {
     log.error('[Batch92] Batch generation error', error);
-    res.status(500).json({ error: 'Batch 92 batch generation failed' });
+    return res.status(500).json({ error: 'Batch 92 batch generation failed' });
   }
 });
 
@@ -252,7 +252,7 @@ router.post('/batch-93/generate', quotaCheckMiddleware('videos', 1), async (req:
     // Charge quota on success
     await chargeQuota(req, 'videos', generationId);
 
-    res.json({
+    return res.json({
       status: 'success',
       batch: 'batch-93',
       prompt,
@@ -267,7 +267,7 @@ router.post('/batch-93/generate', quotaCheckMiddleware('videos', 1), async (req:
     });
   } catch (error) {
     log.error('[Batch93] Generation error', error);
-    res.status(500).json({ error: 'Batch 93 generation failed' });
+    return res.status(500).json({ error: 'Batch 93 generation failed' });
   }
 });
 
@@ -333,7 +333,7 @@ router.post('/batch-93/batch-generate', quotaCheckMiddleware('videos', 1), async
       await chargeQuota(req, 'videos', `batch-93-${uuidv4()}`);
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       batch: 'batch-93',
       totalRequested: requests.length,
@@ -347,7 +347,7 @@ router.post('/batch-93/batch-generate', quotaCheckMiddleware('videos', 1), async
     });
   } catch (error) {
     log.error('[Batch93] Batch generation error', error);
-    res.status(500).json({ error: 'Batch 93 batch generation failed' });
+    return res.status(500).json({ error: 'Batch 93 batch generation failed' });
   }
 });
 
@@ -356,7 +356,7 @@ router.post('/batch-93/batch-generate', quotaCheckMiddleware('videos', 1), async
  * List supported engagement types for Batch 92
  */
 router.get('/batch-92/engagement-types', async (req: Request, res: Response) => {
-  res.json({
+  return res.json({
     status: 'success',
     batch: 'batch-92',
     engagementTypes: [
@@ -378,7 +378,7 @@ router.get('/batch-92/engagement-types', async (req: Request, res: Response) => 
  * List supported reference patterns for Batch 93
  */
 router.get('/batch-93/reference-patterns', async (req: Request, res: Response) => {
-  res.json({
+  return res.json({
     status: 'success',
     batch: 'batch-93',
     referencePatterns: [
@@ -402,7 +402,7 @@ router.get('/batch-93/reference-patterns', async (req: Request, res: Response) =
 router.get('/batches-92-93/status', async (req: Request, res: Response) => {
   const libraryStatus = videoPromptEngine.getLibraryStatus();
 
-  res.json({
+  return res.json({
     status: 'operational',
     batch92: {
       name: 'Vertical Engagement (TikTok/Instagram)',

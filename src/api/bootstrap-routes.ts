@@ -125,7 +125,7 @@ export const bootstrapEndpoint = async (req: Request, res: Response): Promise<vo
       endpoints_failed: endpoints.length - passingEndpoints,
     };
 
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (err) {
     result.status = 'failed';
     result.steps.push({
@@ -133,7 +133,7 @@ export const bootstrapEndpoint = async (req: Request, res: Response): Promise<vo
       status: 'fail',
       message: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
     });
-    res.status(500).json(result);
+    return res.status(500).json(result);
   }
 };
 
@@ -143,7 +143,7 @@ export const registerBootstrapRoutes = (app: Express): void => {
 
   // Status: Check bootstrap progress
   app.get('/api/admin/bootstrap/status', (req: Request, res: Response) => {
-    res.json({
+    return res.json({
       status: 'ready',
       message: 'POST /api/admin/bootstrap to seed + validate all systems',
       next_steps: [

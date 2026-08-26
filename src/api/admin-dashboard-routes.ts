@@ -24,7 +24,7 @@ router.get('/health', async (req: Request, res: Response) => {
     const queueStatus = feedIAOrchestrator.getQueueStatus();
     const healthReport = analyticsEngine.generateHealthReport();
 
-    res.json({
+    return res.json({
       status: 'ok',
       systemHealth: healthReport,
       database: {
@@ -42,7 +42,7 @@ router.get('/health', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminDashboard] Health check failed', error);
-    res.status(500).json({ error: 'Health check failed' });
+    return res.status(500).json({ error: 'Health check failed' });
   }
 });
 
@@ -56,7 +56,7 @@ router.get('/infra', async (req: Request, res: Response) => {
   try {
     const report = await runHealthChecks();
 
-    res.status(report.ok ? 200 : 503).json({
+    return res.status(report.ok ? 200 : 503).json({
       ...report,
       notes: {
         redis: !process.env.REDIS_URL
@@ -67,7 +67,7 @@ router.get('/infra', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminDashboard] Infra health check failed', error);
-    res.status(500).json({ error: 'Infra health check failed' });
+    return res.status(500).json({ error: 'Infra health check failed' });
   }
 });
 
@@ -79,7 +79,7 @@ router.get('/agents', async (req: Request, res: Response) => {
   try {
     const agents = feedIAOrchestrator.getAgentMetrics();
 
-    res.json({
+    return res.json({
       status: 'ok',
       agentCount: agents.length,
       agents: agents.map((agent) => ({
@@ -94,7 +94,7 @@ router.get('/agents', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminDashboard] Agent metrics failed', error);
-    res.status(500).json({ error: 'Agent metrics failed' });
+    return res.status(500).json({ error: 'Agent metrics failed' });
   }
 });
 
@@ -120,14 +120,14 @@ router.get('/metrics', async (req: Request, res: Response) => {
       queueStatus.completed || 0, // total tasks
     );
 
-    res.json({
+    return res.json({
       status: 'ok',
       currentMetrics: metrics,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     log.error('[AdminDashboard] Metrics failed', error);
-    res.status(500).json({ error: 'Metrics failed' });
+    return res.status(500).json({ error: 'Metrics failed' });
   }
 });
 
@@ -152,7 +152,7 @@ router.get('/recommendations', async (req: Request, res: Response) => {
 
     const recommendations = analyticsEngine.generateRecommendations(metrics);
 
-    res.json({
+    return res.json({
       status: 'ok',
       recommendationCount: recommendations.length,
       critical: recommendations.filter((r) => r.severity === 'critical').length,
@@ -165,7 +165,7 @@ router.get('/recommendations', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminDashboard] Recommendations failed', error);
-    res.status(500).json({ error: 'Recommendations failed' });
+    return res.status(500).json({ error: 'Recommendations failed' });
   }
 });
 
@@ -186,7 +186,7 @@ router.get('/cache', async (req: Request, res: Response) => {
     const totalMisses = Object.values(stats).reduce((sum, s) => sum + s.misses, 0);
     const overallHitRate = totalHits + totalMisses > 0 ? (totalHits / (totalHits + totalMisses)) * 100 : 0;
 
-    res.json({
+    return res.json({
       status: 'ok',
       overallHitRate: overallHitRate.toFixed(1),
       caches: {
@@ -200,7 +200,7 @@ router.get('/cache', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminDashboard] Cache metrics failed', error);
-    res.status(500).json({ error: 'Cache metrics failed' });
+    return res.status(500).json({ error: 'Cache metrics failed' });
   }
 });
 
@@ -213,7 +213,7 @@ router.get('/errors', async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 20;
     const errors = analyticsEngine.getRecentErrors(limit);
 
-    res.json({
+    return res.json({
       status: 'ok',
       errorCount: errors.length,
       errors,
@@ -221,7 +221,7 @@ router.get('/errors', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminDashboard] Errors retrieval failed', error);
-    res.status(500).json({ error: 'Errors retrieval failed' });
+    return res.status(500).json({ error: 'Errors retrieval failed' });
   }
 });
 
@@ -235,7 +235,7 @@ router.get('/trends', async (req: Request, res: Response) => {
 
     const trends = analyticsEngine.getMetricsTrends(timeWindow);
 
-    res.json({
+    return res.json({
       status: 'ok',
       trends,
       timeWindow,
@@ -243,7 +243,7 @@ router.get('/trends', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminDashboard] Trends failed', error);
-    res.status(500).json({ error: 'Trends failed' });
+    return res.status(500).json({ error: 'Trends failed' });
   }
 });
 
@@ -261,7 +261,7 @@ router.get('/summary', async (req: Request, res: Response) => {
       content: contentCache.getStats(),
     };
 
-    res.json({
+    return res.json({
       status: 'ok',
       executive_summary: {
         systemStatus: healthReport.status,
@@ -289,7 +289,7 @@ router.get('/summary', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminDashboard] Summary failed', error);
-    res.status(500).json({ error: 'Summary failed' });
+    return res.status(500).json({ error: 'Summary failed' });
   }
 });
 

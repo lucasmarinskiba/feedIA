@@ -24,7 +24,7 @@ const router = Router();
 // ── Health check ───────────────────────────────────────────────────────
 
 router.get('/health', (req: Request, res: Response) => {
-  res.json({
+  return res.json({
     status: 'ok',
     phases: [17, 18, 19, 20],
     message: 'Smart carousel + video generators online',
@@ -40,7 +40,7 @@ router.get('/health', (req: Request, res: Response) => {
 router.get('/patterns', (req: Request, res: Response) => {
   log.info('[Extended Routes] Fetching pattern library');
 
-  res.json({
+  return res.json({
     status: 'success',
     data: {
       colorPalettes: pinterestPatternLibrary.colorPalettes.map((p) => ({
@@ -119,7 +119,7 @@ router.post('/carousel/generate', quotaCheckMiddleware('carousels', 1), async (r
     // Charge quota on success
     await chargeQuota(req, 'carousels', generationId);
 
-    res.json({
+    return res.json({
       status: 'success',
       data: {
         ...carousel,
@@ -130,7 +130,7 @@ router.post('/carousel/generate', quotaCheckMiddleware('carousels', 1), async (r
     });
   } catch (error) {
     log.error(`[Extended Routes] Carousel generation failed: ${error}`);
-    res.status(500).json({error: 'Carousel generation failed', details: String(error)});
+    return res.status(500).json({error: 'Carousel generation failed', details: String(error)});
   }
 });
 
@@ -187,7 +187,7 @@ router.post('/video/generate', quotaCheckMiddleware('videos', 1), async (req: Re
     // Charge quota on success
     await chargeQuota(req, 'videos', generationId);
 
-    res.json({
+    return res.json({
       status: 'success',
       data: {
         ...video,
@@ -198,7 +198,7 @@ router.post('/video/generate', quotaCheckMiddleware('videos', 1), async (req: Re
     });
   } catch (error) {
     log.error(`[Extended Routes] Video generation failed: ${error}`);
-    res.status(500).json({error: 'Video generation failed', details: String(error)});
+    return res.status(500).json({error: 'Video generation failed', details: String(error)});
   }
 });
 
@@ -220,7 +220,7 @@ router.get('/patterns/colors', (req: Request, res: Response): void => {
 
   const palette = selectColorPalette(topic, emotion as any, undefined);
 
-  res.json({
+  return res.json({
     status: 'success',
     data: {
       recommended: palette,
@@ -246,7 +246,7 @@ router.get('/patterns/narrative', (req: Request, res: Response) => {
 
   const narrative = selectNarrativeStructure(slideCount, contentType);
 
-  res.json({
+  return res.json({
     status: 'success',
     data: narrative,
     message: `${narrative.name} recommended for ${slideCount}-slide carousel`,
@@ -275,7 +275,7 @@ router.get('/patterns/stats', (req: Request, res: Response) => {
     },
   };
 
-  res.json({
+  return res.json({
     status: 'success',
     data: stats,
     message: 'Pinterest research aggregation complete',
@@ -300,14 +300,14 @@ router.post('/carousel/batch', async (req: Request, res: Response) => {
 
     log.info(`[Extended Routes] ✓ Batch complete: ${results.length} carousels generated`);
 
-    res.json({
+    return res.json({
       status: 'success',
       data: results,
       message: `Generated ${results.length} carousels (Pinterest-optimized)`,
     });
   } catch (error) {
     log.error(`[Extended Routes] Batch carousel generation failed: ${error}`);
-    res.status(500).json({error: 'Batch generation failed', details: String(error)});
+    return res.status(500).json({error: 'Batch generation failed', details: String(error)});
   }
 });
 
@@ -329,14 +329,14 @@ router.post('/video/batch', async (req: Request, res: Response) => {
 
     log.info(`[Extended Routes] ✓ Batch complete: ${results.length} videos generated`);
 
-    res.json({
+    return res.json({
       status: 'success',
       data: results,
       message: `Generated ${results.length} videos (Pinterest-optimized)`,
     });
   } catch (error) {
     log.error(`[Extended Routes] Batch video generation failed: ${error}`);
-    res.status(500).json({error: 'Batch generation failed', details: String(error)});
+    return res.status(500).json({error: 'Batch generation failed', details: String(error)});
   }
 });
 

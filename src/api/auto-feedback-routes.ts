@@ -41,7 +41,7 @@ router.post('/record', (req: Request, res: Response): void => {
     };
 
     if (!batchId || !prompt || !format || !topic || engagement === undefined || conversions === undefined) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'batchId, prompt, format, topic, engagement, conversions required',
       });
       return;
@@ -58,14 +58,14 @@ router.post('/record', (req: Request, res: Response): void => {
       timestamp: new Date().toISOString(),
     });
 
-    res.json({
+    return res.json({
       success: true,
       recorded: true,
       message: `Recorded performance for batch ${batchId}`,
     });
   } catch (err) {
     console.error('[AutoFeedback] Record failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -88,13 +88,13 @@ router.get('/patterns', (req: Request, res: Response): void => {
   try {
     const patterns = analyzeWinningPatterns();
 
-    res.json({
+    return res.json({
       success: true,
       patterns,
     });
   } catch (err) {
     console.error('[AutoFeedback] Patterns failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -116,14 +116,14 @@ router.post('/update-weights', (req: Request, res: Response): void => {
   try {
     const updated = autoUpdateWeights();
 
-    res.json({
+    return res.json({
       success: true,
       updated,
       message: `Weights updated. Confidence: ${(updated.confidence * 100).toFixed(0)}%`,
     });
   } catch (err) {
     console.error('[AutoFeedback] Update failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -144,13 +144,13 @@ router.get('/weights', (req: Request, res: Response): void => {
   try {
     const weights = getCurrentWeights();
 
-    res.json({
+    return res.json({
       success: true,
       weights,
     });
   } catch (err) {
     console.error('[AutoFeedback] Weights failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -164,14 +164,14 @@ router.get('/weight-history', (req: Request, res: Response): void => {
   try {
     const history = getWeightHistory();
 
-    res.json({
+    return res.json({
       success: true,
       history,
       evolutionCount: history.length,
     });
   } catch (err) {
     console.error('[AutoFeedback] History failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -193,13 +193,13 @@ router.get('/summary', (req: Request, res: Response): void => {
   try {
     const summary = getMetricsSummary();
 
-    res.json({
+    return res.json({
       success: true,
       summary,
     });
   } catch (err) {
     console.error('[AutoFeedback] Summary failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -218,14 +218,14 @@ router.post('/cycle', (req: Request, res: Response): void => {
   try {
     const result = runAutoFeedbackCycle();
 
-    res.json({
+    return res.json({
       success: true,
       result,
       message: `Cycle complete. ${result.metricsRecorded} metrics analyzed, weights updated.`,
     });
   } catch (err) {
     console.error('[AutoFeedback] Cycle failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 

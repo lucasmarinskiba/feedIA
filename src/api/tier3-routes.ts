@@ -48,7 +48,7 @@ export const registerTier3Routes = (app: Express): void => {
  */
 export const registerHealthCheck = (app: Express): void => {
   app.get('/api/health', (_req: Request, res: Response): void => {
-    res.json({
+    return res.json({
       status: 'ok',
       timestamp: new Date().toISOString(),
       systems: ['auth', 'database', 'batch', 'webhooks'],

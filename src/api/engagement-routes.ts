@@ -27,7 +27,7 @@ router.post('/execute', async (req: Request, res: Response): Promise<void> => {
     };
 
     if (!accountId || !action) {
-      res.status(400).json({ ok: false, error: 'accountId and action required' });
+      return res.status(400).json({ ok: false, error: 'accountId and action required' });
       return;
     }
 
@@ -41,7 +41,7 @@ router.post('/execute', async (req: Request, res: Response): Promise<void> => {
 
     log.info('[Engagement] Action executed', { accountId, action, success: result.success });
 
-    res.json({
+    return res.json({
       ok: result.success,
       action: result.action,
       accountId: result.accountId,
@@ -51,7 +51,7 @@ router.post('/execute', async (req: Request, res: Response): Promise<void> => {
     });
   } catch (err) {
     log.error('[Engagement] Execute failed', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
@@ -64,7 +64,7 @@ router.post('/schedule-routine', async (req: Request, res: Response): Promise<vo
     const { accountId } = req.body as { accountId: string };
 
     if (!accountId) {
-      res.status(400).json({ ok: false, error: 'accountId required' });
+      return res.status(400).json({ ok: false, error: 'accountId required' });
       return;
     }
 
@@ -72,7 +72,7 @@ router.post('/schedule-routine', async (req: Request, res: Response): Promise<vo
 
     log.info('[Engagement] Routine scheduled', { accountId, ...result });
 
-    res.json({
+    return res.json({
       ok: true,
       accountId,
       executed: result.executed,
@@ -81,7 +81,7 @@ router.post('/schedule-routine', async (req: Request, res: Response): Promise<vo
     });
   } catch (err) {
     log.error('[Engagement] Schedule routine failed', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
@@ -94,7 +94,7 @@ router.get('/metrics', (req: Request, res: Response): void => {
     const { accountId } = req.query as { accountId: string };
 
     if (!accountId) {
-      res.status(400).json({ ok: false, error: 'accountId required' });
+      return res.status(400).json({ ok: false, error: 'accountId required' });
       return;
     }
 
@@ -102,14 +102,14 @@ router.get('/metrics', (req: Request, res: Response): void => {
 
     log.info('[Engagement] Metrics retrieved', { accountId });
 
-    res.json({
+    return res.json({
       ok: true,
       accountId,
       metrics,
     });
   } catch (err) {
     log.error('[Engagement] Metrics failed', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 

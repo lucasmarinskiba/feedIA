@@ -48,7 +48,7 @@ router.post('/carousel', async (req, res) => {
     const { brand, occasion, category, count } = req.body;
 
     if (!brand || !occasion) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'Missing brand or occasion',
       });
       return;
@@ -71,7 +71,7 @@ router.post('/carousel', async (req, res) => {
       avgWit,
     });
 
-    res.json({
+    return res.json({
       success: true,
       content,
       quality: { avgQuality, avgWit },
@@ -80,7 +80,7 @@ router.post('/carousel', async (req, res) => {
     log.error('[ContentAPI] carousel error', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Content generation failed',
     });
   }
@@ -94,7 +94,7 @@ router.post('/reel', async (req, res) => {
     const { brand, occasion, category, count } = req.body;
 
     if (!brand || !occasion) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'Missing brand or occasion',
       });
       return;
@@ -117,7 +117,7 @@ router.post('/reel', async (req, res) => {
       avgWit,
     });
 
-    res.json({
+    return res.json({
       success: true,
       content,
       quality: { avgQuality, avgWit },
@@ -126,7 +126,7 @@ router.post('/reel', async (req, res) => {
     log.error('[ContentAPI] reel error', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Content generation failed',
     });
   }
@@ -140,7 +140,7 @@ router.post('/story', async (req, res) => {
     const { brand, occasion, category } = req.body;
 
     if (!brand || !occasion) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'Missing brand or occasion',
       });
       return;
@@ -163,7 +163,7 @@ router.post('/story', async (req, res) => {
       avgWit,
     });
 
-    res.json({
+    return res.json({
       success: true,
       content,
       quality: { avgQuality, avgWit },
@@ -172,7 +172,7 @@ router.post('/story', async (req, res) => {
     log.error('[ContentAPI] story error', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Content generation failed',
     });
   }
@@ -186,7 +186,7 @@ router.post('/post', async (req, res) => {
     const { brand, occasion, category } = req.body;
 
     if (!brand || !occasion) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'Missing brand or occasion',
       });
       return;
@@ -207,7 +207,7 @@ router.post('/post', async (req, res) => {
       avgWit,
     });
 
-    res.json({
+    return res.json({
       success: true,
       content,
       quality: { avgQuality, avgWit },
@@ -216,7 +216,7 @@ router.post('/post', async (req, res) => {
     log.error('[ContentAPI] post error', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Content generation failed',
     });
   }
@@ -230,7 +230,7 @@ router.post('/batch', async (req, res) => {
     const { brand, format, occasions, count } = req.body;
 
     if (!brand || !format || !occasions || !Array.isArray(occasions)) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'Missing brand, format, or occasions array',
       });
       return;
@@ -256,7 +256,7 @@ router.post('/batch', async (req, res) => {
       occasions: occasions.length,
     });
 
-    res.json({
+    return res.json({
       success: true,
       contents,
       total: contents.length,
@@ -265,7 +265,7 @@ router.post('/batch', async (req, res) => {
     log.error('[ContentAPI] batch error', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Batch generation failed',
     });
   }
@@ -290,7 +290,7 @@ router.get('/prompts/query', (req, res) => {
       results: prompts.length,
     });
 
-    res.json({
+    return res.json({
       success: true,
       prompts,
       total: prompts.length,
@@ -299,7 +299,7 @@ router.get('/prompts/query', (req, res) => {
     log.error('[ContentAPI] query error', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Query failed',
     });
   }
@@ -313,7 +313,7 @@ router.get('/prompts/stats', (req, res) => {
     const stats = promptLoader.getBatchStats();
     const pipelineStats = contentPipeline.getStats();
 
-    res.json({
+    return res.json({
       success: true,
       stats: {
         ...stats,
@@ -324,7 +324,7 @@ router.get('/prompts/stats', (req, res) => {
     log.error('[ContentAPI] stats error', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Stats fetch failed',
     });
   }

@@ -27,7 +27,7 @@ const createContent = async (req: AuthRequest, res: Response): Promise<void> => 
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -45,7 +45,7 @@ const createContent = async (req: AuthRequest, res: Response): Promise<void> => 
 
     // Validate
     if (!contentType || !fileUrl) {
-      res.status(400).json({ error: 'Missing required fields: contentType, fileUrl' });
+      return res.status(400).json({ error: 'Missing required fields: contentType, fileUrl' });
       return;
     }
 
@@ -102,7 +102,7 @@ const createContent = async (req: AuthRequest, res: Response): Promise<void> => 
       [userId, today, fileSizeMb / 1024],
     );
 
-    res.status(201).json({
+    return res.status(201).json({
       id: contentId,
       message: 'Content created successfully',
       contentType,
@@ -110,7 +110,7 @@ const createContent = async (req: AuthRequest, res: Response): Promise<void> => 
     });
   } catch (err) {
     console.error('[Content] Create error:', err);
-    res.status(500).json({ error: 'Failed to create content' });
+    return res.status(500).json({ error: 'Failed to create content' });
   }
 };
 
@@ -121,7 +121,7 @@ const listContent = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -171,7 +171,7 @@ const listContent = async (req: AuthRequest, res: Response): Promise<void> => {
       published_at: string | null;
     }
 
-    res.json({
+    return res.json({
       items: result.rows as ContentRow[],
       pagination: {
         page,
@@ -182,7 +182,7 @@ const listContent = async (req: AuthRequest, res: Response): Promise<void> => {
     });
   } catch (err) {
     console.error('[Content] List error:', err);
-    res.status(500).json({ error: 'Failed to list content' });
+    return res.status(500).json({ error: 'Failed to list content' });
   }
 };
 
@@ -195,7 +195,7 @@ const getContent = async (req: AuthRequest, res: Response): Promise<void> => {
     const contentId = req.params.id;
 
     if (!userId || !contentId) {
-      res.status(400).json({ error: 'Missing parameters' });
+      return res.status(400).json({ error: 'Missing parameters' });
       return;
     }
 
@@ -206,14 +206,14 @@ const getContent = async (req: AuthRequest, res: Response): Promise<void> => {
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ error: 'Content not found' });
+      return res.status(404).json({ error: 'Content not found' });
       return;
     }
 
-    res.json(result.rows[0]);
+    return res.json(result.rows[0]);
   } catch (err) {
     console.error('[Content] Get error:', err);
-    res.status(500).json({ error: 'Failed to fetch content' });
+    return res.status(500).json({ error: 'Failed to fetch content' });
   }
 };
 
@@ -226,7 +226,7 @@ const updateContent = async (req: AuthRequest, res: Response): Promise<void> => 
     const contentId = req.params.id;
 
     if (!userId || !contentId) {
-      res.status(400).json({ error: 'Missing parameters' });
+      return res.status(400).json({ error: 'Missing parameters' });
       return;
     }
 
@@ -245,14 +245,14 @@ const updateContent = async (req: AuthRequest, res: Response): Promise<void> => 
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ error: 'Content not found' });
+      return res.status(404).json({ error: 'Content not found' });
       return;
     }
 
-    res.json({ message: 'Content updated', content: result.rows[0] });
+    return res.json({ message: 'Content updated', content: result.rows[0] });
   } catch (err) {
     console.error('[Content] Update error:', err);
-    res.status(500).json({ error: 'Failed to update content' });
+    return res.status(500).json({ error: 'Failed to update content' });
   }
 };
 
@@ -265,7 +265,7 @@ const deleteContent = async (req: AuthRequest, res: Response): Promise<void> => 
     const contentId = req.params.id;
 
     if (!userId || !contentId) {
-      res.status(400).json({ error: 'Missing parameters' });
+      return res.status(400).json({ error: 'Missing parameters' });
       return;
     }
 
@@ -276,7 +276,7 @@ const deleteContent = async (req: AuthRequest, res: Response): Promise<void> => 
     );
 
     if (getResult.rows.length === 0) {
-      res.status(404).json({ error: 'Content not found' });
+      return res.status(404).json({ error: 'Content not found' });
       return;
     }
 
@@ -294,10 +294,10 @@ const deleteContent = async (req: AuthRequest, res: Response): Promise<void> => 
       userId,
     ]);
 
-    res.json({ message: 'Content deleted' });
+    return res.json({ message: 'Content deleted' });
   } catch (err) {
     console.error('[Content] Delete error:', err);
-    res.status(500).json({ error: 'Failed to delete content' });
+    return res.status(500).json({ error: 'Failed to delete content' });
   }
 };
 
@@ -311,7 +311,7 @@ const publishContent = async (req: AuthRequest, res: Response): Promise<void> =>
     const { publishedUrl, platform } = req.body;
 
     if (!userId || !contentId) {
-      res.status(400).json({ error: 'Missing parameters' });
+      return res.status(400).json({ error: 'Missing parameters' });
       return;
     }
 
@@ -325,14 +325,14 @@ const publishContent = async (req: AuthRequest, res: Response): Promise<void> =>
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ error: 'Content not found' });
+      return res.status(404).json({ error: 'Content not found' });
       return;
     }
 
-    res.json({ message: 'Content published', content: result.rows[0] });
+    return res.json({ message: 'Content published', content: result.rows[0] });
   } catch (err) {
     console.error('[Content] Publish error:', err);
-    res.status(500).json({ error: 'Failed to publish content' });
+    return res.status(500).json({ error: 'Failed to publish content' });
   }
 };
 

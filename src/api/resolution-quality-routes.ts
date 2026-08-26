@@ -18,13 +18,13 @@ router.get('/specs/:platform', async (req: Request, res: Response) => {
     const { platform } = req.params;
 
     if (!['instagram', 'tiktok'].includes(String(platform))) {
-      res.status(400).json({ error: 'platform must be instagram or tiktok' });
+      return res.status(400).json({ error: 'platform must be instagram or tiktok' });
       return;
     }
 
     const specs = resolutionQualityEngine.getAllSpecsForPlatform(platform as 'instagram' | 'tiktok');
 
-    res.json({
+    return res.json({
       status: 'ok',
       platform,
       specCount: specs.length,
@@ -33,7 +33,7 @@ router.get('/specs/:platform', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ResolutionQuality] Specs retrieval failed', error);
-    res.status(500).json({ error: 'Specs retrieval failed' });
+    return res.status(500).json({ error: 'Specs retrieval failed' });
   }
 });
 
@@ -46,7 +46,7 @@ router.post('/inject-instructions', async (req: Request, res: Response) => {
     const { platform, contentType, prompt } = req.body;
 
     if (!platform || !contentType) {
-      res.status(400).json({ error: 'platform and contentType required' });
+      return res.status(400).json({ error: 'platform and contentType required' });
       return;
     }
 
@@ -57,7 +57,7 @@ router.post('/inject-instructions', async (req: Request, res: Response) => {
 
     const enhancedPrompt = prompt ? `${instructions}\n\n[CONTENT PROMPT]\n${prompt}` : instructions;
 
-    res.json({
+    return res.json({
       status: 'success',
       platform,
       contentType,
@@ -68,7 +68,7 @@ router.post('/inject-instructions', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ResolutionQuality] Instructions injection failed', error);
-    res.status(500).json({ error: 'Instructions injection failed' });
+    return res.status(500).json({ error: 'Instructions injection failed' });
   }
 });
 
@@ -81,7 +81,7 @@ router.post('/validate', async (req: Request, res: Response) => {
     const { platform, contentType, width, height, bitrateKbps, fileSizeMB } = req.body;
 
     if (!platform || !contentType || !width || !height) {
-      res.status(400).json({ error: 'platform, contentType, width, height required' });
+      return res.status(400).json({ error: 'platform, contentType, width, height required' });
       return;
     }
 
@@ -94,7 +94,7 @@ router.post('/validate', async (req: Request, res: Response) => {
       fileSizeMB
     );
 
-    res.json({
+    return res.json({
       status: 'validated',
       ...result,
       statusLabel: result.passed ? 'Quality Approved' : 'NEEDS CORRECTION',
@@ -102,7 +102,7 @@ router.post('/validate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ResolutionQuality] Validation failed', error);
-    res.status(500).json({ error: 'Validation failed' });
+    return res.status(500).json({ error: 'Validation failed' });
   }
 });
 
@@ -115,7 +115,7 @@ router.post('/upscale-strategy', async (req: Request, res: Response) => {
     const { currentWidth, currentHeight, targetWidth, targetHeight } = req.body;
 
     if (!currentWidth || !currentHeight || !targetWidth || !targetHeight) {
-      res.status(400).json({ error: 'currentWidth, currentHeight, targetWidth, targetHeight required' });
+      return res.status(400).json({ error: 'currentWidth, currentHeight, targetWidth, targetHeight required' });
       return;
     }
 
@@ -126,14 +126,14 @@ router.post('/upscale-strategy', async (req: Request, res: Response) => {
       targetHeight
     );
 
-    res.json({
+    return res.json({
       status: 'ok',
       strategy,
       metadata: { calculatedAt: new Date().toISOString() },
     });
   } catch (error) {
     log.error('[ResolutionQuality] Upscale strategy failed', error);
-    res.status(500).json({ error: 'Upscale strategy failed' });
+    return res.status(500).json({ error: 'Upscale strategy failed' });
   }
 });
 
@@ -148,7 +148,7 @@ router.post('/execute-upscale', async (req: Request, res: Response) => {
     const { imageUrl, currentWidth, currentHeight, targetWidth, targetHeight } = req.body;
 
     if (!imageUrl || !currentWidth || !currentHeight || !targetWidth || !targetHeight) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'imageUrl, currentWidth, currentHeight, targetWidth, targetHeight required',
       });
       return;
@@ -163,7 +163,7 @@ router.post('/execute-upscale', async (req: Request, res: Response) => {
     );
 
     if (!result) {
-      res.status(503).json({
+      return res.status(503).json({
         status: 'unavailable',
         error: 'Real upscale unavailable — FAL_KEY not configured or the API call failed',
         fallback: 'Source resolution will be used as-is; consider regenerating at higher native resolution instead',
@@ -171,14 +171,14 @@ router.post('/execute-upscale', async (req: Request, res: Response) => {
       return;
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       ...result,
       metadata: { upscaledAt: new Date().toISOString() },
     });
   } catch (error) {
     log.error('[ResolutionQuality] Execute upscale failed', error);
-    res.status(500).json({ error: 'Execute upscale failed', message: String(error) });
+    return res.status(500).json({ error: 'Execute upscale failed', message: String(error) });
   }
 });
 
@@ -191,11 +191,11 @@ router.get('/best/:platform/:contentType', async (req: Request, res: Response) =
     const { platform, contentType } = req.params;
 
     if (!['instagram', 'tiktok'].includes(String(platform))) {
-      res.status(400).json({ error: 'platform must be instagram or tiktok' });
+      return res.status(400).json({ error: 'platform must be instagram or tiktok' });
       return;
     }
     if (!['image', 'video', 'carousel'].includes(String(contentType))) {
-      res.status(400).json({ error: 'contentType must be image, video, or carousel' });
+      return res.status(400).json({ error: 'contentType must be image, video, or carousel' });
       return;
     }
 
@@ -204,7 +204,7 @@ router.get('/best/:platform/:contentType', async (req: Request, res: Response) =
       contentType as 'image' | 'video' | 'carousel'
     );
 
-    res.json({
+    return res.json({
       status: 'ok',
       platform,
       contentType,
@@ -213,7 +213,7 @@ router.get('/best/:platform/:contentType', async (req: Request, res: Response) =
     });
   } catch (error) {
     log.error('[ResolutionQuality] Best spec retrieval failed', error);
-    res.status(500).json({ error: 'Best spec retrieval failed' });
+    return res.status(500).json({ error: 'Best spec retrieval failed' });
   }
 });
 
@@ -223,7 +223,7 @@ router.get('/best/:platform/:contentType', async (req: Request, res: Response) =
  */
 router.get('/health', async (req: Request, res: Response) => {
   try {
-    res.json({
+    return res.json({
       status: 'ok',
       service: 'resolution-quality-engine',
       purpose: 'Guarantees ALL FeedIA content hits maximum Instagram/TikTok supported resolution — zero quality loss',
@@ -256,7 +256,7 @@ router.get('/health', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ResolutionQuality] Health check failed', error);
-    res.status(500).json({ error: 'Health check failed' });
+    return res.status(500).json({ error: 'Health check failed' });
   }
 });
 

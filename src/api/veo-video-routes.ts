@@ -25,7 +25,7 @@ router.post('/start', async (req: Request, res: Response) => {
     const { prompt, aspectRatio, durationSeconds, model, referenceImageBase64, referenceImageMimeType } = req.body;
 
     if (!prompt) {
-      res.status(400).json({ error: 'prompt required' });
+      return res.status(400).json({ error: 'prompt required' });
       return;
     }
 
@@ -38,7 +38,7 @@ router.post('/start', async (req: Request, res: Response) => {
     });
 
     if (!operation) {
-      res.status(503).json({
+      return res.status(503).json({
         status: 'unavailable',
         error: 'Veo generation unavailable — GEMINI_API_KEY not set or the API call failed',
         note: 'Veo requires a BILLED Google Cloud project — free tier quota is 0 even with a valid key. Check https://ai.google.dev/gemini-api/docs/rate-limits',
@@ -46,7 +46,7 @@ router.post('/start', async (req: Request, res: Response) => {
       return;
     }
 
-    res.json({
+    return res.json({
       status: 'started',
       operationName: operation.operationName,
       nextStep: `GET /api/video-gen/status/${encodeURIComponent(operation.operationName)} to poll, or POST /api/video-gen/wait to block until ready`,
@@ -55,7 +55,7 @@ router.post('/start', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[VeoVideo] Start failed', error);
-    res.status(500).json({ error: 'Video generation start failed', message: String(error) });
+    return res.status(500).json({ error: 'Video generation start failed', message: String(error) });
   }
 });
 
@@ -70,18 +70,18 @@ router.get('/status/:operationName', async (req: Request, res: Response) => {
     const status = await pollOperationStatus(operationName);
 
     if (!status) {
-      res.status(503).json({ error: 'Status check unavailable — GEMINI_API_KEY not set or call failed' });
+      return res.status(503).json({ error: 'Status check unavailable — GEMINI_API_KEY not set or call failed' });
       return;
     }
 
-    res.json({
+    return res.json({
       status: status.done ? (status.error ? 'failed' : 'complete') : 'processing',
       ...status,
       metadata: { checkedAt: new Date().toISOString() },
     });
   } catch (error) {
     log.error('[VeoVideo] Status check failed', error);
-    res.status(500).json({ error: 'Status check failed' });
+    return res.status(500).json({ error: 'Status check failed' });
   }
 });
 
@@ -95,14 +95,14 @@ router.post('/wait', async (req: Request, res: Response) => {
     const { prompt, aspectRatio, durationSeconds, model, maxWaitMs } = req.body;
 
     if (!prompt) {
-      res.status(400).json({ error: 'prompt required' });
+      return res.status(400).json({ error: 'prompt required' });
       return;
     }
 
     const result = await generateVideoAndWait(prompt, { aspectRatio, durationSeconds, model }, maxWaitMs || 180000);
 
     if (!result) {
-      res.status(503).json({
+      return res.status(503).json({
         status: 'unavailable',
         error: 'Veo generation unavailable — GEMINI_API_KEY not set or the API call failed',
         note: 'Veo requires a BILLED Google Cloud project — free tier quota is 0 even with a valid key.',
@@ -111,11 +111,11 @@ router.post('/wait', async (req: Request, res: Response) => {
     }
 
     if (result.error) {
-      res.status(500).json({ status: 'failed', error: result.error });
+      return res.status(500).json({ status: 'failed', error: result.error });
       return;
     }
 
-    res.json({
+    return res.json({
       status: result.done ? 'complete' : 'timeout',
       videoUrl: result.videoUrl,
       hasVideoBytes: Boolean(result.videoBase64),
@@ -123,7 +123,7 @@ router.post('/wait', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[VeoVideo] Wait failed', error);
-    res.status(500).json({ error: 'Video generation failed', message: String(error) });
+    return res.status(500).json({ error: 'Video generation failed', message: String(error) });
   }
 });
 
@@ -132,7 +132,7 @@ router.post('/wait', async (req: Request, res: Response) => {
  */
 router.get('/health', async (req: Request, res: Response) => {
   try {
-    res.json({
+    return res.json({
       status: 'ok',
       service: 'veo-video-generation',
       configured: isVeoConfigured(),
@@ -156,7 +156,7 @@ router.get('/health', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[VeoVideo] Health check failed', error);
-    res.status(500).json({ error: 'Health check failed' });
+    return res.status(500).json({ error: 'Health check failed' });
   }
 });
 

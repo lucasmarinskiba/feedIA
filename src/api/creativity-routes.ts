@@ -25,7 +25,7 @@ router.post('/analyze', async (req: Request, res: Response): Promise<void> => {
 
     const analysis = await creativityWitEngine.analyzeWit(promptText);
 
-    res.json({
+    return res.json({
       status: 'analyzed',
       witScore: analysis.witScore,
       originalityScore: analysis.originalityScore,
@@ -38,7 +38,7 @@ router.post('/analyze', async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     log.error('[Creativity] Analysis failed', error);
-    res.status(500).json({ error: 'Analysis failed' });
+    return res.status(500).json({ error: 'Analysis failed' });
   }
 });
 
@@ -59,7 +59,7 @@ router.post('/boost', async (req: Request, res: Response): Promise<void> => {
 
     const result = await creativityWitEngine.boostWit(promptText);
 
-    res.json({
+    return res.json({
       status: 'boosted',
       original: {
         prompt: result.originalPrompt.slice(0, 150) + '...',
@@ -75,7 +75,7 @@ router.post('/boost', async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     log.error('[Creativity] Boost failed', error);
-    res.status(500).json({ error: 'Boost failed', message: String(error) });
+    return res.status(500).json({ error: 'Boost failed', message: String(error) });
   }
 });
 
@@ -101,7 +101,7 @@ router.post('/inject-twist', async (req: Request, res: Response): Promise<void> 
 
     const result = creativityWitEngine.injectCreativeTwist(promptText, selectedTwist);
 
-    res.json({
+    return res.json({
       status: 'twist_injected',
       twist: result.twist,
       enhancedPrompt: result.prompt,
@@ -109,7 +109,7 @@ router.post('/inject-twist', async (req: Request, res: Response): Promise<void> 
     });
   } catch (error) {
     log.error('[Creativity] Twist injection failed', error);
-    res.status(500).json({ error: 'Twist injection failed' });
+    return res.status(500).json({ error: 'Twist injection failed' });
   }
 });
 
@@ -121,7 +121,7 @@ router.get('/twist-techniques', async (req: Request, res: Response) => {
   try {
     const techniques = creativityWitEngine.getAllTwistTechniques();
 
-    res.json({
+    return res.json({
       status: 'ok',
       totalTechniques: techniques.length,
       techniques,
@@ -130,7 +130,7 @@ router.get('/twist-techniques', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Creativity] Techniques list failed', error);
-    res.status(500).json({ error: 'Techniques list failed' });
+    return res.status(500).json({ error: 'Techniques list failed' });
   }
 });
 
@@ -150,7 +150,7 @@ router.get('/suggest/:contentType', async (req: Request, res: Response): Promise
       contentType as 'carousel' | 'reel' | 'story' | 'image'
     );
 
-    res.json({
+    return res.json({
       status: 'ok',
       contentType,
       suggestedTechniques: suggestions,
@@ -158,7 +158,7 @@ router.get('/suggest/:contentType', async (req: Request, res: Response): Promise
     });
   } catch (error) {
     log.error('[Creativity] Suggestion failed', error);
-    res.status(500).json({ error: 'Suggestion failed' });
+    return res.status(500).json({ error: 'Suggestion failed' });
   }
 });
 
@@ -170,7 +170,7 @@ router.get('/health', async (req: Request, res: Response) => {
   try {
     const techniques = creativityWitEngine.getAllTwistTechniques();
 
-    res.json({
+    return res.json({
       status: 'ok',
       service: 'creativity-wit-engine',
       definition: 'OCURRENTE: Ingenious, witty, unexpected, sharp, original content',
@@ -194,7 +194,7 @@ router.get('/health', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[Creativity] Health check failed', error);
-    res.status(500).json({ error: 'Health check failed' });
+    return res.status(500).json({ error: 'Health check failed' });
   }
 });
 

@@ -85,14 +85,14 @@ const analyzeAccount = async (req: AuthRequest, res: Response): Promise<void> =>
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { platform, accountId, accessToken } = req.body;
 
     if (!platform || !accountId || !accessToken) {
-      res.status(400).json({ error: 'Missing platform, accountId, or accessToken' });
+      return res.status(400).json({ error: 'Missing platform, accountId, or accessToken' });
       return;
     }
 
@@ -145,7 +145,7 @@ const analyzeAccount = async (req: AuthRequest, res: Response): Promise<void> =>
       [userId, platform, accountData.engagement_rate || 0.5]
     );
 
-    res.json({
+    return res.json({
       success: true,
       account: accountData,
       analysis: {
@@ -161,7 +161,7 @@ const analyzeAccount = async (req: AuthRequest, res: Response): Promise<void> =>
     });
   } catch (err) {
     console.error('[Account Analyzer] Error:', err);
-    res.status(500).json({ error: 'Failed to analyze account', details: String(err) });
+    return res.status(500).json({ error: 'Failed to analyze account', details: String(err) });
   }
 };
 
@@ -178,14 +178,14 @@ const generateStrategy = async (req: AuthRequest, res: Response): Promise<void> 
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { niche, targetAudience, currentFollowers } = req.body;
 
     if (!niche || !targetAudience) {
-      res.status(400).json({ error: 'Missing niche or targetAudience' });
+      return res.status(400).json({ error: 'Missing niche or targetAudience' });
       return;
     }
 
@@ -268,7 +268,7 @@ const generateStrategy = async (req: AuthRequest, res: Response): Promise<void> 
       ]
     );
 
-    res.json({
+    return res.json({
       success: true,
       strategy,
       implementation: {
@@ -280,7 +280,7 @@ const generateStrategy = async (req: AuthRequest, res: Response): Promise<void> 
     });
   } catch (err) {
     console.error('[Strategy Generator] Error:', err);
-    res.status(500).json({ error: 'Failed to generate strategy', details: String(err) });
+    return res.status(500).json({ error: 'Failed to generate strategy', details: String(err) });
   }
 };
 
@@ -296,13 +296,13 @@ const cmAgent = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { accountType, audienceSize } = req.body;
 
-    res.json({
+    return res.json({
       success: true,
       cm_playbook: {
         daily_tasks: [
@@ -345,7 +345,7 @@ const cmAgent = async (req: AuthRequest, res: Response): Promise<void> => {
     });
   } catch (err) {
     console.error('[CM Agent] Error:', err);
-    res.status(500).json({ error: 'Failed to run CM agent', details: String(err) });
+    return res.status(500).json({ error: 'Failed to run CM agent', details: String(err) });
   }
 };
 
@@ -362,13 +362,13 @@ const growthAgent = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { currentFollowers, niche, goal } = req.body;
 
-    res.json({
+    return res.json({
       success: true,
       growth_tactics: {
         viral_content_formulas: [
@@ -461,7 +461,7 @@ const growthAgent = async (req: AuthRequest, res: Response): Promise<void> => {
     });
   } catch (err) {
     console.error('[Growth Agent] Error:', err);
-    res.status(500).json({ error: 'Failed to run growth agent', details: String(err) });
+    return res.status(500).json({ error: 'Failed to run growth agent', details: String(err) });
   }
 };
 
@@ -477,13 +477,13 @@ const designAgent = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { niche, aesthetic = 'modern' } = req.body;
 
-    res.json({
+    return res.json({
       success: true,
       design_system: {
         color_palettes: {
@@ -585,7 +585,7 @@ const designAgent = async (req: AuthRequest, res: Response): Promise<void> => {
     });
   } catch (err) {
     console.error('[Design Agent] Error:', err);
-    res.status(500).json({ error: 'Failed to run design agent', details: String(err) });
+    return res.status(500).json({ error: 'Failed to run design agent', details: String(err) });
   }
 };
 
@@ -601,13 +601,13 @@ const copyAgent = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { contentType, tone = 'engaging', niche, audience } = req.body;
 
-    res.json({
+    return res.json({
       success: true,
       copy_system: {
         caption_formulas: [
@@ -677,7 +677,7 @@ const copyAgent = async (req: AuthRequest, res: Response): Promise<void> => {
     });
   } catch (err) {
     console.error('[Copy Agent] Error:', err);
-    res.status(500).json({ error: 'Failed to run copy agent', details: String(err) });
+    return res.status(500).json({ error: 'Failed to run copy agent', details: String(err) });
   }
 };
 
@@ -693,7 +693,7 @@ const nicheExpert = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -800,7 +800,7 @@ const nicheExpert = async (req: AuthRequest, res: Response): Promise<void> => {
       authority_signals: ['Real results', 'Transparency', 'Expertise'],
     };
 
-    res.json({
+    return res.json({
       success: true,
       niche,
       expertise: defaultNiche,
@@ -813,7 +813,7 @@ const nicheExpert = async (req: AuthRequest, res: Response): Promise<void> => {
     });
   } catch (err) {
     console.error('[Niche Expert] Error:', err);
-    res.status(500).json({ error: 'Failed to run niche expert', details: String(err) });
+    return res.status(500).json({ error: 'Failed to run niche expert', details: String(err) });
   }
 };
 
@@ -825,14 +825,14 @@ const masterPlan = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { niche, currentFollowers, targetFollowers, timeframe } = req.body;
 
     if (!niche) {
-      res.status(400).json({ error: 'Missing niche' });
+      return res.status(400).json({ error: 'Missing niche' });
       return;
     }
 
@@ -916,7 +916,7 @@ const masterPlan = async (req: AuthRequest, res: Response): Promise<void> => {
       ]
     );
 
-    res.json({
+    return res.json({
       success: true,
       plan,
       next_steps: [
@@ -929,7 +929,7 @@ const masterPlan = async (req: AuthRequest, res: Response): Promise<void> => {
     });
   } catch (err) {
     console.error('[Master Plan] Error:', err);
-    res.status(500).json({ error: 'Failed to create master plan', details: String(err) });
+    return res.status(500).json({ error: 'Failed to create master plan', details: String(err) });
   }
 };
 

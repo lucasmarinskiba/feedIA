@@ -45,10 +45,10 @@ router.get('/authorize', (req: Request, res: Response) => {
       INSTAGRAM_REDIRECT_URI,
     )}&scope=${encodeURIComponent(scope)}&response_type=code&state=${state}`;
 
-    res.json({ authUrl });
+    return res.json({ authUrl });
   } catch (err) {
     log.error('[OAuth Authorize] Error', { error: String(err) });
-    res.status(500).json({ error: 'Authorization failed' });
+    return res.status(500).json({ error: 'Authorization failed' });
   }
 });
 
@@ -140,7 +140,7 @@ router.get('/callback', async (req: Request, res: Response) => {
 
     log.info('[OAuth] Instagram connected', { userId, handle: username });
 
-    res.json({
+    return res.json({
       ok: true,
       redirectUrl: `/studio?account=${account.id}&platform=instagram`,
       account: {
@@ -151,7 +151,7 @@ router.get('/callback', async (req: Request, res: Response) => {
     });
   } catch (err) {
     log.error('[OAuth Callback] Error', { error: String(err) });
-    res.status(500).json({ error: 'Callback failed' });
+    return res.status(500).json({ error: 'Callback failed' });
   }
 });
 

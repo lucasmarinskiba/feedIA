@@ -57,7 +57,7 @@ router.post('/generate', async (req: Request, res: Response): Promise<void> => {
     log.error('[AutonomyAPI] generation failed', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Autonomous generation failed',
     });
   }
@@ -91,7 +91,7 @@ router.post('/carousels', async (req: Request, res: Response): Promise<void> => 
     log.error('[AutonomyAPI] carousel generation failed', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Carousel generation failed',
     });
   }
@@ -125,7 +125,7 @@ router.post('/reels', async (req: Request, res: Response): Promise<void> => {
     log.error('[AutonomyAPI] reel generation failed', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Reel generation failed',
     });
   }
@@ -159,7 +159,7 @@ router.post('/stories', async (req: Request, res: Response): Promise<void> => {
     log.error('[AutonomyAPI] story generation failed', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Story generation failed',
     });
   }
@@ -172,7 +172,7 @@ router.get('/status', (req, res) => {
   try {
     const metrics = autonomousGenerator.getMetrics();
 
-    res.json({
+    return res.json({
       success: true,
       status: 'autonomous',
       metrics,
@@ -181,7 +181,7 @@ router.get('/status', (req, res) => {
     log.error('[AutonomyAPI] status check failed', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Status check failed',
     });
   }
@@ -196,7 +196,7 @@ router.post('/database/sync', async (req, res) => {
 
     const stats = await promptDb.syncFromBrain();
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Sync complete',
       stats,
@@ -205,7 +205,7 @@ router.post('/database/sync', async (req, res) => {
     log.error('[DatabaseAPI] sync failed', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Sync failed',
     });
   }
@@ -218,7 +218,7 @@ router.get('/database/stats', async (req, res) => {
   try {
     const stats = await promptDb.getBatchStats();
 
-    res.json({
+    return res.json({
       success: true,
       stats,
     });
@@ -226,7 +226,7 @@ router.get('/database/stats', async (req, res) => {
     log.error('[DatabaseAPI] stats fetch failed', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Stats fetch failed',
     });
   }
@@ -241,7 +241,7 @@ router.get('/database/performance/:batchId', async (req, res) => {
 
     const metrics = await promptDb.getPerformanceMetrics(batchId);
 
-    res.json({
+    return res.json({
       success: true,
       batchId,
       metrics,
@@ -250,7 +250,7 @@ router.get('/database/performance/:batchId', async (req, res) => {
     log.error('[DatabaseAPI] performance fetch failed', {
       error: error instanceof Error ? error.message : String(error),
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Performance fetch failed',
     });
   }

@@ -50,7 +50,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
     // Validate
     if (!name || !variants || variants.length < 2 || !metric) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'name, variants (min 2), and metric required',
       });
       return;
@@ -68,7 +68,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     // Invalidate relevant caches
     await invalidateCachePatterns('analytics');
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       test: {
         id: testId,
@@ -81,7 +81,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     });
   } catch (err) {
     console.error('[ABTest] Create failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -95,7 +95,7 @@ router.post('/:testId/track', async (req: Request, res: Response): Promise<void>
     const { variant, conversions = 1, impressions = 1 } = req.body as { variant: string; conversions?: number; impressions?: number };
 
     if (!variant) {
-      res.status(400).json({ error: 'variant required' });
+      return res.status(400).json({ error: 'variant required' });
       return;
     }
 
@@ -112,13 +112,13 @@ router.post('/:testId/track', async (req: Request, res: Response): Promise<void>
       generateCacheKey.abtestResults(testId),
     );
 
-    res.json({
+    return res.json({
       success: true,
       message: `Tracked ${conversions} conversions for ${variant}`,
     });
   } catch (err) {
     console.error('[ABTest] Track failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -176,10 +176,10 @@ router.get('/:testId/results', async (req: Request, res: Response): Promise<void
       },
     );
 
-    res.json(results);
+    return res.json(results);
   } catch (err) {
     console.error('[ABTest] Results failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -223,13 +223,13 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       };
     });
 
-    res.json({
+    return res.json({
       tests,
       total: tests.length,
     });
   } catch (err) {
     console.error('[ABTest] List failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -243,7 +243,7 @@ router.patch('/:testId/status', async (req: Request, res: Response): Promise<voi
     const { status } = req.body as { status: string };
 
     if (!['active', 'completed', 'archived'].includes(status)) {
-      res.status(400).json({ error: 'status must be active, completed, or archived' });
+      return res.status(400).json({ error: 'status must be active, completed, or archived' });
       return;
     }
 
@@ -257,13 +257,13 @@ router.patch('/:testId/status', async (req: Request, res: Response): Promise<voi
     // Invalidate cache
     await invalidateCachePatterns('analytics', generateCacheKey.abtestResults(testId));
 
-    res.json({
+    return res.json({
       success: true,
       message: `Test ${testId} status changed to ${status}`,
     });
   } catch (err) {
     console.error('[ABTest] Status update failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -299,7 +299,7 @@ router.get('/:testId/stats', async (req: Request, res: Response): Promise<void> 
       zScore: calculateZScore(v.total_conversions, v.total_impressions, variants),
     }));
 
-    res.json({
+    return res.json({
       testId,
       variants: stats,
       winner: stats.reduce((a, b) => a.conversionRate > b.conversionRate ? a : b),
@@ -307,7 +307,7 @@ router.get('/:testId/stats', async (req: Request, res: Response): Promise<void> 
     });
   } catch (err) {
     console.error('[ABTest] Stats failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 

@@ -54,14 +54,14 @@ router.post('/create-user', async (req: Request, res: Response) => {
 
     log.info(`[AdminOps] Created test user: ${user.email} (tier: ${tier})`);
 
-    res.json({
+    return res.json({
       status: 'ok',
       message: 'User created successfully',
       user,
     });
   } catch (error) {
     log.error('[AdminOps] Create user failed', error);
-    res.status(500).json({ error: 'Failed to create user' });
+    return res.status(500).json({ error: 'Failed to create user' });
   }
 });
 
@@ -106,7 +106,7 @@ router.post('/upgrade-tier', async (req: Request, res: Response) => {
       log.error('[AdminOps] Database error during tier upgrade', dbError);
     }
 
-    res.json({
+    return res.json({
       status: 'ok',
       message: 'User tier upgraded (mock)',
       userId,
@@ -114,7 +114,7 @@ router.post('/upgrade-tier', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminOps] Upgrade tier failed', error);
-    res.status(500).json({ error: 'Failed to upgrade tier' });
+    return res.status(500).json({ error: 'Failed to upgrade tier' });
   }
 });
 
@@ -149,14 +149,14 @@ router.get('/users', async (req: Request, res: Response) => {
       log.warn('[AdminOps] Database query failed', dbError);
     }
 
-    res.json({
+    return res.json({
       status: 'ok',
       users: [],
       message: 'Feature requires database connection',
     });
   } catch (error) {
     log.error('[AdminOps] List users failed', error);
-    res.status(500).json({ error: 'Failed to list users' });
+    return res.status(500).json({ error: 'Failed to list users' });
   }
 });
 
@@ -203,7 +203,7 @@ router.post('/cache/clear', async (req: Request, res: Response) => {
 
     log.info(`[AdminOps] Cleared ${cacheType} cache(s)`, stats);
 
-    res.json({
+    return res.json({
       status: 'ok',
       message: `Cleared ${cacheType} cache(s)`,
       stats,
@@ -211,7 +211,7 @@ router.post('/cache/clear', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminOps] Cache clear failed', error);
-    res.status(500).json({ error: 'Failed to clear cache' });
+    return res.status(500).json({ error: 'Failed to clear cache' });
   }
 });
 
@@ -237,7 +237,7 @@ router.get('/database-status', async (req: Request, res: Response) => {
       postgresStatus = 'error';
     }
 
-    res.json({
+    return res.json({
       status: 'ok',
       database: {
         mongodb: {
@@ -256,7 +256,7 @@ router.get('/database-status', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminOps] Database status check failed', error);
-    res.status(500).json({ error: 'Failed to get database status' });
+    return res.status(500).json({ error: 'Failed to get database status' });
   }
 });
 
@@ -309,14 +309,14 @@ router.post('/migrate', async (req: Request, res: Response) => {
       log.error('[AdminOps] Migration error', pgError);
     }
 
-    res.json({
+    return res.json({
       status: 'ok',
       message: 'Migrations completed',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     log.error('[AdminOps] Migration failed', error);
-    res.status(500).json({ error: 'Migration failed' });
+    return res.status(500).json({ error: 'Migration failed' });
   }
 });
 
@@ -349,7 +349,7 @@ router.post('/seed', async (req: Request, res: Response) => {
 
     log.info('[AdminOps] Test data seeded successfully');
 
-    res.json({
+    return res.json({
       status: 'ok',
       message: 'Test data seeded successfully',
       itemsCreated: testUsers.length,
@@ -357,7 +357,7 @@ router.post('/seed', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminOps] Seed failed', error);
-    res.status(500).json({ error: 'Seed failed' });
+    return res.status(500).json({ error: 'Seed failed' });
   }
 });
 
@@ -387,7 +387,7 @@ router.post('/database-reset', async (req: Request, res: Response) => {
       log.warn('[AdminOps] Database reset partially completed', pgError);
     }
 
-    res.json({
+    return res.json({
       status: 'ok',
       message: 'Database reset completed',
       warning: 'All data has been deleted',
@@ -395,7 +395,7 @@ router.post('/database-reset', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminOps] Database reset failed', error);
-    res.status(500).json({ error: 'Database reset failed' });
+    return res.status(500).json({ error: 'Database reset failed' });
   }
 });
 
@@ -417,7 +417,7 @@ router.post('/trigger-trends', async (req: Request, res: Response) => {
 
     log.info(`[AdminOps] Triggering trend detection for campaign: ${campaignId}`);
 
-    res.json({
+    return res.json({
       status: 'ok',
       message: 'Trend detection triggered',
       campaignId,
@@ -426,7 +426,7 @@ router.post('/trigger-trends', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminOps] Trigger trends failed', error);
-    res.status(500).json({ error: 'Failed to trigger trends' });
+    return res.status(500).json({ error: 'Failed to trigger trends' });
   }
 });
 
@@ -440,7 +440,7 @@ router.post('/trigger-trends', async (req: Request, res: Response) => {
  */
 router.get('/config', async (req: Request, res: Response) => {
   try {
-    res.json({
+    return res.json({
       status: 'ok',
       config: {
         environment: process.env.NODE_ENV || 'development',
@@ -458,7 +458,7 @@ router.get('/config', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[AdminOps] Config retrieval failed', error);
-    res.status(500).json({ error: 'Failed to get config' });
+    return res.status(500).json({ error: 'Failed to get config' });
   }
 });
 
@@ -470,7 +470,7 @@ router.post('/restart-service', async (req: Request, res: Response) => {
   try {
     log.warn('[AdminOps] Service restart requested');
 
-    res.json({
+    return res.json({
       status: 'ok',
       message: 'Restart signal sent to orchestrator',
       gracefulShutdown: true,
@@ -485,7 +485,7 @@ router.post('/restart-service', async (req: Request, res: Response) => {
     }, 2000);
   } catch (error) {
     log.error('[AdminOps] Restart failed', error);
-    res.status(500).json({ error: 'Failed to restart service' });
+    return res.status(500).json({ error: 'Failed to restart service' });
   }
 });
 

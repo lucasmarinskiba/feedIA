@@ -146,15 +146,15 @@ async function processPaymentData(payment: MercadoPagoPayment): Promise<{ succes
 // Express route handler
 export const mercadoPagoWebhookHandler = async (req: Request, res: Response): Promise<void> => {
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
     return;
   }
 
   try {
     const result = await handleMercadoPagoWebhook(req.body);
-    res.status(result.success ? 200 : 400).json(result);
+    return res.status(result.success ? 200 : 400).json(result);
   } catch (err) {
     console.error('[MP Webhook Handler] Error:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 };

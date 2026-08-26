@@ -47,21 +47,21 @@ router.post('/plan', (req: Request, res: Response): void => {
     const { brand, niche, quarterGoal, duration, budget, targetAudience, platform } = req.body as StrategyGoal & { brand: string };
 
     if (!brand || !niche || !quarterGoal || !duration || !budget || !targetAudience || !platform) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'brand, niche, quarterGoal, duration, budget, targetAudience, platform required',
       });
       return;
     }
 
     if (duration < 1 || duration > 52) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'duration must be 1-52 weeks',
       });
       return;
     }
 
     if (budget < 300) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'budget must be >= $300',
       });
       return;
@@ -83,14 +83,14 @@ router.post('/plan', (req: Request, res: Response): void => {
 
     console.log('[SmartBatch] Plan created:', { batchId, totalAssets: batch.totalAssets, weeks: batch.totalWeeks });
 
-    res.json({
+    return res.json({
       success: true,
       batchId,
       data: batch,
     });
   } catch (err) {
     console.error('[SmartBatch] Plan failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -106,7 +106,7 @@ router.post('/:batchId/execute', async (req: Request, res: Response): Promise<vo
     const batch = activeBatches.get(batchId);
 
     if (!batch) {
-      res.status(404).json({ error: `Batch ${batchId} not found` });
+      return res.status(404).json({ error: `Batch ${batchId} not found` });
       return;
     }
 
@@ -120,7 +120,7 @@ router.post('/:batchId/execute', async (req: Request, res: Response): Promise<vo
         console.error('[SmartBatch] Execution failed:', err);
       });
 
-    res.json({
+    return res.json({
       success: true,
       batchId,
       status: 'generating',
@@ -130,7 +130,7 @@ router.post('/:batchId/execute', async (req: Request, res: Response): Promise<vo
     });
   } catch (err) {
     console.error('[SmartBatch] Execute failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -146,11 +146,11 @@ router.get('/:batchId/status', (req: Request, res: Response): void => {
     const batch = activeBatches.get(batchId);
 
     if (!batch) {
-      res.status(404).json({ error: `Batch ${batchId} not found` });
+      return res.status(404).json({ error: `Batch ${batchId} not found` });
       return;
     }
 
-    res.json({
+    return res.json({
       success: true,
       batchId,
       status: batch.status,
@@ -161,7 +161,7 @@ router.get('/:batchId/status', (req: Request, res: Response): void => {
     });
   } catch (err) {
     console.error('[SmartBatch] Status failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -177,7 +177,7 @@ router.get('/:batchId/roadmap', (req: Request, res: Response): void => {
     const batch = activeBatches.get(batchId);
 
     if (!batch) {
-      res.status(404).json({ error: `Batch ${batchId} not found` });
+      return res.status(404).json({ error: `Batch ${batchId} not found` });
       return;
     }
 
@@ -188,7 +188,7 @@ router.get('/:batchId/roadmap', (req: Request, res: Response): void => {
       byWeek[item.week].push(item);
     });
 
-    res.json({
+    return res.json({
       success: true,
       batchId,
       summary: {
@@ -201,7 +201,7 @@ router.get('/:batchId/roadmap', (req: Request, res: Response): void => {
     });
   } catch (err) {
     console.error('[SmartBatch] Roadmap failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -235,7 +235,7 @@ router.post('/multi-quarter', (req: Request, res: Response): void => {
     };
 
     if (!brand || !niche || !year || !budget || !targetAudience || !platform) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'brand, niche, year, budget, targetAudience, platform required',
       });
       return;
@@ -274,14 +274,14 @@ router.post('/multi-quarter', (req: Request, res: Response): void => {
 
     console.log('[SmartBatch] Year plan created:', { year, totalAssets: yearSummary.totalAssets });
 
-    res.json({
+    return res.json({
       success: true,
       yearPlan,
       yearSummary,
     });
   } catch (err) {
     console.error('[SmartBatch] Multi-quarter failed:', err);
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 

@@ -21,7 +21,7 @@ router.post('/calendar/plan', async (req: Request, res: Response) => {
     const { accountId, days = 7, cadence } = req.body;
 
     if (!accountId) {
-      res.status(400).json({ error: 'accountId required' });
+      return res.status(400).json({ error: 'accountId required' });
       return;
     }
 
@@ -32,7 +32,7 @@ router.post('/calendar/plan', async (req: Request, res: Response) => {
       cadence || DEFAULT_WEEKLY_CADENCE,
     );
 
-    res.json({
+    return res.json({
       status: 'success',
       ...plan,
       nextStep:
@@ -41,7 +41,7 @@ router.post('/calendar/plan', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ContentStrategy] Calendar plan failed', error);
-    res.status(500).json({ error: 'Calendar planning failed', message: String(error) });
+    return res.status(500).json({ error: 'Calendar planning failed', message: String(error) });
   }
 });
 
@@ -56,7 +56,7 @@ router.get('/tasks/:accountId', async (req: Request, res: Response) => {
 
     const counts = Object.fromEntries(Object.entries(tasks).map(([stage, items]) => [stage, items.length]));
 
-    res.json({
+    return res.json({
       status: 'ok',
       accountId,
       counts,
@@ -65,7 +65,7 @@ router.get('/tasks/:accountId', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ContentStrategy] Task list failed', error);
-    res.status(500).json({ error: 'Task list retrieval failed' });
+    return res.status(500).json({ error: 'Task list retrieval failed' });
   }
 });
 
@@ -79,13 +79,13 @@ router.post('/tasks/:postId/advance', async (req: Request, res: Response) => {
     const { newStage, caption, mediaUrls, scheduledAt } = req.body;
 
     if (!newStage) {
-      res.status(400).json({ error: 'newStage required (idea|script|design|review|ready|scheduled)' });
+      return res.status(400).json({ error: 'newStage required (idea|script|design|review|ready|scheduled)' });
       return;
     }
 
     await contentStrategyEngine.advanceStage(String(postId), newStage, { caption, mediaUrls, scheduledAt });
 
-    res.json({
+    return res.json({
       status: 'advanced',
       postId,
       newStage,
@@ -93,7 +93,7 @@ router.post('/tasks/:postId/advance', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ContentStrategy] Task advance failed', error);
-    res.status(500).json({ error: 'Task advance failed', message: String(error) });
+    return res.status(500).json({ error: 'Task advance failed', message: String(error) });
   }
 });
 
@@ -108,14 +108,14 @@ router.get('/compass/:accountId', async (req: Request, res: Response) => {
 
     const compass = await contentStrategyEngine.getContentCompass(String(accountId), brand);
 
-    res.json({
+    return res.json({
       status: 'ok',
       ...compass,
       metadata: { computedAt: new Date().toISOString() },
     });
   } catch (error) {
     log.error('[ContentStrategy] Compass failed', error);
-    res.status(500).json({ error: 'Compass computation failed' });
+    return res.status(500).json({ error: 'Compass computation failed' });
   }
 });
 
@@ -130,7 +130,7 @@ router.post('/compass/:accountId/fill-gaps', async (req: Request, res: Response)
 
     const plan = await contentStrategyEngine.fillCompassGaps(String(accountId), brand);
 
-    res.json({
+    return res.json({
       status: 'success',
       ...plan,
       message: plan.items.length
@@ -140,7 +140,7 @@ router.post('/compass/:accountId/fill-gaps', async (req: Request, res: Response)
     });
   } catch (error) {
     log.error('[ContentStrategy] Fill gaps failed', error);
-    res.status(500).json({ error: 'Fill gaps failed', message: String(error) });
+    return res.status(500).json({ error: 'Fill gaps failed', message: String(error) });
   }
 });
 
@@ -153,13 +153,13 @@ router.post('/script', async (req: Request, res: Response) => {
     const { topic, format = 'reel', totalDurationSeconds = 15, sceneCount = 4, asText = false } = req.body;
 
     if (!topic) {
-      res.status(400).json({ error: 'topic required' });
+      return res.status(400).json({ error: 'topic required' });
       return;
     }
 
     const script = await scriptWriterEngine.generateScript(topic, format, totalDurationSeconds, sceneCount);
 
-    res.json({
+    return res.json({
       status: 'success',
       script,
       textVersion: asText ? scriptWriterEngine.renderScriptAsText(script) : undefined,
@@ -167,7 +167,7 @@ router.post('/script', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ContentStrategy] Script generation failed', error);
-    res.status(500).json({ error: 'Script generation failed', message: String(error) });
+    return res.status(500).json({ error: 'Script generation failed', message: String(error) });
   }
 });
 
@@ -181,13 +181,13 @@ router.post('/script/audio', async (req: Request, res: Response) => {
     const { script, voiceId } = req.body;
 
     if (!script || !Array.isArray(script.scenes)) {
-      res.status(400).json({ error: 'script (ContentScript object with scenes[]) required' });
+      return res.status(400).json({ error: 'script (ContentScript object with scenes[]) required' });
       return;
     }
 
     const audio = await scriptWriterEngine.generateScriptAudio(script, voiceId);
 
-    res.json({
+    return res.json({
       status: 'success',
       sceneCount: audio.length,
       audio,
@@ -195,7 +195,7 @@ router.post('/script/audio', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ContentStrategy] Script audio generation failed', error);
-    res.status(500).json({ error: 'Script audio generation failed', message: String(error) });
+    return res.status(500).json({ error: 'Script audio generation failed', message: String(error) });
   }
 });
 
@@ -208,13 +208,13 @@ router.post('/script/batch', async (req: Request, res: Response) => {
     const { topics, format = 'reel', totalDurationSeconds = 15 } = req.body;
 
     if (!Array.isArray(topics) || topics.length === 0) {
-      res.status(400).json({ error: 'topics array required' });
+      return res.status(400).json({ error: 'topics array required' });
       return;
     }
 
     const scripts = await scriptWriterEngine.generateScriptBatch(topics, format, totalDurationSeconds);
 
-    res.json({
+    return res.json({
       status: 'success',
       count: scripts.length,
       scripts,
@@ -222,7 +222,7 @@ router.post('/script/batch', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ContentStrategy] Script batch failed', error);
-    res.status(500).json({ error: 'Script batch failed' });
+    return res.status(500).json({ error: 'Script batch failed' });
   }
 });
 
@@ -231,7 +231,7 @@ router.post('/script/batch', async (req: Request, res: Response) => {
  */
 router.get('/health', async (req: Request, res: Response) => {
   try {
-    res.json({
+    return res.json({
       status: 'ok',
       service: 'content-strategy-engine',
       purpose: 'Planning, positioning, calendar, task list, content compass (Brújula), and script generation',
@@ -258,7 +258,7 @@ router.get('/health', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[ContentStrategy] Health check failed', error);
-    res.status(500).json({ error: 'Health check failed' });
+    return res.status(500).json({ error: 'Health check failed' });
   }
 });
 

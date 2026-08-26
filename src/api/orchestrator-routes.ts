@@ -8,9 +8,9 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     const dashboardData = req.body || getMockDashboardData();
 
     const result = await runAgentOrchestration(dashboardData);
-    res.json(result);
+    return res.json(result);
   } catch (err) {
-    res.status(500).json({ error: 'orchestration', message: String(err) });
+    return res.status(500).json({ error: 'orchestration', message: String(err) });
   }
 });
 
@@ -18,7 +18,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
  * GET /api/orchestrate/status — health check
  */
 router.get('/status', (req: Request, res: Response): void => {
-  res.json({
+  return res.json({
     status: 'ok',
     agents: ['growth-agent', 'retention-agent', 'sales-agent', 'content-agent'],
     mode: 'autonomous-loop',

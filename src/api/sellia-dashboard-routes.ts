@@ -7,7 +7,7 @@ const router = Router();
  */
 router.get('/fans', async (req: Request, res: Response) => {
   const timestamp = new Date().toISOString();
-  res.json({
+  return res.json({
     timestamp,
     overview: {
       totalFans: 4280,
@@ -200,7 +200,7 @@ router.get('/roi/explorer', async (req: Request, res: Response) => {
  * GET /api/dashboard/roi/timeline — ROI trends over time (daily + cumulative)
  */
 router.get('/roi/timeline', async (req: Request, res: Response) => {
-  res.json({
+  return res.json({
     timeline: [
       {
         date: '2026-08-01',
@@ -245,7 +245,7 @@ router.get('/roi/timeline', async (req: Request, res: Response) => {
  */
 router.get('/leads', async (req: Request, res: Response) => {
   const timestamp = new Date().toISOString();
-  res.json({
+  return res.json({
     timestamp,
     pipeline: {
       new: { hot: [], warm: [], cold: [] },

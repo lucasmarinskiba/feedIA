@@ -46,7 +46,7 @@ router.post('/generate', async (req: Request, res: Response): Promise<void> => {
       frameCount,
     });
 
-    res.json({
+    return res.json({
       status: result.readyForGeneration ? 'ready' : 'needs_review',
       finalPrompt: result.finalPrompt,
       pipeline: {
@@ -71,7 +71,7 @@ router.post('/generate', async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     log.error('[MasterGenerate] Generation failed', error);
-    res.status(500).json({ error: 'Generation failed', message: String(error) });
+    return res.status(500).json({ error: 'Generation failed', message: String(error) });
   }
 });
 
@@ -123,7 +123,7 @@ router.post('/generate-carousel', quotaCheckMiddleware('carousels', 1), async (r
       await chargeQuota(req, 'carousels', generationId);
     }
 
-    res.json({
+    return res.json({
       status: allReady ? 'ready' : 'needs_review',
       frameCount: results.length,
       frames: results.map((r, i) => ({
@@ -145,7 +145,7 @@ router.post('/generate-carousel', quotaCheckMiddleware('carousels', 1), async (r
     });
   } catch (error) {
     log.error('[MasterGenerate] Carousel generation failed', error);
-    res.status(500).json({ error: 'Carousel generation failed', message: String(error) });
+    return res.status(500).json({ error: 'Carousel generation failed', message: String(error) });
   }
 });
 
@@ -155,7 +155,7 @@ router.post('/generate-carousel', quotaCheckMiddleware('carousels', 1), async (r
  */
 router.get('/health', async (req: Request, res: Response) => {
   try {
-    res.json({
+    return res.json({
       status: 'ok',
       service: 'master-content-pipeline',
       purpose: 'Single entry point chaining ALL FeedIA quality/creative/technical systems',
@@ -180,7 +180,7 @@ router.get('/health', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[MasterGenerate] Health check failed', error);
-    res.status(500).json({ error: 'Health check failed' });
+    return res.status(500).json({ error: 'Health check failed' });
   }
 });
 

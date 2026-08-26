@@ -39,7 +39,7 @@ router.post('/generate', async (req: Request, res: Response): Promise<void> => {
     };
 
     if (!basePrompt || !contentType || !platform || !accountId) {
-      res.status(400).json({ ok: false, error: 'Missing required fields' });
+      return res.status(400).json({ ok: false, error: 'Missing required fields' });
       return;
     }
 
@@ -65,7 +65,7 @@ router.post('/generate', async (req: Request, res: Response): Promise<void> => {
       cost: result.costEstimate,
     });
 
-    res.json({
+    return res.json({
       ok: result.ok,
       url: result.url,
       urls: result.urls,
@@ -80,7 +80,7 @@ router.post('/generate', async (req: Request, res: Response): Promise<void> => {
     });
   } catch (err) {
     log.error('[Orchestration] Request failed', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
@@ -102,7 +102,7 @@ router.post('/batch', async (req: Request, res: Response): Promise<void> => {
     };
 
     if (!requests || !accountId || !Array.isArray(requests)) {
-      res.status(400).json({ ok: false, error: 'Invalid request' });
+      return res.status(400).json({ ok: false, error: 'Invalid request' });
       return;
     }
 
@@ -128,7 +128,7 @@ router.post('/batch', async (req: Request, res: Response): Promise<void> => {
       totalCost,
     });
 
-    res.json({
+    return res.json({
       ok: results.every((r) => r.ok),
       results: results.map((r) => ({
         url: r.url,
@@ -149,7 +149,7 @@ router.post('/batch', async (req: Request, res: Response): Promise<void> => {
     });
   } catch (err) {
     log.error('[Orchestration] Batch failed', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
@@ -162,7 +162,7 @@ router.get('/budget-status', (req: Request, res: Response): void => {
     const { accountId } = req.query as { accountId: string };
 
     if (!accountId) {
-      res.status(400).json({ ok: false, error: 'accountId required' });
+      return res.status(400).json({ ok: false, error: 'accountId required' });
       return;
     }
 
@@ -170,13 +170,13 @@ router.get('/budget-status', (req: Request, res: Response): void => {
 
     log.info('[Orchestration] Budget status queried', { accountId, percentageUsed: status.percentageUsed });
 
-    res.json({
+    return res.json({
       ok: true,
       budget: status,
     });
   } catch (err) {
     log.error('[Orchestration] Budget status failed', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
@@ -189,7 +189,7 @@ router.post('/set-budget', (req: Request, res: Response): void => {
     const { accountId, budgetUSD } = req.body as { accountId: string; budgetUSD: number };
 
     if (!accountId || budgetUSD === undefined) {
-      res.status(400).json({ ok: false, error: 'accountId and budgetUSD required' });
+      return res.status(400).json({ ok: false, error: 'accountId and budgetUSD required' });
       return;
     }
 
@@ -197,7 +197,7 @@ router.post('/set-budget', (req: Request, res: Response): void => {
 
     log.info('[Orchestration] Budget updated', { accountId, newBudget: budgetUSD });
 
-    res.json({
+    return res.json({
       ok: true,
       updated: {
         accountId: updated.accountId,
@@ -206,7 +206,7 @@ router.post('/set-budget', (req: Request, res: Response): void => {
     });
   } catch (err) {
     log.error('[Orchestration] Set budget failed', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 

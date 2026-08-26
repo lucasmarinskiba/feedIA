@@ -27,7 +27,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     res.set('Content-Type', metricsRegistry.contentType);
     res.send(metrics);
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to collect metrics',
       message: String(err),
     });
@@ -52,9 +52,9 @@ router.get('/summary', async (req: Request, res: Response): Promise<void> => {
       note: 'Use /metrics for full Prometheus format',
     };
 
-    res.json(summary);
+    return res.json(summary);
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to summarize metrics',
       message: String(err),
     });

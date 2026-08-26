@@ -107,10 +107,10 @@ export const createCheckoutSession = async (req: CheckoutSessionRequest): Promis
 // Handler for Express route
 export const checkoutSessionHandler = async (req: Request, res: Response): Promise<void> => {
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
     return;
   }
 
   const result = await createCheckoutSession(req.body);
-  res.status(result.error ? 400 : 200).json(result);
+  return res.status(result.error ? 400 : 200).json(result);
 };

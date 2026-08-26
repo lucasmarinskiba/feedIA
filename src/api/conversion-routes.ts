@@ -44,7 +44,7 @@ router.get('/fomo-triggers', (req: Request, res: Response): void => {
       return (urgencyMap[b.urgency] || 0) - (urgencyMap[a.urgency] || 0);
     });
 
-    res.json({
+    return res.json({
       accountId,
       currentTier,
       campaignsUsed,
@@ -53,7 +53,7 @@ router.get('/fomo-triggers', (req: Request, res: Response): void => {
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -111,7 +111,7 @@ router.get('/pricing', (req: Request, res: Response): void => {
       },
     };
 
-    res.json({
+    return res.json({
       tiers: comparison,
       comparisonGrid: {
         'Campaigns/month': ['5', '50', '500'],
@@ -123,7 +123,7 @@ router.get('/pricing', (req: Request, res: Response): void => {
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -146,7 +146,7 @@ router.get('/health', (req: Request, res: Response): void => {
 
     const health = calculateConversionHealth(metrics);
 
-    res.json({
+    return res.json({
       metrics,
       health,
       diagnostics: {
@@ -162,7 +162,7 @@ router.get('/health', (req: Request, res: Response): void => {
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 
@@ -175,13 +175,13 @@ router.post('/validate-promise', (req: Request, res: Response): void => {
     const { tier, promise } = req.body as { tier: string; promise: string };
 
     if (!tier || !promise) {
-      res.status(400).json({ error: 'tier and promise required' });
+      return res.status(400).json({ error: 'tier and promise required' });
       return;
     }
 
     const isValid = true; // validateDeliveryPromises(tier, promise);
 
-    res.json({
+    return res.json({
       tier,
       promise: promise.substring(0, 100),
       isValid,
@@ -189,7 +189,7 @@ router.post('/validate-promise', (req: Request, res: Response): void => {
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    return res.status(500).json({ error: String(err) });
   }
 });
 

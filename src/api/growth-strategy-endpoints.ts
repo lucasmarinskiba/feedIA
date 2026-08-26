@@ -69,7 +69,7 @@ export const getGrowthStrategy = async (req: Request, res: Response): Promise<vo
     strategies.push('Build audience consistency');
     recommendations.push('Publish 3-5 pieces per week to maintain momentum');
 
-    res.json({
+    return res.json({
       strategy: {
         goals: strategies,
         actionItems: recommendations,
@@ -89,7 +89,7 @@ export const getGrowthStrategy = async (req: Request, res: Response): Promise<vo
     });
   } catch (err) {
     console.error('[Growth] Strategy error:', err);
-    res.status(500).json({ error: 'Strategy generation failed' });
+    return res.status(500).json({ error: 'Strategy generation failed' });
   }
 };
 
@@ -154,7 +154,7 @@ export const getEngagementForecast = async (req: Request, res: Response): Promis
       });
     }
 
-    res.json({
+    return res.json({
       forecast: forecast,
       summary: {
         projectedMonthlyViews: forecast.reduce((sum: number, f: any) => sum + f.predictedViews, 0),
@@ -169,7 +169,7 @@ export const getEngagementForecast = async (req: Request, res: Response): Promis
     });
   } catch (err) {
     console.error('[Growth] Forecast error:', err);
-    res.status(500).json({ error: 'Forecast generation failed' });
+    return res.status(500).json({ error: 'Forecast generation failed' });
   }
 };
 
@@ -243,7 +243,7 @@ export const getRecommendations = async (req: Request, res: Response): Promise<v
       confidence: 0.8,
     });
 
-    res.json({
+    return res.json({
       recommendations,
       summary: {
         topContentType: topTypes[0]?.type || 'carousel',
@@ -253,6 +253,6 @@ export const getRecommendations = async (req: Request, res: Response): Promise<v
     });
   } catch (err) {
     console.error('[Growth] Recommendations error:', err);
-    res.status(500).json({ error: 'Recommendations generation failed' });
+    return res.status(500).json({ error: 'Recommendations generation failed' });
   }
 };

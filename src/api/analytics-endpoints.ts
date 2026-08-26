@@ -18,7 +18,7 @@ export const recordEvent = async (req: Request, res: Response): Promise<void> =>
     const { contentId, campaignId, eventType, platform, value = 1, metadata = {} } = req.body;
 
     if (!eventType || !['view', 'engagement', 'conversion', 'share'].includes(eventType)) {
-      res.status(400).json({ error: 'Invalid eventType' });
+      return res.status(400).json({ error: 'Invalid eventType' });
       return;
     }
 
@@ -32,14 +32,14 @@ export const recordEvent = async (req: Request, res: Response): Promise<void> =>
       [eventId, contentId || null, campaignId || null, userId, eventType, platform || 'unknown', value, JSON.stringify(metadata)]
     );
 
-    res.status(201).json({
+    return res.status(201).json({
       eventId,
       recorded: true,
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
     console.error('[Analytics] Record error:', err);
-    res.status(500).json({ error: 'Event recording failed' });
+    return res.status(500).json({ error: 'Event recording failed' });
   }
 };
 
@@ -60,7 +60,7 @@ export const getCampaignMetrics = async (req: Request, res: Response): Promise<v
     );
 
     if (campaignResult.rowCount === 0) {
-      res.status(404).json({ error: 'Campaign not found' });
+      return res.status(404).json({ error: 'Campaign not found' });
       return;
     }
 
@@ -97,7 +97,7 @@ export const getCampaignMetrics = async (req: Request, res: Response): Promise<v
     const engagements = metrics.engagement?.count || 0;
     const conversions = metrics.conversion?.count || 0;
 
-    res.json({
+    return res.json({
       campaignId,
       period: { startDate, endDate },
       totals: {
@@ -115,7 +115,7 @@ export const getCampaignMetrics = async (req: Request, res: Response): Promise<v
     });
   } catch (err) {
     console.error('[Analytics] Metrics error:', err);
-    res.status(500).json({ error: 'Metrics retrieval failed' });
+    return res.status(500).json({ error: 'Metrics retrieval failed' });
   }
 };
 
@@ -136,7 +136,7 @@ export const getAnalyticsSummary = async (req: Request, res: Response): Promise<
     const campaignIds = campaignResult.rows.map((row: any) => row.id);
 
     if (campaignIds.length === 0) {
-      res.json({
+      return res.json({
         summary: {
           activeCampaigns: 0,
           totalEvents: 0,
@@ -161,7 +161,7 @@ export const getAnalyticsSummary = async (req: Request, res: Response): Promise<
     const summary = summaryResult.rows[0];
     const engagementRate = summary.views > 0 ? ((summary.engagements / summary.views) * 100).toFixed(2) : '0';
 
-    res.json({
+    return res.json({
       summary: {
         activeCampaigns: summary.campaigns,
         totalEvents: summary.total_events,
@@ -173,7 +173,7 @@ export const getAnalyticsSummary = async (req: Request, res: Response): Promise<
     });
   } catch (err) {
     console.error('[Analytics] Summary error:', err);
-    res.status(500).json({ error: 'Summary retrieval failed' });
+    return res.status(500).json({ error: 'Summary retrieval failed' });
   }
 };
 
@@ -193,7 +193,7 @@ export const getContentMetrics = async (req: Request, res: Response): Promise<vo
     );
 
     if (contentResult.rowCount === 0) {
-      res.status(404).json({ error: 'Content not found' });
+      return res.status(404).json({ error: 'Content not found' });
       return;
     }
 
@@ -214,7 +214,7 @@ export const getContentMetrics = async (req: Request, res: Response): Promise<vo
       return acc;
     }, {});
 
-    res.json({
+    return res.json({
       contentId,
       metrics,
       totals: {
@@ -225,6 +225,6 @@ export const getContentMetrics = async (req: Request, res: Response): Promise<vo
     });
   } catch (err) {
     console.error('[Analytics] Content metrics error:', err);
-    res.status(500).json({ error: 'Metrics retrieval failed' });
+    return res.status(500).json({ error: 'Metrics retrieval failed' });
   }
 };

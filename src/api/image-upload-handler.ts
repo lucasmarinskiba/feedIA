@@ -212,7 +212,7 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
     if (req.file) {
       fs.unlinkSync(req.file.path); // Clean up on error
     }
-    res.status(500).json({ error: 'Image upload failed' });
+    return res.status(500).json({ error: 'Image upload failed' });
   }
 });
 
@@ -248,7 +248,7 @@ router.post('/match-prompts', async (req: Request, res: Response): Promise<void>
     });
   } catch (error) {
     log.error('[ImageMatch] Match prompts failed', error);
-    res.status(500).json({ error: 'Prompt matching failed' });
+    return res.status(500).json({ error: 'Prompt matching failed' });
   }
 });
 
@@ -286,7 +286,7 @@ router.post('/parameterize', async (req: Request, res: Response): Promise<void> 
     });
   } catch (error) {
     log.error('[ImageParameterize] Parameterization failed', error);
-    res.status(500).json({ error: 'Parameterization failed' });
+    return res.status(500).json({ error: 'Parameterization failed' });
   }
 });
 
@@ -317,7 +317,7 @@ router.get('/status', async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     log.error('[ImageUpload] Status check failed', error);
-    res.status(500).json({ error: 'Status check failed' });
+    return res.status(500).json({ error: 'Status check failed' });
   }
 });
 

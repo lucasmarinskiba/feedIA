@@ -14,7 +14,7 @@ const router = Router();
  */
 router.get('/status', (req: Request, res: Response): void => {
   const status = feediaBrain.getStatus();
-  res.json({
+  return res.json({
     status: 'ready',
     system: 'FeedIA Omniscient Brain',
     version: '1.0.0',
@@ -32,7 +32,7 @@ router.get('/status', (req: Request, res: Response): void => {
  */
 router.get('/domains', (req: Request, res: Response): void => {
   const domains = feediaBrain.getDomains();
-  res.json({ domains, count: domains.length });
+  return res.json({ domains, count: domains.length });
 });
 
 /**
@@ -41,7 +41,7 @@ router.get('/domains', (req: Request, res: Response): void => {
 router.get('/prompt', (req: Request, res: Response): void => {
   const domain = req.query.domain as string | undefined;
   const prompt = feediaBrain.getRandomPrompt(domain);
-  res.json({ prompt, domain: domain || 'all' });
+  return res.json({ prompt, domain: domain || 'all' });
 });
 
 /**
@@ -51,7 +51,7 @@ router.get('/ideas', (req: Request, res: Response): void => {
   const domain = req.query.domain as string | undefined;
   const count = parseInt(req.query.count as string) || 5;
   const ideas = feediaBrain.getCompositionIdeas(domain, count);
-  res.json({ ideas, count: ideas.length, domain: domain || 'all' });
+  return res.json({ ideas, count: ideas.length, domain: domain || 'all' });
 });
 
 /**
@@ -61,12 +61,12 @@ router.post('/carousel', async (req: Request, res: Response): Promise<void> => {
   const { domain, brief, slideCount = 10, platform = 'instagram' } = req.body;
 
   if (!domain || !brief) {
-    res.status(400).json({ error: 'domain and brief required' });
+    return res.status(400).json({ error: 'domain and brief required' });
     return;
   }
 
   const plan = await brujulaIntegration.generateCarouselPlan(domain, brief, slideCount, platform);
-  res.json(plan);
+  return res.json(plan);
 });
 
 /**
@@ -76,12 +76,12 @@ router.post('/carousel/multiformat', async (req: Request, res: Response): Promis
   const { domain, brief } = req.body;
 
   if (!domain || !brief) {
-    res.status(400).json({ error: 'domain and brief required' });
+    return res.status(400).json({ error: 'domain and brief required' });
     return;
   }
 
   const formats = await brujulaIntegration.generateMultiFormatCarousel(domain, brief);
-  res.json(formats);
+  return res.json(formats);
 });
 
 /**
@@ -91,12 +91,12 @@ router.post('/carousel/optimize', (req: Request, res: Response): void => {
   const { plan, feedback } = req.body;
 
   if (!plan || !feedback) {
-    res.status(400).json({ error: 'plan and feedback required' });
+    return res.status(400).json({ error: 'plan and feedback required' });
     return;
   }
 
   const optimized = brujulaIntegration.optimizeCarouselPlan(plan, feedback);
-  res.json(optimized);
+  return res.json(optimized);
 });
 
 export const feediaRouter = router;

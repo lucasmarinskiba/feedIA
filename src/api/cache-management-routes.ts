@@ -27,7 +27,7 @@ router.get('/stats', (_req: Request, res: Response): void => {
       savings: '$' + stats.estimatedSavingsUSD.toFixed(2),
     });
 
-    res.json({
+    return res.json({
       ok: true,
       cache: {
         totalCached: stats.totalCached,
@@ -42,7 +42,7 @@ router.get('/stats', (_req: Request, res: Response): void => {
     });
   } catch (err) {
     log.error('[CacheManagement] Stats failed', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
@@ -56,14 +56,14 @@ router.post('/clear', (_req: Request, res: Response): void => {
 
     log.info('[CacheManagement] Cache cleared', { cleared: result.cleared });
 
-    res.json({
+    return res.json({
       ok: true,
       message: `Cleared ${result.cleared} cached prompts`,
       cleared: result.cleared,
     });
   } catch (err) {
     log.error('[CacheManagement] Clear failed', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
@@ -76,7 +76,7 @@ router.get('/suggestions', (req: Request, res: Response): void => {
     const { pillar, platform, niche } = req.query as { pillar?: string; platform?: 'instagram' | 'tiktok'; niche?: string };
 
     if (!pillar || !platform || !niche) {
-      res.status(400).json({ ok: false, error: 'pillar, platform, and niche required' });
+      return res.status(400).json({ ok: false, error: 'pillar, platform, and niche required' });
       return;
     }
 
@@ -84,7 +84,7 @@ router.get('/suggestions', (req: Request, res: Response): void => {
 
     log.info('[CacheManagement] Suggestions retrieved', { pillar, platform, count: suggestions.length });
 
-    res.json({
+    return res.json({
       ok: true,
       pillar,
       platform,
@@ -94,7 +94,7 @@ router.get('/suggestions', (req: Request, res: Response): void => {
     });
   } catch (err) {
     log.error('[CacheManagement] Suggestions failed', { error: String(err) });
-    res.status(500).json({ ok: false, error: String(err) });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 

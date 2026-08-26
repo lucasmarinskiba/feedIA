@@ -13,9 +13,9 @@ router.post('/action', async (req: Request, res: Response) => {
   try {
     const accountId = req.get('X-Account-ID') || 'test-account';
     // TODO: Wire execution action with proper context type
-    res.json({ accountId, action: req.body, status: 'queued', message: 'Action endpoint ready for integration' });
+    return res.json({ accountId, action: req.body, status: 'queued', message: 'Action endpoint ready for integration' });
   } catch (err) {
-    res.status(400).json({ error: String(err) });
+    return res.status(400).json({ error: String(err) });
   }
 });
 
@@ -23,9 +23,9 @@ router.post('/plan', async (req: Request, res: Response) => {
   try {
     const accountId = req.get('X-Account-ID') || 'test-account';
     // TODO: Wire execution plan with proper parameters
-    res.json({ accountId, plan: req.body, status: 'ready', message: 'Plan endpoint ready for integration' });
+    return res.json({ accountId, plan: req.body, status: 'ready', message: 'Plan endpoint ready for integration' });
   } catch (err) {
-    res.status(400).json({ error: String(err) });
+    return res.status(400).json({ error: String(err) });
   }
 });
 

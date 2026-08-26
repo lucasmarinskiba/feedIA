@@ -26,7 +26,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
       result.steps.push({ name: 'Database connection', status: 'ok' });
     } catch (e) {
       result.steps.push({ name: 'Database connection', status: 'failed' });
-      res.status(500).json({ error: 'Database connection failed', ...result });
+      return res.status(500).json({ error: 'Database connection failed', ...result });
       return;
     }
 
@@ -116,7 +116,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
       result.steps.push({ name: 'Create A/B tests', status: 'ok', count: 20 });
 
       result.status = 'success';
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         message: '4,590+ test records seeded',
         records_created: seedUsers + seedCampaigns + seedEvents + 50 + 20,
@@ -125,12 +125,12 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
     } catch (e) {
       result.status = 'failed';
       result.steps.push({ name: 'Seed execution', status: 'failed' });
-      res.status(500).json({ error: e instanceof Error ? e.message : 'Seed failed', ...result });
+      return res.status(500).json({ error: e instanceof Error ? e.message : 'Seed failed', ...result });
     } finally {
       await pool.end();
     }
   } catch (err) {
-    res.status(500).json({ error: 'Seed endpoint error', details: err instanceof Error ? err.message : 'Unknown' });
+    return res.status(500).json({ error: 'Seed endpoint error', details: err instanceof Error ? err.message : 'Unknown' });
   }
 };
 
@@ -140,7 +140,7 @@ export const registerSeedEndpoint = (app: Express): void => {
 
   // Seed status check
   app.get('/api/admin/seed/status', (_req: Request, res: Response) => {
-    res.json({
+    return res.json({
       status: 'ready',
       message: 'POST /api/admin/seed to seed 4,590+ test records',
       endpoint: '/api/admin/seed',

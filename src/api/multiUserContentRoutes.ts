@@ -17,58 +17,58 @@ import { recommendResourcesFor, getFreeResources } from '../capabilities/resourc
 const router = Router();
 
 router.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', phases: [21, 22, 23, 24, 25], message: 'Multi-user SaaS online (Phase 25: Philosophy-First Branding)' });
+  return res.json({ status: 'ok', phases: [21, 22, 23, 24, 25], message: 'Multi-user SaaS online (Phase 25: Philosophy-First Branding)' });
 });
 
 router.post('/:userId/brand', (req: Request, res: Response) => {
   try {
     const userId = String(req.params.userId ?? '');
     const profile = createUserBrandProfile(userId, req.body);
-    res.json({ status: 'success', data: profile });
+    return res.json({ status: 'success', data: profile });
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    return res.status(500).json({ error: String(error) });
   }
 });
 
 router.get('/:userId/brand', (req: Request, res: Response): void => {
   const profile = getUserBrandProfile(String(req.params.userId ?? ''));
   if (!profile) { res.status(404).json({ error: 'Not found' }); return; }
-  res.json({ status: 'success', data: profile });
+  return res.json({ status: 'success', data: profile });
 });
 
 router.post('/:userId/generate/carousel', async (req: Request, res: Response): Promise<void> => {
   try {
     const carousel = await generateSmartCarousel(req.body);
-    res.json({ status: 'success', data: carousel });
+    return res.json({ status: 'success', data: carousel });
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    return res.status(500).json({ error: String(error) });
   }
 });
 
 router.post('/:userId/generate/video', async (req: Request, res: Response): Promise<void> => {
   try {
     const video = await generateSmartVideo(req.body);
-    res.json({ status: 'success', data: video });
+    return res.json({ status: 'success', data: video });
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    return res.status(500).json({ error: String(error) });
   }
 });
 
 router.post('/:userId/validate/coherence', (req: Request, res: Response) => {
   const report = generateBrandCoherenceReport(String(req.params.userId ?? ''), req.body.posts || []);
-  res.json({ status: 'success', data: report });
+  return res.json({ status: 'success', data: report });
 });
 
 router.get('/:userId/resources/recommend', (req: Request, res: Response) => {
   const contentType = (req.query.contentType as string) || 'carousel';
   const recommendations = recommendResourcesFor(contentType);
-  res.json({ status: 'success', data: { recommended: recommendations, free: getFreeResources().slice(0, 5) } });
+  return res.json({ status: 'success', data: { recommended: recommendations, free: getFreeResources().slice(0, 5) } });
 });
 
 router.get('/:userId/dashboard', (req: Request, res: Response): void => {
   const profile = getUserBrandProfile(String(req.params.userId ?? ''));
   if (!profile) { res.status(404).json({ error: 'Not found' }); return; }
-  res.json({
+  return res.json({
     status: 'success',
     data: {
       accountName: profile.accountName,
@@ -83,7 +83,7 @@ router.get('/:userId/dashboard', (req: Request, res: Response): void => {
 router.post('/:userId/learnings/update', (req: Request, res: Response): void => {
   const updated = updateUserBrandLearnings(String(req.params.userId ?? ''), req.body);
   if (!updated) { res.status(404).json({ error: 'Not found' }); return; }
-  res.json({ status: 'success', data: updated });
+  return res.json({ status: 'success', data: updated });
 });
 
 router.post('/:userId/generate/batch', async (req: Request, res: Response): Promise<void> => {
@@ -91,9 +91,9 @@ router.post('/:userId/generate/batch', async (req: Request, res: Response): Prom
     const { carousels = [], videos = [] } = req.body;
     const carouselResults = await Promise.all(carousels.map((b: unknown) => generateSmartCarousel(b)));
     const videoResults = await Promise.all(videos.map((b: unknown) => generateSmartVideo(b)));
-    res.json({ status: 'success', data: { carousels: carouselResults, videos: videoResults } });
+    return res.json({ status: 'success', data: { carousels: carouselResults, videos: videoResults } });
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    return res.status(500).json({ error: String(error) });
   }
 });
 
@@ -110,14 +110,14 @@ router.post('/:userId/philosophy', (req: Request, res: Response) => {
 
     const philosophy = createBrandPhilosophy(userId, req.body);
 
-    res.json({
+    return res.json({
       status: 'success',
       data: philosophy,
       message: 'Brand philosophy created (foundation for visual identity)',
     });
   } catch (error) {
     log.error(`[Phase 25] Philosophy creation failed: ${error}`);
-    res.status(500).json({ error: 'Philosophy creation failed', details: String(error) });
+    return res.status(500).json({ error: 'Philosophy creation failed', details: String(error) });
   }
 });
 
@@ -130,10 +130,10 @@ router.get('/:userId/philosophy', (req: Request, res: Response): void => {
   const philosophy = getBrandPhilosophy(userId);
 
   if (!philosophy) {
-    res.status(404).json({ error: 'Brand philosophy not found. Create one first.' }); return;
+    return res.status(404).json({ error: 'Brand philosophy not found. Create one first.' }); return;
   }
 
-  res.json({ status: 'success', data: philosophy });
+  return res.json({ status: 'success', data: philosophy });
 });
 
 /**
@@ -146,12 +146,12 @@ router.put('/:userId/philosophy', (req: Request, res: Response): void => {
     const updated = updateBrandPhilosophy(userId, req.body);
 
     if (!updated) {
-      res.status(404).json({ error: 'Brand philosophy not found' }); return;
+      return res.status(404).json({ error: 'Brand philosophy not found' }); return;
     }
 
-    res.json({ status: 'success', data: updated, message: 'Philosophy updated' });
+    return res.json({ status: 'success', data: updated, message: 'Philosophy updated' });
   } catch (error) {
-    res.status(500).json({ error: 'Update failed', details: String(error) });
+    return res.status(500).json({ error: 'Update failed', details: String(error) });
   }
 });
 
@@ -163,7 +163,7 @@ router.put('/:userId/philosophy', (req: Request, res: Response): void => {
  */
 router.get('/:userId/fonts/available', (req: Request, res: Response) => {
   const fonts = getAvailableFonts();
-  res.json({
+  return res.json({
     status: 'success',
     data: { count: fonts.length, fonts },
     message: '20 premium fonts available',
@@ -178,7 +178,7 @@ router.get('/:userId/fonts/category/:category', (req: Request, res: Response) =>
   const { category } = req.params;
   const fonts = getFontsByCategory(category as any);
 
-  res.json({
+  return res.json({
     status: 'success',
     data: { category, fonts, count: fonts.length },
   });
@@ -192,7 +192,7 @@ router.get('/:userId/fonts/pairing/:niche', (req: Request, res: Response) => {
   const niche = String(req.params.niche ?? '');
   const pairing = getFontPairings(niche);
 
-  res.json({
+  return res.json({
     status: 'success',
     data: pairing,
     message: `Font pairing for ${niche} niche`,
@@ -211,20 +211,20 @@ router.post('/:userId/visual/derive', (req: Request, res: Response): void => {
     const philosophy = getBrandPhilosophy(userId);
 
     if (!philosophy) {
-      res.status(404).json({ error: 'Brand philosophy required. Create one first.' }); return;
+      return res.status(404).json({ error: 'Brand philosophy required. Create one first.' }); return;
     }
 
     log.info(`[Phase 25] Deriving visual identity from philosophy: ${userId}`);
 
     const visual = deriveVisualFromPhilosophy(philosophy);
 
-    res.json({
+    return res.json({
       status: 'success',
       data: visual,
       message: 'Visual identity derived automatically from philosophy',
     });
   } catch (error) {
-    res.status(500).json({ error: 'Derivation failed', details: String(error) });
+    return res.status(500).json({ error: 'Derivation failed', details: String(error) });
   }
 });
 
@@ -241,7 +241,7 @@ router.post('/:userId/visual/validate', (req: Request, res: Response) => {
 
     const validation = validateVisualAgainstPhilosophy(visual);
 
-    res.json({
+    return res.json({
       status: 'success',
       data: {
         aligned: validation.aligned,
@@ -250,7 +250,7 @@ router.post('/:userId/visual/validate', (req: Request, res: Response) => {
       message: validation.aligned ? 'Visual identity aligned with philosophy' : 'Misalignments found',
     });
   } catch (error) {
-    res.status(500).json({ error: 'Validation failed', details: String(error) });
+    return res.status(500).json({ error: 'Validation failed', details: String(error) });
   }
 });
 
@@ -263,10 +263,10 @@ router.get('/:userId/philosophy/brief', (req: Request, res: Response): void => {
   const { brief, pillars } = generatePhilosophyBrief(userId);
 
   if (!brief) {
-    res.status(404).json({ error: 'Brand philosophy not found' }); return;
+    return res.status(404).json({ error: 'Brand philosophy not found' }); return;
   }
 
-  res.json({
+  return res.json({
     status: 'success',
     data: { brief, contentPillars: pillars },
     message: 'Philosophy brief for content generation',
@@ -308,7 +308,7 @@ router.get('/:userId/patterns/available', (req: Request, res: Response) => {
     ],
   };
 
-  res.json({
+  return res.json({
     status: 'success',
     data: patterns,
     message: 'All carousel patterns available (Phase 26)',
@@ -342,14 +342,14 @@ router.post('/:userId/patterns/generate', (req: Request, res: Response) => {
       nextStep: 'Use brief to generate visual assets + copy with LLM'
     };
 
-    res.json({
+    return res.json({
       status: 'success',
       data: brief,
       message: 'Carousel brief generated. Ready for asset + copy generation.',
     });
   } catch (error) {
     log.error(`[Phase 26] Pattern generation failed: ${error}`);
-    res.status(500).json({ error: 'Pattern generation failed', details: String(error) });
+    return res.status(500).json({ error: 'Pattern generation failed', details: String(error) });
   }
 });
 
@@ -392,10 +392,10 @@ router.get('/:userId/patterns/:patternName/template', (req: Request, res: Respon
   const template = templates[patternName];
 
   if (!template) {
-    res.status(404).json({ error: `Pattern ${patternName} not found` }); return;
+    return res.status(404).json({ error: `Pattern ${patternName} not found` }); return;
   }
 
-  res.json({
+  return res.json({
     status: 'success',
     data: template,
     message: `Template for ${patternName}`,
@@ -422,14 +422,14 @@ router.post('/:userId/patterns/batch-generate', (req: Request, res: Response) =>
       status: 'ready for generation'
     }));
 
-    res.json({
+    return res.json({
       status: 'success',
       data: { briefs, totalCarousels: patterns.length },
       message: 'Batch carousel briefs generated. Ready for asset generation.',
     });
   } catch (error) {
     log.error(`[Phase 26] Batch generation failed: ${error}`);
-    res.status(500).json({ error: 'Batch generation failed', details: String(error) });
+    return res.status(500).json({ error: 'Batch generation failed', details: String(error) });
   }
 });
 
@@ -476,10 +476,10 @@ router.get('/:userId/patterns/platform/:platform', (req: Request, res: Response)
   const guide = platformGuides[platform];
 
   if (!guide) {
-    res.status(404).json({ error: `Platform ${platform} not found` }); return;
+    return res.status(404).json({ error: `Platform ${platform} not found` }); return;
   }
 
-  res.json({
+  return res.json({
     status: 'success',
     data: guide,
     message: `Storytelling guide for ${platform}`

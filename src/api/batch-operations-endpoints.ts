@@ -21,7 +21,7 @@ export const batchCreateCampaigns = async (req: Request, res: Response): Promise
     const { campaigns } = req.body;
 
     if (!Array.isArray(campaigns) || campaigns.length === 0) {
-      res.status(400).json({ error: 'campaigns array required' });
+      return res.status(400).json({ error: 'campaigns array required' });
       return;
     }
 
@@ -38,7 +38,7 @@ export const batchCreateCampaigns = async (req: Request, res: Response): Promise
       console.error('[Batch] Processing error:', err);
     });
 
-    res.status(202).json({
+    return res.status(202).json({
       jobId,
       status: 'processing',
       created_count: 0,
@@ -46,7 +46,7 @@ export const batchCreateCampaigns = async (req: Request, res: Response): Promise
     });
   } catch (err) {
     console.error('[Batch] Create campaigns error:', err);
-    res.status(500).json({ error: 'Batch creation failed' });
+    return res.status(500).json({ error: 'Batch creation failed' });
   }
 };
 
@@ -116,13 +116,13 @@ export const getBatchStatus = async (req: Request, res: Response): Promise<void>
     );
 
     if (result.rowCount === 0) {
-      res.status(404).json({ error: 'Batch job not found' });
+      return res.status(404).json({ error: 'Batch job not found' });
       return;
     }
 
     const job = result.rows[0] as BatchJob;
 
-    res.json({
+    return res.json({
       id: job.id,
       status: job.status,
       progress: {
@@ -137,7 +137,7 @@ export const getBatchStatus = async (req: Request, res: Response): Promise<void>
     });
   } catch (err) {
     console.error('[Batch] Get status error:', err);
-    res.status(500).json({ error: 'Status retrieval failed' });
+    return res.status(500).json({ error: 'Status retrieval failed' });
   }
 };
 
@@ -157,7 +157,7 @@ export const cancelBatch = async (req: Request, res: Response): Promise<void> =>
     );
 
     if (result.rowCount === 0) {
-      res.status(400).json({ error: 'Job not found or already completed' });
+      return res.status(400).json({ error: 'Job not found or already completed' });
       return;
     }
 
@@ -167,10 +167,10 @@ export const cancelBatch = async (req: Request, res: Response): Promise<void> =>
       ['cancelled', jobId]
     );
 
-    res.json({ message: 'Batch job cancelled', jobId });
+    return res.json({ message: 'Batch job cancelled', jobId });
   } catch (err) {
     console.error('[Batch] Cancel error:', err);
-    res.status(500).json({ error: 'Cancellation failed' });
+    return res.status(500).json({ error: 'Cancellation failed' });
   }
 };
 
@@ -201,12 +201,12 @@ export const listBatchJobs = async (req: Request, res: Response): Promise<void> 
       [...params, parseInt(limit as string, 10), parseInt(offset as string, 10)]
     );
 
-    res.json({
+    return res.json({
       jobs: result.rows,
       total: result.rowCount,
     });
   } catch (err) {
     console.error('[Batch] List error:', err);
-    res.status(500).json({ error: 'List retrieval failed' });
+    return res.status(500).json({ error: 'List retrieval failed' });
   }
 };

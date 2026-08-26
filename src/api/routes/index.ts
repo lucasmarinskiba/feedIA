@@ -12,12 +12,12 @@ router.use('/generators', generatorsRouter);
 
 // Health check
 router.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  return res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Info endpoint
 router.get('/info', (req, res) => {
-  res.json({
+  return res.json({
     name: 'FeedIA',
     version: '2.0.0',
     features: ['orchestration', 'skill-registry', 'maestro-selector', 'generators'],

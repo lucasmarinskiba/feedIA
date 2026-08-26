@@ -29,28 +29,28 @@ const publishToInstagram = async (req: AuthRequest, res: Response): Promise<void
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { contentId, caption, mediaUrls, type = 'feed' } = req.body;
 
     if (!contentId || !mediaUrls || mediaUrls.length === 0) {
-      res.status(400).json({ error: 'Missing contentId, caption, or mediaUrls' });
+      return res.status(400).json({ error: 'Missing contentId, caption, or mediaUrls' });
       return;
     }
 
     // Get Instagram token (from OAuth)
     const igToken = instagramTokens.get(userId);
     if (!igToken) {
-      res.status(400).json({ error: 'Instagram account not connected. Call /oauth/instagram/connect first.' });
+      return res.status(400).json({ error: 'Instagram account not connected. Call /oauth/instagram/connect first.' });
       return;
     }
 
     // Get Instagram Business Account ID
     const meResponse = await fetch('https://graph.instagram.com/v18.0/me?fields=id,username&access_token=' + igToken);
     if (!meResponse.ok) {
-      res.status(400).json({ error: 'Failed to get Instagram account info' });
+      return res.status(400).json({ error: 'Failed to get Instagram account info' });
       return;
     }
 
@@ -75,7 +75,7 @@ const publishToInstagram = async (req: AuthRequest, res: Response): Promise<void
     }
 
     if (mediaIds.length === 0) {
-      res.status(500).json({ error: 'Failed to create media containers' });
+      return res.status(500).json({ error: 'Failed to create media containers' });
       return;
     }
 
@@ -95,7 +95,7 @@ const publishToInstagram = async (req: AuthRequest, res: Response): Promise<void
       );
 
       if (!carouselResponse.ok) {
-        res.status(500).json({ error: 'Failed to create carousel' });
+        return res.status(500).json({ error: 'Failed to create carousel' });
         return;
       }
 
@@ -107,7 +107,7 @@ const publishToInstagram = async (req: AuthRequest, res: Response): Promise<void
     }
 
     if (!publishResponse.ok) {
-      res.status(500).json({ error: 'Failed to publish to Instagram', details: await publishResponse.json() });
+      return res.status(500).json({ error: 'Failed to publish to Instagram', details: await publishResponse.json() });
       return;
     }
 
@@ -122,7 +122,7 @@ const publishToInstagram = async (req: AuthRequest, res: Response): Promise<void
       [publishData.id, contentId, userId]
     );
 
-    res.json({
+    return res.json({
       success: true,
       platform: 'instagram',
       postId: publishData.id,
@@ -131,7 +131,7 @@ const publishToInstagram = async (req: AuthRequest, res: Response): Promise<void
     });
   } catch (err) {
     console.error('[Instagram] Publish error:', err);
-    res.status(500).json({ error: 'Failed to publish to Instagram', details: String(err) });
+    return res.status(500).json({ error: 'Failed to publish to Instagram', details: String(err) });
   }
 };
 
@@ -143,20 +143,20 @@ const publishToTikTok = async (req: AuthRequest, res: Response): Promise<void> =
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { contentId, caption, videoUrl } = req.body;
 
     if (!contentId || !videoUrl) {
-      res.status(400).json({ error: 'Missing contentId or videoUrl' });
+      return res.status(400).json({ error: 'Missing contentId or videoUrl' });
       return;
     }
 
     const tiktokApiKey = process.env.TIKTOK_API_KEY;
     if (!tiktokApiKey) {
-      res.status(400).json({ error: 'TikTok API not configured' });
+      return res.status(400).json({ error: 'TikTok API not configured' });
       return;
     }
 
@@ -176,7 +176,7 @@ const publishToTikTok = async (req: AuthRequest, res: Response): Promise<void> =
     });
 
     if (!initResponse.ok) {
-      res.status(500).json({ error: 'Failed to initialize TikTok upload', details: await initResponse.json() });
+      return res.status(500).json({ error: 'Failed to initialize TikTok upload', details: await initResponse.json() });
       return;
     }
 
@@ -185,14 +185,14 @@ const publishToTikTok = async (req: AuthRequest, res: Response): Promise<void> =
     const publishId = initData.data?.publish_id;
 
     if (!uploadUrl || !publishId) {
-      res.status(500).json({ error: 'No upload URL or publish ID' });
+      return res.status(500).json({ error: 'No upload URL or publish ID' });
       return;
     }
 
     // Download video and upload
     const videoResponse = await fetch(videoUrl);
     if (!videoResponse.ok) {
-      res.status(400).json({ error: 'Failed to fetch video' });
+      return res.status(400).json({ error: 'Failed to fetch video' });
       return;
     }
 
@@ -208,7 +208,7 @@ const publishToTikTok = async (req: AuthRequest, res: Response): Promise<void> =
     });
 
     if (!uploadVideoResponse.ok) {
-      res.status(500).json({ error: 'Failed to upload video to TikTok' });
+      return res.status(500).json({ error: 'Failed to upload video to TikTok' });
       return;
     }
 
@@ -233,7 +233,7 @@ const publishToTikTok = async (req: AuthRequest, res: Response): Promise<void> =
     });
 
     if (!publishResponse.ok) {
-      res.status(500).json({ error: 'Failed to publish to TikTok', details: await publishResponse.json() });
+      return res.status(500).json({ error: 'Failed to publish to TikTok', details: await publishResponse.json() });
       return;
     }
 
@@ -249,7 +249,7 @@ const publishToTikTok = async (req: AuthRequest, res: Response): Promise<void> =
       [videoId || publishId, contentId, userId]
     );
 
-    res.json({
+    return res.json({
       success: true,
       platform: 'tiktok',
       postId: videoId || publishId,
@@ -258,7 +258,7 @@ const publishToTikTok = async (req: AuthRequest, res: Response): Promise<void> =
     });
   } catch (err) {
     console.error('[TikTok] Publish error:', err);
-    res.status(500).json({ error: 'Failed to publish to TikTok', details: String(err) });
+    return res.status(500).json({ error: 'Failed to publish to TikTok', details: String(err) });
   }
 };
 
@@ -270,14 +270,14 @@ const publishToAll = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { contentId, caption, mediaUrls, videoUrl, platforms = ['instagram', 'tiktok'] } = req.body;
 
     if (!contentId) {
-      res.status(400).json({ error: 'Missing contentId' });
+      return res.status(400).json({ error: 'Missing contentId' });
       return;
     }
 
@@ -307,14 +307,14 @@ const publishToAll = async (req: AuthRequest, res: Response): Promise<void> => {
       }
     }
 
-    res.json({
+    return res.json({
       success: true,
       results,
       message: 'Publishing to selected platforms',
     });
   } catch (err) {
     console.error('[Publishing] Publish all error:', err);
-    res.status(500).json({ error: 'Failed to publish', details: String(err) });
+    return res.status(500).json({ error: 'Failed to publish', details: String(err) });
   }
 };
 
@@ -326,14 +326,14 @@ const checkStatus = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const igConnected = instagramTokens.has(userId);
     const tiktokApiKey = process.env.TIKTOK_API_KEY;
 
-    res.json({
+    return res.json({
       instagram: {
         connected: igConnected,
         status: igConnected ? 'ready' : 'not_connected',
@@ -347,7 +347,7 @@ const checkStatus = async (req: AuthRequest, res: Response): Promise<void> => {
       },
     });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to check status' });
+    return res.status(500).json({ error: 'Failed to check status' });
   }
 };
 

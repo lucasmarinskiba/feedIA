@@ -59,7 +59,7 @@ router.post('/carousel', async (req: Request, res: Response) => {
 
     log.info('[Publishing] Carousel published', { userId, accountId, postId: igPostId });
 
-    res.json({
+    return res.json({
       ok: true,
       postId: igPostId,
       url: `https://instagram.com/p/${igPostId}`,
@@ -67,7 +67,7 @@ router.post('/carousel', async (req: Request, res: Response) => {
     });
   } catch (err) {
     log.error('[Publish Carousel] Error', { error: String(err) });
-    res.status(500).json({ error: 'Publishing failed' });
+    return res.status(500).json({ error: 'Publishing failed' });
   }
 });
 
@@ -125,7 +125,7 @@ router.post('/video', async (req: Request, res: Response) => {
 
     log.info('[Publishing] Video published', { userId, accountId, videoId, platform });
 
-    res.json({
+    return res.json({
       ok: true,
       videoId,
       url: platform === 'instagram' ? `https://instagram.com/reel/${videoId}` : `https://tiktok.com/@${account.accountHandle}/video/${videoId}`,
@@ -133,7 +133,7 @@ router.post('/video', async (req: Request, res: Response) => {
     });
   } catch (err) {
     log.error('[Publish Video] Error', { error: String(err) });
-    res.status(500).json({ error: 'Publishing failed' });
+    return res.status(500).json({ error: 'Publishing failed' });
   }
 });
 
@@ -181,14 +181,14 @@ router.post('/story', async (req: Request, res: Response) => {
 
     log.info('[Publishing] Story published', { userId, accountId, storyId });
 
-    res.json({
+    return res.json({
       ok: true,
       storyId,
       recordedAt: content.publishedAt,
     });
   } catch (err) {
     log.error('[Publish Story] Error', { error: String(err) });
-    res.status(500).json({ error: 'Publishing failed' });
+    return res.status(500).json({ error: 'Publishing failed' });
   }
 });
 

@@ -22,9 +22,9 @@ router.post('/webhook/conversion', async (req: Request, res: Response) => {
     accountId = String(accountId).trim();
     console.log('[conversion] final accountId:', accountId, 'typeof:', typeof accountId);
     const result = await recordConversion(accountId, req.body);
-    res.json(result);
+    return res.json(result);
   } catch (err) {
-    res.status(400).json({ error: String(err) });
+    return res.status(400).json({ error: String(err) });
   }
 });
 
@@ -36,9 +36,9 @@ router.post('/webhook/engagement', async (req: Request, res: Response) => {
     }
     accountId = String(accountId).trim();
     const result = await recordFanEngagement(accountId, req.body);
-    res.json(result);
+    return res.json(result);
   } catch (err) {
-    res.status(400).json({ error: String(err) });
+    return res.status(400).json({ error: String(err) });
   }
 });
 
@@ -50,9 +50,9 @@ router.post('/webhook/lead', async (req: Request, res: Response) => {
     }
     accountId = String(accountId).trim();
     const result = await recordLeadSignal(accountId, req.body);
-    res.json(result);
+    return res.json(result);
   } catch (err) {
-    res.status(400).json({ error: String(err) });
+    return res.status(400).json({ error: String(err) });
   }
 });
 
@@ -64,9 +64,9 @@ router.get('/metrics', async (req: Request, res: Response) => {
     }
     accountId = String(accountId).trim();
     const metrics = await getLiveMetrics(accountId);
-    res.json(metrics);
+    return res.json(metrics);
   } catch (err) {
-    res.status(400).json({ error: String(err) });
+    return res.status(400).json({ error: String(err) });
   }
 });
 

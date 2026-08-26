@@ -12,7 +12,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     const data = req.body as Omit<Influencer, 'id' | 'createdAt' | 'updatedAt'>;
 
     if (!data.handle || !data.platform) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'Missing required fields: handle, platform',
       });
       return;
@@ -20,10 +20,10 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 
     const influencer = await influencerService.createInfluencer(data);
 
-    res.status(201).json({ ok: true, influencer });
+    return res.status(201).json({ ok: true, influencer });
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: `Influencer creation failed: ${error}` });
+    return res.status(500).json({ error: `Influencer creation failed: ${error}` });
   }
 });
 
@@ -34,10 +34,10 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 
     const influencers = await influencerService.listInfluencers(status, niche);
 
-    res.json({ ok: true, influencers });
+    return res.json({ ok: true, influencers });
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: `Influencer listing failed: ${error}` });
+    return res.status(500).json({ error: `Influencer listing failed: ${error}` });
   }
 });
 
@@ -48,14 +48,14 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     const influencer = await influencerService.loadInfluencer(id);
 
     if (!influencer) {
-      res.status(404).json({ error: 'Influencer not found' });
+      return res.status(404).json({ error: 'Influencer not found' });
       return;
     }
 
-    res.json({ ok: true, influencer });
+    return res.json({ ok: true, influencer });
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: `Influencer load failed: ${error}` });
+    return res.status(500).json({ error: `Influencer load failed: ${error}` });
   }
 });
 
@@ -66,10 +66,10 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
 
     const influencer = await influencerService.updateInfluencer(id, updates);
 
-    res.json({ ok: true, influencer });
+    return res.json({ ok: true, influencer });
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: `Influencer update failed: ${error}` });
+    return res.status(500).json({ error: `Influencer update failed: ${error}` });
   }
 });
 
@@ -79,10 +79,10 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
 
     await influencerService.deleteInfluencer(id);
 
-    res.json({ ok: true, deleted: true });
+    return res.json({ ok: true, deleted: true });
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: `Influencer deletion failed: ${error}` });
+    return res.status(500).json({ error: `Influencer deletion failed: ${error}` });
   }
 });
 
@@ -93,10 +93,10 @@ router.post('/:id/collaborations', async (req: Request, res: Response): Promise<
 
     const influencer = await influencerService.addCollaboration(id, collab);
 
-    res.status(201).json({ ok: true, influencer });
+    return res.status(201).json({ ok: true, influencer });
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: `Collaboration add failed: ${error}` });
+    return res.status(500).json({ error: `Collaboration add failed: ${error}` });
   }
 });
 
@@ -108,10 +108,10 @@ router.put('/:id/collaborations/:collabId', async (req: Request, res: Response):
 
     const influencer = await influencerService.updateCollaborationStatus(id, collabId, status);
 
-    res.json({ ok: true, influencer });
+    return res.json({ ok: true, influencer });
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: `Collaboration update failed: ${error}` });
+    return res.status(500).json({ error: `Collaboration update failed: ${error}` });
   }
 });
 
@@ -122,10 +122,10 @@ router.get('/niche/:niche', async (req: Request, res: Response): Promise<void> =
 
     const influencers = await influencerService.getInfluencersByNiche(niche, minEngagement);
 
-    res.json({ ok: true, influencers });
+    return res.json({ ok: true, influencers });
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: `Niche search failed: ${error}` });
+    return res.status(500).json({ error: `Niche search failed: ${error}` });
   }
 });
 
@@ -135,10 +135,10 @@ router.get('/top/performers', async (req: Request, res: Response): Promise<void>
 
     const influencers = await influencerService.getTopPerformers(limit);
 
-    res.json({ ok: true, influencers });
+    return res.json({ ok: true, influencers });
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: `Top performers fetch failed: ${error}` });
+    return res.status(500).json({ error: `Top performers fetch failed: ${error}` });
   }
 });
 

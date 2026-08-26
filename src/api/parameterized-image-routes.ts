@@ -86,7 +86,7 @@ router.post('/upload-images', upload.array('images', 10), async (req: Request, r
     return void res.json(response);
   } catch (error) {
     log.error('[ParameterizedRoutes] Upload error', error);
-    res.status(500).json({ error: 'Image processing failed' });
+    return res.status(500).json({ error: 'Image processing failed' });
   }
 });
 
@@ -109,7 +109,7 @@ router.post('/match-prompts', async (req: Request, res: Response): Promise<void>
 
     const matched = await matchDescriptionsToPrompts(imageDescriptions, objective, occasion);
 
-    res.json({
+    return res.json({
       status: 'success',
       matched,
       count: matched.length,
@@ -118,7 +118,7 @@ router.post('/match-prompts', async (req: Request, res: Response): Promise<void>
     });
   } catch (error) {
     log.error('[ParameterizedRoutes] Matching error', error);
-    res.status(500).json({ error: 'Prompt matching failed' });
+    return res.status(500).json({ error: 'Prompt matching failed' });
   }
 });
 
@@ -127,7 +127,7 @@ router.post('/match-prompts', async (req: Request, res: Response): Promise<void>
  * Parameterized library info
  */
 router.get('/library-status', (req: Request, res: Response) => {
-  res.json({
+  return res.json({
     status: 'ready',
     library: 'FeedIA Parameterized Prompts',
     totalPrompts: 12870,
@@ -178,7 +178,7 @@ router.post('/generate-content', async (req: Request, res: Response): Promise<vo
     });
   } catch (error) {
     log.error('[ParameterizedRoutes] Generation error', error);
-    res.status(500).json({ error: 'Content generation failed' });
+    return res.status(500).json({ error: 'Content generation failed' });
   }
 });
 

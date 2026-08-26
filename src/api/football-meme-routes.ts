@@ -125,7 +125,7 @@ router.post('/generate', async (req: Request, res: Response): Promise<void> => {
       finalPrompt = refinement.refinedPrompt;
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       prompt: finalPrompt,
       category,
@@ -149,7 +149,7 @@ router.post('/generate', async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     log.error('[FootballMeme] Generation failed', error);
-    res.status(500).json({ error: 'Generation failed', message: String(error) });
+    return res.status(500).json({ error: 'Generation failed', message: String(error) });
   }
 });
 
@@ -176,7 +176,7 @@ router.post('/batch-generate', async (req: Request, res: Response): Promise<void
       if (response) prompts.push(response);
     }
 
-    res.json({
+    return res.json({
       status: 'success',
       category,
       promptCount: prompts.length,
@@ -185,7 +185,7 @@ router.post('/batch-generate', async (req: Request, res: Response): Promise<void
     });
   } catch (error) {
     log.error('[FootballMeme] Batch generation failed', error);
-    res.status(500).json({ error: 'Batch generation failed' });
+    return res.status(500).json({ error: 'Batch generation failed' });
   }
 });
 
@@ -195,7 +195,7 @@ router.post('/batch-generate', async (req: Request, res: Response): Promise<void
  */
 router.get('/categories', async (req: Request, res: Response) => {
   try {
-    res.json({
+    return res.json({
       status: 'ok',
       categories: [
         {
@@ -267,7 +267,7 @@ router.get('/categories', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[FootballMeme] Categories check failed', error);
-    res.status(500).json({ error: 'Categories check failed' });
+    return res.status(500).json({ error: 'Categories check failed' });
   }
 });
 
@@ -277,7 +277,7 @@ router.get('/categories', async (req: Request, res: Response) => {
  */
 router.get('/health', async (req: Request, res: Response) => {
   try {
-    res.json({
+    return res.json({
       status: 'ok',
       service: 'football-meme-generator',
       batch: 'batch-98',
@@ -300,7 +300,7 @@ router.get('/health', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error('[FootballMeme] Health check failed', error);
-    res.status(500).json({ error: 'Health check failed' });
+    return res.status(500).json({ error: 'Health check failed' });
   }
 });
 

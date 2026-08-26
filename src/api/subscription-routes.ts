@@ -78,13 +78,13 @@ router.post('/webhook/mercado-pago', async (req: Request, res: Response) => {
         await logSubscriptionEvent(userId, 'payment.pending', 'mercado_pago', String(paymentId), data);
       }
 
-      res.json({ ok: true });
+      return res.json({ ok: true });
     } else {
-      res.json({ ok: true }); // Ignore other event types
+      return res.json({ ok: true }); // Ignore other event types
     }
   } catch (err) {
     log.error('[MP Webhook] Error', { error: String(err) });
-    res.status(500).json({ error: 'Webhook processing failed' });
+    return res.status(500).json({ error: 'Webhook processing failed' });
   }
 });
 
@@ -105,7 +105,7 @@ router.get('/subscription/status', async (req: Request, res: Response) => {
       ? Math.ceil((tier.subscriptionCycleEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
       : null;
 
-    res.json({
+    return res.json({
       userId,
       tier: tier.tier,
       status: tier.subscriptionStatus,
@@ -122,7 +122,7 @@ router.get('/subscription/status', async (req: Request, res: Response) => {
     });
   } catch (err) {
     log.error('[Subscription Status] Error', { error: String(err) });
-    res.status(500).json({ error: 'Failed to fetch subscription status' });
+    return res.status(500).json({ error: 'Failed to fetch subscription status' });
   }
 });
 
@@ -143,10 +143,10 @@ router.post('/subscription/cancel', async (req: Request, res: Response) => {
     await logSubscriptionEvent(userId, 'subscription.canceled', tier.paymentProvider);
     log.info('[Subscription] Canceled', { userId, tier: tier.tier });
 
-    res.json({ ok: true, status: 'canceled' });
+    return res.json({ ok: true, status: 'canceled' });
   } catch (err) {
     log.error('[Subscription Cancel] Error', { error: String(err) });
-    res.status(500).json({ error: 'Cancellation failed' });
+    return res.status(500).json({ error: 'Cancellation failed' });
   }
 });
 
@@ -171,10 +171,10 @@ router.post('/subscription/reactivate', async (req: Request, res: Response) => {
     await logSubscriptionEvent(userId, 'subscription.reactivated', tier.paymentProvider);
     log.info('[Subscription] Reactivated', { userId, tier: tier.tier });
 
-    res.json({ ok: true, status: 'active' });
+    return res.json({ ok: true, status: 'active' });
   } catch (err) {
     log.error('[Subscription Reactivate] Error', { error: String(err) });
-    res.status(500).json({ error: 'Reactivation failed' });
+    return res.status(500).json({ error: 'Reactivation failed' });
   }
 });
 
@@ -197,14 +197,14 @@ router.post('/subscription/retry-payment', async (req: Request, res: Response) =
     // For now, log the attempt
     await logSubscriptionEvent(userId, 'payment.retry_requested', tier.paymentProvider);
 
-    res.json({
+    return res.json({
       ok: true,
       message: 'Payment retry initiated. You will receive confirmation email shortly.',
       status: 'pending',
     });
   } catch (err) {
     log.error('[Payment Retry] Error', { error: String(err) });
-    res.status(500).json({ error: 'Retry failed' });
+    return res.status(500).json({ error: 'Retry failed' });
   }
 });
 
@@ -219,10 +219,10 @@ router.get('/payment-history', async (req: Request, res: Response) => {
     const limit = Math.min(Number(req.query.limit) || 20, 100);
     const payments = await getPaymentHistory(userId, limit);
 
-    res.json({ payments });
+    return res.json({ payments });
   } catch (err) {
     log.error('[Payment History] Error', { error: String(err) });
-    res.status(500).json({ error: 'Failed to fetch payment history' });
+    return res.status(500).json({ error: 'Failed to fetch payment history' });
   }
 });
 
@@ -249,14 +249,14 @@ router.post('/oauth/instagram/refresh', async (req: Request, res: Response) => {
     // For now, log and return error
     log.warn('[OAuth Refresh] Token expired, needs refresh', { userId });
 
-    res.status(401).json({
+    return res.status(401).json({
       error: 'Instagram token expired',
       action: 'please_reconnect',
       redirectUrl: '/oauth/instagram/connect',
     });
   } catch (err) {
     log.error('[OAuth Refresh] Error', { error: String(err) });
-    res.status(500).json({ error: 'Token refresh failed' });
+    return res.status(500).json({ error: 'Token refresh failed' });
   }
 });
 
@@ -278,13 +278,13 @@ router.put('/payment-method', async (req: Request, res: Response) => {
     // For now, just log the request
     log.info('[Payment Method] Update requested', { userId, provider });
 
-    res.json({
+    return res.json({
       ok: true,
       message: 'Redirecting to payment method update...',
     });
   } catch (err) {
     log.error('[Payment Method] Error', { error: String(err) });
-    res.status(500).json({ error: 'Update failed' });
+    return res.status(500).json({ error: 'Update failed' });
   }
 });
 

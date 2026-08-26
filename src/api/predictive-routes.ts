@@ -13,7 +13,7 @@ router.post('/viral', (req: Request, res: Response): void => {
   try {
     const { format, topic, historicalData } = req.body;
     if (!format || !topic) {
-      res.status(400).json({ error: 'format + topic required' });
+      return res.status(400).json({ error: 'format + topic required' });
       return;
     }
 
@@ -41,9 +41,9 @@ router.post('/viral', (req: Request, res: Response): void => {
     ];
 
     const prediction = predictViralScore(format, topic, historicalData || mockData);
-    res.json(prediction);
+    return res.json(prediction);
   } catch (err) {
-    res.status(500).json({ error: 'viral-prediction', message: String(err) });
+    return res.status(500).json({ error: 'viral-prediction', message: String(err) });
   }
 });
 
@@ -52,14 +52,14 @@ router.post('/churn', (req: Request, res: Response): void => {
     const { fanId, lastEngagementDays = 15, totalSpent = 250, engagementScore = 65, tier = 'silver' } = req.body;
 
     if (!fanId) {
-      res.status(400).json({ error: 'fanId required' });
+      return res.status(400).json({ error: 'fanId required' });
       return;
     }
 
     const prediction = predictChurnRisk(fanId, lastEngagementDays, totalSpent, engagementScore, tier);
-    res.json(prediction);
+    return res.json(prediction);
   } catch (err) {
-    res.status(500).json({ error: 'churn-prediction', message: String(err) });
+    return res.status(500).json({ error: 'churn-prediction', message: String(err) });
   }
 });
 
@@ -67,7 +67,7 @@ router.post('/roi-forecast', (req: Request, res: Response): void => {
   try {
     const { format, topic, historicalTimeline } = req.body;
     if (!format || !topic) {
-      res.status(400).json({ error: 'format + topic required' });
+      return res.status(400).json({ error: 'format + topic required' });
       return;
     }
 
@@ -105,9 +105,9 @@ router.post('/roi-forecast', (req: Request, res: Response): void => {
     ];
 
     const forecast = forecastROI(format, topic, historicalTimeline || mockTimeline);
-    res.json(forecast);
+    return res.json(forecast);
   } catch (err) {
-    res.status(500).json({ error: 'roi-forecast', message: String(err) });
+    return res.status(500).json({ error: 'roi-forecast', message: String(err) });
   }
 });
 
@@ -122,7 +122,7 @@ router.post('/lead-conversion', (req: Request, res: Response): void => {
     } = req.body;
 
     if (!leadId) {
-      res.status(400).json({ error: 'leadId required' });
+      return res.status(400).json({ error: 'leadId required' });
       return;
     }
 
@@ -133,9 +133,9 @@ router.post('/lead-conversion', (req: Request, res: Response): void => {
       daysSinceCreation,
       historicalConversionRate,
     );
-    res.json(prediction);
+    return res.json(prediction);
   } catch (err) {
-    res.status(500).json({ error: 'lead-conversion-prediction', message: String(err) });
+    return res.status(500).json({ error: 'lead-conversion-prediction', message: String(err) });
   }
 });
 
@@ -144,14 +144,14 @@ router.post('/full-analysis', (req: Request, res: Response): void => {
     const { fanMetrics = {}, contentHistory = [], leads = {} } = req.body;
 
     const analysis = runFullPredictiveAnalysis(fanMetrics, contentHistory, leads);
-    res.json(analysis);
+    return res.json(analysis);
   } catch (err) {
-    res.status(500).json({ error: 'full-analysis', message: String(err) });
+    return res.status(500).json({ error: 'full-analysis', message: String(err) });
   }
 });
 
 router.get('/status', (req: Request, res: Response): void => {
-  res.json({
+  return res.json({
     status: 'ok',
     models: ['viral-score', 'churn-risk', 'roi-forecast', 'lead-conversion', 'full-analysis'],
     dataRequirements: {
