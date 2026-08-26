@@ -16,21 +16,21 @@ const sessions = new Map();
 /**
  * Hash password (bcrypt equivalent for Node.js)
  */
-const hashPassword = (password: string): string => {
+const hashPassword = (password) => {
   return crypto.createHash('sha256').update(password + JWT_SECRET).digest('hex');
 };
 
 /**
  * Verify password
  */
-const verifyPassword = (password: string, hash: string): boolean => {
+const verifyPassword = (password, hash) => {
   return hashPassword(password) === hash;
 };
 
 /**
  * Generate JWT token
  */
-const generateToken = (userId: string, expiresIn: number = ACCESS_TOKEN_EXPIRY): string => {
+const generateToken = (userId, expiresIn = ACCESS_TOKEN_EXPIRY) => {
   const payload = {
     userId,
     iat: Date.now(),
@@ -50,7 +50,7 @@ const generateToken = (userId: string, expiresIn: number = ACCESS_TOKEN_EXPIRY):
 /**
  * Verify JWT token
  */
-const verifyToken = (token: string): { userId: string } | null => {
+const verifyToken = (token) => {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
@@ -75,7 +75,7 @@ const verifyToken = (token: string): { userId: string } | null => {
 /**
  * Signup
  */
-const signup = async (email: string, password: string, name: string): Promise<any> => {
+const signup = async (email, password, name) => {
   if (users.has(email)) {
     throw new Error('Email already registered');
   }
@@ -116,7 +116,7 @@ const signup = async (email: string, password: string, name: string): Promise<an
 /**
  * Login
  */
-const login = async (email: string, password: string): Promise<any> => {
+const login = async (email, password) => {
   const user = users.get(email);
 
   if (!user || !verifyPassword(password, user.password_hash)) {
@@ -142,7 +142,7 @@ const login = async (email: string, password: string): Promise<any> => {
 /**
  * Refresh token
  */
-const refreshTokens = async (refreshToken: string): Promise<any> => {
+const refreshTokens = async (refreshToken) => {
   const session = sessions.get(refreshToken);
 
   if (!session || session.expires_at < Date.now()) {
@@ -171,7 +171,7 @@ const refreshTokens = async (refreshToken: string): Promise<any> => {
 /**
  * Get current user from token
  */
-const getCurrentUser = async (token: string): Promise<any> => {
+const getCurrentUser = async (token) => {
   const decoded = verifyToken(token);
   if (!decoded) throw new Error('Invalid token');
 
