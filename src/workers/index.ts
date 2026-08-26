@@ -9,6 +9,7 @@
  * NO en Vercel Functions.
  */
 
+import '../config/envAliases.js';
 import { startVideoWorker } from './videoWorker.js';
 import { startVideoPostProductionWorker } from './videoPostProductionWorker.js';
 import { startPublishWorker } from './publishWorker.js';

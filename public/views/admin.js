@@ -2,10 +2,13 @@
    ADMIN DASHBOARD — solo owner
    Stats: hits 24h, errores 24h, error rate. Logs: últimos 100 errores.
    Deep health: KV ping + LLM providers + versión.
+   Grant/Revoke plan, Feature Flags (releases), Users (grants) — sección de gestión.
    ══════════════════════════════════════════════════════════════════════════════ */
-import { apiSafe } from '../lib/api.js';
+import { apiSafe, apiBust } from '../lib/api.js';
 import { escape } from '../lib/dom.js';
 import { loadingScreen } from '../lib/ui.js';
+
+const VALID_PLANS = ['free', 'pro', 'premium', 'owner', 'promo', 'partner'];
 
 const fmtDate = (ts) => {
   const d = new Date(ts);
@@ -79,13 +82,164 @@ const renderLogs = (errors) => {
     </div>`;
 };
 
+const renderGrantForm = () => `
+  <div class="card" style="margin-bottom:20px">
+    <h3 style="margin:0 0 14px">🎟️ Asignar / revocar plan</h3>
+    <form id="admin-grant-form" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
+      <div style="flex:1;min-width:200px">
+        <label class="tiny muted" style="display:block;margin-bottom:4px">Email</label>
+        <input type="email" name="email" required placeholder="usuario@ejemplo.com" class="input" style="width:100%" />
+      </div>
+      <div>
+        <label class="tiny muted" style="display:block;margin-bottom:4px">Plan</label>
+        <select name="plan" class="input">
+          ${VALID_PLANS.map((p) => `<option value="${p}">${p}</option>`).join('')}
+        </select>
+      </div>
+      <div style="flex:1;min-width:160px">
+        <label class="tiny muted" style="display:block;margin-bottom:4px">Nota (opcional)</label>
+        <input type="text" name="note" placeholder="motivo" class="input" style="width:100%" />
+      </div>
+      <button type="submit" class="btn primary">Asignar</button>
+      <button type="button" id="admin-revoke-btn" class="btn ghost">Revocar (→ free)</button>
+    </form>
+    <div id="admin-grant-result" class="tiny muted"></div>
+  </div>`;
+
+const renderGrantsList = (grants) => {
+  if (!grants?.length) {
+    return `<div class="card" style="margin-bottom:20px"><h3 style="margin:0 0 8px">👥 Usuarios con plan asignado</h3><p class="small muted">Sin grants activos todavía.</p></div>`;
+  }
+  return `
+    <div class="card" style="margin-bottom:20px">
+      <h3 style="margin:0 0 14px">👥 Usuarios con plan asignado (${grants.length})</h3>
+      <div style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto">
+        ${grants
+          .map(
+            (g) => `
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 10px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:8px">
+            <span>${escape(g.email || g.userId || '?')}</span>
+            <span><strong>${escape(g.plan || '?')}</strong> ${g.grantedAt ? `<span class="tiny muted">· ${escape(fmtDate(g.grantedAt))}</span>` : ''}</span>
+          </div>`,
+          )
+          .join('')}
+      </div>
+    </div>`;
+};
+
+const renderFlags = (flags) => {
+  return `
+    <div class="card" style="margin-bottom:20px">
+      <h3 style="margin:0 0 14px">🚦 Feature flags</h3>
+      ${
+        flags?.length
+          ? `<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+        ${flags
+          .map(
+            (f) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:8px 10px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:8px">
+            <div>
+              <strong>${escape(f.key)}</strong>
+              ${f.description ? `<span class="tiny muted"> — ${escape(f.description)}</span>` : ''}
+              ${f.rollout_percent ? `<span class="tiny muted"> · rollout ${f.rollout_percent}%</span>` : ''}
+            </div>
+            <button class="btn ghost tiny admin-flag-toggle" data-key="${escape(f.key)}" data-enabled="${f.enabled ? '1' : '0'}">
+              ${f.enabled ? '✅ ON' : '⚪ OFF'}
+            </button>
+          </div>`,
+          )
+          .join('')}
+      </div>`
+          : `<p class="small muted" style="margin:0 0 14px">Sin feature flags creados todavía.</p>`
+      }
+      <form id="admin-flag-create-form" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:1;min-width:160px">
+          <label class="tiny muted" style="display:block;margin-bottom:4px">Nueva flag (key)</label>
+          <input type="text" name="key" required placeholder="mi_feature_nueva" class="input" style="width:100%" />
+        </div>
+        <div style="flex:1;min-width:160px">
+          <label class="tiny muted" style="display:block;margin-bottom:4px">Descripción</label>
+          <input type="text" name="description" class="input" style="width:100%" />
+        </div>
+        <button type="submit" class="btn ghost">+ Crear (OFF)</button>
+      </form>
+    </div>`;
+};
+
+const wireGrantForm = (root) => {
+  const form = root.querySelector('#admin-grant-form');
+  const resultEl = root.querySelector('#admin-grant-result');
+  const revokeBtn = root.querySelector('#admin-revoke-btn');
+  if (!form) return;
+
+  const showResult = (msg, ok) => {
+    if (!resultEl) return;
+    resultEl.textContent = msg;
+    resultEl.style.color = ok ? '#10b981' : '#ef4444';
+  };
+
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(form);
+    const email = String(fd.get('email') || '').trim();
+    const plan = String(fd.get('plan') || 'free');
+    const note = String(fd.get('note') || '');
+    if (!email) return;
+    const { data, error } = await apiSafe('/api/admin/grant', null, { body: { email, plan, note } });
+    if (error) return showResult(`Error: ${error.message}`, false);
+    showResult(`✅ ${data.email} → ${data.plan}`, true);
+    apiBust('/api/admin/');
+    await loadData(root);
+  });
+
+  revokeBtn?.addEventListener('click', async () => {
+    const email = String(new FormData(form).get('email') || '').trim();
+    if (!email) return showResult('Ingresá un email para revocar', false);
+    const { data, error } = await apiSafe('/api/admin/revoke', null, { body: { email } });
+    if (error) return showResult(`Error: ${error.message}`, false);
+    showResult(`✅ ${data.email} → free`, true);
+    apiBust('/api/admin/');
+    await loadData(root);
+  });
+};
+
+const wireFlags = (root) => {
+  root.querySelectorAll('.admin-flag-toggle').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const key = btn.dataset.key;
+      const enabled = btn.dataset.enabled !== '1';
+      const { error } = await apiSafe('/api/admin/releases', null, { body: { key, enabled } });
+      if (error) return;
+      apiBust('/api/admin/releases');
+      await loadData(root);
+    });
+  });
+
+  const createForm = root.querySelector('#admin-flag-create-form');
+  createForm?.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(createForm);
+    const key = String(fd.get('key') || '').trim();
+    const description = String(fd.get('description') || '');
+    if (!key) return;
+    const { error } = await apiSafe('/api/admin/releases', null, {
+      body: { key, enabled: false, description },
+    });
+    if (error) return;
+    apiBust('/api/admin/releases');
+    await loadData(root);
+  });
+};
+
 const loadData = async (root) => {
   const c = root.querySelector('#admin-content');
   if (c) c.innerHTML = loadingScreen();
-  const [statsR, logsR, healthR] = await Promise.all([
+  const [statsR, logsR, healthR, usersR, flagsR] = await Promise.all([
     apiSafe('/api/admin/stats'),
     apiSafe('/api/admin/logs?limit=100'),
     apiSafe('/api/admin/health/deep'),
+    apiSafe('/api/admin/users'),
+    apiSafe('/api/admin/releases'),
   ]);
   if (statsR.error?.status === 403 || logsR.error?.status === 403) {
     if (c)
@@ -99,12 +253,20 @@ const loadData = async (root) => {
   const stats = statsR.data?.stats;
   const errors = logsR.data?.errors || [];
   const health = healthR.data;
-  if (c)
+  const grants = usersR.data?.grants || [];
+  const flags = flagsR.data?.flags || [];
+  if (c) {
     c.innerHTML = `
-    ${renderStats(stats)}
-    ${renderHealth(health)}
-    ${renderLogs(errors)}
-  `;
+      ${renderStats(stats)}
+      ${renderHealth(health)}
+      ${renderGrantForm()}
+      ${renderGrantsList(grants)}
+      ${renderFlags(flags)}
+      ${renderLogs(errors)}
+    `;
+    wireGrantForm(root);
+    wireFlags(root);
+  }
 };
 
 export const renderAdmin = async (root) => {

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import './config/envAliases.js';
 import chalk from 'chalk';
 import ora from 'ora';
 import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';

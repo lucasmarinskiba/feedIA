@@ -1,3 +1,4 @@
+import './config/envAliases.js';
 import express, { Express, Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
