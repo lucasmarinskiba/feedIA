@@ -12,6 +12,7 @@
 
 import { Express, Request, Response } from 'express';
 import { Pool } from 'pg';
+import { executeMutation, queryOneAs, queryAs } from '../db/typed-queries.js';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || process.env.DATABASE_PRIVATE_URL,
@@ -138,7 +139,7 @@ const analyzeAccount = async (req: AuthRequest, res: Response): Promise<void> =>
     }
 
     // Store analysis
-    await pool.query(
+    await executeMutation(
       `INSERT INTO user_content_metrics (user_id, platform, quality_score, created_at)
        VALUES ($1, $2, $3, NOW())
        ON CONFLICT (user_id) DO UPDATE SET updated_at = NOW()`,
@@ -258,7 +259,7 @@ const generateStrategy = async (req: AuthRequest, res: Response): Promise<void> 
     };
 
     // Store strategy
-    await pool.query(
+    await executeMutation(
       `INSERT INTO content_templates (user_id, name, description, template_json, platforms, created_at)
        VALUES ($1, $2, $3, $4, $5, NOW())`,
       [
@@ -918,7 +919,7 @@ const masterPlan = async (req: AuthRequest, res: Response): Promise<void> => {
     };
 
     // Store master plan
-    await pool.query(
+    await executeMutation(
       `INSERT INTO content_templates (user_id, name, description, template_json, platforms, created_at)
        VALUES ($1, $2, $3, $4, $5, NOW())`,
       [
