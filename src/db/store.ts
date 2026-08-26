@@ -3,7 +3,7 @@
  * Replaces mock in-memory storage
  */
 
-import { MongoClient, Db, Collection } from 'mongodb';
+import { MongoClient, Db, Collection, ObjectId, Filter } from 'mongodb';
 
 const MONGO_URI = process.env.DATABASE_URL || 'mongodb://localhost:27017/feedia';
 
@@ -53,13 +53,15 @@ export const store = {
 
   async getUser(userId: string): Promise<any> {
     const db = await getDB();
-    return db.collection('users').findOne({ _id: userId });
+    const filter: Filter<any> = { _id: userId };
+    return db.collection('users').findOne(filter as any);
   },
 
   async updateUser(userId: string, updates: any): Promise<void> {
     const db = await getDB();
+    const filter: Filter<any> = { _id: userId };
     await db.collection('users').updateOne(
-      { _id: userId },
+      filter as any,
       { $set: { ...updates, updatedAt: new Date() } }
     );
   },
@@ -76,13 +78,15 @@ export const store = {
 
   async getWorkspace(workspaceId: string): Promise<any> {
     const db = await getDB();
-    return db.collection('workspaces').findOne({ _id: workspaceId });
+    const filter: Filter<any> = { _id: workspaceId };
+    return db.collection('workspaces').findOne(filter as any);
   },
 
   async addWorkspaceMember(workspaceId: string, member: any): Promise<void> {
     const db = await getDB();
+    const filter: Filter<any> = { _id: workspaceId };
     await db.collection('workspaces').updateOne(
-      { _id: workspaceId },
+      filter as any,
       { $push: { members: member } }
     );
   },
@@ -112,7 +116,8 @@ export const store = {
 
   async getContent(contentId: string): Promise<any> {
     const db = await getDB();
-    return db.collection('content').findOne({ _id: contentId });
+    const filter: Filter<any> = { _id: contentId };
+    return db.collection('content').findOne(filter as any);
   },
 
   async getWorkspaceContent(workspaceId: string, limit = 50): Promise<any[]> {
@@ -127,7 +132,7 @@ export const store = {
   async updateContentMetrics(contentId: string, metrics: any): Promise<void> {
     const db = await getDB();
     await db.collection('content').updateOne(
-      { _id: contentId },
+      { _id: contentId } as any,
       { $set: { metrics } }
     );
   },
@@ -170,13 +175,13 @@ export const store = {
 
   async getInvitation(invitationId: string): Promise<any> {
     const db = await getDB();
-    return db.collection('invitations').findOne({ _id: invitationId });
+    return db.collection('invitations').findOne({ _id: invitationId } as any);
   },
 
   async acceptInvitation(invitationId: string): Promise<void> {
     const db = await getDB();
     await db.collection('invitations').updateOne(
-      { _id: invitationId },
+      { _id: invitationId } as any,
       { $set: { status: 'accepted' } }
     );
   },
