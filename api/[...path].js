@@ -62,6 +62,9 @@ import { handleAnalytics } from './_analytics.js';
 import { handleTemplates } from './_templates.js';
 import { handleTeams } from './_teams.js';
 import { handleFeedback } from './_feedback.js';
+import { handleAuth } from './_auth-real.js';
+import { handleEmail } from './_email.js';
+import { handleStorage } from './_storage.js';
 import { handleCuRecipes } from './_cuRecipeLibrary.js';
 import { handleGrowthIntelligence } from './_growthIntelligence.js';
 import { handleEliteEngine } from './_eliteCreatorEngine.js';
@@ -1299,6 +1302,66 @@ const innerHandler = async (req, res) => {
       } catch (err) {
         return json(res, 500, { error: 'publish-handler' });
       }
+    }
+  }
+
+  // ── Authentication (JWT + Sessions) ───────────────────────────────────
+  if (path.startsWith('/api/auth/')) {
+    let authBody = req.body;
+    if (authBody === undefined && (m === 'POST' || m === 'PUT')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        authBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        authBody = {};
+      }
+    }
+    try {
+      if (await handleAuth(req, res, path, m, authBody || {})) return;
+    } catch (err) {
+      return json(res, 500, { error: 'auth-handler' });
+    }
+  }
+
+  // ── Email Notifications (SendGrid) ─────────────────────────────────────
+  if (path.startsWith('/api/email/')) {
+    let emailBody = req.body;
+    if (emailBody === undefined && (m === 'POST' || m === 'PUT')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        emailBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        emailBody = {};
+      }
+    }
+    try {
+      if (await handleEmail(req, res, path, m, emailBody || {})) return;
+    } catch (err) {
+      return json(res, 500, { error: 'email-handler' });
+    }
+  }
+
+  // ── Storage (S3 + CDN) ─────────────────────────────────────────────────
+  if (path.startsWith('/api/storage/')) {
+    let storageBody = req.body;
+    if (storageBody === undefined && (m === 'POST' || m === 'PUT' || m === 'DELETE')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        storageBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        storageBody = {};
+      }
+    }
+    try {
+      if (await handleStorage(req, res, path, m, storageBody || {})) return;
+    } catch (err) {
+      return json(res, 500, { error: 'storage-handler' });
     }
   }
 
