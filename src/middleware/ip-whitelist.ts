@@ -5,7 +5,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { carouselDB } from '../db/postgres.js';
+import { queryOneAs, queryAs, executeMutation } from '../db/typed-queries.js';
 import { log } from '../agent/logger.js';
 
 declare global {
@@ -62,20 +62,14 @@ export const ipWhitelistMiddleware = async (req: Request, res: Response, next: N
     }
 
     // Get user plan
-    const pool = carouselDB.pool;
-    if (!pool) {
-      next(); // DB unavailable, skip
-      return;
-    }
+    const userRow = await queryOneAs<UserPlanRow>(`SELECT plan FROM users WHERE id = $1`, [userId]);
 
-    const userResult = await pool.query(`SELECT plan FROM users WHERE id = $1`, [userId]);
-
-    if (userResult.rows.length === 0) {
+    if (!userRow) {
       res.status(401).json({ error: 'User not found' });
       return;
     }
 
-    const plan = (userResult.rows[0] as UserPlanRow).plan;
+    const plan = userRow.plan;
 
     // Only Pro+ have IP whitelist
     if (plan === 'free') {
@@ -84,11 +78,11 @@ export const ipWhitelistMiddleware = async (req: Request, res: Response, next: N
     }
 
     // Get whitelisted IPs for user
-    const ipResult = await pool.query(`SELECT ip_address FROM ip_whitelist WHERE user_id = $1 AND enabled = true`, [
+    const ipRows = await queryAs<IpAddressRow>(`SELECT ip_address FROM ip_whitelist WHERE user_id = $1 AND enabled = true`, [
       userId,
     ]);
 
-    if (ipResult.rows.length === 0) {
+    if (ipRows.length === 0) {
       // No IPs whitelisted = deny access (Pro+ must configure)
       res.status(403).json({
         error: 'No whitelisted IPs configured. Please add your IP in account settings.',
@@ -96,7 +90,7 @@ export const ipWhitelistMiddleware = async (req: Request, res: Response, next: N
       return;
     }
 
-    const whitelistedIps = (ipResult.rows as IpAddressRow[]).map((row) => row.ip_address);
+    const whitelistedIps = ipRows.map((row) => row.ip_address);
     const clientIp = getClientIp(req);
 
     if (!whitelistedIps.includes(clientIp)) {
@@ -108,10 +102,10 @@ export const ipWhitelistMiddleware = async (req: Request, res: Response, next: N
     }
 
     // Log access
-    await pool.query(
+    await executeMutation(
       `INSERT INTO audit_logs (user_id, action, resource_type, details, ip_address, status)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [userId, 'API_ACCESS', 'API', { endpoint: req.path }, clientIp, 'success'],
+      [userId, 'API_ACCESS', 'API', JSON.stringify({ endpoint: req.path }), clientIp, 'success'],
     );
 
     next();
@@ -126,19 +120,14 @@ export const ipWhitelistMiddleware = async (req: Request, res: Response, next: N
  */
 export async function getWhitelistedIps(userId: string): Promise<WhitelistedIp[]> {
   try {
-    const pool = carouselDB.pool;
-    if (!pool) {
-      return [];
-    }
-
-    const result = await pool.query(
+    const rows = await queryAs<WhitelistedIpRow>(
       `SELECT ip_address, description, created_at FROM ip_whitelist
        WHERE user_id = $1 AND enabled = true
        ORDER BY created_at DESC`,
       [userId],
     );
 
-    return (result.rows as WhitelistedIpRow[]).map((row) => ({
+    return rows.map((row) => ({
       ip: row.ip_address,
       description: row.description,
       created_at: row.created_at,
@@ -154,17 +143,12 @@ export async function getWhitelistedIps(userId: string): Promise<WhitelistedIp[]
  */
 export async function addWhitelistedIp(userId: string, ip: string, description?: string): Promise<boolean> {
   try {
-    const pool = carouselDB.pool;
-    if (!pool) {
-      return false;
-    }
-
     // Validate IP format
     if (!isValidIp(ip)) {
       throw new Error('Invalid IP format');
     }
 
-    await pool.query(
+    await executeMutation(
       `INSERT INTO ip_whitelist (user_id, ip_address, description, enabled)
        VALUES ($1, $2, $3, true)
        ON CONFLICT (user_id, ip_address) DO UPDATE SET enabled = true`,
@@ -184,12 +168,7 @@ export async function addWhitelistedIp(userId: string, ip: string, description?:
  */
 export async function removeWhitelistedIp(userId: string, ip: string): Promise<boolean> {
   try {
-    const pool = carouselDB.pool;
-    if (!pool) {
-      return false;
-    }
-
-    await pool.query(`DELETE FROM ip_whitelist WHERE user_id = $1 AND ip_address = $2`, [userId, ip]);
+    await executeMutation(`DELETE FROM ip_whitelist WHERE user_id = $1 AND ip_address = $2`, [userId, ip]);
 
     log.info('IP removed from whitelist', { user_id: userId, ip });
     return true;
