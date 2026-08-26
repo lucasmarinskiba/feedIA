@@ -1,4 +1,5 @@
 /**
+import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
  * FeedIA Database Manager
  * Handles connection pooling, migrations, and query execution
  * Supports PostgreSQL (production) + SQLite (fallback)
@@ -86,7 +87,7 @@ export const query = async (sql: string, params?: unknown[]): Promise<{ rows: un
   }
 
   if (isPostgres && pool) {
-    const result = await pool.query(sql, params);
+    const result = await queryAs(sql, params);
     return {
       rows: result.rows,
       rowCount: result.rowCount || 0,
@@ -105,13 +106,13 @@ export const transaction = async <T>(callback: (client: PoolClient) => Promise<T
     throw new Error('[DB] Transactions only supported with PostgreSQL');
   }
 
-  await pool.query('BEGIN');
+  await executeMutation('BEGIN');
   try {
     const result = await callback(pool);
-    await pool.query('COMMIT');
+    await executeMutation('COMMIT');
     return result;
   } catch (err) {
-    await pool.query('ROLLBACK');
+    await executeMutation('ROLLBACK');
     throw err;
   }
 };
@@ -132,7 +133,7 @@ export const close = async (): Promise<void> => {
 export const healthCheck = async (): Promise<boolean> => {
   try {
     if (isPostgres && pool) {
-      const result = await pool.query('SELECT 1');
+      const result = await queryAs('SELECT 1');
       return result.rowCount === 1;
     }
     return false;
