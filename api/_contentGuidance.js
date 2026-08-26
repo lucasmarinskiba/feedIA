@@ -1,0 +1,145 @@
+/**
+ * Content Guidance — resuelve las dudas operativas más comunes de un creador:
+ *   1. ¿Cuánto contenido subo?
+ *   2. ¿De qué hablo?
+ *   3. ¿Qué formatos SÍ usar y cuáles NO?
+ *
+ * Es una capa de SÍNTESIS, no un motor nuevo — reusa:
+ *   - CADENCE_PER_WEEK / FORMAT_MIX de _calendarPlanner (cadencia real por plan)
+ *   - generateWinningAngles de _winningAngles (de qué hablar, calificado)
+ *   - PLACEMENT_HINTS de _audienceTargetingAgent (dónde aparece cada formato)
+ *
+ * Sin LLM — heurístico determinístico, respuesta instantánea. $0 costo.
+ */
+
+import { CADENCE_PER_WEEK, FORMAT_MIX } from './_calendarPlanner.js';
+import { generateWinningAngles } from './_winningAngles.js';
+import { hasFeature } from './_planFeatures.js';
+
+// ── Formatos: qué SÍ / qué NO, por plataforma ────────────────────────────
+// Basado en cómo distribuyen cada plataforma (señales de algoritmo conocidas,
+// no moda) + anti-patrones de CLAUDE.md (Pinterest Design Patterns / brand).
+const FORMAT_GUIDANCE = {
+  instagram: {
+    do: [
+      { format: 'reels', why: 'Máximo alcance frío vía Explore — señal madre: Sends + Saves.' },
+      { format: 'carousel', why: 'Mejor retención y save-rate en audiencia ya conectada — ideal para ángulos de calificación (mecanismo, objeción).' },
+      { format: 'stories', why: 'Mantiene top-of-mind diario + stickers de pregunta = feedback directo del ICP.' },
+      { format: 'collab post', why: 'Cross-pollination con audiencia adyacente sin pagar ads.' },
+    ],
+    dont: [
+      { format: 'foto estática sola (sin carrusel)', why: 'Alcance frío casi nulo comparado a reels/carousel — reservar sólo para product shots puntuales.' },
+      { format: 'texto plano sin gancho visual en los primeros 0.5s', why: 'El algoritmo corta distribución si no hay retención temprana.' },
+      { format: 'reels reciclados de otra plataforma con marca de agua', why: 'IG penaliza contenido con watermark ajeno — mata alcance.' },
+    ],
+    signal: 'Sends + Saves > Likes. Optimizá para que guarden o compartan, no para que reaccionen.',
+  },
+  tiktok: {
+    do: [
+      { format: 'video nativo (grabado en la app o sin watermark)', why: 'FYP prioriza nativo — completion rate es la métrica madre.' },
+      { format: 'series con nombre fijo + intro repetible', why: 'Entrena al algoritmo y a la audiencia a esperar tu próxima entrega — sube rewatch.' },
+      { format: 'stitch/duet a contenido grande del nicho', why: 'Entrada gratuita al grafo de audiencias ya formadas.' },
+      { format: 'live esporádico', why: 'Señal fuerte de comunidad activa — sube prioridad de feed post-live.' },
+    ],
+    dont: [
+      { format: 'video con watermark de otra red', why: 'TikTok deprioriza activamente contenido re-subido con marca de agua.' },
+      { format: 'video >60s sin necesidad narrativa', why: 'Duración larga sin justificar completion mata la métrica madre del FYP.' },
+      { format: 'fotos/carousel como formato principal', why: 'TikTok es video-first — carousel/foto es complemento, no columna vertebral.' },
+    ],
+    signal: 'Completion rate + Rewatch rate > todo lo demás. Cada segundo sin retención es distribución perdida.',
+  },
+};
+
+// ── Volumen: por qué esa cadencia y no otra ──────────────────────────────
+const volumeRationale = (plan, cadence) => {
+  const notes = [];
+  if (cadence.posts <= 5) {
+    notes.push('Cadencia baja: priorizá CALIDAD y consistencia de horario sobre volumen — el algoritmo castiga más la irregularidad que el volumen bajo.');
+  } else if (cadence.posts <= 21) {
+    notes.push('Cadencia media: suficiente para sostener series repetibles + testear 2-3 ángulos por semana.');
+  } else {
+    notes.push('Cadencia alta: usa el volumen para cubrir todo el funnel (awareness + calificación + conversión) en la misma semana, no repetir el mismo ángulo.');
+  }
+  notes.push(`Mínimo real para no perder momentum algorítmico: ${Math.max(3, Math.round(cadence.posts * 0.6))} posts/semana aunque bajes ritmo.`);
+  return notes;
+};
+
+/**
+ * Respuesta unificada: cuánto subir + de qué hablar + qué formatos sí/no.
+ */
+export const getContentPlaybook = async ({
+  planId = 'free',
+  platform = 'instagram',
+  niche = '',
+  awarenessLevel = 'problem-aware',
+  offerPriceTier = 'medium',
+} = {}) => {
+  const plan = planId || 'free';
+  const cadence = CADENCE_PER_WEEK[plan] || CADENCE_PER_WEEK.free;
+  const mix = FORMAT_MIX[plan] || FORMAT_MIX.free;
+  const fmtGuide = FORMAT_GUIDANCE[platform] || FORMAT_GUIDANCE.instagram;
+
+  let angles = null;
+  try {
+    angles = await generateWinningAngles({ niche, awarenessLevel, offerPriceTier, count: 5 });
+  } catch {
+    angles = null;
+  }
+
+  return {
+    plan,
+    platform,
+    niche,
+    postingVolume: {
+      postsPerWeek: cadence.posts,
+      storiesPerWeek: cadence.stories,
+      rationale: volumeRationale(plan, cadence),
+      calendarAutoAvailable: hasFeature(plan, 'contentGeneration.calendarAutoGenerated'),
+    },
+    formatMix: {
+      recommended: mix,
+      do: fmtGuide.do,
+      dont: fmtGuide.dont,
+      algorithmSignal: fmtGuide.signal,
+    },
+    topicGuidance: {
+      source: angles ? 'winning-angles-engine' : 'unavailable',
+      angles: angles?.angles || [],
+      funnelMix: angles?.funnelMix || null,
+      rule: 'Nunca 100% del contenido en un solo nivel de calificación — mezclá awareness (alcance) con calificación (compradores reales).',
+    },
+    generatedAt: new Date().toISOString(),
+  };
+};
+
+const json = (res, code, body) => {
+  res.statusCode = code;
+  res.setHeader('content-type', 'application/json; charset=utf-8');
+  res.setHeader('cache-control', 'no-store');
+  res.end(JSON.stringify(body));
+};
+
+export const handleContentGuidance = async (req, res, path, m, body, ctx = {}) => {
+  const user = ctx.user || null;
+
+  if (path === '/api/guidance/content' && (m === 'POST' || m === 'GET')) {
+    const params = body || {};
+    const result = await getContentPlaybook({
+      planId: user?.plan || params.planId || 'free',
+      platform: params.platform || 'instagram',
+      niche: params.niche || '',
+      awarenessLevel: params.awarenessLevel || 'problem-aware',
+      offerPriceTier: params.offerPriceTier || 'medium',
+    });
+    json(res, 200, result);
+    return true;
+  }
+
+  if (path === '/api/guidance/formats' && m === 'GET') {
+    res.setHeader('cache-control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    json(res, 200, { platforms: FORMAT_GUIDANCE });
+    return true;
+  }
+
+  return false;
+};

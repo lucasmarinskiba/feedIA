@@ -42,6 +42,9 @@ import { handleSocialConnect } from './_socialConnect.js';
 import { handleAudienceTargeting } from './_audienceTargetingAgent.js';
 import { handleGrowthStrategist } from './_growthStrategistAgent.js';
 import { handleGrowthCouncil } from './_growthCouncil.js';
+import { handleWinningAngles } from './_winningAngles.js';
+import { handleContentGuidance } from './_contentGuidance.js';
+import { handleContentSystems } from './_contentSystems.js';
 import { handleViralPredictor, predictVirality } from './_viralPredictor.js';
 import { handleContentForge } from './_contentForge.js';
 import { getFreeProviderStatus } from './_freeAi.js';
@@ -1477,6 +1480,7 @@ const innerHandler = async (req, res) => {
 
   // ── TikTok Script Engine + Hook Lab + Visual Director + Sound Designer ──
   // ── Niche Research + Audience Targeting + Growth Strategist + Council ───
+  // ── Winning Angles + Content Guidance + Content Systems ─────────────────
   if (
     path.startsWith('/api/tiktok/script/') ||
     path.startsWith('/api/hooks/') ||
@@ -1485,7 +1489,10 @@ const innerHandler = async (req, res) => {
     path.startsWith('/api/growth/research/') ||
     path.startsWith('/api/growth/audience/') ||
     path.startsWith('/api/growth/strategy/') ||
-    path.startsWith('/api/growth/council/')
+    path.startsWith('/api/growth/council/') ||
+    path.startsWith('/api/angles/') ||
+    path.startsWith('/api/guidance/') ||
+    path.startsWith('/api/systems/')
   ) {
     const sessCtx = await getSessionFromReq(req).catch(() => null);
     const userId = sessCtx?.user?.id || null;
@@ -1498,6 +1505,8 @@ const innerHandler = async (req, res) => {
       else if (path.startsWith('/api/growth/research/') || path.startsWith('/api/growth/audience/'))
         category = 'branding';
       else if (path.startsWith('/api/growth/strategy/') || path.startsWith('/api/growth/council/')) category = 'forge';
+      else if (path.startsWith('/api/angles/') || path.startsWith('/api/guidance/') || path.startsWith('/api/systems/'))
+        category = 'branding';
       const limCfg = LIMITS[category] || LIMITS.studio;
       const rlKey = userId ? `${category}:${userId}` : `${category}:${ip}`;
       if (!(await rateLimit(req, res, rlKey, limCfg.limit, limCfg.window, { user: sessCtx?.user }))) return;
@@ -1543,6 +1552,12 @@ const innerHandler = async (req, res) => {
       )
         return;
       if (path.startsWith('/api/growth/council/') && (await handleGrowthCouncil(req, res, path, m, gBody || {}, ctx)))
+        return;
+      if (path.startsWith('/api/angles/') && (await handleWinningAngles(req, res, path, m, gBody || {}, ctx)))
+        return;
+      if (path.startsWith('/api/guidance/') && (await handleContentGuidance(req, res, path, m, gBody || {}, ctx)))
+        return;
+      if (path.startsWith('/api/systems/') && (await handleContentSystems(req, res, path, m, gBody || {}, ctx)))
         return;
     } catch (err) {
       return json(res, 500, { error: 'growth-agents-handler', path, message: String(err?.message || err) });
