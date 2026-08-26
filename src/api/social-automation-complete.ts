@@ -1,4 +1,5 @@
 /**
+import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
  * COMPLETE SOCIAL AUTOMATION SYSTEM
  *
  * Comprehensive Instagram + TikTok automation:
@@ -119,7 +120,7 @@ const instagramCallback = async (req: Request, res: Response): Promise<void> => 
     tokenStore.set(`${userId}:instagram`, token);
 
     // Save to database
-    await pool.query(
+    await executeMutation(
       `INSERT INTO user_social_tokens (user_id, platform, access_token, expires_at, created_at)
        VALUES ($1, $2, $3, $4, NOW())
        ON CONFLICT(user_id, platform) DO UPDATE SET
@@ -212,7 +213,7 @@ const tiktokCallback = async (req: Request, res: Response): Promise<void> => {
     tokenStore.set(`${userId}:tiktok`, token);
 
     // Save to database
-    await pool.query(
+    await executeMutation(
       `INSERT INTO user_social_tokens (user_id, platform, access_token, refresh_token, expires_at, created_at)
        VALUES ($1, $2, $3, $4, $5, NOW())
        ON CONFLICT(user_id, platform) DO UPDATE SET
@@ -260,7 +261,7 @@ const schedulePost = async (req: AuthRequest, res: Response): Promise<void> => {
     }
 
     // Create scheduled post record
-    const result = await pool.query(
+    const result = await queryAs(
       `INSERT INTO scheduled_posts (user_id, content_id, scheduled_at, platforms, status, retry_count, created_at)
        VALUES ($1, $2, $3, $4, 'pending', 0, NOW())
        RETURNING id, scheduled_at`,
@@ -412,7 +413,7 @@ const getDashboard = async (req: AuthRequest, res: Response): Promise<void> => {
     }
 
     // Get aggregated metrics
-    const result = await pool.query(
+    const result = await queryAs(
       `SELECT
         COUNT(*) as total_posts,
         SUM(COALESCE(ig_views, 0)) as instagram_views,
@@ -497,7 +498,7 @@ const getTemplates = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    const result = await pool.query(
+    const result = await queryAs(
       `SELECT id, name, description, template_json, platforms FROM content_templates WHERE user_id = $1`,
       [userId]
     );
