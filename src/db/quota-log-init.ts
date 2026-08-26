@@ -17,10 +17,11 @@ export const initializeQuotaLogging = async (): Promise<void> => {
         generation_id VARCHAR(255) NOT NULL UNIQUE,
         count INTEGER DEFAULT 1,
         recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        INDEX idx_user_format (user_id, format, recorded_at),
-        INDEX idx_generation_id (generation_id)
-      )
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_user_format ON quota_usage_log (user_id, format, recorded_at);
+      CREATE INDEX IF NOT EXISTS idx_generation_id ON quota_usage_log (generation_id);
     `);
 
     log.info('[DB] quota_usage_log table initialized');

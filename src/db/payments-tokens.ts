@@ -51,10 +51,7 @@ export const initializePaymentTokenTables = async (): Promise<void> => {
         created_at TIMESTAMP DEFAULT NOW(),
         completed_at TIMESTAMP,
         failure_reason TEXT,
-        FOREIGN KEY (user_id) REFERENCES user_tiers(user_id) ON DELETE CASCADE,
-        INDEX idx_payment_user_status (user_id, status),
-        INDEX idx_payment_provider_id (provider_payment_id),
-        INDEX idx_payment_created (created_at)
+        FOREIGN KEY (user_id) REFERENCES user_tiers(user_id) ON DELETE CASCADE
       );
 
       CREATE TABLE IF NOT EXISTS oauth_tokens (
@@ -68,9 +65,7 @@ export const initializePaymentTokenTables = async (): Promise<void> => {
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW(),
         FOREIGN KEY (user_id) REFERENCES user_tiers(user_id) ON DELETE CASCADE,
-        UNIQUE KEY (user_id, platform),
-        INDEX idx_token_user_platform (user_id, platform),
-        INDEX idx_token_expires (expires_at)
+        UNIQUE (user_id, platform)
       );
 
       CREATE TABLE IF NOT EXISTS subscription_events (
@@ -81,11 +76,19 @@ export const initializePaymentTokenTables = async (): Promise<void> => {
         provider_event_id TEXT,
         data TEXT,
         created_at TIMESTAMP DEFAULT NOW(),
-        FOREIGN KEY (user_id) REFERENCES user_tiers(user_id) ON DELETE CASCADE,
-        INDEX idx_event_user_type (user_id, event_type),
-        INDEX idx_event_provider (provider, provider_event_id),
-        INDEX idx_event_created (created_at)
+        FOREIGN KEY (user_id) REFERENCES user_tiers(user_id) ON DELETE CASCADE
       );
+
+      CREATE INDEX IF NOT EXISTS idx_payment_user_status ON payment_history (user_id, status);
+      CREATE INDEX IF NOT EXISTS idx_payment_provider_id ON payment_history (provider_payment_id);
+      CREATE INDEX IF NOT EXISTS idx_payment_created ON payment_history (created_at);
+
+      CREATE INDEX IF NOT EXISTS idx_token_user_platform ON oauth_tokens (user_id, platform);
+      CREATE INDEX IF NOT EXISTS idx_token_expires ON oauth_tokens (expires_at);
+
+      CREATE INDEX IF NOT EXISTS idx_event_user_type ON subscription_events (user_id, event_type);
+      CREATE INDEX IF NOT EXISTS idx_event_provider ON subscription_events (provider, provider_event_id);
+      CREATE INDEX IF NOT EXISTS idx_event_created ON subscription_events (created_at);
     `);
 
     console.log('[PaymentTokens] Tables initialized');

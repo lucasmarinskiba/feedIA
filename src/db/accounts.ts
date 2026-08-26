@@ -76,9 +76,7 @@ export const initializeAccountsTables = async (): Promise<void> => {
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW(),
         FOREIGN KEY (user_id) REFERENCES user_tiers(user_id) ON DELETE CASCADE,
-        UNIQUE (user_id, platform, account_id),
-        INDEX idx_user_accounts_user_id (user_id),
-        INDEX idx_user_accounts_platform (user_id, platform)
+        UNIQUE (user_id, platform, account_id)
       );
 
       CREATE TABLE IF NOT EXISTS account_quotas (
@@ -97,8 +95,7 @@ export const initializeAccountsTables = async (): Promise<void> => {
         created_at TIMESTAMP DEFAULT NOW(),
         FOREIGN KEY (user_id) REFERENCES user_tiers(user_id) ON DELETE CASCADE,
         FOREIGN KEY (account_id) REFERENCES user_accounts(id) ON DELETE CASCADE,
-        UNIQUE (user_id, account_id, period_start),
-        INDEX idx_account_quota_period (user_id, account_id, period_end)
+        UNIQUE (user_id, account_id, period_start)
       );
 
       CREATE TABLE IF NOT EXISTS account_content (
@@ -114,10 +111,16 @@ export const initializeAccountsTables = async (): Promise<void> => {
         updated_at TIMESTAMP DEFAULT NOW(),
         FOREIGN KEY (user_id) REFERENCES user_tiers(user_id) ON DELETE CASCADE,
         FOREIGN KEY (account_id) REFERENCES user_accounts(id) ON DELETE CASCADE,
-        UNIQUE (platform, content_id),
-        INDEX idx_content_user_account (user_id, account_id),
-        INDEX idx_content_published (user_id, published_at)
+        UNIQUE (platform, content_id)
       );
+
+      CREATE INDEX IF NOT EXISTS idx_user_accounts_user_id ON user_accounts (user_id);
+      CREATE INDEX IF NOT EXISTS idx_user_accounts_platform ON user_accounts (user_id, platform);
+
+      CREATE INDEX IF NOT EXISTS idx_account_quota_period ON account_quotas (user_id, account_id, period_end);
+
+      CREATE INDEX IF NOT EXISTS idx_content_user_account ON account_content (user_id, account_id);
+      CREATE INDEX IF NOT EXISTS idx_content_published ON account_content (user_id, published_at);
     `);
 
     console.log('[Accounts] Tables initialized');
