@@ -11,7 +11,7 @@ import { log } from '../agent/logger.js';
 declare global {
   namespace Express {
     interface Request {
-      userId?: string;
+      userId: string;
     }
   }
 }

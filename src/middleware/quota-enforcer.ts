@@ -143,13 +143,14 @@ export const quotaCheckMiddleware = (format: 'carousels' | 'stories' | 'videos',
     try {
       const userId = req.headers['x-user-id'] as string;
       if (!userId) {
-        return res.status(401).json({ error: 'User ID required' });
+        res.status(401).json({ error: 'User ID required' });
+        return;
       }
 
       const quota = await checkFormatQuota(userId, format, count);
 
       if (!quota.allowed) {
-        return res.status(403).json({
+        res.status(403).json({
           error: `${format.slice(0, -1)} limit reached`,
           format,
           used: quota.used,
@@ -157,6 +158,7 @@ export const quotaCheckMiddleware = (format: 'carousels' | 'stories' | 'videos',
           remaining: Math.max(0, quota.limit - quota.used),
           tier: quota.tier,
         });
+        return;
       }
 
       // Store in request for later use (Type: Record<string, unknown>)

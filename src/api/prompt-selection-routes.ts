@@ -41,12 +41,12 @@ router.post('/select', async (req: Request, res: Response): Promise<void> => {
     const { query, topN = 3 } = req.body as { query: string; topN?: number };
 
     if (!query) {
-      return res.status(400).json({ error: 'query required' });
+      res.status(400).json({ error: 'query required' });
       return;
     }
 
     if (query.length < 10) {
-      return res.status(400).json({ error: 'query too short (min 10 chars)' });
+      res.status(400).json({ error: 'query too short (min 10 chars)' });
       return;
     }
 
@@ -54,16 +54,18 @@ router.post('/select', async (req: Request, res: Response): Promise<void> => {
 
     console.log('[PromptSelect] Request:', { query: query.substring(0, 50), topN, result });
 
-    return res.json({
+    res.json({
       success: true,
       intent: result.intent,
       selectedBatches: result.selectedBatches,
       description: result.description,
       message: `Selected ${result.selectedBatches.length} prompt batches for your ${result.intent.format} ${result.intent.category} content`,
     });
+    return;
   } catch (err) {
     console.error('[PromptSelect] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -79,20 +81,22 @@ router.post('/parse-intent', async (req: Request, res: Response): Promise<void> 
     const { message } = req.body as { message: string };
 
     if (!message) {
-      return res.status(400).json({ error: 'message required' });
+      res.status(400).json({ error: 'message required' });
       return;
     }
 
     const intent = parseUserIntent(message);
 
-    return res.json({
+    res.json({
       success: true,
       intent,
       explanation: `Detected: ${intent.format} format, ${intent.category} category, ${intent.brandVoice} voice for ${intent.targetAudience} audience`,
     });
+    return;
   } catch (err) {
     console.error('[ParseIntent] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -115,16 +119,18 @@ router.get('/batches/:format/:category', async (req: Request, res: Response): Pr
 
     const batches = await selectPromptBatches(intent, 100); // Get all matching
 
-    return res.json({
+    res.json({
       success: true,
       format,
       category,
       batches,
       count: batches.length,
     });
+    return;
   } catch (err) {
     console.error('[GetBatches] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 

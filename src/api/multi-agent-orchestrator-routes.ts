@@ -47,7 +47,7 @@ router.post('/start', async (req: Request, res: Response): Promise<void> => {
     const { userId, brief } = req.body as { userId: string; brief: DesignBrief };
 
     if (!userId || !brief) {
-      return res.status(400).json({ error: 'userId and brief required' });
+      res.status(400).json({ error: 'userId and brief required' });
       return;
     }
 
@@ -55,7 +55,7 @@ router.post('/start', async (req: Request, res: Response): Promise<void> => {
 
     console.log('[MultiAgentOrchestrator] Session started:', { sessionId: session.id, topic: brief.topic });
 
-    return res.json({
+    res.json({
       success: true,
       sessionId: session.id,
       status: session.status,
@@ -63,9 +63,11 @@ router.post('/start', async (req: Request, res: Response): Promise<void> => {
       iterations: session.iterations,
       message: `Collaboration started. Art Director proposing design for: ${brief.topic}`,
     });
+    return;
   } catch (err) {
     console.error('[MultiAgentOrchestrator] Start failed:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -87,7 +89,7 @@ router.post('/:sessionId/art-director-proposal', async (req: Request, res: Respo
 
     const message = await artDirectorProposal(sessionId, { concept, visualStyle, mood });
 
-    return res.json({
+    res.json({
       success: true,
       messageId: message.id,
       from: message.from,
@@ -95,9 +97,11 @@ router.post('/:sessionId/art-director-proposal', async (req: Request, res: Respo
       content: message.content,
       message: 'Art Director proposal sent to Carousel Designer',
     });
+    return;
   } catch (err) {
     console.error('[ArtDirectorProposal] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -119,7 +123,7 @@ router.post('/:sessionId/carousel-designer-response', async (req: Request, res: 
 
     const message = await carouselDesignerResponse(sessionId, { feasibility, suggestions, concerns });
 
-    return res.json({
+    res.json({
       success: true,
       messageId: message.id,
       from: message.from,
@@ -127,9 +131,11 @@ router.post('/:sessionId/carousel-designer-response', async (req: Request, res: 
       content: message.content,
       message: 'Carousel Designer feedback sent back to Art Director',
     });
+    return;
   } catch (err) {
     console.error('[CarouselDesignerResponse] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -150,7 +156,7 @@ router.post('/:sessionId/art-director-refine', async (req: Request, res: Respons
 
     const message = await artDirectorRefine(sessionId, { adjustments, revisedConcept });
 
-    return res.json({
+    res.json({
       success: true,
       messageId: message.id,
       from: message.from,
@@ -158,9 +164,11 @@ router.post('/:sessionId/art-director-refine', async (req: Request, res: Respons
       content: message.content,
       message: 'Art Director refinements sent for validation',
     });
+    return;
   } catch (err) {
     console.error('[ArtDirectorRefine] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -182,7 +190,7 @@ router.post('/:sessionId/carousel-designer-validate', async (req: Request, res: 
 
     const message = await carouselDesignerValidate(sessionId, { isValid, readiness, notes });
 
-    return res.json({
+    res.json({
       success: true,
       messageId: message.id,
       from: message.from,
@@ -192,9 +200,11 @@ router.post('/:sessionId/carousel-designer-validate', async (req: Request, res: 
       readiness,
       message: isValid && readiness === 'production' ? '✅ DESIGN APPROVED FOR PRODUCTION' : '🔄 NEEDS REVISION',
     });
+    return;
   } catch (err) {
     console.error('[CarouselDesignerValidate] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -210,11 +220,11 @@ router.get('/:sessionId/history', async (req: Request, res: Response): Promise<v
     const session = getSession(sessionId);
 
     if (!session) {
-      return res.status(404).json({ error: `Session ${sessionId} not found` });
+      res.status(404).json({ error: `Session ${sessionId} not found` });
       return;
     }
 
-    return res.json({
+    res.json({
       success: true,
       sessionId,
       topic: session.topic,
@@ -223,9 +233,11 @@ router.get('/:sessionId/history', async (req: Request, res: Response): Promise<v
       messageCount: history.length,
       messages: history,
     });
+    return;
   } catch (err) {
     console.error('[ConversationHistory] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -240,11 +252,11 @@ router.get('/:sessionId/session', async (req: Request, res: Response): Promise<v
     const session = getSession(sessionId);
 
     if (!session) {
-      return res.status(404).json({ error: `Session ${sessionId} not found` });
+      res.status(404).json({ error: `Session ${sessionId} not found` });
       return;
     }
 
-    return res.json({
+    res.json({
       success: true,
       session: {
         id: session.id,
@@ -256,9 +268,11 @@ router.get('/:sessionId/session', async (req: Request, res: Response): Promise<v
         updatedAt: session.updatedAt,
       },
     });
+    return;
   } catch (err) {
     console.error('[SessionDetails] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -277,13 +291,13 @@ router.post('/run-full-loop', async (req: Request, res: Response): Promise<void>
     const { userId, brief } = req.body as { userId: string; brief: DesignBrief };
 
     if (!userId || !brief) {
-      return res.status(400).json({ error: 'userId and brief required' });
+      res.status(400).json({ error: 'userId and brief required' });
       return;
     }
 
     const result = await runCollaborationLoop(userId, brief);
 
-    return res.json({
+    res.json({
       success: true,
       sessionId: result.sessionId,
       status: result.status,
@@ -291,9 +305,11 @@ router.post('/run-full-loop', async (req: Request, res: Response): Promise<void>
       finalDesign: result.finalDesign,
       message: `Collaboration complete. Design ready for production (${result.iterations} refinement cycles).`,
     });
+    return;
   } catch (err) {
     console.error('[RunFullLoop] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 

@@ -23,7 +23,6 @@ router.post('/lock', async (req: Request, res: Response) => {
 
     if (!imageId || !imagePath) {
       return res.status(400).json({ error: 'imageId and imagePath required' });
-      return;
     }
 
     log.info('[FacialIdentity] Lock creation requested', { imageId, brand: brand?.name });
@@ -59,7 +58,6 @@ router.post('/inject', async (req: Request, res: Response) => {
 
     if (!lockId || !prompt) {
       return res.status(400).json({ error: 'lockId and prompt required' });
-      return;
     }
 
     const enhancedPrompt = facialIdentityPreservationService.injectIdentityLock(prompt, lockId);
@@ -87,7 +85,6 @@ router.post('/validate', async (req: Request, res: Response) => {
 
     if (!lockId || !generatedDescription) {
       return res.status(400).json({ error: 'lockId and generatedDescription required' });
-      return;
     }
 
     const validation = await facialIdentityPreservationService.validatePreservation(
@@ -117,7 +114,6 @@ router.post('/lock-and-inject', async (req: Request, res: Response) => {
 
     if (!imageId || !imagePath || !prompt) {
       return res.status(400).json({ error: 'imageId, imagePath, and prompt required' });
-      return;
     }
 
     const identityLock = await facialIdentityPreservationService.createIdentityLock(
@@ -156,7 +152,6 @@ router.get('/lock/:lockId', async (req: Request, res: Response) => {
 
     if (!identityLock) {
       return res.status(404).json({ error: 'Identity lock not found', lockId });
-      return;
     }
 
     return res.json({

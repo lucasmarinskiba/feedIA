@@ -4,7 +4,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { handleMercadoPagoWebhook } from './billing/mercado-pago-webhook.js';
+import { handleMercadoPagoWebhook, verifyMercadoPagoSignature } from './billing/mercado-pago-webhook.js';
 import { createCheckoutSession } from './billing/create-checkout-session.js';
 import { saveTier } from './billing/save-tier.js';
 import { getTierInfo } from './user/tier.js';
@@ -37,10 +37,12 @@ router.post('/webhook/stripe', async (req: Request, res: Response): Promise<void
     const signature = req.headers['stripe-signature'] as string | undefined;
 
     const result = await handleStripeWebhook(buf, signature);
-    return res.status(result.success ? 200 : 400).json(result);
+    res.status(result.success ? 200 : 400).json(result);
+    return;
   } catch (err) {
     console.error('[Billing] Stripe Webhook error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -53,20 +55,20 @@ router.post('/stripe/checkout', async (req: Request, res: Response): Promise<voi
     const { userId, tier, email } = req.body;
 
     if (!userId || !tier || !email) {
-      return res.status(400).json({ error: 'Missing required fields: userId, tier, email' });
+      res.status(400).json({ error: 'Missing required fields: userId, tier, email' });
       return;
     }
 
     const paidTierConfig = (tierConfig as Record<string, { monthlyPriceUsd: number } | undefined>)[tier];
     if (tier === 'free' || !paidTierConfig) {
-      return res.status(400).json({ error: `Invalid paid tier: ${tier}` });
+      res.status(400).json({ error: `Invalid paid tier: ${tier}` });
       return;
     }
 
     // Check if Stripe is configured
     const stripeKey = process.env.STRIPE_SECRET_KEY;
     if (!stripeKey || stripeKey.startsWith('sk_test_mock')) {
-      return res.status(503).json({
+      res.status(503).json({
         error: 'Stripe not configured',
         message: 'Stripe keys not set. Using mock mode.',
       });
@@ -105,15 +107,17 @@ router.post('/stripe/checkout', async (req: Request, res: Response): Promise<voi
       },
     });
 
-    return res.json({
+    res.json({
       success: true,
       sessionId: session.id,
       clientSecret: session.client_secret,
       url: session.url,
     });
+    return;
   } catch (err) {
     console.error('[Billing] Stripe checkout error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -122,11 +126,24 @@ router.post('/stripe/checkout', async (req: Request, res: Response): Promise<voi
  */
 router.post('/webhook/mercado-pago', async (req: Request, res: Response): Promise<void> => {
   try {
+    const xSignature = req.headers['x-signature'] as string | undefined;
+    const xRequestId = req.headers['x-request-id'] as string | undefined;
+    const dataId = (req.query['data.id'] as string | undefined) || (req.body?.data as { id?: string } | undefined)?.id;
+
+    const verified = verifyMercadoPagoSignature(xSignature, xRequestId, dataId);
+    if (!verified.valid) {
+      console.error('[Billing] MP Webhook signature rejected:', verified.reason);
+      res.status(401).json({ error: 'invalid_signature', reason: verified.reason });
+      return;
+    }
+
     const result = await handleMercadoPagoWebhook(req.body);
-    return res.status(result.success ? 200 : 400).json(result);
+    res.status(result.success ? 200 : 400).json(result);
+    return;
   } catch (err) {
     console.error('[Billing] MP Webhook error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -137,10 +154,12 @@ router.post('/webhook/mercado-pago', async (req: Request, res: Response): Promis
 router.post('/create-checkout-session', async (req: Request, res: Response): Promise<void> => {
   try {
     const result = await createCheckoutSession(req.body);
-    return res.status(200).json(result);
+    res.status(200).json(result);
+    return;
   } catch (err) {
     console.error('[Billing] Checkout session error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -151,10 +170,12 @@ router.post('/create-checkout-session', async (req: Request, res: Response): Pro
 router.post('/save-tier', async (req: Request, res: Response): Promise<void> => {
   try {
     const result = await saveTier(req.body);
-    return res.status(result.success ? 200 : 400).json(result);
+    res.status(result.success ? 200 : 400).json(result);
+    return;
   } catch (err) {
     console.error('[Billing] Save tier error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -166,15 +187,17 @@ router.get('/tier', async (req: Request, res: Response): Promise<void> => {
     const { userId } = req.query;
 
     if (!userId) {
-      return res.status(400).json({ error: 'userId query param required' });
+      res.status(400).json({ error: 'userId query param required' });
       return;
     }
 
     const result = await getTierInfo(String(userId));
-    return res.status(result.success ? 200 : 400).json(result);
+    res.status(result.success ? 200 : 400).json(result);
+    return;
   } catch (err) {
     console.error('[Billing] Get tier error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -187,14 +210,14 @@ router.post('/track-usage', async (req: Request, res: Response): Promise<void> =
     const { userId, service, metadata } = req.body;
 
     if (!userId || !service) {
-      return res.status(400).json({ error: 'Missing required fields: userId, service' });
+      res.status(400).json({ error: 'Missing required fields: userId, service' });
       return;
     }
 
     const result = await trackUsage(userId, service, metadata);
 
     if (!result.success) {
-      return res.status(402).json({
+      res.status(402).json({
         error: 'Usage tracking failed',
         reason: result.error,
         cost: result.cost,
@@ -202,13 +225,15 @@ router.post('/track-usage', async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    return res.json({
+    res.json({
       success: true,
       cost: result.cost,
     });
+    return;
   } catch (err) {
     console.error('[Billing] Track usage error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -221,15 +246,17 @@ router.get('/status', async (req: Request, res: Response): Promise<void> => {
     const { userId } = req.query;
 
     if (!userId) {
-      return res.status(400).json({ error: 'userId query param required' });
+      res.status(400).json({ error: 'userId query param required' });
       return;
     }
 
     const status = await getBillingStatus(String(userId));
-    return res.json({ success: true, status });
+    res.json({ success: true, status });
+    return;
   } catch (err) {
     console.error('[Billing] Get status error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -242,15 +269,17 @@ router.get('/monthly-usage', async (req: Request, res: Response): Promise<void> 
     const { userId } = req.query;
 
     if (!userId) {
-      return res.status(400).json({ error: 'userId query param required' });
+      res.status(400).json({ error: 'userId query param required' });
       return;
     }
 
     const usage = await getMonthlyUsage(String(userId));
-    return res.json({ success: true, usage });
+    res.json({ success: true, usage });
+    return;
   } catch (err) {
     console.error('[Billing] Get monthly usage error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -263,14 +292,14 @@ router.post('/webhooks/register', async (req: Request, res: Response): Promise<v
     const { userId, url, events } = req.body;
 
     if (!userId || !url || !events) {
-      return res.status(400).json({ error: 'Missing required fields: userId, url, events' });
+      res.status(400).json({ error: 'Missing required fields: userId, url, events' });
       return;
     }
 
     // Check feature access
     const hasAccess = await hasFeatureAccess(userId, 'api_webhooks');
     if (!hasAccess.allowed) {
-      return res.status(403).json({
+      res.status(403).json({
         error: 'Feature not available',
         reason: hasAccess.reason,
       });
@@ -278,10 +307,12 @@ router.post('/webhooks/register', async (req: Request, res: Response): Promise<v
     }
 
     const subscription = await registerWebhook(userId, url, events);
-    return res.status(201).json({ success: true, subscription });
+    res.status(201).json({ success: true, subscription });
+    return;
   } catch (err) {
     console.error('[Billing] Register webhook error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -294,15 +325,17 @@ router.get('/webhooks', async (req: Request, res: Response): Promise<void> => {
     const { userId } = req.query;
 
     if (!userId) {
-      return res.status(400).json({ error: 'userId query param required' });
+      res.status(400).json({ error: 'userId query param required' });
       return;
     }
 
     const webhooks = await getUserWebhooks(String(userId));
-    return res.json({ success: true, webhooks });
+    res.json({ success: true, webhooks });
+    return;
   } catch (err) {
     console.error('[Billing] List webhooks error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -316,7 +349,7 @@ router.delete('/webhooks/:subscriptionId', async (req: Request, res: Response): 
     const { userId } = req.query;
 
     if (!subscriptionId || !userId) {
-      return res.status(400).json({ error: 'Missing subscriptionId or userId' });
+      res.status(400).json({ error: 'Missing subscriptionId or userId' });
       return;
     }
 
@@ -325,15 +358,17 @@ router.delete('/webhooks/:subscriptionId', async (req: Request, res: Response): 
     const owned = webhooks.some((wh) => wh.id === subscriptionId);
 
     if (!owned) {
-      return res.status(403).json({ error: 'Not authorized' });
+      res.status(403).json({ error: 'Not authorized' });
       return;
     }
 
     const success = await unregisterWebhook(subscriptionId);
-    return res.json({ success });
+    res.json({ success });
+    return;
   } catch (err) {
     console.error('[Billing] Unregister webhook error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -346,15 +381,17 @@ router.post('/webhooks/process-pending', async (req: Request, res: Response): Pr
     // Verify admin key
     const adminKey = req.headers['x-admin-key'];
     if (adminKey !== process.env.ADMIN_KEY) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const processed = await processPendingWebhooks();
-    return res.json({ success: true, processed });
+    res.json({ success: true, processed });
+    return;
   } catch (err) {
     console.error('[Billing] Process webhooks error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 

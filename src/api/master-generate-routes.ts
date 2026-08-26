@@ -46,7 +46,7 @@ router.post('/generate', async (req: Request, res: Response): Promise<void> => {
       frameCount,
     });
 
-    return res.json({
+    res.json({
       status: result.readyForGeneration ? 'ready' : 'needs_review',
       finalPrompt: result.finalPrompt,
       pipeline: {
@@ -69,9 +69,11 @@ router.post('/generate', async (req: Request, res: Response): Promise<void> => {
       ].filter(Boolean),
       metadata: { processedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[MasterGenerate] Generation failed', error);
-    return res.status(500).json({ error: 'Generation failed', message: String(error) });
+    res.status(500).json({ error: 'Generation failed', message: String(error) });
+    return;
   }
 });
 
@@ -123,7 +125,7 @@ router.post('/generate-carousel', quotaCheckMiddleware('carousels', 1), async (r
       await chargeQuota(req, 'carousels', generationId);
     }
 
-    return res.json({
+    res.json({
       status: allReady ? 'ready' : 'needs_review',
       frameCount: results.length,
       frames: results.map((r, i) => ({
@@ -143,9 +145,11 @@ router.post('/generate-carousel', quotaCheckMiddleware('carousels', 1), async (r
       },
       metadata: { processedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[MasterGenerate] Carousel generation failed', error);
-    return res.status(500).json({ error: 'Carousel generation failed', message: String(error) });
+    res.status(500).json({ error: 'Carousel generation failed', message: String(error) });
+    return;
   }
 });
 

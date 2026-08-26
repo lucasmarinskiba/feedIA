@@ -64,7 +64,7 @@ router.post('/expand-batch', async (req: Request, res: Response): Promise<void> 
 
     const jobId = await batchExpansionWorker.queueBatchExpansion(batchId);
 
-    return res.json({
+    res.json({
       status: 'queued',
       jobId,
       batchId,
@@ -72,9 +72,11 @@ router.post('/expand-batch', async (req: Request, res: Response): Promise<void> 
       statusUrl: `/api/batch/status/${jobId}`,
       metadata: { queuedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[BatchWorker] Expand batch failed', error);
-    return res.status(500).json({ error: 'Batch expansion failed', message: String(error) });
+    res.status(500).json({ error: 'Batch expansion failed', message: String(error) });
+    return;
   }
 });
 
@@ -97,7 +99,7 @@ router.get('/status/:jobId', async (req: Request, res: Response): Promise<void> 
         ? 'Completed'
         : 'Queued';
 
-    return res.json({
+    res.json({
       jobId,
       batch: job.batch_id,
       status: job.status,
@@ -114,9 +116,11 @@ router.get('/status/:jobId', async (req: Request, res: Response): Promise<void> 
       },
       error: job.error_message,
     });
+    return;
   } catch (error) {
     log.error('[BatchWorker] Status check failed', error);
-    return res.status(500).json({ error: 'Status check failed' });
+    res.status(500).json({ error: 'Status check failed' });
+    return;
   }
 });
 

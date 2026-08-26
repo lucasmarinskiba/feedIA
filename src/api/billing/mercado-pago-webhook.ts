@@ -5,6 +5,7 @@
  */
 
 import { Request, Response } from 'express';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { upsertUserTier, type UserTier } from '../../db/user-tiers.js';
 
 interface MercadoPagoPayment {
@@ -16,6 +17,49 @@ interface MercadoPagoPayment {
   };
   metadata?: Record<string, unknown>;
 }
+
+const mpWebhookSecret = process.env.MERCADO_PAGO_WEBHOOK_SECRET || '';
+const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+
+/**
+ * Valida firma de webhook de Mercado Pago.
+ * Formato oficial: header x-signature = "ts=<ts>,v1=<hmac>"
+ * Manifest firmado: `id:{data.id};request-id:{x-request-id};ts:{ts};`
+ * https://www.mercadopago.com.ar/developers/es/docs/checkout-api/additional-content/your-integrations/notifications/webhooks
+ */
+export const verifyMercadoPagoSignature = (
+  xSignature: string | undefined,
+  xRequestId: string | undefined,
+  dataId: string | undefined,
+): { valid: boolean; reason?: string } => {
+  if (!mpWebhookSecret) {
+    if (isProd) return { valid: false, reason: 'webhook_secret_not_configured' };
+    return { valid: true, reason: 'dev_mode_no_secret' };
+  }
+  if (!xSignature || !xRequestId || !dataId) {
+    return { valid: false, reason: 'missing_signature_headers' };
+  }
+
+  const parts = Object.fromEntries(
+    xSignature.split(',').map((p) => {
+      const [k, v] = p.split('=').map((s) => s.trim());
+      return [k, v];
+    }),
+  );
+  const ts = parts.ts;
+  const v1 = parts.v1;
+  if (!ts || !v1) return { valid: false, reason: 'malformed_signature' };
+
+  const manifest = `id:${dataId.toLowerCase()};request-id:${xRequestId};ts:${ts};`;
+  const expected = createHmac('sha256', mpWebhookSecret).update(manifest).digest('hex');
+
+  const expectedBuf = Buffer.from(expected, 'hex');
+  const gotBuf = Buffer.from(v1, 'hex');
+  if (expectedBuf.length !== gotBuf.length || !timingSafeEqual(expectedBuf, gotBuf)) {
+    return { valid: false, reason: 'signature_mismatch' };
+  }
+  return { valid: true };
+};
 
 export const handleMercadoPagoWebhook = async (
   body: Record<string, unknown>,
@@ -146,15 +190,17 @@ async function processPaymentData(payment: MercadoPagoPayment): Promise<{ succes
 // Express route handler
 export const mercadoPagoWebhookHandler = async (req: Request, res: Response): Promise<void> => {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed' });
     return;
   }
 
   try {
     const result = await handleMercadoPagoWebhook(req.body);
-    return res.status(result.success ? 200 : 400).json(result);
+    res.status(result.success ? 200 : 400).json(result);
+    return;
   } catch (err) {
     console.error('[MP Webhook Handler] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 };

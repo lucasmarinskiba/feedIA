@@ -16,7 +16,7 @@ router.post('/carousel/edit', async (req: Request, res: Response): Promise<void>
     };
 
     if (!carouselId || !slides || !Array.isArray(slides)) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing required fields: carouselId, slides (array)',
       });
       return;
@@ -29,15 +29,17 @@ router.post('/carousel/edit', async (req: Request, res: Response): Promise<void>
 
     await carouselEditingService.saveCarousel(carouselId, updated);
 
-    return res.json({
+    res.json({
       ok: true,
       carouselId,
       slideCount: updated.length,
       operationsApplied: operations?.length ?? 0,
     });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Carousel edit failed: ${error}` });
+    res.status(500).json({ error: `Carousel edit failed: ${error}` });
+    return;
   }
 });
 
@@ -59,10 +61,12 @@ router.post('/carousel/reorder', async (req: Request, res: Response): Promise<vo
     const updated = await carouselEditingService.reorderSlides(slides, newOrder);
     await carouselEditingService.saveCarousel(carouselId, updated);
 
-    return res.json({ ok: true, carouselId, reordered: true });
+    res.json({ ok: true, carouselId, reordered: true });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Reorder failed: ${error}` });
+    res.status(500).json({ error: `Reorder failed: ${error}` });
+    return;
   }
 });
 
@@ -77,7 +81,7 @@ router.post('/carousel/update-text', async (req: Request, res: Response): Promis
     };
 
     if (!carouselId || !slides || !slideId || !text) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing fields: carouselId, slides, slideId, text',
       });
       return;
@@ -89,10 +93,12 @@ router.post('/carousel/update-text', async (req: Request, res: Response): Promis
     });
     await carouselEditingService.saveCarousel(carouselId, updated);
 
-    return res.json({ ok: true, carouselId, slideId, updated: true });
+    res.json({ ok: true, carouselId, slideId, updated: true });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Text update failed: ${error}` });
+    res.status(500).json({ error: `Text update failed: ${error}` });
+    return;
   }
 });
 
@@ -106,7 +112,7 @@ router.post('/carousel/update-image', async (req: Request, res: Response): Promi
     };
 
     if (!carouselId || !slides || !slideId || !imageUrl) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing fields: carouselId, slides, slideId, imageUrl',
       });
       return;
@@ -117,10 +123,12 @@ router.post('/carousel/update-image', async (req: Request, res: Response): Promi
     });
     await carouselEditingService.saveCarousel(carouselId, updated);
 
-    return res.json({ ok: true, carouselId, slideId, updated: true });
+    res.json({ ok: true, carouselId, slideId, updated: true });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Image update failed: ${error}` });
+    res.status(500).json({ error: `Image update failed: ${error}` });
+    return;
   }
 });
 
@@ -142,10 +150,12 @@ router.post('/carousel/delete-slide', async (req: Request, res: Response): Promi
     const updated = await carouselEditingService.deleteSlide(slides, slideId);
     await carouselEditingService.saveCarousel(carouselId, updated);
 
-    return res.json({ ok: true, carouselId, deleted: true, slideCount: updated.length });
+    res.json({ ok: true, carouselId, deleted: true, slideCount: updated.length });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Slide delete failed: ${error}` });
+    res.status(500).json({ error: `Slide delete failed: ${error}` });
+    return;
   }
 });
 
@@ -160,7 +170,7 @@ router.post('/carousel/add-slide', async (req: Request, res: Response): Promise<
     };
 
     if (!carouselId || !slides || !imageUrl || typeof position !== 'number') {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing fields: carouselId, slides, imageUrl, position',
       });
       return;
@@ -173,15 +183,17 @@ router.post('/carousel/add-slide', async (req: Request, res: Response): Promise<
     });
     await carouselEditingService.saveCarousel(carouselId, updated);
 
-    return res.json({
+    res.json({
       ok: true,
       carouselId,
       added: true,
       slideCount: updated.length,
     });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Slide add failed: ${error}` });
+    res.status(500).json({ error: `Slide add failed: ${error}` });
+    return;
   }
 });
 
@@ -196,7 +208,7 @@ router.post('/carousel/update-style', async (req: Request, res: Response): Promi
     };
 
     if (!carouselId || !slides || !slideId) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing fields: carouselId, slides, slideId',
       });
       return;
@@ -208,10 +220,12 @@ router.post('/carousel/update-style', async (req: Request, res: Response): Promi
     });
     await carouselEditingService.saveCarousel(carouselId, updated);
 
-    return res.json({ ok: true, carouselId, slideId, styled: true });
+    res.json({ ok: true, carouselId, slideId, styled: true });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Style update failed: ${error}` });
+    res.status(500).json({ error: `Style update failed: ${error}` });
+    return;
   }
 });
 
@@ -220,16 +234,18 @@ router.get('/carousel/:carouselId', async (req: Request, res: Response): Promise
     const carouselId = typeof req.params.carouselId === 'string' ? req.params.carouselId : '';
 
     if (!carouselId) {
-      return res.status(400).json({ error: 'Missing carouselId' });
+      res.status(400).json({ error: 'Missing carouselId' });
       return;
     }
 
     const slides = await carouselEditingService.loadCarousel(carouselId);
 
-    return res.json({ ok: true, carouselId, slides });
+    res.json({ ok: true, carouselId, slides });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Load failed: ${error}` });
+    res.status(500).json({ error: `Load failed: ${error}` });
+    return;
   }
 });
 

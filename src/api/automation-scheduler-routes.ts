@@ -12,7 +12,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     const data = req.body as Omit<AutomationTask, 'id' | 'execution_history' | 'createdAt' | 'updatedAt'>;
 
     if (!data.accountHandle || !data.name || !data.type) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing required fields: accountHandle, name, type',
       });
       return;
@@ -20,10 +20,12 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 
     const task = await automationSchedulerService.createTask(data);
 
-    return res.status(201).json({ ok: true, task });
+    res.status(201).json({ ok: true, task });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Task creation failed: ${error}` });
+    res.status(500).json({ error: `Task creation failed: ${error}` });
+    return;
   }
 });
 
@@ -33,16 +35,18 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const status = req.query.status as AutomationTask['status'] | undefined;
 
     if (!accountHandle) {
-      return res.status(400).json({ error: 'Missing query parameter: account' });
+      res.status(400).json({ error: 'Missing query parameter: account' });
       return;
     }
 
     const tasks = await automationSchedulerService.listTasks(accountHandle, status);
 
-    return res.json({ ok: true, tasks });
+    res.json({ ok: true, tasks });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Task listing failed: ${error}` });
+    res.status(500).json({ error: `Task listing failed: ${error}` });
+    return;
   }
 });
 
@@ -53,14 +57,16 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     const task = await automationSchedulerService.loadTask(id);
 
     if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
+      res.status(404).json({ error: 'Task not found' });
       return;
     }
 
-    return res.json({ ok: true, task });
+    res.json({ ok: true, task });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Task load failed: ${error}` });
+    res.status(500).json({ error: `Task load failed: ${error}` });
+    return;
   }
 });
 
@@ -71,10 +77,12 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
 
     const task = await automationSchedulerService.updateTask(id, updates);
 
-    return res.json({ ok: true, task });
+    res.json({ ok: true, task });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Task update failed: ${error}` });
+    res.status(500).json({ error: `Task update failed: ${error}` });
+    return;
   }
 });
 
@@ -84,10 +92,12 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
 
     await automationSchedulerService.deleteTask(id);
 
-    return res.json({ ok: true, deleted: true });
+    res.json({ ok: true, deleted: true });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Task deletion failed: ${error}` });
+    res.status(500).json({ error: `Task deletion failed: ${error}` });
+    return;
   }
 });
 
@@ -97,10 +107,12 @@ router.post('/:id/activate', async (req: Request, res: Response): Promise<void> 
 
     const task = await automationSchedulerService.activateTask(id);
 
-    return res.json({ ok: true, task });
+    res.json({ ok: true, task });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Task activation failed: ${error}` });
+    res.status(500).json({ error: `Task activation failed: ${error}` });
+    return;
   }
 });
 
@@ -110,10 +122,12 @@ router.post('/:id/pause', async (req: Request, res: Response): Promise<void> => 
 
     const task = await automationSchedulerService.pauseTask(id);
 
-    return res.json({ ok: true, task });
+    res.json({ ok: true, task });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Task pause failed: ${error}` });
+    res.status(500).json({ error: `Task pause failed: ${error}` });
+    return;
   }
 });
 
@@ -124,10 +138,12 @@ router.post('/:id/execute', async (req: Request, res: Response): Promise<void> =
 
     const task = await automationSchedulerService.recordExecution(id, execution);
 
-    return res.status(201).json({ ok: true, task });
+    res.status(201).json({ ok: true, task });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Execution recording failed: ${error}` });
+    res.status(500).json({ error: `Execution recording failed: ${error}` });
+    return;
   }
 });
 
@@ -138,10 +154,12 @@ router.get('/:id/history', async (req: Request, res: Response): Promise<void> =>
 
     const history = await automationSchedulerService.getExecutionHistory(id, limit);
 
-    return res.json({ ok: true, history });
+    res.json({ ok: true, history });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `History fetch failed: ${error}` });
+    res.status(500).json({ error: `History fetch failed: ${error}` });
+    return;
   }
 });
 
@@ -151,10 +169,12 @@ router.get('/:id/next-execution', async (req: Request, res: Response): Promise<v
 
     const nextExecution = await automationSchedulerService.getNextExecution(id);
 
-    return res.json({ ok: true, nextExecution });
+    res.json({ ok: true, nextExecution });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Next execution fetch failed: ${error}` });
+    res.status(500).json({ error: `Next execution fetch failed: ${error}` });
+    return;
   }
 });
 
@@ -164,10 +184,12 @@ router.get('/:id/can-execute', async (req: Request, res: Response): Promise<void
 
     const canExecute = await automationSchedulerService.canExecute(id);
 
-    return res.json({ ok: true, canExecute });
+    res.json({ ok: true, canExecute });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Can execute check failed: ${error}` });
+    res.status(500).json({ error: `Can execute check failed: ${error}` });
+    return;
   }
 });
 
@@ -177,10 +199,12 @@ router.get('/:id/daily-count', async (req: Request, res: Response): Promise<void
 
     const count = await automationSchedulerService.getDailyExecutionCount(id);
 
-    return res.json({ ok: true, count });
+    res.json({ ok: true, count });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Daily count fetch failed: ${error}` });
+    res.status(500).json({ error: `Daily count fetch failed: ${error}` });
+    return;
   }
 });
 

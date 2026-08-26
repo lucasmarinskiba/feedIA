@@ -23,7 +23,7 @@ export const createWebhook = async (req: Request, res: Response): Promise<void> 
     const { url, eventTypes } = req.body;
 
     if (!url || !eventTypes) {
-      return res.status(400).json({ error: 'url and eventTypes required' });
+      res.status(400).json({ error: 'url and eventTypes required' });
       return;
     }
 
@@ -36,15 +36,17 @@ export const createWebhook = async (req: Request, res: Response): Promise<void> 
       [webhookId, userId, url, eventTypesStr, true]
     );
 
-    return res.status(201).json({
+    res.status(201).json({
       id: webhookId,
       url,
       eventTypes: eventTypesStr.split(','),
       isActive: true,
     });
+    return;
   } catch (err) {
     console.error('[Webhook] Create error:', err);
-    return res.status(500).json({ error: 'Webhook creation failed' });
+    res.status(500).json({ error: 'Webhook creation failed' });
+    return;
   }
 };
 
@@ -70,10 +72,12 @@ export const listWebhooks = async (req: Request, res: Response): Promise<void> =
       lastTriggered: w.last_triggered,
     }));
 
-    return res.json({ webhooks });
+    res.json({ webhooks });
+    return;
   } catch (err) {
     console.error('[Webhook] List error:', err);
-    return res.status(500).json({ error: 'List retrieval failed' });
+    res.status(500).json({ error: 'List retrieval failed' });
+    return;
   }
 };
 
@@ -88,10 +92,12 @@ export const deleteWebhook = async (req: Request, res: Response): Promise<void> 
 
     await query('DELETE FROM webhooks WHERE id = $1 AND user_id = $2', [id, userId]);
 
-    return res.json({ message: 'Webhook deleted' });
+    res.json({ message: 'Webhook deleted' });
+    return;
   } catch (err) {
     console.error('[Webhook] Delete error:', err);
-    return res.status(500).json({ error: 'Deletion failed' });
+    res.status(500).json({ error: 'Deletion failed' });
+    return;
   }
 };
 
@@ -107,7 +113,7 @@ export const testWebhook = async (req: Request, res: Response): Promise<void> =>
     const result = await query('SELECT * FROM webhooks WHERE id = $1 AND user_id = $2', [id, userId]);
 
     if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Webhook not found' });
+      res.status(404).json({ error: 'Webhook not found' });
       return;
     }
 
@@ -125,13 +131,16 @@ export const testWebhook = async (req: Request, res: Response): Promise<void> =>
     if (delivered) {
       // Update last_triggered
       await query('UPDATE webhooks SET last_triggered = NOW() WHERE id = $1', [id]);
-      return res.json({ message: 'Test payload delivered', statusCode: 200 });
+      res.json({ message: 'Test payload delivered', statusCode: 200 });
+      return;
     } else {
-      return res.status(503).json({ error: 'Failed to deliver test payload', statusCode: 500 });
+      res.status(503).json({ error: 'Failed to deliver test payload', statusCode: 500 });
+      return;
     }
   } catch (err) {
     console.error('[Webhook] Test error:', err);
-    return res.status(500).json({ error: 'Test failed' });
+    res.status(500).json({ error: 'Test failed' });
+    return;
   }
 };
 

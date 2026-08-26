@@ -43,7 +43,7 @@ router.post('/create-lock', async (req: Request, res: Response): Promise<void> =
     // Create series lock
     const seriesLock = consistencyLockManager.createSeriesLock(frameCount, charLock, prodLock, envLock);
 
-    return res.json({
+    res.json({
       status: 'success',
       seriesId: seriesLock.seriesId,
       frameCount: seriesLock.frameCount,
@@ -61,9 +61,11 @@ router.post('/create-lock', async (req: Request, res: Response): Promise<void> =
       nextStep: `POST /api/consistency/generate-prompts with seriesId: ${seriesLock.seriesId}`,
       metadata: { createdAt: seriesLock.createdAt },
     });
+    return;
   } catch (error) {
     log.error('[ConsistencyLock] Lock creation failed', error);
-    return res.status(500).json({ error: 'Lock creation failed', message: String(error) });
+    res.status(500).json({ error: 'Lock creation failed', message: String(error) });
+    return;
   }
 });
 
@@ -94,7 +96,7 @@ router.post('/generate-prompts', async (req: Request, res: Response): Promise<vo
       narrativeArc
     );
 
-    return res.json({
+    res.json({
       status: 'success',
       seriesId,
       frameCount: lockedPrompts.length,
@@ -111,9 +113,11 @@ router.post('/generate-prompts', async (req: Request, res: Response): Promise<vo
       nextStep: 'Send each prompt to /api/video/parameterized-prompt or expansion endpoint',
       metadata: { generatedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[ConsistencyLock] Prompt generation failed', error);
-    return res.status(500).json({ error: 'Prompt generation failed', message: String(error) });
+    res.status(500).json({ error: 'Prompt generation failed', message: String(error) });
+    return;
   }
 });
 
@@ -133,7 +137,7 @@ router.post('/validate', async (req: Request, res: Response): Promise<void> => {
 
     const report = await characterStabilityService.validateCharacterConsistency(seriesId, prompts);
 
-    return res.json({
+    res.json({
       status: 'validated',
       ...report,
       passed: report.consistencyScore >= 70,
@@ -143,9 +147,11 @@ router.post('/validate', async (req: Request, res: Response): Promise<void> => {
                    'Critical',
       metadata: { validatedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[ConsistencyLock] Validation failed', error);
-    return res.status(500).json({ error: 'Validation failed', message: String(error) });
+    res.status(500).json({ error: 'Validation failed', message: String(error) });
+    return;
   }
 });
 
@@ -166,14 +172,16 @@ router.post('/suggest-improvements', async (req: Request, res: Response): Promis
       prompts
     );
 
-    return res.json({
+    res.json({
       status: 'analysis_complete',
       ...suggestions,
       metadata: { analyzedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[ConsistencyLock] Suggestions failed', error);
-    return res.status(500).json({ error: 'Suggestions failed', message: String(error) });
+    res.status(500).json({ error: 'Suggestions failed', message: String(error) });
+    return;
   }
 });
 
@@ -190,16 +198,18 @@ router.get('/lock/:seriesId', async (req: Request, res: Response): Promise<void>
       return void res.status(404).json({ error: 'Series lock not found', seriesId });
     }
 
-    return res.json({
+    res.json({
       status: 'ok',
       seriesId,
       seriesLock,
       lockInstructions: seriesLock.lockInstructions,
       metadata: { retrievedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[ConsistencyLock] Lock retrieval failed', error);
-    return res.status(500).json({ error: 'Lock retrieval failed' });
+    res.status(500).json({ error: 'Lock retrieval failed' });
+    return;
   }
 });
 

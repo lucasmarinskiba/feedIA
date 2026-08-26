@@ -73,7 +73,7 @@ router.post(
 
       // Validation
       if (!userId || !category) {
-        return res.status(400).json({
+        res.status(400).json({
           status: 'failed',
           error: 'Missing required fields: userId, category',
           timestamp,
@@ -82,7 +82,7 @@ router.post(
       }
 
       if (slideCount < 2 || slideCount > 20) {
-        return res.status(400).json({
+        res.status(400).json({
           status: 'failed',
           error: 'slideCount must be between 2 and 20',
           timestamp,
@@ -112,7 +112,7 @@ No markdown, no extra text, just valid JSON array.`;
       const jsonMatch = text.match(/\[[\s\S]*\]/);
 
       if (!jsonMatch) {
-        return res.status(500).json({
+        res.status(500).json({
           status: 'failed',
           error: 'Failed to parse Claude response as JSON',
           warnings: [text.substring(0, 200)],
@@ -125,7 +125,7 @@ No markdown, no extra text, just valid JSON array.`;
       try {
         parsed = JSON.parse(jsonMatch[0]) as Array<Record<string, string>>;
       } catch {
-        return res.status(500).json({
+        res.status(500).json({
           status: 'failed',
           error: 'Invalid JSON from Claude generation',
           timestamp,
@@ -193,7 +193,7 @@ No markdown, no extra text, just valid JSON array.`;
       });
 
       if (!pipelineResult.success || !pipelineResult.carousel) {
-        return res.status(400).json({
+        res.status(400).json({
           status: 'failed',
           error: pipelineResult.error || 'Carousel creation failed',
           warnings,
@@ -204,7 +204,7 @@ No markdown, no extra text, just valid JSON array.`;
 
       // Step 5: Return complete result
       const carousel = pipelineResult.carousel;
-      return res.status(201).json({
+      res.status(201).json({
         status: 'success',
         carousel: {
           id: carousel.id,
@@ -227,13 +227,15 @@ No markdown, no extra text, just valid JSON array.`;
         warnings: warnings.length > 0 ? warnings : undefined,
         timestamp,
       });
+      return;
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      return res.status(500).json({
+      res.status(500).json({
         status: 'failed',
         error: `Generation failed: ${error}`,
         timestamp,
       });
+      return;
     }
   },
 );
@@ -254,7 +256,7 @@ router.post(
       const { requests } = req.body;
 
       if (!Array.isArray(requests) || requests.length === 0) {
-        return res.status(400).json({
+        res.status(400).json({
           status: 'failed',
           error: 'requests must be a non-empty array',
           timestamp,
@@ -373,7 +375,7 @@ Return ONLY a JSON array with headline, body, cta fields.`,
         }
       }
 
-      return res.status(207).json({
+      res.status(207).json({
         status: succeeded === requests.length ? 'success' : 'partial',
         total: requests.length,
         succeeded,
@@ -381,13 +383,15 @@ Return ONLY a JSON array with headline, body, cta fields.`,
         results,
         timestamp,
       });
+      return;
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      return res.status(500).json({
+      res.status(500).json({
         status: 'failed',
         error: `Batch generation failed: ${error}`,
         timestamp,
       });
+      return;
     }
   },
 );

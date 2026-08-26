@@ -119,7 +119,7 @@ router.post('/carousel/generate', quotaCheckMiddleware('carousels', 1), async (r
     // Charge quota on success
     await chargeQuota(req, 'carousels', generationId);
 
-    return res.json({
+    res.json({
       status: 'success',
       data: {
         ...carousel,
@@ -128,9 +128,11 @@ router.post('/carousel/generate', quotaCheckMiddleware('carousels', 1), async (r
       },
       message: `Generated ${carousel.slideCount}-slide carousel (Agent-reasoned + Pinterest-optimized)`,
     });
+    return;
   } catch (error) {
     log.error(`[Extended Routes] Carousel generation failed: ${error}`);
-    return res.status(500).json({error: 'Carousel generation failed', details: String(error)});
+    res.status(500).json({error: 'Carousel generation failed', details: String(error)});
+    return;
   }
 });
 
@@ -187,7 +189,7 @@ router.post('/video/generate', quotaCheckMiddleware('videos', 1), async (req: Re
     // Charge quota on success
     await chargeQuota(req, 'videos', generationId);
 
-    return res.json({
+    res.json({
       status: 'success',
       data: {
         ...video,
@@ -196,9 +198,11 @@ router.post('/video/generate', quotaCheckMiddleware('videos', 1), async (req: Re
       },
       message: `Generated ${video.duration}s ${video.platform} video script (Agent-reasoned + Pinterest-optimized)`,
     });
+    return;
   } catch (error) {
     log.error(`[Extended Routes] Video generation failed: ${error}`);
-    return res.status(500).json({error: 'Video generation failed', details: String(error)});
+    res.status(500).json({error: 'Video generation failed', details: String(error)});
+    return;
   }
 });
 
@@ -220,7 +224,7 @@ router.get('/patterns/colors', (req: Request, res: Response): void => {
 
   const palette = selectColorPalette(topic, emotion as any, undefined);
 
-  return res.json({
+  res.json({
     status: 'success',
     data: {
       recommended: palette,
@@ -228,6 +232,7 @@ router.get('/patterns/colors', (req: Request, res: Response): void => {
     },
     message: `Recommended palette: ${palette.name} (${palette.frequency}% frequency in research)`,
   });
+  return;
 });
 
 // ── GET: Narrative Structure Recommendations ──────────────────────────

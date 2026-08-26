@@ -20,14 +20,16 @@ router.get('/stats', (_req: Request, res: Response): void => {
   try {
     const stats = getPollingStats();
     log.info('[PollingStatus] Stats queried', stats);
-    return res.json({
+    res.json({
       ok: true,
       ...stats,
       timestamp: Date.now(),
     });
+    return;
   } catch (err) {
     log.error('[PollingStatus] Stats query failed', { error: String(err) });
-    return res.status(500).json({ ok: false, error: String(err) });
+    res.status(500).json({ ok: false, error: String(err) });
+    return;
   }
 });
 
@@ -48,21 +50,23 @@ router.post('/register', (req: Request, res: Response): void => {
     };
 
     if (!postId || !accountId || !platform || !format) {
-      return res.status(400).json({ ok: false, error: 'Missing required fields' });
+      res.status(400).json({ ok: false, error: 'Missing required fields' });
       return;
     }
 
     registerPostForPolling(postId, accountId, platform, format, variantSetId, niche);
 
     log.info('[PollingStatus] Post manually registered', { postId, accountId });
-    return res.json({
+    res.json({
       ok: true,
       message: `Post ${postId} registered for polling (4h/15-30m/7d cycles)`,
       postId,
     });
+    return;
   } catch (err) {
     log.error('[PollingStatus] Registration failed', { error: String(err) });
-    return res.status(500).json({ ok: false, error: String(err) });
+    res.status(500).json({ ok: false, error: String(err) });
+    return;
   }
 });
 
@@ -76,7 +80,7 @@ router.post('/trigger-cycle', (req: Request, res: Response): void => {
     const { cycle } = req.body as { cycle: 'metrics' | 'engagement' | 'feedback' };
 
     if (!cycle || !['metrics', 'engagement', 'feedback'].includes(cycle)) {
-      return res.status(400).json({ ok: false, error: 'cycle must be metrics|engagement|feedback' });
+      res.status(400).json({ ok: false, error: 'cycle must be metrics|engagement|feedback' });
       return;
     }
 
@@ -84,7 +88,7 @@ router.post('/trigger-cycle', (req: Request, res: Response): void => {
     // For now, just acknowledge the request
     log.info('[PollingStatus] Manual cycle trigger requested', { cycle });
 
-    return res.json({
+    res.json({
       ok: true,
       message: `Manual ${cycle} cycle triggered (polling queue will execute on next scheduled check)`,
       cycle,
@@ -94,9 +98,11 @@ router.post('/trigger-cycle', (req: Request, res: Response): void => {
         feedback: 'every 7 days',
       },
     });
+    return;
   } catch (err) {
     log.error('[PollingStatus] Trigger failed', { error: String(err) });
-    return res.status(500).json({ ok: false, error: String(err) });
+    res.status(500).json({ ok: false, error: String(err) });
+    return;
   }
 });
 

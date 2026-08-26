@@ -32,16 +32,18 @@ router.post('/expand-single', async (req: Request, res: Response): Promise<void>
 
     const result = await expandAndStore(promptId, promptText);
 
-    return res.json({
+    res.json({
       status: 'success',
       expansion: result,
       message: '6 variations generated (1 per tone: emotional/entertaining/polemic/education/humor/debate)',
       brand: brand?.name,
       metadata: { expandedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[PromptExpansion] Single expansion error', error);
-    return res.status(500).json({ error: 'Expansion failed' });
+    res.status(500).json({ error: 'Expansion failed' });
+    return;
   }
 });
 
@@ -63,7 +65,7 @@ router.post('/super-expand', async (req: Request, res: Response): Promise<void> 
 
     const result = await superExpandAndStore(promptId, promptText);
 
-    return res.json({
+    res.json({
       status: 'success',
       expansion: result,
       message: '12 variations generated (2x standard: emotional, entertaining, polemic, education, humor, debate + aspirational, introspective, energetic, calm, authoritative, playful)',
@@ -71,9 +73,11 @@ router.post('/super-expand', async (req: Request, res: Response): Promise<void> 
       brand: brand?.name,
       metadata: { expandedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[PromptExpansion] Super-expand error', error);
-    return res.status(500).json({ error: 'Super-expand failed' });
+    res.status(500).json({ error: 'Super-expand failed' });
+    return;
   }
 });
 

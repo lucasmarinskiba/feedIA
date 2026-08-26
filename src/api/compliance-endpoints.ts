@@ -62,7 +62,7 @@ export const validateCompliance = async (req: Request, res: Response): Promise<v
     const { contentId, text, checkTypes = ['ftc', 'gdpr'] } = req.body;
 
     if (!contentId || !text) {
-      return res.status(400).json({ error: 'contentId and text required' });
+      res.status(400).json({ error: 'contentId and text required' });
       return;
     }
 
@@ -117,7 +117,7 @@ export const validateCompliance = async (req: Request, res: Response): Promise<v
       [checkId, contentId, checkTypes.join(','), status, JSON.stringify(violations)]
     );
 
-    return res.json({
+    res.json({
       checkId,
       status,
       violations,
@@ -127,9 +127,11 @@ export const validateCompliance = async (req: Request, res: Response): Promise<v
         warnings: violations.filter((v) => v.severity === 'warning').length,
       },
     });
+    return;
   } catch (err) {
     console.error('[Compliance] Validation error:', err);
-    return res.status(500).json({ error: 'Validation failed' });
+    res.status(500).json({ error: 'Validation failed' });
+    return;
   }
 };
 
@@ -149,7 +151,7 @@ export const getComplianceReport = async (req: Request, res: Response): Promise<
     );
 
     if (contentResult.rowCount === 0) {
-      return res.status(404).json({ error: 'Content not found' });
+      res.status(404).json({ error: 'Content not found' });
       return;
     }
 
@@ -172,7 +174,7 @@ export const getComplianceReport = async (req: Request, res: Response): Promise<
     const allViolations = checks.flatMap((c: any) => c.violations);
     const uniqueViolations = Array.from(new Set(allViolations.map((v: any) => v.message)));
 
-    return res.json({
+    res.json({
       contentId,
       summary: {
         checksPerformed: checks.length,
@@ -184,8 +186,10 @@ export const getComplianceReport = async (req: Request, res: Response): Promise<
       checks,
       recentViolations: uniqueViolations.slice(0, 5),
     });
+    return;
   } catch (err) {
     console.error('[Compliance] Report error:', err);
-    return res.status(500).json({ error: 'Report retrieval failed' });
+    res.status(500).json({ error: 'Report retrieval failed' });
+    return;
   }
 };

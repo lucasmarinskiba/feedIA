@@ -44,7 +44,7 @@ router.get('/fomo-triggers', (req: Request, res: Response): void => {
       return (urgencyMap[b.urgency] || 0) - (urgencyMap[a.urgency] || 0);
     });
 
-    return res.json({
+    res.json({
       accountId,
       currentTier,
       campaignsUsed,
@@ -52,8 +52,10 @@ router.get('/fomo-triggers', (req: Request, res: Response): void => {
       triggers: sorted,
       timestamp: new Date().toISOString(),
     });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -111,7 +113,7 @@ router.get('/pricing', (req: Request, res: Response): void => {
       },
     };
 
-    return res.json({
+    res.json({
       tiers: comparison,
       comparisonGrid: {
         'Campaigns/month': ['5', '50', '500'],
@@ -122,8 +124,10 @@ router.get('/pricing', (req: Request, res: Response): void => {
       },
       timestamp: new Date().toISOString(),
     });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -146,7 +150,7 @@ router.get('/health', (req: Request, res: Response): void => {
 
     const health = calculateConversionHealth(metrics);
 
-    return res.json({
+    res.json({
       metrics,
       health,
       diagnostics: {
@@ -161,8 +165,10 @@ router.get('/health', (req: Request, res: Response): void => {
       },
       timestamp: new Date().toISOString(),
     });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -175,21 +181,23 @@ router.post('/validate-promise', (req: Request, res: Response): void => {
     const { tier, promise } = req.body as { tier: string; promise: string };
 
     if (!tier || !promise) {
-      return res.status(400).json({ error: 'tier and promise required' });
+      res.status(400).json({ error: 'tier and promise required' });
       return;
     }
 
     const isValid = true; // validateDeliveryPromises(tier, promise);
 
-    return res.json({
+    res.json({
       tier,
       promise: promise.substring(0, 100),
       isValid,
       status: isValid ? 'Promise can be delivered' : 'Promise contradicts delivery capability',
       timestamp: new Date().toISOString(),
     });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 

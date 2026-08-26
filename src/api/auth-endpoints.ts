@@ -36,14 +36,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const { email, password, username } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password required' });
+      res.status(400).json({ error: 'Email and password required' });
       return;
     }
 
     // Check if user exists
     const existing = await getUserByEmail(email);
     if (existing) {
-      return res.status(409).json({ error: 'User already exists' });
+      res.status(409).json({ error: 'User already exists' });
       return;
     }
 
@@ -61,15 +61,17 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       expiresIn: JWT_EXPIRY,
     });
 
-    return res.status(201).json({
+    res.status(201).json({
       user: { id: user.id, email: user.email, username: user.username },
       accessToken,
       refreshToken,
       expiresIn: JWT_EXPIRY,
     });
+    return;
   } catch (err) {
     console.error('[Auth] Register error:', err);
-    return res.status(500).json({ error: 'Registration failed' });
+    res.status(500).json({ error: 'Registration failed' });
+    return;
   }
 };
 
@@ -82,21 +84,21 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password required' });
+      res.status(400).json({ error: 'Email and password required' });
       return;
     }
 
     // Get user
     const user = await getUserByEmail(email);
     if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      res.status(401).json({ error: 'Invalid email or password' });
       return;
     }
 
     // Verify password
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      res.status(401).json({ error: 'Invalid email or password' });
       return;
     }
 
@@ -111,15 +113,17 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       expiresIn: JWT_EXPIRY,
     });
 
-    return res.json({
+    res.json({
       user: { id: user.id, email: user.email, username: user.username },
       accessToken,
       refreshToken,
       expiresIn: JWT_EXPIRY,
     });
+    return;
   } catch (err) {
     console.error('[Auth] Login error:', err);
-    return res.status(500).json({ error: 'Login failed' });
+    res.status(500).json({ error: 'Login failed' });
+    return;
   }
 };
 
@@ -132,14 +136,14 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
     const { refreshToken } = req.body;
 
     if (!refreshToken) {
-      return res.status(400).json({ error: 'Refresh token required' });
+      res.status(400).json({ error: 'Refresh token required' });
       return;
     }
 
     // Rotate refresh token
     const newTokens = await rotateRefreshToken(refreshToken);
     if (!newTokens) {
-      return res.status(401).json({ error: 'Invalid or expired refresh token' });
+      res.status(401).json({ error: 'Invalid or expired refresh token' });
       return;
     }
 
@@ -149,14 +153,16 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
       expiresIn: JWT_EXPIRY,
     });
 
-    return res.json({
+    res.json({
       accessToken,
       refreshToken: newTokens.token,
       expiresIn: JWT_EXPIRY,
     });
+    return;
   } catch (err) {
     console.error('[Auth] Refresh error:', err);
-    return res.status(500).json({ error: 'Token refresh failed' });
+    res.status(500).json({ error: 'Token refresh failed' });
+    return;
   }
 };
 
@@ -168,15 +174,17 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = (req as any).userId; // Set by auth middleware
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     await revokeAllSessions(userId);
-    return res.json({ message: 'Logged out from all devices' });
+    res.json({ message: 'Logged out from all devices' });
+    return;
   } catch (err) {
     console.error('[Auth] Logout error:', err);
-    return res.status(500).json({ error: 'Logout failed' });
+    res.status(500).json({ error: 'Logout failed' });
+    return;
   }
 };
 
@@ -189,7 +197,7 @@ export const verifyJWT = (req: Request, res: Response, next: () => void): void =
     const token = authHeader?.replace('Bearer ', '');
 
     if (!token) {
-      return res.status(401).json({ error: 'Missing authorization token' });
+      res.status(401).json({ error: 'Missing authorization token' });
       return;
     }
 
@@ -197,6 +205,7 @@ export const verifyJWT = (req: Request, res: Response, next: () => void): void =
     (req as any).userId = (decoded as any).userId;
     next();
   } catch (err) {
-    return res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({ error: 'Invalid token' });
+    return;
   }
 };

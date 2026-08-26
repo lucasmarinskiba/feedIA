@@ -50,7 +50,7 @@ const instagramAuthorize = async (req: AuthRequest, res: Response): Promise<void
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -60,9 +60,11 @@ const instagramAuthorize = async (req: AuthRequest, res: Response): Promise<void
 
     const authUrl = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code&state=${userId}`;
 
-    return res.json({ authUrl, message: 'Redirect user to this URL' });
+    res.json({ authUrl, message: 'Redirect user to this URL' });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 };
 
@@ -76,7 +78,7 @@ const instagramCallback = async (req: Request, res: Response): Promise<void> => 
     const userId = state;
 
     if (!code || !userId) {
-      return res.status(400).json({ error: 'Missing code or state' });
+      res.status(400).json({ error: 'Missing code or state' });
       return;
     }
 
@@ -102,7 +104,7 @@ const instagramCallback = async (req: Request, res: Response): Promise<void> => 
     };
 
     if (!tokenData.access_token) {
-      return res.status(400).json({ error: 'Failed to get access token' });
+      res.status(400).json({ error: 'Failed to get access token' });
       return;
     }
 
@@ -126,9 +128,11 @@ const instagramCallback = async (req: Request, res: Response): Promise<void> => 
       [userId, 'instagram', token.token, new Date(token.expiresAt)]
     );
 
-    return res.json({ success: true, message: 'Instagram connected', userId });
+    res.json({ success: true, message: 'Instagram connected', userId });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 };
 
@@ -140,7 +144,7 @@ const tiktokAuthorize = async (req: AuthRequest, res: Response): Promise<void> =
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -150,9 +154,11 @@ const tiktokAuthorize = async (req: AuthRequest, res: Response): Promise<void> =
 
     const authUrl = `https://www.tiktok.com/v1/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code&state=${userId}`;
 
-    return res.json({ authUrl, message: 'Redirect user to this URL' });
+    res.json({ authUrl, message: 'Redirect user to this URL' });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 };
 
@@ -166,7 +172,7 @@ const tiktokCallback = async (req: Request, res: Response): Promise<void> => {
     const userId = state;
 
     if (!code || !userId) {
-      return res.status(400).json({ error: 'Missing code or state' });
+      res.status(400).json({ error: 'Missing code or state' });
       return;
     }
 
@@ -190,7 +196,7 @@ const tiktokCallback = async (req: Request, res: Response): Promise<void> => {
     };
 
     if (!tokenData.access_token) {
-      return res.status(400).json({ error: 'Failed to get access token' });
+      res.status(400).json({ error: 'Failed to get access token' });
       return;
     }
 
@@ -216,9 +222,11 @@ const tiktokCallback = async (req: Request, res: Response): Promise<void> => {
       [userId, 'tiktok', token.token, token.refreshToken, new Date(token.expiresAt)]
     );
 
-    return res.json({ success: true, message: 'TikTok connected', userId });
+    res.json({ success: true, message: 'TikTok connected', userId });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 };
 
@@ -234,20 +242,20 @@ const schedulePost = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { contentId, publishAt, platforms = ['instagram', 'tiktok'], caption } = req.body;
 
     if (!contentId || !publishAt) {
-      return res.status(400).json({ error: 'Missing contentId or publishAt' });
+      res.status(400).json({ error: 'Missing contentId or publishAt' });
       return;
     }
 
     const scheduledTime = new Date(publishAt);
     if (scheduledTime < new Date()) {
-      return res.status(400).json({ error: 'Schedule time must be in future' });
+      res.status(400).json({ error: 'Schedule time must be in future' });
       return;
     }
 
@@ -273,14 +281,16 @@ const schedulePost = async (req: AuthRequest, res: Response): Promise<void> => {
     // Store in schedule queue (Redis or cron)
     // For MVP: use setInterval check or external scheduler
 
-    return res.json({
+    res.json({
       success: true,
       scheduledPostId: result.rows[0].id,
       scheduledAt: scheduledTime,
       message: `Post scheduled for ${scheduledTime.toISOString()}`,
     });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 };
 
@@ -292,14 +302,14 @@ const batchPublish = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const { posts, platforms = ['instagram', 'tiktok'] } = req.body;
 
     if (!Array.isArray(posts) || posts.length === 0) {
-      return res.status(400).json({ error: 'Posts array required' });
+      res.status(400).json({ error: 'Posts array required' });
       return;
     }
 
@@ -334,9 +344,11 @@ const batchPublish = async (req: AuthRequest, res: Response): Promise<void> => {
       }
     }
 
-    return res.json({ success: true, published: results.length, results });
+    res.json({ success: true, published: results.length, results });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 };
 
@@ -354,13 +366,13 @@ const getAnalytics = async (req: AuthRequest, res: Response): Promise<void> => {
     const { platform } = req.params as { platform: string };
 
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     const token = tokenStore.get(`${userId}:${platform}`);
     if (!token) {
-      return res.status(400).json({ error: `${platform} not connected` });
+      res.status(400).json({ error: `${platform} not connected` });
       return;
     }
 
@@ -370,17 +382,20 @@ const getAnalytics = async (req: AuthRequest, res: Response): Promise<void> => {
         `https://graph.instagram.com/v18.0/me/insights?metric=impressions,reach,profile_views&access_token=${token.token}`
       );
       const data = await insightsResponse.json();
-      return res.json({ platform: 'instagram', insights: data });
+      res.json({ platform: 'instagram', insights: data });
+      return;
     } else if (platform === 'tiktok') {
       // Get TikTok analytics
       const analyticsResponse = await fetch('https://open.tiktokapis.com/v1/video/list', {
         headers: { Authorization: `Bearer ${token.token}` },
       });
       const data = await analyticsResponse.json();
-      return res.json({ platform: 'tiktok', videos: data });
+      res.json({ platform: 'tiktok', videos: data });
+      return;
     }
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 };
 
@@ -392,7 +407,7 @@ const getDashboard = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -408,14 +423,16 @@ const getDashboard = async (req: AuthRequest, res: Response): Promise<void> => {
       [userId]
     );
 
-    return res.json({
+    res.json({
       totalPosts: result.rows[0].total_posts,
       instagramViews: result.rows[0].instagram_views,
       tiktokViews: result.rows[0].tiktok_views,
       avgEngagement: result.rows[0].avg_engagement,
     });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 };
 
@@ -433,7 +450,7 @@ const generateCaption = async (req: AuthRequest, res: Response): Promise<void> =
     const { contentType, topic, tone = 'engaging', platform = 'instagram' } = req.body;
 
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -460,9 +477,11 @@ const generateCaption = async (req: AuthRequest, res: Response): Promise<void> =
     const data = (await response.json()) as { content?: Array<{ text: string }> };
     const caption = data.content?.[0]?.text || '';
 
-    return res.json({ caption, platform });
+    res.json({ caption, platform });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 };
 
@@ -474,7 +493,7 @@ const getTemplates = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -483,9 +502,11 @@ const getTemplates = async (req: AuthRequest, res: Response): Promise<void> => {
       [userId]
     );
 
-    return res.json({ templates: result.rows });
+    res.json({ templates: result.rows });
+    return;
   } catch (err) {
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 };
 

@@ -69,7 +69,7 @@ export const getGrowthStrategy = async (req: Request, res: Response): Promise<vo
     strategies.push('Build audience consistency');
     recommendations.push('Publish 3-5 pieces per week to maintain momentum');
 
-    return res.json({
+    res.json({
       strategy: {
         goals: strategies,
         actionItems: recommendations,
@@ -87,9 +87,11 @@ export const getGrowthStrategy = async (req: Request, res: Response): Promise<vo
         '30days': `${Math.round(engagementRate * 2)}% engagement`,
       },
     });
+    return;
   } catch (err) {
     console.error('[Growth] Strategy error:', err);
-    return res.status(500).json({ error: 'Strategy generation failed' });
+    res.status(500).json({ error: 'Strategy generation failed' });
+    return;
   }
 };
 
@@ -154,7 +156,7 @@ export const getEngagementForecast = async (req: Request, res: Response): Promis
       });
     }
 
-    return res.json({
+    res.json({
       forecast: forecast,
       summary: {
         projectedMonthlyViews: forecast.reduce((sum: number, f: any) => sum + f.predictedViews, 0),
@@ -167,9 +169,11 @@ export const getEngagementForecast = async (req: Request, res: Response): Promis
         confidence: '75%',
       },
     });
+    return;
   } catch (err) {
     console.error('[Growth] Forecast error:', err);
-    return res.status(500).json({ error: 'Forecast generation failed' });
+    res.status(500).json({ error: 'Forecast generation failed' });
+    return;
   }
 };
 
@@ -243,7 +247,7 @@ export const getRecommendations = async (req: Request, res: Response): Promise<v
       confidence: 0.8,
     });
 
-    return res.json({
+    res.json({
       recommendations,
       summary: {
         topContentType: topTypes[0]?.type || 'carousel',
@@ -251,8 +255,10 @@ export const getRecommendations = async (req: Request, res: Response): Promise<v
         totalRecommendations: recommendations.length,
       },
     });
+    return;
   } catch (err) {
     console.error('[Growth] Recommendations error:', err);
-    return res.status(500).json({ error: 'Recommendations generation failed' });
+    res.status(500).json({ error: 'Recommendations generation failed' });
+    return;
   }
 };

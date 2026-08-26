@@ -41,7 +41,7 @@ router.post('/format', (req: Request, res: Response): void => {
     const { format, platform, title, description, hashtags, callToAction } = req.body as ContentMetadata;
 
     if (!format || !platform) {
-      return res.status(400).json({ error: 'format and platform required' });
+      res.status(400).json({ error: 'format and platform required' });
       return;
     }
 
@@ -56,13 +56,15 @@ router.post('/format', (req: Request, res: Response): void => {
 
     const result = formatForPlatform(metadata);
 
-    return res.json({
+    res.json({
       success: true,
       result,
     });
+    return;
   } catch (err) {
     console.error('[PlatformNative] Format failed:', err);
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -92,15 +94,17 @@ router.post('/validate', (req: Request, res: Response): void => {
 
     const validation = validateContent(metadata);
 
-    return res.json({
+    res.json({
       success: true,
       valid: validation.valid,
       errors: validation.errors,
       message: validation.valid ? 'Content valid for platform' : `${validation.errors.length} validation error(s)`,
     });
+    return;
   } catch (err) {
     console.error('[PlatformNative] Validate failed:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -128,14 +132,16 @@ router.post('/optimize', (req: Request, res: Response): void => {
 
     const optimized = optimizeForPlatform(metadata);
 
-    return res.json({
+    res.json({
       success: true,
       optimized,
       message: 'Content optimized for platform',
     });
+    return;
   } catch (err) {
     console.error('[PlatformNative] Optimize failed:', err);
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -164,13 +170,15 @@ router.get('/specs/:platform/:format', (req: Request, res: Response): void => {
     const metadata: ContentMetadata = { format, platform };
     const result = formatForPlatform(metadata);
 
-    return res.json({
+    res.json({
       success: true,
       specs: result.specs,
     });
+    return;
   } catch (err) {
     console.error('[PlatformNative] Specs failed:', err);
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -211,18 +219,20 @@ router.get('/scheduling/:platform', (req: Request, res: Response): void => {
     const rules = SCHEDULING_RULES[platform];
 
     if (!rules) {
-      return res.status(400).json({ error: `Unknown platform: ${platform}` });
+      res.status(400).json({ error: `Unknown platform: ${platform}` });
       return;
     }
 
-    return res.json({
+    res.json({
       success: true,
       platform,
       scheduling: rules,
     });
+    return;
   } catch (err) {
     console.error('[PlatformNative] Scheduling failed:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 

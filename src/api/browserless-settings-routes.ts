@@ -26,7 +26,7 @@ router.post('/connect', (req: Request, res: Response): void => {
     const { accountId, apiKey } = req.body as { accountId: string; apiKey: string };
 
     if (!accountId || !apiKey) {
-      return res.status(400).json({ ok: false, error: 'accountId and apiKey required' });
+      res.status(400).json({ ok: false, error: 'accountId and apiKey required' });
       return;
     }
 
@@ -35,15 +35,17 @@ router.post('/connect', (req: Request, res: Response): void => {
 
     log.info('[BrowserlessSettings] Key stored', { accountId, keyLength: apiKey.length });
 
-    return res.json({
+    res.json({
       ok: true,
       message: `Browserless key connected for ${accountId}`,
       accountId,
       connectedAt: new Date().toISOString(),
     });
+    return;
   } catch (err) {
     log.error('[BrowserlessSettings] Connect failed', { error: String(err) });
-    return res.status(500).json({ ok: false, error: String(err) });
+    res.status(500).json({ ok: false, error: String(err) });
+    return;
   }
 });
 
@@ -56,7 +58,7 @@ router.get('/status', (req: Request, res: Response): void => {
     const { accountId } = req.query as { accountId: string };
 
     if (!accountId) {
-      return res.status(400).json({ ok: false, error: 'accountId required' });
+      res.status(400).json({ ok: false, error: 'accountId required' });
       return;
     }
 
@@ -65,15 +67,17 @@ router.get('/status', (req: Request, res: Response): void => {
 
     log.info('[BrowserlessSettings] Status checked', { accountId, connected });
 
-    return res.json({
+    res.json({
       ok: true,
       connected,
       accountId,
       ...(connected && { connectedAt: new Date(keyData!.timestamp).toISOString() }),
     });
+    return;
   } catch (err) {
     log.error('[BrowserlessSettings] Status check failed', { error: String(err) });
-    return res.status(500).json({ ok: false, error: String(err) });
+    res.status(500).json({ ok: false, error: String(err) });
+    return;
   }
 });
 
@@ -86,7 +90,7 @@ router.post('/disconnect', (req: Request, res: Response): void => {
     const { accountId } = req.body as { accountId: string };
 
     if (!accountId) {
-      return res.status(400).json({ ok: false, error: 'accountId required' });
+      res.status(400).json({ ok: false, error: 'accountId required' });
       return;
     }
 
@@ -94,14 +98,16 @@ router.post('/disconnect', (req: Request, res: Response): void => {
 
     log.info('[BrowserlessSettings] Key removed', { accountId });
 
-    return res.json({
+    res.json({
       ok: true,
       message: `Browserless key disconnected for ${accountId}`,
       accountId,
     });
+    return;
   } catch (err) {
     log.error('[BrowserlessSettings] Disconnect failed', { error: String(err) });
-    return res.status(500).json({ ok: false, error: String(err) });
+    res.status(500).json({ ok: false, error: String(err) });
+    return;
   }
 });
 

@@ -86,7 +86,8 @@ router.post('/upload-images', upload.array('images', 10), async (req: Request, r
     return void res.json(response);
   } catch (error) {
     log.error('[ParameterizedRoutes] Upload error', error);
-    return res.status(500).json({ error: 'Image processing failed' });
+    res.status(500).json({ error: 'Image processing failed' });
+    return;
   }
 });
 
@@ -109,16 +110,18 @@ router.post('/match-prompts', async (req: Request, res: Response): Promise<void>
 
     const matched = await matchDescriptionsToPrompts(imageDescriptions, objective, occasion);
 
-    return res.json({
+    res.json({
       status: 'success',
       matched,
       count: matched.length,
       contentType,
       objective,
     });
+    return;
   } catch (error) {
     log.error('[ParameterizedRoutes] Matching error', error);
-    return res.status(500).json({ error: 'Prompt matching failed' });
+    res.status(500).json({ error: 'Prompt matching failed' });
+    return;
   }
 });
 
@@ -178,7 +181,8 @@ router.post('/generate-content', async (req: Request, res: Response): Promise<vo
     });
   } catch (error) {
     log.error('[ParameterizedRoutes] Generation error', error);
-    return res.status(500).json({ error: 'Content generation failed' });
+    res.status(500).json({ error: 'Content generation failed' });
+    return;
   }
 });
 

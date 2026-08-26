@@ -27,18 +27,22 @@ router.post('/curation/record', (req: Request, res: Response): void => {
     const perf = req.body as ContentCuration.PromptPerformance;
     ContentCuration.recordPromptPerformance(perf);
     const curation = ContentCuration.curateContent();
-    return res.json({ success: true, curation });
+    res.json({ success: true, curation });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
 router.get('/curation/analyze', (req: Request, res: Response): void => {
   try {
     const result = ContentCuration.curateContent();
-    return res.json({ success: true, result });
+    res.json({ success: true, result });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -48,9 +52,11 @@ router.post('/audience/create-segment', (req: Request, res: Response): void => {
   try {
     const { niche, description } = req.body as { niche: string; description: string };
     const segment = AudienceProfiling.createAudienceSegment(niche, description);
-    return res.json({ success: true, segment });
+    res.json({ success: true, segment });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -58,9 +64,11 @@ router.post('/audience/profile', (req: Request, res: Response): void => {
   try {
     const { niche, description } = req.body as { niche: string; description: string };
     const profile = AudienceProfiling.profileAudience(niche, description);
-    return res.json({ success: true, profile });
+    res.json({ success: true, profile });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -70,9 +78,11 @@ router.post('/forecasting/predict', (req: Request, res: Response): void => {
   try {
     const input = req.body as EngagementForecasting.ForecastInput;
     const forecast = EngagementForecasting.forecastEngagement(input);
-    return res.json({ success: true, forecast });
+    res.json({ success: true, forecast });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -86,9 +96,11 @@ router.post('/forecasting/compare', (req: Request, res: Response): void => {
       postingTime: string;
     };
     const forecasts = EngagementForecasting.compareForecastsForContent(formats, topic, platform, audience, postingTime);
-    return res.json({ success: true, forecasts });
+    res.json({ success: true, forecasts });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -98,18 +110,22 @@ router.post('/testing/create', (req: Request, res: Response): void => {
   try {
     const { name, hypothesis, controlLabel, variantLabels } = req.body as { name: string; hypothesis: string; controlLabel: string; variantLabels: string[] };
     const test = ABTesting.createTest(name, hypothesis, controlLabel, variantLabels);
-    return res.json({ success: true, test });
+    res.json({ success: true, test });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
 router.get('/testing/active', (req: Request, res: Response): void => {
   try {
     const tests = ABTesting.getActiveTests();
-    return res.json({ success: true, tests });
+    res.json({ success: true, tests });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -119,9 +135,11 @@ router.post('/orchestration/distribute', (req: Request, res: Response): void => 
   try {
     const { contentId, contentType, topic } = req.body as { contentId: string; contentType: 'carousel' | 'reel' | 'story' | 'static'; topic: string };
     const distribution = ChannelOrchestration.distributeContent(contentId, contentType, topic);
-    return res.json({ success: true, distribution });
+    res.json({ success: true, distribution });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -129,9 +147,11 @@ router.get('/orchestration/schedule/:period', (req: Request, res: Response): voi
   try {
     const period = String(req.params.period) as 'week' | 'month';
     const schedule = ChannelOrchestration.orchestrateSchedule(period);
-    return res.json({ success: true, schedule });
+    res.json({ success: true, schedule });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -141,9 +161,11 @@ router.post('/competitive/add-competitor', (req: Request, res: Response): void =
   try {
     const { name, niche, platforms } = req.body as { name: string; niche: string; platforms: string[] };
     const profile = CompetitiveIntelligence.addCompetitor(name, niche, platforms);
-    return res.json({ success: true, profile });
+    res.json({ success: true, profile });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -151,9 +173,11 @@ router.post('/competitive/analyze', (req: Request, res: Response): void => {
   try {
     const { niche } = req.body as { niche: string };
     const analysis = CompetitiveIntelligence.analyzeCompetitors(niche);
-    return res.json({ success: true, analysis });
+    res.json({ success: true, analysis });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -163,9 +187,11 @@ router.post('/sentiment/analyze-comment', (req: Request, res: Response): void =>
   try {
     const { commentId, text } = req.body as { commentId: string; text: string };
     const analysis = SentimentAnalysis.analyzeComment(commentId, text);
-    return res.json({ success: true, analysis });
+    res.json({ success: true, analysis });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -173,9 +199,11 @@ router.post('/sentiment/generate-report', (req: Request, res: Response): void =>
   try {
     const { contentId, commentIds } = req.body as { contentId: string; commentIds: string[] };
     const report = SentimentAnalysis.generateSentimentReport(contentId, commentIds);
-    return res.json({ success: true, report });
+    res.json({ success: true, report });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -185,18 +213,22 @@ router.post('/compliance/validate', (req: Request, res: Response): void => {
   try {
     const { contentId, content, platform } = req.body as { contentId: string; content: string; platform: string };
     const check = ComplianceValidator.validateContent(contentId, content, platform);
-    return res.json({ success: true, check });
+    res.json({ success: true, check });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
 router.get('/compliance/stats', (req: Request, res: Response): void => {
   try {
     const stats = ComplianceValidator.getComplianceStats();
-    return res.json({ success: true, stats });
+    res.json({ success: true, stats });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -206,18 +238,22 @@ router.post('/trends/detect', (req: Request, res: Response): void => {
   try {
     const { name, category, volume, keywords } = req.body as { name: string; category: string; volume: number; keywords: string[] };
     const trend = TrendDetector.detectTrend(name, category, volume, keywords);
-    return res.json({ success: true, trend });
+    res.json({ success: true, trend });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
 router.get('/trends/analyze', (req: Request, res: Response): void => {
   try {
     const analysis = TrendDetector.analyzeTrends();
-    return res.json({ success: true, analysis });
+    res.json({ success: true, analysis });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -227,9 +263,11 @@ router.post('/growth/strategy', (req: Request, res: Response): void => {
   try {
     const { currentFollowers, engagementRate, conversionRate } = req.body as { currentFollowers: number; engagementRate: number; conversionRate: number };
     const strategy = GrowthHacker.buildGrowthStrategy(currentFollowers, engagementRate, conversionRate);
-    return res.json({ success: true, strategy });
+    res.json({ success: true, strategy });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
@@ -237,16 +275,18 @@ router.post('/growth/viral-coefficient', (req: Request, res: Response): void => 
   try {
     const { invites, signups } = req.body as { invites: number; signups: number };
     const result = GrowthHacker.calculateViralCoefficient(invites, signups);
-    return res.json({ success: true, result });
+    res.json({ success: true, result });
+    return;
   } catch (err) {
-    return res.status(400).json({ error: String(err) });
+    res.status(400).json({ error: String(err) });
+    return;
   }
 });
 
 // ============ HEALTH CHECK ============
 
 router.get('/health', (req: Request, res: Response): void => {
-  return res.json({
+  res.json({
     status: 'healthy',
     systems: [
       'content-curation',
@@ -262,6 +302,7 @@ router.get('/health', (req: Request, res: Response): void => {
     ],
     endpoints: 28,
   });
+  return;
 });
 
 export default router;

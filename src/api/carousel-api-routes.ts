@@ -12,15 +12,17 @@ router.post(
       const { userId, title, format, slides, platform, sourceCategory } = req.body;
 
       if (!userId || !title || !format || !slides || !platform) {
-        return res.status(400).json({ error: 'Missing required fields' });
+        res.status(400).json({ error: 'Missing required fields' });
         return;
       }
 
       const carousel = await carouselStorageService.create({ userId, title, format, slides, platform, sourceCategory });
-      return res.status(201).json(carousel);
+      res.status(201).json(carousel);
+      return;
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      return res.status(500).json({ error: `Failed to create carousel: ${error}` });
+      res.status(500).json({ error: `Failed to create carousel: ${error}` });
+      return;
     }
   },
 );
@@ -33,14 +35,16 @@ router.get(
       const carousel = await carouselStorageService.getById(req.params.carouselId);
 
       if (!carousel) {
-        return res.status(404).json({ error: 'Carousel not found' });
+        res.status(404).json({ error: 'Carousel not found' });
         return;
       }
 
-      return res.json(carousel);
+      res.json(carousel);
+      return;
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      return res.status(500).json({ error: `Failed to fetch carousel: ${error}` });
+      res.status(500).json({ error: `Failed to fetch carousel: ${error}` });
+      return;
     }
   },
 );
@@ -52,10 +56,12 @@ router.get(
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
       const carousels = await carouselStorageService.listByUser(req.params.userId, limit);
-      return res.json(carousels);
+      res.json(carousels);
+      return;
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      return res.status(500).json({ error: `Failed to list carousels: ${error}` });
+      res.status(500).json({ error: `Failed to list carousels: ${error}` });
+      return;
     }
   },
 );
@@ -68,14 +74,16 @@ router.put(
       const updated = await carouselStorageService.update(req.params.carouselId, req.body);
 
       if (!updated) {
-        return res.status(404).json({ error: 'Carousel not found' });
+        res.status(404).json({ error: 'Carousel not found' });
         return;
       }
 
-      return res.json(updated);
+      res.json(updated);
+      return;
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      return res.status(500).json({ error: `Failed to update carousel: ${error}` });
+      res.status(500).json({ error: `Failed to update carousel: ${error}` });
+      return;
     }
   },
 );
@@ -88,14 +96,16 @@ router.delete(
       const deleted = await carouselStorageService.delete(req.params.carouselId);
 
       if (!deleted) {
-        return res.status(404).json({ error: 'Carousel not found' });
+        res.status(404).json({ error: 'Carousel not found' });
         return;
       }
 
-      return res.json({ success: true });
+      res.json({ success: true });
+      return;
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      return res.status(500).json({ error: `Failed to delete carousel: ${error}` });
+      res.status(500).json({ error: `Failed to delete carousel: ${error}` });
+      return;
     }
   },
 );
@@ -108,14 +118,16 @@ router.post(
       const published = await carouselStorageService.publish(req.params.carouselId, req.body.platform as any);
 
       if (!published) {
-        return res.status(404).json({ error: 'Carousel not found' });
+        res.status(404).json({ error: 'Carousel not found' });
         return;
       }
 
-      return res.json(published);
+      res.json(published);
+      return;
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      return res.status(500).json({ error: `Failed to publish carousel: ${error}` });
+      res.status(500).json({ error: `Failed to publish carousel: ${error}` });
+      return;
     }
   },
 );
@@ -126,10 +138,12 @@ router.post(
   async (req: Request<{ carouselId: string }, { success: boolean } | { error: string }, Record<string, number>>, res: Response<{ success: boolean } | { error: string }>): Promise<void> => {
     try {
       await carouselStorageService.updateMetrics(req.params.carouselId, req.body);
-      return res.json({ success: true });
+      res.json({ success: true });
+      return;
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      return res.status(500).json({ error: `Failed to update metrics: ${error}` });
+      res.status(500).json({ error: `Failed to update metrics: ${error}` });
+      return;
     }
   },
 );

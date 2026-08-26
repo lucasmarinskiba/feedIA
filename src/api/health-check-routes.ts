@@ -37,11 +37,12 @@ const componentStatus: Map<string, ComponentHealth> = new Map([
  * Returns 200 if server is up (regardless of dependencies)
  */
 router.get('/', (_req: Request, res: Response): void => {
-  return res.status(200).json({
+  res.status(200).json({
     status: 'alive',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   });
+  return;
 });
 
 /**
@@ -56,11 +57,12 @@ router.get('/ready', async (_req: Request, res: Response): Promise<void> => {
   const statusCode = allHealthy ? 200 : 503;
   const status = allHealthy ? 'ready' : 'not_ready';
 
-  return res.status(statusCode).json({
+  res.status(statusCode).json({
     status,
     timestamp: new Date().toISOString(),
     checks,
   });
+  return;
 });
 
 /**
@@ -74,12 +76,13 @@ router.get('/detailed', async (_req: Request, res: Response): Promise<void> => {
 
   const statusCode = allHealthy ? 200 : 503;
 
-  return res.status(statusCode).json({
+  res.status(statusCode).json({
     status: allHealthy ? 'healthy' : 'degraded',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     ...details,
   });
+  return;
 });
 
 // ─── Readiness Checks ───────────────────────────────────────────────────

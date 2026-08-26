@@ -89,7 +89,7 @@ router.post('/parameterized-prompt', async (req: Request, res: Response): Promis
       });
     }
 
-    return res.json({
+    res.json({
       status: 'success',
       prompt: generatedPrompt,
       template: {
@@ -102,9 +102,11 @@ router.post('/parameterized-prompt', async (req: Request, res: Response): Promis
         category,
       },
     });
+    return;
   } catch (error) {
     log.error('[VideoParameterizedRoutes] Prompt generation error', error);
-    return res.status(500).json({ error: 'Prompt generation failed' });
+    res.status(500).json({ error: 'Prompt generation failed' });
+    return;
   }
 });
 
@@ -167,7 +169,7 @@ router.post('/batch-generate', quotaCheckMiddleware('videos', 1), async (req: Re
       await chargeQuota(req, 'videos', `param-${uuidv4()}`);
     }
 
-    return res.json({
+    res.json({
       status: 'success',
       totalRequested: requests.length,
       totalGenerated: generatedPrompts.length,
@@ -177,9 +179,11 @@ router.post('/batch-generate', quotaCheckMiddleware('videos', 1), async (req: Re
         generatedAt: new Date().toISOString(),
       },
     });
+    return;
   } catch (error) {
     log.error('[VideoParameterizedRoutes] Batch generation error', error);
-    return res.status(500).json({ error: 'Batch generation failed' });
+    res.status(500).json({ error: 'Batch generation failed' });
+    return;
   }
 });
 
@@ -299,7 +303,7 @@ router.post('/batch-expand', async (req: Request, res: Response): Promise<void> 
       }
     }
 
-    return res.json({
+    res.json({
       status: 'success',
       baseParams,
       totalVariations: expandedPrompts.length,
@@ -309,9 +313,11 @@ router.post('/batch-expand', async (req: Request, res: Response): Promise<void> 
         generatedAt: new Date().toISOString(),
       },
     });
+    return;
   } catch (error) {
     log.error('[VideoParameterizedRoutes] Batch expand error', error);
-    return res.status(500).json({ error: 'Batch expand failed' });
+    res.status(500).json({ error: 'Batch expand failed' });
+    return;
   }
 });
 

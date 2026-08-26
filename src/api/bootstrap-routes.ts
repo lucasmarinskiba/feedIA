@@ -125,7 +125,8 @@ export const bootstrapEndpoint = async (req: Request, res: Response): Promise<vo
       endpoints_failed: endpoints.length - passingEndpoints,
     };
 
-    return res.status(200).json(result);
+    res.status(200).json(result);
+    return;
   } catch (err) {
     result.status = 'failed';
     result.steps.push({
@@ -133,7 +134,8 @@ export const bootstrapEndpoint = async (req: Request, res: Response): Promise<vo
       status: 'fail',
       message: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
     });
-    return res.status(500).json(result);
+    res.status(500).json(result);
+    return;
   }
 };
 

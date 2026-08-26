@@ -45,29 +45,31 @@ router.post('/save', async (req: Request, res: Response): Promise<void> => {
     };
 
     if (!userId || !batchId || rating === undefined) {
-      return res.status(400).json({ error: 'userId, batchId, rating required' });
+      res.status(400).json({ error: 'userId, batchId, rating required' });
       return;
     }
 
     const result = await saveFeedback(userId, batchId, rating, content);
 
     if (!result.success) {
-      return res.status(400).json({ error: result.error });
+      res.status(400).json({ error: result.error });
       return;
     }
 
     console.log('[QualityLoop] Feedback saved:', { userId, batchId, rating });
 
-    return res.json({
+    res.json({
       success: true,
       feedbackId: result.feedbackId,
       batchId,
       rating,
       message: `Thanks! Rating saved for Batch ${batchId}`,
     });
+    return;
   } catch (err) {
     console.error('[QualityLoop] Save error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -90,7 +92,7 @@ router.get('/quality-scores/:batchId', async (req: Request, res: Response): Prom
     const batchId = parseInt(req.params.batchId as string, 10);
 
     if (!batchId || isNaN(batchId)) {
-      return res.status(400).json({ error: 'batchId required' });
+      res.status(400).json({ error: 'batchId required' });
       return;
     }
 
@@ -98,11 +100,11 @@ router.get('/quality-scores/:batchId', async (req: Request, res: Response): Prom
     const boost = await getQualityWeightBoost(batchId);
 
     if (!score) {
-      return res.status(404).json({ error: `No ratings for Batch ${batchId}` });
+      res.status(404).json({ error: `No ratings for Batch ${batchId}` });
       return;
     }
 
-    return res.json({
+    res.json({
       batchId: score.batchId,
       averageRating: parseFloat(score.averageRating.toFixed(2)),
       totalRatings: score.totalRatings,
@@ -110,9 +112,11 @@ router.get('/quality-scores/:batchId', async (req: Request, res: Response): Prom
       qualityBoost: parseFloat(boost.toFixed(2)),
       interpretation: score.averageRating >= 4.5 ? '⭐ Highly recommended' : '✓ Good performer',
     });
+    return;
   } catch (err) {
     console.error('[QualityScores] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -133,7 +137,7 @@ router.get('/quality-scores', async (req: Request, res: Response): Promise<void>
   try {
     const scores = await getAllBatchQualityScores();
 
-    return res.json({
+    res.json({
       success: true,
       batches: scores.map((s) => ({
         batchId: s.batchId,
@@ -143,9 +147,11 @@ router.get('/quality-scores', async (req: Request, res: Response): Promise<void>
       totalBatches: scores.length,
       message: `Retrieved quality scores for ${scores.length} batches`,
     });
+    return;
   } catch (err) {
     console.error('[AllQualityScores] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -168,21 +174,23 @@ router.get('/history/:userId', async (req: Request, res: Response): Promise<void
     const userId = req.params.userId as string;
 
     if (!userId) {
-      return res.status(400).json({ error: 'userId required' });
+      res.status(400).json({ error: 'userId required' });
       return;
     }
 
     const history = await getUserFeedbackHistory(userId);
 
-    return res.json({
+    res.json({
       success: true,
       userId,
       feedback: history,
       count: history.length,
     });
+    return;
   } catch (err) {
     console.error('[FeedbackHistory] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -205,16 +213,18 @@ router.post('/retrain', async (req: Request, res: Response): Promise<void> => {
 
     console.log('[Retrain] Weights updated:', result);
 
-    return res.json({
+    res.json({
       success: true,
       oldWeights: result.oldWeights,
       newWeights: result.newWeights,
       improvementPercent: result.improvementPercent,
       message: `Ranking weights retrained. ${result.improvementPercent > 0 ? '📈 Improved' : '→ Stable'}`,
     });
+    return;
   } catch (err) {
     console.error('[Retrain] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -234,15 +244,17 @@ router.get('/recommendations', async (req: Request, res: Response): Promise<void
   try {
     const recs = await getQualityRecommendations();
 
-    return res.json({
+    res.json({
       success: true,
       recommendations: recs,
       count: recs.length,
       message: 'Top-rated batches for prompt selection',
     });
+    return;
   } catch (err) {
     console.error('[Recommendations] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 

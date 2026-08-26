@@ -38,7 +38,7 @@ const performancePredictor = async (req: AuthRequest, res: Response): Promise<vo
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
@@ -53,7 +53,7 @@ const performancePredictor = async (req: AuthRequest, res: Response): Promise<vo
     const prediction = (baseEngagement * contentMultiplier * timeMultiplier + hashtagBoost) * 100;
     const confidence = Math.min(0.95, 0.6 + (hashtags?.length || 0) * 0.02);
 
-    return res.json({
+    res.json({
       success: true,
       prediction: {
         predicted_engagement_rate: prediction.toFixed(2) + "%",
@@ -76,9 +76,11 @@ const performancePredictor = async (req: AuthRequest, res: Response): Promise<vo
         "End with clear CTA (save, share, follow)",
       ],
     });
+    return;
   } catch (err) {
     console.error("[Performance Predictor] Error:", err);
-    return res.status(500).json({ error: "Prediction failed" });
+    res.status(500).json({ error: "Prediction failed" });
+    return;
   }
 };
 
@@ -91,7 +93,7 @@ const adaptiveLearner = async (req: AuthRequest, res: Response): Promise<void> =
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
@@ -165,7 +167,7 @@ const adaptiveLearner = async (req: AuthRequest, res: Response): Promise<void> =
       [userId, "neural_weights", "ML-learned weights from account performance", JSON.stringify(learned_weights), JSON.stringify(["instagram", "tiktok"])]
     );
 
-    return res.json({
+    res.json({
       success: true,
       learned_from: posts.length + " posts",
       optimal_strategy: {
@@ -177,9 +179,11 @@ const adaptiveLearner = async (req: AuthRequest, res: Response): Promise<void> =
       },
       weights: learned_weights,
     });
+    return;
   } catch (err) {
     console.error("[Adaptive Learner] Error:", err);
-    return res.status(500).json({ error: "Learning failed" });
+    res.status(500).json({ error: "Learning failed" });
+    return;
   }
 };
 
@@ -191,7 +195,7 @@ const contentOptimizer = async (req: AuthRequest, res: Response): Promise<void> 
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
@@ -211,7 +215,7 @@ const contentOptimizer = async (req: AuthRequest, res: Response): Promise<void> 
 
     const overall = (score.caption_length + score.hook_presence + score.cta_presence + score.hashtag_count + score.emoji_usage) / 5;
 
-    return res.json({
+    res.json({
       success: true,
       overall_score: overall.toFixed(0),
       component_scores: score,
@@ -224,9 +228,11 @@ const contentOptimizer = async (req: AuthRequest, res: Response): Promise<void> 
       ].filter(Boolean),
       optimized_caption: caption?.slice(0, 50) + "[hook] ... [story] ... [CTA with emoji]",
     });
+    return;
   } catch (err) {
     console.error("[Content Optimizer] Error:", err);
-    return res.status(500).json({ error: "Optimization failed" });
+    res.status(500).json({ error: "Optimization failed" });
+    return;
   }
 };
 
@@ -239,7 +245,7 @@ const audienceNeuralMap = async (req: AuthRequest, res: Response): Promise<void>
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
@@ -286,7 +292,7 @@ const audienceNeuralMap = async (req: AuthRequest, res: Response): Promise<void>
       ],
     };
 
-    return res.json({
+    res.json({
       success: true,
       neural_map: neuralProfile,
       recommended_hooks: [
@@ -297,9 +303,11 @@ const audienceNeuralMap = async (req: AuthRequest, res: Response): Promise<void>
         "Last call: closing in 24h...",
       ],
     });
+    return;
   } catch (err) {
     console.error("[Audience Neural Map] Error:", err);
-    return res.status(500).json({ error: "Mapping failed" });
+    res.status(500).json({ error: "Mapping failed" });
+    return;
   }
 };
 
@@ -312,13 +320,13 @@ const multiAgentStrategy = async (req: AuthRequest, res: Response): Promise<void
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
     const { niche, currentFollowers, targetFollowers } = req.body;
 
-    return res.json({
+    res.json({
       success: true,
       neural_strategy: {
         phase: "Neural Brain Activated",
@@ -343,9 +351,11 @@ const multiAgentStrategy = async (req: AuthRequest, res: Response): Promise<void
         },
       },
     });
+    return;
   } catch (err) {
     console.error("[Multi-Agent Strategy] Error:", err);
-    return res.status(500).json({ error: "Strategy generation failed" });
+    res.status(500).json({ error: "Strategy generation failed" });
+    return;
   }
 };
 

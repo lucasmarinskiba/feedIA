@@ -52,7 +52,7 @@ router.post('/batch-95/daily-life-montage', async (req: Request, res: Response):
       return void res.status(400).json({ error: 'Failed to generate montage prompt' });
     }
 
-    return res.json({
+    res.json({
       status: 'success',
       batch: 'batch-95',
       category: 'daily-life-montage',
@@ -63,9 +63,11 @@ router.post('/batch-95/daily-life-montage', async (req: Request, res: Response):
       brand: brand?.name,
       metadata: { generatedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[Batch95] Daily-life generation error', error);
-    return res.status(500).json({ error: 'Generation failed' });
+    res.status(500).json({ error: 'Generation failed' });
+    return;
   }
 });
 
@@ -94,7 +96,7 @@ router.post('/batch-95/ugc-reel', async (req: Request, res: Response): Promise<v
       return void res.status(400).json({ error: 'Failed to generate UGC prompt' });
     }
 
-    return res.json({
+    res.json({
       status: 'success',
       batch: 'batch-95',
       category: 'ugc-reel',
@@ -105,9 +107,11 @@ router.post('/batch-95/ugc-reel', async (req: Request, res: Response): Promise<v
       brand: brand?.name,
       metadata: { generatedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[Batch95] UGC reel error', error);
-    return res.status(500).json({ error: 'UGC generation failed' });
+    res.status(500).json({ error: 'UGC generation failed' });
+    return;
   }
 });
 
@@ -137,7 +141,7 @@ router.post('/batch-95/transformation-narrative', async (req: Request, res: Resp
       return void res.status(400).json({ error: 'Failed to generate transformation prompt' });
     }
 
-    return res.json({
+    res.json({
       status: 'success',
       batch: 'batch-95',
       category: 'transformation-narrative',
@@ -148,9 +152,11 @@ router.post('/batch-95/transformation-narrative', async (req: Request, res: Resp
       brand: brand?.name,
       metadata: { generatedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[Batch95] Transformation error', error);
-    return res.status(500).json({ error: 'Transformation generation failed' });
+    res.status(500).json({ error: 'Transformation generation failed' });
+    return;
   }
 });
 
@@ -178,7 +184,7 @@ router.post('/batch-95/action-sequence', async (req: Request, res: Response): Pr
       return void res.status(400).json({ error: 'Failed to generate action prompt' });
     }
 
-    return res.json({
+    res.json({
       status: 'success',
       batch: 'batch-95',
       category: 'action-sequence',
@@ -189,9 +195,11 @@ router.post('/batch-95/action-sequence', async (req: Request, res: Response): Pr
       brand: brand?.name,
       metadata: { generatedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[Batch95] Action sequence error', error);
-    return res.status(500).json({ error: 'Action generation failed' });
+    res.status(500).json({ error: 'Action generation failed' });
+    return;
   }
 });
 
@@ -220,7 +228,7 @@ router.post('/batch-95/location-montage', async (req: Request, res: Response): P
       return void res.status(400).json({ error: 'Failed to generate location montage' });
     }
 
-    return res.json({
+    res.json({
       status: 'success',
       batch: 'batch-95',
       category: 'location-montage',
@@ -232,9 +240,11 @@ router.post('/batch-95/location-montage', async (req: Request, res: Response): P
       brand: brand?.name,
       metadata: { generatedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[Batch95] Location montage error', error);
-    return res.status(500).json({ error: 'Location montage generation failed' });
+    res.status(500).json({ error: 'Location montage generation failed' });
+    return;
   }
 });
 

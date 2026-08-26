@@ -22,7 +22,6 @@ router.post('/calendar/plan', async (req: Request, res: Response) => {
 
     if (!accountId) {
       return res.status(400).json({ error: 'accountId required' });
-      return;
     }
 
     const plan = await contentStrategyEngine.planCalendar(
@@ -80,7 +79,6 @@ router.post('/tasks/:postId/advance', async (req: Request, res: Response) => {
 
     if (!newStage) {
       return res.status(400).json({ error: 'newStage required (idea|script|design|review|ready|scheduled)' });
-      return;
     }
 
     await contentStrategyEngine.advanceStage(String(postId), newStage, { caption, mediaUrls, scheduledAt });
@@ -154,7 +152,6 @@ router.post('/script', async (req: Request, res: Response) => {
 
     if (!topic) {
       return res.status(400).json({ error: 'topic required' });
-      return;
     }
 
     const script = await scriptWriterEngine.generateScript(topic, format, totalDurationSeconds, sceneCount);
@@ -182,7 +179,6 @@ router.post('/script/audio', async (req: Request, res: Response) => {
 
     if (!script || !Array.isArray(script.scenes)) {
       return res.status(400).json({ error: 'script (ContentScript object with scenes[]) required' });
-      return;
     }
 
     const audio = await scriptWriterEngine.generateScriptAudio(script, voiceId);
@@ -209,7 +205,6 @@ router.post('/script/batch', async (req: Request, res: Response) => {
 
     if (!Array.isArray(topics) || topics.length === 0) {
       return res.status(400).json({ error: 'topics array required' });
-      return;
     }
 
     const scripts = await scriptWriterEngine.generateScriptBatch(topics, format, totalDurationSeconds);

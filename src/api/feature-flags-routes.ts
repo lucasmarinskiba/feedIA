@@ -23,21 +23,23 @@ router.get('/check', async (req: Request, res: Response): Promise<void> => {
     const { userId, feature } = req.query;
 
     if (!userId || !feature) {
-      return res.status(400).json({ error: 'userId and feature query params required' });
+      res.status(400).json({ error: 'userId and feature query params required' });
       return;
     }
 
     const result = await hasFeatureAccess(String(userId), String(feature) as FeatureName);
 
-    return res.json({
+    res.json({
       success: result.allowed,
       feature,
       allowed: result.allowed,
       reason: result.reason,
     });
+    return;
   } catch (err) {
     console.error('[FeatureFlags] Check error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -50,21 +52,23 @@ router.get('/user', async (req: Request, res: Response): Promise<void> => {
     const { userId } = req.query;
 
     if (!userId) {
-      return res.status(400).json({ error: 'userId query param required' });
+      res.status(400).json({ error: 'userId query param required' });
       return;
     }
 
     const features = await getUserFeatures(String(userId));
 
-    return res.json({
+    res.json({
       success: true,
       userId,
       features,
       count: features.length,
     });
+    return;
   } catch (err) {
     console.error('[FeatureFlags] Get user features error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -77,24 +81,26 @@ router.get('/details', async (req: Request, res: Response): Promise<void> => {
     const { feature } = req.query;
 
     if (!feature) {
-      return res.status(400).json({ error: 'feature query param required' });
+      res.status(400).json({ error: 'feature query param required' });
       return;
     }
 
     const details = getFeatureDetails(String(feature) as FeatureName);
 
     if (!details) {
-      return res.status(404).json({ error: 'Feature not found' });
+      res.status(404).json({ error: 'Feature not found' });
       return;
     }
 
-    return res.json({
+    res.json({
       success: true,
       feature: details,
     });
+    return;
   } catch (err) {
     console.error('[FeatureFlags] Get details error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -106,14 +112,16 @@ router.get('/list', async (req: Request, res: Response): Promise<void> => {
   try {
     const features = listAllFeatures();
 
-    return res.json({
+    res.json({
       success: true,
       features,
       count: features.length,
     });
+    return;
   } catch (err) {
     console.error('[FeatureFlags] List error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -125,7 +133,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const features = listAllFeatures();
 
-    return res.json({
+    res.json({
       success: true,
       summary: {
         totalFeatures: features.length,
@@ -142,9 +150,11 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
         list: 'GET /api/features/list',
       },
     });
+    return;
   } catch (err) {
     console.error('[FeatureFlags] Get summary error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 

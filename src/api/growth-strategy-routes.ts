@@ -15,7 +15,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     };
 
     if (!accountHandle || !platform) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing required fields: accountHandle, platform',
       });
       return;
@@ -23,10 +23,12 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 
     const strategy = await growthStrategyService.createStrategy(accountHandle, platform);
 
-    return res.status(201).json({ ok: true, strategy });
+    res.status(201).json({ ok: true, strategy });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Strategy creation failed: ${error}` });
+    res.status(500).json({ error: `Strategy creation failed: ${error}` });
+    return;
   }
 });
 
@@ -35,16 +37,18 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const accountHandle = req.query.account as string;
 
     if (!accountHandle) {
-      return res.status(400).json({ error: 'Missing query parameter: account' });
+      res.status(400).json({ error: 'Missing query parameter: account' });
       return;
     }
 
     const strategies = await growthStrategyService.listStrategies(accountHandle);
 
-    return res.json({ ok: true, strategies });
+    res.json({ ok: true, strategies });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Strategy listing failed: ${error}` });
+    res.status(500).json({ error: `Strategy listing failed: ${error}` });
+    return;
   }
 });
 
@@ -53,21 +57,23 @@ router.get('/:strategyId', async (req: Request, res: Response): Promise<void> =>
     const strategyId = typeof req.params.strategyId === 'string' ? req.params.strategyId : '';
 
     if (!strategyId) {
-      return res.status(400).json({ error: 'Missing strategyId' });
+      res.status(400).json({ error: 'Missing strategyId' });
       return;
     }
 
     const strategy = await growthStrategyService.loadStrategy(strategyId);
 
     if (!strategy) {
-      return res.status(404).json({ error: 'Strategy not found' });
+      res.status(404).json({ error: 'Strategy not found' });
       return;
     }
 
-    return res.json({ ok: true, strategy });
+    res.json({ ok: true, strategy });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Strategy load failed: ${error}` });
+    res.status(500).json({ error: `Strategy load failed: ${error}` });
+    return;
   }
 });
 
@@ -77,7 +83,7 @@ router.post('/:strategyId/items', async (req: Request, res: Response): Promise<v
     const item = req.body as Omit<StrategyItem, 'id' | 'status'>;
 
     if (!strategyId || !item.type || !item.description) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing fields: strategyId, type, description',
       });
       return;
@@ -85,10 +91,12 @@ router.post('/:strategyId/items', async (req: Request, res: Response): Promise<v
 
     const strategy = await growthStrategyService.addStrategyItem(strategyId, item);
 
-    return res.status(201).json({ ok: true, strategy });
+    res.status(201).json({ ok: true, strategy });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Strategy item add failed: ${error}` });
+    res.status(500).json({ error: `Strategy item add failed: ${error}` });
+    return;
   }
 });
 
@@ -99,7 +107,7 @@ router.put('/:strategyId/items/:itemId', async (req: Request, res: Response): Pr
     const updates = req.body as Partial<StrategyItem>;
 
     if (!strategyId || !itemId) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing fields: strategyId, itemId',
       });
       return;
@@ -107,10 +115,12 @@ router.put('/:strategyId/items/:itemId', async (req: Request, res: Response): Pr
 
     const strategy = await growthStrategyService.updateStrategyItem(strategyId, itemId, updates);
 
-    return res.json({ ok: true, strategy });
+    res.json({ ok: true, strategy });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Strategy item update failed: ${error}` });
+    res.status(500).json({ error: `Strategy item update failed: ${error}` });
+    return;
   }
 });
 
@@ -119,16 +129,18 @@ router.post('/:strategyId/activate', async (req: Request, res: Response): Promis
     const strategyId = typeof req.params.strategyId === 'string' ? req.params.strategyId : '';
 
     if (!strategyId) {
-      return res.status(400).json({ error: 'Missing strategyId' });
+      res.status(400).json({ error: 'Missing strategyId' });
       return;
     }
 
     const strategy = await growthStrategyService.activateStrategy(strategyId);
 
-    return res.json({ ok: true, strategy });
+    res.json({ ok: true, strategy });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Strategy activation failed: ${error}` });
+    res.status(500).json({ error: `Strategy activation failed: ${error}` });
+    return;
   }
 });
 
@@ -137,16 +149,18 @@ router.post('/:strategyId/pause', async (req: Request, res: Response): Promise<v
     const strategyId = typeof req.params.strategyId === 'string' ? req.params.strategyId : '';
 
     if (!strategyId) {
-      return res.status(400).json({ error: 'Missing strategyId' });
+      res.status(400).json({ error: 'Missing strategyId' });
       return;
     }
 
     const strategy = await growthStrategyService.pauseStrategy(strategyId);
 
-    return res.json({ ok: true, strategy });
+    res.json({ ok: true, strategy });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Strategy pause failed: ${error}` });
+    res.status(500).json({ error: `Strategy pause failed: ${error}` });
+    return;
   }
 });
 
@@ -164,7 +178,7 @@ router.post('/recommendations', async (req: Request, res: Response): Promise<voi
     };
 
     if (!accountHandle || !platform) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing required fields: accountHandle, platform',
       });
       return;
@@ -176,10 +190,12 @@ router.post('/recommendations', async (req: Request, res: Response): Promise<voi
       currentMetrics
     );
 
-    return res.json({ ok: true, recommendations });
+    res.json({ ok: true, recommendations });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Recommendations generation failed: ${error}` });
+    res.status(500).json({ error: `Recommendations generation failed: ${error}` });
+    return;
   }
 });
 

@@ -107,17 +107,18 @@ export const getTierInfo = async (userId: string): Promise<GetTierResponse> => {
 // Express route handler
 export const getTierHandler = async (req: Request, res: Response): Promise<void> => {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed' });
     return;
   }
 
   const { userId } = req.query;
 
   if (!userId) {
-    return res.status(400).json({ error: 'userId query param required' });
+    res.status(400).json({ error: 'userId query param required' });
     return;
   }
 
   const result = await getTierInfo(String(userId));
-  return res.status(result.success ? 200 : 400).json(result);
+  res.status(result.success ? 200 : 400).json(result);
+  return;
 };

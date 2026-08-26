@@ -13,7 +13,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     const data = req.body as Omit<AdCampaign, 'id' | 'createdAt' | 'lastUpdated'>;
 
     if (!data.platform || !data.ad_account_id || !data.name) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing required fields: platform, ad_account_id, name',
       });
       return;
@@ -21,10 +21,12 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 
     const campaign = await adPerformanceService.createAdCampaign(data);
 
-    return res.status(201).json({ ok: true, campaign });
+    res.status(201).json({ ok: true, campaign });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Campaign creation failed: ${error}` });
+    res.status(500).json({ error: `Campaign creation failed: ${error}` });
+    return;
   }
 });
 
@@ -34,16 +36,18 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const status = req.query.status as AdCampaign['status'] | undefined;
 
     if (!accountId) {
-      return res.status(400).json({ error: 'Missing query parameter: account' });
+      res.status(400).json({ error: 'Missing query parameter: account' });
       return;
     }
 
     const campaigns = await adPerformanceService.listCampaigns(accountId, status);
 
-    return res.json({ ok: true, campaigns });
+    res.json({ ok: true, campaigns });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Campaign listing failed: ${error}` });
+    res.status(500).json({ error: `Campaign listing failed: ${error}` });
+    return;
   }
 });
 
@@ -54,14 +58,16 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     const campaign = await adPerformanceService.loadCampaign(id);
 
     if (!campaign) {
-      return res.status(404).json({ error: 'Campaign not found' });
+      res.status(404).json({ error: 'Campaign not found' });
       return;
     }
 
-    return res.json({ ok: true, campaign });
+    res.json({ ok: true, campaign });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Campaign load failed: ${error}` });
+    res.status(500).json({ error: `Campaign load failed: ${error}` });
+    return;
   }
 });
 
@@ -72,10 +78,12 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
 
     const campaign = await adPerformanceService.updateAdCampaign(id, updates);
 
-    return res.json({ ok: true, campaign });
+    res.json({ ok: true, campaign });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Campaign update failed: ${error}` });
+    res.status(500).json({ error: `Campaign update failed: ${error}` });
+    return;
   }
 });
 
@@ -86,10 +94,12 @@ router.post('/:id/creatives', async (req: Request, res: Response): Promise<void>
 
     const campaign = await adPerformanceService.addCreative(id, creative);
 
-    return res.status(201).json({ ok: true, campaign });
+    res.status(201).json({ ok: true, campaign });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Creative add failed: ${error}` });
+    res.status(500).json({ error: `Creative add failed: ${error}` });
+    return;
   }
 });
 
@@ -105,10 +115,12 @@ router.put('/:id/creatives/:creativeId', async (req: Request, res: Response): Pr
       performance
     );
 
-    return res.json({ ok: true, campaign });
+    res.json({ ok: true, campaign });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Creative update failed: ${error}` });
+    res.status(500).json({ error: `Creative update failed: ${error}` });
+    return;
   }
 });
 
@@ -119,10 +131,12 @@ router.post('/insights/:campaignId', async (req: Request, res: Response): Promis
 
     await adPerformanceService.recordInsight(campaignId, insight);
 
-    return res.status(201).json({ ok: true, recorded: true });
+    res.status(201).json({ ok: true, recorded: true });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Insight recording failed: ${error}` });
+    res.status(500).json({ error: `Insight recording failed: ${error}` });
+    return;
   }
 });
 
@@ -133,10 +147,12 @@ router.get('/insights/:campaignId', async (req: Request, res: Response): Promise
 
     const insights = await adPerformanceService.getInsights(campaignId, days);
 
-    return res.json({ ok: true, insights });
+    res.json({ ok: true, insights });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Insights fetch failed: ${error}` });
+    res.status(500).json({ error: `Insights fetch failed: ${error}` });
+    return;
   }
 });
 
@@ -146,10 +162,12 @@ router.get('/:id/roas', async (req: Request, res: Response): Promise<void> => {
 
     const roas = await adPerformanceService.calculateROAS(id);
 
-    return res.json({ ok: true, roas });
+    res.json({ ok: true, roas });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `ROAS calculation failed: ${error}` });
+    res.status(500).json({ error: `ROAS calculation failed: ${error}` });
+    return;
   }
 });
 
@@ -159,10 +177,12 @@ router.get('/account/:accountId/best', async (req: Request, res: Response): Prom
 
     const campaign = await adPerformanceService.getBestPerformer(accountId);
 
-    return res.json({ ok: true, campaign });
+    res.json({ ok: true, campaign });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Best performer fetch failed: ${error}` });
+    res.status(500).json({ error: `Best performer fetch failed: ${error}` });
+    return;
   }
 });
 
@@ -172,10 +192,12 @@ router.post('/:id/optimize', async (req: Request, res: Response): Promise<void> 
 
     const optimization = await adPerformanceService.optimizeAds(id);
 
-    return res.json({ ok: true, optimization });
+    res.json({ ok: true, optimization });
+    return;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Optimization failed: ${error}` });
+    res.status(500).json({ error: `Optimization failed: ${error}` });
+    return;
   }
 });
 

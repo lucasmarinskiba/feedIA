@@ -28,7 +28,7 @@ const getCurrentUser = async (req: AuthRequest, res: Response): Promise<void> =>
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -41,12 +41,12 @@ const getCurrentUser = async (req: AuthRequest, res: Response): Promise<void> =>
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'User not found' });
       return;
     }
 
     const user = result.rows[0];
-    return res.json({
+    res.json({
       id: user.id,
       email: user.email,
       username: user.username,
@@ -80,9 +80,11 @@ const getCurrentUser = async (req: AuthRequest, res: Response): Promise<void> =>
       },
       createdAt: user.created_at,
     });
+    return;
   } catch (err) {
     console.error('[User] Get profile error:', err);
-    return res.status(500).json({ error: 'Failed to fetch profile' });
+    res.status(500).json({ error: 'Failed to fetch profile' });
+    return;
   }
 };
 
@@ -93,7 +95,7 @@ const updateUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -124,14 +126,16 @@ const updateUser = async (req: AuthRequest, res: Response): Promise<void> => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'User not found' });
       return;
     }
 
-    return res.json({ message: 'Profile updated', user: result.rows[0] });
+    res.json({ message: 'Profile updated', user: result.rows[0] });
+    return;
   } catch (err) {
     console.error('[User] Update profile error:', err);
-    return res.status(500).json({ error: 'Failed to update profile' });
+    res.status(500).json({ error: 'Failed to update profile' });
+    return;
   }
 };
 
@@ -142,7 +146,7 @@ const getUserUsage = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -177,13 +181,13 @@ const getUserUsage = async (req: AuthRequest, res: Response): Promise<void> => {
     );
 
     if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'User not found' });
       return;
     }
 
     const user = userResult.rows[0];
 
-    return res.json({
+    res.json({
       currentMonth: {
         apiCalls: parseInt(usage.api_calls),
         storageAddedGb: parseFloat(usage.storage_added_gb),
@@ -202,9 +206,11 @@ const getUserUsage = async (req: AuthRequest, res: Response): Promise<void> => {
       },
       tier: user.tier,
     });
+    return;
   } catch (err) {
     console.error('[User] Get usage error:', err);
-    return res.status(500).json({ error: 'Failed to fetch usage' });
+    res.status(500).json({ error: 'Failed to fetch usage' });
+    return;
   }
 };
 
@@ -215,7 +221,7 @@ const getUserStorage = async (req: AuthRequest, res: Response): Promise<void> =>
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -259,7 +265,7 @@ const getUserStorage = async (req: AuthRequest, res: Response): Promise<void> =>
       totalGb: (parseFloat(row.total_mb) / 1024).toFixed(2),
     }));
 
-    return res.json({
+    res.json({
       total: {
         usedGb: parseFloat(user.storage_used_gb),
         limitGb: user.storage_limit_gb,
@@ -273,9 +279,11 @@ const getUserStorage = async (req: AuthRequest, res: Response): Promise<void> =>
       },
       breakdown,
     });
+    return;
   } catch (err) {
     console.error('[User] Get storage error:', err);
-    return res.status(500).json({ error: 'Failed to fetch storage info' });
+    res.status(500).json({ error: 'Failed to fetch storage info' });
+    return;
   }
 };
 
@@ -286,7 +294,7 @@ const createApiKey = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -310,7 +318,7 @@ const createApiKey = async (req: AuthRequest, res: Response): Promise<void> => {
       [userId, keyHash, keyPrefix, name || 'API Key', expiresAt],
     );
 
-    return res.status(201).json({
+    res.status(201).json({
       apiKey, // Only show once!
       id: result.rows[0].id,
       keyPrefix: result.rows[0].key_prefix,
@@ -318,9 +326,11 @@ const createApiKey = async (req: AuthRequest, res: Response): Promise<void> => {
       expiresAt: result.rows[0].expires_at,
       message: 'Save this API key — you will not be able to see it again',
     });
+    return;
   } catch (err) {
     console.error('[User] Create API key error:', err);
-    return res.status(500).json({ error: 'Failed to create API key' });
+    res.status(500).json({ error: 'Failed to create API key' });
+    return;
   }
 };
 
@@ -331,7 +341,7 @@ const listApiKeys = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -353,7 +363,7 @@ const listApiKeys = async (req: AuthRequest, res: Response): Promise<void> => {
       revoked_at: string | null;
     }
 
-    return res.json({
+    res.json({
       keys: (result.rows as ApiKeyRow[]).map((row) => ({
         id: row.id,
         keyPrefix: row.key_prefix,
@@ -364,9 +374,11 @@ const listApiKeys = async (req: AuthRequest, res: Response): Promise<void> => {
         status: row.revoked_at ? 'revoked' : 'active',
       })),
     });
+    return;
   } catch (err) {
     console.error('[User] List API keys error:', err);
-    return res.status(500).json({ error: 'Failed to list API keys' });
+    res.status(500).json({ error: 'Failed to list API keys' });
+    return;
   }
 };
 
@@ -379,7 +391,7 @@ const revokeApiKey = async (req: AuthRequest, res: Response): Promise<void> => {
     const keyId = req.params.id;
 
     if (!userId || !keyId) {
-      return res.status(400).json({ error: 'Missing required parameters' });
+      res.status(400).json({ error: 'Missing required parameters' });
       return;
     }
 
@@ -392,14 +404,16 @@ const revokeApiKey = async (req: AuthRequest, res: Response): Promise<void> => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'API key not found' });
+      res.status(404).json({ error: 'API key not found' });
       return;
     }
 
-    return res.json({ message: 'API key revoked' });
+    res.json({ message: 'API key revoked' });
+    return;
   } catch (err) {
     console.error('[User] Revoke API key error:', err);
-    return res.status(500).json({ error: 'Failed to revoke API key' });
+    res.status(500).json({ error: 'Failed to revoke API key' });
+    return;
   }
 };
 

@@ -26,7 +26,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
       result.steps.push({ name: 'Database connection', status: 'ok' });
     } catch (e) {
       result.steps.push({ name: 'Database connection', status: 'failed' });
-      return res.status(500).json({ error: 'Database connection failed', ...result });
+      res.status(500).json({ error: 'Database connection failed', ...result });
       return;
     }
 
@@ -116,21 +116,24 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
       result.steps.push({ name: 'Create A/B tests', status: 'ok', count: 20 });
 
       result.status = 'success';
-      return res.status(200).json({
+      res.status(200).json({
         status: 'success',
         message: '4,590+ test records seeded',
         records_created: seedUsers + seedCampaigns + seedEvents + 50 + 20,
         steps: result.steps,
       });
+      return;
     } catch (e) {
       result.status = 'failed';
       result.steps.push({ name: 'Seed execution', status: 'failed' });
-      return res.status(500).json({ error: e instanceof Error ? e.message : 'Seed failed', ...result });
+      res.status(500).json({ error: e instanceof Error ? e.message : 'Seed failed', ...result });
+      return;
     } finally {
       await pool.end();
     }
   } catch (err) {
-    return res.status(500).json({ error: 'Seed endpoint error', details: err instanceof Error ? err.message : 'Unknown' });
+    res.status(500).json({ error: 'Seed endpoint error', details: err instanceof Error ? err.message : 'Unknown' });
+    return;
   }
 };
 

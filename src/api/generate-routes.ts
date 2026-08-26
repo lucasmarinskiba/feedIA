@@ -33,7 +33,7 @@ router.post(
       const { category, slideCount = 10 } = req.body;
 
       if (!category) {
-        return res.status(400).json({ error: 'Missing category' });
+        res.status(400).json({ error: 'Missing category' });
         return;
       }
 
@@ -67,10 +67,12 @@ router.post(
         generatedAt: new Date().toISOString(),
       };
 
-      return res.json(content);
+      res.json(content);
+      return;
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      return res.status(500).json({ error: `Failed: ${error}` });
+      res.status(500).json({ error: `Failed: ${error}` });
+      return;
     }
   },
 );
@@ -82,15 +84,17 @@ router.get(
     res: Response<Record<string, unknown> | { error: string }>,
   ): Promise<void> => {
     try {
-      return res.json({
+      res.json({
         total_prompts: 0,
         total_batches: 0,
         categories: [],
         last_updated: new Date().toISOString(),
       });
+      return;
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      return res.status(500).json({ error: `Failed: ${error}` });
+      res.status(500).json({ error: `Failed: ${error}` });
+      return;
     }
   },
 );

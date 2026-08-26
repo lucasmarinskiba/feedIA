@@ -18,7 +18,7 @@ export const recordEvent = async (req: Request, res: Response): Promise<void> =>
     const { contentId, campaignId, eventType, platform, value = 1, metadata = {} } = req.body;
 
     if (!eventType || !['view', 'engagement', 'conversion', 'share'].includes(eventType)) {
-      return res.status(400).json({ error: 'Invalid eventType' });
+      res.status(400).json({ error: 'Invalid eventType' });
       return;
     }
 
@@ -32,14 +32,16 @@ export const recordEvent = async (req: Request, res: Response): Promise<void> =>
       [eventId, contentId || null, campaignId || null, userId, eventType, platform || 'unknown', value, JSON.stringify(metadata)]
     );
 
-    return res.status(201).json({
+    res.status(201).json({
       eventId,
       recorded: true,
       timestamp: new Date().toISOString(),
     });
+    return;
   } catch (err) {
     console.error('[Analytics] Record error:', err);
-    return res.status(500).json({ error: 'Event recording failed' });
+    res.status(500).json({ error: 'Event recording failed' });
+    return;
   }
 };
 
@@ -60,7 +62,7 @@ export const getCampaignMetrics = async (req: Request, res: Response): Promise<v
     );
 
     if (campaignResult.rowCount === 0) {
-      return res.status(404).json({ error: 'Campaign not found' });
+      res.status(404).json({ error: 'Campaign not found' });
       return;
     }
 
@@ -97,7 +99,7 @@ export const getCampaignMetrics = async (req: Request, res: Response): Promise<v
     const engagements = metrics.engagement?.count || 0;
     const conversions = metrics.conversion?.count || 0;
 
-    return res.json({
+    res.json({
       campaignId,
       period: { startDate, endDate },
       totals: {
@@ -113,9 +115,11 @@ export const getCampaignMetrics = async (req: Request, res: Response): Promise<v
       },
       byEvent: metrics,
     });
+    return;
   } catch (err) {
     console.error('[Analytics] Metrics error:', err);
-    return res.status(500).json({ error: 'Metrics retrieval failed' });
+    res.status(500).json({ error: 'Metrics retrieval failed' });
+    return;
   }
 };
 
@@ -136,7 +140,7 @@ export const getAnalyticsSummary = async (req: Request, res: Response): Promise<
     const campaignIds = campaignResult.rows.map((row: any) => row.id);
 
     if (campaignIds.length === 0) {
-      return res.json({
+      res.json({
         summary: {
           activeCampaigns: 0,
           totalEvents: 0,
@@ -161,7 +165,7 @@ export const getAnalyticsSummary = async (req: Request, res: Response): Promise<
     const summary = summaryResult.rows[0];
     const engagementRate = summary.views > 0 ? ((summary.engagements / summary.views) * 100).toFixed(2) : '0';
 
-    return res.json({
+    res.json({
       summary: {
         activeCampaigns: summary.campaigns,
         totalEvents: summary.total_events,
@@ -171,9 +175,11 @@ export const getAnalyticsSummary = async (req: Request, res: Response): Promise<
       },
       timestamp: new Date().toISOString(),
     });
+    return;
   } catch (err) {
     console.error('[Analytics] Summary error:', err);
-    return res.status(500).json({ error: 'Summary retrieval failed' });
+    res.status(500).json({ error: 'Summary retrieval failed' });
+    return;
   }
 };
 
@@ -193,7 +199,7 @@ export const getContentMetrics = async (req: Request, res: Response): Promise<vo
     );
 
     if (contentResult.rowCount === 0) {
-      return res.status(404).json({ error: 'Content not found' });
+      res.status(404).json({ error: 'Content not found' });
       return;
     }
 
@@ -214,7 +220,7 @@ export const getContentMetrics = async (req: Request, res: Response): Promise<vo
       return acc;
     }, {});
 
-    return res.json({
+    res.json({
       contentId,
       metrics,
       totals: {
@@ -223,8 +229,10 @@ export const getContentMetrics = async (req: Request, res: Response): Promise<vo
         conversions: metrics.conversion?.count || 0,
       },
     });
+    return;
   } catch (err) {
     console.error('[Analytics] Content metrics error:', err);
-    return res.status(500).json({ error: 'Metrics retrieval failed' });
+    res.status(500).json({ error: 'Metrics retrieval failed' });
+    return;
   }
 };

@@ -13,6 +13,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock', {
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
 
 export const handleStripeWebhook = async (
   body: Buffer,
@@ -20,7 +21,15 @@ export const handleStripeWebhook = async (
 ): Promise<{ success: boolean; message: string; error?: string }> => {
   try {
     if (!webhookSecret) {
-      console.warn('[Stripe] Webhook secret not configured. Skipping validation.');
+      if (isProd) {
+        console.error('[Stripe] STRIPE_WEBHOOK_SECRET no configurado en producción — rechazando webhook (fail-closed).');
+        return {
+          success: false,
+          error: 'webhook_secret_not_configured',
+          message: 'Webhook secret not configured in production',
+        };
+      }
+      console.warn('[Stripe] Webhook secret not configured. Skipping validation (dev only).');
       // Parse unsigned for local dev
       const event = JSON.parse(body.toString());
       return processEvent(event);
@@ -131,7 +140,7 @@ async function processEvent(event: Stripe.Event): Promise<{ success: boolean; me
 // Express route handler
 export const stripeWebhookHandler = async (req: Request, res: Response): Promise<void> => {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed' });
     return;
   }
 
@@ -141,9 +150,11 @@ export const stripeWebhookHandler = async (req: Request, res: Response): Promise
 
     const result = await handleStripeWebhook(buf, signature);
 
-    return res.status(result.success ? 200 : 400).json(result);
+    res.status(result.success ? 200 : 400).json(result);
+    return;
   } catch (err) {
     console.error('[Stripe Webhook Route] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 };

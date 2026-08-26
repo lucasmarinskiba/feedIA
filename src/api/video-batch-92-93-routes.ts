@@ -88,7 +88,7 @@ router.post('/batch-92/generate', quotaCheckMiddleware('videos', 1), async (req:
     // Charge quota on success
     await chargeQuota(req, 'videos', generationId);
 
-    return res.json({
+    res.json({
       status: 'success',
       batch: 'batch-92',
       prompt,
@@ -101,9 +101,11 @@ router.post('/batch-92/generate', quotaCheckMiddleware('videos', 1), async (req:
         generatedAt: new Date().toISOString(),
       },
     });
+    return;
   } catch (error) {
     log.error('[Batch92] Generation error', error);
-    return res.status(500).json({ error: 'Batch 92 generation failed' });
+    res.status(500).json({ error: 'Batch 92 generation failed' });
+    return;
   }
 });
 
@@ -168,7 +170,7 @@ router.post('/batch-92/batch-generate', quotaCheckMiddleware('videos', 1), async
       await chargeQuota(req, 'videos', `batch-92-${uuidv4()}`);
     }
 
-    return res.json({
+    res.json({
       status: 'success',
       batch: 'batch-92',
       totalRequested: requests.length,
@@ -180,9 +182,11 @@ router.post('/batch-92/batch-generate', quotaCheckMiddleware('videos', 1), async
         generatedAt: new Date().toISOString(),
       },
     });
+    return;
   } catch (error) {
     log.error('[Batch92] Batch generation error', error);
-    return res.status(500).json({ error: 'Batch 92 batch generation failed' });
+    res.status(500).json({ error: 'Batch 92 batch generation failed' });
+    return;
   }
 });
 
@@ -252,7 +256,7 @@ router.post('/batch-93/generate', quotaCheckMiddleware('videos', 1), async (req:
     // Charge quota on success
     await chargeQuota(req, 'videos', generationId);
 
-    return res.json({
+    res.json({
       status: 'success',
       batch: 'batch-93',
       prompt,
@@ -265,9 +269,11 @@ router.post('/batch-93/generate', quotaCheckMiddleware('videos', 1), async (req:
         generatedAt: new Date().toISOString(),
       },
     });
+    return;
   } catch (error) {
     log.error('[Batch93] Generation error', error);
-    return res.status(500).json({ error: 'Batch 93 generation failed' });
+    res.status(500).json({ error: 'Batch 93 generation failed' });
+    return;
   }
 });
 
@@ -333,7 +339,7 @@ router.post('/batch-93/batch-generate', quotaCheckMiddleware('videos', 1), async
       await chargeQuota(req, 'videos', `batch-93-${uuidv4()}`);
     }
 
-    return res.json({
+    res.json({
       status: 'success',
       batch: 'batch-93',
       totalRequested: requests.length,
@@ -345,9 +351,11 @@ router.post('/batch-93/batch-generate', quotaCheckMiddleware('videos', 1), async
         generatedAt: new Date().toISOString(),
       },
     });
+    return;
   } catch (error) {
     log.error('[Batch93] Batch generation error', error);
-    return res.status(500).json({ error: 'Batch 93 batch generation failed' });
+    res.status(500).json({ error: 'Batch 93 batch generation failed' });
+    return;
   }
 });
 

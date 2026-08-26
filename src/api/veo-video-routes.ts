@@ -26,7 +26,6 @@ router.post('/start', async (req: Request, res: Response) => {
 
     if (!prompt) {
       return res.status(400).json({ error: 'prompt required' });
-      return;
     }
 
     const operation = await startVideoGeneration(prompt, {
@@ -71,7 +70,6 @@ router.get('/status/:operationName', async (req: Request, res: Response) => {
 
     if (!status) {
       return res.status(503).json({ error: 'Status check unavailable — GEMINI_API_KEY not set or call failed' });
-      return;
     }
 
     return res.json({
@@ -96,7 +94,6 @@ router.post('/wait', async (req: Request, res: Response) => {
 
     if (!prompt) {
       return res.status(400).json({ error: 'prompt required' });
-      return;
     }
 
     const result = await generateVideoAndWait(prompt, { aspectRatio, durationSeconds, model }, maxWaitMs || 180000);
@@ -112,7 +109,6 @@ router.post('/wait', async (req: Request, res: Response) => {
 
     if (result.error) {
       return res.status(500).json({ status: 'failed', error: result.error });
-      return;
     }
 
     return res.json({

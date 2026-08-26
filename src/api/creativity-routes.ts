@@ -25,7 +25,7 @@ router.post('/analyze', async (req: Request, res: Response): Promise<void> => {
 
     const analysis = await creativityWitEngine.analyzeWit(promptText);
 
-    return res.json({
+    res.json({
       status: 'analyzed',
       witScore: analysis.witScore,
       originalityScore: analysis.originalityScore,
@@ -36,9 +36,11 @@ router.post('/analyze', async (req: Request, res: Response): Promise<void> => {
       recommendation: analysis.recommendation,
       metadata: { analyzedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[Creativity] Analysis failed', error);
-    return res.status(500).json({ error: 'Analysis failed' });
+    res.status(500).json({ error: 'Analysis failed' });
+    return;
   }
 });
 
@@ -59,7 +61,7 @@ router.post('/boost', async (req: Request, res: Response): Promise<void> => {
 
     const result = await creativityWitEngine.boostWit(promptText);
 
-    return res.json({
+    res.json({
       status: 'boosted',
       original: {
         prompt: result.originalPrompt.slice(0, 150) + '...',
@@ -73,9 +75,11 @@ router.post('/boost', async (req: Request, res: Response): Promise<void> => {
       guarantee: 'Content now has genuine ocurrencia: wit, surprise, originality',
       metadata: { boostedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[Creativity] Boost failed', error);
-    return res.status(500).json({ error: 'Boost failed', message: String(error) });
+    res.status(500).json({ error: 'Boost failed', message: String(error) });
+    return;
   }
 });
 
@@ -101,15 +105,17 @@ router.post('/inject-twist', async (req: Request, res: Response): Promise<void> 
 
     const result = creativityWitEngine.injectCreativeTwist(promptText, selectedTwist);
 
-    return res.json({
+    res.json({
       status: 'twist_injected',
       twist: result.twist,
       enhancedPrompt: result.prompt,
       metadata: { injectedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[Creativity] Twist injection failed', error);
-    return res.status(500).json({ error: 'Twist injection failed' });
+    res.status(500).json({ error: 'Twist injection failed' });
+    return;
   }
 });
 
@@ -150,15 +156,17 @@ router.get('/suggest/:contentType', async (req: Request, res: Response): Promise
       contentType as 'carousel' | 'reel' | 'story' | 'image'
     );
 
-    return res.json({
+    res.json({
       status: 'ok',
       contentType,
       suggestedTechniques: suggestions,
       metadata: { suggestedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[Creativity] Suggestion failed', error);
-    return res.status(500).json({ error: 'Suggestion failed' });
+    res.status(500).json({ error: 'Suggestion failed' });
+    return;
   }
 });
 

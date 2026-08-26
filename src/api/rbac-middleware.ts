@@ -42,14 +42,14 @@ export const checkTier = async (req: Request, res: Response, next: () => void): 
   try {
     const userId = (req as any).userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     // Get user tier
     const result = await query('SELECT * FROM user_tiers WHERE user_id = $1', [userId]);
     if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'User tier not found' });
+      res.status(404).json({ error: 'User tier not found' });
       return;
     }
 
@@ -60,7 +60,8 @@ export const checkTier = async (req: Request, res: Response, next: () => void): 
     next();
   } catch (err) {
     console.error('[RBAC] Tier check error:', err);
-    return res.status(500).json({ error: 'Permission check failed' });
+    res.status(500).json({ error: 'Permission check failed' });
+    return;
   }
 };
 
@@ -80,7 +81,7 @@ export const checkCampaignLimit = async (req: Request, res: Response, next: () =
 
     // Check limit
     if (tier.campaigns_used_this_month >= tier.campaigns_limit) {
-      return res.status(403).json({
+      res.status(403).json({
         error: 'Campaign limit reached',
         limit: tier.campaigns_limit,
         used: tier.campaigns_used_this_month,
@@ -92,7 +93,8 @@ export const checkCampaignLimit = async (req: Request, res: Response, next: () =
     next();
   } catch (err) {
     console.error('[RBAC] Campaign limit check error:', err);
-    return res.status(500).json({ error: 'Campaign limit check failed' });
+    res.status(500).json({ error: 'Campaign limit check failed' });
+    return;
   }
 };
 
@@ -107,7 +109,7 @@ export const checkBatchLimit = async (req: Request, res: Response, next: () => v
     const limit = permissions.batch_size === 'unlimited' ? 1000 : permissions.batch_size;
 
     if (items && Array.isArray(items) && items.length > limit) {
-      return res.status(403).json({
+      res.status(403).json({
         error: 'Batch size limit exceeded',
         limit,
         requested: items.length,
@@ -119,7 +121,8 @@ export const checkBatchLimit = async (req: Request, res: Response, next: () => v
     next();
   } catch (err) {
     console.error('[RBAC] Batch limit check error:', err);
-    return res.status(500).json({ error: 'Batch limit check failed' });
+    res.status(500).json({ error: 'Batch limit check failed' });
+    return;
   }
 };
 
@@ -131,7 +134,7 @@ export const checkBrandingPermission = async (req: Request, res: Response, next:
     const permissions = (req as any).permissions;
 
     if (!permissions.custom_branding) {
-      return res.status(403).json({
+      res.status(403).json({
         error: 'Custom branding not available on this tier',
         tier: (req as any).userTier.tier,
         upgrade_to: 'pro',
@@ -142,7 +145,8 @@ export const checkBrandingPermission = async (req: Request, res: Response, next:
     next();
   } catch (err) {
     console.error('[RBAC] Branding permission check error:', err);
-    return res.status(500).json({ error: 'Permission check failed' });
+    res.status(500).json({ error: 'Permission check failed' });
+    return;
   }
 };
 
@@ -155,7 +159,7 @@ export const checkAnalyticsAccess = async (req: Request, res: Response, next: ()
     const requestedDepth = req.query['depth'] || 'basic';
 
     if (requestedDepth === 'advanced' && permissions.analytics_depth === 'basic') {
-      return res.status(403).json({
+      res.status(403).json({
         error: 'Advanced analytics not available on this tier',
         tier: (req as any).userTier.tier,
         upgrade_to: 'pro',
@@ -166,7 +170,8 @@ export const checkAnalyticsAccess = async (req: Request, res: Response, next: ()
     next();
   } catch (err) {
     console.error('[RBAC] Analytics access check error:', err);
-    return res.status(500).json({ error: 'Permission check failed' });
+    res.status(500).json({ error: 'Permission check failed' });
+    return;
   }
 };
 
@@ -189,7 +194,8 @@ export const incrementCampaignUsage = async (req: Request, res: Response, next: 
     next();
   } catch (err) {
     console.error('[RBAC] Campaign usage increment error:', err);
-    return res.status(500).json({ error: 'Usage tracking failed' });
+    res.status(500).json({ error: 'Usage tracking failed' });
+    return;
   }
 };
 

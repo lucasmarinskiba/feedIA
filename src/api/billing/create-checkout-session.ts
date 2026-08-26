@@ -64,7 +64,7 @@ export const createCheckoutSession = async (req: CheckoutSessionRequest): Promis
       // event — the preference gets created and the user can pay, but
       // upsertUserTier() in mercado-pago-webhook.ts never runs, so a real
       // payment would never actually upgrade the account.
-      notification_url: 'https://feedia-production.up.railway.app/api/billing/webhook/mercado-pago',
+      notification_url: `${process.env.PUBLIC_BASE_URL || 'https://web-production-fa7b5.up.railway.app'}/api/billing/webhook/mercado-pago`,
       external_reference: `${userId}:${tier}`,
       metadata: {
         userId,
@@ -107,10 +107,11 @@ export const createCheckoutSession = async (req: CheckoutSessionRequest): Promis
 // Handler for Express route
 export const checkoutSessionHandler = async (req: Request, res: Response): Promise<void> => {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed' });
     return;
   }
 
   const result = await createCheckoutSession(req.body);
-  return res.status(result.error ? 400 : 200).json(result);
+  res.status(result.error ? 400 : 200).json(result);
+  return;
 };

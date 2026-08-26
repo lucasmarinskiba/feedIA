@@ -41,7 +41,7 @@ router.post('/analyze-competitors', async (req: Request, res: Response): Promise
     const { competitors } = req.body as { competitors: CompetitorProfile[] };
 
     if (!competitors || !Array.isArray(competitors) || competitors.length === 0) {
-      return res.status(400).json({ error: 'competitors array required (min 1)' });
+      res.status(400).json({ error: 'competitors array required (min 1)' });
       return;
     }
 
@@ -53,14 +53,16 @@ router.post('/analyze-competitors', async (req: Request, res: Response): Promise
       gaps: analysis.gapOpportunities.length,
     });
 
-    return res.json({
+    res.json({
       success: true,
       analysis,
       summary: `Market avg: $${analysis.averagePrice}. Range: $${analysis.priceRange[0]}-$${analysis.priceRange[1]}. Top 3 threats identified. ${analysis.gapOpportunities.length} unmet feature opportunities.`,
     });
+    return;
   } catch (err) {
     console.error('[CompetitiveAnalysis] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -96,7 +98,7 @@ router.post('/recommend-pricing', async (req: Request, res: Response): Promise<v
     };
 
     if (!context || !competitors) {
-      return res.status(400).json({ error: 'context and competitors required' });
+      res.status(400).json({ error: 'context and competitors required' });
       return;
     }
 
@@ -107,14 +109,16 @@ router.post('/recommend-pricing', async (req: Request, res: Response): Promise<v
       position: recommendation.competitivePosition,
     });
 
-    return res.json({
+    res.json({
       success: true,
       recommendation,
       summary: `${recommendation.competitivePosition.toUpperCase()} positioning. Recommended: $${recommendation.recommendedPrice}/mo. ${recommendation.rationale}`,
     });
+    return;
   } catch (err) {
     console.error('[PricingRecommendation] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -142,7 +146,7 @@ router.post('/allocate-budget', async (req: Request, res: Response): Promise<voi
     const { monthlyRevenue, growthRate } = req.body as { monthlyRevenue: number; growthRate: number };
 
     if (monthlyRevenue === undefined || growthRate === undefined) {
-      return res.status(400).json({ error: 'monthlyRevenue and growthRate required' });
+      res.status(400).json({ error: 'monthlyRevenue and growthRate required' });
       return;
     }
 
@@ -161,15 +165,17 @@ router.post('/allocate-budget', async (req: Request, res: Response): Promise<voi
       reserve: Math.round((monthlyRevenue * allocation.reserve) / 100),
     };
 
-    return res.json({
+    res.json({
       success: true,
       allocation,
       dollars: dollarsPercentages,
       summary: `At ${growthRate}% MoM: Marketing ${allocation.marketing}% ($${dollarsPercentages.marketing}), Product ${allocation.product}% ($${dollarsPercentages.product}), Ops ${allocation.ops}% ($${dollarsPercentages.ops}), Reserve ${allocation.reserve}% ($${dollarsPercentages.reserve}).`,
     });
+    return;
   } catch (err) {
     console.error('[BudgetAllocation] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -202,7 +208,7 @@ router.post('/position', async (req: Request, res: Response): Promise<void> => {
     };
 
     if (!ourFeatures || !mainCompetitor || !targetSegment) {
-      return res.status(400).json({ error: 'ourFeatures, mainCompetitor, targetSegment required' });
+      res.status(400).json({ error: 'ourFeatures, mainCompetitor, targetSegment required' });
       return;
     }
 
@@ -214,14 +220,16 @@ router.post('/position', async (req: Request, res: Response): Promise<void> => {
       advantage: positioning.defensibleAdvantage,
     });
 
-    return res.json({
+    res.json({
       success: true,
       positioning,
       summary: `Message: "${positioning.coreMessage}" (vs ${mainCompetitor.name} for ${targetSegment}s). Defensible on: ${positioning.defensibleAdvantage}.`,
     });
+    return;
   } catch (err) {
     console.error('[Positioning] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -253,7 +261,7 @@ router.post('/full-analysis', async (req: Request, res: Response): Promise<void>
     };
 
     if (!context || !competitors || !targetSegment) {
-      return res.status(400).json({ error: 'context, competitors, targetSegment required' });
+      res.status(400).json({ error: 'context, competitors, targetSegment required' });
       return;
     }
 
@@ -266,7 +274,7 @@ router.post('/full-analysis', async (req: Request, res: Response): Promise<void>
       segment: targetSegment,
     });
 
-    return res.json({
+    res.json({
       success: true,
       analysis,
       executive_summary: `
@@ -276,9 +284,11 @@ Budget: ${analysis.budgetAllocation.rationale}
 Positioning: ${analysis.positioning.coreMessage}
       `.trim(),
     });
+    return;
   } catch (err) {
     console.error('[FullAnalysis] Error:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 

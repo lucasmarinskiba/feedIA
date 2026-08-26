@@ -89,7 +89,7 @@ router.get('/connect', (req: Request, res: Response): void => {
     // through `state` is how social-automation-complete.ts already does it.
     const { userId } = req.query as { userId?: string };
     if (!userId) {
-      return res.status(400).json({
+      res.status(400).json({
         ok: false,
         error: 'userId query parameter required so the token can be stored against an account',
       });
@@ -102,7 +102,8 @@ router.get('/connect', (req: Request, res: Response): void => {
     res.redirect(instagramAuthUrl);
   } catch (err) {
     log.error('[InstagramOAuth] Connect failed', { error: String(err) });
-    return res.status(500).json({ ok: false, error: String(err) });
+    res.status(500).json({ ok: false, error: String(err) });
+    return;
   }
 });
 
@@ -116,14 +117,14 @@ router.get('/callback', async (req: Request, res: Response): Promise<void> => {
     const { code, state } = req.query as { code: string; state: string };
 
     if (!code) {
-      return res.status(400).json({ ok: false, error: 'No authorization code received' });
+      res.status(400).json({ ok: false, error: 'No authorization code received' });
       return;
     }
 
     // state carries the FeedIA user id set in /connect. Without it there is no
     // account to file the token against, so fail rather than store it loose.
     if (!state) {
-      return res.status(400).json({ ok: false, error: 'Missing state — restart the connection from the app' });
+      res.status(400).json({ ok: false, error: 'Missing state — restart the connection from the app' });
       return;
     }
 
@@ -133,7 +134,7 @@ router.get('/callback', async (req: Request, res: Response): Promise<void> => {
 
     if (!clientId || !clientSecret) {
       log.error('[InstagramOAuth] Missing credentials for token exchange');
-      return res.status(500).json({ ok: false, error: 'Server not configured for Instagram OAuth' });
+      res.status(500).json({ ok: false, error: 'Server not configured for Instagram OAuth' });
       return;
     }
 
@@ -161,7 +162,7 @@ router.get('/callback', async (req: Request, res: Response): Promise<void> => {
         status: tokenResponse.status,
         error: errorData.error?.message,
       });
-      return res.status(400).json({ ok: false, error: `Instagram auth failed: ${errorData.error?.message || 'unknown error'}` });
+      res.status(400).json({ ok: false, error: `Instagram auth failed: ${errorData.error?.message || 'unknown error'}` });
       return;
     }
 
@@ -174,7 +175,7 @@ router.get('/callback', async (req: Request, res: Response): Promise<void> => {
 
     if (!tokenData.access_token) {
       log.error('[InstagramOAuth] No token in response', { response: tokenData });
-      return res.status(400).json({ ok: false, error: 'No access token received' });
+      res.status(400).json({ ok: false, error: 'No access token received' });
       return;
     }
 
@@ -218,14 +219,16 @@ router.get('/status', async (_req: Request, res: Response): Promise<void> => {
       connected: accounts.length > 0,
       accountCount: accounts.length,
     });
-    return res.json({
+    res.json({
       ok: true,
       connected: accounts.length > 0,
       accounts,
     });
+    return;
   } catch (err) {
     log.error('[InstagramOAuth] Status check failed', { error: String(err) });
-    return res.status(500).json({ ok: false, error: String(err) });
+    res.status(500).json({ ok: false, error: String(err) });
+    return;
   }
 });
 
@@ -238,7 +241,7 @@ router.post('/disconnect', async (req: Request, res: Response): Promise<void> =>
     const { accountId } = req.body as { accountId: string };
 
     if (!accountId) {
-      return res.status(400).json({ ok: false, error: 'accountId required' });
+      res.status(400).json({ ok: false, error: 'accountId required' });
       return;
     }
 
@@ -248,15 +251,17 @@ router.post('/disconnect', async (req: Request, res: Response): Promise<void> =>
     );
 
     if (result.rowCount === 0) {
-      return res.status(404).json({ ok: false, error: `No connected account ${accountId}` });
+      res.status(404).json({ ok: false, error: `No connected account ${accountId}` });
       return;
     }
 
     log.info('[InstagramOAuth] Token revoked', { accountId });
-    return res.json({ ok: true, message: `Disconnected from ${accountId}` });
+    res.json({ ok: true, message: `Disconnected from ${accountId}` });
+    return;
   } catch (err) {
     log.error('[InstagramOAuth] Disconnect failed', { error: String(err) });
-    return res.status(500).json({ ok: false, error: String(err) });
+    res.status(500).json({ ok: false, error: String(err) });
+    return;
   }
 });
 

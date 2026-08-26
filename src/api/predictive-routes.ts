@@ -13,7 +13,7 @@ router.post('/viral', (req: Request, res: Response): void => {
   try {
     const { format, topic, historicalData } = req.body;
     if (!format || !topic) {
-      return res.status(400).json({ error: 'format + topic required' });
+      res.status(400).json({ error: 'format + topic required' });
       return;
     }
 
@@ -41,9 +41,11 @@ router.post('/viral', (req: Request, res: Response): void => {
     ];
 
     const prediction = predictViralScore(format, topic, historicalData || mockData);
-    return res.json(prediction);
+    res.json(prediction);
+    return;
   } catch (err) {
-    return res.status(500).json({ error: 'viral-prediction', message: String(err) });
+    res.status(500).json({ error: 'viral-prediction', message: String(err) });
+    return;
   }
 });
 
@@ -52,14 +54,16 @@ router.post('/churn', (req: Request, res: Response): void => {
     const { fanId, lastEngagementDays = 15, totalSpent = 250, engagementScore = 65, tier = 'silver' } = req.body;
 
     if (!fanId) {
-      return res.status(400).json({ error: 'fanId required' });
+      res.status(400).json({ error: 'fanId required' });
       return;
     }
 
     const prediction = predictChurnRisk(fanId, lastEngagementDays, totalSpent, engagementScore, tier);
-    return res.json(prediction);
+    res.json(prediction);
+    return;
   } catch (err) {
-    return res.status(500).json({ error: 'churn-prediction', message: String(err) });
+    res.status(500).json({ error: 'churn-prediction', message: String(err) });
+    return;
   }
 });
 
@@ -67,7 +71,7 @@ router.post('/roi-forecast', (req: Request, res: Response): void => {
   try {
     const { format, topic, historicalTimeline } = req.body;
     if (!format || !topic) {
-      return res.status(400).json({ error: 'format + topic required' });
+      res.status(400).json({ error: 'format + topic required' });
       return;
     }
 
@@ -105,9 +109,11 @@ router.post('/roi-forecast', (req: Request, res: Response): void => {
     ];
 
     const forecast = forecastROI(format, topic, historicalTimeline || mockTimeline);
-    return res.json(forecast);
+    res.json(forecast);
+    return;
   } catch (err) {
-    return res.status(500).json({ error: 'roi-forecast', message: String(err) });
+    res.status(500).json({ error: 'roi-forecast', message: String(err) });
+    return;
   }
 });
 
@@ -122,7 +128,7 @@ router.post('/lead-conversion', (req: Request, res: Response): void => {
     } = req.body;
 
     if (!leadId) {
-      return res.status(400).json({ error: 'leadId required' });
+      res.status(400).json({ error: 'leadId required' });
       return;
     }
 
@@ -133,9 +139,11 @@ router.post('/lead-conversion', (req: Request, res: Response): void => {
       daysSinceCreation,
       historicalConversionRate,
     );
-    return res.json(prediction);
+    res.json(prediction);
+    return;
   } catch (err) {
-    return res.status(500).json({ error: 'lead-conversion-prediction', message: String(err) });
+    res.status(500).json({ error: 'lead-conversion-prediction', message: String(err) });
+    return;
   }
 });
 
@@ -144,14 +152,16 @@ router.post('/full-analysis', (req: Request, res: Response): void => {
     const { fanMetrics = {}, contentHistory = [], leads = {} } = req.body;
 
     const analysis = runFullPredictiveAnalysis(fanMetrics, contentHistory, leads);
-    return res.json(analysis);
+    res.json(analysis);
+    return;
   } catch (err) {
-    return res.status(500).json({ error: 'full-analysis', message: String(err) });
+    res.status(500).json({ error: 'full-analysis', message: String(err) });
+    return;
   }
 });
 
 router.get('/status', (req: Request, res: Response): void => {
-  return res.json({
+  res.json({
     status: 'ok',
     models: ['viral-score', 'churn-risk', 'roi-forecast', 'lead-conversion', 'full-analysis'],
     dataRequirements: {
@@ -162,6 +172,7 @@ router.get('/status', (req: Request, res: Response): void => {
       'full-analysis': ['fanMetrics', 'contentHistory', 'leads'],
     },
   });
+  return;
 });
 
 export default router;

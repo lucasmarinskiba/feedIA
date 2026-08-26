@@ -8,9 +8,11 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     const dashboardData = req.body || getMockDashboardData();
 
     const result = await runAgentOrchestration(dashboardData);
-    return res.json(result);
+    res.json(result);
+    return;
   } catch (err) {
-    return res.status(500).json({ error: 'orchestration', message: String(err) });
+    res.status(500).json({ error: 'orchestration', message: String(err) });
+    return;
   }
 });
 
@@ -18,12 +20,13 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
  * GET /api/orchestrate/status — health check
  */
 router.get('/status', (req: Request, res: Response): void => {
-  return res.json({
+  res.json({
     status: 'ok',
     agents: ['growth-agent', 'retention-agent', 'sales-agent', 'content-agent'],
     mode: 'autonomous-loop',
     lastRun: new Date().toISOString(),
   });
+  return;
 });
 
 /**

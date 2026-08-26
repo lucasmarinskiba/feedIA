@@ -50,7 +50,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
     // Validate
     if (!name || !variants || variants.length < 2 || !metric) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'name, variants (min 2), and metric required',
       });
       return;
@@ -68,7 +68,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     // Invalidate relevant caches
     await invalidateCachePatterns('analytics');
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       test: {
         id: testId,
@@ -79,9 +79,11 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         status: 'active',
       },
     });
+    return;
   } catch (err) {
     console.error('[ABTest] Create failed:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -95,7 +97,7 @@ router.post('/:testId/track', async (req: Request, res: Response): Promise<void>
     const { variant, conversions = 1, impressions = 1 } = req.body as { variant: string; conversions?: number; impressions?: number };
 
     if (!variant) {
-      return res.status(400).json({ error: 'variant required' });
+      res.status(400).json({ error: 'variant required' });
       return;
     }
 
@@ -112,13 +114,15 @@ router.post('/:testId/track', async (req: Request, res: Response): Promise<void>
       generateCacheKey.abtestResults(testId),
     );
 
-    return res.json({
+    res.json({
       success: true,
       message: `Tracked ${conversions} conversions for ${variant}`,
     });
+    return;
   } catch (err) {
     console.error('[ABTest] Track failed:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -176,10 +180,12 @@ router.get('/:testId/results', async (req: Request, res: Response): Promise<void
       },
     );
 
-    return res.json(results);
+    res.json(results);
+    return;
   } catch (err) {
     console.error('[ABTest] Results failed:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -223,13 +229,15 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       };
     });
 
-    return res.json({
+    res.json({
       tests,
       total: tests.length,
     });
+    return;
   } catch (err) {
     console.error('[ABTest] List failed:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -243,7 +251,7 @@ router.patch('/:testId/status', async (req: Request, res: Response): Promise<voi
     const { status } = req.body as { status: string };
 
     if (!['active', 'completed', 'archived'].includes(status)) {
-      return res.status(400).json({ error: 'status must be active, completed, or archived' });
+      res.status(400).json({ error: 'status must be active, completed, or archived' });
       return;
     }
 
@@ -257,13 +265,15 @@ router.patch('/:testId/status', async (req: Request, res: Response): Promise<voi
     // Invalidate cache
     await invalidateCachePatterns('analytics', generateCacheKey.abtestResults(testId));
 
-    return res.json({
+    res.json({
       success: true,
       message: `Test ${testId} status changed to ${status}`,
     });
+    return;
   } catch (err) {
     console.error('[ABTest] Status update failed:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -299,15 +309,17 @@ router.get('/:testId/stats', async (req: Request, res: Response): Promise<void> 
       zScore: calculateZScore(v.total_conversions, v.total_impressions, variants),
     }));
 
-    return res.json({
+    res.json({
       testId,
       variants: stats,
       winner: stats.reduce((a, b) => a.conversionRate > b.conversionRate ? a : b),
       significance: calculateChiSquare(stats) > 3.841, // p < 0.05
     });
+    return;
   } catch (err) {
     console.error('[ABTest] Stats failed:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 

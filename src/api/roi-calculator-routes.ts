@@ -49,21 +49,21 @@ router.post('/calculate', (req: Request, res: Response): void => {
     const { format, topic, targetAudience, budget, platform, niche } = req.body as ROIInput & { niche?: string };
 
     if (!format || !topic || !targetAudience || !budget) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'format, topic, targetAudience, budget required',
       });
       return;
     }
 
     if (!['carousel', 'reel', 'story', 'static'].includes(format)) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'format must be carousel, reel, story, or static',
       });
       return;
     }
 
     if (budget < 10) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'budget must be >= $10',
       });
       return;
@@ -79,13 +79,15 @@ router.post('/calculate', (req: Request, res: Response): void => {
 
     console.log('[ROI] Calculated:', { format, budget, conversions: result.estimatedConversions });
 
-    return res.json({
+    res.json({
       success: true,
       data: result,
     });
+    return;
   } catch (err) {
     console.error('[ROI] Calculate failed:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -124,14 +126,14 @@ router.post('/compare', (req: Request, res: Response): void => {
     };
 
     if (!formats || !topic || !targetAudience || !budget) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'formats, topic, targetAudience, budget required',
       });
       return;
     }
 
     if (!Array.isArray(formats) || formats.length === 0) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'formats must be non-empty array',
       });
       return;
@@ -144,7 +146,7 @@ router.post('/compare', (req: Request, res: Response): void => {
 
     console.log('[ROI] Comparison:', { formats: formats.length, winner: results[0].format });
 
-    return res.json({
+    res.json({
       success: true,
       results,
       winner: results[0].format,
@@ -152,9 +154,11 @@ router.post('/compare', (req: Request, res: Response): void => {
       savings: `Allocate ${budget} to ${results[0].format} for best ROI`,
       recommendation: results[0].recommendations[0],
     });
+    return;
   } catch (err) {
     console.error('[ROI] Compare failed:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -192,14 +196,14 @@ router.post('/optimize-budget', (req: Request, res: Response): void => {
     };
 
     if (!totalBudget || !topic || !targetAudience) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'totalBudget, topic, targetAudience required',
       });
       return;
     }
 
     if (totalBudget < 30) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'totalBudget must be >= $30',
       });
       return;
@@ -213,16 +217,18 @@ router.post('/optimize-budget', (req: Request, res: Response): void => {
 
     console.log('[ROI] Optimized:', { totalBudget, formats: Object.keys(allocation).length, totalConversions });
 
-    return res.json({
+    res.json({
       success: true,
       allocation,
       totalExpectedConversions: totalConversions,
       averageROI: Math.round(avgROI * 100) / 100,
       rationale: `Budget split optimizes for ${Object.keys(allocation)[0]} format (highest ROI). Expected ${totalConversions} conversions across all formats.`,
     });
+    return;
   } catch (err) {
     console.error('[ROI] Optimize failed:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 
@@ -263,14 +269,16 @@ router.get('/benchmarks', (req: Request, res: Response): void => {
       },
     };
 
-    return res.json({
+    res.json({
       success: true,
       benchmarks,
       note: 'CPR = Cost Per Result (engagement or conversion). Higher engagement rate = lower CPR.',
     });
+    return;
   } catch (err) {
     console.error('[ROI] Benchmarks failed:', err);
-    return res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err) });
+    return;
   }
 });
 

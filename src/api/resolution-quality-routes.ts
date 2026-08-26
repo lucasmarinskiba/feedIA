@@ -19,7 +19,6 @@ router.get('/specs/:platform', async (req: Request, res: Response) => {
 
     if (!['instagram', 'tiktok'].includes(String(platform))) {
       return res.status(400).json({ error: 'platform must be instagram or tiktok' });
-      return;
     }
 
     const specs = resolutionQualityEngine.getAllSpecsForPlatform(platform as 'instagram' | 'tiktok');
@@ -47,7 +46,6 @@ router.post('/inject-instructions', async (req: Request, res: Response) => {
 
     if (!platform || !contentType) {
       return res.status(400).json({ error: 'platform and contentType required' });
-      return;
     }
 
     const instructions = resolutionQualityEngine.generateQualityInstructions(
@@ -82,7 +80,6 @@ router.post('/validate', async (req: Request, res: Response) => {
 
     if (!platform || !contentType || !width || !height) {
       return res.status(400).json({ error: 'platform, contentType, width, height required' });
-      return;
     }
 
     const result = resolutionQualityEngine.validateQuality(
@@ -116,7 +113,6 @@ router.post('/upscale-strategy', async (req: Request, res: Response) => {
 
     if (!currentWidth || !currentHeight || !targetWidth || !targetHeight) {
       return res.status(400).json({ error: 'currentWidth, currentHeight, targetWidth, targetHeight required' });
-      return;
     }
 
     const strategy = resolutionQualityEngine.getUpscaleStrategy(
@@ -192,11 +188,9 @@ router.get('/best/:platform/:contentType', async (req: Request, res: Response) =
 
     if (!['instagram', 'tiktok'].includes(String(platform))) {
       return res.status(400).json({ error: 'platform must be instagram or tiktok' });
-      return;
     }
     if (!['image', 'video', 'carousel'].includes(String(contentType))) {
       return res.status(400).json({ error: 'contentType must be image, video, or carousel' });
-      return;
     }
 
     const spec = resolutionQualityEngine.getBestSpec(

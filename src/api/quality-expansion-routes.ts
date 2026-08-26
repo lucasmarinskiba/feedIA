@@ -74,7 +74,7 @@ router.post('/expand-refine', async (req: Request, res: Response): Promise<void>
       if (success) stored++;
     }
 
-    return res.json({
+    res.json({
       status: 'success',
       promptId,
       expansions: {
@@ -97,9 +97,11 @@ router.post('/expand-refine', async (req: Request, res: Response): Promise<void>
       ],
       metadata: { processedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[QualityExpansion] Expand-refine failed', error);
-    return res.status(500).json({ error: 'Expansion failed', message: String(error) });
+    res.status(500).json({ error: 'Expansion failed', message: String(error) });
+    return;
   }
 });
 
@@ -117,7 +119,7 @@ router.post('/validate', async (req: Request, res: Response): Promise<void> => {
 
     const validation = await qualityValidator.validatePrompt(promptText);
 
-    return res.json({
+    res.json({
       status: 'validated',
       qualityScore: validation.score,
       passed: validation.passed,
@@ -133,9 +135,11 @@ router.post('/validate', async (req: Request, res: Response): Promise<void> => {
         : `Refine first (score: ${validation.score}/100). Issues: ${validation.issues.slice(0, 2).join(', ')}`,
       metadata: { validatedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[QualityExpansion] Validation failed', error);
-    return res.status(500).json({ error: 'Validation failed' });
+    res.status(500).json({ error: 'Validation failed' });
+    return;
   }
 });
 
@@ -155,7 +159,7 @@ router.post('/refine', async (req: Request, res: Response): Promise<void> => {
 
     const refinement = await promptRefinementEngine.refinePrompt(promptText);
 
-    return res.json({
+    res.json({
       status: 'refined',
       original: refinement.originalPrompt.slice(0, 150) + '...',
       refined: refinement.refinedPrompt.slice(0, 200) + '...',
@@ -165,9 +169,11 @@ router.post('/refine', async (req: Request, res: Response): Promise<void> => {
       fullRefinedPrompt: refinement.refinedPrompt,
       metadata: { refinedAt: new Date().toISOString() },
     });
+    return;
   } catch (error) {
     log.error('[QualityExpansion] Refine failed', error);
-    return res.status(500).json({ error: 'Refinement failed' });
+    res.status(500).json({ error: 'Refinement failed' });
+    return;
   }
 });
 
