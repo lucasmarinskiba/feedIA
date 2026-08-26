@@ -17,7 +17,7 @@
 import * as d from './_demo.js';
 import { handleSkills } from './_skills.js';
 import { handleGrowth } from './_growth.js';
-import { handleAuthLegacy } from './_auth.js';
+import { handleAuth as handleAuthLegacy } from './_auth.js';
 import { handleUsers, getSessionFromReq } from './_users.js';
 import { handleBilling } from './_billing.js';
 import { handleGate, gateRequest } from './_gate.js';
@@ -1901,7 +1901,7 @@ const innerHandler = async (req, res) => {
     }
     if (path === '/api/settings/connections' && m === 'GET') {
       try {
-        if (await handleAuth(req, res, '/api/auth/connections', 'GET', {}, url.searchParams)) return;
+        if (await handleAuthLegacy(req, res, '/api/auth/connections', 'GET', {}, url.searchParams)) return;
       } catch {
         /* fallback */
       }
@@ -1909,7 +1909,7 @@ const innerHandler = async (req, res) => {
     }
     if (path === '/api/settings/disconnect' && m === 'POST') {
       try {
-        if (await handleAuth(req, res, '/api/auth/disconnect', 'POST', sBody, url.searchParams)) return;
+        if (await handleAuthLegacy(req, res, '/api/auth/disconnect', 'POST', sBody, url.searchParams)) return;
       } catch {
         /* fallback */
       }
@@ -1978,7 +1978,7 @@ const innerHandler = async (req, res) => {
   // ── OAuth de redes (Instagram + TikTok Login Kit) ──────────────────────
   if (path.startsWith('/api/auth/')) {
     try {
-      if (await handleAuth(req, res, path, m, {}, url.searchParams)) return;
+      if (await handleAuthLegacy(req, res, path, m, {}, url.searchParams)) return;
     } catch (err) {
       return json(res, 500, { error: 'auth-handler' });
     }
