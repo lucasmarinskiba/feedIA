@@ -4,18 +4,18 @@
  * Analyzes patterns to optimize future ranking
  */
 
-import { getFilePool } from '../db/sqlite-pool.js';
+import { queryAs, queryOneAs } from '../db/typed-queries.js';
 
 // Mock feedback storage for development (SQLite pool doesn't support feedback tables yet)
 const mockFeedback = new Map<string, { batchId: number; rating: number; content?: string; createdAt: string }>();
 
 export interface FeedbackRecord {
   id: string;
-  userId: string;
-  batchId: number;
+  user_id: string;
+  batch_id: number;
   rating: number; // 1-5
   content?: string;
-  createdAt: string;
+  created_at: string;
 }
 
 export interface BatchQualityScore {
@@ -23,6 +23,18 @@ export interface BatchQualityScore {
   averageRating: number;
   totalRatings: number;
   trend: 'improving' | 'stable' | 'declining';
+}
+
+interface QualityScoreRow {
+  avg_rating: number | null;
+  total_ratings: number;
+  trend: 'improving' | 'stable' | 'declining';
+}
+
+interface AllQualityRow {
+  batch_id: number;
+  avg_rating: number | null;
+  total_ratings: number;
 }
 
 /**
@@ -68,13 +80,10 @@ export const saveFeedback = async (
  */
 export const getBatchQualityScore = async (batchId: number): Promise<BatchQualityScore | null> => {
   try {
-    const pool = getPool();
-
-    const result = await pool.query(
+    const result = await queryOneAs<QualityScoreRow>(
       `SELECT
         AVG(rating) as avg_rating,
         COUNT(*) as total_ratings,
-        -- Simple trend: compare recent vs older ratings
         CASE
           WHEN AVG(CASE WHEN created_at > NOW() - INTERVAL '7 days' THEN rating END) >
                AVG(CASE WHEN created_at < NOW() - INTERVAL '7 days' THEN rating END) THEN 'improving'
@@ -87,21 +96,15 @@ export const getBatchQualityScore = async (batchId: number): Promise<BatchQualit
       [batchId],
     );
 
-    if (!result.rows || result.rows.length === 0) {
+    if (!result) {
       return null;
     }
 
-    const row = result.rows[0] as {
-      avg_rating: number | null;
-      total_ratings: number;
-      trend: 'improving' | 'stable' | 'declining';
-    };
-
     return {
       batchId,
-      averageRating: row.avg_rating || 0,
-      totalRatings: row.total_ratings || 0,
-      trend: row.trend || 'stable',
+      averageRating: result.avg_rating || 0,
+      totalRatings: result.total_ratings || 0,
+      trend: result.trend || 'stable',
     };
   } catch (err) {
     console.error('[QualityScore] Fetch failed:', err);
@@ -114,9 +117,7 @@ export const getBatchQualityScore = async (batchId: number): Promise<BatchQualit
  */
 export const getAllBatchQualityScores = async (): Promise<BatchQualityScore[]> => {
   try {
-    const pool = getPool();
-
-    const result = await pool.query(`
+    const results = await queryAs<AllQualityRow>(`
       SELECT
         batch_id,
         AVG(rating) as avg_rating,
@@ -126,15 +127,12 @@ export const getAllBatchQualityScores = async (): Promise<BatchQualityScore[]> =
       ORDER BY avg_rating DESC
     `);
 
-    return (result.rows || []).map((row: unknown) => {
-      const r = row as Record<string, unknown>;
-      return {
-        batchId: r.batch_id as number,
-        averageRating: (r.avg_rating as number) || 0,
-        totalRatings: (r.total_ratings as number) || 0,
-        trend: 'stable' as const, // Simplified for batch report
-      };
-    });
+    return results.map((row) => ({
+      batchId: row.batch_id,
+      averageRating: row.avg_rating || 0,
+      totalRatings: row.total_ratings || 0,
+      trend: 'stable' as const, // Simplified for batch report
+    }));
   } catch (err) {
     console.error('[AllQualityScores] Fetch failed:', err);
     return [];
@@ -146,9 +144,7 @@ export const getAllBatchQualityScores = async (): Promise<BatchQualityScore[]> =
  */
 export const getUserFeedbackHistory = async (userId: string): Promise<FeedbackRecord[]> => {
   try {
-    const pool = getPool();
-
-    const result = await pool.query(
+    return queryAs<FeedbackRecord>(
       `SELECT id, user_id, batch_id, rating, content, created_at
        FROM feedback
        WHERE user_id = $1
@@ -156,8 +152,6 @@ export const getUserFeedbackHistory = async (userId: string): Promise<FeedbackRe
        LIMIT 50`,
       [userId],
     );
-
-    return (result.rows || []) as FeedbackRecord[];
   } catch (err) {
     console.error('[UserHistory] Fetch failed:', err);
     return [];

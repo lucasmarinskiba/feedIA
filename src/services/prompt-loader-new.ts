@@ -1,4 +1,4 @@
-import { carouselDB } from '../db/postgres.js';
+import { queryAs, queryOneAs } from '../db/typed-queries.js';
 
 export interface PromptRecord {
   id: string;
@@ -6,6 +6,18 @@ export interface PromptRecord {
   batch: number;
   category: string;
   tags: string[];
+}
+
+interface PromptRow {
+  batch_id: number;
+  category: string;
+  prompt_text: string;
+  tags?: string;
+}
+
+interface BatchStatsRow {
+  total_prompts: number;
+  total_batches: number;
 }
 
 export interface PromptFilter {
@@ -22,33 +34,20 @@ export interface PromptContext {
   format: 'carousel' | 'reel' | 'story' | 'post';
 }
 
-interface PoolLike {
-  query: (sql: string, params?: unknown[]) => Promise<{ rows: unknown[] }>;
-}
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const getPool = () => {
-  const db = carouselDB as unknown as Record<string, unknown>;
-  return db.pool as PoolLike | undefined;
-};
-
 export const promptLoader = {
   async loadPrompt(batchId: number, promptId: string): Promise<PromptRecord | null> {
     try {
-      const pool = getPool();
-      if (!pool) return null;
+      const rows = await queryAs<PromptRow>('SELECT * FROM prompts WHERE batch_id = $1 LIMIT 1', [batchId]);
 
-      const result = await pool.query('SELECT * FROM prompts WHERE batch_id = $1 LIMIT 1', [batchId]);
+      if (rows.length === 0) return null;
 
-      if (result.rows.length === 0) return null;
-
-      const row = result.rows[0] as Record<string, unknown>;
+      const row = rows[0];
       return {
         id: promptId,
-        text: row.prompt_text as string,
-        batch: row.batch_id as number,
-        category: row.category as string,
-        tags: (row.tags as string)?.split(',') || [],
+        text: row.prompt_text,
+        batch: row.batch_id,
+        category: row.category,
+        tags: (row.tags)?.split(',') || [],
       };
     } catch {
       return null;
@@ -57,9 +56,6 @@ export const promptLoader = {
 
   async queryPrompts(filter: PromptFilter): Promise<PromptRecord[]> {
     try {
-      const pool = getPool();
-      if (!pool) return [];
-
       let query = 'SELECT batch_id, category, prompt_text, tags FROM prompts WHERE 1=1';
       const params: unknown[] = [];
       let paramCount = 1;
@@ -83,14 +79,14 @@ export const promptLoader = {
       query += ' ORDER BY RANDOM()';
       if (filter.limit) query += ` LIMIT ${filter.limit}`;
 
-      const result = await pool.query(query, params);
+      const rows = await queryAs<PromptRow>(query, params);
 
-      return (result.rows as Record<string, unknown>[]).map((row, idx) => ({
+      return rows.map((row, idx) => ({
         id: `${row.batch_id}-${idx}`,
-        text: row.prompt_text as string,
-        batch: row.batch_id as number,
-        category: row.category as string,
-        tags: (row.tags as string)?.split(',') || [],
+        text: row.prompt_text,
+        batch: row.batch_id,
+        category: row.category,
+        tags: (row.tags)?.split(',') || [],
       }));
     } catch {
       return [];
@@ -129,15 +125,12 @@ export const promptLoader = {
 
   async getBatchStats(): Promise<Record<string, unknown>> {
     try {
-      const pool = getPool();
-      if (!pool) return {};
-
-      const result = await pool.query(`
+      const result = await queryOneAs<BatchStatsRow>(`
         SELECT COUNT(*) as total_prompts, COUNT(DISTINCT batch_id) as total_batches
         FROM prompts
       `);
 
-      return (result.rows[0] as Record<string, unknown>) || {};
+      return result || {};
     } catch {
       return {};
     }
