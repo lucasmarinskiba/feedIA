@@ -3,14 +3,12 @@
  * Creates feedback table if not exists
  */
 
-import { getPool } from './postgres-real.js';
+import { executeMutation } from './typed-queries.js';
 
 export const initFeedbackSchema = async (): Promise<void> => {
   try {
-    const pool = getPool();
-
     // Create feedback table
-    await pool.query(`
+    await executeMutation(`
       CREATE TABLE IF NOT EXISTS feedback (
         id VARCHAR(255) PRIMARY KEY,
         user_id VARCHAR(255) NOT NULL,
@@ -24,15 +22,15 @@ export const initFeedbackSchema = async (): Promise<void> => {
     `);
 
     // Create index for analytics queries
-    await pool.query(`
+    await executeMutation(`
       CREATE INDEX IF NOT EXISTS idx_feedback_batch_id ON feedback(batch_id)
     `);
 
-    await pool.query(`
+    await executeMutation(`
       CREATE INDEX IF NOT EXISTS idx_feedback_user_id ON feedback(user_id)
     `);
 
-    await pool.query(`
+    await executeMutation(`
       CREATE INDEX IF NOT EXISTS idx_feedback_created_at ON feedback(created_at)
     `);
 
@@ -45,10 +43,8 @@ export const initFeedbackSchema = async (): Promise<void> => {
 
 export const initWeightsSchema = async (): Promise<void> => {
   try {
-    const pool = getPool();
-
     // Store dynamic ranking weights after retraining
-    await pool.query(`
+    await executeMutation(`
       CREATE TABLE IF NOT EXISTS ranking_weights (
         id VARCHAR(255) PRIMARY KEY,
         format_weight DECIMAL(3, 2) DEFAULT 0.50,
