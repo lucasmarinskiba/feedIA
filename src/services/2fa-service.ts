@@ -5,9 +5,17 @@
  */
 
 import crypto from 'crypto';
-import { carouselDB } from '../db/postgres.js';
+import { executeMutation, queryOneAs } from '../db/typed-queries.js';
 import { log } from '../agent/logger.js';
 import { encryptionService } from './encryption-service.js';
+
+interface TwoFactorAuthRow {
+  user_id: string;
+  secret: string;
+  backup_codes: string; // JSON encrypted
+  enabled: boolean;
+  updated_at?: string;
+}
 
 interface TOTPSecret {
   secret: string;
@@ -93,15 +101,10 @@ class TwoFactorService {
    */
   async enable(userId: string, secret: string, backupCodes: string[]): Promise<boolean> {
     try {
-      const pool = (carouselDB as any).pool;
-      if (!pool) {
-        return false;
-      }
-
       // Encrypt backup codes
       const encrypted = encryptionService.encrypt(JSON.stringify(backupCodes), process.env.MASTER_KEY || 'default');
 
-      await pool.query(
+      await executeMutation(
         `INSERT INTO two_factor_auth (user_id, secret, backup_codes, enabled)
          VALUES ($1, $2, $3, $4)
          ON CONFLICT (user_id) DO UPDATE SET
@@ -125,12 +128,7 @@ class TwoFactorService {
    */
   async disable(userId: string): Promise<boolean> {
     try {
-      const pool = (carouselDB as any).pool;
-      if (!pool) {
-        return false;
-      }
-
-      await pool.query(`UPDATE two_factor_auth SET enabled = false, updated_at = NOW() WHERE user_id = $1`, [userId]);
+      await executeMutation(`UPDATE two_factor_auth SET enabled = false, updated_at = NOW() WHERE user_id = $1`, [userId]);
 
       log.info('2FA disabled for user', { user_id: userId });
       return true;
@@ -145,21 +143,16 @@ class TwoFactorService {
    */
   async verifyBackupCode(userId: string, code: string): Promise<boolean> {
     try {
-      const pool = (carouselDB as any).pool;
-      if (!pool) {
-        return false;
-      }
-
-      const result = await pool.query(
+      const row = await queryOneAs<TwoFactorAuthRow>(
         `SELECT backup_codes FROM two_factor_auth WHERE user_id = $1 AND enabled = true`,
         [userId],
       );
 
-      if (result.rows.length === 0) {
+      if (!row) {
         return false;
       }
 
-      const encrypted = (result.rows[0] as any).backup_codes;
+      const encrypted = row.backup_codes;
       const decrypted = encryptionService.decrypt(encrypted, process.env.MASTER_KEY || 'default');
       const backupCodes = JSON.parse(decrypted);
 
@@ -167,7 +160,7 @@ class TwoFactorService {
         // Remove used code
         const updatedCodes = backupCodes.filter((c: string) => c !== code);
 
-        await pool.query(
+        await executeMutation(
           `UPDATE two_factor_auth SET backup_codes = $1, updated_at = NOW() WHERE user_id = $2`,
           [JSON.stringify(updatedCodes), userId],
         );
@@ -188,14 +181,12 @@ class TwoFactorService {
    */
   async isEnabled(userId: string): Promise<boolean> {
     try {
-      const pool = (carouselDB as any).pool;
-      if (!pool) {
-        return false;
-      }
+      const row = await queryOneAs<{ enabled: boolean }>(
+        `SELECT enabled FROM two_factor_auth WHERE user_id = $1`,
+        [userId],
+      );
 
-      const result = await pool.query(`SELECT enabled FROM two_factor_auth WHERE user_id = $1`, [userId]);
-
-      return result.rows.length > 0 && (result.rows[0] as any).enabled;
+      return !!row?.enabled;
     } catch (err) {
       return false;
     }

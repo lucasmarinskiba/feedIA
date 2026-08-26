@@ -4,18 +4,13 @@
  */
 
 import { Router, Request, Response } from 'express';
+import { toSingleString } from '../utils/query-param-helpers.js';
 import { handleMercadoPagoWebhook, verifyMercadoPagoSignature } from './billing/mercado-pago-webhook.js';
 import { createCheckoutSession } from './billing/create-checkout-session.js';
 import { saveTier } from './billing/save-tier.js';
 import { getTierInfo } from './user/tier.js';
 import { handleStripeWebhook } from './billing/stripe-webhook.js';
-import {
-  trackUsage,
-  getMonthlyUsage,
-  getBillingStatus,
-  recordBillingTransaction,
-} from '../services/billing-manager.js';
-import { getBillingStatus as getWebhookStatus } from '../services/webhook-service.js';
+import { trackUsage, getMonthlyUsage, getBillingStatus } from '../services/billing-manager.js';
 import {
   registerWebhook,
   unregisterWebhook,
@@ -345,7 +340,7 @@ router.get('/webhooks', async (req: Request, res: Response): Promise<void> => {
  */
 router.delete('/webhooks/:subscriptionId', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { subscriptionId } = req.params;
+    const subscriptionId = toSingleString(req.params.subscriptionId);
     const { userId } = req.query;
 
     if (!subscriptionId || !userId) {

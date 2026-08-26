@@ -4,9 +4,10 @@
  */
 
 import { Router, Request, Response } from 'express';
+import { toSingleString } from '../utils/query-param-helpers.js';
 import { agencyOrchestrator } from '../agents/agency-orchestrator.js';
 import { batchOrchestrator } from '../agents/batch-orchestrator.js';
-import { saveCampaign, loadCampaign, listCampaigns, updateCampaignStatus, initializeCampaignsTable } from '../agents/agency-persistence.js';
+import { saveCampaign, loadCampaign, listCampaigns, initializeCampaignsTable } from '../agents/agency-persistence.js';
 import { metricsCollector, getHealthCheck } from '../agents/agency-metrics.js';
 import { validateTierAccess } from '../middleware/tier-enforcer.js';
 
@@ -94,7 +95,7 @@ router.post('/campaign/create', async (req: Request, res: Response): Promise<voi
  */
 router.get('/campaign/:campaignId', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { campaignId } = req.params;
+    const campaignId = toSingleString(req.params.campaignId);
     const campaign = await loadCampaign(campaignId);
 
     if (!campaign) {

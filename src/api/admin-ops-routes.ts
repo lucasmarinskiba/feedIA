@@ -42,7 +42,7 @@ router.post('/create-user', async (req: Request, res: Response) => {
     try {
       // Try PostgreSQL first
       if (carouselDB && typeof carouselDB.query === 'function') {
-        await carouselDB.query(
+        await carouselDB.pool.query(
           'INSERT INTO users (id, email, name, tier, created_at, status) VALUES ($1, $2, $3, $4, $5, $6)',
           [user.id, user.email, user.name, user.tier, user.createdAt, user.status],
         );
@@ -85,10 +85,10 @@ router.post('/upgrade-tier', async (req: Request, res: Response) => {
     try {
       // Update in PostgreSQL
       if (carouselDB && typeof carouselDB.query === 'function') {
-        const result = await carouselDB.query('UPDATE users SET tier = $1, updated_at = NOW() WHERE id = $2 RETURNING *', [
-          newTier,
-          userId,
-        ]);
+        const result = await carouselDB.pool.query(
+          'UPDATE users SET tier = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+          [newTier, userId],
+        );
 
         if (result.rows.length === 0) {
           return res.status(404).json({ error: 'User not found' });
@@ -131,11 +131,11 @@ router.get('/users', async (req: Request, res: Response) => {
     try {
       if (carouselDB && typeof carouselDB.query === 'function') {
         const query = search
-          ? "SELECT * FROM users WHERE email ILIKE $1 OR name ILIKE $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3"
+          ? 'SELECT * FROM users WHERE email ILIKE $1 OR name ILIKE $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3'
           : 'SELECT * FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2';
 
         const params = search ? [`%${search}%`, limit, offset] : [limit, offset];
-        const result = await carouselDB.query(query, params);
+        const result = await carouselDB.pool.query(query, params);
 
         return res.json({
           status: 'ok',
@@ -230,10 +230,10 @@ router.get('/database-status', async (req: Request, res: Response) => {
 
     try {
       if (carouselDB && typeof carouselDB.query === 'function') {
-        const result = await carouselDB.query('SELECT NOW() as time');
+        const result = await carouselDB.pool.query('SELECT NOW() as time');
         postgresStatus = result.rows.length > 0 ? 'connected' : 'error';
       }
-    } catch (pgError) {
+    } catch {
       postgresStatus = 'error';
     }
 
@@ -272,7 +272,7 @@ router.post('/migrate', async (req: Request, res: Response) => {
     try {
       if (carouselDB && typeof carouselDB.query === 'function') {
         // Create users table if not exists
-        await carouselDB.query(`
+        await carouselDB.pool.query(`
           CREATE TABLE IF NOT EXISTS users (
             id VARCHAR(255) PRIMARY KEY,
             email VARCHAR(255) UNIQUE NOT NULL,
@@ -286,7 +286,7 @@ router.post('/migrate', async (req: Request, res: Response) => {
         `);
 
         // Create campaigns table if not exists
-        await carouselDB.query(`
+        await carouselDB.pool.query(`
           CREATE TABLE IF NOT EXISTS campaigns (
             id VARCHAR(255) PRIMARY KEY,
             user_id VARCHAR(255) NOT NULL,
@@ -300,8 +300,8 @@ router.post('/migrate', async (req: Request, res: Response) => {
         `);
 
         // Create indexes
-        await carouselDB.query('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)');
-        await carouselDB.query('CREATE INDEX IF NOT EXISTS idx_campaigns_user_id ON campaigns(user_id)');
+        await carouselDB.pool.query('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)');
+        await carouselDB.pool.query('CREATE INDEX IF NOT EXISTS idx_campaigns_user_id ON campaigns(user_id)');
 
         log.info('[AdminOps] Migrations completed successfully');
       }
@@ -337,7 +337,7 @@ router.post('/seed', async (req: Request, res: Response) => {
     try {
       if (carouselDB && typeof carouselDB.query === 'function') {
         for (const user of testUsers) {
-          await carouselDB.query(
+          await carouselDB.pool.query(
             'INSERT INTO users (id, email, name, tier, created_at) VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT(id) DO NOTHING',
             [user.id, user.email, user.name, user.tier],
           );
@@ -378,8 +378,8 @@ router.post('/database-reset', async (req: Request, res: Response) => {
     try {
       if (carouselDB && typeof carouselDB.query === 'function') {
         // Drop tables in reverse order (foreign keys)
-        await carouselDB.query('DROP TABLE IF EXISTS campaigns CASCADE');
-        await carouselDB.query('DROP TABLE IF EXISTS users CASCADE');
+        await carouselDB.pool.query('DROP TABLE IF EXISTS campaigns CASCADE');
+        await carouselDB.pool.query('DROP TABLE IF EXISTS users CASCADE');
 
         log.info('[AdminOps] Database tables dropped');
       }

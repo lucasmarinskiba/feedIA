@@ -4,7 +4,7 @@
  * Week 6-7: Analytics dashboard for Pro+ tiers
  */
 
-import { carouselDB } from '../db/postgres.js';
+import { queryAs, queryOneAs, executeMutation, CarouselMetricsDailyRow } from '../db/typed-queries.js';
 import { log } from '../agent/logger.js';
 
 interface AnalyticsEvent {
@@ -26,12 +26,34 @@ interface CarouselMetrics {
   trend: 'up' | 'down' | 'flat';
 }
 
+interface UserCarouselStats {
+  id: string;
+  title: string;
+  slides_count: number;
+  total_views: number;
+  avg_engagement_rate: number;
+}
+
+interface EventBreakdownRow {
+  event_type: string;
+  count: number;
+  unique_users: number;
+}
+
+interface EngagementSummaryRow {
+  total_carousels: string | number;
+  total_views: string | number;
+  total_unique_views: string | number;
+  total_shares: string | number;
+  total_saves: string | number;
+  total_likes: string | number;
+  avg_engagement_rate: string | number;
+}
+
 class MetricsAggregationService {
   async trackEvent(event: AnalyticsEvent): Promise<void> {
     try {
-      const pool = (carouselDB as unknown as Record<string, any>).pool; // eslint-disable-line @typescript-eslint/no-explicit-any
-      if (!pool) return;
-      await pool.query(
+      await executeMutation(
         `INSERT INTO carousel_analytics (carousel_id, user_id, event_type, source, user_agent, referrer)
          VALUES ($1, $2, $3, $4, $5, $6)`,
         [
@@ -49,52 +71,48 @@ class MetricsAggregationService {
   }
 
   async getCarouselMetrics(carouselId: string): Promise<CarouselMetrics> {
-    const pool = (carouselDB as unknown as Record<string, any>).pool; // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (!pool) throw new Error('Database unavailable');
     const today = new Date().toISOString().split('T')[0];
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    const todayResult = await pool.query(
+
+    const todayRow = await queryOneAs<CarouselMetricsDailyRow>(
       `SELECT views, views_unique, shares, saves, likes, engagement_rate FROM carousel_metrics_daily
        WHERE carousel_id = $1 AND date = $2`,
       [carouselId, today],
     );
-    const yesterdayResult = await pool.query(
+
+    const yesterdayRow = await queryOneAs<Pick<CarouselMetricsDailyRow, 'views'>>(
       `SELECT views FROM carousel_metrics_daily WHERE carousel_id = $1 AND date = $2`,
       [carouselId, yesterday],
     );
-    const todayRow = todayResult.rows[0] as Record<string, unknown> | undefined;
-    const yesterdayRow = yesterdayResult.rows[0] as Record<string, unknown> | undefined;
+
     const todayMetrics = {
-      views: (todayRow?.views as number) || 0,
-      views_unique: (todayRow?.views_unique as number) || 0,
-      shares: (todayRow?.shares as number) || 0,
-      saves: (todayRow?.saves as number) || 0,
-      likes: (todayRow?.likes as number) || 0,
-      engagement_rate: (todayRow?.engagement_rate as number) || 0,
+      views: todayRow?.views || 0,
+      views_unique: todayRow?.views_unique || 0,
+      shares: todayRow?.shares || 0,
+      saves: todayRow?.saves || 0,
+      likes: todayRow?.likes || 0,
+      engagement_rate: todayRow?.engagement_rate || 0,
     };
-    const yesterdayViews = (yesterdayRow?.views as number) || 0;
+
+    const yesterdayViews = yesterdayRow?.views || 0;
     const trend = todayMetrics.views > yesterdayViews ? 'up' : todayMetrics.views < yesterdayViews ? 'down' : 'flat';
+
     return { ...todayMetrics, trend };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getCarouselHistory(carouselId: string, days: number = 30): Promise<any[]> {
-    const pool = (carouselDB as unknown as Record<string, any>).pool; // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (!pool) throw new Error('Database unavailable');
-    const result = await pool.query(
+  async getCarouselHistory(carouselId: string, days: number = 30): Promise<CarouselMetricsDailyRow[]> {
+    return queryAs<CarouselMetricsDailyRow>(
       `SELECT date, views, views_unique, shares, saves, likes, engagement_rate FROM carousel_metrics_daily
        WHERE carousel_id = $1 AND date >= CURRENT_DATE - INTERVAL '${days} days'
        ORDER BY date ASC`,
       [carouselId],
     );
-    return result.rows;
   }
 
   async aggregateDailyMetrics(targetDate?: string): Promise<void> {
-    const pool = (carouselDB as unknown as Record<string, any>).pool; // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (!pool) throw new Error('Database unavailable');
     const date = targetDate || new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    await pool.query(
+
+    await executeMutation(
       `INSERT INTO carousel_metrics_daily (carousel_id, user_id, date, views, views_unique, shares, saves, likes, clicks)
        SELECT carousel_id, user_id, DATE(created_at)::date,
          COUNT(CASE WHEN event_type = 'view' THEN 1 END) as views,
@@ -110,7 +128,8 @@ class MetricsAggregationService {
          shares = EXCLUDED.shares, saves = EXCLUDED.saves, likes = EXCLUDED.likes`,
       [date],
     );
-    await pool.query(
+
+    await executeMutation(
       `UPDATE carousel_metrics_daily
        SET engagement_rate = ROUND((shares + saves + likes)::decimal / NULLIF(views, 0) * 100, 2)
        WHERE date = $1`,
@@ -118,11 +137,8 @@ class MetricsAggregationService {
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getUserTopCarousels(userId: string, limit: number = 10): Promise<any[]> {
-    const pool = (carouselDB as unknown as Record<string, any>).pool; // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (!pool) throw new Error('Database unavailable');
-    const result = await pool.query(
+  async getUserTopCarousels(userId: string, limit: number = 10): Promise<UserCarouselStats[]> {
+    return queryAs<UserCarouselStats>(
       `SELECT c.id, c.title, c.slides_count, COALESCE(SUM(m.views), 0) as total_views,
          COALESCE(AVG(m.engagement_rate), 0) as avg_engagement_rate
        FROM carousels c LEFT JOIN carousel_metrics_daily m ON c.id = m.carousel_id
@@ -130,13 +146,10 @@ class MetricsAggregationService {
        GROUP BY c.id, c.title, c.slides_count ORDER BY total_views DESC LIMIT $2`,
       [userId, limit],
     );
-    return result.rows;
   }
 
   async getUserEngagementSummary(userId: string): Promise<Record<string, unknown>> {
-    const pool = (carouselDB as unknown as Record<string, any>).pool; // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (!pool) throw new Error('Database unavailable');
-    const result = await pool.query(
+    const result = await queryOneAs<EngagementSummaryRow>(
       `SELECT COUNT(DISTINCT c.id) as total_carousels, COALESCE(SUM(m.views), 0) as total_views,
          COALESCE(SUM(m.views_unique), 0) as total_unique_views, COALESCE(SUM(m.shares), 0) as total_shares,
          COALESCE(SUM(m.saves), 0) as total_saves, COALESCE(SUM(m.likes), 0) as total_likes,
@@ -145,29 +158,40 @@ class MetricsAggregationService {
        WHERE c.user_id = $1 AND c.status = 'published' AND m.date >= CURRENT_DATE - INTERVAL '30 days'`,
       [userId],
     );
-    return result.rows[0] || {};
+
+    if (!result) return {};
+
+    return {
+      total_carousels:
+        typeof result.total_carousels === 'string' ? parseInt(result.total_carousels, 10) : result.total_carousels,
+      total_views: typeof result.total_views === 'string' ? parseInt(result.total_views, 10) : result.total_views,
+      total_unique_views:
+        typeof result.total_unique_views === 'string'
+          ? parseInt(result.total_unique_views, 10)
+          : result.total_unique_views,
+      total_shares: typeof result.total_shares === 'string' ? parseInt(result.total_shares, 10) : result.total_shares,
+      total_saves: typeof result.total_saves === 'string' ? parseInt(result.total_saves, 10) : result.total_saves,
+      total_likes: typeof result.total_likes === 'string' ? parseInt(result.total_likes, 10) : result.total_likes,
+      avg_engagement_rate:
+        typeof result.avg_engagement_rate === 'string'
+          ? parseFloat(result.avg_engagement_rate)
+          : result.avg_engagement_rate,
+    };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getCarouselEventBreakdown(carouselId: string, days: number = 7): Promise<any> {
-    const pool = (carouselDB as unknown as Record<string, any>).pool; // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (!pool) throw new Error('Database unavailable');
-    const result = await pool.query(
+  async getCarouselEventBreakdown(carouselId: string, days: number = 7): Promise<EventBreakdownRow[]> {
+    return queryAs<EventBreakdownRow>(
       `SELECT event_type, COUNT(*) as count, COUNT(DISTINCT user_id) as unique_users
        FROM carousel_analytics WHERE carousel_id = $1 AND created_at >= NOW() - INTERVAL '${days} days'
        GROUP BY event_type ORDER BY count DESC`,
       [carouselId],
     );
-    return result.rows;
   }
 
   async cleanupOldData(retentionDays: number = 90): Promise<number> {
-    const pool = (carouselDB as unknown as Record<string, any>).pool; // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (!pool) throw new Error('Database unavailable');
-    const result = await pool.query(
+    return executeMutation(
       `DELETE FROM carousel_analytics WHERE created_at < NOW() - INTERVAL '${retentionDays} days'`,
     );
-    return result.rowCount || 0;
   }
 }
 

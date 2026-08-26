@@ -10,12 +10,8 @@
 
 import { Router, Request, Response } from 'express';
 import { query } from '../db/client.js';
-import {
-  generateCacheKey,
-  invalidateCachePatterns,
-  withCaching,
-  CACHE_TTL,
-} from '../services/cache-strategy.js';
+import { toSingleString } from '../utils/query-param-helpers.js';
+import { generateCacheKey, invalidateCachePatterns, withCaching, CACHE_TTL } from '../services/cache-strategy.js';
 
 const router = Router();
 
@@ -58,11 +54,21 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
     const testId = `abtest-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
-    const result = await query(
+    await query(
       `INSERT INTO abtests (id, user_id, name, description, variants, metric, hypothesis, start_date, end_date, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
        RETURNING id, created_at`,
-      [testId, userId, name, description || null, JSON.stringify(variants), metric, hypothesis || null, startDate, endDate || null],
+      [
+        testId,
+        userId,
+        name,
+        description || null,
+        JSON.stringify(variants),
+        metric,
+        hypothesis || null,
+        startDate,
+        endDate || null,
+      ],
     );
 
     // Invalidate relevant caches
@@ -93,8 +99,12 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
  */
 router.post('/:testId/track', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { testId } = req.params;
-    const { variant, conversions = 1, impressions = 1 } = req.body as { variant: string; conversions?: number; impressions?: number };
+    const testId = toSingleString(req.params.testId);
+    const {
+      variant,
+      conversions = 1,
+      impressions = 1,
+    } = req.body as { variant: string; conversions?: number; impressions?: number };
 
     if (!variant) {
       res.status(400).json({ error: 'variant required' });
@@ -109,10 +119,7 @@ router.post('/:testId/track', async (req: Request, res: Response): Promise<void>
     );
 
     // Invalidate test results cache
-    await invalidateCachePatterns(
-      'analytics',
-      generateCacheKey.abtestResults(testId),
-    );
+    await invalidateCachePatterns('analytics', generateCacheKey.abtestResults(testId));
 
     res.json({
       success: true,
@@ -133,16 +140,13 @@ router.post('/:testId/track', async (req: Request, res: Response): Promise<void>
  */
 router.get('/:testId/results', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { testId } = req.params;
+    const testId = toSingleString(req.params.testId);
 
     const cacheKey = generateCacheKey.abtestResults(testId);
 
-    const results = await withCaching(
-      cacheKey,
-      CACHE_TTL.ABTEST_RESULTS,
-      async () => {
-        const queryResult = await query(
-          `SELECT
+    const results = await withCaching(cacheKey, CACHE_TTL.ABTEST_RESULTS, async () => {
+      const queryResult = await query(
+        `SELECT
             variant,
             SUM(conversions) as total_conversions,
             SUM(impressions) as total_impressions,
@@ -151,34 +155,38 @@ router.get('/:testId/results', async (req: Request, res: Response): Promise<void
           WHERE test_id = $1
           GROUP BY variant
           ORDER BY total_conversions DESC`,
-          [testId],
-        );
+        [testId],
+      );
 
-        const variants = queryResult.rows as Array<{ variant: string; total_conversions: number; total_impressions: number; event_count: number }>;
+      const variants = queryResult.rows as Array<{
+        variant: string;
+        total_conversions: number;
+        total_impressions: number;
+        event_count: number;
+      }>;
 
-        // Calculate conversion rates and statistical significance
-        const results: ABTestResult[] = variants.map((v) => ({
-          testId,
-          variant: v.variant,
-          conversions: v.total_conversions,
-          impressions: v.total_impressions,
-          conversionRate: v.total_impressions > 0 ? (v.total_conversions / v.total_impressions) * 100 : 0,
-          confidenceLevel: calculateConfidenceLevel(v.total_conversions, v.total_impressions),
-          significant: v.total_impressions > 100, // Simplified: requires > 100 impressions
-        }));
+      // Calculate conversion rates and statistical significance
+      const results: ABTestResult[] = variants.map((v) => ({
+        testId,
+        variant: v.variant,
+        conversions: v.total_conversions,
+        impressions: v.total_impressions,
+        conversionRate: v.total_impressions > 0 ? (v.total_conversions / v.total_impressions) * 100 : 0,
+        confidenceLevel: calculateConfidenceLevel(v.total_conversions, v.total_impressions),
+        significant: v.total_impressions > 100, // Simplified: requires > 100 impressions
+      }));
 
-        // Determine winner (highest conversion rate with significant sample size)
-        const winner = results.find((r) => r.significant)?.variant || results[0]?.variant;
+      // Determine winner (highest conversion rate with significant sample size)
+      const winner = results.find((r) => r.significant)?.variant || results[0]?.variant;
 
-        return {
-          testId,
-          results,
-          winner,
-          totalEvents: variants.reduce((sum, v) => sum + v.event_count, 0),
-          timestamp: new Date().toISOString(),
-        };
-      },
-    );
+      return {
+        testId,
+        results,
+        winner,
+        totalEvents: variants.reduce((sum, v) => sum + v.event_count, 0),
+        timestamp: new Date().toISOString(),
+      };
+    });
 
     res.json(results);
     return;
@@ -196,28 +204,36 @@ router.get('/:testId/results', async (req: Request, res: Response): Promise<void
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = (req as unknown as { userId: string }).userId;
-    const { status = 'active', limit = '10' } = req.query as { status?: string; limit?: string };
+    const status = toSingleString(req.query.status) || 'active';
+    const limit = toSingleString(req.query.limit) || '10';
 
-    const query_str = status === 'all'
-      ? `SELECT id, name, metric, start_date, end_date, variants, status
+    const query_str =
+      status === 'all'
+        ? `SELECT id, name, metric, start_date, end_date, variants, status
          FROM abtests
          WHERE user_id = $1
          ORDER BY created_at DESC
          LIMIT $2`
-      : `SELECT id, name, metric, start_date, end_date, variants, status
+        : `SELECT id, name, metric, start_date, end_date, variants, status
          FROM abtests
          WHERE user_id = $1 AND status = $2
          ORDER BY created_at DESC
          LIMIT $3`;
 
-    const params = status === 'all'
-      ? [userId, parseInt(limit, 10)]
-      : [userId, status, parseInt(limit, 10)];
+    const params = status === 'all' ? [userId, parseInt(limit, 10)] : [userId, status, parseInt(limit, 10)];
 
     const result = await query(query_str, params);
 
     const tests = result.rows.map((row: unknown) => {
-      const typedRow = row as { id: string; name: string; metric: string; start_date: string; end_date?: string; variants: string; status: string };
+      const typedRow = row as {
+        id: string;
+        name: string;
+        metric: string;
+        start_date: string;
+        end_date?: string;
+        variants: string;
+        status: string;
+      };
       return {
         id: typedRow.id,
         name: typedRow.name,
@@ -247,7 +263,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
  */
 router.patch('/:testId/status', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { testId } = req.params;
+    const testId = toSingleString(req.params.testId);
     const { status } = req.body as { status: string };
 
     if (!['active', 'completed', 'archived'].includes(status)) {
@@ -297,10 +313,14 @@ router.get('/:testId/stats', async (req: Request, res: Response): Promise<void> 
       [testId],
     );
 
-    const variants = resultQuery.rows as Array<{ variant: string; total_conversions: number; total_impressions: number }>;
+    const variants = resultQuery.rows as Array<{
+      variant: string;
+      total_conversions: number;
+      total_impressions: number;
+    }>;
 
     // Calculate statistical significance using chi-square
-    const stats = variants.map((v, idx) => ({
+    const stats = variants.map((v, _idx) => ({
       variant: v.variant,
       conversions: v.total_conversions,
       impressions: v.total_impressions,
@@ -312,7 +332,7 @@ router.get('/:testId/stats', async (req: Request, res: Response): Promise<void> 
     res.json({
       testId,
       variants: stats,
-      winner: stats.reduce((a, b) => a.conversionRate > b.conversionRate ? a : b),
+      winner: stats.reduce((a, b) => (a.conversionRate > b.conversionRate ? a : b)),
       significance: calculateChiSquare(stats) > 3.841, // p < 0.05
     });
     return;
@@ -352,11 +372,16 @@ function calculateConfidenceInterval(conversions: number, impressions: number): 
 /**
  * Helper: Calculate Z-score for hypothesis testing
  */
-function calculateZScore(conversions: number, impressions: number, allVariants: Array<{ total_conversions: number; total_impressions: number }>): number {
+function calculateZScore(
+  conversions: number,
+  impressions: number,
+  allVariants: Array<{ total_conversions: number; total_impressions: number }>,
+): number {
   if (impressions === 0) return 0;
 
   const p = conversions / impressions;
-  const pooledP = allVariants.reduce((sum, v) => sum + v.total_conversions, 0) /
+  const pooledP =
+    allVariants.reduce((sum, v) => sum + v.total_conversions, 0) /
     allVariants.reduce((sum, v) => sum + v.total_impressions, 0);
 
   const se = Math.sqrt(pooledP * (1 - pooledP) * (1 / impressions));

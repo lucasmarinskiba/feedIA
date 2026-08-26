@@ -7,183 +7,211 @@
  * POST /api/content/publish
  */
 
-import type { RouteHandler } from '../http.js';
+import type { RouteContext, RouteHandler } from '../http.js';
 import { log } from '../../agent/logger.js';
-import { executeGenerationPipeline, getContentPreview, publishContent } from '../../capabilities/content/generationPipeline.js';
+import {
+  executeGenerationPipeline,
+  getContentPreview,
+  publishContent,
+} from '../../capabilities/content/generationPipeline.js';
 
 // ── POST /api/content/generate ────────────────────────────────────────
 
- 
-export const generateContent = async (req: unknown, res: unknown): Promise<void> => {
+export const generateContent: RouteHandler = async (ctx: RouteContext): Promise<void> => {
   try {
-    const {userId, contentType, topic, emotion, templateId, platform, duration} = req.body;
+    const reqBody = ctx.body as Record<string, unknown>;
+    const { userId, contentType, topic, emotion, templateId, platform, duration } = reqBody;
 
     if (!userId || !contentType || !topic) {
-      return res.status(400).json({
-        error: 'Missing required fields: userId, contentType, topic',
-      });
+      ctx.res.writeHead(400, { 'Content-Type': 'application/json' });
+      ctx.res.end(JSON.stringify({ error: 'Missing required fields: userId, contentType, topic' }));
+      return;
     }
 
     log.info(`[API] Generate request: ${contentType} for ${topic}`);
 
     const result = await executeGenerationPipeline({
-      userId,
-      contentType: contentType as any,
-      topic,
-      emotion,
-      templateId,
-      platform,
-      duration,
+      userId: userId as string,
+      contentType: contentType as string,
+      topic: topic as string,
+      emotion: emotion as string,
+      templateId: templateId as string,
+      platform: platform as string,
+      duration: duration as number,
     });
 
-    res.status(200).json({
-      success: true,
-      generationId: result.id,
-      contentType: result.contentType,
-      topic: result.topic,
-      scores: result.scores,
-      previewUrl: result.previewUrl,
-      exportFormats: result.exportFormats,
-      metadata: result.metadata,
-    });
+    const resultObj = result as Record<string, unknown>;
+    ctx.res.writeHead(200, { 'Content-Type': 'application/json' });
+    ctx.res.end(
+      JSON.stringify({
+        success: true,
+        generationId: resultObj.id,
+        contentType: resultObj.contentType,
+        topic: resultObj.topic,
+        scores: resultObj.scores,
+        previewUrl: resultObj.previewUrl,
+        exportFormats: resultObj.exportFormats,
+        metadata: resultObj.metadata,
+      }),
+    );
   } catch (error) {
     log.error(`[API] Generation error: ${error}`);
-    res.status(500).json({error: 'Generation failed'});
+    ctx.res.writeHead(500, { 'Content-Type': 'application/json' });
+    ctx.res.end(JSON.stringify({ error: 'Generation failed' }));
   }
 };
 
 // ── GET /api/content/preview/:generationId ────────────────────────────
 
- 
-export const previewContent = async (req: unknown, res: unknown): Promise<void> => {
+export const previewContent: RouteHandler = async (ctx: RouteContext): Promise<void> => {
   try {
-    const {generationId} = req.params;
-    const {format} = req.query;
+    const { generationId } = ctx.params;
+    const format = ctx.query.format || 'web';
 
-    log.info(`[API] Preview request: ${generationId} (${format || 'web'})`);
+    log.info(`[API] Preview request: ${generationId} (${format})`);
 
     const preview = await getContentPreview({
       generationId,
       format: (format as 'web' | 'mobile' | 'instagram' | 'tiktok') || 'web',
     });
 
-    res.status(200).json({
-      success: true,
-      generationId,
-      previewHtml: preview.previewHtml,
-      platforms: preview.platforms,
-    });
+    const previewObj = preview as Record<string, unknown>;
+    ctx.res.writeHead(200, { 'Content-Type': 'application/json' });
+    ctx.res.end(
+      JSON.stringify({
+        success: true,
+        generationId,
+        previewHtml: previewObj.previewHtml,
+        platforms: previewObj.platforms,
+      }),
+    );
   } catch (error) {
     log.error(`[API] Preview error: ${error}`);
-    res.status(500).json({error: 'Preview failed'});
+    ctx.res.writeHead(500, { 'Content-Type': 'application/json' });
+    ctx.res.end(JSON.stringify({ error: 'Preview failed' }));
   }
 };
 
 // ── POST /api/content/publish ─────────────────────────────────────────
 
- 
-export const publishToSocial = async (req: unknown, res: unknown): Promise<void> => {
+export const publishToSocial: RouteHandler = async (ctx: RouteContext): Promise<void> => {
   try {
-    const {generationId, targetPlatforms, scheduling, caption} = req.body;
+    const reqBody = ctx.body as Record<string, unknown>;
+    const { generationId, targetPlatforms, scheduling, caption } = reqBody;
 
-    if (!generationId || !targetPlatforms?.length) {
-      return res.status(400).json({
-        error: 'Missing required fields: generationId, targetPlatforms[]',
-      });
+    if (!generationId || !(Array.isArray(targetPlatforms) && targetPlatforms.length > 0)) {
+      ctx.res.writeHead(400, { 'Content-Type': 'application/json' });
+      ctx.res.end(JSON.stringify({ error: 'Missing required fields: generationId, targetPlatforms[]' }));
+      return;
     }
 
-    log.info(`[API] Publish request: ${generationId} → ${targetPlatforms.join(', ')}`);
+    log.info(`[API] Publish request: ${generationId} → ${(targetPlatforms as string[]).join(', ')}`);
 
     const result = await publishContent({
-      generationId,
-      targetPlatforms,
-      scheduling,
-      caption,
+      generationId: generationId as string,
+      targetPlatforms: targetPlatforms as string[],
+      scheduling: scheduling as Record<string, unknown>,
+      caption: caption as string,
     });
 
-    res.status(200).json({
-      success: result.success,
-      generationId,
-      platformResults: result.platformResults,
-      message: result.success ? 'Content published successfully' : 'Some platforms failed',
-    });
+    const resultObj = result as Record<string, unknown>;
+    ctx.res.writeHead(200, { 'Content-Type': 'application/json' });
+    ctx.res.end(
+      JSON.stringify({
+        success: resultObj.success,
+        generationId,
+        platformResults: resultObj.platformResults,
+        message: resultObj.success ? 'Content published successfully' : 'Some platforms failed',
+      }),
+    );
   } catch (error) {
     log.error(`[API] Publish error: ${error}`);
-    res.status(500).json({error: 'Publishing failed'});
+    ctx.res.writeHead(500, { 'Content-Type': 'application/json' });
+    ctx.res.end(JSON.stringify({ error: 'Publishing failed' }));
   }
 };
 
 // ── GET /api/content/templates ────────────────────────────────────────
 
- 
-export const listTemplates = async (_req: unknown, res: unknown): Promise<void> => {
+export const listTemplates: RouteHandler = async (ctx: RouteContext): Promise<void> => {
   try {
-    const {getTopTemplates} = await import('../../capabilities/content/templateLibrary.js');
+    const { getTopTemplates } = await import('../../capabilities/content/templateLibrary.js');
 
-    const templates = getTopTemplates(15);
+    const templates = getTopTemplates(15) as Array<Record<string, unknown>>;
 
-    res.status(200).json({
-      success: true,
-      count: templates.length,
-      templates: templates.map((t) => ({
-        id: t.id,
-        name: t.name,
-        type: t.type,
-        category: t.category,
-        emotion: t.emotion,
-        engagementPotential: t.engagementPotential,
-      })),
-    });
+    ctx.res.writeHead(200, { 'Content-Type': 'application/json' });
+    ctx.res.end(
+      JSON.stringify({
+        success: true,
+        count: templates.length,
+        templates: templates.map((t) => ({
+          id: t.id,
+          name: t.name,
+          type: t.type,
+          category: t.category,
+          emotion: t.emotion,
+          engagementPotential: t.engagementPotential,
+        })),
+      }),
+    );
   } catch (error) {
     log.error(`[API] Templates error: ${error}`);
-    res.status(500).json({error: 'Failed to load templates'});
+    ctx.res.writeHead(500, { 'Content-Type': 'application/json' });
+    ctx.res.end(JSON.stringify({ error: 'Failed to load templates' }));
   }
 };
 
 // ── GET /api/content/brand-kit ────────────────────────────────────────
 
- 
-export const getBrandKit = async (req: unknown, res: unknown): Promise<void> => {
+export const getBrandKit: RouteHandler = async (ctx: RouteContext): Promise<void> => {
   try {
-    const {userId} = req.query;
+    const userId = ctx.query.userId;
 
     if (!userId) {
-      return res.status(400).json({
-        error: 'Missing required field: userId',
-      });
+      ctx.res.writeHead(400, { 'Content-Type': 'application/json' });
+      ctx.res.end(JSON.stringify({ error: 'Missing required field: userId' }));
+      return;
     }
 
     log.info(`[API] Brand kit request for: ${userId}`);
 
-    const {autoLoadBrandKit} = await import('../../capabilities/content/brandKitAutoLoader.js');
-    const brandKit = await autoLoadBrandKit(userId as string);
+    const { autoLoadBrandKit } = await import('../../capabilities/content/brandKitAutoLoader.js');
+    const brandKit = await autoLoadBrandKit(userId);
 
-    res.status(200).json({
-      success: true,
-      userId,
-      source: brandKit.type,
-      confidence: brandKit.confidence,
-      brand: {
-        colors: brandKit.data.visual?.palette,
-        fonts: brandKit.data.visual?.typography,
-        voice: brandKit.data.voice,
-        audience: brandKit.data.audience,
-      },
-    });
+    const brandKitObj = brandKit as Record<string, unknown>;
+    const dataObj = brandKitObj.data as Record<string, unknown>;
+    const visualObj = dataObj.visual as Record<string, unknown>;
+
+    ctx.res.writeHead(200, { 'Content-Type': 'application/json' });
+    ctx.res.end(
+      JSON.stringify({
+        success: true,
+        userId,
+        source: brandKitObj.type,
+        confidence: brandKitObj.confidence,
+        brand: {
+          colors: visualObj?.palette,
+          fonts: visualObj?.typography,
+          voice: dataObj.voice,
+          audience: dataObj.audience,
+        },
+      }),
+    );
   } catch (error) {
     log.error(`[API] Brand kit error: ${error}`);
-    res.status(500).json({error: 'Failed to load brand kit'});
+    ctx.res.writeHead(500, { 'Content-Type': 'application/json' });
+    ctx.res.end(JSON.stringify({ error: 'Failed to load brand kit' }));
   }
 };
 
 // ── Export routes for mounting ────────────────────────────────────────
 
 export const contentGenerationRoutes: Record<string, RouteHandler> = {
-  'POST /api/content/generate': generateContent as unknown as RouteHandler,
-  'GET /api/content/preview/:generationId': previewContent as unknown as RouteHandler,
-  'POST /api/content/publish': publishToSocial as unknown as RouteHandler,
-  'GET /api/content/templates': listTemplates as unknown as RouteHandler,
-  'GET /api/content/brand-kit': getBrandKit as unknown as RouteHandler,
+  'POST /api/content/generate': generateContent,
+  'GET /api/content/preview/:generationId': previewContent,
+  'POST /api/content/publish': publishToSocial,
+  'GET /api/content/templates': listTemplates,
+  'GET /api/content/brand-kit': getBrandKit,
 };
 
 log.info('[Content Generation API] Routes registered: 5 endpoints');

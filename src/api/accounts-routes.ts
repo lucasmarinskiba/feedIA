@@ -6,6 +6,7 @@
 
 import { Router, Request, Response } from 'express';
 import { log } from '../agent/logger.js';
+import { toSingleString } from '../utils/query-param-helpers.js';
 import { getUserTier } from '../db/user-tiers.js';
 import {
   connectAccount,
@@ -19,7 +20,6 @@ import {
   recordPublishedContent,
   updateContentMetrics,
   type Platform,
-  type UserAccount,
 } from '../db/accounts.js';
 
 const router = Router();
@@ -64,7 +64,7 @@ router.get('/:accountId', async (req: Request, res: Response) => {
     const userId = req.headers['x-user-id'] as string;
     if (!userId) return res.status(401).json({ error: 'User ID required' });
 
-    const { accountId } = req.params;
+    const accountId = toSingleString(req.params.accountId);
     const account = await getAccount(accountId);
 
     if (!account || account.userId !== userId) {
@@ -110,8 +110,8 @@ router.post('/connect/:platform', async (req: Request, res: Response) => {
     const userId = req.headers['x-user-id'] as string;
     if (!userId) return res.status(401).json({ error: 'User ID required' });
 
-    const { platform } = req.params;
-    const { code, accountHandle, accountId, accessToken, refreshToken, expiresIn } = req.body;
+    const platform = toSingleString(req.params.platform);
+    const { accountHandle, accountId, accessToken, refreshToken, expiresIn } = req.body;
 
     if (!['instagram', 'tiktok', 'facebook'].includes(platform)) {
       return res.status(400).json({ error: 'Invalid platform' });
@@ -169,7 +169,7 @@ router.delete('/:accountId', async (req: Request, res: Response) => {
     const userId = req.headers['x-user-id'] as string;
     if (!userId) return res.status(401).json({ error: 'User ID required' });
 
-    const { accountId } = req.params;
+    const accountId = toSingleString(req.params.accountId);
     const account = await getAccount(accountId);
 
     if (!account || account.userId !== userId) {
@@ -196,7 +196,7 @@ router.put('/:accountId/quota', async (req: Request, res: Response) => {
     const userId = req.headers['x-user-id'] as string;
     if (!userId) return res.status(401).json({ error: 'User ID required' });
 
-    const { accountId } = req.params;
+    const accountId = toSingleString(req.params.accountId);
     const { percent } = req.body;
 
     if (!percent || percent < 1 || percent > 100) {
@@ -226,7 +226,7 @@ router.post('/:accountId/check-quota', async (req: Request, res: Response) => {
     const userId = req.headers['x-user-id'] as string;
     if (!userId) return res.status(401).json({ error: 'User ID required' });
 
-    const { accountId } = req.params;
+    const accountId = toSingleString(req.params.accountId);
     const { format, count } = req.body;
 
     if (!['carousels', 'stories', 'videos'].includes(format)) {
@@ -262,8 +262,8 @@ router.post('/:accountId/content/record', async (req: Request, res: Response) =>
     const userId = req.headers['x-user-id'] as string;
     if (!userId) return res.status(401).json({ error: 'User ID required' });
 
-    const { accountId } = req.params;
-    const { platform, contentId, format, publishedAt } = req.body;
+    const accountId = toSingleString(req.params.accountId);
+    const { contentId, format, publishedAt } = req.body;
 
     if (!['carousel', 'story', 'video', 'post'].includes(format)) {
       return res.status(400).json({ error: 'Invalid format' });
@@ -284,7 +284,10 @@ router.post('/:accountId/content/record', async (req: Request, res: Response) =>
     );
 
     // Increment quota usage
-    await incrementAccountFormatUsage(accountId, format === 'carousel' ? 'carousels' : format === 'story' ? 'stories' : 'videos');
+    await incrementAccountFormatUsage(
+      accountId,
+      format === 'carousel' ? 'carousels' : format === 'story' ? 'stories' : 'videos',
+    );
 
     log.info('[Accounts] Content recorded', { userId, accountId, contentId, format });
 
@@ -304,7 +307,7 @@ router.put('/:accountId/content/:contentId/metrics', async (req: Request, res: R
     const userId = req.headers['x-user-id'] as string;
     if (!userId) return res.status(401).json({ error: 'User ID required' });
 
-    const { contentId } = req.params;
+    const contentId = toSingleString(req.params.contentId);
     const { metrics } = req.body;
 
     if (!metrics || typeof metrics !== 'object') {

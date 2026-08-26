@@ -42,7 +42,6 @@ export interface VirologyInjectionContext {
 }
 
 export interface EnrichedBrief {
-   
   originalBrief: unknown;
   viralityGuidance: string[];
   injectionSource: 'baseline-analysis' | 'user-provided';
@@ -86,8 +85,8 @@ export const getBaselineScore = async (context: VirologyInjectionContext): Promi
  */
 
 export const enrichBriefWithVirality = async (
-  brief: unknown,  
-  baselineAnalysis: unknown,  
+  brief: unknown,
+  baselineAnalysis: unknown,
   carouselFrameCount?: number,
   brandProfile?: BrandProfile,
 ): Promise<EnrichedBrief> => {
@@ -98,7 +97,9 @@ export const enrichBriefWithVirality = async (
   // Optional: frame-level guidance for carousels
   let frameGuidance: EnrichedBrief['frameGuidance'] = undefined;
   if (carouselFrameCount && carouselFrameCount > 1) {
-    frameGuidance = generateFrameGuidance(baselineAnalysis.improvements, carouselFrameCount);
+    const baselineObj = baselineAnalysis as Record<string, unknown>;
+    const improvements = (baselineObj.improvements as unknown[]) || [];
+    frameGuidance = generateFrameGuidance(improvements, carouselFrameCount);
   }
 
   // NEW: Inject trending topics if brand profile provided
@@ -131,14 +132,15 @@ export const enrichBriefWithVirality = async (
     }
   }
 
+  const baselineObj = baselineAnalysis as Record<string, unknown>;
   return {
     originalBrief: brief,
     viralityGuidance: injections,
     injectionSource: 'baseline-analysis',
     predictions: {
-      viralScore: baselineAnalysis.viralScore,
-      ceilingScore: baselineAnalysis.ceilingScore,
-      contentIntent: baselineAnalysis.contentIntent,
+      viralScore: (baselineObj.viralScore as number) || 0,
+      ceilingScore: (baselineObj.ceilingScore as number) || 0,
+      contentIntent: (baselineObj.contentIntent as string) || '',
     },
     frameGuidance,
     trendingTopics,
@@ -151,29 +153,50 @@ export const enrichBriefWithVirality = async (
  * Allocate improvement focus across carousel frames
  * E.g., Frame 1-2: Hook, Frame 3-5: Value, Frame 6-8: Proof, Frame 9-10: CTA
  */
- 
+
 const generateFrameGuidance = (improvements: unknown[], frameCount: number): EnrichedBrief['frameGuidance'] => {
   const guidance: EnrichedBrief['frameGuidance'] = [];
 
-  const hookImprovements = improvements.filter(
-    (i) => i.metric.toLowerCase().includes('hook') || i.metric.toLowerCase().includes('retention'),
-  );
-  const emotionImprovements = improvements.filter(
-    (i) => i.metric.toLowerCase().includes('emotion') || i.metric.toLowerCase().includes('engagement'),
-  );
-  const ctaImprovements = improvements.filter(
-    (i) => i.metric.toLowerCase().includes('cta') || i.metric.toLowerCase().includes('comments'),
-  );
+  const hookImprovements = improvements.filter((i) => {
+    const imp = i as Record<string, unknown>;
+    const metric = (imp.metric as string) || '';
+    return metric.toLowerCase().includes('hook') || metric.toLowerCase().includes('retention');
+  });
+  const emotionImprovements = improvements.filter((i) => {
+    const imp = i as Record<string, unknown>;
+    const metric = (imp.metric as string) || '';
+    return metric.toLowerCase().includes('emotion') || metric.toLowerCase().includes('engagement');
+  });
+  const ctaImprovements = improvements.filter((i) => {
+    const imp = i as Record<string, unknown>;
+    const metric = (imp.metric as string) || '';
+    return metric.toLowerCase().includes('cta') || metric.toLowerCase().includes('comments');
+  });
 
   for (let i = 1; i <= frameCount; i++) {
     const emphasis: string[] = [];
 
     if (i <= 2) {
-      emphasis.push(...hookImprovements.map((imp) => imp.action));
+      emphasis.push(
+        ...hookImprovements.map((imp) => {
+          const impObj = imp as Record<string, unknown>;
+          return (impObj.action as string) || '';
+        }),
+      );
     } else if (i >= frameCount - 1) {
-      emphasis.push(...ctaImprovements.map((imp) => imp.action));
+      emphasis.push(
+        ...ctaImprovements.map((imp) => {
+          const impObj = imp as Record<string, unknown>;
+          return (impObj.action as string) || '';
+        }),
+      );
     } else {
-      emphasis.push(...emotionImprovements.map((imp) => imp.action));
+      emphasis.push(
+        ...emotionImprovements.map((imp) => {
+          const impObj = imp as Record<string, unknown>;
+          return (impObj.action as string) || '';
+        }),
+      );
     }
 
     if (emphasis.length > 0) {
@@ -192,28 +215,29 @@ const generateFrameGuidance = (improvements: unknown[], frameCount: number): Enr
  */
 
 export const applyViraLityLayer = async (
-  brief: unknown,  
+  brief: unknown,
   format: 'carousel' | 'reel' | 'story',
   platform: 'instagram' | 'tiktok',
   scoreControl?: VirologyInjectionContext,
   brandProfile?: BrandProfile,
 ): Promise<EnrichedBrief> => {
+  const briefObj = brief as Record<string, unknown>;
   log.info('[ViraLityLayer] Starting enrichment', {
-    briefTopic: brief.topic,
+    briefTopic: briefObj.topic,
     format,
     platform,
     scoreControl: !!scoreControl,
     hasBrand: !!brandProfile,
   });
 
-  let baselineAnalysis;
+  let baselineAnalysis: unknown;
 
   if (scoreControl) {
     baselineAnalysis = await getBaselineScore(scoreControl);
   } else {
     const { predictVirality } = await loadViralPredictor();
     baselineAnalysis = predictVirality({
-      hook: brief.topic,
+      hook: (briefObj.topic as string) || '',
       caption: '',
       hashtags: [],
       format: format === 'carousel' ? 'carousel' : format === 'reel' ? 'reels' : 'stories',
@@ -221,7 +245,7 @@ export const applyViraLityLayer = async (
     });
   }
 
-  const frameCount = brief.slideCount || brief.frameCount || undefined;
+  const frameCount = (briefObj.slideCount as number) || (briefObj.frameCount as number) || undefined;
   const enriched = await enrichBriefWithVirality(brief, baselineAnalysis, frameCount, brandProfile);
 
   log.info('[ViraLityLayer] Enrichment complete', {

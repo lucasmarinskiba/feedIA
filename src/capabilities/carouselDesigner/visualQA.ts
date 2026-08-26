@@ -22,31 +22,36 @@ export const validateAesthetic = (slides: unknown[], threshold: number = 70): QA
 
   // Check 1: Typography sizing
   slides.forEach((slide: unknown, idx: unknown) => {
-    const headlineSize = slide.typography?.headline?.size || 0;
-    const bodySize = slide.typography?.body?.size || 0;
+    const slideObj = slide as Record<string, unknown>;
+    const typographyObj = slideObj.typography as Record<string, unknown> | undefined;
+    const headlineSize = ((typographyObj?.headline as Record<string, unknown>)?.size as number) || 0;
+    const bodySize = ((typographyObj?.body as Record<string, unknown>)?.size as number) || 0;
+    const idxNum = idx as number;
 
     if (headlineSize < 28 || headlineSize > 36) {
-      issues.push(`Slide ${idx + 1}: Headline size ${headlineSize}px not in 28-36px range`);
+      issues.push(`Slide ${idxNum + 1}: Headline size ${headlineSize}px not in 28-36px range`);
       scoreDeduction += 5;
     }
     if (bodySize < 14 || bodySize > 18) {
-      warnings.push(`Slide ${idx + 1}: Body size ${bodySize}px not in 14-18px range`);
+      warnings.push(`Slide ${idxNum + 1}: Body size ${bodySize}px not in 14-18px range`);
       scoreDeduction += 3;
     }
   });
 
   // Check 2: Color palette completeness
   slides.forEach((slide: unknown, idx: unknown) => {
-    const palette = slide.colorPalette;
+    const slideObj = slide as Record<string, unknown>;
+    const palette = slideObj.colorPalette as Record<string, unknown> | undefined;
+    const idxNum = idx as number;
     if (!palette || !palette.primary || !palette.secondary) {
-      issues.push(`Slide ${idx + 1}: Missing color palette (primary/secondary)`);
+      issues.push(`Slide ${idxNum + 1}: Missing color palette (primary/secondary)`);
       scoreDeduction += 10;
     }
 
     // Check for too many colors
     const colors = [palette?.primary, palette?.secondary, palette?.accent].filter(Boolean);
     if (colors.length > 4) {
-      warnings.push(`Slide ${idx + 1}: Too many colors (${colors.length}), max 4`);
+      warnings.push(`Slide ${idxNum + 1}: Too many colors (${colors.length}), max 4`);
       scoreDeduction += 5;
     }
   });
@@ -60,8 +65,10 @@ export const validateAesthetic = (slides: unknown[], threshold: number = 70): QA
   ];
 
   slides.forEach((slide: unknown, idx: unknown) => {
-    if (!validPatterns.includes(slide.pinterestPattern)) {
-      warnings.push(`Slide ${idx + 1}: Unknown layout pattern "${slide.pinterestPattern}"`);
+    const slideObj = slide as Record<string, unknown>;
+    const idxNum = idx as number;
+    if (!validPatterns.includes(slideObj.pinterestPattern as string)) {
+      warnings.push(`Slide ${idxNum + 1}: Unknown layout pattern "${slideObj.pinterestPattern}"`);
       scoreDeduction += 3;
     }
   });
@@ -70,21 +77,28 @@ export const validateAesthetic = (slides: unknown[], threshold: number = 70): QA
   const validAnimations = ['fade', 'slideLeft', 'slideUp', 'zoom', 'rotate'];
 
   slides.forEach((slide: unknown, idx: unknown) => {
-    const animType = slide.animation?.type;
-    if (!validAnimations.includes(animType)) {
-      warnings.push(`Slide ${idx + 1}: Invalid animation "${animType}"`);
+    const slideObj = slide as Record<string, unknown>;
+    const animObj = slideObj.animation as Record<string, unknown> | undefined;
+    const animType = animObj?.type;
+    const idxNum = idx as number;
+    if (!validAnimations.includes(animType as string)) {
+      warnings.push(`Slide ${idxNum + 1}: Invalid animation "${animType}"`);
       scoreDeduction += 2;
     }
 
-    const duration = slide.animation?.duration || 0;
+    const duration = (animObj?.duration as number) || 0;
     if (duration < 300 || duration > 600) {
-      warnings.push(`Slide ${idx + 1}: Animation duration ${duration}ms not in 300-600ms`);
+      warnings.push(`Slide ${idxNum + 1}: Animation duration ${duration}ms not in 300-600ms`);
       scoreDeduction += 2;
     }
   });
 
   // Check 5: Rounded corners applied
-  const cornerRadii = slides.filter((s: unknown) => { const sl = s as any; return sl.cssKeyframes && sl.cssKeyframes.includes('border-radius'); });
+  const cornerRadii = slides.filter((s: unknown) => {
+    const sl = s as Record<string, unknown>;
+    const keyframes = sl.cssKeyframes as string;
+    return keyframes && keyframes.includes('border-radius');
+  });
   if (cornerRadii.length < slides.length * 0.7) {
     warnings.push(`Only ${cornerRadii.length}/${slides.length} slides have rounded corners`);
     scoreDeduction += 5;
@@ -125,51 +139,9 @@ export const requireAestheticPass = (result: QAResult, threshold: number = 70): 
  * Auto-fix common aesthetic issues.
  * Returns modified slides + list of fixes applied.
  */
-export const autoFixAesthetic = (
-  slides: unknown[],
-): { slides: unknown[]; fixes: string[] } => {
+export const autoFixAesthetic = (slides: unknown[]): { slides: unknown[]; fixes: string[] } => {
   const fixes: string[] = [];
-  const fixed = JSON.parse(JSON.stringify(slides)); // Deep copy
-
-   
-  fixed.forEach((slide: unknown, idx: number) => {
-    // Fix 1: Headline size out of range
-    const headlineSize = slide.typography?.headline?.size || 32;
-    if (headlineSize < 28) {
-      slide.typography.headline.size = 28;
-      fixes.push(`Slide ${idx + 1}: Fixed headline size to 28px`);
-    } else if (headlineSize > 36) {
-      slide.typography.headline.size = 36;
-      fixes.push(`Slide ${idx + 1}: Fixed headline size to 36px`);
-    }
-
-    // Fix 2: Body size out of range
-    const bodySize = slide.typography?.body?.size || 16;
-    if (bodySize < 14) {
-      slide.typography.body.size = 14;
-      fixes.push(`Slide ${idx + 1}: Fixed body size to 14px`);
-    } else if (bodySize > 18) {
-      slide.typography.body.size = 18;
-      fixes.push(`Slide ${idx + 1}: Fixed body size to 18px`);
-    }
-
-    // Fix 3: Animation duration out of range
-    const duration = slide.animation?.duration || 400;
-    if (duration < 300) {
-      slide.animation.duration = 300;
-      fixes.push(`Slide ${idx + 1}: Fixed animation duration to 300ms`);
-    } else if (duration > 600) {
-      slide.animation.duration = 600;
-      fixes.push(`Slide ${idx + 1}: Fixed animation duration to 600ms`);
-    }
-
-    // Fix 4: Invalid pattern → default
-    if (!validPatterns.includes(slide.pinterestPattern)) {
-      const defaultPattern = 'left-aligned-text-right-image';
-      fixes.push(`Slide ${idx + 1}: Fixed layout pattern to ${defaultPattern}`);
-      slide.pinterestPattern = defaultPattern;
-    }
-  });
+  const fixed = JSON.parse(JSON.stringify(slides)) as Record<string, unknown>[]; // Deep copy
 
   const validPatterns = [
     'left-aligned-text-right-image',
@@ -177,6 +149,52 @@ export const autoFixAesthetic = (
     'grid-layout',
     'asymmetrical-balance',
   ];
+
+  fixed.forEach((slide: unknown, idx: number) => {
+    const slideObj = slide as Record<string, unknown>;
+    const typographyObj = (slideObj.typography as Record<string, unknown> | undefined) || {};
+
+    // Fix 1: Headline size out of range
+    const headlineObj =
+      ((typographyObj as Record<string, unknown>).headline as Record<string, unknown> | undefined) || {};
+    const headlineSize = ((headlineObj as Record<string, unknown>).size as number) || 32;
+    if (headlineSize < 28) {
+      ((typographyObj as Record<string, unknown>).headline as Record<string, unknown>).size = 28;
+      fixes.push(`Slide ${idx + 1}: Fixed headline size to 28px`);
+    } else if (headlineSize > 36) {
+      ((typographyObj as Record<string, unknown>).headline as Record<string, unknown>).size = 36;
+      fixes.push(`Slide ${idx + 1}: Fixed headline size to 36px`);
+    }
+
+    // Fix 2: Body size out of range
+    const bodyObj = ((typographyObj as Record<string, unknown>).body as Record<string, unknown> | undefined) || {};
+    const bodySize = ((bodyObj as Record<string, unknown>).size as number) || 16;
+    if (bodySize < 14) {
+      ((typographyObj as Record<string, unknown>).body as Record<string, unknown>).size = 14;
+      fixes.push(`Slide ${idx + 1}: Fixed body size to 14px`);
+    } else if (bodySize > 18) {
+      ((typographyObj as Record<string, unknown>).body as Record<string, unknown>).size = 18;
+      fixes.push(`Slide ${idx + 1}: Fixed body size to 18px`);
+    }
+
+    // Fix 3: Animation duration out of range
+    const animObj = (slideObj.animation as Record<string, unknown> | undefined) || {};
+    const duration = ((animObj as Record<string, unknown>).duration as number) || 400;
+    if (duration < 300) {
+      (slideObj.animation as Record<string, unknown>).duration = 300;
+      fixes.push(`Slide ${idx + 1}: Fixed animation duration to 300ms`);
+    } else if (duration > 600) {
+      (slideObj.animation as Record<string, unknown>).duration = 600;
+      fixes.push(`Slide ${idx + 1}: Fixed animation duration to 600ms`);
+    }
+
+    // Fix 4: Invalid pattern → default
+    if (!validPatterns.includes(slideObj.pinterestPattern as string)) {
+      const defaultPattern = 'left-aligned-text-right-image';
+      fixes.push(`Slide ${idx + 1}: Fixed layout pattern to ${defaultPattern}`);
+      slideObj.pinterestPattern = defaultPattern;
+    }
+  });
 
   return { slides: fixed, fixes };
 };

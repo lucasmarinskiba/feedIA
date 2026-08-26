@@ -4,7 +4,7 @@
  * Week 3: Compliance layer
  */
 
-import { carouselDB } from '../db/postgres.js';
+import { executeMutation, queryAs, log as dbLog } from '../db/typed-queries.js';
 import { log } from '../agent/logger.js';
 
 interface AuditEvent {
@@ -19,19 +19,26 @@ interface AuditEvent {
   timestamp?: Date;
 }
 
+interface AuditLogRow {
+  id: string;
+  user_id: string;
+  action: string;
+  resource_type: string;
+  resource_id?: string | null;
+  details?: string; // JSON
+  ip_address?: string | null;
+  user_agent?: string | null;
+  status: string;
+  created_at?: string;
+}
+
 class AuditLogger {
   /**
    * Log audit event
    */
   async log(event: AuditEvent): Promise<void> {
     try {
-      const pool = (carouselDB as any).pool;
-      if (!pool) {
-        log.info('Warning: PostgreSQL pool not available for audit logging');
-        return;
-      }
-
-      await pool.query(
+      await executeMutation(
         `INSERT INTO audit_logs (user_id, action, resource_type, resource_id, details, ip_address, user_agent, status)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
         [
@@ -59,14 +66,9 @@ class AuditLogger {
   /**
    * Get audit logs for user (Pro+ only)
    */
-  async getUserLogs(userId: string, limit = 100, offset = 0) {
+  async getUserLogs(userId: string, limit = 100, offset = 0): Promise<AuditLogRow[]> {
     try {
-      const pool = (carouselDB as any).pool;
-      if (!pool) {
-        return [];
-      }
-
-      const result = await pool.query(
+      return queryAs<AuditLogRow>(
         `SELECT id, action, resource_type, resource_id, details, ip_address, user_agent, status, created_at
          FROM audit_logs
          WHERE user_id = $1
@@ -74,8 +76,6 @@ class AuditLogger {
          LIMIT $2 OFFSET $3`,
         [userId, limit, offset],
       );
-
-      return result.rows;
     } catch (err) {
       log.info('Error fetching audit logs', { userId, error: err });
       return [];
@@ -85,14 +85,9 @@ class AuditLogger {
   /**
    * Search audit logs by action or resource
    */
-  async searchLogs(userId: string, query: string, limit = 50) {
+  async searchLogs(userId: string, query: string, limit = 50): Promise<AuditLogRow[]> {
     try {
-      const pool = (carouselDB as any).pool;
-      if (!pool) {
-        return [];
-      }
-
-      const result = await pool.query(
+      return queryAs<AuditLogRow>(
         `SELECT id, action, resource_type, resource_id, details, status, created_at
          FROM audit_logs
          WHERE user_id = $1 AND (action ILIKE $2 OR resource_type ILIKE $2)
@@ -100,8 +95,6 @@ class AuditLogger {
          LIMIT $3`,
         [userId, `%${query}%`, limit],
       );
-
-      return result.rows;
     } catch (err) {
       log.info('Error searching audit logs', { userId, error: err });
       return [];
@@ -113,13 +106,8 @@ class AuditLogger {
    */
   async cleanupOldLogs(): Promise<number> {
     try {
-      const pool = (carouselDB as any).pool;
-      if (!pool) {
-        return 0;
-      }
-
       // Get retention policies per user plan
-      const result = await pool.query(
+      const deleted = await executeMutation(
         `DELETE FROM audit_logs
          WHERE (
            (SELECT plan FROM users WHERE id = user_id) = 'free' AND created_at < NOW() - INTERVAL '90 days'
@@ -127,11 +115,9 @@ class AuditLogger {
            (SELECT plan FROM users WHERE id = user_id) = 'pro' AND created_at < NOW() - INTERVAL '365 days'
          ) OR (
            (SELECT plan FROM users WHERE id = user_id) = 'premium' AND created_at < NOW() - INTERVAL '2555 days'
-         )
-         RETURNING id`,
+         )`,
       );
 
-      const deleted = result.rowCount || 0;
       log.info('Cleaned up old audit logs', { deleted });
       return deleted;
     } catch (err) {
@@ -143,28 +129,27 @@ class AuditLogger {
   /**
    * Export audit logs for GDPR (all user data)
    */
-  async exportUserData(userId: string) {
+  async exportUserData(userId: string): Promise<Record<string, unknown> | null> {
     try {
-      const pool = (carouselDB as any).pool;
-      if (!pool) {
-        return null;
-      }
+      const logs = await queryAs<AuditLogRow>(
+        `SELECT * FROM audit_logs WHERE user_id = $1 ORDER BY created_at ASC`,
+        [userId],
+      );
 
-      const logsResult = await pool.query(`SELECT * FROM audit_logs WHERE user_id = $1 ORDER BY created_at ASC`, [
-        userId,
-      ]);
+      const userRow = await queryAs<Record<string, unknown>>(
+        `SELECT * FROM users WHERE id = $1`,
+        [userId],
+      );
 
-      const userResult = await pool.query(`SELECT * FROM users WHERE id = $1`, [userId]);
-
-      const carouselsResult = await pool.query(
+      const carousels = await queryAs<Record<string, unknown>>(
         `SELECT * FROM carousels WHERE user_id = $1 ORDER BY created_at ASC`,
         [userId],
       );
 
       return {
-        user: userResult.rows[0] || null,
-        audit_logs: logsResult.rows,
-        carousels: carouselsResult.rows,
+        user: userRow[0] || null,
+        audit_logs: logs,
+        carousels,
         export_date: new Date().toISOString(),
       };
     } catch (err) {
