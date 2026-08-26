@@ -17,7 +17,7 @@
 import * as d from './_demo.js';
 import { handleSkills } from './_skills.js';
 import { handleGrowth } from './_growth.js';
-import { handleAuth } from './_auth.js';
+import { handleAuthLegacy } from './_auth.js';
 import { handleUsers, getSessionFromReq } from './_users.js';
 import { handleBilling } from './_billing.js';
 import { handleGate, gateRequest } from './_gate.js';
@@ -65,6 +65,7 @@ import { handleFeedback } from './_feedback.js';
 import { handleAuth } from './_auth-real.js';
 import { handleEmail } from './_email.js';
 import { handleStorage } from './_storage.js';
+import { handleAdmin } from './_admin.js';
 import { handleCuRecipes } from './_cuRecipeLibrary.js';
 import { handleGrowthIntelligence } from './_growthIntelligence.js';
 import { handleEliteEngine } from './_eliteCreatorEngine.js';
@@ -1362,6 +1363,26 @@ const innerHandler = async (req, res) => {
       if (await handleStorage(req, res, path, m, storageBody || {})) return;
     } catch (err) {
       return json(res, 500, { error: 'storage-handler' });
+    }
+  }
+
+  // ── Admin Dashboard (User/Billing/Content Management) ────────────────────
+  if (path.startsWith('/api/admin/')) {
+    let adminBody = req.body;
+    if (adminBody === undefined && (m === 'POST' || m === 'PUT' || m === 'DELETE')) {
+      try {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        adminBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        adminBody = {};
+      }
+    }
+    try {
+      if (await handleAdmin(req, res, path, m, adminBody || {})) return;
+    } catch (err) {
+      return json(res, 500, { error: 'admin-handler' });
     }
   }
 
