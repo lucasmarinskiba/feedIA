@@ -9,7 +9,9 @@
  */
 
 import { Express, Request, Response } from 'express';
+import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 import { Pool } from 'pg';
+import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || process.env.DATABASE_PRIVATE_URL,
@@ -55,7 +57,7 @@ const createContent = async (req: AuthRequest, res: Response): Promise<void> => 
     else if (fileSizeUnit === 'kb') fileSizeMb = fileSizeMb / 1024;
 
     // Create content record
-    const result = await pool.query(
+    const result = await queryAs(
       `INSERT INTO user_generated_content
        (user_id, content_type, title, description, file_url, file_size_mb, file_type, platform, status, metadata, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'draft', $9, NOW(), NOW())
@@ -77,7 +79,7 @@ const createContent = async (req: AuthRequest, res: Response): Promise<void> => 
 
     // Add to folder if specified
     if (folderId) {
-      await pool.query(
+      await executeMutation(
         `INSERT INTO content_folders (content_id, folder_id, created_at)
          VALUES ($1, $2, NOW())
          ON CONFLICT DO NOTHING`,
@@ -86,14 +88,14 @@ const createContent = async (req: AuthRequest, res: Response): Promise<void> => 
     }
 
     // Update user storage
-    await pool.query(`UPDATE users SET storage_used_gb = storage_used_gb + $1 WHERE id = $2`, [
+    await executeMutation(`UPDATE users SET storage_used_gb = storage_used_gb + $1 WHERE id = $2`, [
       fileSizeMb / 1024,
       userId,
     ]);
 
     // Track usage
     const today = new Date().toISOString().split('T')[0];
-    await pool.query(
+    await executeMutation(
       `INSERT INTO user_usage (user_id, date, storage_added_gb, content_generated, created_at)
        VALUES ($1, $2, $3, 1, NOW())
        ON CONFLICT(user_id, date) DO UPDATE SET
@@ -150,14 +152,14 @@ const listContent = async (req: AuthRequest, res: Response): Promise<void> => {
     params.push(limit, offset);
 
     // Get total count
-    const countResult = await pool.query(
+    const countResult = await executeMutation(
       `SELECT COUNT(*) as total FROM user_generated_content WHERE user_id = $1 AND deleted_at IS NULL ${status ? `AND status = '${status}'` : ''} ${platform ? `AND platform = '${platform}'` : ''}`,
       [userId],
     );
     const total = parseInt(countResult.rows[0].total);
 
     // Get paginated results
-    const result = await pool.query(query, params);
+    const result = await queryAs(query, params);
 
     interface ContentRow {
       id: string;
@@ -203,7 +205,7 @@ const getContent = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    const result = await pool.query(
+    const result = await queryAs(
       `SELECT * FROM user_generated_content
        WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL`,
       [contentId, userId],
@@ -238,7 +240,7 @@ const updateContent = async (req: AuthRequest, res: Response): Promise<void> => 
 
     const { title, description, tags, metadata } = req.body;
 
-    const result = await pool.query(
+    const result = await queryAs(
       `UPDATE user_generated_content
        SET title = COALESCE($1, title),
            description = COALESCE($2, description),
@@ -278,7 +280,7 @@ const deleteContent = async (req: AuthRequest, res: Response): Promise<void> => 
     }
 
     // Get file size before deletion
-    const getResult = await pool.query(
+    const getResult = await executeMutation(
       `SELECT file_size_mb FROM user_generated_content WHERE id = $1 AND user_id = $2`,
       [contentId, userId],
     );
@@ -291,13 +293,13 @@ const deleteContent = async (req: AuthRequest, res: Response): Promise<void> => 
     const fileSizeMb = getResult.rows[0].file_size_mb;
 
     // Soft delete
-    await pool.query(`UPDATE user_generated_content SET deleted_at = NOW() WHERE id = $1 AND user_id = $2`, [
+    await executeMutation(`UPDATE user_generated_content SET deleted_at = NOW() WHERE id = $1 AND user_id = $2`, [
       contentId,
       userId,
     ]);
 
     // Update storage
-    await pool.query(`UPDATE users SET storage_used_gb = GREATEST(0, storage_used_gb - $1) WHERE id = $2`, [
+    await executeMutation(`UPDATE users SET storage_used_gb = GREATEST(0, storage_used_gb - $1) WHERE id = $2`, [
       fileSizeMb / 1024,
       userId,
     ]);
@@ -325,7 +327,7 @@ const publishContent = async (req: AuthRequest, res: Response): Promise<void> =>
       return;
     }
 
-    const result = await pool.query(
+    const result = await queryAs(
       `UPDATE user_generated_content
        SET status = 'published', published_at = NOW(), platform = COALESCE($1, platform),
            metadata = jsonb_set(metadata, '{published_url}', to_jsonb($2::text))
