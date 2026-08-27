@@ -4,6 +4,7 @@
  */
 
 import { getPool } from '../db/postgres-real.js';
+import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 
 export interface WebhookSubscription {
   id: string;
