@@ -13,31 +13,36 @@ const router = Router();
  * consistency lock across the piece) and write enhanced text back in place.
  */
 async function enhanceGeneratedContent(
-  content: GeneratedContent,
+  content: GeneratedContent & { format?: string; prompts?: Array<{ prompt?: { text?: string } }> },
   brand: BrandProfile,
   occasion: string,
   platform: 'instagram' | 'tiktok' = 'instagram'
 ): Promise<{ content: GeneratedContent; avgQuality: number; avgWit: number }> {
-  const contentTypeMap: Record<GeneratedContent['format'], 'image' | 'video' | 'carousel'> = {
+  const contentTypeMap: Record<string, 'image' | 'video' | 'carousel'> = {
     carousel: 'carousel',
     reel: 'video',
     story: 'video',
     post: 'image',
   };
 
-  const rawPrompts = content.prompts.map(p => p.prompt.text);
+  const prompts = (content.prompts || []) as Array<{ prompt?: { text?: string } }>;
+  const rawPrompts = prompts.map((p: unknown) => ((p as Record<string, unknown>)?.prompt as Record<string, string>)?.text || '').filter(Boolean);
   const enhanced = await masterContentPipeline.enhancePromptBatch(
     rawPrompts,
     platform,
-    contentTypeMap[content.format],
+    contentTypeMap[content.format as string] || 'image',
     `${brand.name} — ${occasion}`
   );
 
-  content.prompts.forEach((p, idx) => {
-    p.prompt.text = enhanced.prompts[idx] ?? p.prompt.text;
+  prompts.forEach((p: unknown, idx: number) => {
+    const pObj = p as Record<string, unknown>;
+    const promptObj = pObj.prompt as Record<string, unknown>;
+    if (promptObj && enhanced.prompts?.[idx]) {
+      promptObj.text = enhanced.prompts[idx];
+    }
   });
 
-  return { content, avgQuality: enhanced.avgQuality, avgWit: enhanced.avgWit };
+  return { content, avgQuality: enhanced.avgQuality ?? 0, avgWit: enhanced.avgWit ?? 0 };
 }
 
 /**
