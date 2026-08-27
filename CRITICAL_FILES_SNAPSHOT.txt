@@ -1,0 +1,30 @@
+=== CRITICAL FILES FOR RECOVERY ===
+Created: 2026-08-27
+
+KEY INFRASTRUCTURE FILES:
+1. src/db/typed-queries.ts (145 lines) - Database query wrappers, type safety
+2. src/db/postgres-real.ts - Connection pool management
+3. src/api/billing/mercado-pago-webhook.ts - MercadoPago integration
+4. src/api/billing/create-checkout-session.ts - Checkout flow
+5. src/services/webhook-service.ts - Webhook delivery and retry logic
+
+ROUTE FILES (High-value):
+6. src/api/user-routes.ts (437 lines) - 7 endpoints, user mgmt
+7. src/api/content-storage-routes.ts (362 lines) - 6 endpoints, content mgmt
+8. src/api/admin-ops-routes.ts (494 lines) - Admin tools, migrations
+9. src/api/analytics-endpoints.ts (240+ lines) - Analytics/metrics
+
+SERVICE FILES:
+10. src/services/carousel-storage-service.ts - Carousel CRUD
+11. src/services/prompt-expander.ts - Prompt variations
+12. src/services/webhook-service.ts - Webhook handling
+
+CONFIGURATION:
+13. src/server.ts - Express setup, route registration
+14. .env (production) - MercadoPago keys, DATABASE_URL, etc.
+15. tsconfig.json - "strict": true
+
+GIT REFERENCES:
+- Last stable: 6caa1e0 (TS migration 383→286)
+- MercadoPago integration: commits with "billing" or "MercadoPago"
+- Database migration: commit "migrate server.ts to typed-queries"
