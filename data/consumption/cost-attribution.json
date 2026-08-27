@@ -439,7 +439,447 @@
         "requestId": "req-2",
         "dryRun": true
       }
+    },
+    {
+      "id": "evt-1787870414904-164",
+      "at": "2026-08-27T22:40:14.904Z",
+      "model": "runway",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0.8,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "reel",
+        "durationSec": 10,
+        "topic": "test-1787870414897",
+        "brandName": "TestBrand",
+        "style": "broll"
+      }
+    },
+    {
+      "id": "evt-1787870414918-53",
+      "at": "2026-08-27T22:40:14.918Z",
+      "model": "heygen",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 1.25,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "tiktok",
+        "durationSec": 30,
+        "topic": "t1",
+        "brandName": "brand-1787870414912"
+      }
+    },
+    {
+      "id": "evt-1787870414925-647",
+      "at": "2026-08-27T22:40:14.925Z",
+      "model": "mock",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "reel",
+        "durationSec": 15,
+        "topic": "t2",
+        "brandName": "brand-1787870414912"
+      }
+    },
+    {
+      "id": "evt-1787870414929-6",
+      "at": "2026-08-27T22:40:14.929Z",
+      "model": "heygen",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 1.25,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "tiktok",
+        "durationSec": 30,
+        "topic": "t1",
+        "brandName": "brand-1787870414924"
+      }
+    },
+    {
+      "id": "evt-1787870414934-463",
+      "at": "2026-08-27T22:40:14.935Z",
+      "model": "mock",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "reel",
+        "durationSec": 15,
+        "topic": "t2",
+        "brandName": "brand-1787870414924"
+      }
+    },
+    {
+      "id": "evt-1787870419800-985",
+      "at": "2026-08-27T22:40:19.800Z",
+      "model": "runway",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0.8,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "reel",
+        "durationSec": 10,
+        "topic": "test-1787870419785",
+        "brandName": "TestBrand",
+        "style": "broll"
+      }
+    },
+    {
+      "id": "evt-1787870419838-569",
+      "at": "2026-08-27T22:40:19.838Z",
+      "model": "heygen",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 1.25,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "tiktok",
+        "durationSec": 30,
+        "topic": "t1",
+        "brandName": "brand-1787870419810"
+      }
+    },
+    {
+      "id": "evt-1787870419845-567",
+      "at": "2026-08-27T22:40:19.845Z",
+      "model": "mock",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "reel",
+        "durationSec": 15,
+        "topic": "t2",
+        "brandName": "brand-1787870419810"
+      }
+    },
+    {
+      "id": "evt-1787870440504-274",
+      "at": "2026-08-27T22:40:40.504Z",
+      "model": "runway",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0.8,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "reel",
+        "durationSec": 10,
+        "topic": "test-1787870440495",
+        "brandName": "TestBrand",
+        "style": "broll"
+      }
+    },
+    {
+      "id": "evt-1787870440519-897",
+      "at": "2026-08-27T22:40:40.519Z",
+      "model": "heygen",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 1.25,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "tiktok",
+        "durationSec": 30,
+        "topic": "t1",
+        "brandName": "brand-1787870440514"
+      }
+    },
+    {
+      "id": "evt-1787870440526-527",
+      "at": "2026-08-27T22:40:40.526Z",
+      "model": "mock",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "reel",
+        "durationSec": 15,
+        "topic": "t2",
+        "brandName": "brand-1787870440514"
+      }
+    },
+    {
+      "id": "evt-1787870443942-24",
+      "at": "2026-08-27T22:40:43.942Z",
+      "model": "mock",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "tiktok",
+        "durationSec": 15,
+        "topic": "Test carrusel",
+        "brandName": "TestBrand",
+        "style": "mixed"
+      }
+    },
+    {
+      "id": "evt-1787870444545-123",
+      "at": "2026-08-27T22:40:44.545Z",
+      "model": "mock",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "tiktok",
+        "durationSec": 15,
+        "topic": "Test carrusel",
+        "brandName": "TestBrand",
+        "style": "mixed"
+      }
+    },
+    {
+      "id": "evt-1787870445126-267",
+      "at": "2026-08-27T22:40:45.126Z",
+      "model": "mock",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "tiktok",
+        "durationSec": 15,
+        "topic": "Test carrusel",
+        "brandName": "TestBrand",
+        "style": "mixed"
+      }
+    },
+    {
+      "id": "evt-1787870447249-615",
+      "at": "2026-08-27T22:40:47.249Z",
+      "model": "mock",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoProducer",
+        "feature": "video-ia"
+      },
+      "metadata": {
+        "format": "tiktok",
+        "durationSec": 15,
+        "topic": "Test carrusel",
+        "brandName": "TestBrand",
+        "style": "mixed"
+      }
+    },
+    {
+      "id": "evt-1787870453998-410",
+      "at": "2026-08-27T22:40:53.998Z",
+      "model": "capcut",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoPostProductionWorker",
+        "feature": "post-production"
+      },
+      "metadata": {
+        "provider": "capcut",
+        "recipe": "capcut-auto-captions",
+        "requestId": "req-1",
+        "dryRun": true
+      }
+    },
+    {
+      "id": "evt-1787870454007-783",
+      "at": "2026-08-27T22:40:54.007Z",
+      "model": "inshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoPostProductionWorker",
+        "feature": "post-production"
+      },
+      "metadata": {
+        "provider": "inshot",
+        "requestId": "req-2",
+        "dryRun": true
+      }
+    },
+    {
+      "id": "evt-1787870457106-767",
+      "at": "2026-08-27T22:40:57.106Z",
+      "model": "capcut",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoPostProductionWorker",
+        "feature": "post-production"
+      },
+      "metadata": {
+        "provider": "capcut",
+        "recipe": "capcut-auto-captions",
+        "requestId": "req-1",
+        "dryRun": true
+      }
+    },
+    {
+      "id": "evt-1787870457115-667",
+      "at": "2026-08-27T22:40:57.115Z",
+      "model": "inshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoPostProductionWorker",
+        "feature": "post-production"
+      },
+      "metadata": {
+        "provider": "inshot",
+        "requestId": "req-2",
+        "dryRun": true
+      }
+    },
+    {
+      "id": "evt-1787870459651-409",
+      "at": "2026-08-27T22:40:59.651Z",
+      "model": "capcut",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoPostProductionWorker",
+        "feature": "post-production"
+      },
+      "metadata": {
+        "provider": "capcut",
+        "recipe": "capcut-auto-captions",
+        "requestId": "req-1",
+        "dryRun": true
+      }
+    },
+    {
+      "id": "evt-1787870459661-482",
+      "at": "2026-08-27T22:40:59.661Z",
+      "model": "inshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoPostProductionWorker",
+        "feature": "post-production"
+      },
+      "metadata": {
+        "provider": "inshot",
+        "requestId": "req-2",
+        "dryRun": true
+      }
+    },
+    {
+      "id": "evt-1787870463127-548",
+      "at": "2026-08-27T22:41:03.127Z",
+      "model": "capcut",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoPostProductionWorker",
+        "feature": "post-production"
+      },
+      "metadata": {
+        "provider": "capcut",
+        "recipe": "capcut-auto-captions",
+        "requestId": "req-1",
+        "dryRun": true
+      }
+    },
+    {
+      "id": "evt-1787870463136-539",
+      "at": "2026-08-27T22:41:03.136Z",
+      "model": "inshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "costUsd": 0,
+      "dimensions": {
+        "workflow": "brief-to-publish",
+        "agent": "videoPostProductionWorker",
+        "feature": "post-production"
+      },
+      "metadata": {
+        "provider": "inshot",
+        "requestId": "req-2",
+        "dryRun": true
+      }
     }
   ],
-  "lastUpdated": "2026-08-22T17:21:37.504Z"
+  "lastUpdated": "2026-08-27T22:41:03.136Z"
 }

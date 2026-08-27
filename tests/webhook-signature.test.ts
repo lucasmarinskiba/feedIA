@@ -4,6 +4,7 @@
  */
 
 import crypto from 'crypto';
+import { describe, it, expect } from 'vitest';
 
 describe('MercadoPago Webhook Signature Validation', () => {
   const WEBHOOK_SECRET = 'test-webhook-secret-key-32chars!!';
@@ -18,7 +19,7 @@ describe('MercadoPago Webhook Signature Validation', () => {
     xRequestId: string,
     ts: number,
     signature: string,
-    secret: string
+    secret: string,
   ): boolean {
     const expectedSignature = generateSignature(dataId, xRequestId, ts, secret);
     // CRITICAL: Use timing-safe comparison to prevent timing attacks

@@ -4,6 +4,7 @@
  */
 
 import crypto from 'crypto';
+import { describe, it, expect } from 'vitest';
 
 describe('MercadoPago E2E Flow', () => {
   const MERCADOPAGO_SECRET = process.env.MERCADOPAGO_SECRET || 'test-secret';
@@ -34,10 +35,7 @@ describe('MercadoPago E2E Flow', () => {
     const ts = Math.floor(Date.now() / 1000);
 
     const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
-    const signature = crypto
-      .createHmac('sha256', MERCADOPAGO_SECRET)
-      .update(manifest)
-      .digest('hex');
+    const signature = crypto.createHmac('sha256', MERCADOPAGO_SECRET).update(manifest).digest('hex');
 
     expect(signature).toBeTruthy();
     expect(signature.length).toBe(64); // SHA256 hex = 64 chars
@@ -94,7 +92,7 @@ describe('MercadoPago E2E Flow', () => {
     const userId = 'test-user-123';
     const response = await fetch(`${BASE_URL}/api/users/me`, {
       headers: {
-        'Authorization': `Bearer test-token-${userId}`,
+        Authorization: `Bearer test-token-${userId}`,
       },
     });
 
@@ -108,15 +106,9 @@ describe('Webhook Signature Validation', () => {
     const secret = 'test-secret';
     const payload = 'test-payload';
 
-    const sig1 = crypto
-      .createHmac('sha256', secret)
-      .update(payload)
-      .digest('hex');
+    const sig1 = crypto.createHmac('sha256', secret).update(payload).digest('hex');
 
-    const sig2 = crypto
-      .createHmac('sha256', secret)
-      .update(payload)
-      .digest('hex');
+    const sig2 = crypto.createHmac('sha256', secret).update(payload).digest('hex');
 
     // Should be identical
     expect(sig1).toBe(sig2);
