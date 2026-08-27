@@ -125,7 +125,7 @@ export const registerWebhook = async (
     }
 
     console.log(`[WebhookService] Webhook registered for ${userId}`);
-    return parseWebhookSubscription(result.rows[0]);
+    return parseWebhookSubscription(result.rows[0] as Record<string, unknown>);
   } catch (err) {
     console.error('[WebhookService] Register error:', err);
     throw err;
@@ -155,7 +155,7 @@ export const getUserWebhooks = async (userId: string): Promise<WebhookSubscripti
       [userId],
     );
 
-    return (result.rows || []).map(parseWebhookSubscription);
+    return (result.rows || []).map((row: unknown) => parseWebhookSubscription(row as Record<string, unknown>));
   } catch (err) {
     console.error('[WebhookService] Get webhooks error:', err);
     return [];
@@ -183,7 +183,8 @@ export const emitWebhookEvent = async (
     const subscriptions = result.rows || [];
 
     for (const row of subscriptions) {
-      const subscriptionId = String(row.id);
+      const rowObj = row as Record<string, unknown>;
+      const subscriptionId = String(rowObj.id);
       const subscription = await getWebhookSubscription(subscriptionId);
 
       // Check if subscription is interested in this event
@@ -269,17 +270,22 @@ export const deliverWebhook = async (eventId: string, subscriptionId: string): P
     // Deliver
     const startTime = Date.now();
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+
       const response = await fetch(subscription.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Webhook-Signature': signature,
           'X-Webhook-ID': eventId,
-          'X-Event-Type': event.event_type,
+          'X-Event-Type': String(eventRow.event_type),
         },
         body: payload,
-        timeout: 10000,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
 
       const duration = Date.now() - startTime;
       const responseBody = await response.text();
@@ -349,7 +355,7 @@ const getWebhookSubscription = async (subscriptionId: string): Promise<WebhookSu
       return null;
     }
 
-    return parseWebhookSubscription(result.rows[0]);
+    return parseWebhookSubscription(result.rows[0] as Record<string, unknown>);
   } catch (err) {
     console.error('[WebhookService] Get subscription error:', err);
     return null;

@@ -5,15 +5,11 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
+import { executeMutation, queryAs } from '../db/typed-queries.js';
+import { isRealDatabase } from '../db/postgres-real.js';
 import { log } from '../agent/logger.js';
-import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 import { feedIADatabase } from '../db/database.js';
-import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
-import { carouselDB } from '../db/postgres.js';
-import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 import { promptCache, contentCache, validationCache, embeddingCache } from '../services/cache-manager.js';
-import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 
 const router = Router();
 
@@ -46,7 +42,7 @@ router.post('/create-user', async (req: Request, res: Response) => {
     // Store in database (implementation depends on your DB schema)
     try {
       // Try PostgreSQL first
-      if (carouselDB && typeof carouselDB.query === 'function') {
+      if (isRealDatabase()) {
         await executeMutation(
           'INSERT INTO users (id, email, name, tier, created_at, status) VALUES ($1, $2, $3, $4, $5, $6)',
           [user.id, user.email, user.name, user.tier, user.createdAt, user.status],
@@ -89,13 +85,13 @@ router.post('/upgrade-tier', async (req: Request, res: Response) => {
 
     try {
       // Update in PostgreSQL
-      if (carouselDB && typeof carouselDB.query === 'function') {
-        const result = await executeMutation(
+      if (isRealDatabase()) {
+        const rows = await queryAs<Record<string, unknown>>(
           'UPDATE users SET tier = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
           [newTier, userId],
         );
 
-        if (result.rows.length === 0) {
+        if (rows.length === 0) {
           return res.status(404).json({ error: 'User not found' });
         }
 
@@ -104,7 +100,7 @@ router.post('/upgrade-tier', async (req: Request, res: Response) => {
         return res.json({
           status: 'ok',
           message: 'User tier upgraded successfully',
-          user: result.rows[0],
+          user: rows[0],
         });
       }
     } catch (dbError) {
@@ -134,20 +130,20 @@ router.get('/users', async (req: Request, res: Response) => {
     const search = (req.query.search as string) || '';
 
     try {
-      if (carouselDB && typeof carouselDB.query === 'function') {
+      if (isRealDatabase()) {
         const query = search
           ? 'SELECT * FROM users WHERE email ILIKE $1 OR name ILIKE $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3'
           : 'SELECT * FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2';
 
         const params = search ? [`%${search}%`, limit, offset] : [limit, offset];
-        const result = await executeMutation(query, params);
+        const rows = await queryAs<Record<string, unknown>>(query, params);
 
         return res.json({
           status: 'ok',
-          users: result.rows || [],
+          users: rows || [],
           limit,
           offset,
-          total: result.rows.length,
+          total: rows.length,
         });
       }
     } catch (dbError) {
@@ -234,9 +230,9 @@ router.get('/database-status', async (req: Request, res: Response) => {
     let postgresStatus = 'disconnected';
 
     try {
-      if (carouselDB && typeof carouselDB.query === 'function') {
-        const result = await executeMutation('SELECT NOW() as time');
-        postgresStatus = result.rows.length > 0 ? 'connected' : 'error';
+      if (isRealDatabase()) {
+        const rows = await queryAs<Record<string, unknown>>('SELECT NOW() as time');
+        postgresStatus = rows.length > 0 ? 'connected' : 'error';
       }
     } catch {
       postgresStatus = 'error';
@@ -275,7 +271,7 @@ router.post('/migrate', async (req: Request, res: Response) => {
 
     // Initialize tables if needed
     try {
-      if (carouselDB && typeof carouselDB.query === 'function') {
+      if (isRealDatabase()) {
         // Create users table if not exists
         await executeMutation(`
           CREATE TABLE IF NOT EXISTS users (
@@ -340,7 +336,7 @@ router.post('/seed', async (req: Request, res: Response) => {
     ];
 
     try {
-      if (carouselDB && typeof carouselDB.query === 'function') {
+      if (isRealDatabase()) {
         for (const user of testUsers) {
           await executeMutation(
             'INSERT INTO users (id, email, name, tier, created_at) VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT(id) DO NOTHING',
@@ -381,7 +377,7 @@ router.post('/database-reset', async (req: Request, res: Response) => {
     log.warn('[AdminOps] RESETTING DATABASE - This is destructive!');
 
     try {
-      if (carouselDB && typeof carouselDB.query === 'function') {
+      if (isRealDatabase()) {
         // Drop tables in reverse order (foreign keys)
         await executeMutation('DROP TABLE IF EXISTS campaigns CASCADE');
         await executeMutation('DROP TABLE IF EXISTS users CASCADE');

@@ -14,7 +14,7 @@ import { query } from '../db/client.js';
  */
 export const recordEvent = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
+    const userId = (req as Record<string, unknown>).userId as string;
     const { contentId, campaignId, eventType, platform, value = 1, metadata = {} } = req.body;
 
     if (!eventType || !['view', 'engagement', 'conversion', 'share'].includes(eventType)) {
@@ -51,7 +51,7 @@ export const recordEvent = async (req: Request, res: Response): Promise<void> =>
  */
 export const getCampaignMetrics = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
+    const userId = (req as Record<string, unknown>).userId as string;
     const { id: campaignId } = req.params;
     const { startDate, endDate } = req.query;
 
@@ -90,20 +90,24 @@ export const getCampaignMetrics = async (req: Request, res: Response): Promise<v
       [campaignId]
     );
 
-    const metrics = metricsResult.rows.reduce((acc: any, row: any) => {
-      acc[row.event_type] = { count: row.count, value: row.total_value };
+    interface MetricRow { event_type: string; count: number; total_value: number; }
+    interface TotalRow { total: number; }
+    const metrics = (metricsResult.rows || []).reduce((acc: Record<string, any>, row: unknown) => {
+      const r = row as MetricRow;
+      acc[r.event_type] = { count: r.count, value: r.total_value };
       return acc;
     }, {});
 
     const views = metrics.view?.count || 0;
     const engagements = metrics.engagement?.count || 0;
     const conversions = metrics.conversion?.count || 0;
+    const totalRow = (totalResult.rows?.[0] as TotalRow) || { total: 0 };
 
     res.json({
       campaignId,
       period: { startDate, endDate },
       totals: {
-        events: totalResult.rows[0].total,
+        events: totalRow.total,
         views,
         engagements,
         conversions,
@@ -129,7 +133,7 @@ export const getCampaignMetrics = async (req: Request, res: Response): Promise<v
  */
 export const getAnalyticsSummary = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
+    const userId = (req as Record<string, unknown>).userId as string;
 
     // Get all campaigns
     const campaignResult = await query(
@@ -137,7 +141,7 @@ export const getAnalyticsSummary = async (req: Request, res: Response): Promise<
       [userId, 'active']
     );
 
-    const campaignIds = campaignResult.rows.map((row: any) => row.id);
+    const campaignIds = campaignResult.rows.map((row: Record<string, unknown>) => row.id);
 
     if (campaignIds.length === 0) {
       res.json({
@@ -162,15 +166,18 @@ export const getAnalyticsSummary = async (req: Request, res: Response): Promise<
       [userId]
     );
 
-    const summary = summaryResult.rows[0];
-    const engagementRate = summary.views > 0 ? ((summary.engagements / summary.views) * 100).toFixed(2) : '0';
+    interface SummaryRow {
+      campaigns: number; total_events: number; views: number; engagements: number;
+    }
+    const summary = summaryResult.rows[0] as SummaryRow;
+    const engagementRate = (summary?.views || 0) > 0 ? (((summary?.engagements || 0) / (summary?.views || 1)) * 100).toFixed(2) : '0';
 
     res.json({
       summary: {
-        activeCampaigns: summary.campaigns,
-        totalEvents: summary.total_events,
-        totalViews: summary.views,
-        totalEngagements: summary.engagements,
+        activeCampaigns: summary?.campaigns || 0,
+        totalEvents: summary?.total_events || 0,
+        totalViews: summary?.views || 0,
+        totalEngagements: summary?.engagements || 0,
         avgEngagementRate: engagementRate + '%',
       },
       timestamp: new Date().toISOString(),
@@ -189,7 +196,7 @@ export const getAnalyticsSummary = async (req: Request, res: Response): Promise<
  */
 export const getContentMetrics = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).userId;
+    const userId = (req as Record<string, unknown>).userId as string;
     const { id: contentId } = req.params;
 
     // Verify ownership

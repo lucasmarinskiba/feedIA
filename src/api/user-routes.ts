@@ -10,17 +10,10 @@
  */
 
 import { Express, Request, Response } from 'express';
-import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
-import { Pool } from 'pg';
-import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || process.env.DATABASE_PRIVATE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+import { executeMutation, queryAs } from '../db/typed-queries.js';
 
 interface AuthRequest extends Request {
-  userId?: string;
+  userId: string;
 }
 
 /**
@@ -34,7 +27,12 @@ const getCurrentUser = async (req: AuthRequest, res: Response): Promise<void> =>
       return;
     }
 
-    const result = await queryAs(
+    interface UserRow {
+      id: string; email: string; username: string; tier: string; plan: string; first_name: string; last_name: string; avatar_url: string;
+      storage_used_gb: string; storage_limit_gb: number; video_storage_used_gb: string; video_storage_limit_gb: number;
+      api_calls_this_month: number; api_calls_limit: number; created_at: string; language: string; timezone: string; dark_mode: boolean;
+    }
+    const result = await queryAs<UserRow>(
       `SELECT id, email, username, tier, plan, first_name, last_name, avatar_url,
               storage_used_gb, storage_limit_gb, video_storage_used_gb, video_storage_limit_gb,
               api_calls_this_month, api_calls_limit, created_at, language, timezone, dark_mode
@@ -42,12 +40,12 @@ const getCurrentUser = async (req: AuthRequest, res: Response): Promise<void> =>
       [userId],
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
 
-    const user = result.rows[0];
+    const user = result[0];
     res.json({
       id: user.id,
       email: user.email,
@@ -127,12 +125,12 @@ const updateUser = async (req: AuthRequest, res: Response): Promise<void> => {
       ],
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
 
-    res.json({ message: 'Profile updated', user: result.rows[0] });
+    res.json({ message: 'Profile updated', user: result[0] });
     return;
   } catch (err) {
     console.error('[User] Update profile error:', err);
@@ -167,7 +165,7 @@ const getUserUsage = async (req: AuthRequest, res: Response): Promise<void> => {
       [userId, monthStart.toISOString().split('T')[0]],
     );
 
-    const usage = result.rows[0] || {
+    const usage = result[0] || {
       api_calls: 0,
       storage_added_gb: 0,
       video_storage_added_gb: 0,
@@ -182,12 +180,12 @@ const getUserUsage = async (req: AuthRequest, res: Response): Promise<void> => {
       [userId],
     );
 
-    if (userResult.rows.length === 0) {
+    if (userResult.length === 0) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
 
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     res.json({
       currentMonth: {
@@ -259,8 +257,8 @@ const getUserStorage = async (req: AuthRequest, res: Response): Promise<void> =>
       [userId],
     );
 
-    const user = userResult.rows[0] as UserStorageRow;
-    const breakdown = (result.rows as StorageRow[]).map((row) => ({
+    const user = userResult[0] as UserStorageRow;
+    const breakdown = (result as StorageRow[]).map((row) => ({
       type: row.file_type,
       count: row.count,
       totalMb: parseFloat(row.total_mb),
@@ -322,10 +320,10 @@ const createApiKey = async (req: AuthRequest, res: Response): Promise<void> => {
 
     res.status(201).json({
       apiKey, // Only show once!
-      id: result.rows[0].id,
-      keyPrefix: result.rows[0].key_prefix,
-      name: result.rows[0].name,
-      expiresAt: result.rows[0].expires_at,
+      id: result[0].id,
+      keyPrefix: result[0].key_prefix,
+      name: result[0].name,
+      expiresAt: result[0].expires_at,
       message: 'Save this API key — you will not be able to see it again',
     });
     return;
@@ -366,7 +364,7 @@ const listApiKeys = async (req: AuthRequest, res: Response): Promise<void> => {
     }
 
     res.json({
-      keys: (result.rows as ApiKeyRow[]).map((row) => ({
+      keys: (result as ApiKeyRow[]).map((row) => ({
         id: row.id,
         keyPrefix: row.key_prefix,
         name: row.name,
@@ -405,7 +403,7 @@ const revokeApiKey = async (req: AuthRequest, res: Response): Promise<void> => {
       [keyId, userId],
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       res.status(404).json({ error: 'API key not found' });
       return;
     }

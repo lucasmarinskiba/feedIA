@@ -9,17 +9,10 @@
  */
 
 import { Express, Request, Response } from 'express';
-import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
-import { Pool } from 'pg';
-import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || process.env.DATABASE_PRIVATE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+import { executeMutation, queryAs } from '../db/typed-queries.js';
 
 interface AuthRequest extends Request {
-  userId?: string;
+  userId: string;
 }
 
 /**
@@ -75,7 +68,7 @@ const createContent = async (req: AuthRequest, res: Response): Promise<void> => 
       ],
     );
 
-    const contentId = result.rows[0].id;
+    const contentId = (result[0] as { id: string }).id;
 
     // Add to folder if specified
     if (folderId) {
@@ -151,16 +144,6 @@ const listContent = async (req: AuthRequest, res: Response): Promise<void> => {
     query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(limit, offset);
 
-    // Get total count
-    const countResult = await executeMutation(
-      `SELECT COUNT(*) as total FROM user_generated_content WHERE user_id = $1 AND deleted_at IS NULL ${status ? `AND status = '${status}'` : ''} ${platform ? `AND platform = '${platform}'` : ''}`,
-      [userId],
-    );
-    const total = parseInt(countResult.rows[0].total);
-
-    // Get paginated results
-    const result = await queryAs(query, params);
-
     interface ContentRow {
       id: string;
       title: string;
@@ -175,8 +158,18 @@ const listContent = async (req: AuthRequest, res: Response): Promise<void> => {
       published_at: string | null;
     }
 
+    // Get total count
+    const countRows = await queryAs<{ total: string }>(
+      `SELECT COUNT(*) as total FROM user_generated_content WHERE user_id = $1 AND deleted_at IS NULL ${status ? `AND status = '${status}'` : ''} ${platform ? `AND platform = '${platform}'` : ''}`,
+      [userId],
+    );
+    const total = parseInt(countRows[0].total, 10);
+
+    // Get paginated results
+    const result = await queryAs<ContentRow>(query, params);
+
     res.json({
-      items: result.rows as ContentRow[],
+      items: result,
       pagination: {
         page,
         limit,
@@ -205,18 +198,18 @@ const getContent = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    const result = await queryAs(
+    const result = await queryAs<Record<string, unknown>>(
       `SELECT * FROM user_generated_content
        WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL`,
       [contentId, userId],
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       res.status(404).json({ error: 'Content not found' });
       return;
     }
 
-    res.json(result.rows[0]);
+    res.json(result[0]);
     return;
   } catch (err) {
     console.error('[Content] Get error:', err);
@@ -240,7 +233,7 @@ const updateContent = async (req: AuthRequest, res: Response): Promise<void> => 
 
     const { title, description, tags, metadata } = req.body;
 
-    const result = await queryAs(
+    const result = await queryAs<Record<string, unknown>>(
       `UPDATE user_generated_content
        SET title = COALESCE($1, title),
            description = COALESCE($2, description),
@@ -252,12 +245,12 @@ const updateContent = async (req: AuthRequest, res: Response): Promise<void> => 
       [title || null, description || null, tags || null, metadata ? JSON.stringify(metadata) : null, contentId, userId],
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       res.status(404).json({ error: 'Content not found' });
       return;
     }
 
-    res.json({ message: 'Content updated', content: result.rows[0] });
+    res.json({ message: 'Content updated', content: result[0] });
     return;
   } catch (err) {
     console.error('[Content] Update error:', err);
@@ -280,17 +273,17 @@ const deleteContent = async (req: AuthRequest, res: Response): Promise<void> => 
     }
 
     // Get file size before deletion
-    const getResult = await executeMutation(
+    const getResult = await queryAs<{ file_size_mb: number }>(
       `SELECT file_size_mb FROM user_generated_content WHERE id = $1 AND user_id = $2`,
       [contentId, userId],
     );
 
-    if (getResult.rows.length === 0) {
+    if (getResult.length === 0) {
       res.status(404).json({ error: 'Content not found' });
       return;
     }
 
-    const fileSizeMb = getResult.rows[0].file_size_mb;
+    const fileSizeMb = getResult[0].file_size_mb;
 
     // Soft delete
     await executeMutation(`UPDATE user_generated_content SET deleted_at = NOW() WHERE id = $1 AND user_id = $2`, [
@@ -327,7 +320,7 @@ const publishContent = async (req: AuthRequest, res: Response): Promise<void> =>
       return;
     }
 
-    const result = await queryAs(
+    const result = await queryAs<Record<string, unknown>>(
       `UPDATE user_generated_content
        SET status = 'published', published_at = NOW(), platform = COALESCE($1, platform),
            metadata = jsonb_set(metadata, '{published_url}', to_jsonb($2::text))
@@ -336,12 +329,12 @@ const publishContent = async (req: AuthRequest, res: Response): Promise<void> =>
       [platform || null, publishedUrl || null, contentId, userId],
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       res.status(404).json({ error: 'Content not found' });
       return;
     }
 
-    res.json({ message: 'Content published', content: result.rows[0] });
+    res.json({ message: 'Content published', content: result[0] });
     return;
   } catch (err) {
     console.error('[Content] Publish error:', err);

@@ -61,11 +61,14 @@ export const carouselStorageService = {
   },
 
   async listByUser(userId: string, limit = 50): Promise<Carousel[]> {
+    interface CarouselRow {
+      id: string; user_id: string; title: string; format: string; slides: string; source_category: string | null; metadata: string;
+    }
     const db = feedIADatabase.getConnection();
     const stmt = db.prepare('SELECT * FROM carousels WHERE user_id = ? ORDER BY created_at DESC LIMIT ?');
-    const rows = stmt.all(userId, limit) as any[];
+    const rows = stmt.all(userId, limit) as CarouselRow[];
 
-    return rows.map((row: unknown) => ({
+    return rows.map((row: CarouselRow) => ({
       id: row.id,
       userId: row.user_id,
       title: row.title,

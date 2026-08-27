@@ -1,5 +1,4 @@
 /**
-import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
  * COMPLETE SOCIAL AUTOMATION SYSTEM
  *
  * Comprehensive Instagram + TikTok automation:
@@ -18,15 +17,10 @@ import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
  */
 
 import { Express, Request, Response } from 'express';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || process.env.DATABASE_PRIVATE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+import { executeMutation, queryAs } from '../db/typed-queries.js';
 
 interface AuthRequest extends Request {
-  userId?: string;
+  userId: string;
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -247,7 +241,7 @@ const schedulePost = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    const { contentId, publishAt, platforms = ['instagram', 'tiktok'], caption } = req.body;
+    const { contentId, publishAt, platforms = ['instagram', 'tiktok'] } = req.body;
 
     if (!contentId || !publishAt) {
       res.status(400).json({ error: 'Missing contentId or publishAt' });
@@ -268,18 +262,7 @@ const schedulePost = async (req: AuthRequest, res: Response): Promise<void> => {
       [userId, contentId, scheduledTime, JSON.stringify(platforms)]
     );
 
-    // Queue job in scheduler
-    const job = {
-      id: result.rows[0].id,
-      contentId,
-      userId,
-      platforms,
-      scheduledAt: scheduledTime,
-      retries: 0,
-      maxRetries: 3,
-    };
-
-    // Store in schedule queue (Redis or cron)
+    // TODO: Queue job in scheduler (Redis or cron)
     // For MVP: use setInterval check or external scheduler
 
     res.json({

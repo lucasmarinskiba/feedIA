@@ -1,12 +1,10 @@
 /**
-import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
  * Seed Endpoint — Execute seed via HTTP
  * POST /api/admin/seed — Populates test data
  */
 
 import { Express, Request, Response } from 'express';
-import { execSync } from 'child_process';
-import { Pool } from 'pg';
+import { executeMutation } from '../db/typed-queries.js';
 
 export const seedDataEndpoint = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -25,7 +23,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
     try {
       await executeMutation('SELECT NOW()');
       result.steps.push({ name: 'Database connection', status: 'ok' });
-    } catch (e) {
+    } catch {
       result.steps.push({ name: 'Database connection', status: 'failed' });
       res.status(500).json({ error: 'Database connection failed', ...result });
       return;

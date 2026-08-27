@@ -1,5 +1,4 @@
 /**
-import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
  * FeedIA Database Manager
  * Handles connection pooling, migrations, and query execution
  * Supports PostgreSQL (production) + SQLite (fallback)
@@ -7,6 +6,7 @@ import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 
 import type { PoolClient } from 'pg';
 import { runMigrations, showMigrationStatus } from './migration-runner.js';
+import { executeMutation, queryAs } from './typed-queries.js';
 
 interface DatabaseConfig {
   host?: string;

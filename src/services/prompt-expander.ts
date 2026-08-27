@@ -90,14 +90,18 @@ Generate now:
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
-    const variations: ExpandedPrompt[] = parsed.variations.map(
-      (v: unknown, index: number) => ({
-        id: `${basePromptId}-${v.tone}-${Date.now()}-${index}`,
-        prompt_id: basePromptId,
-        tone: v.tone,
-        variation_text: v.variation,
-        version: 1,
-      })
+    interface VariationData { tone: string; variation: string; }
+    const variations: ExpandedPrompt[] = (parsed.variations || []).map(
+      (v: unknown, index: number) => {
+        const vData = v as VariationData;
+        return {
+          id: `${basePromptId}-${vData.tone}-${Date.now()}-${index}`,
+          prompt_id: basePromptId,
+          tone: vData.tone,
+          variation_text: vData.variation,
+          version: 1,
+        };
+      }
     );
 
     log.info('[PromptExpander] Variations generated', {
@@ -158,14 +162,14 @@ async function expandBatch(batch: string = 'batch-90'): Promise<Record<string, a
 
     const results = [];
     for (let i = 0; i < prompts.length; i++) {
-      const prompt = prompts[i];
+      const prompt = prompts[i] as Record<string, unknown>;
 
       // Rate limiting: 10s delay between API calls (avoid rate limits)
       if (i > 0) {
         await new Promise(resolve => setTimeout(resolve, 10000));
       }
 
-      const result = await expandAndStore(prompt.id, prompt.base_template);
+      const result = await expandAndStore(String(prompt.id), String(prompt.base_template));
       results.push(result);
 
       log.info('[PromptExpander] Batch progress', {

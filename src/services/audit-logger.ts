@@ -4,7 +4,7 @@
  * Week 3: Compliance layer
  */
 
-import { executeMutation, queryAs, log as dbLog } from '../db/typed-queries.js';
+import { executeMutation, queryAs } from '../db/typed-queries.js';
 import { log } from '../agent/logger.js';
 
 interface AuditEvent {

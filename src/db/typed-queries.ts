@@ -10,7 +10,7 @@ import { getPool } from './postgres-real.js';
  * Generic typed query wrapper
  * Usage: const users = await queryAs<UserRow>(sql, params);
  */
-export const queryAs = async <T extends Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> => {
+export const queryAs = async <T>(sql: string, params: unknown[] = []): Promise<T[]> => {
   const pool = getPool();
   try {
     const result = await pool.query(sql, params);
@@ -25,7 +25,7 @@ export const queryAs = async <T extends Record<string, unknown>>(sql: string, pa
  * Query single row with type safety
  * Returns null if no rows found
  */
-export const queryOneAs = async <T extends Record<string, unknown>>(
+export const queryOneAs = async <T>(
   sql: string,
   params: unknown[] = [],
 ): Promise<T | null> => {
