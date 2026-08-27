@@ -227,13 +227,14 @@ export const getContentMetrics = async (req: Request, res: Response): Promise<vo
       return acc;
     }, {});
 
+    const metricsObj = metrics as Record<string, { count?: number }>;
     res.json({
       contentId,
       metrics,
       totals: {
-        views: metrics.view?.count || 0,
-        engagements: metrics.engagement?.count || 0,
-        conversions: metrics.conversion?.count || 0,
+        views: metricsObj.view?.count || 0,
+        engagements: metricsObj.engagement?.count || 0,
+        conversions: metricsObj.conversion?.count || 0,
       },
     });
     return;

@@ -54,7 +54,7 @@ router.post('/carousel', async (req, res) => {
       return;
     }
 
-    const content = await contentPipeline.generateCarousel({
+    const contents = await contentPipeline.generateCarousel({
       brand,
       format: 'carousel',
       occasion,
@@ -62,11 +62,16 @@ router.post('/carousel', async (req, res) => {
       count: count || 10,
     });
 
+    const content = contents[0];
+    if (!content) {
+      return res.status(400).json({ error: 'No content generated' });
+    }
+
     const { avgQuality, avgWit } = await enhanceGeneratedContent(content, brand, occasion, req.body.platform);
 
     log.info('[ContentAPI] carousel generated', {
       contentId: content.id,
-      slides: content.prompts.length,
+      slides: (content.prompts as Array<{ prompt: { text: string } }>)?.length || 0,
       avgQuality,
       avgWit,
     });
@@ -100,7 +105,7 @@ router.post('/reel', async (req, res) => {
       return;
     }
 
-    const content = await contentPipeline.generateReel({
+    const contents = await contentPipeline.generateReel({
       brand,
       format: 'reel',
       occasion,
@@ -108,11 +113,16 @@ router.post('/reel', async (req, res) => {
       count: count || 5,
     });
 
+    const content = contents[0];
+    if (!content) {
+      return res.status(400).json({ error: 'No content generated' });
+    }
+
     const { avgQuality, avgWit } = await enhanceGeneratedContent(content, brand, occasion, req.body.platform);
 
     log.info('[ContentAPI] reel generated', {
       contentId: content.id,
-      scenes: content.prompts.length,
+      scenes: (content.prompts as Array<{ prompt: { text: string } }>)?.length || 0,
       avgQuality,
       avgWit,
     });
@@ -146,7 +156,7 @@ router.post('/story', async (req, res) => {
       return;
     }
 
-    const content = await contentPipeline.generateStory({
+    const contents = await contentPipeline.generateStory({
       brand,
       format: 'story',
       occasion,
@@ -154,11 +164,16 @@ router.post('/story', async (req, res) => {
       count: 3,
     });
 
+    const content = contents[0];
+    if (!content) {
+      return res.status(400).json({ error: 'No content generated' });
+    }
+
     const { avgQuality, avgWit } = await enhanceGeneratedContent(content, brand, occasion, req.body.platform);
 
     log.info('[ContentAPI] story generated', {
       contentId: content.id,
-      frames: content.prompts.length,
+      frames: (content.prompts as Array<{ prompt: { text: string } }>)?.length || 0,
       avgQuality,
       avgWit,
     });
@@ -192,12 +207,17 @@ router.post('/post', async (req, res) => {
       return;
     }
 
-    const content = await contentPipeline.generatePost({
+    const contents = await contentPipeline.generatePost({
       brand,
       format: 'post',
       occasion,
       category,
     });
+
+    const content = contents[0];
+    if (!content) {
+      return res.status(400).json({ error: 'No content generated' });
+    }
 
     const { avgQuality, avgWit } = await enhanceGeneratedContent(content, brand, occasion, req.body.platform);
 
