@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { log } from '../agent/logger.js';
-// import { autonomousGenerator } from '../agents/autonomous-generator.js';
+import { autonomousGenerator } from '../agents/autonomous-generator.js';
 import { promptDb } from '../services/prompt-database.js';
 import type { BrandProfile } from '../config/types.js';
 

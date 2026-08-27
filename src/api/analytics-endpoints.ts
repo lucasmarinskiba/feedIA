@@ -14,7 +14,7 @@ import { query } from '../db/client.js';
  */
 export const recordEvent = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as Record<string, unknown>).userId as string;
+    const userId = ((req as unknown) as Record<string, unknown>).userId as string;
     const { contentId, campaignId, eventType, platform, value = 1, metadata = {} } = req.body;
 
     if (!eventType || !['view', 'engagement', 'conversion', 'share'].includes(eventType)) {
@@ -51,7 +51,7 @@ export const recordEvent = async (req: Request, res: Response): Promise<void> =>
  */
 export const getCampaignMetrics = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as Record<string, unknown>).userId as string;
+    const userId = ((req as unknown) as Record<string, unknown>).userId as string;
     const { id: campaignId } = req.params;
     const { startDate, endDate } = req.query;
 
@@ -133,7 +133,7 @@ export const getCampaignMetrics = async (req: Request, res: Response): Promise<v
  */
 export const getAnalyticsSummary = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as Record<string, unknown>).userId as string;
+    const userId = ((req as unknown) as Record<string, unknown>).userId as string;
 
     // Get all campaigns
     const campaignResult = await query(
@@ -196,7 +196,7 @@ export const getAnalyticsSummary = async (req: Request, res: Response): Promise<
  */
 export const getContentMetrics = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as Record<string, unknown>).userId as string;
+    const userId = ((req as unknown) as Record<string, unknown>).userId as string;
     const { id: contentId } = req.params;
 
     // Verify ownership

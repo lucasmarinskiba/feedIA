@@ -61,9 +61,9 @@ async function processEvent(event: Stripe.Event): Promise<{ success: boolean; me
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         // Subscription active: update user tier
-        const subscription = data as Stripe.Subscription;
-        const metadata = subscription.metadata || {};
-        const userId = metadata.userId || data.client_reference_id;
+        const subscription = data as Record<string, unknown> & { customer_email?: string; current_period_end?: number };
+        const metadata = (subscription.metadata as Record<string, string>) || {};
+        const userId = metadata.userId || (subscription.client_reference_id as string);
         const tier = (metadata.tier as UserTier) || 'pro';
 
         if (!userId) {
@@ -80,8 +80,8 @@ async function processEvent(event: Stripe.Event): Promise<{ success: boolean; me
         await upsertUserTier(userId, email, tier, subscription.customer as string);
 
         // Link Stripe subscription
-        const endDate = new Date((subscription.current_period_end || Date.now() / 1000) * 1000);
-        await linkStripeSubscription(userId, subscription.customer as string, subscription.id, endDate);
+        const endDate = new Date(((subscription.current_period_end || 0) as number) * 1000);
+        await linkStripeSubscription(userId, subscription.customer as string, subscription.id as string, endDate);
 
         console.log(`[Stripe] User ${userId} upgraded to ${tier}`);
         return {
@@ -92,9 +92,9 @@ async function processEvent(event: Stripe.Event): Promise<{ success: boolean; me
 
       case 'customer.subscription.deleted': {
         // Subscription cancelled: downgrade to free
-        const subscription = data as Stripe.Subscription;
-        const metadata = subscription.metadata || {};
-        const userId = metadata.userId || data.client_reference_id;
+        const subscription = data as Record<string, unknown> & { customer_email?: string };
+        const metadata = (subscription.metadata as Record<string, string>) || {};
+        const userId = metadata.userId || (subscription.client_reference_id as string);
 
         if (userId) {
           const email = subscription.customer_email || `user_${userId}@feedia.app`;

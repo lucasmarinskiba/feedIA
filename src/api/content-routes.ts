@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { log } from '../agent/logger.js';
-// import { contentPipeline, type GeneratedContent } from '../agents/content-generation-pipeline.js';
+import { contentPipeline, type GeneratedContent } from '../agents/content-generation-pipeline.js';
 import { promptLoader } from '../services/prompt-loader.js';
 import { masterContentPipeline } from '../services/master-content-pipeline.js';
 import type { BrandProfile } from '../config/types.js';

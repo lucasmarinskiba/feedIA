@@ -158,7 +158,7 @@ You have analyzed ${this.outputCount} cases. You see patterns others miss.
 Your expertise:
 ${Object.entries(this.teachingModel)
   .slice(0, 5)
-  .map(([key, value]: unknown) => `- ${key}: ${value}`)
+  .map(([key, value]: [string, unknown]) => `- ${key}: ${value}`)
   .join('\n')}
 
 Goal: Single BEST approach. High precision.
@@ -188,7 +188,8 @@ You're confident because you've seen 1000+ cases.`;
   }
 
   private generateTeachingContent(input: unknown, output: unknown): string {
-    return `Expert lesson: How to solve ${input.type || 'this problem'} like an expert.
+    const inputType = (input as Record<string, unknown>)?.type || 'this problem';
+    return `Expert lesson: How to solve ${inputType} like an expert.
 Pattern: ${this.expertise}
 Reasoning: [Extracted from 1000+ cases]
 Next: Other agents should learn this.`;
