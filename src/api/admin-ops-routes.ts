@@ -5,10 +5,15 @@
  */
 
 import { Router, Request, Response } from 'express';
+import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 import { log } from '../agent/logger.js';
+import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 import { feedIADatabase } from '../db/database.js';
+import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 import { carouselDB } from '../db/postgres.js';
+import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 import { promptCache, contentCache, validationCache, embeddingCache } from '../services/cache-manager.js';
+import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 
 const router = Router();
 
@@ -42,7 +47,7 @@ router.post('/create-user', async (req: Request, res: Response) => {
     try {
       // Try PostgreSQL first
       if (carouselDB && typeof carouselDB.query === 'function') {
-        await carouselDB.pool.query(
+        await executeMutation(
           'INSERT INTO users (id, email, name, tier, created_at, status) VALUES ($1, $2, $3, $4, $5, $6)',
           [user.id, user.email, user.name, user.tier, user.createdAt, user.status],
         );
@@ -85,7 +90,7 @@ router.post('/upgrade-tier', async (req: Request, res: Response) => {
     try {
       // Update in PostgreSQL
       if (carouselDB && typeof carouselDB.query === 'function') {
-        const result = await carouselDB.pool.query(
+        const result = await executeMutation(
           'UPDATE users SET tier = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
           [newTier, userId],
         );
@@ -135,7 +140,7 @@ router.get('/users', async (req: Request, res: Response) => {
           : 'SELECT * FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2';
 
         const params = search ? [`%${search}%`, limit, offset] : [limit, offset];
-        const result = await carouselDB.pool.query(query, params);
+        const result = await executeMutation(query, params);
 
         return res.json({
           status: 'ok',
@@ -230,7 +235,7 @@ router.get('/database-status', async (req: Request, res: Response) => {
 
     try {
       if (carouselDB && typeof carouselDB.query === 'function') {
-        const result = await carouselDB.pool.query('SELECT NOW() as time');
+        const result = await executeMutation('SELECT NOW() as time');
         postgresStatus = result.rows.length > 0 ? 'connected' : 'error';
       }
     } catch {
@@ -272,7 +277,7 @@ router.post('/migrate', async (req: Request, res: Response) => {
     try {
       if (carouselDB && typeof carouselDB.query === 'function') {
         // Create users table if not exists
-        await carouselDB.pool.query(`
+        await executeMutation(`
           CREATE TABLE IF NOT EXISTS users (
             id VARCHAR(255) PRIMARY KEY,
             email VARCHAR(255) UNIQUE NOT NULL,
@@ -286,7 +291,7 @@ router.post('/migrate', async (req: Request, res: Response) => {
         `);
 
         // Create campaigns table if not exists
-        await carouselDB.pool.query(`
+        await executeMutation(`
           CREATE TABLE IF NOT EXISTS campaigns (
             id VARCHAR(255) PRIMARY KEY,
             user_id VARCHAR(255) NOT NULL,
@@ -300,8 +305,8 @@ router.post('/migrate', async (req: Request, res: Response) => {
         `);
 
         // Create indexes
-        await carouselDB.pool.query('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)');
-        await carouselDB.pool.query('CREATE INDEX IF NOT EXISTS idx_campaigns_user_id ON campaigns(user_id)');
+        await executeMutation('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)');
+        await executeMutation('CREATE INDEX IF NOT EXISTS idx_campaigns_user_id ON campaigns(user_id)');
 
         log.info('[AdminOps] Migrations completed successfully');
       }
@@ -337,7 +342,7 @@ router.post('/seed', async (req: Request, res: Response) => {
     try {
       if (carouselDB && typeof carouselDB.query === 'function') {
         for (const user of testUsers) {
-          await carouselDB.pool.query(
+          await executeMutation(
             'INSERT INTO users (id, email, name, tier, created_at) VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT(id) DO NOTHING',
             [user.id, user.email, user.name, user.tier],
           );
@@ -378,8 +383,8 @@ router.post('/database-reset', async (req: Request, res: Response) => {
     try {
       if (carouselDB && typeof carouselDB.query === 'function') {
         // Drop tables in reverse order (foreign keys)
-        await carouselDB.pool.query('DROP TABLE IF EXISTS campaigns CASCADE');
-        await carouselDB.pool.query('DROP TABLE IF EXISTS users CASCADE');
+        await executeMutation('DROP TABLE IF EXISTS campaigns CASCADE');
+        await executeMutation('DROP TABLE IF EXISTS users CASCADE');
 
         log.info('[AdminOps] Database tables dropped');
       }
