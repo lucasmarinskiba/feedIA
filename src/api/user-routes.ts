@@ -10,7 +10,9 @@
  */
 
 import { Express, Request, Response } from 'express';
+import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 import { Pool } from 'pg';
+import { executeMutation, queryAs, queryOneAs } from '../db/typed-queries.js';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || process.env.DATABASE_PRIVATE_URL,
@@ -32,7 +34,7 @@ const getCurrentUser = async (req: AuthRequest, res: Response): Promise<void> =>
       return;
     }
 
-    const result = await pool.query(
+    const result = await queryAs(
       `SELECT id, email, username, tier, plan, first_name, last_name, avatar_url,
               storage_used_gb, storage_limit_gb, video_storage_used_gb, video_storage_limit_gb,
               api_calls_this_month, api_calls_limit, created_at, language, timezone, dark_mode
@@ -101,7 +103,7 @@ const updateUser = async (req: AuthRequest, res: Response): Promise<void> => {
 
     const { firstName, lastName, avatarUrl, language, timezone, darkMode, bio } = req.body;
 
-    const result = await pool.query(
+    const result = await queryAs(
       `UPDATE users
        SET first_name = COALESCE($1, first_name),
            last_name = COALESCE($2, last_name),
@@ -154,7 +156,7 @@ const getUserUsage = async (req: AuthRequest, res: Response): Promise<void> => {
     const currentDate = new Date();
     const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
 
-    const result = await pool.query(
+    const result = await queryAs(
       `SELECT
         COALESCE(SUM(api_calls), 0) as api_calls,
         COALESCE(SUM(storage_added_gb), 0) as storage_added_gb,
@@ -173,7 +175,7 @@ const getUserUsage = async (req: AuthRequest, res: Response): Promise<void> => {
     };
 
     // Get user limits
-    const userResult = await pool.query(
+    const userResult = await executeMutation(
       `SELECT api_calls_limit, api_calls_this_month, storage_limit_gb, storage_used_gb,
               video_storage_limit_gb, video_storage_used_gb, tier
        FROM users WHERE id = $1 AND deleted_at IS NULL`,
@@ -232,7 +234,7 @@ const getUserStorage = async (req: AuthRequest, res: Response): Promise<void> =>
       total_mb: string;
     }
 
-    const result = await pool.query(
+    const result = await queryAs(
       `SELECT
         file_type,
         COUNT(*) as count,
@@ -251,7 +253,7 @@ const getUserStorage = async (req: AuthRequest, res: Response): Promise<void> =>
       video_storage_limit_gb: number;
     }
 
-    const userResult = await pool.query(
+    const userResult = await executeMutation(
       `SELECT storage_used_gb, storage_limit_gb, video_storage_used_gb, video_storage_limit_gb
        FROM users WHERE id = $1`,
       [userId],
@@ -311,7 +313,7 @@ const createApiKey = async (req: AuthRequest, res: Response): Promise<void> => {
     else if (expiresIn === '90d') expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
     else if (expiresIn === '1y') expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 
-    const result = await pool.query(
+    const result = await queryAs(
       `INSERT INTO user_api_keys (user_id, key_hash, key_prefix, name, expires_at)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, key_prefix, name, expires_at, created_at`,
@@ -345,7 +347,7 @@ const listApiKeys = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    const result = await pool.query(
+    const result = await queryAs(
       `SELECT id, key_prefix, name, last_used_at, expires_at, created_at, revoked_at
        FROM user_api_keys
        WHERE user_id = $1
@@ -395,7 +397,7 @@ const revokeApiKey = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    const result = await pool.query(
+    const result = await queryAs(
       `UPDATE user_api_keys
        SET revoked_at = NOW()
        WHERE id = $1 AND user_id = $2
