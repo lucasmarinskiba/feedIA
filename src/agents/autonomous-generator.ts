@@ -3,27 +3,57 @@
  * Full implementation in TypeScript migration phase
  */
 
+import type { BrandProfile } from '../config/types.js';
+
+interface BatchGenerateInput {
+  brand: BrandProfile;
+  format: string;
+  occasion: string;
+  batchSize?: number;
+}
+
 export const autonomousGenerator = {
-  async generateAll(brand, occasion, carouselCount = 1, reelCount = 1, storyCount = 3) {
+  // api/autonomy-routes.ts's POST /generate reads result.carousels.items/
+  // .itemsGenerated and result.totalTimeMs -- this used to return
+  // carousels/reels/stories as bare arrays with a totalGenerated field
+  // instead, which doesn't have any of those. `for (const c of result.
+  // carousels.items)` on an array-shaped .carousels (no .items) threw
+  // "undefined is not iterable" immediately, on every single call to this
+  // endpoint. Reshaped to match what the route (the actual consumer)
+  // expects; still a stub (no real generation), just a consistent one.
+  async generateAll(
+    brand: BrandProfile,
+    occasion: string,
+    carouselCount = 1,
+    reelCount = 1,
+    storyCount = 3,
+  ) {
+    const startedAt = Date.now();
+    const toItems = (count: number, type: string) => Array(count).fill({ id: 'stub', type });
     return {
-      status: 'completed',
-      carousels: Array(carouselCount).fill({ id: 'stub', type: 'carousel' }),
-      reels: Array(reelCount).fill({ id: 'stub', type: 'reel' }),
-      stories: Array(storyCount).fill({ id: 'stub', type: 'story' }),
+      status: 'success',
+      carousels: { items: toItems(carouselCount, 'carousel'), itemsGenerated: carouselCount },
+      reels: { items: toItems(reelCount, 'reel'), itemsGenerated: reelCount },
+      stories: { items: toItems(storyCount, 'story'), itemsGenerated: storyCount },
       totalGenerated: carouselCount + reelCount + storyCount,
+      totalTimeMs: Date.now() - startedAt,
     };
   },
 
-  async generateCarousels(input) {
-    return { status: 'completed', count: input.count || 1, items: [] };
+  // generateCarousels/Reels/Stories' own callers (autonomy-routes.ts's
+  // /carousels, /reels, /stories) check `result.status === 'success'` --
+  // this returned 'completed', so `success` in the JSON response was
+  // always false regardless of the stub "working".
+  async generateCarousels(input: BatchGenerateInput) {
+    return { status: 'success', count: input.batchSize || 1, items: [] };
   },
 
-  async generateReels(input) {
-    return { status: 'completed', count: input.count || 1, items: [] };
+  async generateReels(input: BatchGenerateInput) {
+    return { status: 'success', count: input.batchSize || 1, items: [] };
   },
 
-  async generateStories(input) {
-    return { status: 'completed', count: input.count || 3, items: [] };
+  async generateStories(input: BatchGenerateInput) {
+    return { status: 'success', count: input.batchSize || 3, items: [] };
   },
 
   getMetrics() {

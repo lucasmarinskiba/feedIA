@@ -10,8 +10,8 @@ import { log } from '../agent/logger.js';
 import { createUserBrandProfile, getUserBrandProfile, updateUserBrandLearnings, getPersonalizedGeneratorSettings, getAvailableFonts, getFontsByCategory, getFontPairings } from '../capabilities/branding/multiUserBrandingEngine.js';
 import { generateBrandCoherenceReport } from '../capabilities/branding/brandingCoherenceEnforcer.js';
 import { createBrandPhilosophy, getBrandPhilosophy, updateBrandPhilosophy, deriveVisualFromPhilosophy, validateVisualAgainstPhilosophy, generatePhilosophyBrief } from '../capabilities/branding/brandPhilosophyEngine.js';
-import { generateSmartCarousel } from '../capabilities/content/smartCarouselGenerator.js';
-import { generateSmartVideo } from '../capabilities/content/smartVideoGenerator.js';
+import { generateSmartCarousel, type CarouselBrief } from '../capabilities/content/smartCarouselGenerator.js';
+import { generateSmartVideo, type VideoBrief } from '../capabilities/content/smartVideoGenerator.js';
 import { recommendResourcesFor, getFreeResources } from '../capabilities/resources/resourceAggregator.js';
 
 const router = Router();
@@ -96,8 +96,8 @@ router.post('/:userId/learnings/update', (req: Request, res: Response): void => 
 router.post('/:userId/generate/batch', async (req: Request, res: Response): Promise<void> => {
   try {
     const { carousels = [], videos = [] } = req.body;
-    const carouselResults = await Promise.all(carousels.map((b: unknown) => generateSmartCarousel(b)));
-    const videoResults = await Promise.all(videos.map((b: unknown) => generateSmartVideo(b)));
+    const carouselResults = await Promise.all(carousels.map((b: CarouselBrief) => generateSmartCarousel(b)));
+    const videoResults = await Promise.all(videos.map((b: VideoBrief) => generateSmartVideo(b)));
     res.json({ status: 'success', data: { carousels: carouselResults, videos: videoResults } });
     return;
   } catch (error) {
@@ -434,7 +434,7 @@ router.post('/:userId/patterns/batch-generate', (req: Request, res: Response) =>
 
     log.info(`[Phase 26] Batch generating ${patterns.length} carousels`);
 
-    const briefs = patterns.map((p: unknown, idx: number) => ({
+    const briefs = patterns.map((p: { patternName?: string; industry?: string; messaging?: string }, idx: number) => ({
       index: idx + 1,
       pattern: p.patternName,
       industry: p.industry,
