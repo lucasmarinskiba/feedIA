@@ -28,10 +28,29 @@ export const getGrowthStrategy = async (req: Request, res: Response): Promise<vo
       [userId]
     );
 
-    const metrics = metricsResult.rows[0];
+    // node-postgres returns COUNT()/SUM() as strings by default (they're
+    // BIGINT in Postgres) — parsed to number here so the JSON response
+    // below carries real numbers, not numeric-looking strings.
+    interface UserMetricsRow {
+      campaigns: string;
+      total_events: string;
+      views: string;
+      engagements: string;
+    }
+    const metricsRow = metricsResult.rows[0] as UserMetricsRow;
+    const metrics = {
+      campaigns: Number(metricsRow.campaigns),
+      total_events: Number(metricsRow.total_events),
+      views: Number(metricsRow.views),
+      engagements: Number(metricsRow.engagements),
+    };
     const engagementRate = metrics.views > 0 ? (metrics.engagements / metrics.views) * 100 : 0;
 
     // Get top performing campaign
+    interface TopCampaignRow {
+      campaign_id: string;
+      event_count: string;
+    }
     const topCampaignResult = await query(
       `SELECT campaign_id, COUNT(*) as event_count
        FROM analytics_events
@@ -42,7 +61,7 @@ export const getGrowthStrategy = async (req: Request, res: Response): Promise<vo
       [userId]
     );
 
-    const topCampaign = topCampaignResult.rows[0] || null;
+    const topCampaign = (topCampaignResult.rows[0] as TopCampaignRow | undefined) || null;
 
     // Generate strategy based on metrics
     const strategies: string[] = [];
@@ -200,9 +219,18 @@ export const getRecommendations = async (req: Request, res: Response): Promise<v
       [userId]
     );
 
-    const topTypes = topTypesResult.rows;
+    interface TopTypeRow {
+      type: string;
+      events: string;
+      engagements: string;
+    }
+    const topTypes = topTypesResult.rows as TopTypeRow[];
 
     // Get preferred platforms
+    interface PlatformRow {
+      platform: string;
+      events: string;
+    }
     const platformsResult = await query(
       `SELECT
         platform,
@@ -215,7 +243,7 @@ export const getRecommendations = async (req: Request, res: Response): Promise<v
       [userId]
     );
 
-    const platforms = platformsResult.rows;
+    const platforms = platformsResult.rows as PlatformRow[];
 
     const recommendations = [];
 

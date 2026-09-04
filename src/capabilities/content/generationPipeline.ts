@@ -9,8 +9,8 @@ import { log } from '../../agent/logger.js';
 import type { BrandProfile } from '../../config/types.js';
 import { autoLoadBrandKit } from './brandKitAutoLoader.js';
 import { getRandomTemplate, searchTemplates, type ContentTemplate } from './templateLibrary.js';
-import { generateCarouselContent, type CarouselBrief } from './carouselContentOrchestrator.js';
-import { generateVideoContent, type VideoBrief } from './videoContentOrchestrator.js';
+import { generateCarouselContent, type CarouselBrief, type GeneratedCarousel } from './carouselContentOrchestrator.js';
+import { generateVideoContent, type VideoBrief, type GeneratedVideo } from './videoContentOrchestrator.js';
 import { enrichCarouselWithEmotionAndHumor, enrichVideoWithEmotionAndHumor } from './emotionHumorOrchestrator.js';
 import type { Emotion } from './emotionPsychologyEngine.js';
 
@@ -80,7 +80,7 @@ export const executeGenerationPipeline = async (brief: UserContentBrief): Promis
     pipelineStages.push('content-generation');
     log.info('[Pipeline] Stage 3: Generating content...');
 
-    let generatedContent: unknown;
+    let generatedContent: GeneratedCarousel | GeneratedVideo | undefined;
 
     if (brief.contentType === 'carousel') {
       const carouselBrief: CarouselBrief = {
@@ -106,11 +106,11 @@ export const executeGenerationPipeline = async (brief: UserContentBrief): Promis
     pipelineStages.push('enrichment');
     log.info('[Pipeline] Stage 4: Enriching with psychology + humor...');
 
-    let enrichedContent: unknown;
+    let enrichedContent: CarouselEnrichment | VideoEnrichment | undefined;
 
-    if (brief.contentType === 'carousel' && generatedContent.slides) {
+    if (generatedContent && 'slides' in generatedContent && generatedContent.slides) {
       enrichedContent = await enrichCarouselWithEmotionAndHumor(
-        generatedContent.slides.map((s: unknown, idx: number) => ({
+        generatedContent.slides.map((s, idx) => ({
           number: idx + 1,
           headline: s.headline,
           body: s.body,
@@ -119,7 +119,7 @@ export const executeGenerationPipeline = async (brief: UserContentBrief): Promis
         emotion,
         brand,
       );
-    } else if (generatedContent.script) {
+    } else if (generatedContent && 'script' in generatedContent && generatedContent.script) {
       enrichedContent = await enrichVideoWithEmotionAndHumor(generatedContent.script, brief.topic, emotion, brand);
     }
 
@@ -181,14 +181,17 @@ const calculateContentQuality = (_content: unknown): number =>
    80
 ;
 
-const extractEmotionalScore = (enrichment: unknown): number => {
+type CarouselEnrichment = Awaited<ReturnType<typeof enrichCarouselWithEmotionAndHumor>>;
+type VideoEnrichment = Awaited<ReturnType<typeof enrichVideoWithEmotionAndHumor>>;
+
+const extractEmotionalScore = (enrichment: CarouselEnrichment | VideoEnrichment | undefined): number => {
   // Extract from enrichment scores if available
   if (Array.isArray(enrichment)) {
-    const scores = enrichment.map((e: unknown) => e.enriched?.score?.overallEngagement || 0);
+    const scores = enrichment.map((e) => e.enriched?.score?.overallEngagement || 0);
     return Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length);
   }
 
-  return enrichment?.hook?.score?.overallEngagement || enrichment?.enriched?.score?.overallEngagement || 70;
+  return enrichment?.hook?.score?.overallEngagement || 70;
 };
 
 const selectExportFormats = (contentType: string): string[] => {

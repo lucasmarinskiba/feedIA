@@ -85,6 +85,10 @@ import { startMetricsPolling } from './services/metrics-polling.js';
 import { initializeUserTiersTable, resetMonthlyUsage } from './db/user-tiers.js';
 import { initializePaymentTokenTables } from './db/payments-tokens.js';
 import { initializeAccountsTables } from './db/accounts.js';
+// Used by /api/admin/migrate below — was never imported, so that whole
+// endpoint threw "executeMutation is not defined" the moment an admin
+// tried to run migrations through it.
+import { executeMutation } from './db/typed-queries.js';
 import { initializeQuotaLogging } from './db/quota-log-init.js';
 import { initFeedbackSchema, initWeightsSchema } from './db/feedback-schema.js';
 import { PRICING_HTML } from './api/pricing-routes.js';
@@ -98,6 +102,7 @@ import { registerBootstrapRoutes } from './api/bootstrap-routes.js';
 import { registerSeedEndpoint } from './api/seed-endpoint.js';
 import { register, login, logout, refresh, verifyJWT } from './api/auth-endpoints.js';
 import { registerUserRoutes } from './api/user-routes.js';
+import { registerPinterestResearchRoutes } from './server/routes/pinterestResearch.js';
 import { registerContentStorageRoutes } from './api/content-storage-routes.js';
 import { registerSocialPublishingRoutes } from './api/social-publishing-routes.js';
 import { registerSocialAutomationRoutes } from './api/social-automation-complete.js';
@@ -238,6 +243,10 @@ app.post('/api/auth/logout', verifyJWT, logout);
 
 // User routes (require authentication)
 registerUserRoutes(app);
+
+// Pinterest research import (was never actually mounted — see that
+// file's own comment for the full story)
+registerPinterestResearchRoutes(app);
 
 // Content storage routes (posts, videos, carousels management)
 registerContentStorageRoutes(app);

@@ -217,7 +217,7 @@ export const layoutTemplates: LayoutTemplate[] = [
 ];
 
 // Learning engine: ingest new image
-export const ingestVisualPattern = (image: unknown, metadata: unknown): VisualPattern => 
+export const ingestVisualPattern = (image: unknown, metadata: Partial<VisualPattern>): VisualPattern =>
   // TODO: Vision API to extract:
   // - dominant colors
   // - layout structure

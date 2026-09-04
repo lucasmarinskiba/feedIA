@@ -369,7 +369,18 @@ export const getFlowTemplate = (criteria: {
   messageType: string;
 }): CarouselFlowPattern | null => flowPatterns.find(p => p.industryFit.includes(criteria.industry)) || null;
 
-export const ingestCarouselFlow = (slides: unknown[], metadata: unknown): CarouselFlowPattern => ({
+interface CarouselFlowSlideInput {
+  summary?: string;
+  retentionMechanic?: string;
+}
+
+interface CarouselFlowMetadata {
+  name?: string;
+  industries?: string[];
+  psychology?: string;
+}
+
+export const ingestCarouselFlow = (slides: CarouselFlowSlideInput[], metadata: CarouselFlowMetadata): CarouselFlowPattern => ({
     id: `flow-${Date.now()}`,
     name: metadata.name || 'Custom Flow',
     slides: slides.length,

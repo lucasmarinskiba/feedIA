@@ -526,7 +526,7 @@ export const copyPatterns: CopyPattern[] = [
   }
 ];
 
-export const ingestCopyExample = (copy: string, metadata: unknown): CopyPattern => ({
+export const ingestCopyExample = (copy: string, metadata: Partial<CopyPattern>): CopyPattern => ({
     id: `copy-${Date.now()}`,
     name: metadata.name || 'Untitled',
     type: metadata.type || 'hook',

@@ -5,7 +5,10 @@
  */
 
 import { FeedIAComputerUseOrchestrator } from '../computer_use/FEEDIA_COMPUTER_USE_ORCHESTRATOR';
-import { analyzeScreenshot } from '../computer_use/COMPUTER_VISION_LAYER';
+import { analyzeScreenshot, type VisionContent } from '../computer_use/COMPUTER_VISION_LAYER';
+
+type VisionPost = VisionContent['recentPosts'][number];
+type AccountMetrics = NonNullable<VisionContent['accountMetrics']>;
 
 interface AccountPersonality {
   vibe: 'human' | 'humorous' | 'educational' | 'inspirational' | 'entertaining' | 'professional' | 'mixed';
@@ -37,11 +40,11 @@ class ContentSpecialist {
     const posts = vision.content.recentPosts || [];
 
     // Analyze tone
-    const tones = posts.map((p: unknown) => this.analyzeTone(p.caption));
+    const tones = posts.map((p: VisionPost) => this.analyzeTone(p.caption));
     const primaryTone = this.getMostCommon(tones) as AccountPersonality['vibe'];
 
     // Analyze format
-    const formats = posts.map((p: unknown) => p.format);
+    const formats = posts.map((p: VisionPost) => p.format);
     const primaryFormat = this.getMostCommon(formats);
 
     // Identify content pillars
@@ -112,7 +115,7 @@ class ContentSpecialist {
     return array.reduce((a, b) => (array.filter((x) => x === a).length > array.filter((x) => x === b).length ? a : b));
   }
 
-  private extractContentPillars(posts: unknown[]): Record<string, number> {
+  private extractContentPillars(posts: VisionPost[]): Record<string, number> {
     // Categorize posts by type, count percentages
     const pillars: Record<string, number> = {};
     const categories = posts.map((p) => p.category || 'general');
@@ -125,14 +128,15 @@ class ContentSpecialist {
     return pillars;
   }
 
-  private estimateGrowthStage(posts: unknown[], metrics: unknown): AccountPersonality['growthStage'] {
-    if (metrics.followers < 1000) return 'early';
-    if (metrics.followers < 10000) return 'growth';
-    if (metrics.followers < 100000) return 'mature';
+  private estimateGrowthStage(posts: VisionPost[], metrics: AccountMetrics | undefined): AccountPersonality['growthStage'] {
+    const followers = metrics?.followers ?? 0;
+    if (followers < 1000) return 'early';
+    if (followers < 10000) return 'growth';
+    if (followers < 100000) return 'mature';
     return 'viral';
   }
 
-  private detectBestPostingTimes(posts: unknown[]): string[] {
+  private detectBestPostingTimes(posts: VisionPost[]): string[] {
     // Analyze when top posts were published
     // Return: 3 best times to post (e.g., "9:00 AM", "12:30 PM", "8:00 PM")
     return ['9:00 AM', '12:30 PM', '8:00 PM'];
@@ -229,6 +233,17 @@ class GrowthSpecialist {
 
 // ── QUALITY ANALYZER AGENT ──────────────────────────
 
+// scoreAesthetics/scoreAlignment below read resolution/compositionScore/
+// colorHarmony/lightingScore/tone/style/topic off whatever's passed in,
+// but the actual caller (runAutonomousCycle) passes an
+// AutomationResult (success/action/platform/output/metrics/errors) —
+// none of those fields exist on it. That mismatch predates this change
+// (content was already `unknown` before); a real vision-quality/style
+// analysis pass was apparently never wired up, so every read below has
+// always silently evaluated to `undefined` at runtime. Not fixing that
+// design gap here — out of scope for a type-error pass — just keeping
+// the parameter honestly untyped (`unknown`, cast at the read sites)
+// instead of inventing a shape that doesn't match the real caller.
 class QualityAnalyzer {
   async analyzeContentQuality(content: unknown): Promise<{
     aestheticScore: number; // 0-100
@@ -272,21 +287,22 @@ class QualityAnalyzer {
   private scoreAesthetics(content: unknown): number {
     // Analyze: resolution, composition, color harmony, focus, lighting
     // Score 0-100
+    const c = content as Record<string, number | undefined>;
 
     let score = 70; // Base score
 
     // Check resolution
-    if (content.resolution >= 4000) score += 10;
-    if (content.resolution < 1080) score -= 15;
+    if (c.resolution! >= 4000) score += 10;
+    if (c.resolution! < 1080) score -= 15;
 
     // Check composition (rule of thirds, balance, focus)
-    if (content.compositionScore > 0.8) score += 10;
+    if (c.compositionScore! > 0.8) score += 10;
 
     // Check colors (harmony, vibrance)
-    if (content.colorHarmony > 0.8) score += 10;
+    if (c.colorHarmony! > 0.8) score += 10;
 
     // Check lighting
-    if (content.lightingScore > 0.8) score += 10;
+    if (c.lightingScore! > 0.8) score += 10;
 
     return Math.min(100, score);
   }
@@ -295,7 +311,7 @@ class QualityAnalyzer {
     // Check if content matches account personality
     // 0-100 score
 
-    const { tone, style, topic } = content;
+    const { tone, style, topic } = content as Record<string, string | undefined>;
     let score = 50;
 
     // Tone alignment

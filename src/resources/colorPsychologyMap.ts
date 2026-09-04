@@ -334,7 +334,7 @@ export const ingestColorPalette = (colors: {
   primary: string;
   secondary: string;
   accent: string;
-}, metadata: unknown): ColorPalette => ({
+}, metadata: Partial<ColorPalette>): ColorPalette => ({
     id: `palette-${Date.now()}`,
     name: metadata.name || 'Custom Palette',
     primary: colors.primary,

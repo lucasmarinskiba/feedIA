@@ -154,7 +154,16 @@ const getUserUsage = async (req: AuthRequest, res: Response): Promise<void> => {
     const currentDate = new Date();
     const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
 
-    const result = await queryAs(
+    // node-postgres returns NUMERIC/BIGINT columns (what SUM() produces
+    // here) as strings by default, to avoid silent precision loss —
+    // hence parseInt/parseFloat below, which is correct as written.
+    interface UsageRow {
+      api_calls: string;
+      storage_added_gb: string;
+      video_storage_added_gb: string;
+      content_generated: string;
+    }
+    const result = await queryAs<UsageRow>(
       `SELECT
         COALESCE(SUM(api_calls), 0) as api_calls,
         COALESCE(SUM(storage_added_gb), 0) as storage_added_gb,
@@ -166,14 +175,33 @@ const getUserUsage = async (req: AuthRequest, res: Response): Promise<void> => {
     );
 
     const usage = result[0] || {
-      api_calls: 0,
-      storage_added_gb: 0,
-      video_storage_added_gb: 0,
-      content_generated: 0,
+      api_calls: '0',
+      storage_added_gb: '0',
+      video_storage_added_gb: '0',
+      content_generated: '0',
     };
 
-    // Get user limits
-    const userResult = await executeMutation(
+    // Get user limits. Was calling executeMutation (INSERT/UPDATE/DELETE,
+    // returns the affected-row COUNT as a plain number) on a SELECT —
+    // `userResult.length`/`userResult[0]` on a number is always
+    // undefined, so this endpoint always 500'd past this point (or
+    // silently skipped the 404 check, since `undefined === 0` is false)
+    // regardless of whether the user existed. queryAs is the row-
+    // returning function this file already uses just above.
+    // Matches db/users-schema.sql exactly: *_limit_gb and api_calls_* are
+    // INT (node-postgres parses those as JS number natively);
+    // *_used_gb is DECIMAL(10,2), which node-postgres returns as a
+    // string — hence parseFloat(user.storage_used_gb) etc. below.
+    interface UserLimitsRow {
+      api_calls_limit: number;
+      api_calls_this_month: number;
+      storage_limit_gb: number;
+      storage_used_gb: string;
+      video_storage_limit_gb: number;
+      video_storage_used_gb: string;
+      tier: string;
+    }
+    const userResult = await queryAs<UserLimitsRow>(
       `SELECT api_calls_limit, api_calls_this_month, storage_limit_gb, storage_used_gb,
               video_storage_limit_gb, video_storage_used_gb, tier
        FROM users WHERE id = $1 AND deleted_at IS NULL`,
@@ -251,13 +279,20 @@ const getUserStorage = async (req: AuthRequest, res: Response): Promise<void> =>
       video_storage_limit_gb: number;
     }
 
-    const userResult = await executeMutation(
+    // Same executeMutation-on-a-SELECT bug as getUserUsage above — see
+    // that function's comment. .length/[0] on the row-count number this
+    // returned always broke this endpoint too.
+    const userResult = await queryAs<UserStorageRow>(
       `SELECT storage_used_gb, storage_limit_gb, video_storage_used_gb, video_storage_limit_gb
        FROM users WHERE id = $1`,
       [userId],
     );
 
-    const user = userResult[0] as UserStorageRow;
+    if (userResult.length === 0) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    const user = userResult[0];
     const breakdown = (result as StorageRow[]).map((row) => ({
       type: row.file_type,
       count: row.count,
@@ -311,7 +346,14 @@ const createApiKey = async (req: AuthRequest, res: Response): Promise<void> => {
     else if (expiresIn === '90d') expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
     else if (expiresIn === '1y') expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 
-    const result = await queryAs(
+    interface ApiKeyRow {
+      id: string;
+      key_prefix: string;
+      name: string;
+      expires_at: Date | null;
+      created_at: Date;
+    }
+    const result = await queryAs<ApiKeyRow>(
       `INSERT INTO user_api_keys (user_id, key_hash, key_prefix, name, expires_at)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, key_prefix, name, expires_at, created_at`,

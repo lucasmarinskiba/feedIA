@@ -88,9 +88,18 @@ export const createUserBrandProfile = (
 
 export const getUserBrandProfile = (userId: string): UserBrandProfile | null => userBrands.get(userId) || null;
 
+interface BrandLearningsUpdate {
+  narratives?: string[];
+  layouts?: string[];
+  copyPatterns?: string[];
+  topContentTypes?: string[];
+  averageEngagement?: number;
+  averageRetention?: number;
+}
+
 export const updateUserBrandLearnings = (
   userId: string,
-  learnings: unknown,
+  learnings: BrandLearningsUpdate,
 ): UserBrandProfile | null => {
   const profile = userBrands.get(userId);
   if (!profile) return null;

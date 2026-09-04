@@ -139,9 +139,9 @@ export const getToolFor = (task: string): Tool | null => {
   return toolLibrary.find(t => t.name === rec.recommendedTool) || null;
 };
 
-export const ingestTool = (tool: unknown): Tool => ({
+export const ingestTool = (tool: Partial<Tool>): Tool => ({
     id: `tool-${Date.now()}`,
-    name: tool.name,
+    name: tool.name || 'Untitled Tool',
     category: tool.category || 'design',
     capability: tool.capability || [],
     useCase: tool.useCase || '',
