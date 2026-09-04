@@ -80,10 +80,10 @@ router.post('/expand-refine', async (req: Request, res: Response): Promise<void>
       expansions: {
         total_generated: validatedVariations.length,
         total_stored: stored,
-        quality_score_avg: validatedVariations.reduce((sum: number, v: unknown) => sum + v.validation.score, 0) / validatedVariations.length,
-        all_passed_validation: validatedVariations.every((v: unknown) => v.validation.passed),
+        quality_score_avg: validatedVariations.reduce((sum, v) => sum + v.validation.score, 0) / validatedVariations.length,
+        all_passed_validation: validatedVariations.every((v) => v.validation.passed),
       },
-      samples: validatedVariations.slice(0, 2).map((v: unknown) => ({
+      samples: validatedVariations.slice(0, 2).map((v) => ({
         tone: v.tone,
         score: v.validation.score,
         preview: v.variation_text.slice(0, 100) + '...',

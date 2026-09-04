@@ -35,7 +35,7 @@ export const animationEngine = () => {
    * Generates CSS keyframes + timing array for MP4 generation.
    */
   const buildAnimationTimeline = (
-    slides: unknown[],
+    slides: Array<{ animation?: { type?: 'fade' | 'slideLeft' | 'slideUp' | 'zoom' | 'rotate'; duration?: number; delay?: number; easing?: string } }>,
     totalDuration: number,
     defaultAnimationStyle: 'fade' | 'slideLeft' | 'slideUp' | 'zoom' | 'rotate',
   ): AnimationTimeline => {
@@ -49,7 +49,7 @@ export const animationEngine = () => {
 
     let cumulativeDelay = 0;
 
-    slides.forEach((slide: unknown, idx: unknown) => {
+    slides.forEach((slide, idx: number) => {
       const animationType = slide.animation?.type || defaultAnimationStyle;
       const duration = slide.animation?.duration || 2500;
       const delay = slide.animation?.delay || 0;

@@ -5,6 +5,12 @@
 
 import { FeedIAComputerUseOrchestrator } from './FEEDIA_COMPUTER_USE_ORCHESTRATOR';
 
+// AutomationResult.metrics is `unknown` (varies per action type) — the
+// 'analyze_account' action sets it to analyzeAccountMetrics()'s real
+// {followers, engagement, posts} shape (BROWSER_AUTOMATION_LAYER.ts), so
+// reading .engagement here is accurate for that action, not a guess.
+const engagementOf = (metrics: unknown): number => (metrics as { engagement?: number } | undefined)?.engagement || 0;
+
 // ── CM (COMMUNITY MANAGER) WORKFLOW ──────────────────
 
 async function communityManagerWorkflow() {
@@ -163,12 +169,12 @@ async function contentCreatorWorkflow(niche: string) {
   const results = orchestrator.getActionLog();
   const topPerformer = results.reduce(
     (best, curr) => (
-      (curr.metrics?.engagement || 0) > (best.metrics?.engagement || 0) ? curr : best
+      engagementOf(curr.metrics) > engagementOf(best.metrics) ? curr : best
     ),
   );
 
   console.log(
-    `[FeedIA Creator] Top performer: ${topPerformer.action} (engagement: ${topPerformer.metrics?.engagement})`,
+    `[FeedIA Creator] Top performer: ${topPerformer.action} (engagement: ${engagementOf(topPerformer.metrics)})`,
   );
 }
 
@@ -200,7 +206,7 @@ async function growthAnalystWorkflow() {
     successRate: (analysis.filter((a) => a.success).length / analysis.length) * 100,
     topPerformingTask: analysis.reduce(
       (best, curr) => (
-        (curr.metrics?.engagement || 0) > (best.metrics?.engagement || 0) ? curr : best
+        engagementOf(curr.metrics) > engagementOf(best.metrics) ? curr : best
       ),
     ).action,
     recommendations: [

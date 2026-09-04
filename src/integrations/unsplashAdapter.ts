@@ -48,7 +48,14 @@ export const searchUnsplash = async (query: string, limit: number = 5): Promise<
       return [];
     }
 
-    return data.results.map((item: unknown) => ({
+    interface UnsplashApiResult {
+      id: string;
+      urls: { regular: string };
+      description?: string;
+      alt_description?: string;
+      user: { name: string };
+    }
+    return data.results.map((item: UnsplashApiResult) => ({
       id: item.id,
       url: item.urls.regular, // High-res download URL
       description: item.description || item.alt_description || 'Stock photo',
