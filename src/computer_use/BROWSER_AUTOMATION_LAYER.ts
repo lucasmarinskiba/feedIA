@@ -213,17 +213,26 @@ class BrowserAutomationManager {
     const followersText = await page.textContent('._ac2a');
     const followers = parseInt(followersText?.match(/\d+/)?.[0] || '0');
 
-    // Get engagement rate from recent posts
-    const postEngagement = await page.$$eval('[role="article"]', (posts: unknown[]) =>
-      posts.map((p: unknown) => ({
-        likes: (p.querySelector('[aria-label*="like"]')?.textContent || '0').match(/\d+/)?.[0],
-        comments: (p.querySelector('[aria-label*="comment"]')?.textContent || '0').match(/\d+/)?.[0],
-      })),
+    // Get engagement rate from recent posts. Runs inside the browser
+    // context (Playwright serializes this callback), so `p` is a real
+    // DOM element at runtime — this project's tsconfig has no "dom" lib,
+    // so `Element` isn't available to name that; this is the minimal
+    // structural shape the callback actually uses.
+    interface QueryableElement {
+      querySelector(selector: string): { textContent: string | null } | null;
+    }
+    const postEngagement: Array<{ likes?: string; comments?: string }> = await page.$$eval(
+      '[role="article"]',
+      (posts: QueryableElement[]) =>
+        posts.map((p) => ({
+          likes: (p.querySelector('[aria-label*="like"]')?.textContent || '0').match(/\d+/)?.[0],
+          comments: (p.querySelector('[aria-label*="comment"]')?.textContent || '0').match(/\d+/)?.[0],
+        })),
     );
 
     const avgEngagement =
       postEngagement.reduce(
-        (sum: unknown, p: unknown) =>
+        (sum: number, p) =>
           sum + (parseInt(p.likes || '0') + parseInt(p.comments || '0')),
         0,
       ) / postEngagement.length || 0;
@@ -315,7 +324,11 @@ class BrowserAutomationManager {
 
 // ── PUBLIC API ──────────────────────────────────────────
 
-export async function automateInstagramPost(content: unknown): Promise<void> {
+export async function automateInstagramPost(content: {
+  images: string[];
+  captions: string[];
+  hashtags: string;
+}): Promise<void> {
   const manager = new BrowserAutomationManager();
   await manager.initializeBrowser();
   await manager.navigateToInstagram();
@@ -323,7 +336,11 @@ export async function automateInstagramPost(content: unknown): Promise<void> {
   await manager.closeBrowser();
 }
 
-export async function automateTikTokVideo(content: unknown): Promise<void> {
+export async function automateTikTokVideo(content: {
+  videoPath: string;
+  caption: string;
+  hashtags: string;
+}): Promise<void> {
   const manager = new BrowserAutomationManager();
   await manager.initializeBrowser();
   await manager.navigateToTikTok();

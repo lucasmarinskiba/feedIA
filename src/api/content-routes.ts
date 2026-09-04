@@ -76,7 +76,7 @@ router.post('/carousel', async (req, res) => {
 
     log.info('[ContentAPI] carousel generated', {
       contentId: content.id,
-      slides: (content.prompts as Array<{ prompt: { text: string } }>)?.length || 0,
+      slides: content.prompts?.length || 0,
       avgQuality,
       avgWit,
     });
@@ -127,7 +127,7 @@ router.post('/reel', async (req, res) => {
 
     log.info('[ContentAPI] reel generated', {
       contentId: content.id,
-      scenes: (content.prompts as Array<{ prompt: { text: string } }>)?.length || 0,
+      scenes: content.prompts?.length || 0,
       avgQuality,
       avgWit,
     });
@@ -178,7 +178,7 @@ router.post('/story', async (req, res) => {
 
     log.info('[ContentAPI] story generated', {
       contentId: content.id,
-      frames: (content.prompts as Array<{ prompt: { text: string } }>)?.length || 0,
+      frames: content.prompts?.length || 0,
       avgQuality,
       avgWit,
     });

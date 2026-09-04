@@ -199,7 +199,7 @@ export const generateCarouselPhase26 = (brief: CarouselBriefPhase26): GeneratedC
     throw new Error(`Pattern ${brief.patternName} not found`);
   }
 
-  const slides: CarouselSlidePhase26[] = template.slides.map((slide: unknown, idx: number) => ({
+  const slides: CarouselSlidePhase26[] = template.slides.map((slide: Record<string, string>, idx: number) => ({
     number: idx + 1,
     role: slide.role,
     headline: slide.headline,
@@ -222,7 +222,7 @@ export const generateCarouselPhase26 = (brief: CarouselBriefPhase26): GeneratedC
     format: brief.format,
     slides,
     metadata: {
-      structure: template.slides.map((s: unknown) => s.role).join(' → '),
+      structure: template.slides.map((s: Record<string, string>) => s.role).join(' → '),
       psychology: template.psychology,
       shareability: template.shareability,
       platformRecommendations: getPlatformRecommendations(brief.format),
