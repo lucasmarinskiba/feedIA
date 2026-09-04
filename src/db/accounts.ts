@@ -163,7 +163,7 @@ export const connectAccount = async (
       throw new Error('Failed to connect account');
     }
 
-    return parseAccountRecord(result.rows[0]);
+    return parseAccountRecord(result.rows[0] as Record<string, unknown>);
   } catch (err) {
     console.error('[Accounts] Connect failed:', err);
     throw err;
@@ -180,7 +180,7 @@ export const getUserAccounts = async (userId: string): Promise<UserAccount[]> =>
       [userId],
     );
 
-    return (result.rows || []).map((row: Record<string, unknown>) => parseAccountRecord(row));
+    return (result.rows || []).map((row) => parseAccountRecord(row as Record<string, unknown>));
   } catch (err) {
     console.error('[Accounts] Get failed:', err);
     return [];
@@ -198,7 +198,7 @@ export const getAccount = async (accountId: string): Promise<UserAccount | null>
     );
 
     if (!result.rows || result.rows.length === 0) return null;
-    return parseAccountRecord(result.rows[0]);
+    return parseAccountRecord(result.rows[0] as Record<string, unknown>);
   } catch (err) {
     console.error('[Accounts] Get single failed:', err);
     return null;
@@ -297,10 +297,10 @@ export const getOrCreateAccountQuota = async (
       if (!fetchResult.rows || fetchResult.rows.length === 0) {
         throw new Error('Failed to get quota');
       }
-      return parseQuotaRecord(fetchResult.rows[0]);
+      return parseQuotaRecord(fetchResult.rows[0] as Record<string, unknown>);
     }
 
-    return parseQuotaRecord(result.rows[0]);
+    return parseQuotaRecord(result.rows[0] as Record<string, unknown>);
   } catch (err) {
     console.error('[Accounts] Get/create quota failed:', err);
     throw err;
@@ -331,7 +331,7 @@ export const checkAccountFormatQuota = async (
       return { allowed: false, used: 0, limit: 0, reason: 'Quota not initialized' };
     }
 
-    const quota = parseQuotaRecord(result.rows[0]);
+    const quota = parseQuotaRecord(result.rows[0] as Record<string, unknown>);
     const limitField = `${format}_limit` as keyof AccountQuota;
     const usedField = `${format}_used` as keyof AccountQuota;
 
@@ -404,7 +404,7 @@ export const recordPublishedContent = async (
       throw new Error('Failed to record content');
     }
 
-    return parseContentRecord(result.rows[0]);
+    return parseContentRecord(result.rows[0] as Record<string, unknown>);
   } catch (err) {
     console.error('[Accounts] Record content failed:', err);
     throw err;

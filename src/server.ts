@@ -103,6 +103,7 @@ import { registerSeedEndpoint } from './api/seed-endpoint.js';
 import { register, login, logout, refresh, verifyJWT } from './api/auth-endpoints.js';
 import { registerUserRoutes } from './api/user-routes.js';
 import { registerPinterestResearchRoutes } from './server/routes/pinterestResearch.js';
+import { registerContentGenerationRoutes } from './server/routes/contentGeneration.js';
 import { registerContentStorageRoutes } from './api/content-storage-routes.js';
 import { registerSocialPublishingRoutes } from './api/social-publishing-routes.js';
 import { registerSocialAutomationRoutes } from './api/social-automation-complete.js';
@@ -247,6 +248,10 @@ registerUserRoutes(app);
 // Pinterest research import (was never actually mounted — see that
 // file's own comment for the full story)
 registerPinterestResearchRoutes(app);
+
+// One-click content generation API (generate/preview/publish/templates/
+// brand-kit) — also never actually mounted, same story
+registerContentGenerationRoutes(app);
 
 // Content storage routes (posts, videos, carousels management)
 registerContentStorageRoutes(app);
