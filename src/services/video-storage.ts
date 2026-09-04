@@ -60,9 +60,23 @@ class VideoStorage {
   private videoBucketName = `${this.bucketName}-videos`;
   private endpoint = 'https://s3.us-west-000.backblazeb2.com';
 
+  /**
+   * Whether B2 credentials are configured. Video upload/delete calls check
+   * this and fail per-request (caught by their own try/catch, same as any
+   * other upload error) instead of the constructor throwing — this class
+   * is instantiated as a module-level singleton (see `videoStorage` below),
+   * so a throw here used to crash the whole process at import time, before
+   * the server even started listening, taking down every unrelated feature
+   * (carousel/prompt generation, etc.) whenever BACKBLAZE_KEY_ID/
+   * BACKBLAZE_APP_KEY weren't set — confirmed as the actual cause of a
+   * production crash-loop.
+   */
+  readonly available: boolean;
+
   constructor() {
-    if (!this.keyId || !this.appKey) {
-      throw new Error('BACKBLAZE_KEY_ID and BACKBLAZE_APP_KEY must be set');
+    this.available = Boolean(this.keyId && this.appKey);
+    if (!this.available) {
+      log.warn('BACKBLAZE_KEY_ID/BACKBLAZE_APP_KEY not set — video storage disabled, other features unaffected');
     }
   }
 
@@ -85,6 +99,9 @@ class VideoStorage {
     carouselId: string,
     model: string = 'veo-3.1',
   ): Promise<VideoUploadResult> {
+    if (!this.available) {
+      throw new Error('Video storage is not configured (BACKBLAZE_KEY_ID/BACKBLAZE_APP_KEY missing)');
+    }
     try {
       const videoId = crypto.randomUUID();
       const timestamp = Date.now();
@@ -276,6 +293,9 @@ class VideoStorage {
     carouselId: string,
     videoId: string,
   ): Promise<string> {
+    if (!this.available) {
+      throw new Error('Video storage is not configured (BACKBLAZE_KEY_ID/BACKBLAZE_APP_KEY missing)');
+    }
     try {
       const timestamp = Date.now();
       const key = `users/${userId}/videos/${carouselId}/${videoId}_instagram_${timestamp}.mp4`;
@@ -358,6 +378,9 @@ class VideoStorage {
    * Delete video from B2 (called by background worker)
    */
   async deleteFromB2(videoUrl: string): Promise<void> {
+    if (!this.available) {
+      throw new Error('Video storage is not configured (BACKBLAZE_KEY_ID/BACKBLAZE_APP_KEY missing)');
+    }
     try {
       const key = videoUrl.split(`${this.videoBucketName}/`)[1];
       if (!key) {
