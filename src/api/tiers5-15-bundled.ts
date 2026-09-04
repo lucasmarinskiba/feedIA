@@ -86,12 +86,16 @@ export const getABTestResults = async (req: Request, res: Response): Promise<voi
       [test.variant_b_id]
     );
 
+    // COUNT() comes back as a string from node-postgres (it's BIGINT)
+    const eventsA = Number((metricsA.rows[0] as { events: string })?.events || 0);
+    const eventsB = Number((metricsB.rows[0] as { events: string })?.events || 0);
+
     res.json({
       testId,
       status: test.status,
-      winner: metricsA.rows[0].events > metricsB.rows[0].events ? 'A' : 'B',
-      variantA: { events: metricsA.rows[0].events },
-      variantB: { events: metricsB.rows[0].events },
+      winner: eventsA > eventsB ? 'A' : 'B',
+      variantA: { events: eventsA },
+      variantB: { events: eventsB },
     });
     return;
   } catch {
@@ -118,8 +122,8 @@ export const calculateROI = async (req: Request, res: Response): Promise<void> =
       [userId]
     );
 
-    const cost = costResult.rows[0]?.total || 0;
-    const revenue = revenueResult.rows[0]?.estimated_revenue || 0;
+    const cost = Number((costResult.rows[0] as { total: string } | undefined)?.total || 0);
+    const revenue = Number((revenueResult.rows[0] as { estimated_revenue: string } | undefined)?.estimated_revenue || 0);
     const roi = cost > 0 ? ((revenue - cost) / cost * 100).toFixed(2) : 'N/A';
 
     res.json({ cost, revenue, roi: roi + '%', payback: cost > 0 ? (cost / revenue * 30).toFixed(1) + ' days' : 'N/A' });

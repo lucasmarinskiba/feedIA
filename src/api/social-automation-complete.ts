@@ -254,8 +254,11 @@ const schedulePost = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    // Create scheduled post record
-    const result = await queryAs(
+    // Create scheduled post record. queryAs returns the row array
+    // directly (not the raw {rows, rowCount} pg shape) -- .rows[0] here
+    // was always undefined, so this endpoint always threw reading
+    // undefined.id, for every caller.
+    const result = await queryAs<{ id: string; scheduled_at: Date }>(
       `INSERT INTO scheduled_posts (user_id, content_id, scheduled_at, platforms, status, retry_count, created_at)
        VALUES ($1, $2, $3, $4, 'pending', 0, NOW())
        RETURNING id, scheduled_at`,
@@ -267,7 +270,7 @@ const schedulePost = async (req: AuthRequest, res: Response): Promise<void> => {
 
     res.json({
       success: true,
-      scheduledPostId: result.rows[0].id,
+      scheduledPostId: result[0].id,
       scheduledAt: scheduledTime,
       message: `Post scheduled for ${scheduledTime.toISOString()}`,
     });
@@ -395,8 +398,16 @@ const getDashboard = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    // Get aggregated metrics
-    const result = await queryAs(
+    // Get aggregated metrics. Same queryAs-returns-the-array-not-{rows}
+    // bug as scheduleContent above -- COUNT/SUM/AVG come back as
+    // strings from node-postgres (BIGINT/NUMERIC), hence Number() below.
+    interface DashboardMetricsRow {
+      total_posts: string;
+      instagram_views: string;
+      tiktok_views: string;
+      avg_engagement: string;
+    }
+    const result = await queryAs<DashboardMetricsRow>(
       `SELECT
         COUNT(*) as total_posts,
         SUM(COALESCE(ig_views, 0)) as instagram_views,
@@ -408,10 +419,10 @@ const getDashboard = async (req: AuthRequest, res: Response): Promise<void> => {
     );
 
     res.json({
-      totalPosts: result.rows[0].total_posts,
-      instagramViews: result.rows[0].instagram_views,
-      tiktokViews: result.rows[0].tiktok_views,
-      avgEngagement: result.rows[0].avg_engagement,
+      totalPosts: Number(result[0].total_posts),
+      instagramViews: Number(result[0].instagram_views),
+      tiktokViews: Number(result[0].tiktok_views),
+      avgEngagement: Number(result[0].avg_engagement),
     });
     return;
   } catch (err) {
@@ -486,7 +497,7 @@ const getTemplates = async (req: AuthRequest, res: Response): Promise<void> => {
       [userId]
     );
 
-    res.json({ templates: result.rows });
+    res.json({ templates: result });
     return;
   } catch (err) {
     res.status(500).json({ error: String(err) });

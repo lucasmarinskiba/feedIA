@@ -208,9 +208,9 @@ class PromptDatabase {
 
     const rows: DbRow[] = prompts.map((p) => ({
       id: p.id,
-      base_id: p.baseId,
-      style: p.style,
-      occasion: p.occasion,
+      base_id: p.baseId || '',
+      style: p.style || '',
+      occasion: p.occasion || '',
       prompt_text: p.prompt,
       quality_score: 0.9,
       created_at: new Date().toISOString(),
@@ -289,20 +289,22 @@ export const scalingLayer = {
     req: PromptGenerationRequest,
     generateFn: (req: PromptGenerationRequest) => Promise<GeneratedPrompt[]>,
   ): Promise<GeneratedPrompt[]> {
+    const numberOfVariations = req.numberOfVariations ?? 1;
+
     // 1. Try cache
     const cached = promptCache.get(req);
-    if (cached && cached.length >= req.numberOfVariations) {
+    if (cached && cached.length >= numberOfVariations) {
       log.info('[ScalingLayer] cache hit', { count: cached.length });
-      return cached.slice(0, req.numberOfVariations);
+      return cached.slice(0, numberOfVariations);
     }
 
     // 2. Try database
     const dbResults = await promptDb.query(
-      req.basePromptId,
+      req.basePromptId || '',
       req.styleOverride || 'default',
-      req.numberOfVariations,
+      numberOfVariations,
     );
-    if (dbResults.length >= req.numberOfVariations) {
+    if (dbResults.length >= numberOfVariations) {
       log.info('[ScalingLayer] db hit', { count: dbResults.length });
       promptCache.set(req, dbResults);
       return dbResults;
