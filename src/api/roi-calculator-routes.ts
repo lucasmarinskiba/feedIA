@@ -122,7 +122,7 @@ router.post('/compare', (req: Request, res: Response): void => {
       topic: string;
       targetAudience: string;
       budget: number;
-      platform?: string;
+      platform?: 'instagram' | 'tiktok' | 'pinterest';
     };
 
     if (!formats || !topic || !targetAudience || !budget) {
@@ -192,7 +192,7 @@ router.post('/optimize-budget', (req: Request, res: Response): void => {
       totalBudget: number;
       topic: string;
       targetAudience: string;
-      platform?: string;
+      platform?: 'instagram' | 'tiktok' | 'pinterest';
     };
 
     if (!totalBudget || !topic || !targetAudience) {

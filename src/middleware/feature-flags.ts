@@ -7,9 +7,18 @@ import { getUserTier } from '../db/user-tiers.js';
 
 export type FeatureName = 'advanced_analytics' | 'white_label' | 'api_webhooks' | 'priority_support' | 'custom_branding' | 'bulk_operations';
 
+// db/user-tiers.ts's UserTier ('free' | 'starter' | 'pro' | 'agency') is
+// the real 4-tier set (matches the DB's own CHECK constraint) -- this
+// was missing 'starter' entirely, which made every call below a type
+// error since tierRecord.tier can genuinely be 'starter'. Not adding
+// 'starter' to any feature's own tiers array below (that's a pricing/
+// packaging decision, not something to invent) -- just widening the
+// type so a starter-tier user's feature checks compile and correctly
+// evaluate to "not included" for all of these, same as free, until
+// someone makes an actual call on what starter should unlock.
 export interface FeatureFlag {
   name: FeatureName;
-  tiers: Array<'free' | 'pro' | 'agency'>;
+  tiers: Array<'free' | 'starter' | 'pro' | 'agency'>;
 }
 
 const featureFlags: Record<FeatureName, FeatureFlag> = {

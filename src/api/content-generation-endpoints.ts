@@ -35,7 +35,7 @@ export const generateContent = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    const campaign = campaignResult.rows[0];
+    const campaign = campaignResult.rows[0] as { name: string };
 
     // Queue content generation job
     const jobId = crypto.randomUUID();

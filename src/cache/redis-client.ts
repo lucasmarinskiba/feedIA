@@ -111,7 +111,10 @@ export const addToLeaderboard = async (leaderboardKey: string, userId: string, s
   if (!redisClient || !isConnected) return;
 
   try {
-    await redisClient.zAdd(leaderboardKey, { score, member: userId });
+    // node-redis v6's SortedSetMember field is `value`, not `member` --
+    // this was silently throwing (caught below, so a swallowed no-op)
+    // on every single leaderboard write.
+    await redisClient.zAdd(leaderboardKey, { score, value: userId });
     await redisClient.expire(leaderboardKey, 86400); // 24 hour TTL
   } catch (err) {
     console.warn('[Leaderboard] Add failed:', (err as Error).message);
@@ -122,12 +125,18 @@ export const getTopLeaderboard = async (leaderboardKey: string, limit: number = 
   if (!redisClient || !isConnected) return [];
 
   try {
-    const results = await redisClient.zRangeByScoreWithScores(leaderboardKey, {
-      by: 'score',
-      LIMIT: { offset: 0, count: limit },
+    // zRangeByScoreWithScores doesn't exist on node-redis v6's client at
+    // all (confirmed: no such file in node_modules/@redis/client) --
+    // this threw "is not a function" on every call, caught below, so
+    // this leaderboard has always silently returned empty. v6's
+    // equivalent for "top N by score" is zRangeWithScores with REV:true
+    // over the index range [0, limit-1] (REV flips ordering so index 0
+    // is the highest score) -- and its reply is already {value, score}
+    // objects, not blob strings needing separate parsing.
+    const results = await redisClient.zRangeWithScores(leaderboardKey, 0, limit - 1, {
       REV: true,
     });
-    return results.map((item: any) => ({ userId: item.member as string, score: item.score }));
+    return results.map((item) => ({ userId: item.value as string, score: item.score }));
   } catch (err) {
     console.warn('[Leaderboard] Get failed:', (err as Error).message);
     return [];

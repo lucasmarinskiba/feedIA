@@ -167,7 +167,7 @@ export const getPaymentHistory = async (userId: string, limit = 50): Promise<Pay
       [userId, limit],
     );
 
-    return (result.rows || []).map((row: Record<string, unknown>) => parsePaymentRecord(row));
+    return (result.rows || []).map((row) => parsePaymentRecord(row as Record<string, unknown>));
   } catch (err) {
     console.error('[Payments] History fetch failed:', err);
     return [];
@@ -219,7 +219,7 @@ export const getOAuthToken = async (userId: string, platform: TokenType): Promis
     ]);
 
     if (!result.rows || result.rows.length === 0) return null;
-    return parseTokenRecord(result.rows[0]);
+    return parseTokenRecord(result.rows[0] as Record<string, unknown>);
   } catch (err) {
     console.error('[Tokens] Get failed:', err);
     return null;

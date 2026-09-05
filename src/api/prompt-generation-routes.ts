@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { log } from '../agent/logger.js';
-// import { generatePromptVariations, batchGeneratePrompts, type PromptGenerationRequest } from '../agents/prompt-generation-agent.js';
+// Was commented out -- every route below referencing these names has
+// been throwing ReferenceError since whenever this got disabled.
+import { generatePromptVariations, batchGeneratePrompts, type PromptGenerationRequest } from '../agents/prompt-generation-agent.js';
 import { FeedbackLoop } from '../brain/neural/feedbackLoop.js';
 import type { BrandProfile } from '../config/types.js';
 
@@ -65,7 +67,7 @@ router.post('/generate-variations', async (req: Request, res: Response): Promise
     };
 
     await feedbackLoop.recordMetrics({
-      batchId: request.batchId || `batch-${Date.now()}`,
+      batchId: (request.batchId as string | undefined) || `batch-${Date.now()}`,
       prompts,
       metrics: metrics as any,
     });
@@ -123,7 +125,16 @@ router.post('/batch-generate', async (req: Request, res: Response): Promise<void
     });
 
     const batchId = `batch-${Date.now()}`;
-    const allPrompts = await batchGeneratePrompts(brand, baseIds, style);
+    // batchGeneratePrompts takes an array of requests, not (brand, ids,
+    // style) positionally -- its stub implementation calls .map() on its
+    // first argument, so passing `brand` (a plain object, not an array)
+    // here would throw "requests.map is not a function" on every call.
+    const requests: PromptGenerationRequest[] = baseIds.map((baseId: string) => ({
+      basePromptId: baseId,
+      styleOverride: style,
+      numberOfVariations: variationsPerBase,
+    }));
+    const allPrompts = await batchGeneratePrompts(requests);
 
     // Aggregate metrics
     const metrics = {

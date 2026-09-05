@@ -265,7 +265,7 @@ export const upsertUserTier = async (
       throw new Error(`Failed to upsert tier for user ${userId}`);
     }
 
-    return parseUserTierRecord(result.rows[0]);
+    return parseUserTierRecord(result.rows[0] as Record<string, unknown>);
   } catch (err) {
     console.error('[UserTiers] Upsert failed:', err);
     throw err;
@@ -283,7 +283,7 @@ export const getUserTier = async (userId: string): Promise<UserTierRecord | null
       return null;
     }
 
-    return parseUserTierRecord(result.rows[0]);
+    return parseUserTierRecord(result.rows[0] as Record<string, unknown>);
   } catch (err) {
     console.error('[UserTiers] Get failed:', err);
     return null;

@@ -140,7 +140,7 @@ class ExpertPhase {
   private outputCount: number;
   private performanceScore: number = 90;
   private expertise: string;
-  private teachingModel: unknown = {};
+  private teachingModel: Record<string, unknown> = {};
 
   constructor(expertise: string, startingOutputCount: number = 1000) {
     this.expertise = expertise;
@@ -208,7 +208,12 @@ Next: Other agents should learn this.`;
 // ── PHASE ORCHESTRATOR ────────────────────────────────────────
 
 class AgentPhaseOrchestrator {
-  private agent: unknown;
+  // Holds different phase-class instances over time (GeneralistPhase,
+  // ExpertPhase, ...) with no common interface between them beyond the
+  // optional isPhaseComplete() called below -- `any` here is honest
+  // about that polymorphism rather than pretending a shape they don't
+  // actually share.
+  private agent: any;
   private phase: AgentPhaseConfig;
   private phaseHistory: unknown[] = [];
 

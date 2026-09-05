@@ -23,6 +23,10 @@ interface UserTier {
   user_id: string;
   email: string;
   tier: 'free' | 'pro' | 'agency';
+  // Read/written further down (upsertUserTier's update branch) but was
+  // missing from this dev-only fallback mock's own type -- the real
+  // Postgres schema (db/user-tiers.ts's own CREATE TABLE) has it.
+  stripe_customer_id?: string | null;
   campaigns_used_this_month: number;
   campaigns_limit: number;
   batch_limit: number;
