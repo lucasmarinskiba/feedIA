@@ -5,12 +5,15 @@
 
 import type { CarouselJob } from '../capabilities/carouselDesigner/jobQueue.js';
 import { log } from '../agent/logger.js';
+// Type-only import -- erased at compile time, so this doesn't turn the
+// dynamic `await import('mongodb')` below into an eager dependency.
+import type { MongoClient as MongoClientType } from 'mongodb';
 
 const MONGODB_URI = process.env['MONGODB_URI'];
 const DB_NAME = 'feedia';
 const JOBS_COLLECTION = 'carousel_jobs';
 
-let mongoClient: unknown = null;
+let mongoClient: MongoClientType | null = null;
 
 /**
  * Initialize MongoDB connection (lazy-loaded on first use).

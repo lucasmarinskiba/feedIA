@@ -87,10 +87,17 @@ export const query = async (sql: string, params?: unknown[]): Promise<{ rows: un
   }
 
   if (isPostgres && pool) {
+    // queryAs returns the row array directly, not a {rows, rowCount}
+    // wrapper -- .rows/.rowCount on that array were always undefined, so
+    // every single caller of this query() (re-exported from db/client.js
+    // and used throughout the api/ routes) that read result.rows[...]
+    // crashed reading a property of undefined, and healthCheck() below
+    // always reported unhealthy (undefined === 1 is false) regardless of
+    // actual DB state.
     const result = await queryAs(sql, params);
     return {
-      rows: result.rows,
-      rowCount: result.rowCount || 0,
+      rows: result,
+      rowCount: result.length,
     };
   }
 
@@ -134,7 +141,7 @@ export const healthCheck = async (): Promise<boolean> => {
   try {
     if (isPostgres && pool) {
       const result = await queryAs('SELECT 1');
-      return result.rowCount === 1;
+      return result.length === 1;
     }
     return false;
   } catch {

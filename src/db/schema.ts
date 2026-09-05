@@ -75,6 +75,17 @@ export interface User {
   last_login?: Date;
 }
 
+// Matches db/migrations/001-init.sql's user_sessions table exactly.
+// Was imported by db/auth-queries.ts's getUserSessions() but never
+// defined here.
+export interface UserSession {
+  id: string;
+  user_id: string;
+  refresh_token: string;
+  refresh_token_expires_at: Date;
+  created_at: Date;
+}
+
 export interface UserTier {
   id: string;
   user_id: string;

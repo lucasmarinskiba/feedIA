@@ -51,12 +51,14 @@ const initializeRealPool = (): PoolConnection | null => {
       statement_timeout: 30000, // 30s query timeout
     });
 
-    poolInstance.on('error', (err: Error) => {
+    poolInstance!.on('error', (err: Error) => {
       console.error('[PostgreSQL] Pool error:', err);
     });
 
     console.log('[PostgreSQL] Real connection pool initialized');
-    const pool = poolInstance; // Capture for closure
+    // Non-null: just assigned above, synchronously, nothing in between
+    // could have reset it back to null before this capture.
+    const pool = poolInstance!; // Capture for closure
     return {
       query: async (sql: string, params?: unknown[]): Promise<QueryResult> => {
         const result = await pool.query(sql, params);

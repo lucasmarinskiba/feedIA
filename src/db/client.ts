@@ -7,19 +7,20 @@
 export { query, transaction, healthCheck, close } from './index.js';
 export { initDb } from './init.js';
 
-// Schema types
+// Schema types. AudienceSegment/EngagementForecast/ComplianceCheck/
+// AudioLibrary were re-exported here but never existed in schema.js and
+// nothing in the codebase actually imports them from this barrel
+// (confirmed via repo-wide grep) -- dead re-exports, removed rather than
+// inventing 4 unused interfaces to satisfy them.
 export type {
   User,
   UserTier,
+  UserSession,
   Campaign,
   Content,
   AnalyticsEvent,
-  AudienceSegment,
   ABTest,
-  EngagementForecast,
-  ComplianceCheck,
   BatchJob,
-  AudioLibrary,
   Webhook,
   WebhookDelivery,
   ApiCost,

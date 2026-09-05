@@ -3,6 +3,7 @@
  * User login, session management, token refresh
  */
 
+import { randomUUID, randomBytes } from 'node:crypto';
 import { query, transaction } from './index.js';
 import type { User, UserSession } from './schema.js';
 
@@ -41,8 +42,8 @@ export const getUserById = async (id: string): Promise<User | null> => {
  * Returns refresh token + expiry
  */
 export const createRefreshToken = async (userId: string): Promise<{ token: string; expiresAt: Date }> => {
-  const sessionId = crypto.randomUUID();
-  const token = crypto.randomBytes(32).toString('hex');
+  const sessionId = randomUUID();
+  const token = randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
   await query(
@@ -76,7 +77,7 @@ export const rotateRefreshToken = async (oldToken: string): Promise<{ token: str
     await client.query('DELETE FROM user_sessions WHERE id = $1', [session.id]);
 
     // Create new token
-    const newToken = crypto.randomBytes(32).toString('hex');
+    const newToken = randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     await client.query(
