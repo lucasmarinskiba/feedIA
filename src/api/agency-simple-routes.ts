@@ -19,6 +19,7 @@ interface CampaignRequest {
   goals: string[];
   budget?: number;
   platforms?: string[];
+  userId?: string;
 }
 
 /**

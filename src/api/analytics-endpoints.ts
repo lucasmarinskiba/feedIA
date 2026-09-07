@@ -14,7 +14,7 @@ import { query } from '../db/client.js';
  */
 export const recordEvent = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = ((req as unknown) as Record<string, unknown>).userId as string;
+    const userId = (req as unknown as Record<string, unknown>).userId as string;
     const { contentId, campaignId, eventType, platform, value = 1, metadata = {} } = req.body;
 
     if (!eventType || !['view', 'engagement', 'conversion', 'share'].includes(eventType)) {
@@ -29,7 +29,16 @@ export const recordEvent = async (req: Request, res: Response): Promise<void> =>
       `INSERT INTO analytics_events
        (id, content_id, campaign_id, user_id, event_type, platform, metric_value, metadata, timestamp)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
-      [eventId, contentId || null, campaignId || null, userId, eventType, platform || 'unknown', value, JSON.stringify(metadata)]
+      [
+        eventId,
+        contentId || null,
+        campaignId || null,
+        userId,
+        eventType,
+        platform || 'unknown',
+        value,
+        JSON.stringify(metadata),
+      ],
     );
 
     res.status(201).json({
@@ -51,15 +60,12 @@ export const recordEvent = async (req: Request, res: Response): Promise<void> =>
  */
 export const getCampaignMetrics = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = ((req as unknown) as Record<string, unknown>).userId as string;
+    const userId = (req as unknown as Record<string, unknown>).userId as string;
     const { id: campaignId } = req.params;
     const { startDate, endDate } = req.query;
 
     // Verify ownership
-    const campaignResult = await query(
-      'SELECT * FROM campaigns WHERE id = $1 AND user_id = $2',
-      [campaignId, userId]
-    );
+    const campaignResult = await query('SELECT * FROM campaigns WHERE id = $1 AND user_id = $2', [campaignId, userId]);
 
     if (campaignResult.rowCount === 0) {
       res.status(404).json({ error: 'Campaign not found' });
@@ -81,22 +87,31 @@ export const getCampaignMetrics = async (req: Request, res: Response): Promise<v
        FROM analytics_events
        WHERE campaign_id = $1 ${dateFilter}
        GROUP BY event_type`,
-      [campaignId]
+      [campaignId],
     );
 
     // Get total events
     const totalResult = await query(
       `SELECT COUNT(*) as total FROM analytics_events WHERE campaign_id = $1 ${dateFilter}`,
-      [campaignId]
+      [campaignId],
     );
 
-    interface MetricRow { event_type: string; count: number; total_value: number; }
-    interface TotalRow { total: number; }
-    const metrics = (metricsResult.rows || []).reduce((acc: Record<string, any>, row: unknown) => {
-      const r = row as MetricRow;
-      acc[r.event_type] = { count: r.count, value: r.total_value };
-      return acc;
-    }, {});
+    interface MetricRow {
+      event_type: string;
+      count: number;
+      total_value: number;
+    }
+    interface TotalRow {
+      total: number;
+    }
+    const metrics = (metricsResult.rows || []).reduce(
+      (acc: Record<string, { count: number; value: number }>, row: unknown) => {
+        const r = row as MetricRow;
+        acc[r.event_type] = { count: r.count, value: r.total_value };
+        return acc;
+      },
+      {},
+    );
 
     const views = metrics.view?.count || 0;
     const engagements = metrics.engagement?.count || 0;
@@ -133,15 +148,15 @@ export const getCampaignMetrics = async (req: Request, res: Response): Promise<v
  */
 export const getAnalyticsSummary = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = ((req as unknown) as Record<string, unknown>).userId as string;
+    const userId = (req as unknown as Record<string, unknown>).userId as string;
 
     // Get all campaigns
-    const campaignResult = await query(
-      'SELECT id FROM campaigns WHERE user_id = $1 AND status = $2',
-      [userId, 'active']
-    );
+    const campaignResult = await query('SELECT id FROM campaigns WHERE user_id = $1 AND status = $2', [
+      userId,
+      'active',
+    ]);
 
-    const campaignIds = campaignResult.rows.map((row: Record<string, unknown>) => row.id);
+    const campaignIds = campaignResult.rows.map((row) => (row as Record<string, unknown>).id);
 
     if (campaignIds.length === 0) {
       res.json({
@@ -163,14 +178,18 @@ export const getAnalyticsSummary = async (req: Request, res: Response): Promise<
         SUM(CASE WHEN event_type = 'engagement' THEN 1 ELSE 0 END) as engagements
        FROM analytics_events
        WHERE user_id = $1`,
-      [userId]
+      [userId],
     );
 
     interface SummaryRow {
-      campaigns: number; total_events: number; views: number; engagements: number;
+      campaigns: number;
+      total_events: number;
+      views: number;
+      engagements: number;
     }
     const summary = summaryResult.rows[0] as SummaryRow;
-    const engagementRate = (summary?.views || 0) > 0 ? (((summary?.engagements || 0) / (summary?.views || 1)) * 100).toFixed(2) : '0';
+    const engagementRate =
+      (summary?.views || 0) > 0 ? (((summary?.engagements || 0) / (summary?.views || 1)) * 100).toFixed(2) : '0';
 
     res.json({
       summary: {
@@ -196,14 +215,11 @@ export const getAnalyticsSummary = async (req: Request, res: Response): Promise<
  */
 export const getContentMetrics = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = ((req as unknown) as Record<string, unknown>).userId as string;
+    const userId = (req as unknown as Record<string, unknown>).userId as string;
     const { id: contentId } = req.params;
 
     // Verify ownership
-    const contentResult = await query(
-      'SELECT * FROM content WHERE id = $1 AND user_id = $2',
-      [contentId, userId]
-    );
+    const contentResult = await query('SELECT * FROM content WHERE id = $1 AND user_id = $2', [contentId, userId]);
 
     if (contentResult.rowCount === 0) {
       res.status(404).json({ error: 'Content not found' });
@@ -219,11 +235,17 @@ export const getContentMetrics = async (req: Request, res: Response): Promise<vo
        FROM analytics_events
        WHERE content_id = $1
        GROUP BY event_type`,
-      [contentId]
+      [contentId],
     );
 
-    const metrics = metricsResult.rows.reduce((acc: any, row: any) => {
-      acc[row.event_type] = { count: row.count, value: row.value };
+    interface ContentMetricRow {
+      event_type: string;
+      count: number;
+      value: number;
+    }
+    const metrics = metricsResult.rows.reduce((acc: Record<string, { count: number; value: number }>, row: unknown) => {
+      const r = row as ContentMetricRow;
+      acc[r.event_type] = { count: r.count, value: r.value };
       return acc;
     }, {});
 

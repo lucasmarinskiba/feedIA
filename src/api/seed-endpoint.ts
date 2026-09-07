@@ -4,6 +4,7 @@
  */
 
 import { Express, Request, Response } from 'express';
+import { Pool } from 'pg';
 import { executeMutation } from '../db/typed-queries.js';
 
 export const seedDataEndpoint = async (req: Request, res: Response): Promise<void> => {
@@ -42,7 +43,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
           `INSERT INTO users (id, email, name, tier, plan, created_at, updated_at)
            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
            ON CONFLICT(id) DO NOTHING`,
-          [`user-seed-${i}`, `test-user-${i}@feedia.dev`, `Test User ${i}`, tier, tier]
+          [`user-seed-${i}`, `test-user-${i}@feedia.dev`, `Test User ${i}`, tier, tier],
         );
       }
       result.steps.push({ name: 'Create users', status: 'ok', count: seedUsers });
@@ -55,7 +56,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
           `INSERT INTO campaigns (id, user_id, title, platform, status, created_at, updated_at)
            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
            ON CONFLICT(id) DO NOTHING`,
-          [`campaign-seed-${i}`, `user-seed-${(i % seedUsers) + 1}`, `Campaign ${i}`, platform, 'active']
+          [`campaign-seed-${i}`, `user-seed-${(i % seedUsers) + 1}`, `Campaign ${i}`, platform, 'active'],
         );
       }
       result.steps.push({ name: 'Create campaigns', status: 'ok', count: seedCampaigns });
@@ -73,7 +74,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
             `campaign-seed-${(i % seedCampaigns) + 1}`,
             `user-seed-${(i % seedUsers) + 1}`,
             eventType,
-          ]
+          ],
         );
       }
       result.steps.push({ name: 'Create analytics events', status: 'ok', count: seedEvents });
@@ -90,7 +91,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
             `campaign-seed-${(i % seedCampaigns) + 1}`,
             `Segment ${i}`,
             'demographics',
-          ]
+          ],
         );
       }
       result.steps.push({ name: 'Create audience segments', status: 'ok', count: 50 });
@@ -109,7 +110,7 @@ export const seedDataEndpoint = async (req: Request, res: Response): Promise<voi
             `variant-a-${i}`,
             `variant-b-${i}`,
             'completed',
-          ]
+          ],
         );
       }
       result.steps.push({ name: 'Create A/B tests', status: 'ok', count: 20 });
@@ -141,16 +142,16 @@ export const registerSeedEndpoint = (app: Express): void => {
   app.post('/api/admin/seed', (req: Request, res: Response) => seedDataEndpoint(req, res));
 
   // Seed status check
-  app.get('/api/admin/seed/status', (_req: Request, res: Response) => {
-    return res.json({
+  app.get('/api/admin/seed/status', (_req: Request, res: Response) =>
+    res.json({
       status: 'ready',
       message: 'POST /api/admin/seed to seed 4,590+ test records',
       endpoint: '/api/admin/seed',
       method: 'POST',
       requires_auth: true,
       expected_time_seconds: 30,
-    });
-  });
+    }),
+  );
 
   console.log('[Routes] Seed endpoint registered');
 };

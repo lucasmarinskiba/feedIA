@@ -17,7 +17,7 @@ import { promptRefinementEngine } from './prompt-refinement-engine.js';
 import { creativityWitEngine } from './creativity-wit-engine.js';
 import { facialIdentityPreservationService } from './facial-identity-preservation.js';
 import { consistencyLockManager } from './consistency-lock.js';
-import { applyViraLityLayer, type VirologyInjectionContext } from './virality-prompt-layer.js';
+import { applyViraLityLayer, type VirologyInjectionContext, type EnrichedBrief } from './virality-prompt-layer.js';
 import { variantFrameworkService, type ContentVariant } from './variant-framework-service.js';
 import { agentDecisionFrameworkService, type DecisionContext, type AgentDecision } from './agent-decision-framework.js';
 import { crossPlatformOptimizationService } from './cross-platform-optimization.js';
@@ -85,7 +85,7 @@ class MasterContentPipeline {
     let workingPrompt = basePrompt;
     let viralityScore: number | undefined;
     let viralityPotential: number | undefined;
-    let enrichedBriefForVariants: unknown;  
+    let enrichedBriefForVariants: EnrichedBrief | undefined;
     let agentDecision: AgentDecision | undefined;
     let platformRecommendation: string | undefined;
 

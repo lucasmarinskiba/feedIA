@@ -114,7 +114,6 @@ export abstract class BrowserOperatorBase {
       await this.closeSession();
     }
 
-    // @ts-expect-error — playwright is optional dynamic dependency
     const pwModule = await import('playwright').catch(() => null);
     if (!pwModule) {
       throw new Error('Playwright no está instalado. Instalá con: npm install playwright');

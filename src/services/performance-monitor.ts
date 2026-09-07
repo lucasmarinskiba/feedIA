@@ -98,7 +98,9 @@ class PerformanceMonitor {
       maxResponseTimeMs: Math.max(...responseTimes),
       successRate: (successes / endpointMetrics.length) * 100,
       cacheHitRate: (cacheHits / endpointMetrics.length) * 100,
-      avgPayloadSizeBytes,
+      // Was referencing a never-declared avgPayloadSizeBytes -- this field
+      // always came back undefined for every endpoint stats consumer.
+      avgPayloadSizeBytes: avgPayloadSize,
     };
   }
 
@@ -107,9 +109,7 @@ class PerformanceMonitor {
    */
   getAllEndpointStats(): EndpointStats[] {
     const endpoints = [...new Set(this.metrics.map((m) => m.endpoint))];
-    return endpoints
-      .map((ep) => this.getEndpointStats(ep))
-      .filter((stats) => stats !== null) as EndpointStats[];
+    return endpoints.map((ep) => this.getEndpointStats(ep)).filter((stats) => stats !== null) as EndpointStats[];
   }
 
   /**
@@ -133,13 +133,19 @@ class PerformanceMonitor {
     const totalCacheHits = this.metrics.filter((m) => m.cachedResponse).length;
 
     const allStats = this.getAllEndpointStats();
-    const bestCached = allStats.reduce((best, current) => {
-      return current.cacheHitRate > (best?.cacheHitRate ?? 0) ? current : best;
-    }, null as EndpointStats | null);
+    const bestCached = allStats.reduce(
+      (best, current) => {
+        return current.cacheHitRate > (best?.cacheHitRate ?? 0) ? current : best;
+      },
+      null as EndpointStats | null,
+    );
 
-    const worstCached = allStats.reduce((worst, current) => {
-      return current.cacheHitRate < (worst?.cacheHitRate ?? 100) ? current : worst;
-    }, null as EndpointStats | null);
+    const worstCached = allStats.reduce(
+      (worst, current) => {
+        return current.cacheHitRate < (worst?.cacheHitRate ?? 100) ? current : worst;
+      },
+      null as EndpointStats | null,
+    );
 
     return {
       overallHitRate: totalRequests > 0 ? (totalCacheHits / totalRequests) * 100 : 0,
@@ -272,7 +278,7 @@ export const performanceMiddleware = (req: Request, res: Response, next: () => v
       req.method,
       res.statusCode,
       responseTimeMs,
-      (res.get('X-Cache') === 'HIT') || false,
+      res.get('X-Cache') === 'HIT' || false,
       0, // dbTimeMs would be tracked separately
       payloadSizeBytes,
     );

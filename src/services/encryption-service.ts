@@ -6,7 +6,7 @@
 
 import crypto from 'crypto';
 
-interface EncryptedData {
+export interface EncryptedData {
   ciphertext: string;
   iv: string;
   authTag: string;

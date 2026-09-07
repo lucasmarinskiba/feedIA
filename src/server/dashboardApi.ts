@@ -831,7 +831,9 @@ export const buildDashboardRoutes = (brand: BrandProfile): RouteDefinition[] => 
           designsCreated: b.service === 'canva' ? 0 : undefined,
         };
         saveSettings();
-        return json(res, 200, { connected: true, ...connections[b.service] });
+        // connections[b.service] already carries connected: true -- spreading
+        // it after a literal `connected: true` made the literal dead code.
+        return json(res, 200, { ...connections[b.service] });
       }
 
       // Otherwise return OAuth URL for the service

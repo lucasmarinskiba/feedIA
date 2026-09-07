@@ -23,7 +23,7 @@ export const carouselStorageService = {
     const db = feedIADatabase.getConnection();
     const stmt = db.prepare(
       `INSERT INTO carousels (id, user_id, title, format, slides, source_category, metadata, platform, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     );
 
     stmt.run(
@@ -62,7 +62,13 @@ export const carouselStorageService = {
 
   async listByUser(userId: string, limit = 50): Promise<Carousel[]> {
     interface CarouselRow {
-      id: string; user_id: string; title: string; format: string; slides: string; source_category: string | null; metadata: string;
+      id: string;
+      user_id: string;
+      title: string;
+      format: Carousel['format'];
+      slides: string;
+      source_category: string | null;
+      metadata: string;
     }
     const db = feedIADatabase.getConnection();
     const stmt = db.prepare('SELECT * FROM carousels WHERE user_id = ? ORDER BY created_at DESC LIMIT ?');
@@ -74,7 +80,7 @@ export const carouselStorageService = {
       title: row.title,
       format: row.format,
       slides: JSON.parse(row.slides),
-      sourceCategory: row.source_category,
+      sourceCategory: row.source_category ?? undefined,
       metadata: JSON.parse(row.metadata),
     }));
   },
@@ -95,9 +101,7 @@ export const carouselStorageService = {
     };
 
     const db = feedIADatabase.getConnection();
-    const stmt = db.prepare(
-      `UPDATE carousels SET title = ?, slides = ?, metadata = ?, updated_at = ? WHERE id = ?`
-    );
+    const stmt = db.prepare(`UPDATE carousels SET title = ?, slides = ?, metadata = ?, updated_at = ? WHERE id = ?`);
     stmt.run(
       updated.title,
       JSON.stringify(updated.slides),
@@ -140,10 +144,6 @@ export const carouselStorageService = {
 
     const db = feedIADatabase.getConnection();
     const stmt = db.prepare(`UPDATE carousels SET metadata = ?, updated_at = ? WHERE id = ?`);
-    stmt.run(
-      JSON.stringify(updated.metadata),
-      updated.metadata.updatedAt,
-      carouselId,
-    );
+    stmt.run(JSON.stringify(updated.metadata), updated.metadata.updatedAt, carouselId);
   },
 };

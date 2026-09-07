@@ -11,19 +11,11 @@ import {
   listContent,
   deleteContent,
 } from './content-generation-endpoints.js';
-import {
-  recordEvent,
-  getCampaignMetrics,
-  getAnalyticsSummary,
-  getContentMetrics,
-} from './analytics-endpoints.js';
+import { recordEvent, getCampaignMetrics, getAnalyticsSummary, getContentMetrics } from './analytics-endpoints.js';
 import { validateCompliance, getComplianceReport } from './compliance-endpoints.js';
-import {
-  getGrowthStrategy,
-  getEngagementForecast,
-  getRecommendations,
-} from './growth-strategy-endpoints.js';
-import { verifyJWT, checkTier } from './auth-endpoints.js';
+import { getGrowthStrategy, getEngagementForecast, getRecommendations } from './growth-strategy-endpoints.js';
+import { verifyJWT } from './auth-endpoints.js';
+import { checkTier } from './rbac-middleware.js';
 
 export const registerTier4Routes = (app: Express): void => {
   // ============ Content Generation (requires auth) ============

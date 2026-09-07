@@ -7,7 +7,7 @@
 import crypto from 'crypto';
 import { executeMutation, queryOneAs } from '../db/typed-queries.js';
 import { log } from '../agent/logger.js';
-import { encryptionService } from './encryption-service.js';
+import { encryptionService, type EncryptedData } from './encryption-service.js';
 
 interface TwoFactorAuthRow {
   user_id: string;
@@ -77,12 +77,7 @@ class TwoFactorService {
         const d2 = digest[offset + 2];
         const d3 = digest[offset + 3];
         if (d0 === undefined || d1 === undefined || d2 === undefined || d3 === undefined) continue;
-        const code = (
-          ((d0 & 0x7f) << 24) |
-          ((d1 & 0xff) << 16) |
-          ((d2 & 0xff) << 8) |
-          (d3 & 0xff)
-        ) % 1000000;
+        const code = (((d0 & 0x7f) << 24) | ((d1 & 0xff) << 16) | ((d2 & 0xff) << 8) | (d3 & 0xff)) % 1000000;
 
         if (code === parseInt(token, 10)) {
           return true;
@@ -128,7 +123,9 @@ class TwoFactorService {
    */
   async disable(userId: string): Promise<boolean> {
     try {
-      await executeMutation(`UPDATE two_factor_auth SET enabled = false, updated_at = NOW() WHERE user_id = $1`, [userId]);
+      await executeMutation(`UPDATE two_factor_auth SET enabled = false, updated_at = NOW() WHERE user_id = $1`, [
+        userId,
+      ]);
 
       log.info('2FA disabled for user', { user_id: userId });
       return true;
@@ -152,7 +149,10 @@ class TwoFactorService {
         return false;
       }
 
-      const encrypted = row.backup_codes;
+      // backup_codes is stored as JSON.stringify(EncryptedData) (see enable()
+      // above) -- decrypt() takes the EncryptedData object, not the raw
+      // string, so every verifyBackupCode call was throwing before this fix.
+      const encrypted = JSON.parse(row.backup_codes) as EncryptedData;
       const decrypted = encryptionService.decrypt(encrypted, process.env.MASTER_KEY || 'default');
       const backupCodes = JSON.parse(decrypted);
 
@@ -160,10 +160,10 @@ class TwoFactorService {
         // Remove used code
         const updatedCodes = backupCodes.filter((c: string) => c !== code);
 
-        await executeMutation(
-          `UPDATE two_factor_auth SET backup_codes = $1, updated_at = NOW() WHERE user_id = $2`,
-          [JSON.stringify(updatedCodes), userId],
-        );
+        await executeMutation(`UPDATE two_factor_auth SET backup_codes = $1, updated_at = NOW() WHERE user_id = $2`, [
+          JSON.stringify(updatedCodes),
+          userId,
+        ]);
 
         log.info('Backup code used', { user_id: userId });
         return true;
@@ -181,10 +181,9 @@ class TwoFactorService {
    */
   async isEnabled(userId: string): Promise<boolean> {
     try {
-      const row = await queryOneAs<{ enabled: boolean }>(
-        `SELECT enabled FROM two_factor_auth WHERE user_id = $1`,
-        [userId],
-      );
+      const row = await queryOneAs<{ enabled: boolean }>(`SELECT enabled FROM two_factor_auth WHERE user_id = $1`, [
+        userId,
+      ]);
 
       return !!row?.enabled;
     } catch (err) {

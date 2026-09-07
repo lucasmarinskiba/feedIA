@@ -62,7 +62,7 @@ export const saveCampaign = async (campaign: CampaignOutput, accountId: string):
         'approved',
         campaign.totalTokens,
         campaign.estimatedCost,
-      ]
+      ],
     );
     console.log(`[TIER 8] Campaign ${campaign.campaignId} persisted to PostgreSQL`);
   } catch (err) {
@@ -77,10 +77,7 @@ export const saveCampaign = async (campaign: CampaignOutput, accountId: string):
  */
 export const loadCampaign = async (campaignId: string): Promise<CampaignOutput | null> => {
   try {
-    const result = await getPool().query(
-      `SELECT * FROM agency_campaigns WHERE id = $1`,
-      [campaignId]
-    );
+    const result = await getPool().query(`SELECT * FROM agency_campaigns WHERE id = $1`, [campaignId]);
 
     if (!result.rows || result.rows.length === 0) {
       return null;
@@ -121,25 +118,27 @@ export const loadCampaign = async (campaignId: string): Promise<CampaignOutput |
 export const listCampaigns = async (
   accountId: string,
   limit: number = 20,
-  offset: number = 0
+  offset: number = 0,
 ): Promise<{ campaigns: unknown[]; total: number }> => {
   try {
-    const countResult = await getPool().query(
-      `SELECT COUNT(*) as count FROM agency_campaigns WHERE account_id = $1`,
-      [accountId]
-    );
+    const countResult = await getPool().query(`SELECT COUNT(*) as count FROM agency_campaigns WHERE account_id = $1`, [
+      accountId,
+    ]);
 
     const dataResult = await getPool().query(
       `SELECT id, strategy, status, estimated_cost, created_at FROM agency_campaigns
        WHERE account_id = $1
        ORDER BY created_at DESC
        LIMIT $2 OFFSET $3`,
-      [accountId, limit, offset]
+      [accountId, limit, offset],
     );
 
     return {
       campaigns: dataResult.rows || [],
-      total: countResult.rows?.[0]?.count || 0,
+      // COUNT() comes back as a string from node-postgres (BIGINT) --
+      // `|| 0` alone doesn't coerce a non-empty string, so `total` would
+      // have been e.g. "5" (string) instead of 5 (number) in the response.
+      total: Number((countResult.rows?.[0] as { count: string } | undefined)?.count || 0),
     };
   } catch (err) {
     console.error('[TIER 8] Failed to list campaigns:', err);
@@ -152,10 +151,10 @@ export const listCampaigns = async (
  */
 export const updateCampaignStatus = async (campaignId: string, status: string): Promise<void> => {
   try {
-    await getPool().query(
-      `UPDATE agency_campaigns SET status = $1, updated_at = NOW() WHERE id = $2`,
-      [status, campaignId]
-    );
+    await getPool().query(`UPDATE agency_campaigns SET status = $1, updated_at = NOW() WHERE id = $2`, [
+      status,
+      campaignId,
+    ]);
     console.log(`[TIER 8] Campaign ${campaignId} status updated to ${status}`);
   } catch (err) {
     console.error('[TIER 8] Failed to update campaign status:', err);

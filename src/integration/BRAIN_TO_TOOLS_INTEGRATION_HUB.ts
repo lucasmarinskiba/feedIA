@@ -7,7 +7,10 @@
 import { AutonomousFeedIABrain } from '../autonomous/AUTONOMOUS_FEEDIA_BRAIN';
 
 interface BrainIntelligence {
-  accountPersonality: unknown;
+  // Real shape comes from `this.brain.detectAccountPersonality()`, an
+  // `any`-typed dynamic call (brain's real type isn't available here) --
+  // `vibe` is the only field this module actually reads off it.
+  accountPersonality: { vibe: unknown };
   contentStrategy: string[];
   growthOpportunities: string[];
   viralTriggers: string[];
@@ -17,6 +20,15 @@ interface BrainIntelligence {
   performanceMetrics: unknown;
   competitorInsights: unknown;
   recommendations: string[];
+}
+
+// The 3 execute*Strategy methods below each return a differently-shaped
+// object (instagram/tiktok carry contentMix+timing+quality, sala carries
+// goals+recommendations+calendar) -- this is the honest common shape
+// rather than inventing a single unified strategy schema.
+interface PlatformStrategyResult {
+  approach: string;
+  [key: string]: unknown;
 }
 
 interface ToolContext {
@@ -239,7 +251,7 @@ class BrainToToolsHub {
   async routeStrategyByPlatform(
     platform: 'instagram' | 'tiktok' | 'sala',
     task: string,
-  ): Promise<any> {
+  ): Promise<PlatformStrategyResult | undefined> {
     const context = await this.getContextForTool(platform);
 
     switch (platform) {
@@ -252,7 +264,7 @@ class BrainToToolsHub {
     }
   }
 
-  private async executeInstagramStrategy(task: string, context: ToolContext): Promise<any> {
+  private async executeInstagramStrategy(task: string, context: ToolContext): Promise<PlatformStrategyResult> {
     // Instagram strategy: authority + aspiration + engagement
     return {
       approach: 'high-engagement carousels + reels + authentic stories',
@@ -262,7 +274,7 @@ class BrainToToolsHub {
     };
   }
 
-  private async executeTikTokStrategy(task: string, context: ToolContext): Promise<any> {
+  private async executeTikTokStrategy(task: string, context: ToolContext): Promise<PlatformStrategyResult> {
     // TikTok strategy: viral + trending + entertainment
     return {
       approach: 'trend-jacking + original hooks + audio optimization',
@@ -272,7 +284,7 @@ class BrainToToolsHub {
     };
   }
 
-  private async executeSalaStrategy(task: string, context: ToolContext): Promise<any> {
+  private async executeSalaStrategy(task: string, context: ToolContext): Promise<PlatformStrategyResult> {
     // Sala strategy: planning + optimization + analysis
     return {
       approach: 'strategic planning + performance dashboard + team coordination',
@@ -284,7 +296,11 @@ class BrainToToolsHub {
 
   // ── HELPER FUNCTIONS ───────────────────────────────
 
-  private async generateTeamTasks(intelligence: BrainIntelligence): Promise<string[]> {
+  // `intelligence` is accepted but not actually used -- this always returns
+  // the same static list regardless of the brain's real strategy/growth/
+  // viral-trigger data. Deriving real tasks from intelligence is a product
+  // decision this module shouldn't invent; documenting the gap instead.
+  private async generateTeamTasks(_intelligence: BrainIntelligence): Promise<string[]> {
     return [
       'Create carousels based on content strategy pillars',
       'Record TikTok videos focusing on viral triggers',

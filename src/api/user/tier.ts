@@ -91,7 +91,11 @@ export const getTierInfo = async (userId: string): Promise<GetTierResponse> => {
       customBrandKit: tierRecord.customBrandKit,
       analyticsDepth: tierRecord.analyticsDepth,
       supportLevel: tierRecord.supportLevel,
-      subscriptionEndDate: tierRecord.subscriptionEndDate?.toISOString() || null,
+      // UserTierRecord's real field is subscriptionCycleEnd -- the wrong
+      // name here (subscriptionEndDate) meant this always evaluated to
+      // undefined, so this endpoint always reported null even for active
+      // paid subscriptions with a real cycle end date.
+      subscriptionEndDate: tierRecord.subscriptionCycleEnd?.toISOString() || null,
       resetsAt: nextResetDate(),
     };
   } catch (err) {

@@ -9,7 +9,13 @@ import Stripe from 'stripe';
 import { upsertUserTier, linkStripeSubscription, type UserTier } from '../../db/user-tiers.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock', {
-  apiVersion: '2024-12-18' as unknown as '2024-12-18',
+  // Deliberately pinned below the SDK's current LatestApiVersion literal
+  // ('2026-07-29.dahlia' in the installed package) -- casting straight
+  // through `unknown` back to the same '2024-12-18' literal doesn't
+  // satisfy that field's real type, it just re-asserts the string
+  // unchanged. Casting to the actual target type keeps the runtime value
+  // exactly the same while doing what the previous double-cast intended.
+  apiVersion: '2024-12-18' as Stripe.LatestApiVersion,
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
@@ -22,7 +28,9 @@ export const handleStripeWebhook = async (
   try {
     if (!webhookSecret) {
       if (isProd) {
-        console.error('[Stripe] STRIPE_WEBHOOK_SECRET no configurado en producción — rechazando webhook (fail-closed).');
+        console.error(
+          '[Stripe] STRIPE_WEBHOOK_SECRET no configurado en producción — rechazando webhook (fail-closed).',
+        );
         return {
           success: false,
           error: 'webhook_secret_not_configured',

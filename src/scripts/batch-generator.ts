@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 
 import { log } from '../agent/logger.js';
-import { generatePromptVariations, batchGeneratePrompts } from '../agents/prompt-generation-agent.js';
+import {
+  generatePromptVariations,
+  batchGeneratePrompts,
+  type PromptGenerationRequest,
+} from '../agents/prompt-generation-agent.js';
 import { scalingLayer } from '../api/scaling-layer.js';
 import type { BrandProfile } from '../config/types.js';
 
@@ -66,11 +70,7 @@ const mockBrand: BrandProfile = {
  * Autonomous batch generation CLI
  * Usage: npm run batch:generate -- --batch 31 --style nano-banana --occasion trabajo
  */
-async function generateBatch(
-  batchNum: number,
-  style?: string,
-  occasion?: string,
-): Promise<void> {
+async function generateBatch(batchNum: number, style?: string, occasion?: string): Promise<void> {
   const batch = BATCHES[batchNum as keyof typeof BATCHES];
   if (!batch) {
     log.error('[BatchGenerator] invalid batch', { batchNum });
@@ -88,8 +88,14 @@ async function generateBatch(
   const startTime = Date.now();
 
   try {
-    // Generate variations for each base ID
-    const allPrompts = await batchGeneratePrompts(mockBrand, batch.baseIds, style);
+    // Generate variations for each base ID. batchGeneratePrompts takes a
+    // PromptGenerationRequest[] array, not (brand, ids, style) positionally
+    // -- same bug already fixed in api/prompt-generation-routes.ts.
+    const requests: PromptGenerationRequest[] = batch.baseIds.map((baseId) => ({
+      basePromptId: baseId,
+      styleOverride: style,
+    }));
+    const allPrompts = await batchGeneratePrompts(requests);
 
     const duration = Date.now() - startTime;
     log.info('[BatchGenerator] completed', {
@@ -145,7 +151,7 @@ async function generateAllBatches(): Promise<void> {
   log.info('[BatchGenerator] starting all batches');
   const startTime = Date.now();
 
-  for (const [batchNum, batch] of Object.entries(BATCHES)) {
+  for (const batchNum of Object.keys(BATCHES)) {
     await generateBatch(parseInt(batchNum), 'nano-banana', 'trabajo');
   }
 
@@ -171,7 +177,10 @@ async function testEndpoints(): Promise<void> {
     console.log(`✅ /api/prompts/generate-variations: ${testVariations.length} prompts`);
 
     // Mock test 2: Batch generate
-    const testBatch = await batchGeneratePrompts(mockBrand, ['A001', 'A050'], 'nano-banana');
+    const testBatch = await batchGeneratePrompts([
+      { basePromptId: 'A001', styleOverride: 'nano-banana' },
+      { basePromptId: 'A050', styleOverride: 'nano-banana' },
+    ]);
     console.log(`✅ /api/prompts/batch-generate: ${testBatch.length} prompts`);
 
     // Mock test 3: Cache hit

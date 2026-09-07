@@ -14,9 +14,10 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-interface AuthRequest extends Request {
-  userId?: string;
-}
+// middleware/user-context.ts's global Express.Request augmentation
+// already adds a required `userId: string` -- redeclaring it here as
+// optional narrowed an inherited required property, which TS rejects.
+interface AuthRequest extends Request {}
 
 // Instagram tokens (stored from OAuth)
 const instagramTokens: Map<string, string> = new Map();
@@ -33,7 +34,12 @@ const publishToInstagram = async (req: AuthRequest, res: Response): Promise<void
       return;
     }
 
-    const { contentId, caption, mediaUrls, type = 'feed' } = req.body;
+    // `type` (feed/reel/story) is accepted but not yet wired to the
+    // publish logic below -- every request always builds a feed/carousel
+    // post via the image_url + media container endpoints, regardless of
+    // what the caller asked for. Documenting the gap rather than guessing
+    // at reel/story-specific Graph API calls that aren't implemented here.
+    const { contentId, caption, mediaUrls } = req.body;
 
     if (!contentId || !mediaUrls || mediaUrls.length === 0) {
       res.status(400).json({ error: 'Missing contentId, caption, or mediaUrls' });
@@ -62,7 +68,7 @@ const publishToInstagram = async (req: AuthRequest, res: Response): Promise<void
     for (const mediaUrl of mediaUrls) {
       const containerResponse = await fetch(
         `https://graph.instagram.com/v18.0/${igAccountId}/media?image_url=${encodeURIComponent(mediaUrl)}&caption=${encodeURIComponent(caption || '')}&access_token=${igToken}`,
-        { method: 'POST' }
+        { method: 'POST' },
       );
 
       if (!containerResponse.ok) {
@@ -85,13 +91,13 @@ const publishToInstagram = async (req: AuthRequest, res: Response): Promise<void
       // Single image
       publishResponse = await fetch(
         `https://graph.instagram.com/v18.0/${igAccountId}/media_publish?creation_id=${mediaIds[0]}&access_token=${igToken}`,
-        { method: 'POST' }
+        { method: 'POST' },
       );
     } else {
       // Carousel
       const carouselResponse = await fetch(
         `https://graph.instagram.com/v18.0/${igAccountId}/media?media_type=CAROUSEL&children=${mediaIds.join(',')}&caption=${encodeURIComponent(caption || '')}&access_token=${igToken}`,
-        { method: 'POST' }
+        { method: 'POST' },
       );
 
       if (!carouselResponse.ok) {
@@ -102,7 +108,7 @@ const publishToInstagram = async (req: AuthRequest, res: Response): Promise<void
       const carouselData = (await carouselResponse.json()) as { id: string };
       publishResponse = await fetch(
         `https://graph.instagram.com/v18.0/${igAccountId}/media_publish?creation_id=${carouselData.id}&access_token=${igToken}`,
-        { method: 'POST' }
+        { method: 'POST' },
       );
     }
 
@@ -119,7 +125,7 @@ const publishToInstagram = async (req: AuthRequest, res: Response): Promise<void
        SET status = 'published', published_at = NOW(),
            metadata = jsonb_set(metadata, '{instagram_id}', to_jsonb($1::text))
        WHERE id = $2 AND user_id = $3`,
-      [publishData.id, contentId, userId]
+      [publishData.id, contentId, userId],
     );
 
     res.json({
@@ -166,7 +172,7 @@ const publishToTikTok = async (req: AuthRequest, res: Response): Promise<void> =
     const initResponse = await fetch('https://open.tiktokapis.com/v1/video/init', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${tiktokApiKey}`,
+        Authorization: `Bearer ${tiktokApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -218,7 +224,7 @@ const publishToTikTok = async (req: AuthRequest, res: Response): Promise<void> =
     const publishResponse = await fetch('https://open.tiktokapis.com/v1/video/publish', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${tiktokApiKey}`,
+        Authorization: `Bearer ${tiktokApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -248,7 +254,7 @@ const publishToTikTok = async (req: AuthRequest, res: Response): Promise<void> =
        SET status = 'published', published_at = NOW(),
            metadata = jsonb_set(metadata, '{tiktok_id}', to_jsonb($1::text))
        WHERE id = $2 AND user_id = $3`,
-      [videoId || publishId, contentId, userId]
+      [videoId || publishId, contentId, userId],
     );
 
     res.json({
@@ -290,9 +296,9 @@ const publishToAll = async (req: AuthRequest, res: Response): Promise<void> => {
     // Publish to Instagram
     if (platforms.includes('instagram') && mediaUrls?.length > 0) {
       try {
-        const igRes = await publishToInstagram(
+        await publishToInstagram(
           { ...req, body: { contentId, caption, mediaUrls } } as AuthRequest,
-          { json: (data: unknown) => (results.instagram = data) } as Response
+          { json: (data: unknown) => (results.instagram = data) } as Response,
         );
       } catch (err) {
         results.instagram = { error: String(err) };
@@ -302,9 +308,9 @@ const publishToAll = async (req: AuthRequest, res: Response): Promise<void> => {
     // Publish to TikTok
     if (platforms.includes('tiktok') && videoUrl) {
       try {
-        const ttRes = await publishToTikTok(
+        await publishToTikTok(
           { ...req, body: { contentId, caption, videoUrl } } as AuthRequest,
-          { json: (data: unknown) => (results.tiktok = data) } as Response
+          { json: (data: unknown) => (results.tiktok = data) } as Response,
         );
       } catch (err) {
         results.tiktok = { error: String(err) };
@@ -353,7 +359,7 @@ const checkStatus = async (req: AuthRequest, res: Response): Promise<void> => {
       },
     });
     return;
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to check status' });
     return;
   }

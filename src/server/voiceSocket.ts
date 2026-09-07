@@ -21,7 +21,6 @@ interface WebSocketLike {
   on: (event: string, callback: (...args: unknown[]) => void) => void;
 }
 
- 
 const wsOn = (ws: WebSocketLike, event: string, cb: (...args: unknown[]) => void): void => {
   ws.on(event, cb as (...args: unknown[]) => void);
 };
@@ -168,9 +167,9 @@ export const onVoiceSocketConnect = (ws: WebSocketLike, sessionId: string, lang 
   log.info(`[VoiceSocket] Connected: ${sessionId} (${lang})`);
   send(ws, { type: 'connected', sessionId, lang });
 
-  wsOn(ws, 'message', (raw: string) => {
+  wsOn(ws, 'message', (raw: unknown) => {
     try {
-      const msg = JSON.parse(raw) as { type: string; data?: string; transcript?: string; lang?: string };
+      const msg = JSON.parse(String(raw)) as { type: string; data?: string; transcript?: string; lang?: string };
       switch (msg.type) {
         case 'audio_chunk':
           if (msg.data) handleAudioChunk(session, msg.data);
@@ -198,8 +197,8 @@ export const onVoiceSocketConnect = (ws: WebSocketLike, sessionId: string, lang 
     log.info(`[VoiceSocket] Disconnected: ${sessionId}`);
   });
 
-  wsOn(ws, 'error', (err: Error) => {
-    log.warn(`[VoiceSocket] Error ${sessionId}: ${err.message}`);
+  wsOn(ws, 'error', (err: unknown) => {
+    log.warn(`[VoiceSocket] Error ${sessionId}: ${err instanceof Error ? err.message : String(err)}`);
   });
 };
 

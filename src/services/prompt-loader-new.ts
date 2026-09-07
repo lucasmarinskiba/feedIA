@@ -47,7 +47,7 @@ export const promptLoader = {
         text: row.prompt_text,
         batch: row.batch_id,
         category: row.category,
-        tags: (row.tags)?.split(',') || [],
+        tags: row.tags?.split(',') || [],
       };
     } catch {
       return null;
@@ -86,7 +86,7 @@ export const promptLoader = {
         text: row.prompt_text,
         batch: row.batch_id,
         category: row.category,
-        tags: (row.tags)?.split(',') || [],
+        tags: row.tags?.split(',') || [],
       }));
     } catch {
       return [];
@@ -123,7 +123,7 @@ export const promptLoader = {
     };
   },
 
-  async getBatchStats(): Promise<Record<string, unknown>> {
+  async getBatchStats(): Promise<BatchStatsRow | Record<string, never>> {
     try {
       const result = await queryOneAs<BatchStatsRow>(`
         SELECT COUNT(*) as total_prompts, COUNT(DISTINCT batch_id) as total_batches
