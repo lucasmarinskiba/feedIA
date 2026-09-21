@@ -36,6 +36,14 @@ import { searchKnowledge, type KnowledgeResult } from '../bot/knowledgeRag.js';
 import { findMatchingFAQ, type FAQMatch } from '../community/faqDatabase.js';
 import { checkTone, type ToneCheckResult } from '../community/toneGuardian.js';
 import { learnFromInteraction } from '../../brain/bridge/interactionLearner.js';
+import {
+  handleComment,
+  isCommentBrainEnabled,
+  resolveBrainConfig,
+  getPostContext,
+  getThreadContext,
+  type BrainResult,
+} from '../commentBrain/index.js';
 
 export interface SmartReplyInput {
   userId: string;
@@ -44,6 +52,8 @@ export interface SmartReplyInput {
   message: string;
   brand: BrandProfile;
   postId?: string;
+  /** ID del comentario en la red (para leer el hilo). Solo canal 'comentario'. */
+  commentId?: string;
   postContext?: { postId: string; tipo: string; resumenContenido: string };
 }
 
@@ -52,7 +62,7 @@ export interface SmartReplyOutput {
   sent: boolean;
   escalated: boolean;
   blocked: boolean;
-  source: 'faq' | 'knowledge' | 'llm' | 'human' | 'blocked';
+  source: 'faq' | 'knowledge' | 'llm' | 'human' | 'blocked' | 'comment-brain' | 'ignored' | 'disabled';
   intent: string;
   confidence: number;
   rails?: RailsDecision;
@@ -61,6 +71,8 @@ export interface SmartReplyOutput {
   knowledge?: KnowledgeResult;
   tone?: ToneCheckResult;
   memory?: ClientMemory;
+  /** Decisión del Comment Brain (solo comentarios con el brain habilitado). */
+  brain?: BrainResult;
 }
 
 const FAQ_HIGH_CONFIDENCE = 0.75;
@@ -149,8 +161,12 @@ export const generateSmartReply = async (input: SmartReplyInput): Promise<SmartR
   // 1. Registrar mensaje entrante y cargar contexto
   const ctx = recordIncomingMessage(userId, handle, channel, message, input.postId);
 
-  // 2. Safety rails
-  const rails = evaluateRails(ctx, message);
+  // 2. Safety rails.
+  //    Comment Brain en modo `suggest` no envía nada: el interruptor maestro (BOT_AUTO_REPLY_ENABLED) y el
+  //    horario silencioso, que protegen ENVÍOS, no aplican. Así el modo sombra junta datos aun con el bot "apagado".
+  const observeOnly =
+    channel === 'comentario' && isCommentBrainEnabled() && resolveBrainConfig().autonomy === 'suggest';
+  const rails = evaluateRails(ctx, message, { observeOnly });
   if (!rails.permitir) {
     log.info(`[UnifiedReply] Bloqueado por rails: ${rails.motivos.join(', ')}`);
     return {
@@ -176,6 +192,71 @@ export const generateSmartReply = async (input: SmartReplyInput): Promise<SmartR
     Promise.resolve(findMatchingFAQ(message, 0.5)),
     Promise.resolve(searchKnowledge({ query: message, limit: 3 })),
   ]);
+
+  // 4b. Comentarios públicos: los decide el Comment Brain (tipo + sarcasmo + riesgo).
+  //     FAQ y knowledge dejan de ser respuestas enlatadas y pasan a ser HECHOS citables.
+  if (channel === 'comentario' && isCommentBrainEnabled()) {
+    const facts = [
+      ...(faqMatch ? [`${faqMatch.entry.question} → ${faqMatch.entry.answer}`] : []),
+      ...knowledge.chunks.slice(0, 3).map((c) => `${c.title}: ${c.content}`),
+    ];
+    const [post, thread] = await Promise.all([getPostContext(input.postId), getThreadContext(input.commentId)]);
+    const brain = await handleComment({
+      commentId: input.commentId,
+      handle,
+      text: message,
+      brand,
+      post,
+      thread,
+      facts,
+    });
+    const intent = brain.classification.kind;
+    const confidence = brain.classification.confidence;
+    const base = {
+      intent,
+      confidence,
+      rails,
+      crm,
+      faqMatch: faqMatch ?? undefined,
+      knowledge,
+      memory,
+      brain,
+    };
+
+    // Defensa en profundidad: en modo observación el brain nunca devuelve `reply`; si algún día lo hiciera, no se envía.
+    if (observeOnly && brain.action === 'reply') {
+      log.warn('[UnifiedReply] modo observación devolvió reply: se descarta el envío');
+      return { ...base, reply: '', sent: false, escalated: true, blocked: false, source: 'comment-brain' };
+    }
+
+    if (brain.action === 'reply' && brain.reply) {
+      const reply = truncate(brain.reply);
+      recordOutgoingReply(userId, reply, true, intent);
+      recordInteraction(userId, {
+        channel: toMemoryChannel(channel),
+        intent,
+        summary: `${message} → ${reply.slice(0, 80)}`,
+      });
+      await learnFromInteraction({
+        handle,
+        incoming: message,
+        outgoing: reply,
+        channel: 'comment',
+        intent,
+        confidence,
+        brand,
+        metadata: { postId: input.postId, autoReplied: true, escalated: false },
+      }).catch((err: Error) => log.warn(`[UnifiedReply] learn failed: ${err.message}`));
+      return { ...base, reply, sent: true, escalated: false, blocked: false, source: 'comment-brain' };
+    }
+
+    if (brain.action === 'ignore') {
+      return { ...base, reply: '', sent: false, escalated: false, blocked: false, source: 'ignored' };
+    }
+
+    // draft-for-review | escalate: el brain ya lo dejó en la cola de revisión.
+    return { ...base, reply: '', sent: false, escalated: true, blocked: false, source: 'comment-brain' };
+  }
 
   const contextParts: string[] = [];
   if (crm.found) contextParts.push(`Contexto CRM:\n${crm.context}`);

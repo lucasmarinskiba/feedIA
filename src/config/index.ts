@@ -63,6 +63,17 @@ export const env = {
     quietHoursStart: Number(optional('BOT_QUIET_HOURS_START', '23')),
     quietHoursEnd: Number(optional('BOT_QUIET_HOURS_END', '8')),
     escalateThreshold: Number(optional('BOT_ESCALATE_THRESHOLD', '0.7')),
+    commentBrain: {
+      // false → vuelve al camino legacy (FAQ → RAG → prompt genérico) para comentarios.
+      enabled: optional('COMMENT_BRAIN_ENABLED', 'true').toLowerCase() !== 'false',
+      // suggest = nada se envía solo (modo sombra, POR DEFECTO) | balanced | full = umbral de confianza más bajo.
+      // Cualquier valor no reconocido cae a suggest (ver parseAutonomy).
+      autonomy: optional('COMMENT_BRAIN_AUTONOMY', 'suggest').toLowerCase(),
+      // Topes de gasto: comentarios que pueden llegar al LLM por hora (por autor y en total). Un post viral o un
+      // usuario insistente no deben quemar el presupuesto. 0 desactiva el tope.
+      maxPerAuthorPerHour: Number(optional('COMMENT_BRAIN_MAX_PER_AUTHOR_HOUR', '5')),
+      maxPerHour: Number(optional('COMMENT_BRAIN_MAX_PER_HOUR', '120')),
+    },
   },
   notifications: {
     slackWebhook: optional('SLACK_WEBHOOK_URL'),

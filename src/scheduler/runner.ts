@@ -5,6 +5,7 @@ import { log } from '../agent/logger.js';
 import { sendAlert } from '../integrations/notifications.js';
 import type { BrandProfile } from '../config/types.js';
 import { jobs, findJob, type JobDefinition, type JobName } from './jobs.js';
+import { shouldRunJob } from '../capabilities/botControl/index.js';
 
 export interface JobOverride {
   name: JobName;
@@ -89,6 +90,29 @@ const runJobOnce = async (job: JobDefinition, brand: BrandProfile): Promise<JobR
   return record;
 };
 
+/**
+ * Disparo de un job por el cron. El guard de Bot Control se evalúa ACÁ, al disparar (no al armar el cron),
+ * para que apagar un bot surta efecto al instante y sin reiniciar. Se corta antes de llamar al handler:
+ * cero gasto de LLM. Solo aplica al cron: una ejecución manual (`runJobByName`) es una orden explícita del usuario.
+ * Devuelve true si el job se ejecutó.
+ */
+export const fireScheduledJob = (
+  job: JobDefinition,
+  brand: BrandProfile,
+  run: (job: JobDefinition, brand: BrandProfile) => Promise<unknown> = runJobOnce,
+): boolean => {
+  const decision = shouldRunJob(job.name);
+  if (!decision.run) {
+    log.debug(`Scheduler: ${job.name} omitido (${decision.reason})`);
+    return false;
+  }
+  // runJobOnce ya captura sus errores; el catch es por si `run` es otra cosa: un rechazo nunca debe quedar sin manejar.
+  void run(job, brand).catch((err: unknown) =>
+    log.error(`Scheduler: ${job.name} rechazó: ${err instanceof Error ? err.message : String(err)}`),
+  );
+  return true;
+};
+
 export interface SchedulerHandle {
   tasks: Map<JobName, ScheduledTask>;
   stop: () => void;
@@ -122,7 +146,7 @@ export const startScheduler = (brand: BrandProfile): SchedulerHandle => {
     const task = cron.schedule(
       expr,
       () => {
-        void runJobOnce(job, brand);
+        fireScheduledJob(job, brand);
       },
       { timezone: process.env['TIMEZONE'] ?? 'America/Argentina/Buenos_Aires' },
     );

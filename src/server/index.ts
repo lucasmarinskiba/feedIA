@@ -17,6 +17,7 @@ import { buildHiggsfieldRoutes } from './higgsfieldRoutes.js';
 import { buildOAuthRoutes } from './oauthRoutes.js';
 import { voiceRoutes } from './voiceApi.js';
 import { buildGlassBoxRoutes } from './glassboxApi.js';
+import { buildControlRoutes } from './controlRoutes.js';
 import { buildCalendarRoutes } from './calendarApi.js';
 import { buildOnboardingRoutes } from './onboardingApi.js';
 import { buildStrategyRoutes } from './strategyApi.js';
@@ -229,6 +230,7 @@ export const startDaemon = (opts: DaemonOptions = {}): { stop: () => void } => {
     const canvaOAuthRoutes = buildCanvaOAuthRoutes();
     const higgsfieldRoutes = buildHiggsfieldRoutes();
     const glassboxRoutes = buildGlassBoxRoutes();
+    const controlRoutes = buildControlRoutes();
     const extendedRoutes = buildExtendedRoutes(brand);
     const skillsRoutes = buildSkillsRoutes();
     const oauthRoutes = buildOAuthRoutes(brand);
@@ -249,6 +251,7 @@ export const startDaemon = (opts: DaemonOptions = {}): { stop: () => void } => {
       ...voiceRoutes,
       ...webhookRoutes,
       ...glassboxRoutes,
+      ...controlRoutes,
       ...strategyRoutes,
       ...authRoutes,
     ];

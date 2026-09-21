@@ -536,3 +536,109 @@ export const deleteComment = async (commentId: string): Promise<{ ok: boolean; e
     },
     { actionCategory: 'api_request', correlationId: `meta-del-${Date.now()}` },
   ) as Promise<{ ok: boolean; error?: string }>;
+
+/* ── Lectura de contexto (post + hilo) para respuestas con criterio ───────── */
+
+export interface MediaContext {
+  id: string;
+  caption?: string;
+  mediaType?: string;
+  permalink?: string;
+}
+
+export interface CommentThreadMessage {
+  id: string;
+  username: string;
+  text: string;
+  isFromBrand: boolean;
+}
+
+export interface CommentThread {
+  parent?: CommentThreadMessage;
+  siblings: CommentThreadMessage[];
+}
+
+interface RawComment {
+  id: string;
+  text?: string;
+  username?: string;
+  parent_id?: string;
+  from?: { id?: string; username?: string };
+}
+
+const GRAPH_BASE = 'https://graph.facebook.com/v18.0';
+
+/**
+ * Caption y tipo del post. Devuelve null (nunca datos inventados) si la API no
+ * está configurada, estamos en dry-run o la lectura falla.
+ */
+export const fetchMediaContext = async (mediaId: string, accountId = 'default'): Promise<MediaContext | null> => {
+  if (env.dryRun) return null;
+  const creds = await resolveMetaCredentials(accountId);
+  if (!guard(creds)) return null;
+
+  try {
+    const res = await metaFetch(
+      `${GRAPH_BASE}/${mediaId}?fields=id,caption,media_type,permalink&access_token=${creds!.accessToken}`,
+      {},
+      { description: 'Meta media context' },
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as { id?: string; caption?: string; media_type?: string; permalink?: string };
+    if (!data.id) return null;
+    return { id: data.id, caption: data.caption, mediaType: data.media_type, permalink: data.permalink };
+  } catch (err) {
+    log.warn(`fetchMediaContext ${mediaId}: ${err instanceof Error ? err.message : String(err)}`);
+    return null;
+  }
+};
+
+/**
+ * Hilo de un comentario: el comentario padre (si es una respuesta) y sus
+ * hermanos recientes. `isFromBrand` se decide comparando el id del autor con el
+ * IG Business ID de la cuenta.
+ */
+export const fetchCommentThread = async (commentId: string, accountId = 'default'): Promise<CommentThread | null> => {
+  if (env.dryRun) return null;
+  const creds = await resolveMetaCredentials(accountId);
+  if (!guard(creds)) return null;
+
+  const toMessage = (c: RawComment): CommentThreadMessage => ({
+    id: c.id,
+    username: c.username ?? c.from?.username ?? 'desconocido',
+    text: c.text ?? '',
+    isFromBrand: c.from?.id === creds!.igBusinessId,
+  });
+
+  try {
+    const selfRes = await metaFetch(
+      `${GRAPH_BASE}/${commentId}?fields=id,text,username,parent_id,from&access_token=${creds!.accessToken}`,
+      {},
+      { description: 'Meta comment info' },
+    );
+    if (!selfRes.ok) return null;
+    const self = (await selfRes.json()) as RawComment;
+    if (!self.parent_id) return { siblings: [] };
+
+    const [parentRes, repliesRes] = await Promise.all([
+      metaFetch(
+        `${GRAPH_BASE}/${self.parent_id}?fields=id,text,username,from&access_token=${creds!.accessToken}`,
+        {},
+        { description: 'Meta parent comment' },
+      ),
+      metaFetch(
+        `${GRAPH_BASE}/${self.parent_id}/replies?fields=id,text,username,from&limit=6&access_token=${creds!.accessToken}`,
+        {},
+        { description: 'Meta sibling comments' },
+      ),
+    ]);
+
+    const parent = parentRes.ok ? toMessage((await parentRes.json()) as RawComment) : undefined;
+    const siblingsRaw = repliesRes.ok ? (((await repliesRes.json()) as { data?: RawComment[] }).data ?? []) : [];
+    const siblings = siblingsRaw.filter((s) => s.id !== commentId).map(toMessage);
+    return { parent, siblings };
+  } catch (err) {
+    log.warn(`fetchCommentThread ${commentId}: ${err instanceof Error ? err.message : String(err)}`);
+    return null;
+  }
+};

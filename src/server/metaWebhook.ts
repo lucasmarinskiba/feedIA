@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { processInbound } from '../capabilities/bot/index.js';
+import { isBotEnabled } from '../capabilities/botControl/index.js';
 import { ejecutarCrisisCheck } from '../capabilities/crisis/index.js';
 import { sendAlert } from '../integrations/notifications.js';
 import { log } from '../agent/logger.js';
@@ -70,6 +71,10 @@ const changeToInbound = (entry: MetaEntry, change: MetaChange): MetaInbound | nu
   const recibidoEn = new Date(entry.time * 1000).toISOString();
   if (field === 'comments') {
     if (!value.comment_id || !value.text) return null;
+    // Comentario de la propia cuenta (p. ej. nuestras respuestas volviendo por el webhook): en Meta,
+    // `entry.id` es la cuenta que recibe el evento y `from.id` quien comentó. Procesarlo es gasto puro
+    // y abre la puerta a un bucle de respuestas.
+    if (value.from?.id && value.from.id === entry.id) return null;
     const inbound: MetaInbound = {
       type: 'comentario',
       id: value.comment_id,
@@ -110,6 +115,13 @@ const messagingToInbound = (entry: MetaEntry, msg: NonNullable<MetaEntry['messag
  * Router inteligente post-procesamiento.
  * Emite eventos al bus para que agentes especializados actúen.
  */
+const outcomeLabel = (outcome: { sent: boolean; source: string }): string => {
+  if (outcome.sent) return 'auto-respondido';
+  if (outcome.source === 'disabled') return 'bot-apagado';
+  if (outcome.source === 'ignored') return 'ignorado';
+  return 'derivado';
+};
+
 const routeToAgents = (texto: string, tipo: string, remitente: string, postId?: string): void => {
   const lower = texto.toLowerCase();
   const correlationId = `webhook-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -192,7 +204,7 @@ export const buildEventHandler =
             const result = await processInbound(brand, inbound);
             procesados.push({
               tipo: inbound.type,
-              resultado: result.outcome.sent ? 'auto-respondido' : 'derivado',
+              resultado: outcomeLabel(result.outcome),
             });
             routeToAgents(inbound.texto, inbound.type, inbound.remitente, inbound.postId);
             emit({
@@ -203,7 +215,8 @@ export const buildEventHandler =
             });
             if (inbound.type === 'comentario' && inbound.postId) {
               captureForCrisis(inbound.postId, inbound.texto);
-              if (shouldRunCrisisCheck(inbound.postId)) {
+              // El chequeo de crisis llama a un LLM: lo gobierna el bot de comentarios.
+              if (shouldRunCrisisCheck(inbound.postId) && isBotEnabled('comment-bot')) {
                 const comentarios = recentCommentsByPost.get(inbound.postId) ?? [];
                 void ejecutarCrisisCheck(brand, {
                   postId: inbound.postId,
@@ -229,7 +242,7 @@ export const buildEventHandler =
             const result = await processInbound(brand, inbound);
             procesados.push({
               tipo: 'dm',
-              resultado: result.outcome.sent ? 'auto-respondido' : 'derivado',
+              resultado: outcomeLabel(result.outcome),
             });
             routeToAgents(inbound.texto, inbound.type, inbound.remitente);
             emit({
