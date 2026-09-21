@@ -7,6 +7,9 @@
  */
 
 import {
+  brainApprove,
+  brainDecisions,
+  brainReject,
   brainResolve,
   brainReview,
   brainStatus,
@@ -36,6 +39,17 @@ export const buildControlRoutes = (): RouteDefinition[] => [
   },
   { method: 'GET', pattern: '/api/comment-brain/status', handler: guarded(() => brainStatus()) },
   { method: 'GET', pattern: '/api/comment-brain/review', handler: guarded((ctx) => brainReview(ctx.query)) },
+  { method: 'GET', pattern: '/api/comment-brain/decisions', handler: guarded((ctx) => brainDecisions(ctx.query)) },
+  {
+    method: 'POST',
+    pattern: '/api/comment-brain/review/:id/approve',
+    handler: guarded((ctx) => brainApprove(ctx.params['id'] ?? '', ctx.body)),
+  },
+  {
+    method: 'POST',
+    pattern: '/api/comment-brain/review/:id/reject',
+    handler: guarded((ctx) => brainReject(ctx.params['id'] ?? '', ctx.body)),
+  },
   {
     method: 'POST',
     pattern: '/api/comment-brain/review/:id/resolve',

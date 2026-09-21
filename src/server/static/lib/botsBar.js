@@ -10,7 +10,8 @@
    Fuente de verdad: el servidor (GET /api/bots). La UI nunca asume: renderiza lo
    que el servidor devuelve tras cada cambio.
    ══════════════════════════════════════════════════════════════════════════════ */
-import { api, apiBust } from './api.js';
+import { apiBust } from './api.js';
+import { adminApi, askAdminKey, clearAdminKey, isAuthError } from './adminKey.js';
 import { toast } from './toast.js';
 
 const POLL_MS = 30_000;
@@ -22,8 +23,6 @@ let busy = false;
 let route = '';
 let panelOpen = false;
 let pollTimer = null;
-// Clave de admin: SOLO en memoria. Nada de credenciales en localStorage/sessionStorage.
-let adminKey = '';
 
 const el = (tag, attrs = {}, children = []) => {
   const node = document.createElement(tag);
@@ -72,10 +71,6 @@ const ensureStrip = () => {
 
 /* ── Red ──────────────────────────────────────────────────────────────────── */
 
-const withKey = () => (adminKey ? { 'x-admin-key': adminKey } : undefined);
-
-const isAuthError = (err) => err?.status === 401 || err?.status === 403;
-
 const describeError = (err) => {
   const s = err?.status;
   if (s === 401 || s === 403) return 'Hace falta la clave de admin para controlar los bots.';
@@ -87,22 +82,7 @@ const describeError = (err) => {
 };
 
 /** interactive=true: si el servidor pide clave, se la pide al usuario (solo tras una acción suya, nunca en el polling). */
-const request = async (path, opts = {}, interactive = false, retried = false) => {
-  try {
-    return await api(path, { ...opts, noCache: true, headers: withKey() });
-  } catch (err) {
-    if (interactive && !retried && (err?.status === 401 || err?.status === 403)) {
-      const key = window.prompt(
-        'Este servidor pide la clave de admin para controlar los bots. Se guarda solo mientras esta pestaña esté abierta.',
-      );
-      if (key && key.trim()) {
-        adminKey = key.trim();
-        return request(path, opts, interactive, true);
-      }
-    }
-    throw err;
-  }
-};
+const request = (path, opts = {}, interactive = false) => adminApi(path, opts, { interactive });
 
 let loadInFlight = null;
 
@@ -146,7 +126,7 @@ const mutate = async (path, enabled, okMessage) => {
   } catch (err) {
     unavailable = describeError(err);
     needsKey = isAuthError(err);
-    if (needsKey) adminKey = ''; // la clave era incorrecta: que el próximo intento la vuelva a pedir
+    if (needsKey) clearAdminKey(); // la clave era incorrecta: que el próximo intento la vuelva a pedir
     toast(unavailable, 'error');
   } finally {
     busy = false;
@@ -163,14 +143,10 @@ const toggleBot = (bot) =>
 
 /** Sin clave (o con una incorrecta) el maestro se convierte en "ingresar clave": si no, el usuario nunca llegaría a ver el prompt. */
 const unlock = async () => {
-  const key = window.prompt(
-    'Este servidor pide la clave de admin para controlar los bots. Se guarda solo mientras esta pestaña esté abierta.',
-  );
-  if (!key || !key.trim()) return;
-  adminKey = key.trim();
+  if (!askAdminKey()) return;
   await load();
   if (needsKey) {
-    adminKey = '';
+    clearAdminKey();
     toast('La clave no es válida.', 'error');
   } else {
     toast('Control de bots desbloqueado.', 'info');

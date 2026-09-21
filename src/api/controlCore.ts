@@ -8,23 +8,33 @@
  *   GET  /api/bots                    — estado de todos los bots + botón maestro
  *   POST /api/bots/master             — { enabled } apaga/enciende todos (en bloque)
  *   POST /api/bots/:id/state          — { enabled } prende/apaga un bot
- *   GET  /api/comment-brain/status    — modo del Comment Brain + cola + topes de gasto
+ *   GET  /api/comment-brain/status    — modo + cola + topes de gasto + métrica de graduación a `balanced`
  *   GET  /api/comment-brain/review    — items pendientes de revisión
- *   POST /api/comment-brain/review/:id/resolve
+ *   GET  /api/comment-brain/decisions — decisiones humanas recientes (aprobadas / editadas / rechazadas)
+ *   POST /api/comment-brain/review/:id/approve  — { text?, force? } ENVÍA el borrador (opcionalmente editado)
+ *   POST /api/comment-brain/review/:id/reject   — { reason? } descarta un borrador
+ *   POST /api/comment-brain/review/:id/resolve  — "ya lo resolví yo" (escalados, ignorados)
  */
 
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { IncomingHttpHeaders } from 'node:http';
 import { z } from 'zod';
 import { log } from '../agent/logger.js';
+import { env } from '../config/index.js';
 import { getBotControlSnapshot, isBotId, setAllBots, setBotEnabled } from '../capabilities/botControl/index.js';
 import {
+  approveReview,
+  evaluateGraduation,
   getCostGuardStats,
   isCommentBrainEnabled,
+  listDecisions,
   listReviewQueue,
+  markHandled,
+  rejectReview,
   resolveBrainConfig,
-  resolveReview,
+  summarizeDecisions,
   summarizeQueue,
+  type ActionResult,
 } from '../capabilities/commentBrain/index.js';
 
 export interface CoreResponse {
@@ -67,11 +77,13 @@ const safeMatch = (candidate: string, keys: string[]): boolean => {
  */
 export const checkAdminAccess = (
   headers: IncomingHttpHeaders,
-  env: NodeJS.ProcessEnv = process.env,
+  processEnv: NodeJS.ProcessEnv = process.env,
 ): CoreResponse | null => {
-  const keys = parseKeys(env['FEEDIA_ADMIN_KEY']);
+  const keys = parseKeys(processEnv['FEEDIA_ADMIN_KEY']);
   if (keys.length === 0) {
-    return env['NODE_ENV'] === 'production' ? { status: 503, body: { error: 'admin-key-not-configured' } } : null;
+    return processEnv['NODE_ENV'] === 'production'
+      ? { status: 503, body: { error: 'admin-key-not-configured' } }
+      : null;
   }
   const presented = extractKey(headers);
   if (!presented || !safeMatch(presented, keys)) return { status: 403, body: { error: 'forbidden' } };
@@ -141,10 +153,15 @@ export const brainStatus = (): CoreResponse => {
       body: {
         ok: true,
         enabled: isCommentBrainEnabled(),
+        // Con DRY_RUN activo, aprobar un borrador registra la decisión pero NO publica: la UI tiene que decirlo.
+        dryRun: env.dryRun,
         autonomy: config.autonomy,
         minConfidence: config.minConfidence,
         // En `suggest` nada se envía solo: `wouldHaveReplied` mide cuánto se habría automatizado.
         queue: summarizeQueue(),
+        // Evidencia para pasar a `balanced`: de lo que se habría enviado sin supervisión, cuánto aprobó una persona tal cual.
+        graduation: evaluateGraduation(),
+        decisions: summarizeDecisions(),
         costGuards: getCostGuardStats(),
       },
     };
@@ -166,11 +183,85 @@ export const brainReview = (query: Record<string, unknown>): CoreResponse => {
   }
 };
 
+/** Traduce el resultado de dominio a HTTP. Los detalles internos (rutas, stack) nunca salen al cliente. */
+const actionResponse = (r: ActionResult): CoreResponse => {
+  if (r.ok) {
+    return {
+      status: 200,
+      body: {
+        ok: true,
+        outcome: r.outcome,
+        sent: r.sent,
+        dryRun: r.dryRun,
+        ...(r.finalText ? { finalText: r.finalText } : {}),
+      },
+    };
+  }
+  switch (r.code) {
+    case 'not-found':
+      return { status: 404, body: { ok: false, error: 'not-found' } };
+    case 'not-reviewable':
+    case 'no-comment-id':
+    case 'busy':
+      return { status: 409, body: { ok: false, error: r.code, detail: r.error } };
+    case 'empty-text':
+      return { status: 400, body: { ok: false, error: 'empty-text' } };
+    case 'validation':
+      return { status: 422, body: { ok: false, error: 'validation', issues: r.issues ?? [] } };
+    case 'brand-unavailable':
+      return { status: 503, body: { ok: false, error: 'brand-unavailable' } };
+    case 'send-failed':
+      return { status: 502, body: { ok: false, error: 'send-failed', detail: r.error } };
+  }
+};
+
+const ApproveBodySchema = z.object({
+  text: z.string().min(1).max(2200).optional(),
+  force: z.boolean().optional(),
+});
+const RejectBodySchema = z.object({ reason: z.string().max(300).optional() });
+const DecisionsQuerySchema = z.object({ limit: z.coerce.number().int().min(1).max(200).default(50) });
+
+/** Aprueba (y ENVÍA) un borrador, opcionalmente editado. `force` envía aunque los validadores bloqueen. */
+export const brainApprove = async (id: string, body: unknown): Promise<CoreResponse> => {
+  const parsed = ApproveBodySchema.safeParse(body ?? {});
+  if (!parsed.success) return { status: 400, body: { ok: false, error: parsed.error.issues } };
+  try {
+    return actionResponse(await approveReview(id, parsed.data));
+  } catch (err) {
+    log.error(`[comment-brain] approve: ${err instanceof Error ? err.message : String(err)}`);
+    return { status: 500, body: { error: 'comment-brain-approve' } };
+  }
+};
+
+export const brainReject = (id: string, body: unknown): CoreResponse => {
+  const parsed = RejectBodySchema.safeParse(body ?? {});
+  if (!parsed.success) return { status: 400, body: { ok: false, error: parsed.error.issues } };
+  try {
+    return actionResponse(rejectReview(id, parsed.data.reason));
+  } catch (err) {
+    log.error(`[comment-brain] reject: ${err instanceof Error ? err.message : String(err)}`);
+    return { status: 500, body: { error: 'comment-brain-reject' } };
+  }
+};
+
+export const brainDecisions = (query: Record<string, unknown>): CoreResponse => {
+  const parsed = DecisionsQuerySchema.safeParse(query);
+  if (!parsed.success) return { status: 400, body: { ok: false, error: parsed.error.issues } };
+  try {
+    const items = listDecisions(parsed.data.limit);
+    return { status: 200, body: { ok: true, count: items.length, items } };
+  } catch (err) {
+    log.error(`[comment-brain] decisions: ${err instanceof Error ? err.message : String(err)}`);
+    return { status: 500, body: { error: 'comment-brain-decisions' } };
+  }
+};
+
+/** "Ya lo resolví yo": saca el item de la cola y lo registra, sin contar para la métrica de aprobación. */
 export const brainResolve = (id: string): CoreResponse => {
   try {
-    return resolveReview(id)
-      ? { status: 200, body: { ok: true, resolved: id } }
-      : { status: 404, body: { ok: false, error: 'not-found' } };
+    const r = markHandled(id);
+    return r.ok ? { status: 200, body: { ok: true, resolved: id } } : actionResponse(r);
   } catch (err) {
     log.error(`[comment-brain] resolve: ${err instanceof Error ? err.message : String(err)}`);
     return { status: 500, body: { error: 'comment-brain-resolve' } };

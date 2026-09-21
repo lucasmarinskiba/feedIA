@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { jobs } from '../../../src/scheduler/jobs.js';
 import {
@@ -22,6 +24,32 @@ describe('registro de bots', () => {
     }
     expect(isBotId('no-existe')).toBe(false);
     expect(() => getBotDefinition('no-existe' as never)).toThrow();
+  });
+});
+
+describe('vistas de la SPA', () => {
+  /** Rutas reales de la SPA: se leen de app.js para que el registro no pueda derivar (ya pasó una vez: se perdieron los guiones). */
+  const spaRoutes = (): Set<string> => {
+    const src = readFileSync(fileURLToPath(new URL('../../../src/server/static/app.js', import.meta.url)), 'utf-8');
+    const block = /const ROUTES = \{([\s\S]*?)\n\};/.exec(src)?.[1] ?? '';
+    return new Set([...block.matchAll(/^\s*'?([A-Za-zñáéíóú0-9_-]+)'?\s*:\s*V\(/gm)].map((m) => m[1] as string));
+  };
+
+  it('el test lee las rutas de verdad (no es vacuo)', () => {
+    expect(spaRoutes().size).toBeGreaterThan(40);
+    expect(spaRoutes().has('studio-carousel')).toBe(true);
+  });
+
+  it('toda vista que menciona un bot existe como ruta de la SPA (si no, el chip nunca se mostraría)', () => {
+    const routes = spaRoutes();
+    for (const b of BOTS) {
+      const unknown = b.views.filter((v) => !routes.has(v));
+      expect(unknown, `${b.id}: vistas inexistentes → ${unknown.join(', ')}`).toEqual([]);
+    }
+  });
+
+  it('cada bot aparece en al menos una vista', () => {
+    for (const b of BOTS) expect(b.views.length, b.id).toBeGreaterThan(0);
   });
 });
 

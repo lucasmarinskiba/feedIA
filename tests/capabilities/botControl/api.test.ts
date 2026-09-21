@@ -197,18 +197,42 @@ describe('rutas del daemon (donde corren los bots)', () => {
     return result();
   };
 
-  it('registra las 6 rutas y ninguna es ambigua entre sí', () => {
-    const routes = buildControlRoutes();
-    expect(routes.map((r) => `${r.method} ${r.pattern}`).sort()).toEqual(
+  it('registra exactamente las rutas esperadas', () => {
+    expect(
+      buildControlRoutes()
+        .map((r) => `${r.method} ${r.pattern}`)
+        .sort(),
+    ).toEqual(
       [
         'GET /api/bots',
         'POST /api/bots/master',
         'POST /api/bots/:id/state',
         'GET /api/comment-brain/status',
         'GET /api/comment-brain/review',
+        'GET /api/comment-brain/decisions',
+        'POST /api/comment-brain/review/:id/approve',
+        'POST /api/comment-brain/review/:id/reject',
         'POST /api/comment-brain/review/:id/resolve',
       ].sort(),
     );
+  });
+
+  it('ninguna ruta es ambigua: el daemon matchea por cantidad de segmentos y toma la primera, así que un patrón estático no puede convivir con uno con :param en la misma posición', () => {
+    const routes = buildControlRoutes();
+    const couldMatchSame = (a: string, b: string): boolean => {
+      const pa = a.split('/').filter(Boolean);
+      const pb = b.split('/').filter(Boolean);
+      return (
+        pa.length === pb.length &&
+        pa.every((seg, i) => seg === pb[i] || seg.startsWith(':') || (pb[i] ?? '').startsWith(':'))
+      );
+    };
+    for (const [i, a] of routes.entries()) {
+      for (const b of routes.slice(i + 1)) {
+        if (a.method !== b.method) continue;
+        expect(couldMatchSame(a.pattern, b.pattern), `${a.method} ${a.pattern}  ↔  ${b.pattern}`).toBe(false);
+      }
+    }
   });
 
   it('GET /api/bots y el maestro funcionan igual que en Express', async () => {
