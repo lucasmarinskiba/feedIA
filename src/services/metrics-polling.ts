@@ -176,10 +176,9 @@ async function fetchTikTokMetrics(videoId: string, accessToken: string): Promise
  */
 async function fetchAccountAccessToken(accountId: string): Promise<string | null> {
   try {
-    const result = await getPool().query(
-      `SELECT access_token, token_expires_at FROM user_accounts WHERE id = $1`,
-      [accountId],
-    );
+    const result = await getPool().query(`SELECT access_token, token_expires_at FROM user_accounts WHERE id = $1`, [
+      accountId,
+    ]);
 
     if (!result.rows || result.rows.length === 0) return null;
 

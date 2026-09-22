@@ -17,10 +17,7 @@ export interface ImageBrief {
   colorPalette?: string[];
 }
 
-export const generateImageBriefs = (
-  slides: SlideCopy[],
-  topic: string,
-): ImageBrief[] => {
+export const generateImageBriefs = (slides: SlideCopy[], topic: string): ImageBrief[] => {
   log.info(`[Image Briefs] Generating visuals for ${slides.length} slides`);
 
   const briefs: ImageBrief[] = slides.map((slide) => {
@@ -62,7 +59,10 @@ const selectMood = (slideNumber: number): string => {
 };
 
 const extractKeywords = (headline: string, topic: string): string[] => {
-  const words = headline.toLowerCase().split(' ').filter((w) => w.length > 4);
+  const words = headline
+    .toLowerCase()
+    .split(' ')
+    .filter((w) => w.length > 4);
   return [...new Set([...words, topic.toLowerCase()])].slice(0, 5);
 };
 

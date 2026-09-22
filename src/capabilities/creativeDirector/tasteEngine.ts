@@ -75,7 +75,10 @@ const heuristicScore = (input: TasteInput): Partial<TasteDimensions> => {
   }
 
   dims.visualCoherence = input.palette && input.palette.length >= 2 ? 76 : 60;
-  dims.pinterestAesthetic = input.visualStyle?.toLowerCase().includes('premium') || input.visualStyle?.toLowerCase().includes('minimal') ? 78 : 68;
+  dims.pinterestAesthetic =
+    input.visualStyle?.toLowerCase().includes('premium') || input.visualStyle?.toLowerCase().includes('minimal')
+      ? 78
+      : 68;
 
   return dims;
 };

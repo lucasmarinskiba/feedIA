@@ -33,9 +33,9 @@ describe('Retry Logic', () => {
     it('throws after max retries exceeded', async () => {
       const fn = vi.fn().mockRejectedValue(new Error('always fails'));
 
-      await expect(
-        retryWithBackoff(fn, { maxRetries: 2, initialDelayMs: 10, name: 'test' }),
-      ).rejects.toThrow('always fails');
+      await expect(retryWithBackoff(fn, { maxRetries: 2, initialDelayMs: 10, name: 'test' })).rejects.toThrow(
+        'always fails',
+      );
 
       expect(fn).toHaveBeenCalledTimes(3); // 1 initial + 2 retries
     });

@@ -28,7 +28,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['bikes', 'fitness', 'sports', 'outdoor', 'tech'],
     psychology: 'High visibility, nature connection, activity activation',
     accessibilityRatio: 19.56,
-    examples: ['ATASport', 'eco-brands', 'adventure-companies']
+    examples: ['ATASport', 'eco-brands', 'adventure-companies'],
   },
   {
     id: 'neon-yellow',
@@ -40,7 +40,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['bikes', 'adventure', 'sports', 'youth-market'],
     psychology: 'Maximum contrast, attention-grabbing, energy',
     accessibilityRatio: 19.56,
-    examples: ['MBikes', 'safety-brands', 'urban-sports']
+    examples: ['MBikes', 'safety-brands', 'urban-sports'],
   },
   {
     id: 'red-orange',
@@ -52,7 +52,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['bikes', 'sports', 'campaigns', 'awareness', 'special-events'],
     psychology: 'Urgency, passion, motivation',
     accessibilityRatio: 9.04,
-    examples: ['Cyclist-awareness-campaigns', 'action-brands']
+    examples: ['Cyclist-awareness-campaigns', 'action-brands'],
   },
   {
     id: 'blue-trust',
@@ -64,7 +64,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['bikes', 'tech', 'financial', 'premium', 'outdoor'],
     psychology: 'Trust, stability, sky/water connection (adventure)',
     accessibilityRatio: 8.58,
-    examples: ['TrikatPro', 'tech-brands', 'premium-bikes']
+    examples: ['TrikatPro', 'tech-brands', 'premium-bikes'],
   },
   {
     id: 'orange-black-modern',
@@ -76,7 +76,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['fitness', 'gym', 'equipment', 'coaching', 'tech'],
     psychology: 'Energy + sophistication, modern innovation, power',
     accessibilityRatio: 11.3,
-    examples: ['OM GYM', 'modern-equipment-brands', 'fitness-studios']
+    examples: ['OM GYM', 'modern-equipment-brands', 'fitness-studios'],
   },
   {
     id: 'yellow-black-motivation',
@@ -88,7 +88,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['fitness', 'personal-training', 'motivation', 'coaching', 'sports'],
     psychology: 'Maximum contrast, attention, energy, confidence',
     accessibilityRatio: 19.56,
-    examples: ['Fitness coaches', 'motivation-brands', 'action-gyms']
+    examples: ['Fitness coaches', 'motivation-brands', 'action-gyms'],
   },
   {
     id: 'lime-modern-eco',
@@ -100,7 +100,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['equipment', 'tech-fitness', 'modern-gym', 'sustainability', 'innovation'],
     psychology: 'Technology + nature, modernity, efficiency',
     accessibilityRatio: 19.56,
-    examples: ['Adjustable dumbbells', 'modern-equipment', 'smart-fitness']
+    examples: ['Adjustable dumbbells', 'modern-equipment', 'smart-fitness'],
   },
   {
     id: 'yellow-purple-energetic',
@@ -112,7 +112,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['fitness', 'young-audience', 'motivation', 'lifestyle', 'sports'],
     psychology: 'High contrast, youth energy, playful but serious',
     accessibilityRatio: 15.2,
-    examples: ['Fitness motivation carousel', 'youth-gyms', 'workout-influencers']
+    examples: ['Fitness motivation carousel', 'youth-gyms', 'workout-influencers'],
   },
   {
     id: 'professional-blue',
@@ -124,7 +124,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['finance', 'accounting', 'banking', 'corporate', 'legal'],
     psychology: 'Trust, stability, professionalism, authority',
     accessibilityRatio: 10.5,
-    examples: ['Razzão Contabilidad', 'Guia-se Digital', 'Finance services']
+    examples: ['Razzão Contabilidad', 'Guia-se Digital', 'Finance services'],
   },
   {
     id: 'dark-blue-white',
@@ -136,7 +136,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['accounting', 'finance', 'tax', 'corporate', 'numbers'],
     psychology: 'Precision, clarity, technical competence, minimalism',
     accessibilityRatio: 12.6,
-    examples: ['Tax/accounting services', 'Technical finance']
+    examples: ['Tax/accounting services', 'Technical finance'],
   },
   {
     id: 'purple-modern-finance',
@@ -148,7 +148,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['finance', 'fintech', 'digital-finance', 'startups', 'modern-services'],
     psychology: 'Modern, innovative, breaks from traditional finance aesthetic, attention',
     accessibilityRatio: 14.3,
-    examples: ['Modern accounting services', 'Fintech', 'Digital tax services']
+    examples: ['Modern accounting services', 'Fintech', 'Digital tax services'],
   },
   {
     id: 'yellow-gold-elegant',
@@ -160,7 +160,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['finance', 'hiring', 'cost-education', 'premium-services', 'consulting'],
     psychology: 'Gold = value/wealth, yellow = attention, together = premium cost positioning',
     accessibilityRatio: 13.5,
-    examples: ['Cost revelation carousels', 'Hiring education', 'Premium consulting']
+    examples: ['Cost revelation carousels', 'Hiring education', 'Premium consulting'],
   },
   {
     id: 'dark-blue-gold',
@@ -172,7 +172,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['finance', 'consulting', 'premium-services', 'corporate', 'accounting'],
     psychology: 'Dark blue = trust/stability, gold = premium/value, combined = exclusive expertise',
     accessibilityRatio: 11.8,
-    examples: ['Premium finance consulting', 'Executive coaching', 'Strategic accounting']
+    examples: ['Premium finance consulting', 'Executive coaching', 'Strategic accounting'],
   },
   {
     id: 'black-gold',
@@ -184,7 +184,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['finance', 'wealth-management', 'consulting', 'premium-services'],
     psychology: 'Black + gold = luxury/exclusivity, high contrast = premium positioning',
     accessibilityRatio: 15.4,
-    examples: ['Luxury finance services', 'Wealth management', 'Executive consulting']
+    examples: ['Luxury finance services', 'Wealth management', 'Executive consulting'],
   },
   {
     id: 'dark-blue-white-myth',
@@ -196,7 +196,7 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['education', 'consulting', 'professional-services', 'accounting'],
     psychology: 'Dark blue = trust/professionalism, white = clarity, gold accent = truth/revelation',
     accessibilityRatio: 11.2,
-    examples: ['BURDA Assessoria', 'School financial services', 'Educational consulting']
+    examples: ['BURDA Assessoria', 'School financial services', 'Educational consulting'],
   },
   {
     id: 'yellow-dark-blue',
@@ -208,8 +208,8 @@ export const colorPalettes: ColorPalette[] = [
     industries: ['education', 'consulting', 'truth-reveals', 'transformation-messaging'],
     psychology: 'Yellow = breakthrough/truth, dark blue = trust/professional, combined = authoritative hope',
     accessibilityRatio: 13.8,
-    examples: ['Truth slides in myth-busting', 'Breakthrough affirmations', 'Transformation CTAs']
-  }
+    examples: ['Truth slides in myth-busting', 'Breakthrough affirmations', 'Transformation CTAs'],
+  },
 ];
 
 export interface ColorRecommendation {
@@ -226,123 +226,124 @@ export const colorRecommendations: ColorRecommendation[] = [
     emotion: 'energetic',
     situation: 'promo',
     suggestedPalette: 'lime-green',
-    reasoning: 'High visibility for sport/action, eco-friendly connection'
+    reasoning: 'High visibility for sport/action, eco-friendly connection',
   },
   {
     industry: 'bikes',
     emotion: 'urgent',
     situation: 'promo',
     suggestedPalette: 'red-orange',
-    reasoning: 'Action trigger, urgency signal for limited-time offers'
+    reasoning: 'Action trigger, urgency signal for limited-time offers',
   },
   {
     industry: 'bikes',
     emotion: 'premium',
     situation: 'education',
     suggestedPalette: 'blue-trust',
-    reasoning: 'Trust + technical positioning for high-end products'
+    reasoning: 'Trust + technical positioning for high-end products',
   },
   {
     industry: 'fitness',
     emotion: 'energetic',
     situation: 'motivation',
     suggestedPalette: 'yellow-black-motivation',
-    reasoning: 'Maximum contrast grabs attention, bold energizes viewers'
+    reasoning: 'Maximum contrast grabs attention, bold energizes viewers',
   },
   {
     industry: 'fitness',
     emotion: 'powerful',
     situation: 'promo',
     suggestedPalette: 'orange-black-modern',
-    reasoning: 'Modern premium feel, sophisticated energy, strong presence'
+    reasoning: 'Modern premium feel, sophisticated energy, strong presence',
   },
   {
     industry: 'gym',
     emotion: 'bold',
     situation: 'coaching',
     suggestedPalette: 'yellow-black-motivation',
-    reasoning: 'Confidence-building, motivational energy, attention-grabbing'
+    reasoning: 'Confidence-building, motivational energy, attention-grabbing',
   },
   {
     industry: 'equipment',
     emotion: 'modern',
     situation: 'product',
     suggestedPalette: 'lime-modern-eco',
-    reasoning: 'Tech-forward feeling, modern/innovative positioning'
+    reasoning: 'Tech-forward feeling, modern/innovative positioning',
   },
   {
     industry: 'personal-training',
     emotion: 'energetic',
     situation: 'motivation',
     suggestedPalette: 'yellow-purple-energetic',
-    reasoning: 'Youth + energy, playful yet powerful, engaging community'
+    reasoning: 'Youth + energy, playful yet powerful, engaging community',
   },
   {
     industry: 'finance',
     emotion: 'trust',
     situation: 'education',
     suggestedPalette: 'professional-blue',
-    reasoning: 'Trust + professionalism, authority positioning'
+    reasoning: 'Trust + professionalism, authority positioning',
   },
   {
     industry: 'accounting',
     emotion: 'technical',
     situation: 'service',
     suggestedPalette: 'dark-blue-white',
-    reasoning: 'Precision + clarity, minimalist technical feel'
+    reasoning: 'Precision + clarity, minimalist technical feel',
   },
   {
     industry: 'fintech',
     emotion: 'modern',
     situation: 'promotion',
     suggestedPalette: 'purple-modern-finance',
-    reasoning: 'Modern + innovative, breaks traditional finance aesthetic'
+    reasoning: 'Modern + innovative, breaks traditional finance aesthetic',
   },
   {
     industry: 'finance',
     emotion: 'urgent',
     situation: 'warning',
     suggestedPalette: 'professional-blue',
-    reasoning: 'Trust-building while communicating urgency/caution'
+    reasoning: 'Trust-building while communicating urgency/caution',
   },
   {
     industry: 'hiring',
     emotion: 'attention',
     situation: 'cost-revelation',
     suggestedPalette: 'yellow-gold-elegant',
-    reasoning: 'Luxury + cost focus, premium positioning while revealing expenses'
+    reasoning: 'Luxury + cost focus, premium positioning while revealing expenses',
   },
   {
     industry: 'finance',
     emotion: 'premium',
     situation: 'consulting',
     suggestedPalette: 'dark-blue-gold',
-    reasoning: 'Premium + trust, elegant cost education'
-  }
+    reasoning: 'Premium + trust, elegant cost education',
+  },
 ];
 
 export const getPaletteByIndustryEmotion = (industry: string, emotion: string): ColorPalette | null => {
-  const recommendation = colorRecommendations.find(
-    r => r.industry === industry && r.emotion === emotion
-  );
+  const recommendation = colorRecommendations.find((r) => r.industry === industry && r.emotion === emotion);
   if (!recommendation) return null;
 
-  return colorPalettes.find(p => p.id === recommendation.suggestedPalette) || null;
+  return colorPalettes.find((p) => p.id === recommendation.suggestedPalette) || null;
 };
 
-export const ingestColorPalette = (colors: {
-  primary: string;
-  secondary: string;
-  accent: string;
-}, metadata: Partial<ColorPalette>): ColorPalette => ({
-    id: `palette-${Date.now()}`,
-    name: metadata.name || 'Custom Palette',
-    primary: colors.primary,
-    secondary: colors.secondary,
-    accent: colors.accent,
-    emotion: metadata.emotion || [],
-    industries: metadata.industries || [],
-    psychology: metadata.psychology || '',
-    accessibilityRatio: metadata.accessibilityRatio || 4.5,
-    examples: metadata.examples || []
-  });
+export const ingestColorPalette = (
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+  },
+  metadata: Partial<ColorPalette>,
+): ColorPalette => ({
+  id: `palette-${Date.now()}`,
+  name: metadata.name || 'Custom Palette',
+  primary: colors.primary,
+  secondary: colors.secondary,
+  accent: colors.accent,
+  emotion: metadata.emotion || [],
+  industries: metadata.industries || [],
+  psychology: metadata.psychology || '',
+  accessibilityRatio: metadata.accessibilityRatio || 4.5,
+  examples: metadata.examples || [],
+});

@@ -93,11 +93,12 @@ router.get('/status/:jobId', async (req: Request, res: Response): Promise<void> 
       return void res.status(404).json({ error: 'Job not found', jobId });
     }
 
-    const eta = job.status === 'in_progress'
-      ? Math.ceil((job.total_prompts - job.processed_prompts) * 10 / 60) + ' minutes'
-      : job.status === 'completed'
-        ? 'Completed'
-        : 'Queued';
+    const eta =
+      job.status === 'in_progress'
+        ? Math.ceil(((job.total_prompts - job.processed_prompts) * 10) / 60) + ' minutes'
+        : job.status === 'completed'
+          ? 'Completed'
+          : 'Queued';
 
     res.json({
       jobId,
@@ -138,7 +139,7 @@ router.get('/jobs', async (req: Request, res: Response) => {
       status: isRunning ? 'processing' : 'idle',
       workerRunning: isRunning,
       queueLength,
-      jobs: jobs.map(job => ({
+      jobs: jobs.map((job) => ({
         jobId: job.id,
         batch: job.batch_id,
         status: job.status,
@@ -147,7 +148,7 @@ router.get('/jobs', async (req: Request, res: Response) => {
         failed: job.failed_count,
       })),
       totalJobs: jobs.length,
-      completedJobs: jobs.filter(j => j.status === 'completed').length,
+      completedJobs: jobs.filter((j) => j.status === 'completed').length,
       metadata: { checkedAt: new Date().toISOString() },
     });
   } catch (error) {

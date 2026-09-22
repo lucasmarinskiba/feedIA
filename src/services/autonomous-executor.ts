@@ -12,7 +12,12 @@ import { log } from '../agent/logger.js';
 // ─── Types ──────────────────────────────────────────────────────────────
 
 export type ActionType =
-  'pausePublication' | 'scaleBudget' | 'activateRetention' | 'triggerReactivation' | 'circuitBreak' | 'notifyTeam';
+  | 'pausePublication'
+  | 'scaleBudget'
+  | 'activateRetention'
+  | 'triggerReactivation'
+  | 'circuitBreak'
+  | 'notifyTeam';
 export type ActionStatus = 'pending' | 'executing' | 'completed' | 'failed' | 'rolled_back';
 
 export interface ExecutableAction {
@@ -283,8 +288,7 @@ export const buildExecutionPlan = (
   // Sort by severity: critical → high → medium → low
   const severityRank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
   const sortedActions = Array.from(actionMap.values()).sort(
-    (a: ExecutableAction, b: ExecutableAction) =>
-      (severityRank[a.severity] ?? 999) - (severityRank[b.severity] ?? 999),
+    (a: ExecutableAction, b: ExecutableAction) => (severityRank[a.severity] ?? 999) - (severityRank[b.severity] ?? 999),
   );
   actions.push(...sortedActions);
 

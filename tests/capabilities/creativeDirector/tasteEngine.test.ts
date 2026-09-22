@@ -7,9 +7,27 @@ import type { CarruselResult } from '../../../src/capabilities/content/carrusel.
 
 const carrusel: CarruselResult = {
   slides: [
-    { numero: 1, titulo: 'Cómo crecer en Instagram', cuerpo: 'Descubrí el método.', rolEnNarrativa: 'gancho', direccionVisual: 'tipografía bold' },
-    { numero: 2, titulo: 'El problema', cuerpo: 'No sabés qué publicar.', rolEnNarrativa: 'tension', direccionVisual: 'imagen' },
-    { numero: 3, titulo: 'La solución', cuerpo: 'Sistema de contenido.', rolEnNarrativa: 'desarrollo', direccionVisual: 'diagrama' },
+    {
+      numero: 1,
+      titulo: 'Cómo crecer en Instagram',
+      cuerpo: 'Descubrí el método.',
+      rolEnNarrativa: 'gancho',
+      direccionVisual: 'tipografía bold',
+    },
+    {
+      numero: 2,
+      titulo: 'El problema',
+      cuerpo: 'No sabés qué publicar.',
+      rolEnNarrativa: 'tension',
+      direccionVisual: 'imagen',
+    },
+    {
+      numero: 3,
+      titulo: 'La solución',
+      cuerpo: 'Sistema de contenido.',
+      rolEnNarrativa: 'desarrollo',
+      direccionVisual: 'diagrama',
+    },
     { numero: 4, titulo: 'Implementalo hoy', cuerpo: 'Paso a paso.', rolEnNarrativa: 'cta', direccionVisual: 'CTA' },
   ],
   caption: 'Guía rápida',
@@ -40,7 +58,14 @@ describe('TasteEngine (DRY_RUN)', () => {
         overall: 60,
         passed: false,
         insights: [],
-        dimensions: { scrollStop: 50, visualCoherence: 70, storytelling: 60, shareability: 55, originality: 50, pinterestAesthetic: 70 },
+        dimensions: {
+          scrollStop: 50,
+          visualCoherence: 70,
+          storytelling: 60,
+          shareability: 55,
+          originality: 50,
+          pinterestAesthetic: 70,
+        },
       },
       'carrusel',
       'test',

@@ -1,7 +1,12 @@
 import { askJson } from '../../agent/tokenRouter.js';
 import { brandContext } from '../../agent/memory.js';
 import type { BrandProfile } from '../../config/types.js';
-import { CREATIVE_DIRECTOR, COPYWRITER_GROWTH, formatPrinciplesForPrompt, CAROUSEL_PRINCIPLES } from '../creativeDirector/index.js';
+import {
+  CREATIVE_DIRECTOR,
+  COPYWRITER_GROWTH,
+  formatPrinciplesForPrompt,
+  CAROUSEL_PRINCIPLES,
+} from '../creativeDirector/index.js';
 
 export interface CarruselSlide {
   numero: number;

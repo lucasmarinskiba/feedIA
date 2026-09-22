@@ -9,6 +9,7 @@
 ## Option A: GitHub Auto-Deploy (Recommended)
 
 **Step 1: Go to Vercel Dashboard**
+
 ```
 1. Open https://vercel.com
 2. Login with GitHub account
@@ -16,6 +17,7 @@
 ```
 
 **Step 2: Import Repository**
+
 ```
 1. Search for: lucasmarinskiba/feedIA
 2. Select it
@@ -23,6 +25,7 @@
 ```
 
 **Step 3: Configure Project**
+
 ```
 Framework: Next.js (auto-detect)
 Build Command: npm run build
@@ -66,6 +69,7 @@ MONTHLY_BUDGET_CAP=1000
 ```
 
 **Step 5: Deploy**
+
 - Click "Deploy"
 - Vercel builds & deploys automatically
 - Auto-deploys on every `git push` to main
@@ -77,6 +81,7 @@ MONTHLY_BUDGET_CAP=1000
 ## Option B: Local CLI Auth + Deploy
 
 **Step 1: Authenticate**
+
 ```bash
 vercel login
 # Opens browser, follow auth flow
@@ -84,6 +89,7 @@ vercel login
 ```
 
 **Step 2: Link Project** (first time only)
+
 ```bash
 cd path/to/feedIA
 vercel link
@@ -92,6 +98,7 @@ vercel link
 ```
 
 **Step 3: Set Environment Variables**
+
 ```bash
 vercel env add ANTHROPIC_API_KEY
 # Paste: sk-ant-...
@@ -101,11 +108,13 @@ vercel env add STRIPE_SECRET_KEY
 ```
 
 **Step 4: Deploy to Production**
+
 ```bash
 vercel deploy --prod
 ```
 
 **Step 5: Get URL**
+
 ```
 Deployed to: https://feedIA-[random].vercel.app
 ```
@@ -152,32 +161,33 @@ curl -X POST https://your-domain.vercel.app/api/systems/forecasting/predict \
 
 Once deployed:
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/systems/health` | GET | System status |
-| `/api/systems/curation/record` | POST | Record prompt performance |
-| `/api/systems/curation/analyze` | GET | Analyze curation scores |
-| `/api/systems/audience/create` | POST | Create audience segment |
-| `/api/systems/forecasting/predict` | POST | Predict engagement |
-| `/api/systems/testing/create` | POST | Create A/B test |
-| `/api/systems/orchestration/distribute` | POST | Distribute multi-channel |
-| `/api/systems/competitive/add` | POST | Add competitor |
-| `/api/systems/competitive/analyze` | POST | Analyze competition |
-| `/api/systems/sentiment/analyze` | POST | Analyze comment sentiment |
-| `/api/systems/sentiment/report` | POST | Generate sentiment report |
-| `/api/systems/compliance/validate` | POST | Validate compliance |
-| `/api/systems/trends/detect` | POST | Detect trend |
-| `/api/systems/growth/strategy` | POST | Build growth strategy |
-| `/api/systems/roi/calculate` | POST | Calculate ROI |
-| `/api/systems/batching/optimize` | POST | Optimize asset roadmap |
-| `/api/systems/feedback/record` | POST | Record feedback loop |
-| `/api/systems/platform/format` | POST | Format for platform |
+| Endpoint                                | Method | Purpose                   |
+| --------------------------------------- | ------ | ------------------------- |
+| `/api/systems/health`                   | GET    | System status             |
+| `/api/systems/curation/record`          | POST   | Record prompt performance |
+| `/api/systems/curation/analyze`         | GET    | Analyze curation scores   |
+| `/api/systems/audience/create`          | POST   | Create audience segment   |
+| `/api/systems/forecasting/predict`      | POST   | Predict engagement        |
+| `/api/systems/testing/create`           | POST   | Create A/B test           |
+| `/api/systems/orchestration/distribute` | POST   | Distribute multi-channel  |
+| `/api/systems/competitive/add`          | POST   | Add competitor            |
+| `/api/systems/competitive/analyze`      | POST   | Analyze competition       |
+| `/api/systems/sentiment/analyze`        | POST   | Analyze comment sentiment |
+| `/api/systems/sentiment/report`         | POST   | Generate sentiment report |
+| `/api/systems/compliance/validate`      | POST   | Validate compliance       |
+| `/api/systems/trends/detect`            | POST   | Detect trend              |
+| `/api/systems/growth/strategy`          | POST   | Build growth strategy     |
+| `/api/systems/roi/calculate`            | POST   | Calculate ROI             |
+| `/api/systems/batching/optimize`        | POST   | Optimize asset roadmap    |
+| `/api/systems/feedback/record`          | POST   | Record feedback loop      |
+| `/api/systems/platform/format`          | POST   | Format for platform       |
 
 ---
 
 ## Troubleshooting
 
 **Build fails:** Check `npm run build` locally
+
 ```bash
 npm run build
 npm run lint
@@ -186,6 +196,7 @@ npm run lint
 **Environment variables missing:** Vercel Dashboard → Settings → Environment Variables
 
 **401 Unauthorized:** Check VERCEL_TOKEN is set correctly
+
 ```bash
 vercel whoami
 ```
@@ -207,6 +218,7 @@ API usage (Anthropic, Stripe, social media) billed separately per platform.
 ## Next: Implement Missing Systems for Railway
 
 Once Vercel stable (1-2 weeks):
+
 - Plan Railway migration
 - Implement remaining systems
 - Add background job workers

@@ -213,17 +213,12 @@ class QualityValidator {
   /**
    * Validate variation text for consistency with base prompt
    */
-  async validateVariationConsistency(
-    basePromptText: string,
-    variationText: string
-  ): Promise<ValidationResult> {
+  async validateVariationConsistency(basePromptText: string, variationText: string): Promise<ValidationResult> {
     // Check if core elements preserved
     const baseWords = basePromptText.split(/\s+/).slice(0, 10);
     const variationWords = variationText.split(/\s+/);
 
-    const matchedWords = baseWords.filter(word =>
-      variationWords.some(vWord => vWord.includes(word.slice(0, 4)))
-    );
+    const matchedWords = baseWords.filter((word) => variationWords.some((vWord) => vWord.includes(word.slice(0, 4))));
 
     const consistencyRatio = matchedWords.length / Math.max(baseWords.length, 1);
 

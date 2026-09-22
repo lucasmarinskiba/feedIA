@@ -25,7 +25,7 @@ export const getGrowthStrategy = async (req: Request, res: Response): Promise<vo
         SUM(CASE WHEN event_type = 'engagement' THEN 1 ELSE 0 END) as engagements
        FROM analytics_events
        WHERE user_id = $1`,
-      [userId]
+      [userId],
     );
 
     // node-postgres returns COUNT()/SUM() as strings by default (they're
@@ -58,7 +58,7 @@ export const getGrowthStrategy = async (req: Request, res: Response): Promise<vo
        GROUP BY campaign_id
        ORDER BY event_count DESC
        LIMIT 1`,
-      [userId]
+      [userId],
     );
 
     const topCampaign = (topCampaignResult.rows[0] as TopCampaignRow | undefined) || null;
@@ -145,7 +145,7 @@ export const getEngagementForecast = async (req: Request, res: Response): Promis
        GROUP BY DATE(timestamp)
        ORDER BY DATE(timestamp) DESC
        LIMIT 30`,
-      params
+      params,
     );
 
     const history = historyResult.rows;
@@ -179,10 +179,7 @@ export const getEngagementForecast = async (req: Request, res: Response): Promis
       forecast: forecast,
       summary: {
         projectedMonthlyViews: forecast.reduce((sum: number, f: any) => sum + f.predictedViews, 0),
-        projectedMonthlyEngagements: forecast.reduce(
-          (sum: number, f: any) => sum + f.predictedEngagements,
-          0
-        ),
+        projectedMonthlyEngagements: forecast.reduce((sum: number, f: any) => sum + f.predictedEngagements, 0),
         avgDailyViews: Math.round(avgDaily.views),
         avgDailyEngagements: Math.round(avgDaily.engagements),
         confidence: '75%',
@@ -216,7 +213,7 @@ export const getRecommendations = async (req: Request, res: Response): Promise<v
        GROUP BY c.type
        ORDER BY engagements DESC
        LIMIT 3`,
-      [userId]
+      [userId],
     );
 
     interface TopTypeRow {
@@ -240,7 +237,7 @@ export const getRecommendations = async (req: Request, res: Response): Promise<v
        GROUP BY platform
        ORDER BY events DESC
        LIMIT 3`,
-      [userId]
+      [userId],
     );
 
     const platforms = platformsResult.rows as PlatformRow[];

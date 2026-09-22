@@ -217,10 +217,8 @@ export class MetricsTimer {
   }
 }
 
-export const startTimer = (
-  histogram: Histogram,
-  labels?: Record<string, string>,
-): MetricsTimer => new MetricsTimer(histogram, labels);
+export const startTimer = (histogram: Histogram, labels?: Record<string, string>): MetricsTimer =>
+  new MetricsTimer(histogram, labels);
 
 // ─── Metrics Export ─────────────────────────────────────────────────────
 

@@ -61,7 +61,7 @@ const AGENT_REGISTRY: Record<string, { type: AgentTask['agentType']; skills: str
     type: 'designer',
     skills: ['visual-hierarchy', 'brand-compliance', 'aesthetic-alignment'],
   },
-  'copywriting': {
+  copywriting: {
     type: 'copywriter',
     skills: ['hook-writing', 'call-to-action', 'tone-matching', 'engagement-copy'],
   },
@@ -73,7 +73,7 @@ const AGENT_REGISTRY: Record<string, { type: AgentTask['agentType']; skills: str
     type: 'copywriter',
     skills: ['video-captions', 'hook-timing', 'retention-loops'],
   },
-  'strategy': {
+  strategy: {
     type: 'strategist',
     skills: ['content-planning', 'calendar-alignment', 'kpi-targeting'],
   },
@@ -85,15 +85,15 @@ const AGENT_REGISTRY: Record<string, { type: AgentTask['agentType']; skills: str
     type: 'analyzer',
     skills: ['metrics-analysis', 'trend-detection', 'gap-identification'],
   },
-  'cu': {
+  cu: {
     type: 'operator',
     skills: ['browser-automation', 'app-interaction', 'design-execution'],
   },
-  'canva': {
+  canva: {
     type: 'operator',
     skills: ['canva-design', 'template-editing', 'export-formats'],
   },
-  'publish': {
+  publish: {
     type: 'operator',
     skills: ['instagram-publishing', 'scheduling', 'multi-platform'],
   },

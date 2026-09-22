@@ -22,7 +22,9 @@ import { log } from '../agent/logger.js';
 const FAL_KEY = process.env.FAL_KEY;
 const FAL_QUEUE_BASE = 'https://queue.fal.run';
 
-export type SeedanceModel = 'fal-ai/bytedance/seedance/v1/lite/text-to-video' | 'fal-ai/bytedance/seedance/v1/pro/text-to-video';
+export type SeedanceModel =
+  | 'fal-ai/bytedance/seedance/v1/lite/text-to-video'
+  | 'fal-ai/bytedance/seedance/v1/pro/text-to-video';
 
 export const SEEDANCE_MODELS: Record<'lite' | 'pro', SeedanceModel> = {
   lite: 'fal-ai/bytedance/seedance/v1/lite/text-to-video', // cheaper/faster
@@ -50,7 +52,7 @@ export interface SeedanceJob {
  */
 export async function startSeedanceGeneration(
   prompt: string,
-  options: SeedanceOptions = {}
+  options: SeedanceOptions = {},
 ): Promise<SeedanceJob | null> {
   if (!FAL_KEY) {
     log.warn('[SeeDance] FAL_KEY not set — cannot start video generation');
@@ -76,7 +78,8 @@ export async function startSeedanceGeneration(
         status: response.status,
         model,
         body: body.slice(0, 300),
-        billingNote: response.status === 403 ? 'FAL account balance exhausted — top up at fal.ai/dashboard/billing' : undefined,
+        billingNote:
+          response.status === 403 ? 'FAL account balance exhausted — top up at fal.ai/dashboard/billing' : undefined,
       });
       return null;
     }
@@ -103,7 +106,10 @@ export async function startSeedanceGeneration(
 /**
  * Poll a SeeDance job's status via FAL's queue API.
  */
-export async function pollSeedanceStatus(job: SeedanceJob, model: SeedanceModel = SEEDANCE_MODELS.lite): Promise<SeedanceJob | null> {
+export async function pollSeedanceStatus(
+  job: SeedanceJob,
+  model: SeedanceModel = SEEDANCE_MODELS.lite,
+): Promise<SeedanceJob | null> {
   if (!FAL_KEY) return null;
 
   try {
@@ -147,7 +153,7 @@ export async function waitForSeedanceGeneration(
   job: SeedanceJob,
   model: SeedanceModel = SEEDANCE_MODELS.lite,
   maxWaitMs: number = 150000,
-  pollIntervalMs: number = 8000
+  pollIntervalMs: number = 8000,
 ): Promise<SeedanceJob | null> {
   const startTime = Date.now();
   let current = job;
@@ -160,7 +166,7 @@ export async function waitForSeedanceGeneration(
       return status;
     }
     current = status;
-    await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
   }
 
   log.warn('[SeeDance] Generation timed out', { requestId: job.requestId, maxWaitMs });
@@ -171,7 +177,7 @@ export async function waitForSeedanceGeneration(
 export async function generateSeedanceVideoAndWait(
   prompt: string,
   options: SeedanceOptions = {},
-  maxWaitMs: number = 150000
+  maxWaitMs: number = 150000,
 ): Promise<SeedanceJob | null> {
   const started = await startSeedanceGeneration(prompt, options);
   if (!started) return null;

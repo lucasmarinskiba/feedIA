@@ -62,11 +62,7 @@ export const carouselEditingService = {
     return reordered;
   },
 
-  async updateSlideText(
-    slides: CarouselSlide[],
-    slideId: string,
-    params: UpdateTextParams
-  ): Promise<CarouselSlide[]> {
+  async updateSlideText(slides: CarouselSlide[], slideId: string, params: UpdateTextParams): Promise<CarouselSlide[]> {
     return slides.map((slide) =>
       slide.id === slideId
         ? {
@@ -74,14 +70,14 @@ export const carouselEditingService = {
             text: params.text,
             textColor: params.textColor ?? slide.textColor,
           }
-        : slide
+        : slide,
     );
   },
 
   async updateSlideImage(
     slides: CarouselSlide[],
     slideId: string,
-    params: UpdateImageParams
+    params: UpdateImageParams,
   ): Promise<CarouselSlide[]> {
     return slides.map((slide) =>
       slide.id === slideId
@@ -89,14 +85,12 @@ export const carouselEditingService = {
             ...slide,
             imageUrl: params.imageUrl,
           }
-        : slide
+        : slide,
     );
   },
 
   async deleteSlide(slides: CarouselSlide[], slideId: string): Promise<CarouselSlide[]> {
-    return slides
-      .filter((slide) => slide.id !== slideId)
-      .map((slide, idx) => ({ ...slide, order: idx }));
+    return slides.filter((slide) => slide.id !== slideId).map((slide, idx) => ({ ...slide, order: idx }));
   },
 
   async addSlide(slides: CarouselSlide[], params: AddSlideParams): Promise<CarouselSlide[]> {
@@ -115,7 +109,7 @@ export const carouselEditingService = {
   async updateSlideStyle(
     slides: CarouselSlide[],
     slideId: string,
-    params: UpdateStyleParams
+    params: UpdateStyleParams,
   ): Promise<CarouselSlide[]> {
     return slides.map((slide) =>
       slide.id === slideId
@@ -124,14 +118,11 @@ export const carouselEditingService = {
             backgroundColor: params.backgroundColor ?? slide.backgroundColor,
             textColor: params.textColor ?? slide.textColor,
           }
-        : slide
+        : slide,
     );
   },
 
-  async processOperations(
-    slides: CarouselSlide[],
-    operations: CarouselEditOperation[]
-  ): Promise<CarouselSlide[]> {
+  async processOperations(slides: CarouselSlide[], operations: CarouselEditOperation[]): Promise<CarouselSlide[]> {
     let current = slides;
 
     for (const op of operations) {
@@ -141,18 +132,10 @@ export const carouselEditingService = {
           current = await this.reorderSlides(current, (params as ReorderParams).newOrder);
           break;
         case 'update-text':
-          current = await this.updateSlideText(
-            current,
-            op.slideId!,
-            params as UpdateTextParams
-          );
+          current = await this.updateSlideText(current, op.slideId!, params as UpdateTextParams);
           break;
         case 'update-image':
-          current = await this.updateSlideImage(
-            current,
-            op.slideId!,
-            params as UpdateImageParams
-          );
+          current = await this.updateSlideImage(current, op.slideId!, params as UpdateImageParams);
           break;
         case 'delete-slide':
           current = await this.deleteSlide(current, op.slideId!);
@@ -161,11 +144,7 @@ export const carouselEditingService = {
           current = await this.addSlide(current, params as AddSlideParams);
           break;
         case 'update-style':
-          current = await this.updateSlideStyle(
-            current,
-            op.slideId!,
-            params as UpdateStyleParams
-          );
+          current = await this.updateSlideStyle(current, op.slideId!, params as UpdateStyleParams);
           break;
       }
     }

@@ -1,10 +1,5 @@
 import { Router, Request, Response } from 'express';
-import {
-  adPerformanceService,
-  AdCampaign,
-  AdCreative,
-  AdInsight,
-} from '../services/ad-performance-service';
+import { adPerformanceService, AdCampaign, AdCreative, AdInsight } from '../services/ad-performance-service';
 
 const router = Router();
 
@@ -109,11 +104,7 @@ router.put('/:id/creatives/:creativeId', async (req: Request, res: Response): Pr
     const creativeId = typeof req.params.creativeId === 'string' ? req.params.creativeId : '';
     const performance = req.body as AdCreative['performance'];
 
-    const campaign = await adPerformanceService.updateCreativePerformance(
-      id,
-      creativeId,
-      performance
-    );
+    const campaign = await adPerformanceService.updateCreativePerformance(id, creativeId, performance);
 
     res.json({ ok: true, campaign });
     return;

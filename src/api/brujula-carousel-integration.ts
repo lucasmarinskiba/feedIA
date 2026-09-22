@@ -38,7 +38,7 @@ class BrujulaCarouselIntegration {
     domain: string,
     brief: string,
     slideCount: number = 10,
-    platform: 'instagram' | 'tiktok' = 'instagram'
+    platform: 'instagram' | 'tiktok' = 'instagram',
   ): Promise<CarouselPlan> {
     const rawSlides: Omit<CarouselSlide, 'qualityScore' | 'witScore'>[] = [];
 
@@ -90,7 +90,7 @@ class BrujulaCarouselIntegration {
       rawSlides.length,
       undefined,
       undefined,
-      consistencyLockManager.createEnvironmentLock(`domain: ${domain}, brief: ${brief}`)
+      consistencyLockManager.createEnvironmentLock(`domain: ${domain}, brief: ${brief}`),
     );
 
     const slides: CarouselSlide[] = [];
@@ -149,7 +149,7 @@ class BrujulaCarouselIntegration {
     }
 
     // If CTA has low conversion, refresh composition
-    const ctaSlide = optimized.slides.find(s => s.type === 'cta');
+    const ctaSlide = optimized.slides.find((s) => s.type === 'cta');
     if (ctaSlide && (feedbackMetrics.cta_conversion ?? 1) < 0.1) {
       ctaSlide.compositionalIdeas = feediaBrain.getCompositionIdeas(plan.domain, 3);
     }

@@ -7,9 +7,24 @@
 
 import { Router, Request, Response } from 'express';
 import { log } from '../agent/logger.js';
-import { createUserBrandProfile, getUserBrandProfile, updateUserBrandLearnings, getPersonalizedGeneratorSettings, getAvailableFonts, getFontsByCategory, getFontPairings } from '../capabilities/branding/multiUserBrandingEngine.js';
+import {
+  createUserBrandProfile,
+  getUserBrandProfile,
+  updateUserBrandLearnings,
+  getPersonalizedGeneratorSettings,
+  getAvailableFonts,
+  getFontsByCategory,
+  getFontPairings,
+} from '../capabilities/branding/multiUserBrandingEngine.js';
 import { generateBrandCoherenceReport } from '../capabilities/branding/brandingCoherenceEnforcer.js';
-import { createBrandPhilosophy, getBrandPhilosophy, updateBrandPhilosophy, deriveVisualFromPhilosophy, validateVisualAgainstPhilosophy, generatePhilosophyBrief } from '../capabilities/branding/brandPhilosophyEngine.js';
+import {
+  createBrandPhilosophy,
+  getBrandPhilosophy,
+  updateBrandPhilosophy,
+  deriveVisualFromPhilosophy,
+  validateVisualAgainstPhilosophy,
+  generatePhilosophyBrief,
+} from '../capabilities/branding/brandPhilosophyEngine.js';
 import { generateSmartCarousel, type CarouselBrief } from '../capabilities/content/smartCarouselGenerator.js';
 import { generateSmartVideo, type VideoBrief } from '../capabilities/content/smartVideoGenerator.js';
 import { recommendResourcesFor, getFreeResources } from '../capabilities/resources/resourceAggregator.js';
@@ -17,7 +32,11 @@ import { recommendResourcesFor, getFreeResources } from '../capabilities/resourc
 const router = Router();
 
 router.get('/health', (req: Request, res: Response) => {
-  return res.json({ status: 'ok', phases: [21, 22, 23, 24, 25], message: 'Multi-user SaaS online (Phase 25: Philosophy-First Branding)' });
+  return res.json({
+    status: 'ok',
+    phases: [21, 22, 23, 24, 25],
+    message: 'Multi-user SaaS online (Phase 25: Philosophy-First Branding)',
+  });
 });
 
 router.post('/:userId/brand', (req: Request, res: Response) => {
@@ -32,7 +51,10 @@ router.post('/:userId/brand', (req: Request, res: Response) => {
 
 router.get('/:userId/brand', (req: Request, res: Response): void => {
   const profile = getUserBrandProfile(String(req.params.userId ?? ''));
-  if (!profile) { res.status(404).json({ error: 'Not found' }); return; }
+  if (!profile) {
+    res.status(404).json({ error: 'Not found' });
+    return;
+  }
   res.json({ status: 'success', data: profile });
   return;
 });
@@ -72,7 +94,10 @@ router.get('/:userId/resources/recommend', (req: Request, res: Response) => {
 
 router.get('/:userId/dashboard', (req: Request, res: Response): void => {
   const profile = getUserBrandProfile(String(req.params.userId ?? ''));
-  if (!profile) { res.status(404).json({ error: 'Not found' }); return; }
+  if (!profile) {
+    res.status(404).json({ error: 'Not found' });
+    return;
+  }
   res.json({
     status: 'success',
     data: {
@@ -88,7 +113,10 @@ router.get('/:userId/dashboard', (req: Request, res: Response): void => {
 
 router.post('/:userId/learnings/update', (req: Request, res: Response): void => {
   const updated = updateUserBrandLearnings(String(req.params.userId ?? ''), req.body);
-  if (!updated) { res.status(404).json({ error: 'Not found' }); return; }
+  if (!updated) {
+    res.status(404).json({ error: 'Not found' });
+    return;
+  }
   res.json({ status: 'success', data: updated });
   return;
 });
@@ -139,7 +167,8 @@ router.get('/:userId/philosophy', (req: Request, res: Response): void => {
   const philosophy = getBrandPhilosophy(userId);
 
   if (!philosophy) {
-    res.status(404).json({ error: 'Brand philosophy not found. Create one first.' }); return;
+    res.status(404).json({ error: 'Brand philosophy not found. Create one first.' });
+    return;
     return;
   }
 
@@ -157,7 +186,8 @@ router.put('/:userId/philosophy', (req: Request, res: Response): void => {
     const updated = updateBrandPhilosophy(userId, req.body);
 
     if (!updated) {
-      res.status(404).json({ error: 'Brand philosophy not found' }); return;
+      res.status(404).json({ error: 'Brand philosophy not found' });
+      return;
       return;
     }
 
@@ -225,7 +255,8 @@ router.post('/:userId/visual/derive', (req: Request, res: Response): void => {
     const philosophy = getBrandPhilosophy(userId);
 
     if (!philosophy) {
-      res.status(404).json({ error: 'Brand philosophy required. Create one first.' }); return;
+      res.status(404).json({ error: 'Brand philosophy required. Create one first.' });
+      return;
       return;
     }
 
@@ -280,7 +311,8 @@ router.get('/:userId/philosophy/brief', (req: Request, res: Response): void => {
   const { brief, pillars } = generatePhilosophyBrief(userId);
 
   if (!brief) {
-    res.status(404).json({ error: 'Brand philosophy not found' }); return;
+    res.status(404).json({ error: 'Brand philosophy not found' });
+    return;
     return;
   }
 
@@ -300,12 +332,7 @@ router.get('/:userId/philosophy/brief', (req: Request, res: Response): void => {
  */
 router.get('/:userId/patterns/available', (req: Request, res: Response) => {
   const patterns = {
-    inverted: [
-      'productWontPattern',
-      'characterPunchlinePattern',
-      'beforeDuringAfterInverted',
-      'fastFactsInverted'
-    ],
+    inverted: ['productWontPattern', 'characterPunchlinePattern', 'beforeDuringAfterInverted', 'fastFactsInverted'],
     advancedMessage: [
       'beforeDuringAfter',
       'misconceptionFlip',
@@ -316,15 +343,9 @@ router.get('/:userId/patterns/available', (req: Request, res: Response) => {
       'patternInterrupt',
       'proofProgression',
       'speedVsQuality',
-      'authorityChallenge'
+      'authorityChallenge',
     ],
-    storytelling: [
-      'herosJourney',
-      'problemAgitationSolution',
-      'beforeDuringAfter',
-      'curiosityLoop',
-      'teachingStory'
-    ],
+    storytelling: ['herosJourney', 'problemAgitationSolution', 'beforeDuringAfter', 'curiosityLoop', 'teachingStory'],
   };
 
   return res.json({
@@ -354,11 +375,12 @@ router.post('/:userId/patterns/generate', (req: Request, res: Response) => {
       format: format || 'carousel',
       slides: 5,
       messageFramework: messaging || 'Adaptable to any message',
-      structure: 'Problem → Error → Proof → System → Wisdom (Inverted) OR Hook → Connect → Reveal → Deliver → Invite (Forward)',
+      structure:
+        'Problem → Error → Proof → System → Wisdom (Inverted) OR Hook → Connect → Reveal → Deliver → Invite (Forward)',
       psychology: 'Multi-layer engagement. Forces swipes. Shareability high.',
       timestamp: new Date().toISOString(),
       readyFor: ['Instagram Carousel', 'Instagram Reel', 'TikTok', 'LinkedIn', 'Email'],
-      nextStep: 'Use brief to generate visual assets + copy with LLM'
+      nextStep: 'Use brief to generate visual assets + copy with LLM',
     };
 
     return res.json({
@@ -382,16 +404,16 @@ router.get('/:userId/patterns/:patternName/template', (req: Request, res: Respon
   const templates: Record<string, any> = {
     productWontPattern: {
       slides: [
-        { slide: 1, type: 'Punchline', example: '[PRODUCT] won\'t [SOLVE PROBLEM]' },
+        { slide: 1, type: 'Punchline', example: "[PRODUCT] won't [SOLVE PROBLEM]" },
         { slide: 2, type: 'Error ID', example: 'EL ERROR: [PRODUCT] = [FALSE SOLUTION]' },
         { slide: 3, type: 'Proof', example: 'Formulas: + [X] ≠ + [Y]' },
         { slide: 4, type: 'System', example: 'Puzzle: [Component 1] + [Component 2] + [Component 3]...' },
-        { slide: 5, type: 'Wisdom', example: 'Tu [PRODUCT] es [ROLE], no [WRONG ROLE]' }
-      ]
+        { slide: 5, type: 'Wisdom', example: 'Tu [PRODUCT] es [ROLE], no [WRONG ROLE]' },
+      ],
     },
     invertedCarousel: {
       structure: 'Punchline (funny) → Error (frustration) → Proof (data) → System (solution) → Wisdom (context)',
-      shareability: 'Slide 1 (meme) + Slide 5 (quote) both independently shareable'
+      shareability: 'Slide 1 (meme) + Slide 5 (quote) both independently shareable',
     },
     herosJourney: {
       acts: [
@@ -399,19 +421,20 @@ router.get('/:userId/patterns/:patternName/template', (req: Request, res: Respon
         { act: 2, title: 'The Call', duration: '10-15%' },
         { act: 3, title: 'Resistance & Journey', duration: '60-70%' },
         { act: 4, title: 'Transformation', duration: '10-15%' },
-        { act: 5, title: 'Return Changed', duration: '5-10%' }
-      ]
+        { act: 5, title: 'Return Changed', duration: '5-10%' },
+      ],
     },
     beforeDuringAfter: {
       structure: 'Before (pain) → During (process) → After (transformation)',
-      psychology: 'Emotional arc forces completion. Relatability high.'
-    }
+      psychology: 'Emotional arc forces completion. Relatability high.',
+    },
   };
 
   const template = templates[patternName];
 
   if (!template) {
-    res.status(404).json({ error: `Pattern ${patternName} not found` }); return;
+    res.status(404).json({ error: `Pattern ${patternName} not found` });
+    return;
     return;
   }
 
@@ -440,7 +463,7 @@ router.post('/:userId/patterns/batch-generate', (req: Request, res: Response) =>
       industry: p.industry,
       messaging: p.messaging,
       slides: 5,
-      status: 'ready for generation'
+      status: 'ready for generation',
     }));
 
     return res.json({
@@ -466,45 +489,46 @@ router.get('/:userId/patterns/platform/:platform', (req: Request, res: Response)
       format: '5 slides',
       pacing: 'User controls (can swipe fast or slow)',
       structure: 'Hook → Build (2-3 slides) → Reveal → CTA',
-      recommendation: 'Each slide answers question from previous'
+      recommendation: 'Each slide answers question from previous',
     },
     'instagram-reel': {
       duration: '15-60 seconds',
       timing: '0-3s hook, 3-45s build, 45-60s end',
-      recommendation: 'Audio-first, fast cuts, captions'
+      recommendation: 'Audio-first, fast cuts, captions',
     },
     'instagram-story': {
       frames: '4-5',
       pacing: 'Rapid fire, escalating urgency',
-      recommendation: 'One swipe = one beat'
+      recommendation: 'One swipe = one beat',
     },
-    'tiktok': {
+    tiktok: {
       duration: '15-60 seconds',
       timing: '0-3s unmissable hook, 3-15s pattern interrupt, 15-45s deliver',
-      recommendation: 'Sound-first, subtitles mandatory'
+      recommendation: 'Sound-first, subtitles mandatory',
     },
-    'linkedin': {
+    linkedin: {
       length: '1-3 paragraphs',
       structure: 'Hook → Body → Proof → CTA',
-      recommendation: 'Business language + personal touch'
+      recommendation: 'Business language + personal touch',
     },
-    'email': {
+    email: {
       structure: 'Subject (hook) → Body (story) → Proof → CTA',
-      recommendation: 'Conversational, clear value'
-    }
+      recommendation: 'Conversational, clear value',
+    },
   };
 
   const guide = platformGuides[platform];
 
   if (!guide) {
-    res.status(404).json({ error: `Platform ${platform} not found` }); return;
+    res.status(404).json({ error: `Platform ${platform} not found` });
+    return;
     return;
   }
 
   res.json({
     status: 'success',
     data: guide,
-    message: `Storytelling guide for ${platform}`
+    message: `Storytelling guide for ${platform}`,
   });
   return;
 });

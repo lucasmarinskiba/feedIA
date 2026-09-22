@@ -35,10 +35,7 @@ export interface EngagementPattern {
 const audienceSegments: Map<string, AudienceSegment> = new Map();
 const engagementPatterns: Map<string, EngagementPattern> = new Map();
 
-export const createAudienceSegment = (
-  niche: string,
-  targetDescription: string
-): AudienceSegment => {
+export const createAudienceSegment = (niche: string, targetDescription: string): AudienceSegment => {
   const segmentId = `seg_${niche}_${Date.now()}`;
 
   // Auto-profile based on niche + description
@@ -64,7 +61,7 @@ export const createAudienceSegment = (
 export const profileAudience = (
   niche: string,
   description: string,
-  engagementData?: Record<string, number>
+  engagementData?: Record<string, number>,
 ): AudienceProfile => {
   if (audienceSegments.size === 0) {
     const primarySegment = createAudienceSegment(niche, description);
@@ -100,7 +97,8 @@ export const profileAudience = (
   };
 };
 
-export const getSegmentAffinities = (segmentId: string): Record<string, number> => audienceSegments.get(segmentId)?.contentAffinities ?? {};
+export const getSegmentAffinities = (segmentId: string): Record<string, number> =>
+  audienceSegments.get(segmentId)?.contentAffinities ?? {};
 
 export const predictSegmentBehavior = (segmentId: string): EngagementPattern => {
   const segment = audienceSegments.get(segmentId);
@@ -121,7 +119,9 @@ export const predictSegmentBehavior = (segmentId: string): EngagementPattern => 
   return pattern;
 };
 
-export const compareSegments = (segmentIds: string[]): { similarities: Record<string, number>; differences: Record<string, number> } => {
+export const compareSegments = (
+  segmentIds: string[],
+): { similarities: Record<string, number>; differences: Record<string, number> } => {
   const segments = segmentIds.map((id) => audienceSegments.get(id)).filter((s) => s !== undefined) as AudienceSegment[];
 
   if (segments.length < 2) {
@@ -157,7 +157,7 @@ export const compareSegments = (segmentIds: string[]): { similarities: Record<st
 
 const inferSegmentProfile = (
   niche: string,
-  description: string
+  description: string,
 ): {
   name: string;
   size: number;
@@ -260,13 +260,13 @@ const inferRiskTolerance = (niche: string): string => {
 };
 
 const inferTopicAffinities = (segment: AudienceSegment): Record<string, number> => ({
-    'before-after': 0.9,
-    tips: 0.85,
-    educational: 0.8,
-    lifestyle: 0.75,
-    trending: 0.6,
-    promotional: 0.3,
-  });
+  'before-after': 0.9,
+  tips: 0.85,
+  educational: 0.8,
+  lifestyle: 0.75,
+  trending: 0.6,
+  promotional: 0.3,
+});
 
 const inferFormatPreferences = (segment: AudienceSegment): Record<string, number> => {
   const prefs: Record<string, number> = {
@@ -284,9 +284,9 @@ const inferFormatPreferences = (segment: AudienceSegment): Record<string, number
 };
 
 const inferTimePreferences = (segment: AudienceSegment): { bestDays: string[]; bestHours: number[] } => ({
-    bestDays: ['Tuesday', 'Wednesday', 'Thursday'],
-    bestHours: [9, 12, 18, 21],
-  });
+  bestDays: ['Tuesday', 'Wednesday', 'Thursday'],
+  bestHours: [9, 12, 18, 21],
+});
 
 const inferContentLength = (segment: AudienceSegment): 'short' | 'medium' | 'long' => {
   if (segment.behavior.contentPreference.includes('quick')) return 'short';

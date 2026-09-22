@@ -1,9 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import {
-  saveOnboardingState,
-  loadOnboardingState,
-  deleteOnboardingState,
-} from '../../src/database/onboardingState.js';
+import { saveOnboardingState, loadOnboardingState, deleteOnboardingState } from '../../src/database/onboardingState.js';
 import { initialOnboardingState, applyOnboardingAnswers } from '../../src/capabilities/onboarding/index.js';
 import { deleteAccount } from '../../src/database/accounts.js';
 

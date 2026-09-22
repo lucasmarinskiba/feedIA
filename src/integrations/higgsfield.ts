@@ -25,11 +25,7 @@ export type HiggsfieldVideoModel =
   | 'kling-v1.5'
   | 'auto'; // let Higgsfield pick best available
 
-export type HiggsfieldImageModel =
-  | 'flux-1-dev'
-  | 'flux-1-schnell'
-  | 'sdxl'
-  | 'auto';
+export type HiggsfieldImageModel = 'flux-1-dev' | 'flux-1-schnell' | 'sdxl' | 'auto';
 
 export interface HiggsfieldVideoRequest {
   prompt: string;
@@ -68,7 +64,7 @@ const authHeaders = (apiKey: string): Record<string, string> => ({
  */
 export const submitVideoGeneration = async (
   apiKey: string,
-  request: HiggsfieldVideoRequest
+  request: HiggsfieldVideoRequest,
 ): Promise<HiggsfieldJob | null> => {
   try {
     const body = {
@@ -115,7 +111,7 @@ export const submitVideoGeneration = async (
  */
 export const submitImageGeneration = async (
   apiKey: string,
-  request: HiggsfieldImageRequest
+  request: HiggsfieldImageRequest,
 ): Promise<HiggsfieldJob | null> => {
   try {
     const body = {
@@ -173,7 +169,7 @@ export const submitImageGeneration = async (
 export const pollJob = async (
   apiKey: string,
   jobId: string,
-  type: 'video' | 'image' = 'video'
+  type: 'video' | 'image' = 'video',
 ): Promise<HiggsfieldJob | null> => {
   if (jobId === 'sync') return null;
 
@@ -226,7 +222,7 @@ export const waitForJob = async (
   job: HiggsfieldJob,
   type: 'video' | 'image' = 'video',
   maxWaitMs = 180000,
-  pollIntervalMs = 8000
+  pollIntervalMs = 8000,
 ): Promise<HiggsfieldJob | null> => {
   if (job.status === 'completed') return job;
 
@@ -252,7 +248,7 @@ export const waitForJob = async (
     }
 
     current = polled;
-    await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
   }
 
   log.warn('[Higgsfield] Job timed out', { jobId: job.jobId, maxWaitMs });
@@ -263,7 +259,7 @@ export const waitForJob = async (
 export const generateVideoAndWait = async (
   apiKey: string,
   request: HiggsfieldVideoRequest,
-  maxWaitMs = 180000
+  maxWaitMs = 180000,
 ): Promise<HiggsfieldJob | null> => {
   const job = await submitVideoGeneration(apiKey, request);
   if (!job) return null;
@@ -274,7 +270,7 @@ export const generateVideoAndWait = async (
 export const generateImageAndWait = async (
   apiKey: string,
   request: HiggsfieldImageRequest,
-  maxWaitMs = 60000
+  maxWaitMs = 60000,
 ): Promise<HiggsfieldJob | null> => {
   const job = await submitImageGeneration(apiKey, request);
   if (!job) return null;

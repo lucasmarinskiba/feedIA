@@ -44,11 +44,46 @@ const benchmarks: Map<string, PerformanceBenchmark> = new Map();
 // Initialize with standard benchmarks
 const initializeBenchmarks = (): void => {
   const standardBenchmarks = [
-    { format: 'carousel', platform: 'instagram', avgEngagement: 0.12, avgImpressions: 8000, avgConversions: 320, variability: 0.35 },
-    { format: 'reel', platform: 'instagram', avgEngagement: 0.18, avgImpressions: 12000, avgConversions: 480, variability: 0.4 },
-    { format: 'story', platform: 'instagram', avgEngagement: 0.22, avgImpressions: 15000, avgConversions: 600, variability: 0.45 },
-    { format: 'reel', platform: 'tiktok', avgEngagement: 0.28, avgImpressions: 50000, avgConversions: 2000, variability: 0.5 },
-    { format: 'carousel', platform: 'pinterest', avgEngagement: 0.08, avgImpressions: 5000, avgConversions: 200, variability: 0.3 },
+    {
+      format: 'carousel',
+      platform: 'instagram',
+      avgEngagement: 0.12,
+      avgImpressions: 8000,
+      avgConversions: 320,
+      variability: 0.35,
+    },
+    {
+      format: 'reel',
+      platform: 'instagram',
+      avgEngagement: 0.18,
+      avgImpressions: 12000,
+      avgConversions: 480,
+      variability: 0.4,
+    },
+    {
+      format: 'story',
+      platform: 'instagram',
+      avgEngagement: 0.22,
+      avgImpressions: 15000,
+      avgConversions: 600,
+      variability: 0.45,
+    },
+    {
+      format: 'reel',
+      platform: 'tiktok',
+      avgEngagement: 0.28,
+      avgImpressions: 50000,
+      avgConversions: 2000,
+      variability: 0.5,
+    },
+    {
+      format: 'carousel',
+      platform: 'pinterest',
+      avgEngagement: 0.08,
+      avgImpressions: 5000,
+      avgConversions: 200,
+      variability: 0.3,
+    },
   ];
 
   standardBenchmarks.forEach((bench) => {
@@ -81,7 +116,9 @@ export const forecastEngagement = (input: ForecastInput): EngagementForecast => 
 
   const forecastedEngagement = Math.round(baseEngagement * totalMultiplier * 10000) / 100; // %
   const forecastedImpressions = Math.round(baseImpressions * totalMultiplier);
-  const forecastedConversions = Math.round((forecastedImpressions * (baseEngagement * totalMultiplier)) / (2 * totalMultiplier)); // Simplified
+  const forecastedConversions = Math.round(
+    (forecastedImpressions * (baseEngagement * totalMultiplier)) / (2 * totalMultiplier),
+  ); // Simplified
 
   // Confidence based on data recency + multiplier extremes
   let confidence = 0.7;
@@ -127,24 +164,30 @@ export const compareForecastsForContent = (
   topic: string,
   platform: 'instagram' | 'tiktok' | 'pinterest',
   audience: string,
-  postingTime: string
-): EngagementForecast[] => formats.map((format) =>
+  postingTime: string,
+): EngagementForecast[] =>
+  formats.map((format) =>
     forecastEngagement({
       format,
       topic,
       platform,
       audience,
       postingTime,
-    })
+    }),
   );
 
-export const validateForecastAccuracy = (promptId: string, actualEngagement: number, actualImpressions: number): { accuracy: number; error: number } => {
+export const validateForecastAccuracy = (
+  promptId: string,
+  actualEngagement: number,
+  actualImpressions: number,
+): { accuracy: number; error: number } => {
   const forecast = forecastHistory.find((f) => f.promptId === promptId);
   if (!forecast) {
     throw new Error(`Forecast ${promptId} not found`);
   }
 
-  const engagementError = Math.abs(forecast.forecastedEngagement - (actualEngagement * 100)) / forecast.forecastedEngagement;
+  const engagementError =
+    Math.abs(forecast.forecastedEngagement - actualEngagement * 100) / forecast.forecastedEngagement;
   const impressionError = Math.abs(forecast.forecastedImpressions - actualImpressions) / forecast.forecastedImpressions;
 
   const accuracy = 1 - (engagementError + impressionError) / 2;

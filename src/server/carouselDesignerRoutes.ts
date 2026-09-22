@@ -7,7 +7,15 @@
 
 import type { RouteDefinition, RouteHandler } from './http.js';
 import { json, text } from './http.js';
-import { createJob, getJob, startJob, failJob, addLog, updateProgress, completeJob } from '../capabilities/carouselDesigner/jobQueue.js';
+import {
+  createJob,
+  getJob,
+  startJob,
+  failJob,
+  addLog,
+  updateProgress,
+  completeJob,
+} from '../capabilities/carouselDesigner/jobQueue.js';
 import { designCarouselPinterest } from '../capabilities/carouselDesigner/carouselDesignerPro.js';
 import type { CarouselDesignerProInput } from '../capabilities/carouselDesigner/carouselDesignerPro.js';
 import { log } from '../agent/logger.js';
@@ -31,13 +39,7 @@ const processCarouselJobAsync = async (jobId: string, input: CarouselDesignerPro
     addLog(jobId, 'Generating animations and exports...');
 
     // Complete job
-    completeJob(
-      jobId,
-      result.slides,
-      result.animations,
-      result.exports,
-      result.aestheticScore || 0,
-    );
+    completeJob(jobId, result.slides, result.animations, result.exports, result.aestheticScore || 0);
 
     addLog(jobId, `Carousel ready (score: ${result.aestheticScore})`);
     log.info(`[Carousel] Job ${jobId} completed`);

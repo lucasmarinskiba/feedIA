@@ -30,7 +30,8 @@ export const cacheInsights = (workflowId: string, insights: Record<string, unkno
   setTimeout(() => insightsCache.delete(workflowId), 30 * 60 * 1000);
 };
 
-export const getInsights = (workflowId: string): Record<string, unknown> | null => insightsCache.get(workflowId) || null;
+export const getInsights = (workflowId: string): Record<string, unknown> | null =>
+  insightsCache.get(workflowId) || null;
 
 // ── API handlers ──────────────────────────────────────────────────────
 
@@ -162,7 +163,9 @@ export const studioInsightsHandler: RouteHandler = async ({ req, res }) => {
 
 // ── Integration with extendedRoutes ────────────────────────────────
 
-export const registerStudioInsightsRoutes = (routes: Array<{ method: string; pattern: string; handler: RouteHandler }>): void => {
+export const registerStudioInsightsRoutes = (
+  routes: Array<{ method: string; pattern: string; handler: RouteHandler }>,
+): void => {
   routes.push({
     method: 'GET',
     pattern: '/api/studio/insights/:format',

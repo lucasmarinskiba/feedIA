@@ -13032,7 +13032,8 @@ tools.push(
   ),
   {
     spec: designMasterToolSpec as Tool,
-    handler: async (input, brand) => handleDesignMasterTool({ ...input, brand } as Parameters<typeof handleDesignMasterTool>[0]),
+    handler: async (input, brand) =>
+      handleDesignMasterTool({ ...input, brand } as Parameters<typeof handleDesignMasterTool>[0]),
   },
 );
 

@@ -62,18 +62,22 @@ export const fomoMessages = {
     return `⚠️ You've used ${percent}% of your ${limit} campaigns this month. ${remaining} remaining. Upgrade to ${tier} to keep growing.`;
   },
 
-  mockVsReal: (): string => '🤖 Free tier uses mock LLM (basic strategy only). Upgrade to Pro to unlock real Claude AI (Sonnet 3.5) — see 10x better campaigns.',
+  mockVsReal: (): string =>
+    '🤖 Free tier uses mock LLM (basic strategy only). Upgrade to Pro to unlock real Claude AI (Sonnet 3.5) — see 10x better campaigns.',
 
-  batchCapHit: (requested: number, limit: number): string => `📦 Batch limit: you requested ${requested} campaigns, tier allows ${limit}. Upgrade to process ${requested} in parallel.`,
+  batchCapHit: (requested: number, limit: number): string =>
+    `📦 Batch limit: you requested ${requested} campaigns, tier allows ${limit}. Upgrade to process ${requested} in parallel.`,
 
-  socialProof: (monthlyUsers: number, campaignsCreated: number): string => `✨ ${monthlyUsers.toLocaleString()} creators generated ${campaignsCreated.toLocaleString()} campaigns this month. Join Pro tier today.`,
+  socialProof: (monthlyUsers: number, campaignsCreated: number): string =>
+    `✨ ${monthlyUsers.toLocaleString()} creators generated ${campaignsCreated.toLocaleString()} campaigns this month. Join Pro tier today.`,
 
   scarcityReal: (agencySlotsLeft: number, dailySignups: number): string => {
     const daysUntilFull = Math.ceil(agencySlotsLeft / dailySignups);
     return `🔥 Only ${agencySlotsLeft} Agency tier slots left. At current signup rate, full in ~${daysUntilFull} days. Claim yours now.`;
   },
 
-  aspirational: (): string => `🚀 Influencers generating 10K+ followers/month use Agency tier. Batch 100 campaigns in parallel. See what's possible.`,
+  aspirational: (): string =>
+    `🚀 Influencers generating 10K+ followers/month use Agency tier. Batch 100 campaigns in parallel. See what's possible.`,
 };
 
 /**
@@ -93,7 +97,7 @@ export const evaluateFomoTriggers = (
   campaignsUsed: number,
   campaignsLimit: number,
   monthlySignups: number,
-  agencySlotsRemaining: number
+  agencySlotsRemaining: number,
 ): FomoTrigger[] => {
   const triggers: FomoTrigger[] = [];
 
@@ -133,7 +137,10 @@ export const evaluateFomoTriggers = (
   // Trigger 4: Social Proof (always shown)
   triggers.push({
     type: 'social_proof',
-    message: fomoMessages.socialProof(Math.floor(Math.random() * 10000) + 5000, Math.floor(Math.random() * 500000) + 100000),
+    message: fomoMessages.socialProof(
+      Math.floor(Math.random() * 10000) + 5000,
+      Math.floor(Math.random() * 500000) + 100000,
+    ),
     cta: 'Join the Community',
     tier: currentTier === 'free' ? 'pro' : 'agency',
     urgency: 'low',
@@ -170,18 +177,16 @@ export const evaluateFomoTriggers = (
  */
 export const validateDeliveryPromises = (tier: string, promise: string): boolean => {
   const validations: Record<string, (promise: string) => boolean> = {
-    pro: (p: string) => 
+    pro: (p: string) =>
       // Pro tier MUST deliver: Claude API real LLM, not mock
       // MUST process batches up to 10 in parallel
       // MUST have advanced analytics
-       p.includes('real Claude') || p.includes('advanced') || p.includes('parallel')
-    ,
-    agency: (p: string) => 
+      p.includes('real Claude') || p.includes('advanced') || p.includes('parallel'),
+    agency: (p: string) =>
       // Agency MUST deliver: 500 campaigns/month
       // MUST batch 100+ in parallel
       // MUST have 24h priority support
-       p.includes('500') || p.includes('100') || p.includes('24h')
-    ,
+      p.includes('500') || p.includes('100') || p.includes('24h'),
   };
 
   const validator = validations[tier];
@@ -201,7 +206,9 @@ export interface ConversionMetrics {
   cac: number; // customer acquisition cost USD
 }
 
-export const calculateConversionHealth = (metrics: ConversionMetrics): {
+export const calculateConversionHealth = (
+  metrics: ConversionMetrics,
+): {
   health: 'excellent' | 'good' | 'caution' | 'critical';
   recommendation: string;
 } => {

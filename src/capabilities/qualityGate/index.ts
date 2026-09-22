@@ -73,7 +73,9 @@ const weights = {
 
 const runQualityChecks = async (
   input: QualityGateInput,
-): Promise<Pick<QualityGateResult, 'contentScore' | 'visualScore' | 'brandScore' | 'antiPromiseScore' | 'tasteScore' | 'details'>> => {
+): Promise<
+  Pick<QualityGateResult, 'contentScore' | 'visualScore' | 'brandScore' | 'antiPromiseScore' | 'tasteScore' | 'details'>
+> => {
   const contentToScore: ContentToScore = {
     caption: input.caption,
     hashtags: input.hashtags,

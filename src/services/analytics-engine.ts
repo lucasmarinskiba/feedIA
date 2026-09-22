@@ -65,12 +65,7 @@ class AnalyticsEngine {
   /**
    * Record content generation
    */
-  recordContentGeneration(
-    format: string,
-    quality_score: number,
-    latency_ms: number,
-    success: boolean
-  ): void {
+  recordContentGeneration(format: string, quality_score: number, latency_ms: number, success: boolean): void {
     if (!success) {
       this.errorLog.push({
         timestamp: new Date().toISOString(),
@@ -98,7 +93,7 @@ class AnalyticsEngine {
     avgQuality: number,
     agentCount: number,
     avgAgentLatency: number,
-    totalAgentTasks: number
+    totalAgentTasks: number,
   ): SystemMetrics {
     const uptime = (Date.now() - this.startTime) / 1000 / 60; // minutes
     const callsPerMinute = uptime > 0 ? this.callCounter / uptime : 0;
@@ -206,7 +201,7 @@ class AnalyticsEngine {
 
     log.info('[Analytics] Recommendations generated', {
       count: recommendations.length,
-      critical: recommendations.filter(r => r.severity === 'critical').length,
+      critical: recommendations.filter((r) => r.severity === 'critical').length,
     });
 
     return recommendations;
@@ -226,7 +221,7 @@ class AnalyticsEngine {
     const now = Date.now();
     const windowMs = timeWindowMinutes * 60 * 1000;
 
-    const recentMetrics = this.metrics.filter(m => {
+    const recentMetrics = this.metrics.filter((m) => {
       const mTime = new Date(m.timestamp).getTime();
       return now - mTime <= windowMs;
     });
@@ -275,9 +270,7 @@ class AnalyticsEngine {
     const latest = this.metrics[this.metrics.length - 1]!;
 
     const healthStatus =
-      latest.content.quality_avg >= 75 &&
-      latest.performance.error_rate < 5 &&
-      latest.performance.success_rate > 95
+      latest.content.quality_avg >= 75 && latest.performance.error_rate < 5 && latest.performance.success_rate > 95
         ? 'healthy'
         : 'needs_attention';
 

@@ -34,7 +34,7 @@ export interface VoiceoverTrack {
 
 export const generateVoiceoverTrack = (
   script: VideoScript,
-  voicePreference?: {gender?: string; tone?: string} | undefined,
+  voicePreference?: { gender?: string; tone?: string } | undefined,
 ): VoiceoverTrack => {
   log.info(`[Voiceover] Generating TTS track for ${script.duration}s video`);
 

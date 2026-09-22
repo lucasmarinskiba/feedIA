@@ -14,7 +14,8 @@ import { log } from '../agent/logger.js';
 const router = express.Router();
 
 // Helper: get user ID from request
-const getUserId = (req: Request): string => (req.query.user_id as string) || (req.body.user_id as string) || 'demo-user';
+const getUserId = (req: Request): string =>
+  (req.query.user_id as string) || (req.body.user_id as string) || 'demo-user';
 
 // ============================================================
 // 1. SETUP 2FA
@@ -281,10 +282,7 @@ router.delete('/api/users/:user_id', async (req: Request, res: Response) => {
     }
 
     // Delete cascades: users → carousels → slides → audit logs
-    await pool.query(
-      `DELETE FROM users WHERE id = $1`,
-      [userId],
-    );
+    await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
 
     return res.json({
       status: 'deleted',

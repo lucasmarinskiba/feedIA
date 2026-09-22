@@ -122,9 +122,7 @@ class BatchExpansionWorker {
         await superExpandAndStore(item.promptId, item.promptText);
 
         job.processed_prompts++;
-        job.progress_percent = Math.floor(
-          (job.processed_prompts / job.total_prompts) * 100
-        );
+        job.progress_percent = Math.floor((job.processed_prompts / job.total_prompts) * 100);
 
         log.info('[BatchWorker] Prompt expanded', {
           jobId: item.jobId,
@@ -133,7 +131,7 @@ class BatchExpansionWorker {
         });
 
         // Rate limiting: 10s delay between API calls
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        await new Promise((resolve) => setTimeout(resolve, 10000));
       } catch (error) {
         job.failed_count++;
         log.warn('[BatchWorker] Prompt expansion failed', {
@@ -143,7 +141,7 @@ class BatchExpansionWorker {
         });
 
         // Retry: re-queue item
-        if ((job.failed_count % 3) === 0) {
+        if (job.failed_count % 3 === 0) {
           log.error('[BatchWorker] Max retries exceeded', {
             promptId: item.promptId,
           });

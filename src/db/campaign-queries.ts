@@ -9,16 +9,12 @@ import type { Campaign } from './schema.js';
 /**
  * Create campaign
  */
-export const createCampaign = async (
-  userId: string,
-  name: string,
-  data: Partial<Campaign>
-): Promise<Campaign> => {
+export const createCampaign = async (userId: string, name: string, data: Partial<Campaign>): Promise<Campaign> => {
   const result = await query(
     `INSERT INTO campaigns (id, user_id, name, description, platform, niche, status, created_at, updated_at)
      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW())
      RETURNING *`,
-    [userId, name, data.description, data.platform || 'all', data.niche, data.status || 'draft']
+    [userId, name, data.description, data.platform || 'all', data.niche, data.status || 'draft'],
   );
   return result.rows[0] as Campaign;
 };
@@ -36,7 +32,7 @@ export const getCampaignById = async (id: string): Promise<Campaign | null> => {
  */
 export const listCampaigns = async (
   userId: string,
-  options: { skip?: number; limit?: number; status?: string; platform?: string } = {}
+  options: { skip?: number; limit?: number; status?: string; platform?: string } = {},
 ): Promise<{ campaigns: Campaign[]; total: number }> => {
   const skip = options.skip || 0;
   const limit = options.limit || 50;
@@ -66,7 +62,7 @@ export const listCampaigns = async (
     `SELECT * FROM campaigns ${whereClause}
      ORDER BY created_at DESC
      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
-    [...params, limit, skip]
+    [...params, limit, skip],
   );
 
   return {
@@ -135,7 +131,7 @@ export const archiveCampaign = async (id: string): Promise<void> => {
 export const publishCampaign = async (id: string): Promise<Campaign> => {
   const result = await query(
     'UPDATE campaigns SET status = $1, published_at = NOW(), updated_at = NOW() WHERE id = $2 RETURNING *',
-    ['active', id]
+    ['active', id],
   );
   return result.rows[0] as Campaign;
 };
@@ -146,7 +142,7 @@ export const publishCampaign = async (id: string): Promise<Campaign> => {
 export const scheduleCampaign = async (id: string, scheduledFor: Date): Promise<Campaign> => {
   const result = await query(
     'UPDATE campaigns SET status = $1, scheduled_for = $2, updated_at = NOW() WHERE id = $3 RETURNING *',
-    ['active', scheduledFor, id]
+    ['active', scheduledFor, id],
   );
   return result.rows[0] as Campaign;
 };
@@ -159,7 +155,7 @@ export const getScheduledCampaigns = async (): Promise<Campaign[]> => {
     `SELECT * FROM campaigns
      WHERE status = 'active' AND scheduled_for <= NOW() AND published_at IS NULL
      ORDER BY scheduled_for ASC`,
-    []
+    [],
   );
   return result.rows as Campaign[];
 };
@@ -168,9 +164,9 @@ export const getScheduledCampaigns = async (): Promise<Campaign[]> => {
  * Pause campaign
  */
 export const pauseCampaign = async (id: string): Promise<Campaign> => {
-  const result = await query(
-    'UPDATE campaigns SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
-    ['paused', id]
-  );
+  const result = await query('UPDATE campaigns SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *', [
+    'paused',
+    id,
+  ]);
   return result.rows[0] as Campaign;
 };

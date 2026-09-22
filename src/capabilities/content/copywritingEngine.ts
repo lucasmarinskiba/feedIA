@@ -24,10 +24,7 @@ export interface SlideCopy {
   cta?: string;
 }
 
-export const generateCarouselCopy = async (
-  brief: CopyBrief,
-  _brand?: BrandProfile,
-): Promise<SlideCopy[]> => {
+export const generateCarouselCopy = async (brief: CopyBrief, _brand?: BrandProfile): Promise<SlideCopy[]> => {
   log.info(`[Copywriting] Generating ${brief.slideCount} slides: ${brief.topic}`);
 
   const slides: SlideCopy[] = [];
@@ -103,7 +100,6 @@ export const enrichCopyWithPsychology = (
 
   return copy.map((slide, idx) => ({
     ...slide,
-    body:
-      slide.body + (idx < 3 ? ` ${keywords[idx % keywords.length]}` : ''),
+    body: slide.body + (idx < 3 ? ` ${keywords[idx % keywords.length]}` : ''),
   }));
 };

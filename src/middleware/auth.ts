@@ -106,12 +106,10 @@ export const apiKeyAuth = (req: Request, res: Response, next: NextFunction): voi
 
   if (!key) {
     securityLogger.authFailure(req, 'missing_key');
-    res
-      .status(401)
-      .json({
-        error: 'Unauthorized',
-        message: 'API key required. Use X-API-Key header or Authorization: Bearer <key>.',
-      });
+    res.status(401).json({
+      error: 'Unauthorized',
+      message: 'API key required. Use X-API-Key header or Authorization: Bearer <key>.',
+    });
     return;
   }
 

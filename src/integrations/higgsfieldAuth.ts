@@ -25,10 +25,7 @@ export interface HiggsfieldCredentials {
 const credFilePath = (handle: string): string =>
   resolve(`data/runtime/users/${handle.toLowerCase().trim()}/higgsfield.json`);
 
-export const saveHiggsfieldCredentials = (
-  handle: string,
-  creds: HiggsfieldCredentials
-): void => {
+export const saveHiggsfieldCredentials = (handle: string, creds: HiggsfieldCredentials): void => {
   const fp = credFilePath(handle);
   mkdirSync(dirname(fp), { recursive: true });
   writeFileSync(fp, JSON.stringify(creds, null, 2), 'utf-8');
@@ -50,11 +47,7 @@ export const deleteHiggsfieldCredentials = (handle: string): boolean => {
   const fp = credFilePath(handle);
   if (!existsSync(fp)) return false;
   try {
-    writeFileSync(
-      fp,
-      JSON.stringify({ revoked: true, revokedAt: new Date().toISOString() }, null, 2),
-      'utf-8'
-    );
+    writeFileSync(fp, JSON.stringify({ revoked: true, revokedAt: new Date().toISOString() }, null, 2), 'utf-8');
     updateUser(handle, { higgsfieldConnected: false });
     log.info('[HiggsfieldAuth] Credentials revoked', { handle });
     return true;
@@ -73,7 +66,7 @@ export const isHiggsfieldConnected = (handle: string): boolean => {
  * Returns available models on success, null on invalid key.
  */
 export const validateHiggsfieldApiKey = async (
-  apiKey: string
+  apiKey: string,
 ): Promise<{ valid: boolean; plan?: string; models?: string[] }> => {
   try {
     const res = await fetch(`${HIGGSFIELD_API_BASE}/models`, {

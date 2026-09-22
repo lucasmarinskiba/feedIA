@@ -88,15 +88,13 @@ router.post('/batch/validate', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Expected array of carousels' });
     }
 
-    const reports = await Promise.all(
-      carousels.map(carousel => carouselQualityValidator.generateReport(carousel)),
-    );
+    const reports = await Promise.all(carousels.map((carousel) => carouselQualityValidator.generateReport(carousel)));
 
     const stats = {
       total: reports.length,
-      approved: reports.filter(r => r.recommendation === 'approve').length,
-      review_needed: reports.filter(r => r.recommendation === 'review').length,
-      rejected: reports.filter(r => r.recommendation === 'reject').length,
+      approved: reports.filter((r) => r.recommendation === 'approve').length,
+      review_needed: reports.filter((r) => r.recommendation === 'review').length,
+      rejected: reports.filter((r) => r.recommendation === 'reject').length,
       avg_score: Math.round((reports.reduce((sum, r) => sum + r.validation.score, 0) / reports.length) * 10) / 10,
     };
 

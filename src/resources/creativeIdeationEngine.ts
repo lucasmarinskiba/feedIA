@@ -53,7 +53,7 @@ export const generateCarouselConcepts = (briefing: CarouselBriefing, count: numb
   // Get visual patterns matching brief
   const visualMatches = queryPatterns({
     industry: briefing.industry,
-    emotion: briefing.emotion
+    emotion: briefing.emotion,
   });
 
   // Get copy patterns
@@ -67,7 +67,7 @@ export const generateCarouselConcepts = (briefing: CarouselBriefing, count: numb
   // Get flow template
   const flowMatch = getFlowTemplate({
     industry: briefing.industry,
-    messageType: briefing.messageType
+    messageType: briefing.messageType,
   });
 
   // Generate N concepts
@@ -79,7 +79,18 @@ export const generateCarouselConcepts = (briefing: CarouselBriefing, count: numb
 
       // Visual
       visualPattern: visualMatches[i] || visualMatches[0]!,
-      colorPalette: colorMatch || { id: 'default', name: 'Default', primary: '#000', secondary: '#FFF', accent: '#FF0', emotion: [], industries: [], psychology: '', accessibilityRatio: 4.5, examples: [] },
+      colorPalette: colorMatch || {
+        id: 'default',
+        name: 'Default',
+        primary: '#000',
+        secondary: '#FFF',
+        accent: '#FF0',
+        emotion: [],
+        industries: [],
+        psychology: '',
+        accessibilityRatio: 4.5,
+        examples: [],
+      },
       layoutTemplate: visualMatches[i]?.layout.type || 'hero-left',
 
       // Copy
@@ -88,14 +99,22 @@ export const generateCarouselConcepts = (briefing: CarouselBriefing, count: numb
       ctaCopy: ctaCopies[0]!,
 
       // Flow
-      flowPattern: flowMatch || { id: 'default', name: 'Default Flow', slides: 6, flow: [], retention: [], industryFit: [], psychologyFlow: '' },
+      flowPattern: flowMatch || {
+        id: 'default',
+        name: 'Default Flow',
+        slides: 6,
+        flow: [],
+        retention: [],
+        industryFit: [],
+        psychologyFlow: '',
+      },
 
       // Slides breakdown
       slides: (flowMatch?.flow || []).map((roleDesc, idx) => ({
         number: idx + 1,
         role: roleDesc,
         copyDirection: hookCopies[0]?.template || '',
-        visualDirection: visualMatches[0]?.layout.type || 'hero-left'
+        visualDirection: visualMatches[0]?.layout.type || 'hero-left',
       })),
 
       creativeDirection: `Use ${visualMatches[i]?.layout.type || 'hero-left'} layout with ${colorMatch?.name || 'primary'} color palette. Lead with ${hookCopies[0]?.template || 'hook'}. Apply ${flowMatch?.name || 'default'} flow structure.`,
@@ -108,8 +127,8 @@ export const generateCarouselConcepts = (briefing: CarouselBriefing, count: numb
         '3. Write specific copy for each slide using patterns',
         '4. Design layout mockup',
         '5. Validate with Metricool benchmarks',
-        '6. Publish and track performance'
-      ]
+        '6. Publish and track performance',
+      ],
     };
 
     concepts.push(concept);
@@ -144,7 +163,7 @@ COPY DIRECTION:
 - CTA: ${concept.ctaCopy.template}
 
 FLOW STRUCTURE:
-${concept.slides.map(s => `  Slide ${s.number}: ${s.role}`).join('\n')}
+${concept.slides.map((s) => `  Slide ${s.number}: ${s.role}`).join('\n')}
 
 CREATIVE BRIEF:
 ${concept.creativeDirection}

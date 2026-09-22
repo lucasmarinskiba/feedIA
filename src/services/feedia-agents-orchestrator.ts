@@ -102,11 +102,7 @@ class FeedIAAgentsOrchestrator {
   /**
    * Submit task to orchestrator
    */
-  submitTask(
-    type: AgentTask['type'],
-    payload: Record<string, any>,
-    priority: number = 5
-  ): string {
+  submitTask(type: AgentTask['type'], payload: Record<string, any>, priority: number = 5): string {
     const taskId = `task-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
     const task: AgentTask = {
@@ -262,11 +258,7 @@ class FeedIAAgentsOrchestrator {
   /**
    * Update agent performance metrics
    */
-  private updateAgentMetrics(
-    agentType: AgentTask['type'],
-    latency: number,
-    success: boolean
-  ): void {
+  private updateAgentMetrics(agentType: AgentTask['type'], latency: number, success: boolean): void {
     let agentId = '';
 
     switch (agentType) {
@@ -312,7 +304,7 @@ class FeedIAAgentsOrchestrator {
    * Get task status
    */
   getTaskStatus(taskId: string): AgentTask | null {
-    return this.activetasks.get(taskId) || this.completedTasks.find(t => t.id === taskId) || null;
+    return this.activetasks.get(taskId) || this.completedTasks.find((t) => t.id === taskId) || null;
   }
 
   /**
@@ -332,7 +324,7 @@ class FeedIAAgentsOrchestrator {
    * Helper: Get average latency
    */
   private getAverageLatency(): number {
-    const completed = this.completedTasks.filter(t => t.completedAt && !t.error);
+    const completed = this.completedTasks.filter((t) => t.completedAt && !t.error);
     if (completed.length === 0) return 0;
 
     return (
@@ -351,7 +343,7 @@ class FeedIAAgentsOrchestrator {
     const total = this.completedTasks.length;
     if (total === 0) return 100;
 
-    const successful = this.completedTasks.filter(t => !t.error).length;
+    const successful = this.completedTasks.filter((t) => !t.error).length;
     return (successful / total) * 100;
   }
 }

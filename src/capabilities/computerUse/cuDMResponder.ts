@@ -94,7 +94,8 @@ const SPAM_KEYWORDS = ['ganar dinero', 'inversi[oó]n', 'crypto', 'bitcoin', 'vi
 const GREETING_KEYWORDS = ['hola', 'buenos d[ií]as', 'buenas', 'qu[eé] tal', 'saludos'];
 const COMPLAINT_KEYWORDS = ['queja', 'reclamo', 'devoluci[oó]n', 'reembolso', 'cancelar', 'mal servicio'];
 
-const matchAny = (text: string, keywords: string[]): boolean => keywords.some((k) => new RegExp(`\\b${k}\\b`, 'i').test(text));
+const matchAny = (text: string, keywords: string[]): boolean =>
+  keywords.some((k) => new RegExp(`\\b${k}\\b`, 'i').test(text));
 
 const classifyIntent = (
   message: string,
@@ -147,7 +148,8 @@ const REPLY_TEMPLATES: Record<DMIntent, Array<string>> = {
   agradecimiento: ['Gracias a vos, {{name}} 💛', '¡Lo valoramos, {{name}}! 🙌'],
 };
 
-const interpolate = (template: string, vars: Record<string, string>): string => template.replace(/{{(\w+)}}/g, (_, key) => vars[key] ?? '');
+const interpolate = (template: string, vars: Record<string, string>): string =>
+  template.replace(/{{(\w+)}}/g, (_, key) => vars[key] ?? '');
 
 const decideAction = (
   intent: DMIntent,

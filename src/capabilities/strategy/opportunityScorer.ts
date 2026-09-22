@@ -36,13 +36,16 @@ export interface OpportunityScore {
   why: string;
 }
 
-const normalize = (val: number, min = 0, max = 100): number => Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+const normalize = (val: number, min = 0, max = 100): number =>
+  Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
 
 export const scoreOpportunity = (input: OpportunityInput, brand: BrandProfile): OpportunityScore => {
   const { topic, format, pillar, goalSignals, performance, trends, competitors } = input;
 
   // Performance fit: ¿historial ganador con este tema/formato?
-  const topicHistory = performance.topTopics.find((t: { topic: string }) => t.topic.toLowerCase() === topic.toLowerCase());
+  const topicHistory = performance.topTopics.find(
+    (t: { topic: string }) => t.topic.toLowerCase() === topic.toLowerCase(),
+  );
   const formatHistory = performance.bestFormats.find((f) => f.format === format);
   const performanceFit = Math.min(100, (topicHistory?.avgScore ?? 50) * 0.6 + (formatHistory?.avgEngagement ?? 0) * 4);
 
@@ -60,13 +63,17 @@ export const scoreOpportunity = (input: OpportunityInput, brand: BrandProfile): 
   const competitiveGap = Math.min(100, (competitors.dataAvailable ? 40 : 60) + (60 - competitorOverlap));
 
   // Brand consistency: alineación con voz/visual
-  const voiceMatch = brand.voice.tone.some((t) => topic.toLowerCase().includes(t.toLowerCase()) || angleIncludes(brand.voice.referenceQuotes[0] ?? '', topic))
+  const voiceMatch = brand.voice.tone.some(
+    (t) => topic.toLowerCase().includes(t.toLowerCase()) || angleIncludes(brand.voice.referenceQuotes[0] ?? '', topic),
+  )
     ? 80
     : 60;
   const brandConsistency = voiceMatch;
 
   // Urgency: tendencia creciente + baja cobertura reciente
-  const recentCoverage = performance.recentPosts.filter((p) => p.topics.some((t) => topic.toLowerCase().includes(t.toLowerCase()))).length;
+  const recentCoverage = performance.recentPosts.filter((p) =>
+    p.topics.some((t) => topic.toLowerCase().includes(t.toLowerCase())),
+  ).length;
   const urgency = Math.min(100, trendRelevance * 0.5 + Math.max(0, 50 - recentCoverage * 10));
 
   const dims: OpportunityScore['dimensions'] = {

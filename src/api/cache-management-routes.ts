@@ -77,7 +77,11 @@ router.post('/clear', (_req: Request, res: Response): void => {
  */
 router.get('/suggestions', (req: Request, res: Response): void => {
   try {
-    const { pillar, platform, niche } = req.query as { pillar?: string; platform?: 'instagram' | 'tiktok'; niche?: string };
+    const { pillar, platform, niche } = req.query as {
+      pillar?: string;
+      platform?: 'instagram' | 'tiktok';
+      niche?: string;
+    };
 
     if (!pillar || !platform || !niche) {
       res.status(400).json({ ok: false, error: 'pillar, platform, and niche required' });
@@ -94,7 +98,10 @@ router.get('/suggestions', (req: Request, res: Response): void => {
       platform,
       niche,
       suggestions,
-      message: suggestions.length > 0 ? `${suggestions.length} cached variants available for reuse` : 'No cached variants for this pillar+platform+niche',
+      message:
+        suggestions.length > 0
+          ? `${suggestions.length} cached variants available for reuse`
+          : 'No cached variants for this pillar+platform+niche',
     });
     return;
   } catch (err) {

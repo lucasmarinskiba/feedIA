@@ -4,7 +4,13 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { generateSmartBatch, executeBatch, generateMultiQuarterStrategy, type StrategyGoal, type BatchResult } from '../services/smart-batching.js';
+import {
+  generateSmartBatch,
+  executeBatch,
+  generateMultiQuarterStrategy,
+  type StrategyGoal,
+  type BatchResult,
+} from '../services/smart-batching.js';
 
 const router = Router();
 
@@ -44,7 +50,9 @@ const activeBatches = new Map<string, BatchResult>();
  */
 router.post('/plan', (req: Request, res: Response): void => {
   try {
-    const { brand, niche, quarterGoal, duration, budget, targetAudience, platform } = req.body as StrategyGoal & { brand: string };
+    const { brand, niche, quarterGoal, duration, budget, targetAudience, platform } = req.body as StrategyGoal & {
+      brand: string;
+    };
 
     if (!brand || !niche || !quarterGoal || !duration || !budget || !targetAudience || !platform) {
       res.status(400).json({
@@ -259,7 +267,7 @@ router.post('/multi-quarter', (req: Request, res: Response): void => {
         platform,
         duration: 13, // 13 weeks per quarter
       },
-      ['Q1', 'Q2', 'Q3', 'Q4']
+      ['Q1', 'Q2', 'Q3', 'Q4'],
     );
 
     const yearSummary = {
@@ -276,7 +284,7 @@ router.post('/multi-quarter', (req: Request, res: Response): void => {
           };
           return acc;
         },
-        {} as Record<string, unknown>
+        {} as Record<string, unknown>,
       ),
     };
 

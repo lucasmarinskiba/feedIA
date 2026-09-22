@@ -113,10 +113,7 @@ export const generateCarouselContent = async (
   }
 };
 
-const getDesignSpecs = (
-  topic: string,
-  emotion: string,
-): GeneratedCarousel['designSpecs'] => {
+const getDesignSpecs = (topic: string, emotion: string): GeneratedCarousel['designSpecs'] => {
   const emotionalPalettes: Record<string, string> = {
     fear: 'Dark Premium (#1A1A1A, #E6D5B8)',
     hope: 'Warm Organic (#C65911, #D4AF37)',

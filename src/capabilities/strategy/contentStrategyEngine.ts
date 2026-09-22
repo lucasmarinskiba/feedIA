@@ -52,7 +52,9 @@ const generateCandidates = (brand: BrandProfile, goalSignals: GoalSignals): Topi
   const pains = brand.audience.pains.slice(0, 3);
   const desires = brand.audience.desires.slice(0, 3);
   const niche = brand.niche;
-  const pillars = (Object.keys(goalSignals.pillarWeights) as ContentPillar[]).filter((p) => (goalSignals.pillarWeights[p] ?? 0) >= 20);
+  const pillars = (Object.keys(goalSignals.pillarWeights) as ContentPillar[]).filter(
+    (p) => (goalSignals.pillarWeights[p] ?? 0) >= 20,
+  );
 
   for (const pillar of pillars) {
     const angles = PILLAR_ANGLES[pillar];
@@ -90,10 +92,7 @@ const generateCandidates = (brand: BrandProfile, goalSignals: GoalSignals): Topi
   return candidates;
 };
 
-export const planNextContent = async (
-  brand: BrandProfile,
-  opts: StrategyEngineOptions = {},
-): Promise<ContentPlan> => {
+export const planNextContent = async (brand: BrandProfile, opts: StrategyEngineOptions = {}): Promise<ContentPlan> => {
   const { windowDays = 7, briefsPerWindow = 5, dryRun = true, competitorHandles } = opts;
   log.info(`[ContentStrategyEngine] Planificando ${briefsPerWindow} briefs para ${brand.name}`);
 
@@ -123,7 +122,9 @@ export const planNextContent = async (
     .sort((a, b) => b.score.total - a.score.total)
     .slice(0, briefsPerWindow * 2) // margen para deduplicar
     .reduce<{ candidate: TopicCandidate; score: OpportunityScore }[]>((acc, curr) => {
-      const exists = acc.some((a) => a.candidate.topic === curr.candidate.topic && a.candidate.angle === curr.candidate.angle);
+      const exists = acc.some(
+        (a) => a.candidate.topic === curr.candidate.topic && a.candidate.angle === curr.candidate.angle,
+      );
       if (!exists) acc.push(curr);
       return acc;
     }, [])
@@ -169,14 +170,15 @@ const deriveCta = (pillar: ContentPillar, goal: BrandProfile['goals']['primary']
 const deriveHashtags = (brand: BrandProfile, topic: string, competitorHashtags: string[]): string[] => {
   const core = brand.hashtagPools?.core?.slice(0, 3) ?? [];
   const amplio = brand.hashtagPools?.amplio?.slice(0, 2) ?? [];
-  const topicRoot = topic
-    .split(':')[0]
-    ?.toLowerCase()
-    .replace(/[^\wáéíóúüñ\s]/g, '')
-    .split(/\s+/)
-    .filter((w) => w.length > 3)
-    .slice(0, 3)
-    .join('') ?? 'marca';
+  const topicRoot =
+    topic
+      .split(':')[0]
+      ?.toLowerCase()
+      .replace(/[^\wáéíóúüñ\s]/g, '')
+      .split(/\s+/)
+      .filter((w) => w.length > 3)
+      .slice(0, 3)
+      .join('') ?? 'marca';
   const nicheTag = `#${topicRoot}`;
   const relevantComp = competitorHashtags.slice(0, 1);
   return [...new Set([...core, nicheTag, ...amplio, ...relevantComp])].slice(0, 5);
@@ -217,6 +219,11 @@ const buildInsights = (
   if (competitors.dataAvailable) {
     insights.push(`Engagement promedio de competidores: ${competitors.avgEngagementRate}%`);
   }
-  insights.push(`Meta principal: ${goals.primary} → pilares prioritarios: ${Object.entries(goals.pillarWeights).filter(([, w]) => w >= 25).map(([p]) => p).join(', ')}`);
+  insights.push(
+    `Meta principal: ${goals.primary} → pilares prioritarios: ${Object.entries(goals.pillarWeights)
+      .filter(([, w]) => w >= 25)
+      .map(([p]) => p)
+      .join(', ')}`,
+  );
   return insights;
 };

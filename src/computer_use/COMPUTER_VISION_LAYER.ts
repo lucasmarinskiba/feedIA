@@ -33,10 +33,10 @@ export interface ScreenshotAnalysis {
  * Analyzes the current Instagram screen state via computer vision.
  * Stub: returns empty data in non-computer-use environments.
  */
-export const analyzeScreenshot = async (): Promise<ScreenshotAnalysis> => 
+export const analyzeScreenshot = async (): Promise<ScreenshotAnalysis> =>
   // Real implementation would capture screen and send to vision model.
   // Returning safe defaults to avoid runtime crashes.
-   ({
+  ({
     content: {
       recentPosts: [],
       audienceProfile: {
@@ -51,5 +51,4 @@ export const analyzeScreenshot = async (): Promise<ScreenshotAnalysis> =>
     },
     confidence: 0,
     analyzedAt: new Date().toISOString(),
-  })
-;
+  });

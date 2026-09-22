@@ -138,7 +138,8 @@ const REPLY_TEMPLATES: Record<CommentIntent, Array<{ text: string; tone: ReplyTo
   'mention-friend': [{ text: '¡Hola, gracias por compartir! 🙌', tone: 'cálido' }],
 };
 
-const interpolate = (template: string, vars: Record<string, string>): string => template.replace(/{{(\w+)}}/g, (_, key) => vars[key] ?? '');
+const interpolate = (template: string, vars: Record<string, string>): string =>
+  template.replace(/{{(\w+)}}/g, (_, key) => vars[key] ?? '');
 
 const decideAction = (
   intent: CommentIntent,

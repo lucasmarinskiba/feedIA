@@ -87,7 +87,8 @@ export const getAccountSummary = (): TikTokAccountSummary => {
   };
 };
 
-export const getTopPerformers = (limit = 5): TikTokVideoMetrics[] => [...loadMetrics()].sort((a, b) => b.views - a.views).slice(0, limit);
+export const getTopPerformers = (limit = 5): TikTokVideoMetrics[] =>
+  [...loadMetrics()].sort((a, b) => b.views - a.views).slice(0, limit);
 
 export const getPerformanceTrend = (days = 7): Array<{ date: string; views: number; engagementRate: number }> => {
   const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();

@@ -3,6 +3,7 @@
 ## Pre-Deployment (Local)
 
 ### 1. Verify TypeScript Compilation
+
 ```bash
 cd /path/to/project
 npm run typecheck
@@ -10,7 +11,7 @@ npm run lint
 ```
 
 **Status:** ⏳ TODO  
-**Expected:** 0 errors in new files  
+**Expected:** 0 errors in new files
 
 ### 2. Test Locally
 
@@ -50,6 +51,7 @@ ADMIN_KEY=<generate random 32-char key>
 
 **Status:** ⏳ TODO  
 **How to generate admin key:**
+
 ```bash
 openssl rand -hex 32
 # Or: python -c "import secrets; print(secrets.token_hex(16))"
@@ -92,14 +94,15 @@ git push origin main
 ```bash
 # Check tables exist
 psql $DATABASE_URL -c "
-  SELECT table_name FROM information_schema.tables 
-  WHERE table_schema = 'public' 
-  AND table_name LIKE 'billing_%' 
+  SELECT table_name FROM information_schema.tables
+  WHERE table_schema = 'public'
+  AND table_name LIKE 'billing_%'
   OR table_name LIKE 'webhook_%';"
 ```
 
 **Status:** ⏳ TODO  
 **Expected Output:**
+
 ```
  table_name
 ────────────────────────────
@@ -153,6 +156,7 @@ curl -X POST $API_URL/api/billing/stripe/checkout \
 ### 7. Set Up Cron Job
 
 **Option A: Railway Cron (Built-in)**
+
 ```bash
 # In Railway, create a job that runs every 5 minutes:
 POST $API_URL/api/billing/webhooks/process-pending
@@ -160,6 +164,7 @@ Header: X-Admin-Key: $ADMIN_KEY
 ```
 
 **Option B: External Service (e.g., EasyCron)**
+
 ```
 URL: https://your-domain.com/api/billing/webhooks/process-pending
 Method: POST
@@ -168,11 +173,12 @@ Schedule: Every 5 minutes
 ```
 
 **Option C: GitHub Actions (Free)**
+
 ```yaml
 name: Process Webhooks
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Every 5 minutes
+    - cron: '*/5 * * * *' # Every 5 minutes
 jobs:
   process:
     runs-on: ubuntu-latest
@@ -216,20 +222,20 @@ curl "$API_URL/api/features" | jq .endpoints
 ```bash
 # Check pending webhooks (should be low, ~0)
 psql $DATABASE_URL -c "
-  SELECT COUNT(*) as pending FROM webhook_events 
+  SELECT COUNT(*) as pending FROM webhook_events
   WHERE status = 'pending';"
 
 # Check failed webhooks (should be very low)
 psql $DATABASE_URL -c "
-  SELECT COUNT(*) as failed FROM webhook_events 
+  SELECT COUNT(*) as failed FROM webhook_events
   WHERE status = 'failed';"
 
 # Check delivery logs (should see successful deliveries)
 psql $DATABASE_URL -c "
-  SELECT COUNT(*) as total, 
+  SELECT COUNT(*) as total,
          COUNT(CASE WHEN http_status = 200 THEN 1 END) as successful,
          COUNT(CASE WHEN http_status >= 400 THEN 1 END) as failed
-  FROM webhook_delivery_logs 
+  FROM webhook_delivery_logs
   WHERE delivery_at >= NOW() - INTERVAL '1 hour';"
 ```
 
@@ -406,7 +412,7 @@ curl -X POST https://your-api/api/billing/webhooks/process-pending \
 
 # 6. Verify delivery logs
 psql $DATABASE_URL -c "
-  SELECT * FROM webhook_delivery_logs 
+  SELECT * FROM webhook_delivery_logs
   WHERE delivery_at >= NOW() - INTERVAL '5 minutes'
   ORDER BY delivery_at DESC LIMIT 1;"
 ```
@@ -421,6 +427,7 @@ psql $DATABASE_URL -c "
 If critical issues:
 
 ### Option 1: Disable Features (5 min)
+
 ```bash
 # Edit feature-flags.ts, set all tiers to []
 # Redeploy
@@ -429,6 +436,7 @@ git push
 ```
 
 ### Option 2: Disable Billing (10 min)
+
 ```bash
 # Edit tier-enforcer.ts, disable validateAccessWithBilling()
 # Redeploy
@@ -437,6 +445,7 @@ git push
 ```
 
 ### Option 3: Full Revert (5 min)
+
 ```bash
 git revert <commit-hash>
 git push
@@ -480,15 +489,19 @@ After deployment, verify ALL:
 ## Support Contacts
 
 **Questions about implementation?**
+
 - See: `docs/TIER_MONETIZATION.md`
 
 **Quick reference?**
+
 - See: `docs/QUICK_START_BILLING.md`
 
 **Production issues?**
+
 - See: `docs/DEPLOYMENT_CHECKLIST.md` (Troubleshooting section)
 
 **Need to rollback?**
+
 - See: `docs/DEPLOYMENT_CHECKLIST.md` (Rollback Plan section)
 
 ---

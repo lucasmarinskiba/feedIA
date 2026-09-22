@@ -88,15 +88,7 @@ async function socialMediaManagerWorkflow(week: number) {
 
   console.log(`[FeedIA Manager] Weekly content schedule for week ${week}`);
 
-  const topics = [
-    'productivity',
-    'health',
-    'business',
-    'personal_development',
-    'marketing',
-    'finance',
-    'inspiration',
-  ];
+  const topics = ['productivity', 'health', 'business', 'personal_development', 'marketing', 'finance', 'inspiration'];
 
   // Post daily content
   for (let day = 1; day <= 7; day++) {
@@ -167,10 +159,8 @@ async function contentCreatorWorkflow(niche: string) {
 
   // Monitor engagement
   const results = orchestrator.getActionLog();
-  const topPerformer = results.reduce(
-    (best, curr) => (
-      engagementOf(curr.metrics) > engagementOf(best.metrics) ? curr : best
-    ),
+  const topPerformer = results.reduce((best, curr) =>
+    engagementOf(curr.metrics) > engagementOf(best.metrics) ? curr : best,
   );
 
   console.log(
@@ -204,10 +194,8 @@ async function growthAnalystWorkflow() {
   const report = {
     totalActions: analysis.length,
     successRate: (analysis.filter((a) => a.success).length / analysis.length) * 100,
-    topPerformingTask: analysis.reduce(
-      (best, curr) => (
-        engagementOf(curr.metrics) > engagementOf(best.metrics) ? curr : best
-      ),
+    topPerformingTask: analysis.reduce((best, curr) =>
+      engagementOf(curr.metrics) > engagementOf(best.metrics) ? curr : best,
     ).action,
     recommendations: [
       'Focus on carousel content - highest engagement',

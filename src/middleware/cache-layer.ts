@@ -86,38 +86,37 @@ export const cache = new CacheLayer();
 /**
  * Cache middleware for Express
  */
-export const cacheMiddleware = (ttlMs: number = 5 * 60 * 1000) => (req: any, res: any, next: any) => {
-  const originalJson = res.json.bind(res);
+export const cacheMiddleware =
+  (ttlMs: number = 5 * 60 * 1000) =>
+  (req: any, res: any, next: any) => {
+    const originalJson = res.json.bind(res);
 
-  res.json = function (data: unknown) {
-    // Cache GET requests with 2xx status
-    if (req.method === 'GET' && res.statusCode >= 200 && res.statusCode < 300) {
+    res.json = function (data: unknown) {
+      // Cache GET requests with 2xx status
+      if (req.method === 'GET' && res.statusCode >= 200 && res.statusCode < 300) {
+        const cacheKey = `${req.method}:${req.url}`;
+        cache.set(cacheKey, data, ttlMs);
+      }
+      return originalJson(data);
+    };
+
+    // Try cache first for GET requests
+    if (req.method === 'GET') {
       const cacheKey = `${req.method}:${req.url}`;
-      cache.set(cacheKey, data, ttlMs);
+      const cached = cache.get(cacheKey);
+
+      if (cached) {
+        return originalJson(cached);
+      }
     }
-    return originalJson(data);
+
+    next();
   };
-
-  // Try cache first for GET requests
-  if (req.method === 'GET') {
-    const cacheKey = `${req.method}:${req.url}`;
-    const cached = cache.get(cacheKey);
-
-    if (cached) {
-      return originalJson(cached);
-    }
-  }
-
-  next();
-};
 
 /**
  * Memoize async function calls
  */
-export const memoizeAsync = <T extends (...args: any[]) => Promise<any>>(
-  fn: T,
-  ttlMs: number = 5 * 60 * 1000
-): T => {
+export const memoizeAsync = <T extends (...args: any[]) => Promise<any>>(fn: T, ttlMs: number = 5 * 60 * 1000): T => {
   return (async (...args: any[]) => {
     const cacheKey = `${fn.name}:${JSON.stringify(args)}`;
     const cached = cache.get(cacheKey);

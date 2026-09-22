@@ -23,7 +23,14 @@ interface Batch92Request {
 }
 
 interface Batch93Request {
-  referencePattern: 'documentary-minimalism' | 'travel-vlogging' | 'continuous-macro' | 'luxury-food' | 'luxury-product' | 'modular-review' | 'urban-action';
+  referencePattern:
+    | 'documentary-minimalism'
+    | 'travel-vlogging'
+    | 'continuous-macro'
+    | 'luxury-food'
+    | 'luxury-product'
+    | 'modular-review'
+    | 'urban-action';
   persona: string;
   location?: string;
   product?: string;
@@ -35,329 +42,345 @@ interface Batch93Request {
  * POST /api/video/batch-92/generate
  * Generate vertical engagement prompt (9:16, 15sec TikTok/Instagram Reels) + quota enforcement
  */
-router.post('/batch-92/generate', quotaCheckMiddleware('videos', 1), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const generationId = uuidv4();
-    const extReq = req as unknown as Record<string, unknown>;
-    const brand = extReq.brand as BrandProfile;
-    const { engagementType, persona, product, duration = 15, userImage } = req.body as Batch92Request;
+router.post(
+  '/batch-92/generate',
+  quotaCheckMiddleware('videos', 1),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const generationId = uuidv4();
+      const extReq = req as unknown as Record<string, unknown>;
+      const brand = extReq.brand as BrandProfile;
+      const { engagementType, persona, product, duration = 15, userImage } = req.body as Batch92Request;
 
-    if (!engagementType || !persona || !product) {
-      return void res.status(400).json({
-        error: 'Required: engagementType, persona, product',
-        supportedTypes: ['emotional', 'entertainment', 'polemic', 'education', 'humor', 'debate'],
+      if (!engagementType || !persona || !product) {
+        return void res.status(400).json({
+          error: 'Required: engagementType, persona, product',
+          supportedTypes: ['emotional', 'entertainment', 'polemic', 'education', 'humor', 'debate'],
+        });
+      }
+
+      log.info('[Batch92] Vertical engagement generation', {
+        engagementType,
+        persona,
+        product,
+        duration,
+        userImage: userImage ? '✓' : '✗',
       });
-    }
 
-    log.info('[Batch92] Vertical engagement generation', {
-      engagementType,
-      persona,
-      product,
-      duration,
-      userImage: userImage ? '✓' : '✗',
-    });
+      // Map engagement type to category template
+      const categoryMap: Record<string, string> = {
+        emotional: 'VE-EMO-001',
+        entertainment: 'VE-ENT-001',
+        polemic: 'VE-EMO-001', // Uses emotional hooks for controversial content
+        education: 'VE-EMO-001', // Uses structured emotional arc
+        humor: 'VE-ENT-001', // Uses entertainment template
+        debate: 'VE-EMO-001', // Uses emotional engagement
+      };
 
-    // Map engagement type to category template
-    const categoryMap: Record<string, string> = {
-      emotional: 'VE-EMO-001',
-      entertainment: 'VE-ENT-001',
-      polemic: 'VE-EMO-001', // Uses emotional hooks for controversial content
-      education: 'VE-EMO-001', // Uses structured emotional arc
-      humor: 'VE-ENT-001', // Uses entertainment template
-      debate: 'VE-EMO-001', // Uses emotional engagement
-    };
-
-    const templateId = categoryMap[engagementType] || 'VE-EMO-001';
-    const prompt = videoPromptEngine.generatePrompt(templateId, {
-      category: 'vertical-engagement',
-      persona,
-      product,
-      duration,
-      tone: engagementType,
-      engagementType: engagementType as any,
-      userImage,
-      specs: `PLATAFORMA: TikTok/Instagram Reels (9:16), max 15seg, ${engagementType} hook`,
-    });
-
-    if (!prompt) {
-      return void res.status(400).json({
-        error: 'Failed to generate prompt. Check required parameters.',
+      const templateId = categoryMap[engagementType] || 'VE-EMO-001';
+      const prompt = videoPromptEngine.generatePrompt(templateId, {
+        category: 'vertical-engagement',
+        persona,
+        product,
+        duration,
+        tone: engagementType,
+        engagementType: engagementType as any,
+        userImage,
+        specs: `PLATAFORMA: TikTok/Instagram Reels (9:16), max 15seg, ${engagementType} hook`,
       });
+
+      if (!prompt) {
+        return void res.status(400).json({
+          error: 'Failed to generate prompt. Check required parameters.',
+        });
+      }
+
+      // Charge quota on success
+      await chargeQuota(req, 'videos', generationId);
+
+      res.json({
+        status: 'success',
+        batch: 'batch-92',
+        prompt,
+        engagementType,
+        userImage: userImage ? '✓' : '✗',
+        format: '9:16 vertical',
+        duration,
+        brand: brand?.name,
+        metadata: {
+          generatedAt: new Date().toISOString(),
+        },
+      });
+      return;
+    } catch (error) {
+      log.error('[Batch92] Generation error', error);
+      res.status(500).json({ error: 'Batch 92 generation failed' });
+      return;
     }
-
-    // Charge quota on success
-    await chargeQuota(req, 'videos', generationId);
-
-    res.json({
-      status: 'success',
-      batch: 'batch-92',
-      prompt,
-      engagementType,
-      userImage: userImage ? '✓' : '✗',
-      format: '9:16 vertical',
-      duration,
-      brand: brand?.name,
-      metadata: {
-        generatedAt: new Date().toISOString(),
-      },
-    });
-    return;
-  } catch (error) {
-    log.error('[Batch92] Generation error', error);
-    res.status(500).json({ error: 'Batch 92 generation failed' });
-    return;
-  }
-});
+  },
+);
 
 /**
  * POST /api/video/batch-92/batch-generate
  * Generate multiple vertical engagement prompts + quota enforcement
  */
-router.post('/batch-92/batch-generate', quotaCheckMiddleware('videos', 1), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { checkFormatQuota } = await import('../middleware/quota-enforcer.js');
-    const userId = req.headers['x-user-id'] as string;
-    const extReq = req as unknown as Record<string, unknown>;
-    const brand = extReq.brand as BrandProfile;
-    const { requests } = req.body as { requests: Batch92Request[] };
+router.post(
+  '/batch-92/batch-generate',
+  quotaCheckMiddleware('videos', 1),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { checkFormatQuota } = await import('../middleware/quota-enforcer.js');
+      const userId = req.headers['x-user-id'] as string;
+      const extReq = req as unknown as Record<string, unknown>;
+      const brand = extReq.brand as BrandProfile;
+      const { requests } = req.body as { requests: Batch92Request[] };
 
-    if (!requests || !Array.isArray(requests) || requests.length === 0) {
-      return void res.status(400).json({ error: 'requests array required' });
-    }
+      if (!requests || !Array.isArray(requests) || requests.length === 0) {
+        return void res.status(400).json({ error: 'requests array required' });
+      }
 
-    // Check quota for batch count
-    const quotaCheck = await checkFormatQuota(userId, 'videos', requests.length);
-    if (!quotaCheck.allowed) {
-      return void res.status(403).json({
-        error: `Cannot generate ${requests.length} videos, only ${quotaCheck.limit - quotaCheck.used} remaining`,
-        requested: requests.length,
-        available: quotaCheck.limit - quotaCheck.used,
-      });
-    }
-
-    if (requests.length > 10) {
-      return void res.status(400).json({ error: 'Maximum 10 requests per batch' });
-    }
-
-    log.info('[Batch92] Batch generation', { requestCount: requests.length });
-
-    const generatedPrompts = requests
-      .map(req => {
-        const categoryMap: Record<string, string> = {
-          emotional: 'VE-EMO-001',
-          entertainment: 'VE-ENT-001',
-          polemic: 'VE-EMO-001',
-          education: 'VE-EMO-001',
-          humor: 'VE-ENT-001',
-          debate: 'VE-EMO-001',
-        };
-
-        const templateId = categoryMap[req.engagementType] || 'VE-EMO-001';
-        return videoPromptEngine.generatePrompt(templateId, {
-          category: 'vertical-engagement',
-          persona: req.persona,
-          product: req.product,
-          duration: req.duration || 15,
-          engagementType: req.engagementType as any,
-          userImage: req.userImage,
-          specs: `PLATAFORMA: TikTok/Instagram Reels (9:16), max 15seg, ${req.engagementType} hook`,
+      // Check quota for batch count
+      const quotaCheck = await checkFormatQuota(userId, 'videos', requests.length);
+      if (!quotaCheck.allowed) {
+        return void res.status(403).json({
+          error: `Cannot generate ${requests.length} videos, only ${quotaCheck.limit - quotaCheck.used} remaining`,
+          requested: requests.length,
+          available: quotaCheck.limit - quotaCheck.used,
         });
-      })
-      .filter((p): p is NonNullable<typeof p> => p !== null);
+      }
 
-    // Charge quota for each generated prompt
-    for (let i = 0; i < generatedPrompts.length; i++) {
-      await chargeQuota(req, 'videos', `batch-92-${uuidv4()}`);
+      if (requests.length > 10) {
+        return void res.status(400).json({ error: 'Maximum 10 requests per batch' });
+      }
+
+      log.info('[Batch92] Batch generation', { requestCount: requests.length });
+
+      const generatedPrompts = requests
+        .map((req) => {
+          const categoryMap: Record<string, string> = {
+            emotional: 'VE-EMO-001',
+            entertainment: 'VE-ENT-001',
+            polemic: 'VE-EMO-001',
+            education: 'VE-EMO-001',
+            humor: 'VE-ENT-001',
+            debate: 'VE-EMO-001',
+          };
+
+          const templateId = categoryMap[req.engagementType] || 'VE-EMO-001';
+          return videoPromptEngine.generatePrompt(templateId, {
+            category: 'vertical-engagement',
+            persona: req.persona,
+            product: req.product,
+            duration: req.duration || 15,
+            engagementType: req.engagementType as any,
+            userImage: req.userImage,
+            specs: `PLATAFORMA: TikTok/Instagram Reels (9:16), max 15seg, ${req.engagementType} hook`,
+          });
+        })
+        .filter((p): p is NonNullable<typeof p> => p !== null);
+
+      // Charge quota for each generated prompt
+      for (let i = 0; i < generatedPrompts.length; i++) {
+        await chargeQuota(req, 'videos', `batch-92-${uuidv4()}`);
+      }
+
+      res.json({
+        status: 'success',
+        batch: 'batch-92',
+        totalRequested: requests.length,
+        totalGenerated: generatedPrompts.length,
+        format: '9:16 vertical',
+        prompts: generatedPrompts,
+        brand: brand?.name,
+        metadata: {
+          generatedAt: new Date().toISOString(),
+        },
+      });
+      return;
+    } catch (error) {
+      log.error('[Batch92] Batch generation error', error);
+      res.status(500).json({ error: 'Batch 92 batch generation failed' });
+      return;
     }
-
-    res.json({
-      status: 'success',
-      batch: 'batch-92',
-      totalRequested: requests.length,
-      totalGenerated: generatedPrompts.length,
-      format: '9:16 vertical',
-      prompts: generatedPrompts,
-      brand: brand?.name,
-      metadata: {
-        generatedAt: new Date().toISOString(),
-      },
-    });
-    return;
-  } catch (error) {
-    log.error('[Batch92] Batch generation error', error);
-    res.status(500).json({ error: 'Batch 92 batch generation failed' });
-    return;
-  }
-});
+  },
+);
 
 /**
  * POST /api/video/batch-93/generate
  * Generate ultra-detailed reference pattern prompt + quota enforcement
  */
-router.post('/batch-93/generate', quotaCheckMiddleware('videos', 1), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const generationId = uuidv4();
-    const extReq = req as unknown as Record<string, unknown>;
-    const brand = extReq.brand as BrandProfile;
-    const { referencePattern, persona, location, product, duration = 15, userImage } = req.body as Batch93Request;
+router.post(
+  '/batch-93/generate',
+  quotaCheckMiddleware('videos', 1),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const generationId = uuidv4();
+      const extReq = req as unknown as Record<string, unknown>;
+      const brand = extReq.brand as BrandProfile;
+      const { referencePattern, persona, location, product, duration = 15, userImage } = req.body as Batch93Request;
 
-    if (!referencePattern || !persona) {
-      return void res.status(400).json({
-        error: 'Required: referencePattern, persona',
-        supportedPatterns: [
-          'documentary-minimalism',
-          'travel-vlogging',
-          'continuous-macro',
-          'luxury-food',
-          'luxury-product',
-          'modular-review',
-          'urban-action',
-        ],
+      if (!referencePattern || !persona) {
+        return void res.status(400).json({
+          error: 'Required: referencePattern, persona',
+          supportedPatterns: [
+            'documentary-minimalism',
+            'travel-vlogging',
+            'continuous-macro',
+            'luxury-food',
+            'luxury-product',
+            'modular-review',
+            'urban-action',
+          ],
+        });
+      }
+
+      log.info('[Batch93] Reference pattern generation', {
+        referencePattern,
+        persona,
+        location,
+        product,
+        duration,
+        userImage: userImage ? '✓' : '✗',
       });
-    }
 
-    log.info('[Batch93] Reference pattern generation', {
-      referencePattern,
-      persona,
-      location,
-      product,
-      duration,
-      userImage: userImage ? '✓' : '✗',
-    });
+      // Map pattern to template
+      const patternMap: Record<string, string> = {
+        'documentary-minimalism': 'B93-DOC-001',
+        'travel-vlogging': 'B93-TRAV-001',
+        'continuous-macro': 'B93-MACRO-001',
+        'luxury-food': 'B93-MACRO-001', // Uses macro template
+        'luxury-product': 'B93-MACRO-001', // Uses macro template
+        'modular-review': 'B93-DOC-001', // Uses doc template (8-segment flow)
+        'urban-action': 'B93-TRAV-001', // Uses travel vlog movement template
+      };
 
-    // Map pattern to template
-    const patternMap: Record<string, string> = {
-      'documentary-minimalism': 'B93-DOC-001',
-      'travel-vlogging': 'B93-TRAV-001',
-      'continuous-macro': 'B93-MACRO-001',
-      'luxury-food': 'B93-MACRO-001', // Uses macro template
-      'luxury-product': 'B93-MACRO-001', // Uses macro template
-      'modular-review': 'B93-DOC-001', // Uses doc template (8-segment flow)
-      'urban-action': 'B93-TRAV-001', // Uses travel vlog movement template
-    };
-
-    const templateId = patternMap[referencePattern] || 'B93-DOC-001';
-    const prompt = videoPromptEngine.generatePrompt(templateId, {
-      category: referencePattern as any,
-      persona,
-      location,
-      product,
-      duration,
-      userImage,
-      specs: `REFERENCE PATTERN: ${referencePattern}, 9:16 vertical, ultra-detailed scene direction`,
-    });
-
-    if (!prompt) {
-      return void res.status(400).json({
-        error: 'Failed to generate prompt. Check required parameters.',
+      const templateId = patternMap[referencePattern] || 'B93-DOC-001';
+      const prompt = videoPromptEngine.generatePrompt(templateId, {
+        category: referencePattern as any,
+        persona,
+        location,
+        product,
+        duration,
+        userImage,
+        specs: `REFERENCE PATTERN: ${referencePattern}, 9:16 vertical, ultra-detailed scene direction`,
       });
+
+      if (!prompt) {
+        return void res.status(400).json({
+          error: 'Failed to generate prompt. Check required parameters.',
+        });
+      }
+
+      // Charge quota on success
+      await chargeQuota(req, 'videos', generationId);
+
+      res.json({
+        status: 'success',
+        batch: 'batch-93',
+        prompt,
+        referencePattern,
+        userImage: userImage ? '✓' : '✗',
+        format: '9:16 vertical',
+        duration,
+        brand: brand?.name,
+        metadata: {
+          generatedAt: new Date().toISOString(),
+        },
+      });
+      return;
+    } catch (error) {
+      log.error('[Batch93] Generation error', error);
+      res.status(500).json({ error: 'Batch 93 generation failed' });
+      return;
     }
-
-    // Charge quota on success
-    await chargeQuota(req, 'videos', generationId);
-
-    res.json({
-      status: 'success',
-      batch: 'batch-93',
-      prompt,
-      referencePattern,
-      userImage: userImage ? '✓' : '✗',
-      format: '9:16 vertical',
-      duration,
-      brand: brand?.name,
-      metadata: {
-        generatedAt: new Date().toISOString(),
-      },
-    });
-    return;
-  } catch (error) {
-    log.error('[Batch93] Generation error', error);
-    res.status(500).json({ error: 'Batch 93 generation failed' });
-    return;
-  }
-});
+  },
+);
 
 /**
  * POST /api/video/batch-93/batch-generate
  * Generate multiple reference pattern prompts + quota enforcement
  */
-router.post('/batch-93/batch-generate', quotaCheckMiddleware('videos', 1), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { checkFormatQuota } = await import('../middleware/quota-enforcer.js');
-    const userId = req.headers['x-user-id'] as string;
-    const extReq = req as unknown as Record<string, unknown>;
-    const brand = extReq.brand as BrandProfile;
-    const { requests } = req.body as { requests: Batch93Request[] };
+router.post(
+  '/batch-93/batch-generate',
+  quotaCheckMiddleware('videos', 1),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { checkFormatQuota } = await import('../middleware/quota-enforcer.js');
+      const userId = req.headers['x-user-id'] as string;
+      const extReq = req as unknown as Record<string, unknown>;
+      const brand = extReq.brand as BrandProfile;
+      const { requests } = req.body as { requests: Batch93Request[] };
 
-    if (!requests || !Array.isArray(requests) || requests.length === 0) {
-      return void res.status(400).json({ error: 'requests array required' });
-    }
+      if (!requests || !Array.isArray(requests) || requests.length === 0) {
+        return void res.status(400).json({ error: 'requests array required' });
+      }
 
-    // Check quota for batch count
-    const quotaCheck = await checkFormatQuota(userId, 'videos', requests.length);
-    if (!quotaCheck.allowed) {
-      return void res.status(403).json({
-        error: `Cannot generate ${requests.length} videos, only ${quotaCheck.limit - quotaCheck.used} remaining`,
-        requested: requests.length,
-        available: quotaCheck.limit - quotaCheck.used,
-      });
-    }
-
-    if (requests.length > 10) {
-      return void res.status(400).json({ error: 'Maximum 10 requests per batch' });
-    }
-
-    log.info('[Batch93] Batch generation', { requestCount: requests.length });
-
-    const patternMap: Record<string, string> = {
-      'documentary-minimalism': 'B93-DOC-001',
-      'travel-vlogging': 'B93-TRAV-001',
-      'continuous-macro': 'B93-MACRO-001',
-      'luxury-food': 'B93-MACRO-001',
-      'luxury-product': 'B93-MACRO-001',
-      'modular-review': 'B93-DOC-001',
-      'urban-action': 'B93-TRAV-001',
-    };
-
-    const generatedPrompts = requests
-      .map(req => {
-        const templateId = patternMap[req.referencePattern] || 'B93-DOC-001';
-        return videoPromptEngine.generatePrompt(templateId, {
-          category: req.referencePattern as any,
-          persona: req.persona,
-          location: req.location,
-          product: req.product,
-          duration: req.duration || 15,
-          userImage: req.userImage,
-          specs: `REFERENCE PATTERN: ${req.referencePattern}, 9:16 vertical, ultra-detailed`,
+      // Check quota for batch count
+      const quotaCheck = await checkFormatQuota(userId, 'videos', requests.length);
+      if (!quotaCheck.allowed) {
+        return void res.status(403).json({
+          error: `Cannot generate ${requests.length} videos, only ${quotaCheck.limit - quotaCheck.used} remaining`,
+          requested: requests.length,
+          available: quotaCheck.limit - quotaCheck.used,
         });
-      })
-      .filter((p): p is NonNullable<typeof p> => p !== null);
+      }
 
-    // Charge quota for each generated prompt
-    for (let i = 0; i < generatedPrompts.length; i++) {
-      await chargeQuota(req, 'videos', `batch-93-${uuidv4()}`);
+      if (requests.length > 10) {
+        return void res.status(400).json({ error: 'Maximum 10 requests per batch' });
+      }
+
+      log.info('[Batch93] Batch generation', { requestCount: requests.length });
+
+      const patternMap: Record<string, string> = {
+        'documentary-minimalism': 'B93-DOC-001',
+        'travel-vlogging': 'B93-TRAV-001',
+        'continuous-macro': 'B93-MACRO-001',
+        'luxury-food': 'B93-MACRO-001',
+        'luxury-product': 'B93-MACRO-001',
+        'modular-review': 'B93-DOC-001',
+        'urban-action': 'B93-TRAV-001',
+      };
+
+      const generatedPrompts = requests
+        .map((req) => {
+          const templateId = patternMap[req.referencePattern] || 'B93-DOC-001';
+          return videoPromptEngine.generatePrompt(templateId, {
+            category: req.referencePattern as any,
+            persona: req.persona,
+            location: req.location,
+            product: req.product,
+            duration: req.duration || 15,
+            userImage: req.userImage,
+            specs: `REFERENCE PATTERN: ${req.referencePattern}, 9:16 vertical, ultra-detailed`,
+          });
+        })
+        .filter((p): p is NonNullable<typeof p> => p !== null);
+
+      // Charge quota for each generated prompt
+      for (let i = 0; i < generatedPrompts.length; i++) {
+        await chargeQuota(req, 'videos', `batch-93-${uuidv4()}`);
+      }
+
+      res.json({
+        status: 'success',
+        batch: 'batch-93',
+        totalRequested: requests.length,
+        totalGenerated: generatedPrompts.length,
+        format: '9:16 vertical',
+        prompts: generatedPrompts,
+        brand: brand?.name,
+        metadata: {
+          generatedAt: new Date().toISOString(),
+        },
+      });
+      return;
+    } catch (error) {
+      log.error('[Batch93] Batch generation error', error);
+      res.status(500).json({ error: 'Batch 93 batch generation failed' });
+      return;
     }
-
-    res.json({
-      status: 'success',
-      batch: 'batch-93',
-      totalRequested: requests.length,
-      totalGenerated: generatedPrompts.length,
-      format: '9:16 vertical',
-      prompts: generatedPrompts,
-      brand: brand?.name,
-      metadata: {
-        generatedAt: new Date().toISOString(),
-      },
-    });
-    return;
-  } catch (error) {
-    log.error('[Batch93] Batch generation error', error);
-    res.status(500).json({ error: 'Batch 93 batch generation failed' });
-    return;
-  }
-});
+  },
+);
 
 /**
  * GET /api/video/batch-92/engagement-types

@@ -83,27 +83,16 @@ export const photoEditingService = {
         await sharp.grayscale().toFile(outputPath);
         break;
       case 'sepia':
-        await sharp
-          .modulate({ saturation: 0.5 })
-          .tint({ r: 112, g: 66, b: 20 })
-          .toFile(outputPath);
+        await sharp.modulate({ saturation: 0.5 }).tint({ r: 112, g: 66, b: 20 }).toFile(outputPath);
         break;
       case 'vintage':
-        await sharp
-          .modulate({ saturation: 0.7, brightness: 1.1 })
-          .toFile(outputPath);
+        await sharp.modulate({ saturation: 0.7, brightness: 1.1 }).toFile(outputPath);
         break;
       case 'cool':
-        await sharp
-          .modulate({ lightness: 0.05 })
-          .tint({ r: 180, g: 210, b: 240 })
-          .toFile(outputPath);
+        await sharp.modulate({ lightness: 0.05 }).tint({ r: 180, g: 210, b: 240 }).toFile(outputPath);
         break;
       case 'warm':
-        await sharp
-          .modulate({ lightness: 0.05 })
-          .tint({ r: 250, g: 200, b: 150 })
-          .toFile(outputPath);
+        await sharp.modulate({ lightness: 0.05 }).tint({ r: 250, g: 200, b: 150 }).toFile(outputPath);
         break;
       default:
         await sharp.toFile(outputPath);
@@ -111,27 +100,19 @@ export const photoEditingService = {
   },
 
   async brightness(inputPath: string, outputPath: string, params: BrightnessParams): Promise<void> {
-    await Sharp(inputPath)
-      .modulate({ brightness: params.value })
-      .toFile(outputPath);
+    await Sharp(inputPath).modulate({ brightness: params.value }).toFile(outputPath);
   },
 
   async contrast(inputPath: string, outputPath: string, params: ContrastParams): Promise<void> {
-    await Sharp(inputPath)
-      .modulate({ saturation: params.value })
-      .toFile(outputPath);
+    await Sharp(inputPath).modulate({ saturation: params.value }).toFile(outputPath);
   },
 
   async saturation(inputPath: string, outputPath: string, params: SaturationParams): Promise<void> {
-    await Sharp(inputPath)
-      .modulate({ saturation: params.value })
-      .toFile(outputPath);
+    await Sharp(inputPath).modulate({ saturation: params.value }).toFile(outputPath);
   },
 
   async blur(inputPath: string, outputPath: string, params: BlurParams): Promise<void> {
-    await Sharp(inputPath)
-      .blur(params.radius)
-      .toFile(outputPath);
+    await Sharp(inputPath).blur(params.radius).toFile(outputPath);
   },
 
   async rotate(inputPath: string, outputPath: string, params: RotateParams): Promise<void> {
@@ -169,7 +150,8 @@ export const photoEditingService = {
     for (let i = 0; i < req.operations.length; i++) {
       const op = req.operations[i];
       if (!op) continue;
-      const intermediate = i === req.operations.length - 1 ? req.outputPath : `/tmp/feedia-photo-${Date.now()}-${i}.png`;
+      const intermediate =
+        i === req.operations.length - 1 ? req.outputPath : `/tmp/feedia-photo-${Date.now()}-${i}.png`;
 
       const params = op.params as unknown;
       switch (op.type) {

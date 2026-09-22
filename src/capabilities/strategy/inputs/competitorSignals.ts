@@ -33,13 +33,13 @@ const extractTopicsFromCaptions = (captions: string[]): string[] => {
     .filter((w) => w.length > 3 && !stopwords.has(w) && !w.startsWith('http'));
   const counts = new Map<string, number>();
   words.forEach((w) => counts.set(w, (counts.get(w) ?? 0) + 1));
-  return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([w]) => w);
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([w]) => w);
 };
 
-export const gatherCompetitorSignals = async (
-  handles: string[],
-  dryRun = true,
-): Promise<CompetitorSignals> => {
+export const gatherCompetitorSignals = async (handles: string[], dryRun = true): Promise<CompetitorSignals> => {
   if (dryRun || handles.length === 0) {
     log.debug('[CompetitorSignals] DRY_RUN o sin handles: devolviendo mock');
     return { ...MOCK_COMPETITORS };

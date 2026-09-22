@@ -139,7 +139,9 @@ export const commitFormatUsage = async (
  * Middleware: reject request if quota exhausted
  * Usage: app.post('/api/carousels/create', quotaCheckMiddleware('carousels', 1), handler)
  */
-export const quotaCheckMiddleware = (format: 'carousels' | 'stories' | 'videos', count: number = 1) => async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const quotaCheckMiddleware =
+  (format: 'carousels' | 'stories' | 'videos', count: number = 1) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.headers['x-user-id'] as string;
       if (!userId) {
@@ -175,7 +177,11 @@ export const quotaCheckMiddleware = (format: 'carousels' | 'stories' | 'videos',
  * Charge quota AFTER successful generation
  * Should be called in success path only
  */
-export const chargeQuota = async (req: Request, format: 'carousels' | 'stories' | 'videos', generationId: string): Promise<boolean> => {
+export const chargeQuota = async (
+  req: Request,
+  format: 'carousels' | 'stories' | 'videos',
+  generationId: string,
+): Promise<boolean> => {
   const userId = req.headers['x-user-id'] as string;
   if (!userId) return false;
 

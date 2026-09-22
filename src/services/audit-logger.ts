@@ -131,15 +131,11 @@ class AuditLogger {
    */
   async exportUserData(userId: string): Promise<Record<string, unknown> | null> {
     try {
-      const logs = await queryAs<AuditLogRow>(
-        `SELECT * FROM audit_logs WHERE user_id = $1 ORDER BY created_at ASC`,
-        [userId],
-      );
+      const logs = await queryAs<AuditLogRow>(`SELECT * FROM audit_logs WHERE user_id = $1 ORDER BY created_at ASC`, [
+        userId,
+      ]);
 
-      const userRow = await queryAs<Record<string, unknown>>(
-        `SELECT * FROM users WHERE id = $1`,
-        [userId],
-      );
+      const userRow = await queryAs<Record<string, unknown>>(`SELECT * FROM users WHERE id = $1`, [userId]);
 
       const carousels = await queryAs<Record<string, unknown>>(
         `SELECT * FROM carousels WHERE user_id = $1 ORDER BY created_at ASC`,

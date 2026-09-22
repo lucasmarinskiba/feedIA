@@ -101,7 +101,9 @@ class ContentSpecialist {
     return false;
   }
 
-  private analyzeTone(caption: string): 'human' | 'humorous' | 'educational' | 'inspirational' | 'entertaining' | 'professional' {
+  private analyzeTone(
+    caption: string,
+  ): 'human' | 'humorous' | 'educational' | 'inspirational' | 'entertaining' | 'professional' {
     // Analyze caption for tone
     if (caption.includes('😂') || caption.includes('lol')) return 'humorous';
     if (caption.includes('learn') || caption.includes('tip')) return 'educational';
@@ -128,7 +130,10 @@ class ContentSpecialist {
     return pillars;
   }
 
-  private estimateGrowthStage(posts: VisionPost[], metrics: AccountMetrics | undefined): AccountPersonality['growthStage'] {
+  private estimateGrowthStage(
+    posts: VisionPost[],
+    metrics: AccountMetrics | undefined,
+  ): AccountPersonality['growthStage'] {
     const followers = metrics?.followers ?? 0;
     if (followers < 1000) return 'early';
     if (followers < 10000) return 'growth';
@@ -267,7 +272,7 @@ class QualityAnalyzer {
     }
 
     if (alignment < 70) {
-      feedback.push('Content doesn\'t align well with account vibe - may confuse audience');
+      feedback.push("Content doesn't align well with account vibe - may confuse audience");
       recommendation = 'discard';
     }
 
@@ -463,9 +468,4 @@ export async function startAutonomousFeedIA(): Promise<void> {
   await brain.startAutonomousMode();
 }
 
-export {
-  AutonomousFeedIABrain,
-  ContentSpecialist,
-  GrowthSpecialist,
-  QualityAnalyzer,
-};
+export { AutonomousFeedIABrain, ContentSpecialist, GrowthSpecialist, QualityAnalyzer };

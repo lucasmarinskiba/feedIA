@@ -39,9 +39,13 @@ import { actionGate } from '../../glassbox/index.js';
 
 // Stubs (optimize later)
 type CompressResult = { b64: string; mediaType: 'image/png'; sizeBytes: number; savedBytes: number };
-const compressScreenshot = (s: string, _opts?: unknown): CompressResult =>
-  ({ b64: s, mediaType: 'image/png', sizeBytes: s.length, savedBytes: 0 });
- 
+const compressScreenshot = (s: string, _opts?: unknown): CompressResult => ({
+  b64: s,
+  mediaType: 'image/png',
+  sizeBytes: s.length,
+  savedBytes: 0,
+});
+
 type MessageWithCache = { role?: string; content: unknown; cache?: boolean };
 const pruneMessageHistory = (h: MessageWithCache[], _opts?: unknown): MessageWithCache[] => h;
 const withCacheBreakpoint = <T>(f: T): T => f;
@@ -49,8 +53,24 @@ const clampCoordinate = (_x: number, _y: number, _w?: number, _h?: number): [num
 const detectActionLoop = (..._args: unknown[]): { isLoop: boolean; reason: string } => ({ isLoop: false, reason: '' });
 const clearActionHistory = (_sessionId?: unknown): void => {};
 const shouldAbortNoProgress = (_consec?: number, _max?: number): boolean => false;
-type TokenUsage = { input: number; output: number; cache: number; inputTokens: number; outputTokens: number; cacheReadTokens: number; totalCostUsd: number };
-const newUsage = (): TokenUsage => ({ input: 0, output: 0, cache: 0, inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, totalCostUsd: 0 });
+type TokenUsage = {
+  input: number;
+  output: number;
+  cache: number;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  totalCostUsd: number;
+};
+const newUsage = (): TokenUsage => ({
+  input: 0,
+  output: 0,
+  cache: 0,
+  inputTokens: 0,
+  outputTokens: 0,
+  cacheReadTokens: 0,
+  totalCostUsd: 0,
+});
 const accumulateUsage = (a: object, b: object): object => ({ ...a, ...b });
 import { startWatchdog, stopWatchdog, cancelSession, withActionTimeout, withTurnTimeout } from './cuWatchdog.js';
 import { withRetry } from '../../auth/retryHelper.js';

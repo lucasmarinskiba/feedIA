@@ -9,7 +9,11 @@
 
 import express, { Request, Response } from 'express';
 import { log } from '../agent/logger.js';
-import { orchestrateContentGeneration, orchestrateBatch, type OrchestratorRequest } from '../services/service-orchestrator.js';
+import {
+  orchestrateContentGeneration,
+  orchestrateBatch,
+  type OrchestratorRequest,
+} from '../services/service-orchestrator.js';
 import { recordCost, getBudgetStatus, setBudget, type BudgetTier } from '../services/token-budget-manager.js';
 
 const router = express.Router();
@@ -92,7 +96,11 @@ router.post('/generate', async (req: Request, res: Response): Promise<void> => {
  */
 router.post('/batch', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { requests, accountId, accountTier = 'pro' } = req.body as {
+    const {
+      requests,
+      accountId,
+      accountTier = 'pro',
+    } = req.body as {
       requests: Array<{
         basePrompt: string;
         contentType: string;

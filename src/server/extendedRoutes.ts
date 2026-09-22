@@ -4939,9 +4939,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         const { storeOAuthToken } = await import('../integrations/oauthStorage.js');
         await storeOAuthToken('instagram', code, state);
         res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(
-          `<html><body><script>window.close();</script><p>Conectado. Cierra esta ventana.</p></body></html>`,
-        );
+        res.end(`<html><body><script>window.close();</script><p>Conectado. Cierra esta ventana.</p></body></html>`);
       } else {
         // Initiate OAuth (redirect to Instagram)
         const clientId = process.env.META_APP_ID || 'test-client-id';
@@ -4968,9 +4966,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         const { storeOAuthToken } = await import('../integrations/oauthStorage.js');
         await storeOAuthToken('tiktok', code, state);
         res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(
-          `<html><body><script>window.close();</script><p>Conectado. Cierra esta ventana.</p></body></html>`,
-        );
+        res.end(`<html><body><script>window.close();</script><p>Conectado. Cierra esta ventana.</p></body></html>`);
       } else {
         // Initiate OAuth (redirect to TikTok)
         const clientId = process.env.TIKTOK_APP_ID || 'test-client-id';
@@ -4989,7 +4985,12 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
     method: 'POST',
     pattern: '/api/batch/generate',
     handler: async ({ res, body }) => {
-      const { topic = '', goal = 'engagement', platform = 'instagram', niche = '' } = (body as Record<string, unknown>) || {};
+      const {
+        topic = '',
+        goal = 'engagement',
+        platform = 'instagram',
+        niche = '',
+      } = (body as Record<string, unknown>) || {};
       if (!topic) return json(res, 400, { error: 'topic requerido' });
 
       const batch = {
@@ -5000,19 +5001,67 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         generatedAt: new Date().toISOString(),
         formats: {
           carousels: [
-            { angle: 'educational', slides: 5, hook: '3-5 palabras hook', format: 'carousel', estimatedReach: '8K-15K' },
-            { angle: 'emotional', slides: 5, hook: 'emotional variant hook', format: 'carousel', estimatedReach: '5K-10K' },
+            {
+              angle: 'educational',
+              slides: 5,
+              hook: '3-5 palabras hook',
+              format: 'carousel',
+              estimatedReach: '8K-15K',
+            },
+            {
+              angle: 'emotional',
+              slides: 5,
+              hook: 'emotional variant hook',
+              format: 'carousel',
+              estimatedReach: '5K-10K',
+            },
             { angle: 'data-driven', slides: 5, hook: 'stat-based hook', format: 'carousel', estimatedReach: '6K-12K' },
           ],
           reels: [
-            { angle: 'quick-tip', duration: '15-30s', hook: 'verbal hook 8 palabras max', format: 'reel', estimatedReach: '15K-50K' },
-            { angle: 'entertainment', duration: '30-60s', hook: 'entertaining hook', format: 'reel', estimatedReach: '20K-60K' },
-            { angle: 'proof', duration: '20-45s', hook: 'before/after proof hook', format: 'reel', estimatedReach: '12K-35K' },
+            {
+              angle: 'quick-tip',
+              duration: '15-30s',
+              hook: 'verbal hook 8 palabras max',
+              format: 'reel',
+              estimatedReach: '15K-50K',
+            },
+            {
+              angle: 'entertainment',
+              duration: '30-60s',
+              hook: 'entertaining hook',
+              format: 'reel',
+              estimatedReach: '20K-60K',
+            },
+            {
+              angle: 'proof',
+              duration: '20-45s',
+              hook: 'before/after proof hook',
+              format: 'reel',
+              estimatedReach: '12K-35K',
+            },
           ],
           posts: [
-            { angle: 'caption-heavy', type: 'carousel-post', charCount: '280-320', estimatedReach: '4K-8K', caption: 'Caption variant 1 - educational' },
-            { angle: 'cta-focus', type: 'single-image', charCount: '150-180', estimatedReach: '3K-6K', caption: 'Caption variant 2 - direct CTA' },
-            { angle: 'community', type: 'question-post', charCount: '100-120', estimatedReach: '2K-5K', caption: 'Caption variant 3 - engagement' },
+            {
+              angle: 'caption-heavy',
+              type: 'carousel-post',
+              charCount: '280-320',
+              estimatedReach: '4K-8K',
+              caption: 'Caption variant 1 - educational',
+            },
+            {
+              angle: 'cta-focus',
+              type: 'single-image',
+              charCount: '150-180',
+              estimatedReach: '3K-6K',
+              caption: 'Caption variant 2 - direct CTA',
+            },
+            {
+              angle: 'community',
+              type: 'question-post',
+              charCount: '100-120',
+              estimatedReach: '2K-5K',
+              caption: 'Caption variant 3 - engagement',
+            },
           ],
         },
         estimatedTotalReach: '100K-300K',
@@ -5032,8 +5081,8 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         'instagram-feed': { w: 1080, h: 1350, safeZone: '90%', format: 'jpg/png' },
         'instagram-story': { w: 1080, h: 1920, safeZone: '70% (top/bottom reserved)', format: 'jpg/png/mp4' },
         'instagram-reel': { w: 1080, h: 1920, safeZone: 'center vertical 80%', format: 'mp4' },
-        'tiktok': { w: 1080, h: 1920, safeZone: 'center vertical 75%', format: 'mp4' },
-        'pinterest': { w: 1000, h: 1500, safeZone: '90%', format: 'jpg/png' },
+        tiktok: { w: 1080, h: 1920, safeZone: 'center vertical 75%', format: 'mp4' },
+        pinterest: { w: 1000, h: 1500, safeZone: '90%', format: 'jpg/png' },
       };
 
       const key = `${platform}-${format}`.toLowerCase();
@@ -5093,12 +5142,42 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       const { hex = '#FF5733', context = 'marketing' } = (body as Record<string, unknown>) || {};
 
       const colorPsych: Record<string, Record<string, unknown>> = {
-        '#FF5733': { emotion: 'energy + urgency', uses: 'CTAs, alerts, energy', psychology: 'activates fight-or-flight', contrast: 'high' },
-        '#FF0000': { emotion: 'passion + danger', uses: 'warnings, passion brands', psychology: 'dominance + power', contrast: 'high' },
-        '#0000FF': { emotion: 'trust + calm', uses: 'tech, finance, healthcare', psychology: 'stability + authority', contrast: 'high' },
-        '#00FF00': { emotion: 'growth + nature', uses: 'eco, wellness, growth', psychology: 'renewal + life', contrast: 'medium' },
-        '#FFD700': { emotion: 'luxury + success', uses: 'premium, achievement', psychology: 'aspiration + value', contrast: 'low' },
-        '#000000': { emotion: 'elegance + power', uses: 'luxury, tech, minimal', psychology: 'sophistication + mystery', contrast: 'depends' },
+        '#FF5733': {
+          emotion: 'energy + urgency',
+          uses: 'CTAs, alerts, energy',
+          psychology: 'activates fight-or-flight',
+          contrast: 'high',
+        },
+        '#FF0000': {
+          emotion: 'passion + danger',
+          uses: 'warnings, passion brands',
+          psychology: 'dominance + power',
+          contrast: 'high',
+        },
+        '#0000FF': {
+          emotion: 'trust + calm',
+          uses: 'tech, finance, healthcare',
+          psychology: 'stability + authority',
+          contrast: 'high',
+        },
+        '#00FF00': {
+          emotion: 'growth + nature',
+          uses: 'eco, wellness, growth',
+          psychology: 'renewal + life',
+          contrast: 'medium',
+        },
+        '#FFD700': {
+          emotion: 'luxury + success',
+          uses: 'premium, achievement',
+          psychology: 'aspiration + value',
+          contrast: 'low',
+        },
+        '#000000': {
+          emotion: 'elegance + power',
+          uses: 'luxury, tech, minimal',
+          psychology: 'sophistication + mystery',
+          contrast: 'depends',
+        },
       };
 
       const psychology = colorPsych[hex.toUpperCase()] || {
@@ -5131,7 +5210,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       const analysis = {
         format: `${width}×${height}`,
         aspectRatio: (Number(width) / Number(height)).toFixed(2),
-        goldRatio: ((Number(width) / Number(height)) - 1.618).toFixed(3),
+        goldRatio: (Number(width) / Number(height) - 1.618).toFixed(3),
         safeZone: `inner ${Math.round(Number(width) * 0.9)}×${Math.round(Number(height) * 0.9)}px`,
         elementPlacement: [
           { position: 'top-third', rule: 'hook/headline', weight: 'heavy' },
@@ -5262,7 +5341,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
             'Take to DM if needed',
           ],
         },
-        'misinformation': {
+        misinformation: {
           severity: 'high',
           responseTime: '< 30 min',
           tone: 'fact-based + authoritative',
@@ -5308,11 +5387,26 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         instagram: [
           { tactic: 'Ask questions', impact: '+35% comments', format: 'captions', frequency: 'every post' },
           { tactic: 'Use polls/quizzes', impact: '+28% story views', format: 'stories', frequency: '3×/week' },
-          { tactic: 'Respond to all comments', impact: '+12% future engagement', format: 'comments', frequency: '< 1 hour' },
+          {
+            tactic: 'Respond to all comments',
+            impact: '+12% future engagement',
+            format: 'comments',
+            frequency: '< 1 hour',
+          },
           { tactic: 'Tag 3 relevant users', impact: '+18% reach', format: 'caption', frequency: 'per post' },
-          { tactic: 'Call-out user content', impact: '+40% community engagement', format: 'stories/posts', frequency: '1×/week' },
+          {
+            tactic: 'Call-out user content',
+            impact: '+40% community engagement',
+            format: 'stories/posts',
+            frequency: '1×/week',
+          },
           { tactic: 'Go live + Q&A', impact: '+200% watch time', format: 'live', frequency: '1×/week' },
-          { tactic: 'Carousel with cliffhanger', impact: '+25% swipe-through', format: 'carousel', frequency: '2×/week' },
+          {
+            tactic: 'Carousel with cliffhanger',
+            impact: '+25% swipe-through',
+            format: 'carousel',
+            frequency: '2×/week',
+          },
           { tactic: 'Pin top comment', impact: '+15% reply to comment', format: 'comments', frequency: 'per post' },
           { tactic: 'Ask for saves', impact: '+22% saves', format: 'caption CTA', frequency: '2×/week' },
           { tactic: 'Create FOMO', impact: '+30% urgency', format: 'limited time offers', frequency: '1×/month' },
@@ -5450,9 +5544,21 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
 
       const semiotics: Record<string, Record<string, unknown>> = {
         color: {
-          red: { denotation: 'wavelength 620-750nm', connotation: 'passion, danger, energy, power', culturalMeaning: 'luck (China), danger (West)' },
-          blue: { denotation: 'wavelength 450-495nm', connotation: 'trust, calm, stability', culturalMeaning: 'sadness (Persian), spirituality (Hindu)' },
-          green: { denotation: 'wavelength 495-570nm', connotation: 'growth, nature, money', culturalMeaning: 'luck (Arab), illness (Germanic)' },
+          red: {
+            denotation: 'wavelength 620-750nm',
+            connotation: 'passion, danger, energy, power',
+            culturalMeaning: 'luck (China), danger (West)',
+          },
+          blue: {
+            denotation: 'wavelength 450-495nm',
+            connotation: 'trust, calm, stability',
+            culturalMeaning: 'sadness (Persian), spirituality (Hindu)',
+          },
+          green: {
+            denotation: 'wavelength 495-570nm',
+            connotation: 'growth, nature, money',
+            culturalMeaning: 'luck (Arab), illness (Germanic)',
+          },
         },
         shape: {
           circle: { connotation: 'unity, wholeness, harmony', psychology: 'friendly, safe, infinite' },
@@ -5588,15 +5694,45 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         timeframe,
         emergingTrends: [
           { trend: 'Authentic behind-the-scenes', probability: '95%', impact: 'high', action: 'increase raw content' },
-          { trend: 'Short-form vertical video', probability: '98%', impact: 'critical', action: 'shift focus to TikTok/Shorts' },
-          { trend: 'AI-generated content (transparent)', probability: '80%', impact: 'medium', action: 'monitor + disclose AI use' },
-          { trend: 'Micro-communities (Discord, Telegram)', probability: '75%', impact: 'medium', action: 'build private community' },
-          { trend: 'Sustainability messaging', probability: '85%', impact: 'medium', action: 'align brand with ESG values' },
+          {
+            trend: 'Short-form vertical video',
+            probability: '98%',
+            impact: 'critical',
+            action: 'shift focus to TikTok/Shorts',
+          },
+          {
+            trend: 'AI-generated content (transparent)',
+            probability: '80%',
+            impact: 'medium',
+            action: 'monitor + disclose AI use',
+          },
+          {
+            trend: 'Micro-communities (Discord, Telegram)',
+            probability: '75%',
+            impact: 'medium',
+            action: 'build private community',
+          },
+          {
+            trend: 'Sustainability messaging',
+            probability: '85%',
+            impact: 'medium',
+            action: 'align brand with ESG values',
+          },
         ],
         decayingTrends: [
           { trend: 'Perfectly polished feeds', probability: '90%', fade: 'now', replacement: 'authentic + raw' },
-          { trend: 'Generic inspirational quotes', probability: '95%', fade: 'now', replacement: 'data-driven insights' },
-          { trend: 'Follower count obsession', probability: '85%', fade: 'next quarter', replacement: 'engagement + loyalty' },
+          {
+            trend: 'Generic inspirational quotes',
+            probability: '95%',
+            fade: 'now',
+            replacement: 'data-driven insights',
+          },
+          {
+            trend: 'Follower count obsession',
+            probability: '85%',
+            fade: 'next quarter',
+            replacement: 'engagement + loyalty',
+          },
         ],
         strategicFocus: [
           'Invest in short-form video production (80% of budget)',
@@ -5820,8 +5956,18 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       const analysis = {
         niche,
         competitiveLandscape: {
-          leader: { name: 'Top competitor', followers: '500K', engagement: '8-12%', strategy: 'educational + transformation' },
-          strong: { name: 'Strong player', followers: '150K', engagement: '5-7%', strategy: 'entertainment + motivation' },
+          leader: {
+            name: 'Top competitor',
+            followers: '500K',
+            engagement: '8-12%',
+            strategy: 'educational + transformation',
+          },
+          strong: {
+            name: 'Strong player',
+            followers: '150K',
+            engagement: '5-7%',
+            strategy: 'entertainment + motivation',
+          },
           emerging: { name: 'Emerging voice', followers: '25K', engagement: '12-18%', strategy: 'niche + community' },
         },
         yourPosition: {
@@ -5894,11 +6040,41 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         strategy,
         budget,
         opportunities: [
-          { opportunity: 'Viral content push', potential: '+500% reach', timeframe: '2-4 weeks', effort: 'high', risk: 'medium' },
-          { opportunity: 'Niche authority (deep)', potential: '+200% engagement', timeframe: '6+ months', effort: 'medium', risk: 'low' },
-          { opportunity: 'Community building (Discord)', potential: 'high retention + LTV', timeframe: '3+ months', effort: 'high', risk: 'medium' },
-          { opportunity: 'Affiliate partnerships', potential: '+$5K/month revenue', timeframe: '1 month', effort: 'low', risk: 'low' },
-          { opportunity: 'Own digital product', potential: '+$10K/month revenue', timeframe: '3 months', effort: 'high', risk: 'high' },
+          {
+            opportunity: 'Viral content push',
+            potential: '+500% reach',
+            timeframe: '2-4 weeks',
+            effort: 'high',
+            risk: 'medium',
+          },
+          {
+            opportunity: 'Niche authority (deep)',
+            potential: '+200% engagement',
+            timeframe: '6+ months',
+            effort: 'medium',
+            risk: 'low',
+          },
+          {
+            opportunity: 'Community building (Discord)',
+            potential: 'high retention + LTV',
+            timeframe: '3+ months',
+            effort: 'high',
+            risk: 'medium',
+          },
+          {
+            opportunity: 'Affiliate partnerships',
+            potential: '+$5K/month revenue',
+            timeframe: '1 month',
+            effort: 'low',
+            risk: 'low',
+          },
+          {
+            opportunity: 'Own digital product',
+            potential: '+$10K/month revenue',
+            timeframe: '3 months',
+            effort: 'high',
+            risk: 'high',
+          },
         ],
         riskMitigation: {
           viralRisk: 'Test on 10% of audience first. If works, scale.',
@@ -5927,19 +6103,22 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         AIDA: {
           formula: 'Attention → Interest → Desire → Action',
           template: '🎯 [Headline grabs attention] → [Problem relatable] → [Solution benefits] → [CTA urgent]',
-          example: '❌ Stuck with boring content? → ✅ Our framework gets 8-12% engagement → Join 500+ creators → [LINK]',
+          example:
+            '❌ Stuck with boring content? → ✅ Our framework gets 8-12% engagement → Join 500+ creators → [LINK]',
           conversionRate: '3-5%',
         },
         PAS: {
           formula: 'Problem → Agitate → Solve',
           template: '[Show pain point] → [Intensify feeling] → [Present solution]',
-          example: 'Your followers ignore your posts → Meanwhile competitors get 50K views → This framework changes that',
+          example:
+            'Your followers ignore your posts → Meanwhile competitors get 50K views → This framework changes that',
           conversionRate: '4-6%',
         },
         BAB: {
           formula: 'Before → After → Bridge',
           template: '[Current state] → [Desired outcome] → [How to get there]',
-          example: 'Before: 2K followers, 2% engagement → After: 50K followers, 12% engagement → Our 90-day system bridges the gap',
+          example:
+            'Before: 2K followers, 2% engagement → After: 50K followers, 12% engagement → Our 90-day system bridges the gap',
           conversionRate: '5-8%',
         },
         StorytellingArc: {
@@ -6064,7 +6243,8 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         heroJourney: {
           arc: 'Call (challenge) → Resistance (fear) → Growth (action) → Return (wisdom)',
           engagement: '40-50% share rate',
-          example: 'I was called to build my brand (fear: not good enough) → Took action (grew 50K) → Now helping others',
+          example:
+            'I was called to build my brand (fear: not good enough) → Took action (grew 50K) → Now helping others',
         },
         controversy: {
           arc: 'Bold claim → Counter-evidence → Nuance → Truth',
@@ -6092,21 +6272,77 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       const { platform = 'instagram', objective = 'conversion' } = (body as Record<string, unknown>) || {};
 
       const tactics = [
-        { tactic: 'Pattern interrupts (bold color, strange text, unexpected format)', impact: '40%+ stop-scroll rate', psychology: 'breaks autopilot' },
-        { tactic: 'Curiosity gaps (headline missing key info, cliffhangers)', impact: '35%+ continue reading', psychology: 'need for closure' },
-        { tactic: 'Relatability (show your mistakes, struggles, realness)', impact: '50%+ deeper connection', psychology: 'authenticity trust' },
-        { tactic: 'Identification (this is for YOU specifically, speak to avatar)', impact: '45%+ personal relevance', psychology: 'exclusivity' },
-        { tactic: 'Social proof (case studies, testimonials, numbers)', impact: '30%+ perceived credibility', psychology: 'herd mentality' },
-        { tactic: 'Scarcity (limited time, limited spots, exclusive)', impact: '50%+ urgency response', psychology: 'FOMO' },
-        { tactic: 'Contrast (show before/after, wrong/right, them/you)', impact: '35%+ comprehension', psychology: 'visual clarity' },
-        { tactic: 'Emotion first (story before data, feeling before logic)', impact: '40%+ retention', psychology: 'emotional memory' },
-        { tactic: 'Multi-sensory (words + visuals + video + audio)', impact: '60%+ recall', psychology: 'multiple pathways' },
+        {
+          tactic: 'Pattern interrupts (bold color, strange text, unexpected format)',
+          impact: '40%+ stop-scroll rate',
+          psychology: 'breaks autopilot',
+        },
+        {
+          tactic: 'Curiosity gaps (headline missing key info, cliffhangers)',
+          impact: '35%+ continue reading',
+          psychology: 'need for closure',
+        },
+        {
+          tactic: 'Relatability (show your mistakes, struggles, realness)',
+          impact: '50%+ deeper connection',
+          psychology: 'authenticity trust',
+        },
+        {
+          tactic: 'Identification (this is for YOU specifically, speak to avatar)',
+          impact: '45%+ personal relevance',
+          psychology: 'exclusivity',
+        },
+        {
+          tactic: 'Social proof (case studies, testimonials, numbers)',
+          impact: '30%+ perceived credibility',
+          psychology: 'herd mentality',
+        },
+        {
+          tactic: 'Scarcity (limited time, limited spots, exclusive)',
+          impact: '50%+ urgency response',
+          psychology: 'FOMO',
+        },
+        {
+          tactic: 'Contrast (show before/after, wrong/right, them/you)',
+          impact: '35%+ comprehension',
+          psychology: 'visual clarity',
+        },
+        {
+          tactic: 'Emotion first (story before data, feeling before logic)',
+          impact: '40%+ retention',
+          psychology: 'emotional memory',
+        },
+        {
+          tactic: 'Multi-sensory (words + visuals + video + audio)',
+          impact: '60%+ recall',
+          psychology: 'multiple pathways',
+        },
         { tactic: 'Reciprocity (give value first, then ask)', impact: '45%+ compliance', psychology: 'obligation' },
-        { tactic: 'Community (mention followers, celebrate audience, inside jokes)', impact: '50%+ belonging', psychology: 'tribe' },
-        { tactic: 'Micro-commitments (poll → comment → DM → purchase)', impact: '55%+ funnel conversion', psychology: 'consistency' },
-        { tactic: 'Pattern reversal (expected → unexpected twist)', impact: '40%+ surprise + delight', psychology: 'novelty' },
-        { tactic: 'Authority (expert tips, credentials, third-party validation)', impact: '35%+ trust increase', psychology: 'trust transfer' },
-        { tactic: 'Aspiration (show desired future, role models, transformation)', impact: '45%+ inspiration', psychology: 'vision' },
+        {
+          tactic: 'Community (mention followers, celebrate audience, inside jokes)',
+          impact: '50%+ belonging',
+          psychology: 'tribe',
+        },
+        {
+          tactic: 'Micro-commitments (poll → comment → DM → purchase)',
+          impact: '55%+ funnel conversion',
+          psychology: 'consistency',
+        },
+        {
+          tactic: 'Pattern reversal (expected → unexpected twist)',
+          impact: '40%+ surprise + delight',
+          psychology: 'novelty',
+        },
+        {
+          tactic: 'Authority (expert tips, credentials, third-party validation)',
+          impact: '35%+ trust increase',
+          psychology: 'trust transfer',
+        },
+        {
+          tactic: 'Aspiration (show desired future, role models, transformation)',
+          impact: '45%+ inspiration',
+          psychology: 'vision',
+        },
       ];
 
       json(res, 200, {
@@ -6201,7 +6437,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
           level1: '0 revenue (brand building)',
           level2: `${targetRevenue * 0.05} from 50 customers @ $50 avg`,
           level3: `${targetRevenue * 0.35} from 10 customers @ $500 avg`,
-          level4: `${targetRevenue * 0.60} from 2 customers @ $5K avg`,
+          level4: `${targetRevenue * 0.6} from 2 customers @ $5K avg`,
           total: `$${targetRevenue} monthly revenue`,
         },
       };
@@ -6319,10 +6555,30 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         niche,
         timeframe,
         emergingTrends: [
-          { trend: 'AI transparency (disclose AI use)', probability: '90%', momentum: '+40%/month', action: 'embrace + disclose' },
-          { trend: 'Micro-content (under 15 seconds)', probability: '95%', momentum: '+60%/month', action: 'shift 80% to short' },
-          { trend: 'Community-first (Discord/Telegram)', probability: '80%', momentum: '+50%/month', action: 'build community' },
-          { trend: 'Value-first (education over promo)', probability: '85%', momentum: '+35%/month', action: '70/20/10 split' },
+          {
+            trend: 'AI transparency (disclose AI use)',
+            probability: '90%',
+            momentum: '+40%/month',
+            action: 'embrace + disclose',
+          },
+          {
+            trend: 'Micro-content (under 15 seconds)',
+            probability: '95%',
+            momentum: '+60%/month',
+            action: 'shift 80% to short',
+          },
+          {
+            trend: 'Community-first (Discord/Telegram)',
+            probability: '80%',
+            momentum: '+50%/month',
+            action: 'build community',
+          },
+          {
+            trend: 'Value-first (education over promo)',
+            probability: '85%',
+            momentum: '+35%/month',
+            action: '70/20/10 split',
+          },
         ],
         seasonalOpportunities: [
           { season: 'Q1 (Jan-Mar)', opportunity: 'New Year resolutions', angle: 'transformation + goal-setting' },
@@ -6367,10 +6623,10 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         },
         viralChecklist: [
           '✓ Emotional hook (first 3 seconds capture emotion)',
-          '✓ Unique insight (something they didn\'t know)',
+          "✓ Unique insight (something they didn't know)",
           '✓ Shareable format (easy to understand at a glance)',
           '✓ Social credibility (looks good to share)',
-          '✓ Low friction (doesn\'t require effort to understand)',
+          "✓ Low friction (doesn't require effort to understand)",
           '✓ Community value (relevant to group identity)',
         ],
       };
@@ -6403,12 +6659,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
             'Growth (skills, income, impact)',
             'Freedom (time, financial, location)',
           ],
-          fears: [
-            'Being left behind (FOMO)',
-            'Failure (public embarrassment)',
-            'Wasting time/money',
-            'Irrelevance',
-          ],
+          fears: ['Being left behind (FOMO)', 'Failure (public embarrassment)', 'Wasting time/money', 'Irrelevance'],
           aspirations: [
             'Own their own business',
             'Become recognized expert',
@@ -6509,7 +6760,10 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       const { niche = 'tech', positioning = 'innovator' } = (body as Record<string, unknown>) || {};
 
       const archetypes = {
-        innovator: { values: ['progress', 'disruption', 'boldness'], personality: 'forward-thinking, experimental, cutting-edge' },
+        innovator: {
+          values: ['progress', 'disruption', 'boldness'],
+          personality: 'forward-thinking, experimental, cutting-edge',
+        },
         mentor: { values: ['wisdom', 'authority', 'guidance'], personality: 'knowledgeable, patient, trustworthy' },
         hero: { values: ['courage', 'transformation', 'triumph'], personality: 'bold, inspiring, powerful' },
         lover: { values: ['connection', 'authenticity', 'passion'], personality: 'warm, intimate, empathetic' },
@@ -7010,7 +7264,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
             fail: 'Will lose readers, violate accessibility law',
           },
           textSize: {
-            minimum: '12px (readable at arm\'s length)',
+            minimum: "12px (readable at arm's length)",
             recommended: '14-18px (comfortable)',
             check: 'All text passes readability test',
           },
@@ -7023,7 +7277,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         inclusiveDesign: [
           '✓ No flashing (photosensitivity safety)',
           '✓ Captions for all video content',
-          '✓ Alt text for all images (describe, don\'t repeat)',
+          "✓ Alt text for all images (describe, don't repeat)",
           '✓ Readable fonts (avoid script, italic-only)',
           '✓ Sufficient spacing (20px+ for touch targets)',
           '✓ High contrast text (4.5:1 minimum)',
@@ -7051,10 +7305,22 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       const { task = 'content-creation', context = {}, objective = '' } = (body as Record<string, unknown>) || {};
 
       const taskRouting = {
-        'content-creation': { agents: ['Designer', 'Organic', 'SMM'], priority: 'SMM first (strategy) → Designer (visuals) → Organic (scheduling)' },
-        'brand-building': { agents: ['Brand', 'Designer', 'Professional'], priority: 'Brand first (architecture) → Designer (implementation) → Professional (validation)' },
-        'performance-optimization': { agents: ['SMM', 'Professional', 'Brain'], priority: 'SMM analyzes data → Professional provides insights → Brain recommends changes' },
-        'audience-understanding': { agents: ['Professional', 'SMM', 'Brand'], priority: 'Professional profiles → SMM segments → Brand positions' },
+        'content-creation': {
+          agents: ['Designer', 'Organic', 'SMM'],
+          priority: 'SMM first (strategy) → Designer (visuals) → Organic (scheduling)',
+        },
+        'brand-building': {
+          agents: ['Brand', 'Designer', 'Professional'],
+          priority: 'Brand first (architecture) → Designer (implementation) → Professional (validation)',
+        },
+        'performance-optimization': {
+          agents: ['SMM', 'Professional', 'Brain'],
+          priority: 'SMM analyzes data → Professional provides insights → Brain recommends changes',
+        },
+        'audience-understanding': {
+          agents: ['Professional', 'SMM', 'Brand'],
+          priority: 'Professional profiles → SMM segments → Brand positions',
+        },
       };
 
       const routing = taskRouting[task] || taskRouting['content-creation'];
@@ -7116,7 +7382,11 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
     method: 'POST',
     pattern: '/api/brain/predict',
     handler: async ({ res, body }) => {
-      const { contentStrategy = '', audienceSegment = '', timeframe = '30days' } = (body as Record<string, unknown>) || {};
+      const {
+        contentStrategy = '',
+        audienceSegment = '',
+        timeframe = '30days',
+      } = (body as Record<string, unknown>) || {};
 
       json(res, 200, {
         prediction: {
@@ -8639,7 +8909,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       json(res, 200, {
         rules: [
           { rule: 'Respond to ALL comments in first 2 hours', priority: 'high' },
-          { rule: 'Flag negative comments (don\'t delete)', priority: 'medium', action: 'private message' },
+          { rule: "Flag negative comments (don't delete)", priority: 'medium', action: 'private message' },
           { rule: 'Pin top comments that add value', priority: 'medium' },
           { rule: 'Celebrate community milestones', priority: 'low', impact: '+belonging' },
         ],
@@ -9254,8 +9524,8 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         agentMapping: {
           'Design quality': 'Designer agent (priority 1)',
           'Copy urgency': 'Copywriter agent (priority 1)',
-          'Timing': 'SMM Manager agent (priority 2)',
-          'Colors': 'Brain synthesizer (priority 3)',
+          Timing: 'SMM Manager agent (priority 2)',
+          Colors: 'Brain synthesizer (priority 3)',
         },
         executionOrder: 'Copywriter → Designer → SMM → Brain',
       });

@@ -57,7 +57,12 @@ export const generateBrandCoherenceReport = (userId: string, posts: PostAnalysis
   if (visualCoherence < 70) issues.push(`Color inconsistency: ${allColors.size} colors`);
   if (messagingCoherence < 70) issues.push(`Tone scattered: ${allTones.size} tones`);
 
-  return { userId, postsAnalyzed: posts.length, scores: { visualCoherence, messagingCoherence, narrativeCoherence, overallCoherence }, issues };
+  return {
+    userId,
+    postsAnalyzed: posts.length,
+    scores: { visualCoherence, messagingCoherence, narrativeCoherence, overallCoherence },
+    issues,
+  };
 };
 
 log.info('[Phase 22] Branding Coherence Enforcer ✅');

@@ -78,9 +78,10 @@ export const ipWhitelistMiddleware = async (req: Request, res: Response, next: N
     }
 
     // Get whitelisted IPs for user
-    const ipRows = await queryAs<IpAddressRow>(`SELECT ip_address FROM ip_whitelist WHERE user_id = $1 AND enabled = true`, [
-      userId,
-    ]);
+    const ipRows = await queryAs<IpAddressRow>(
+      `SELECT ip_address FROM ip_whitelist WHERE user_id = $1 AND enabled = true`,
+      [userId],
+    );
 
     if (ipRows.length === 0) {
       // No IPs whitelisted = deny access (Pro+ must configure)

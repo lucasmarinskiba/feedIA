@@ -36,7 +36,10 @@ const asBeats = (request: RenderRequest): CapCutBeat[] => {
     }));
   }
   return [
-    { texto: request.fields['texto_pantalla'] ?? request.title, segundos: Number(request.options?.['durationSec']) || 15 },
+    {
+      texto: request.fields['texto_pantalla'] ?? request.title,
+      segundos: Number(request.options?.['durationSec']) || 15,
+    },
   ];
 };
 

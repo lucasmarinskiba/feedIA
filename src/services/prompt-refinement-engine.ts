@@ -27,7 +27,7 @@ class PromptRefinementEngine {
   async refinePrompt(
     basePrompt: string,
     targetPlatform: 'instagram' | 'tiktok' = 'instagram',
-    contentType: 'image' | 'video' | 'carousel' = 'carousel'
+    contentType: 'image' | 'video' | 'carousel' = 'carousel',
   ): Promise<RefinementResult> {
     // Step 1: Validate original
     const originalValidation = await qualityValidator.validatePrompt(basePrompt);

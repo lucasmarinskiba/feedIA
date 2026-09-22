@@ -234,10 +234,7 @@ class AgentPhaseOrchestrator {
     if (this.phase.phase === 1) {
       output = await (this.agent as GeneralistPhase).executeGeneralist(input);
     } else if (this.phase.phase === 2) {
-      output = await (this.agent as SpecialistPhase).executeSpecialist(
-        input,
-        (this.agent as any).getTrainingData?.(),
-      );
+      output = await (this.agent as SpecialistPhase).executeSpecialist(input, (this.agent as any).getTrainingData?.());
     } else if (this.phase.phase === 3) {
       output = await (this.agent as ExpertPhase).executeExpert(input, {});
     }
@@ -262,9 +259,7 @@ class AgentPhaseOrchestrator {
       this.agent = new ExpertPhase('default', 1000);
       this.phase = { phase: 3, outputCount: 1000, performanceScore: 90 };
 
-      console.log(
-        `[Agent] Advanced Phase 2→3. Mastered ${specialistLearnings.size} patterns.`,
-      );
+      console.log(`[Agent] Advanced Phase 2→3. Mastered ${specialistLearnings.size} patterns.`);
     }
 
     console.log(`[Agent] Phase: ${oldPhase}→${this.phase.phase}. Score: ${this.phase.performanceScore}`);

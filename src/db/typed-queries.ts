@@ -25,10 +25,7 @@ export const queryAs = async <T>(sql: string, params: unknown[] = []): Promise<T
  * Query single row with type safety
  * Returns null if no rows found
  */
-export const queryOneAs = async <T>(
-  sql: string,
-  params: unknown[] = [],
-): Promise<T | null> => {
+export const queryOneAs = async <T>(sql: string, params: unknown[] = []): Promise<T | null> => {
   const rows = await queryAs<T>(sql, params);
   return rows.length > 0 ? rows[0] : null;
 };

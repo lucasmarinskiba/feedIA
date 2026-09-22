@@ -76,9 +76,7 @@ export const orchestrateDesignWorkflow = async (
 ): Promise<DesignExecutionPlan> => {
   const workflowId = `design-${Date.now()}`;
 
-  log.info(
-    `[Design Master] Orchestrating: ${workflow.instruction} (${workflow.format}/${workflow.platform})`,
-  );
+  log.info(`[Design Master] Orchestrating: ${workflow.instruction} (${workflow.format}/${workflow.platform})`);
 
   // 1. Consult Canva Specialist
   const brief: DesignBrief = {
@@ -187,9 +185,7 @@ export const orchestrateDesignWorkflow = async (
 
 // ── Execute plan (stub: actual execution depends on CU/Studio implementation) ──
 
-export const executeDesignWorkflow = async (
-  plan: DesignExecutionPlan,
-): Promise<DesignResult> => {
+export const executeDesignWorkflow = async (plan: DesignExecutionPlan): Promise<DesignResult> => {
   const startTime = Date.now();
 
   log.info(`[Design Master] Executing workflow ${plan.workflowId} (${plan.executionMode})`);

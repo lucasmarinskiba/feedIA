@@ -166,7 +166,8 @@ const calculateSentiment = (text: string): SentimentScore => {
   if (lower.includes('...') && text.length < 50) negative += 0.2;
 
   const neutral = Math.max(0, 1 - positive - negative);
-  const overall: 'positive' | 'neutral' | 'negative' = positive > 0.5 ? 'positive' : negative > 0.5 ? 'negative' : 'neutral';
+  const overall: 'positive' | 'neutral' | 'negative' =
+    positive > 0.5 ? 'positive' : negative > 0.5 ? 'negative' : 'neutral';
 
   return {
     positive: Math.min(1, positive),

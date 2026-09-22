@@ -20,14 +20,7 @@ import {
 export interface CarouselBrief {
   topic: string;
   emotion: 'fear' | 'hope' | 'joy' | 'anger' | 'curiosity';
-  contentType?:
-    | 'tips'
-    | 'tutorial'
-    | 'transformation'
-    | 'listicle'
-    | 'educational'
-    | 'story'
-    | 'product';
+  contentType?: 'tips' | 'tutorial' | 'transformation' | 'listicle' | 'educational' | 'story' | 'product';
   audience?: 'b2b' | 'b2c' | 'lifestyle' | 'youth' | 'professional';
   targetSlideCount?: number; // 3-10, optional override
   userHasResearchData?: boolean; // true = trained on Pinterest pins
@@ -35,17 +28,7 @@ export interface CarouselBrief {
 
 export interface CarouselSlide {
   number: number;
-  role:
-    | 'hook'
-    | 'curiosity'
-    | 'value'
-    | 'objection'
-    | 'proof'
-    | 'cta'
-    | 'item'
-    | 'lesson'
-    | 'example'
-    | 'actions';
+  role: 'hook' | 'curiosity' | 'value' | 'objection' | 'proof' | 'cta' | 'item' | 'lesson' | 'example' | 'actions';
   headline: string;
   body: string;
   copyPattern: string;
@@ -86,10 +69,7 @@ export interface GeneratedCarousel {
 
 // ── Slide Count Decision (Pinterest Research) ───────────────────────────
 
-const decideOptimalSlideCount = (
-  topic: string,
-  contentType?: string,
-): number => {
+const decideOptimalSlideCount = (topic: string, contentType?: string): number => {
   // Pinterest pattern: certain structures win at certain counts
   const contentTypeToCount: Record<string, number> = {
     tips: 7, // Listicle sweet spot
@@ -110,9 +90,7 @@ const decideOptimalSlideCount = (
 
 // ── Generate Carousel Structure ────────────────────────────────────────
 
-export const generateSmartCarousel = async (
-  brief: CarouselBrief,
-): Promise<GeneratedCarousel> => {
+export const generateSmartCarousel = async (brief: CarouselBrief): Promise<GeneratedCarousel> => {
   log.info(`[Smart Carousel] Generating carousel: ${brief.topic} (${brief.emotion})`);
 
   const carouselId = `carousel_${Date.now()}`;
@@ -139,9 +117,7 @@ export const generateSmartCarousel = async (
 
   // Step 3: Calculate retention curve
   const retentionCurve = calculateRetentionCurve(slides);
-  const averageRetention = Math.round(
-    retentionCurve.reduce((a, b) => a + b, 0) / retentionCurve.length,
-  );
+  const averageRetention = Math.round(retentionCurve.reduce((a, b) => a + b, 0) / retentionCurve.length);
 
   // Step 4: Score coherence
   const coherenceScore = scoreCoherence(slides, colorPalette, typography);
@@ -293,9 +269,7 @@ const selectLayoutForSlideRole = (role: string): string => {
 
 // ── Helper: Select Image Type ──────────────────────────────────────────
 
-const selectImageTypeForRole = (
-  role: string,
-): 'hero' | 'mockup' | 'illustration' | 'photo' | 'grid' | 'none' => {
+const selectImageTypeForRole = (role: string): 'hero' | 'mockup' | 'illustration' | 'photo' | 'grid' | 'none' => {
   if (role === 'hook') return 'hero';
   if (role === 'value' || role === 'item') return 'illustration';
   if (role === 'proof') return 'photo';
@@ -364,7 +338,11 @@ const calculateSlideRetention = (slideNumber: number, totalSlides: number): numb
 
 // ── Coherence Scoring ──────────────────────────────────────────────────
 
-const scoreCoherence = (slides: CarouselSlide[], colorPalette: PinterestPattern, typography: PinterestPattern): number => {
+const scoreCoherence = (
+  slides: CarouselSlide[],
+  colorPalette: PinterestPattern,
+  typography: PinterestPattern,
+): number => {
   let score = 100;
 
   // Check for filler slides (low retention trigger)
@@ -401,9 +379,7 @@ const scoreEngagement = (slides: CarouselSlide[], emotion: string): number => {
 
   // Emotional triggers boost engagement
   const emotionalKeywords = ['surprising', 'secret', 'hidden', 'hack', 'mistake', 'truth'];
-  const emotionalSlides = slides.filter((s) =>
-    emotionalKeywords.some((kw) => s.headline.toLowerCase().includes(kw)),
-  );
+  const emotionalSlides = slides.filter((s) => emotionalKeywords.some((kw) => s.headline.toLowerCase().includes(kw)));
   score += emotionalSlides.length * 3;
 
   // CTA clarity

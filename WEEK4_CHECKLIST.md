@@ -129,28 +129,30 @@
 ## Friday: User Communication (1h)
 
 - [ ] Draft announcement email
+
   ```
   Subject: "We 5x'd your storage — same price! 🚀"
-  
+
   Hi [Name],
-  
+
   Great news! We've optimized our storage infrastructure.
-  
+
   New storage limits (same price):
   - Free: 2GB → 5GB (+150%)
   - Pro: 50GB → 250GB (+400%)
   - Premium: 500GB → 2TB (+300%)
-  
+
   All existing users get upgraded automatically.
-  
+
   Benefits:
   ✅ Up to 2TB of carousel storage
   ✅ Faster uploads (new CDN)
   ✅ 99.95% uptime SLA
   ✅ Zero downtime migration
-  
+
   [Upgrade now if on Free tier]
   ```
+
 - [ ] Send announcement
   - [ ] Segment: All users
   - [ ] Channel: Email + in-app notification
@@ -169,26 +171,26 @@
 
 ## Success Criteria
 
-| Metric | Target | Status |
-|--------|--------|--------|
-| Files migrated | 100% | ⏳ |
-| Migration errors | 0% | ⏳ |
-| Backblaze cost/mo | $60 | ⏳ |
-| API response time | <500ms | ⏳ |
-| Uptime during migration | 100% | ⏳ |
-| Users happy (no complaints) | 95%+ | ⏳ |
+| Metric                      | Target | Status |
+| --------------------------- | ------ | ------ |
+| Files migrated              | 100%   | ⏳     |
+| Migration errors            | 0%     | ⏳     |
+| Backblaze cost/mo           | $60    | ⏳     |
+| API response time           | <500ms | ⏳     |
+| Uptime during migration     | 100%   | ⏳     |
+| Users happy (no complaints) | 95%+   | ⏳     |
 
 ---
 
 ## Risk Mitigation
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| Migration takes >4h | Medium | High | Parallel upload threads, monitor ETA |
-| File corruption during migration | Low | Critical | Verify checksums, keep Wasabi 30d |
-| Backblaze API rate limit | Low | Medium | Batch uploads, throttle to 100 req/s |
-| Users can't upload during migration | Low | High | Use Wasabi as fallback during maintenance window |
-| Stripe update fails | Very Low | Medium | Test in sandbox first, have manual process ready |
+| Risk                                | Probability | Impact   | Mitigation                                       |
+| ----------------------------------- | ----------- | -------- | ------------------------------------------------ |
+| Migration takes >4h                 | Medium      | High     | Parallel upload threads, monitor ETA             |
+| File corruption during migration    | Low         | Critical | Verify checksums, keep Wasabi 30d                |
+| Backblaze API rate limit            | Low         | Medium   | Batch uploads, throttle to 100 req/s             |
+| Users can't upload during migration | Low         | High     | Use Wasabi as fallback during maintenance window |
+| Stripe update fails                 | Very Low    | Medium   | Test in sandbox first, have manual process ready |
 
 ---
 
@@ -197,6 +199,7 @@
 If critical issues arise:
 
 1. **Quick rollback** (5 min)
+
    ```bash
    railway vars set STORAGE_PROVIDER=wasabi
    # API falls back to Wasabi for missing files
@@ -227,14 +230,14 @@ If critical issues arise:
 
 ## Timeline Summary
 
-| Day | Hours | Status |
-|-----|-------|--------|
-| Monday | 3h | Backblaze setup |
-| Tuesday | 5h | File migration |
-| Wednesday | 2h | Code + deploy |
-| Thursday | 2h | Verify + monitor |
-| Friday | 1h | Announce |
-| **Total** | **~13h** | **Ready** |
+| Day       | Hours    | Status           |
+| --------- | -------- | ---------------- |
+| Monday    | 3h       | Backblaze setup  |
+| Tuesday   | 5h       | File migration   |
+| Wednesday | 2h       | Code + deploy    |
+| Thursday  | 2h       | Verify + monitor |
+| Friday    | 1h       | Announce         |
+| **Total** | **~13h** | **Ready**        |
 
 **Effective date**: EOD Wednesday (live)
 **Marketing date**: Friday (announce)

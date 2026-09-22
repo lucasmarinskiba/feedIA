@@ -7,7 +7,30 @@
 import { log } from '../agent/logger.js';
 
 interface VideoPromptParams {
-  category: 'emotional' | 'narrative' | 'transformation' | 'lifestyle' | 'technical' | 'vertical-engagement' | 'documentary-minimalism' | 'travel-vlogging' | 'continuous-macro' | 'luxury-food' | 'luxury-product' | 'modular-review' | 'urban-action' | 'daily-life-montage' | 'ugc-reel' | 'transformation-narrative' | 'action-sequence' | 'location-montage' | 'soft-sell-pets' | 'soft-sell-lifestyle' | 'soft-sell-services' | 'soft-sell-brand' | 'soft-sell-cause';
+  category:
+    | 'emotional'
+    | 'narrative'
+    | 'transformation'
+    | 'lifestyle'
+    | 'technical'
+    | 'vertical-engagement'
+    | 'documentary-minimalism'
+    | 'travel-vlogging'
+    | 'continuous-macro'
+    | 'luxury-food'
+    | 'luxury-product'
+    | 'modular-review'
+    | 'urban-action'
+    | 'daily-life-montage'
+    | 'ugc-reel'
+    | 'transformation-narrative'
+    | 'action-sequence'
+    | 'location-montage'
+    | 'soft-sell-pets'
+    | 'soft-sell-lifestyle'
+    | 'soft-sell-services'
+    | 'soft-sell-brand'
+    | 'soft-sell-cause';
   product?: string;
   persona?: string;
   location?: string;
@@ -83,7 +106,18 @@ LINEA DE TIEMPO:
 SENTIMIENTO: [EMOTIONAL_ARC]
 SPECS: [TECHNICAL_SPECS]
       `,
-      placeholders: ['DURATION', 'VALENCE', 'AROUSAL', 'FACS_UNITS', 'PERSONA', 'LOCATION', 'EMOTIONAL_STATE', 'TIMELINE_BREAKDOWN', 'EMOTIONAL_ARC', 'TECHNICAL_SPECS'],
+      placeholders: [
+        'DURATION',
+        'VALENCE',
+        'AROUSAL',
+        'FACS_UNITS',
+        'PERSONA',
+        'LOCATION',
+        'EMOTIONAL_STATE',
+        'TIMELINE_BREAKDOWN',
+        'EMOTIONAL_ARC',
+        'TECHNICAL_SPECS',
+      ],
       requiredParams: ['persona', 'location', 'duration'],
       optionalParams: ['tone', 'specs', 'culturalContext'],
     });
@@ -106,7 +140,15 @@ SENTIMIENTO: [EMOTIONAL_ARC]
 AUDIO: [AUDIO_DESIGN]
 SPECS: [TECHNICAL_SPECS]
       `,
-      placeholders: ['DURATION', 'CULTURAL_CONTEXT', 'PERSONA', 'TIMELINE_BREAKDOWN', 'EMOTIONAL_ARC', 'AUDIO_DESIGN', 'TECHNICAL_SPECS'],
+      placeholders: [
+        'DURATION',
+        'CULTURAL_CONTEXT',
+        'PERSONA',
+        'TIMELINE_BREAKDOWN',
+        'EMOTIONAL_ARC',
+        'AUDIO_DESIGN',
+        'TECHNICAL_SPECS',
+      ],
       requiredParams: ['persona', 'location', 'culturalContext', 'duration'],
       optionalParams: ['tone', 'specs', 'emotionalArc'],
     });
@@ -133,7 +175,20 @@ ACT 3 (DESPUES - [ACT3_START]-FINAL):
 
 SPECS: [TECHNICAL_SPECS]
       `,
-      placeholders: ['DURATION', 'PRODUCT', 'ACT1_END', 'BEFORE_STATE', 'BEFORE_LIGHTING', 'ACT2_START', 'ACT2_END', 'ACTION_DESCRIPTION', 'ACT3_START', 'AFTER_STATE', 'AFTER_LIGHTING', 'TECHNICAL_SPECS'],
+      placeholders: [
+        'DURATION',
+        'PRODUCT',
+        'ACT1_END',
+        'BEFORE_STATE',
+        'BEFORE_LIGHTING',
+        'ACT2_START',
+        'ACT2_END',
+        'ACTION_DESCRIPTION',
+        'ACT3_START',
+        'AFTER_STATE',
+        'AFTER_LIGHTING',
+        'TECHNICAL_SPECS',
+      ],
       requiredParams: ['product', 'duration'],
       optionalParams: ['tone', 'specs', 'emotionalArc'],
     });
@@ -159,7 +214,15 @@ DIALOGUE: [DIALOGUE_SCRIPT]
 
 SPECS: [TECHNICAL_SPECS]
       `,
-      placeholders: ['PERSONA_DETAILED', 'PERSONAJE_NAME', 'LOCATIONS_LIST', 'DURATION', 'TIMELINE_BREAKDOWN', 'DIALOGUE_SCRIPT', 'TECHNICAL_SPECS'],
+      placeholders: [
+        'PERSONA_DETAILED',
+        'PERSONAJE_NAME',
+        'LOCATIONS_LIST',
+        'DURATION',
+        'TIMELINE_BREAKDOWN',
+        'DIALOGUE_SCRIPT',
+        'TECHNICAL_SPECS',
+      ],
       requiredParams: ['persona', 'duration', 'tone'],
       optionalParams: ['location', 'product', 'specs'],
     });
@@ -216,7 +279,15 @@ PAYOFF (10-15s):
 AUDIO: [AUDIO_MOOD]
 SPECS: [TECHNICAL_SPECS]
       `,
-      placeholders: ['DURATION', 'PERSONA', 'EMOTION_TYPE', 'PRODUCT', 'CALL_TO_ACTION', 'AUDIO_MOOD', 'TECHNICAL_SPECS'],
+      placeholders: [
+        'DURATION',
+        'PERSONA',
+        'EMOTION_TYPE',
+        'PRODUCT',
+        'CALL_TO_ACTION',
+        'AUDIO_MOOD',
+        'TECHNICAL_SPECS',
+      ],
       requiredParams: ['persona', 'product', 'duration'],
       optionalParams: ['tone', 'specs', 'engagementType'],
     });
@@ -313,7 +384,16 @@ LINEA NARRATIVA:
 AUDIO: Voz en off casual + sonido ambiente + musica de fondo
 SPECS: [TECHNICAL_SPECS]
       `,
-      placeholders: ['DURATION', 'LOCATION', 'PERSONA', 'FOOD_ITEM', 'TEXTURE', 'AMBIENT_SOUND', 'STORY_ARC', 'TECHNICAL_SPECS'],
+      placeholders: [
+        'DURATION',
+        'LOCATION',
+        'PERSONA',
+        'FOOD_ITEM',
+        'TEXTURE',
+        'AMBIENT_SOUND',
+        'STORY_ARC',
+        'TECHNICAL_SPECS',
+      ],
       requiredParams: ['location', 'persona', 'duration'],
       optionalParams: ['tone', 'specs', 'culturalContext'],
     });
@@ -367,7 +447,7 @@ SPECS: [TECHNICAL_SPECS]
     }
 
     // Validate required params
-    const missingParams = template.requiredParams.filter(p => !params[p as keyof VideoPromptParams]);
+    const missingParams = template.requiredParams.filter((p) => !params[p as keyof VideoPromptParams]);
     if (missingParams.length > 0) {
       log.warn('[VideoPromptEngine] Missing required params', { templateId, missingParams });
       return null;
@@ -411,7 +491,7 @@ SPECS: [TECHNICAL_SPECS]
    * Get available templates by category
    */
   getTemplatesByCategory(category: string): VideoPromptTemplate[] {
-    return Array.from(this.templates.values()).filter(t => t.category === category);
+    return Array.from(this.templates.values()).filter((t) => t.category === category);
   }
 
   /**
@@ -422,13 +502,35 @@ SPECS: [TECHNICAL_SPECS]
       batch90: ['emotional', 'narrative', 'transformation', 'lifestyle', 'technical'],
       batch9192: ['emotional', 'narrative', 'transformation', 'lifestyle', 'technical'],
       batch92: ['vertical-engagement'],
-      batch93: ['documentary-minimalism', 'travel-vlogging', 'continuous-macro', 'luxury-food', 'luxury-product', 'modular-review', 'urban-action'],
+      batch93: [
+        'documentary-minimalism',
+        'travel-vlogging',
+        'continuous-macro',
+        'luxury-food',
+        'luxury-product',
+        'modular-review',
+        'urban-action',
+      ],
     };
     return {
       batches: this.libraryStatus,
       templatesLoaded: this.templates.size,
       categoriesByBatch: categories,
-      allCategories: ['emotional', 'narrative', 'transformation', 'lifestyle', 'technical', 'vertical-engagement', 'documentary-minimalism', 'travel-vlogging', 'continuous-macro', 'luxury-food', 'luxury-product', 'modular-review', 'urban-action'],
+      allCategories: [
+        'emotional',
+        'narrative',
+        'transformation',
+        'lifestyle',
+        'technical',
+        'vertical-engagement',
+        'documentary-minimalism',
+        'travel-vlogging',
+        'continuous-macro',
+        'luxury-food',
+        'luxury-product',
+        'modular-review',
+        'urban-action',
+      ],
     };
   }
 

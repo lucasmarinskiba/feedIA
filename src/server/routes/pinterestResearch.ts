@@ -55,16 +55,15 @@ export const importPinterestPin = async (req: Request, res: Response): Promise<v
     });
   } catch (error) {
     log.error(`[API] Pinterest import error: ${error}`);
-    res.status(500).json({error: 'Import failed'});
+    res.status(500).json({ error: 'Import failed' });
   }
 };
 
 // ── POST /api/research/pinterest/library ───────────────────────────
 
- 
 export const buildPinterestLibrary = async (req: Request, res: Response): Promise<void> => {
   try {
-    const {pins} = req.body;
+    const { pins } = req.body;
 
     if (!Array.isArray(pins) || pins.length === 0) {
       res.status(400).json({
@@ -93,13 +92,12 @@ export const buildPinterestLibrary = async (req: Request, res: Response): Promis
     });
   } catch (error) {
     log.error(`[API] Library build error: ${error}`);
-    res.status(500).json({error: 'Library build failed'});
+    res.status(500).json({ error: 'Library build failed' });
   }
 };
 
 // ── GET /api/research/pinterest/template ───────────────────────────
 
- 
 export const getPinterestTemplate = async (_req: Request, res: Response): Promise<void> => {
   try {
     log.info('[API] Pinterest research template requested');
@@ -127,7 +125,7 @@ export const getPinterestTemplate = async (_req: Request, res: Response): Promis
     });
   } catch (error) {
     log.error(`[API] Template error: ${error}`);
-    res.status(500).json({error: 'Template generation failed'});
+    res.status(500).json({ error: 'Template generation failed' });
   }
 };
 

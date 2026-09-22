@@ -43,8 +43,10 @@ class AgencyMetricsCollector {
     const failed = this.campaigns.filter((c) => c.status === 'failed').length;
     const totalTokens = this.campaigns.reduce((sum, c) => sum + c.tokens, 0);
     const totalCost = this.campaigns.reduce((sum, c) => sum + c.cost, 0);
-    const avgLatency = this.campaigns.length > 0 ? this.campaigns.reduce((sum, c) => sum + c.latencyMs, 0) / this.campaigns.length : 0;
-    const avgBatchSize = this.batches.length > 0 ? this.batches.reduce((sum, b) => sum + b.size, 0) / this.batches.length : 0;
+    const avgLatency =
+      this.campaigns.length > 0 ? this.campaigns.reduce((sum, c) => sum + c.latencyMs, 0) / this.campaigns.length : 0;
+    const avgBatchSize =
+      this.batches.length > 0 ? this.batches.reduce((sum, b) => sum + b.size, 0) / this.batches.length : 0;
 
     return {
       totalCampaigns: this.campaigns.length,

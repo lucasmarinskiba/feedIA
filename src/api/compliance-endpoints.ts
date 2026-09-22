@@ -114,7 +114,7 @@ export const validateCompliance = async (req: Request, res: Response): Promise<v
     await query(
       `INSERT INTO compliance_checks (id, content_id, check_type, status, violations, checked_at)
        VALUES ($1, $2, $3, $4, $5, NOW())`,
-      [checkId, contentId, checkTypes.join(','), status, JSON.stringify(violations)]
+      [checkId, contentId, checkTypes.join(','), status, JSON.stringify(violations)],
     );
 
     res.json({
@@ -145,10 +145,7 @@ export const getComplianceReport = async (req: Request, res: Response): Promise<
     const { contentId } = req.params;
 
     // Verify ownership
-    const contentResult = await query(
-      'SELECT * FROM content WHERE id = $1 AND user_id = $2',
-      [contentId, userId]
-    );
+    const contentResult = await query('SELECT * FROM content WHERE id = $1 AND user_id = $2', [contentId, userId]);
 
     if (contentResult.rowCount === 0) {
       res.status(404).json({ error: 'Content not found' });
@@ -158,7 +155,7 @@ export const getComplianceReport = async (req: Request, res: Response): Promise<
     // Get compliance checks
     const checksResult = await query(
       'SELECT * FROM compliance_checks WHERE content_id = $1 ORDER BY checked_at DESC LIMIT 10',
-      [contentId]
+      [contentId],
     );
 
     const checks = checksResult.rows.map((row: any) => ({
@@ -180,8 +177,7 @@ export const getComplianceReport = async (req: Request, res: Response): Promise<
         checksPerformed: checks.length,
         latestStatus: latestCheck?.status || 'not-checked',
         totalUniqueViolations: uniqueViolations.length,
-        canPublish:
-          latestCheck && !latestCheck.violations.some((v: any) => v.severity === 'error'),
+        canPublish: latestCheck && !latestCheck.violations.some((v: any) => v.severity === 'error'),
       },
       checks,
       recentViolations: uniqueViolations.slice(0, 5),

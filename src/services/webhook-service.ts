@@ -28,7 +28,13 @@ export interface WebhookEvent {
   status: 'pending' | 'delivered' | 'failed';
 }
 
-export type WebhookEventType = 'campaign_created' | 'campaign_completed' | 'roi_calculated' | 'payment_succeeded' | 'subscription_updated' | 'usage_alert';
+export type WebhookEventType =
+  | 'campaign_created'
+  | 'campaign_completed'
+  | 'roi_calculated'
+  | 'payment_succeeded'
+  | 'subscription_updated'
+  | 'usage_alert';
 
 /**
  * Initialize webhook tables
@@ -291,14 +297,7 @@ export const deliverWebhook = async (eventId: string, subscriptionId: string): P
       const responseBody = await response.text();
 
       // Log delivery
-      await logWebhookDelivery(
-        eventId,
-        subscriptionId,
-        response.status,
-        responseBody,
-        null,
-        duration,
-      );
+      await logWebhookDelivery(eventId, subscriptionId, response.status, responseBody, null, duration);
 
       if (response.ok) {
         // Mark as delivered
@@ -346,10 +345,7 @@ export const deliverWebhook = async (eventId: string, subscriptionId: string): P
  */
 const getWebhookSubscription = async (subscriptionId: string): Promise<WebhookSubscription | null> => {
   try {
-    const result = await getPool().query(
-      `SELECT * FROM webhook_subscriptions WHERE id = $1`,
-      [subscriptionId],
-    );
+    const result = await getPool().query(`SELECT * FROM webhook_subscriptions WHERE id = $1`, [subscriptionId]);
 
     if (!result.rows || result.rows.length === 0) {
       return null;

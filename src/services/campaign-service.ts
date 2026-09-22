@@ -205,10 +205,7 @@ export const campaignService = {
     return campaign;
   },
 
-  async updateMetrics(
-    campaignId: string,
-    metrics: Partial<Campaign['metrics']>
-  ): Promise<Campaign> {
+  async updateMetrics(campaignId: string, metrics: Partial<Campaign['metrics']>): Promise<Campaign> {
     const campaign = await this.loadCampaign(campaignId);
     if (!campaign) {
       throw new Error(`Campaign ${campaignId} not found`);
@@ -225,11 +222,7 @@ export const campaignService = {
     return campaign;
   },
 
-  async scheduleCampaign(
-    campaignId: string,
-    startDate: Date,
-    endDate?: Date
-  ): Promise<Campaign> {
+  async scheduleCampaign(campaignId: string, startDate: Date, endDate?: Date): Promise<Campaign> {
     const campaign = await this.loadCampaign(campaignId);
     if (!campaign) {
       throw new Error(`Campaign ${campaignId} not found`);

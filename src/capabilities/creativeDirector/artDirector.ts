@@ -19,11 +19,7 @@ export interface PinterestDesignBrief {
  * Generate Pinterest-aligned image prompt for a carousel slide.
  * Uses CLAUDE.md patterns + aesthetics to create structured image generation prompts.
  */
-export const generatePinterestPrompt = (
-  topic: string,
-  brand?: unknown,
-  designBrief?: PinterestDesignBrief,
-): string => {
+export const generatePinterestPrompt = (topic: string, brand?: unknown, designBrief?: PinterestDesignBrief): string => {
   // Type brand as BrandProfile if provided
   const brandProfile = brand as any;
   const style = designBrief?.style || 'bold-playful';
@@ -51,14 +47,13 @@ Patrón de layout: ${designBrief.pattern}
     : '';
 
   // Brand context (if available)
-  const brandContext =
-    brandProfile
-      ? `
+  const brandContext = brandProfile
+    ? `
 Marca del usuario:
 - Niche: ${brandProfile.niche || 'Creadores de contenido'}
 - Nombre: ${brandProfile.name || 'Brand'}
 - Público: ${brandProfile.audience?.description || 'General audience'}`
-      : '';
+    : '';
 
   // Construct prompt following Pinterest standards
   const prompt = `
@@ -126,13 +121,16 @@ ${aesthetic ? formatAestheticForPrompt(aesthetic) : ''}
 
 ${
   brand
-    ? (() => { const bp = brand as { name?: string; niche?: string; audience?: { description?: string }; type?: string }; return `
+    ? (() => {
+        const bp = brand as { name?: string; niche?: string; audience?: { description?: string }; type?: string };
+        return `
 CONTEXTO DE MARCA:
 - Nombre: ${bp.name || ''}
 - Nicho: ${bp.niche || ''}
 - Público: ${bp.audience?.description || 'Variado'}
 - Tipo: ${bp.type || 'Marca'}
-`; })()
+`;
+      })()
     : ''
 }
 

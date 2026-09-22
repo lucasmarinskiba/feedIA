@@ -1,9 +1,5 @@
 import { Router, Request, Response } from 'express';
-import {
-  carouselEditingService,
-  CarouselSlide,
-  CarouselEditOperation,
-} from '../services/carousel-editing-service';
+import { carouselEditingService, CarouselSlide, CarouselEditOperation } from '../services/carousel-editing-service';
 
 const router = Router();
 
@@ -52,9 +48,7 @@ router.post('/carousel/reorder', async (req: Request, res: Response): Promise<vo
     };
 
     if (!carouselId || !slides || !newOrder) {
-      res
-        .status(400)
-        .json({ error: 'Missing fields: carouselId, slides, newOrder' });
+      res.status(400).json({ error: 'Missing fields: carouselId, slides, newOrder' });
       return;
     }
 
@@ -141,9 +135,7 @@ router.post('/carousel/delete-slide', async (req: Request, res: Response): Promi
     };
 
     if (!carouselId || !slides || !slideId) {
-      res
-        .status(400)
-        .json({ error: 'Missing fields: carouselId, slides, slideId' });
+      res.status(400).json({ error: 'Missing fields: carouselId, slides, slideId' });
       return;
     }
 

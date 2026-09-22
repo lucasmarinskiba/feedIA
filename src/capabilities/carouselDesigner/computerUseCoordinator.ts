@@ -9,10 +9,7 @@ import {
   customizeCanvaDesign as canvaCustomizeDesign,
   exportCanvaDesignSlides,
 } from './canvaApiCoordinator.js';
-import {
-  searchCanvaTemplatesWithBrowser,
-  customizeCanvaViaComputer,
-} from '../../integrations/computerUseSDK.js';
+import { searchCanvaTemplatesWithBrowser, customizeCanvaViaComputer } from '../../integrations/computerUseSDK.js';
 
 export interface CanvaWorkflowInput {
   prompt: string;
@@ -34,22 +31,10 @@ export interface CanvaWorkflowOutput {
  * Replace with real Canva API or Computer Use when available.
  */
 const MOCK_TEMPLATES: Record<string, string[]> = {
-  'warm-organic': [
-    'canva-template-warm-carousel-1',
-    'canva-template-warm-carousel-2',
-  ],
-  'bold-playful': [
-    'canva-template-bold-carousel-1',
-    'canva-template-bold-carousel-2',
-  ],
-  'dark-premium': [
-    'canva-template-premium-carousel-1',
-    'canva-template-premium-carousel-2',
-  ],
-  'clean-editorial': [
-    'canva-template-editorial-carousel-1',
-    'canva-template-editorial-carousel-2',
-  ],
+  'warm-organic': ['canva-template-warm-carousel-1', 'canva-template-warm-carousel-2'],
+  'bold-playful': ['canva-template-bold-carousel-1', 'canva-template-bold-carousel-2'],
+  'dark-premium': ['canva-template-premium-carousel-1', 'canva-template-premium-carousel-2'],
+  'clean-editorial': ['canva-template-editorial-carousel-1', 'canva-template-editorial-carousel-2'],
 };
 
 /**
@@ -136,9 +121,7 @@ export const customizeCanvaDesign = async (
   // if (computerUseResult) return { slides: computerUseResult, method: 'computer-use' };
 
   // Try 3: Mock (fallback)
-  const mockSlides = customizations.slideTexts.map(
-    (_, idx) => `/tmp/carousel-exports/slide-${idx + 1}.png`,
-  );
+  const mockSlides = customizations.slideTexts.map((_, idx) => `/tmp/carousel-exports/slide-${idx + 1}.png`);
 
   log.info(`[ComputerUse] Design customization: method=mock, slides=${mockSlides.length}`);
 

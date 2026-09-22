@@ -1,9 +1,5 @@
 import { Router, Request, Response } from 'express';
-import {
-  influencerService,
-  Influencer,
-  Collaboration,
-} from '../services/influencer-service';
+import { influencerService, Influencer, Collaboration } from '../services/influencer-service';
 
 const router = Router();
 

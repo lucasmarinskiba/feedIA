@@ -58,6 +58,6 @@ export const clearGuidanceCache = (): void => {
 };
 
 export const getCacheStats = (): { size: number; entries: string[] } => ({
-    size: guidanceCache.size,
-    entries: Array.from(guidanceCache.keys()),
-  });
+  size: guidanceCache.size,
+  entries: Array.from(guidanceCache.keys()),
+});

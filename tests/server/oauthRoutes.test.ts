@@ -170,7 +170,9 @@ describe('oauthRoutes', () => {
           return new Response(JSON.stringify({ access_token: 'LONG_LIVED_TOKEN', expires_in: 5_184_000 }));
         }
         if (url.includes('/me/accounts')) {
-          return new Response(JSON.stringify({ data: [{ id: 'PAGE1', name: 'Test Page', access_token: 'PAGE_TOKEN' }] }));
+          return new Response(
+            JSON.stringify({ data: [{ id: 'PAGE1', name: 'Test Page', access_token: 'PAGE_TOKEN' }] }),
+          );
         }
         return new Response(JSON.stringify({ access_token: 'SHORT_LIVED_TOKEN', expires_in: 3_600 }));
       });
@@ -222,8 +224,8 @@ describe('oauthRoutes', () => {
       const state = await issueOAuthState({ brandId: brand.id, platform: 'instagram' });
       await runRoute(routes, 'GET', `/api/auth/instagram/callback?code=CODE&state=${state}`);
 
-      mockedMetaFetch.mockImplementation(async () =>
-        new Response(JSON.stringify({ access_token: 'REFRESHED_TOKEN', expires_in: 5_184_000 })),
+      mockedMetaFetch.mockImplementation(
+        async () => new Response(JSON.stringify({ access_token: 'REFRESHED_TOKEN', expires_in: 5_184_000 })),
       );
 
       const res = await runRoute(routes, 'POST', '/api/auth/instagram/refresh', { brandId: brand.id });

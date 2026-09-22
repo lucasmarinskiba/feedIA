@@ -29,7 +29,10 @@ class PerformanceMonitor {
   /**
    * Endpoint statistics
    */
-  getEndpointStats(endpoint: string, method: string = 'GET'): {
+  getEndpointStats(
+    endpoint: string,
+    method: string = 'GET',
+  ): {
     calls: number;
     avgDuration: number;
     p50: number;
@@ -38,9 +41,7 @@ class PerformanceMonitor {
     errorRate: number;
     cacheHitRate: number;
   } {
-    const filtered = this.metrics.filter(
-      m => m.endpoint === endpoint && m.method === method
-    );
+    const filtered = this.metrics.filter((m) => m.endpoint === endpoint && m.method === method);
 
     if (filtered.length === 0) {
       return {
@@ -54,9 +55,9 @@ class PerformanceMonitor {
       };
     }
 
-    const durations = filtered.map(m => m.duration).sort((a, b) => a - b);
-    const errors = filtered.filter(m => m.statusCode >= 400).length;
-    const cacheHits = filtered.filter(m => m.cacheHit).length;
+    const durations = filtered.map((m) => m.duration).sort((a, b) => a - b);
+    const errors = filtered.filter((m) => m.statusCode >= 400).length;
+    const cacheHits = filtered.filter((m) => m.cacheHit).length;
 
     return {
       calls: filtered.length,
@@ -91,8 +92,7 @@ class PerformanceMonitor {
     return Array.from(endpoints.entries())
       .map(([key, metrics]) => {
         const [method, endpoint] = key.split(':');
-        const avgDuration =
-          metrics.reduce((a, m) => a + m.duration, 0) / metrics.length;
+        const avgDuration = metrics.reduce((a, m) => a + m.duration, 0) / metrics.length;
         return { endpoint, method, avgDuration, calls: metrics.length };
       })
       .sort((a, b) => b.avgDuration - a.avgDuration)
@@ -108,7 +108,7 @@ class PerformanceMonitor {
     hitRate: number;
   } {
     const total = this.metrics.length;
-    const hits = this.metrics.filter(m => m.cacheHit).length;
+    const hits = this.metrics.filter((m) => m.cacheHit).length;
 
     return {
       totalRequests: total,
@@ -137,9 +137,9 @@ class PerformanceMonitor {
       };
     }
 
-    const durations = this.metrics.map(m => m.duration);
+    const durations = this.metrics.map((m) => m.duration);
     const avgDuration = durations.reduce((a, b) => a + b, 0) / durations.length;
-    const errors = this.metrics.filter(m => m.statusCode >= 500).length;
+    const errors = this.metrics.filter((m) => m.statusCode >= 500).length;
     const errorRate = errors / this.metrics.length;
 
     let healthStatus: 'healthy' | 'degraded' | 'critical' = 'healthy';

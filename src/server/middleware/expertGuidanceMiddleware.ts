@@ -32,10 +32,7 @@ export interface ExpertEnrichedResponse {
 /**
  * Enrich response with expert guidance
  */
-export const withExpertGuidance = async (
-  toolName: string,
-  responseData: unknown,
-): Promise<ExpertEnrichedResponse> => {
+export const withExpertGuidance = async (toolName: string, responseData: unknown): Promise<ExpertEnrichedResponse> => {
   try {
     // Get expert guidance for this tool (cached)
     const guidance = await getGuidanceWithCache(toolName).catch((error) => {

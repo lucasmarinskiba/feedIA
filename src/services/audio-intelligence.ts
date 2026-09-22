@@ -155,7 +155,7 @@ export const analyzeAudioCharacteristics = (audio: TrendingAudio): { virality: n
 export const matchAudioToContent = (
   format: 'carousel' | 'reel' | 'story' | 'static',
   niche: string,
-  contentLength: number // seconds
+  contentLength: number, // seconds
 ): AudioMatch[] => {
   const allAudio = fetchTrendingAudio('tiktok', niche);
 
@@ -204,7 +204,11 @@ export const matchAudioToContent = (
 /**
  * Track audio performance over time
  */
-export const recordAudioPerformance = (audioId: string, platform: 'tiktok' | 'instagram', metrics: Partial<AudioPerformance>) => {
+export const recordAudioPerformance = (
+  audioId: string,
+  platform: 'tiktok' | 'instagram',
+  metrics: Partial<AudioPerformance>,
+) => {
   const existing = audioPerformance.get(audioId) || {
     audioId,
     platform,
@@ -269,7 +273,7 @@ export const getOptimalPostingTime = (audioId: string, platform: 'tiktok' | 'ins
 export const buildAudioStrategy = (
   niche: string,
   format: 'carousel' | 'reel' | 'story' | 'static',
-  weeklyVolume: number // posts per week
+  weeklyVolume: number, // posts per week
 ): {
   weeklyPlaylist: Array<{ day: number; audio: TrendingAudio; reason: string }>;
   backupAudios: TrendingAudio[];

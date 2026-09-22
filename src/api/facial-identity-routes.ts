@@ -27,11 +27,7 @@ router.post('/lock', async (req: Request, res: Response) => {
 
     log.info('[FacialIdentity] Lock creation requested', { imageId, brand: brand?.name });
 
-    const identityLock = await facialIdentityPreservationService.createIdentityLock(
-      imageId,
-      imagePath,
-      facialFeatures
-    );
+    const identityLock = await facialIdentityPreservationService.createIdentityLock(imageId, imagePath, facialFeatures);
 
     return res.json({
       status: 'success',
@@ -87,10 +83,7 @@ router.post('/validate', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'lockId and generatedDescription required' });
     }
 
-    const validation = await facialIdentityPreservationService.validatePreservation(
-      lockId,
-      generatedDescription
-    );
+    const validation = await facialIdentityPreservationService.validatePreservation(lockId, generatedDescription);
 
     return res.json({
       status: 'validated',
@@ -116,16 +109,9 @@ router.post('/lock-and-inject', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'imageId, imagePath, and prompt required' });
     }
 
-    const identityLock = await facialIdentityPreservationService.createIdentityLock(
-      imageId,
-      imagePath,
-      facialFeatures
-    );
+    const identityLock = await facialIdentityPreservationService.createIdentityLock(imageId, imagePath, facialFeatures);
 
-    const enhancedPrompt = facialIdentityPreservationService.injectIdentityLock(
-      prompt,
-      identityLock.lockId
-    );
+    const enhancedPrompt = facialIdentityPreservationService.injectIdentityLock(prompt, identityLock.lockId);
 
     return res.json({
       status: 'success',
@@ -174,12 +160,27 @@ router.get('/health', async (req: Request, res: Response) => {
     return res.json({
       status: 'ok',
       service: 'facial-identity-preservation',
-      purpose: 'Ensures generated content preserves REAL facial features from uploaded photos, not invented/idealized faces',
+      purpose:
+        'Ensures generated content preserves REAL facial features from uploaded photos, not invented/idealized faces',
       landmarksTracked: [
-        'faceShape', 'eyeShape', 'eyeColor', 'eyeSpacing', 'eyebrowShape',
-        'noseShape', 'lipShape', 'jawline', 'cheekbones', 'skinTone',
-        'skinTexture', 'distinguishingMarks', 'facialHair', 'hairColor',
-        'hairTexture', 'hairLength', 'estimatedAge', 'estimatedGender',
+        'faceShape',
+        'eyeShape',
+        'eyeColor',
+        'eyeSpacing',
+        'eyebrowShape',
+        'noseShape',
+        'lipShape',
+        'jawline',
+        'cheekbones',
+        'skinTone',
+        'skinTexture',
+        'distinguishingMarks',
+        'facialHair',
+        'hairColor',
+        'hairTexture',
+        'hairLength',
+        'estimatedAge',
+        'estimatedGender',
       ],
       criticalRules: [
         'Same person recognizable across all frames/angles/lighting',

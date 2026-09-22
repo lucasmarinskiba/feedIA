@@ -13,7 +13,12 @@ router.post('/action', async (req: Request, res: Response) => {
   try {
     const accountId = req.get('X-Account-ID') || 'test-account';
     // TODO: Wire execution action with proper context type
-    return res.json({ accountId, action: req.body, status: 'queued', message: 'Action endpoint ready for integration' });
+    return res.json({
+      accountId,
+      action: req.body,
+      status: 'queued',
+      message: 'Action endpoint ready for integration',
+    });
   } catch (err) {
     return res.status(400).json({ error: String(err) });
   }

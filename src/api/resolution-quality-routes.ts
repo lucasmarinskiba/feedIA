@@ -48,10 +48,7 @@ router.post('/inject-instructions', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'platform and contentType required' });
     }
 
-    const instructions = resolutionQualityEngine.generateQualityInstructions(
-      platform,
-      contentType
-    );
+    const instructions = resolutionQualityEngine.generateQualityInstructions(platform, contentType);
 
     const enhancedPrompt = prompt ? `${instructions}\n\n[CONTENT PROMPT]\n${prompt}` : instructions;
 
@@ -88,7 +85,7 @@ router.post('/validate', async (req: Request, res: Response) => {
       width,
       height,
       bitrateKbps,
-      fileSizeMB
+      fileSizeMB,
     );
 
     return res.json({
@@ -115,12 +112,7 @@ router.post('/upscale-strategy', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'currentWidth, currentHeight, targetWidth, targetHeight required' });
     }
 
-    const strategy = resolutionQualityEngine.getUpscaleStrategy(
-      currentWidth,
-      currentHeight,
-      targetWidth,
-      targetHeight
-    );
+    const strategy = resolutionQualityEngine.getUpscaleStrategy(currentWidth, currentHeight, targetWidth, targetHeight);
 
     return res.json({
       status: 'ok',
@@ -155,7 +147,7 @@ router.post('/execute-upscale', async (req: Request, res: Response) => {
       currentWidth,
       currentHeight,
       targetWidth,
-      targetHeight
+      targetHeight,
     );
 
     if (!result) {
@@ -195,7 +187,7 @@ router.get('/best/:platform/:contentType', async (req: Request, res: Response) =
 
     const spec = resolutionQualityEngine.getBestSpec(
       platform as 'instagram' | 'tiktok',
-      contentType as 'image' | 'video' | 'carousel'
+      contentType as 'image' | 'video' | 'carousel',
     );
 
     return res.json({

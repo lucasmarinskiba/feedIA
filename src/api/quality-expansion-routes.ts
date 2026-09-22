@@ -80,7 +80,8 @@ router.post('/expand-refine', async (req: Request, res: Response): Promise<void>
       expansions: {
         total_generated: validatedVariations.length,
         total_stored: stored,
-        quality_score_avg: validatedVariations.reduce((sum, v) => sum + v.validation.score, 0) / validatedVariations.length,
+        quality_score_avg:
+          validatedVariations.reduce((sum, v) => sum + v.validation.score, 0) / validatedVariations.length,
         all_passed_validation: validatedVariations.every((v) => v.validation.passed),
       },
       samples: validatedVariations.slice(0, 2).map((v) => ({
@@ -130,9 +131,10 @@ router.post('/validate', async (req: Request, res: Response): Promise<void> => {
         products: validation.metadata.product_check ? '✓' : '✗',
         environments: validation.metadata.environment_check ? '✓' : '✗',
       },
-      recommendation: validation.score >= 70
-        ? 'Ready for expansion'
-        : `Refine first (score: ${validation.score}/100). Issues: ${validation.issues.slice(0, 2).join(', ')}`,
+      recommendation:
+        validation.score >= 70
+          ? 'Ready for expansion'
+          : `Refine first (score: ${validation.score}/100). Issues: ${validation.issues.slice(0, 2).join(', ')}`,
       metadata: { validatedAt: new Date().toISOString() },
     });
     return;

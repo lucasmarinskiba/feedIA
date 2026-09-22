@@ -295,34 +295,34 @@ export interface CanvaAction {
 }
 
 export const specToCanvaActions = (spec: CanvaDesignSpec): CanvaAction[] => [
-    {
-      type: 'create',
-      instruction: `Create new design: ${spec.dimensions.width}×${spec.dimensions.height}`,
-      params: spec.dimensions,
-    },
-    {
-      type: 'add-text',
-      selector: '[data-text-type="headline"]',
-      instruction: `Add headline: ${spec.typography.headline.font} ${spec.typography.headline.size}px ${spec.typography.headline.weight} color ${spec.typography.headline.color}`,
-      params: spec.typography.headline,
-    },
-    {
-      type: 'add-image',
-      selector: '[data-image-slot="hero"]',
-      instruction: `Add hero image: search "${spec.imagery.keywords.join(', ')}" (${spec.imagery.style} style, ${spec.imagery.mood} mood)`,
-      params: spec.imagery,
-    },
-    {
-      type: 'apply-filter',
-      instruction: `Apply color overlay: primary=${spec.colorPalette.primary} opacity=20%`,
-      params: { color: spec.colorPalette.primary, opacity: 0.2 },
-    },
-    {
-      type: 'export',
-      instruction: `Export as PNG: 1080×1350, optimize for Instagram`,
-      params: { format: 'png', quality: 95 },
-    },
-  ];
+  {
+    type: 'create',
+    instruction: `Create new design: ${spec.dimensions.width}×${spec.dimensions.height}`,
+    params: spec.dimensions,
+  },
+  {
+    type: 'add-text',
+    selector: '[data-text-type="headline"]',
+    instruction: `Add headline: ${spec.typography.headline.font} ${spec.typography.headline.size}px ${spec.typography.headline.weight} color ${spec.typography.headline.color}`,
+    params: spec.typography.headline,
+  },
+  {
+    type: 'add-image',
+    selector: '[data-image-slot="hero"]',
+    instruction: `Add hero image: search "${spec.imagery.keywords.join(', ')}" (${spec.imagery.style} style, ${spec.imagery.mood} mood)`,
+    params: spec.imagery,
+  },
+  {
+    type: 'apply-filter',
+    instruction: `Apply color overlay: primary=${spec.colorPalette.primary} opacity=20%`,
+    params: { color: spec.colorPalette.primary, opacity: 0.2 },
+  },
+  {
+    type: 'export',
+    instruction: `Export as PNG: 1080×1350, optimize for Instagram`,
+    params: { format: 'png', quality: 95 },
+  },
+];
 
 // ── Studio tool helpers (non-CU fallback) ──────────────────────────────────
 
@@ -337,16 +337,14 @@ export const generateCarouselInsight = (spec: CanvaDesignSpec, slideIndex: numbe
   );
 };
 
-export const generateReelInsight = (spec: CanvaDesignSpec): string => (
-    `Reel strategy: ${spec.animation.style} entrance (${spec.animation.duration}ms). ` +
-    `Hook text: ${spec.typography.headline.size}px bold. ` +
-    `Sound: trending audio paired with ${spec.imagery.mood} visuals. ` +
-    `CTA at 1.5s mark.`
-  );
+export const generateReelInsight = (spec: CanvaDesignSpec): string =>
+  `Reel strategy: ${spec.animation.style} entrance (${spec.animation.duration}ms). ` +
+  `Hook text: ${spec.typography.headline.size}px bold. ` +
+  `Sound: trending audio paired with ${spec.imagery.mood} visuals. ` +
+  `CTA at 1.5s mark.`;
 
-export const generateTikTokInsight = (spec: CanvaDesignSpec): string => (
-    `TikTok format (9:16): ${spec.layout.pattern}. ` +
-    `Hook: ${spec.typography.headline.size}px, top 1/3. ` +
-    `Trending stickers + sound. ` +
-    `Enter animation: ${spec.animation.style} (${spec.animation.duration}ms).`
-  );
+export const generateTikTokInsight = (spec: CanvaDesignSpec): string =>
+  `TikTok format (9:16): ${spec.layout.pattern}. ` +
+  `Hook: ${spec.typography.headline.size}px, top 1/3. ` +
+  `Trending stickers + sound. ` +
+  `Enter animation: ${spec.animation.style} (${spec.animation.duration}ms).`;

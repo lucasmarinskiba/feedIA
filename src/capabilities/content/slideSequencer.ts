@@ -52,10 +52,7 @@ export const sequenceCarousel = (slideCount: number): SlideSequence[] => {
       slideNumber: i,
       purpose: i <= 5 ? 'education' : 'proof',
       order: i,
-      engagement_target:
-        i <= 5
-          ? 'Deliver promised value, keep reading'
-          : 'Build credibility, show results',
+      engagement_target: i <= 5 ? 'Deliver promised value, keep reading' : 'Build credibility, show results',
     });
   }
 

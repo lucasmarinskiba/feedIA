@@ -23,7 +23,7 @@ class CarouselCreationPipeline {
       validateBefore?: boolean;
       rejectOnCritical?: boolean;
       trackCreation?: boolean;
-    } = { validateBefore: true, rejectOnCritical: true, trackCreation: true }
+    } = { validateBefore: true, rejectOnCritical: true, trackCreation: true },
   ): Promise<PipelineResult> {
     const timestamp = new Date().toISOString();
 
@@ -41,7 +41,9 @@ class CarouselCreationPipeline {
       if (options.validateBefore) {
         const report = await carouselQualityValidator.generateReport(carousel);
 
-        const criticalErrors = report.validation.errors.filter(e => e.severity === 'critical' || e.severity === 'high');
+        const criticalErrors = report.validation.errors.filter(
+          (e) => e.severity === 'critical' || e.severity === 'high',
+        );
 
         if (options.rejectOnCritical && criticalErrors.length > 0) {
           await carouselStorageService.delete(carousel.id);
@@ -54,7 +56,7 @@ class CarouselCreationPipeline {
               score: report.validation.score,
               errors: criticalErrors,
             },
-            warnings: report.validation.warnings.map(w => w.message),
+            warnings: report.validation.warnings.map((w) => w.message),
             timestamp,
           };
         }
@@ -74,9 +76,10 @@ class CarouselCreationPipeline {
           validation: {
             isValid: report.validation.isValid,
             score: report.validation.score,
-            errors: report.validation.errors.map(e => ({ type: e.type, message: e.message })),
+            errors: report.validation.errors.map((e) => ({ type: e.type, message: e.message })),
           },
-          warnings: report.validation.warnings.length > 0 ? report.validation.warnings.map(w => w.message) : undefined,
+          warnings:
+            report.validation.warnings.length > 0 ? report.validation.warnings.map((w) => w.message) : undefined,
           timestamp,
         };
       }
@@ -112,7 +115,7 @@ class CarouselCreationPipeline {
       rejectOnCritical?: boolean;
       trackCreation?: boolean;
       continueOnError?: boolean;
-    } = { validateBefore: true, rejectOnCritical: true, trackCreation: true, continueOnError: false }
+    } = { validateBefore: true, rejectOnCritical: true, trackCreation: true, continueOnError: false },
   ): Promise<{
     total: number;
     succeeded: number;
@@ -145,8 +148,8 @@ class CarouselCreationPipeline {
       }
     }
 
-    const succeeded = results.filter(r => r.success).length;
-    const failed = results.filter(r => !r.success).length;
+    const succeeded = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success).length;
 
     return {
       total: requests.length,
@@ -163,14 +166,16 @@ class CarouselCreationPipeline {
       validateBefore?: boolean;
       rejectOnCritical?: boolean;
       skipPersistence?: boolean;
-    } = { validateBefore: true, rejectOnCritical: true, skipPersistence: false }
+    } = { validateBefore: true, rejectOnCritical: true, skipPersistence: false },
   ): Promise<PipelineResult> {
     const timestamp = new Date().toISOString();
 
     try {
       if (options.validateBefore) {
         const report = await carouselQualityValidator.generateReport(carousel);
-        const criticalErrors = report.validation.errors.filter(e => e.severity === 'critical' || e.severity === 'high');
+        const criticalErrors = report.validation.errors.filter(
+          (e) => e.severity === 'critical' || e.severity === 'high',
+        );
 
         if (options.rejectOnCritical && criticalErrors.length > 0) {
           return {
@@ -181,7 +186,7 @@ class CarouselCreationPipeline {
               score: report.validation.score,
               errors: criticalErrors,
             },
-            warnings: report.validation.warnings.map(w => w.message),
+            warnings: report.validation.warnings.map((w) => w.message),
             timestamp,
           };
         }

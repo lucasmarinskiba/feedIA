@@ -93,7 +93,7 @@ router.post('/generate-prompts', async (req: Request, res: Response): Promise<vo
       basePrompt,
       seriesId,
       seriesLock.frameCount,
-      narrativeArc
+      narrativeArc,
     );
 
     res.json({
@@ -141,10 +141,14 @@ router.post('/validate', async (req: Request, res: Response): Promise<void> => {
       status: 'validated',
       ...report,
       passed: report.consistencyScore >= 70,
-      statusLabel: report.consistencyScore >= 85 ? 'Excellent' :
-                   report.consistencyScore >= 70 ? 'Good' :
-                   report.consistencyScore >= 50 ? 'Needs work' :
-                   'Critical',
+      statusLabel:
+        report.consistencyScore >= 85
+          ? 'Excellent'
+          : report.consistencyScore >= 70
+            ? 'Good'
+            : report.consistencyScore >= 50
+              ? 'Needs work'
+              : 'Critical',
       metadata: { validatedAt: new Date().toISOString() },
     });
     return;
@@ -167,10 +171,7 @@ router.post('/suggest-improvements', async (req: Request, res: Response): Promis
       return void res.status(400).json({ error: 'seriesId and prompts required' });
     }
 
-    const suggestions = await characterStabilityService.suggestStabilityImprovements(
-      seriesId,
-      prompts
-    );
+    const suggestions = await characterStabilityService.suggestStabilityImprovements(seriesId, prompts);
 
     res.json({
       status: 'analysis_complete',

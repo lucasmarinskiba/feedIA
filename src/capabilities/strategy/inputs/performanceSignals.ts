@@ -2,12 +2,7 @@
  * Performance Signals — extrae patrones ganadores de performanceDB.
  */
 
-import {
-  extractPatterns,
-  getRecentPosts,
-  getAccountSummary,
-  type PostRecord,
-} from '../../analytics/performanceDB.js';
+import { extractPatterns, getRecentPosts, getAccountSummary, type PostRecord } from '../../analytics/performanceDB.js';
 
 export interface PerformanceSignals {
   topTopics: Array<{ topic: string; avgScore: number; count: number }>;
@@ -39,4 +34,7 @@ export const getWinningFormat = (): string | undefined => {
   return patterns.bestFormats[0]?.format;
 };
 
-export const getWinningTopics = (limit = 5): string[] => extractPatterns().topTopics.slice(0, limit).map((t) => t.topic);
+export const getWinningTopics = (limit = 5): string[] =>
+  extractPatterns()
+    .topTopics.slice(0, limit)
+    .map((t) => t.topic);

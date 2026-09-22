@@ -55,9 +55,7 @@ export const getJobMetrics = (): JobMetrics => {
       status: j.status,
       progress: j.progress,
       duration:
-        j.completedAt && j.createdAt
-          ? new Date(j.completedAt).getTime() - new Date(j.createdAt).getTime()
-          : undefined,
+        j.completedAt && j.createdAt ? new Date(j.completedAt).getTime() - new Date(j.createdAt).getTime() : undefined,
     })),
   };
 };

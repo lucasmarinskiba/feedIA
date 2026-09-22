@@ -32,4 +32,5 @@ export const estimateVideoCost = (
   return 0;
 };
 
-export const estimateTTSCost = (chars: number, pricing: PricingTable = DEFAULT_PRICING): number => (chars / 1000) * pricing.elevenlabsTTS.usdPer1kChars;
+export const estimateTTSCost = (chars: number, pricing: PricingTable = DEFAULT_PRICING): number =>
+  (chars / 1000) * pricing.elevenlabsTTS.usdPer1kChars;

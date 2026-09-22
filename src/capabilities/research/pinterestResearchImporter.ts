@@ -16,7 +16,7 @@ export interface PinterestPinAnalysis {
       headlineFonts: string[];
       bodyFonts: string[];
       scriptFonts?: string[];
-      fontSizes?: {headline: number; body: number}[];
+      fontSizes?: { headline: number; body: number }[];
     };
     colors: {
       palette: string[]; // hex codes
@@ -59,13 +59,13 @@ export interface PinterestPinAnalysis {
 export interface PinterestResearchLibrary {
   pins: PinterestPinAnalysis[];
   aggregated: {
-    topFonts: {font: string; frequency: number}[];
-    topColors: {color: string; frequency: number}[];
-    topStrategies: {strategy: string; frequency: number}[];
-    topApps: {app: string; frequency: number}[];
+    topFonts: { font: string; frequency: number }[];
+    topColors: { color: string; frequency: number }[];
+    topStrategies: { strategy: string; frequency: number }[];
+    topApps: { app: string; frequency: number }[];
     averageEngagement: number;
     recommendedPalettes: string[][];
-    recommendedFonts: {headline: string; body: string}[];
+    recommendedFonts: { headline: string; body: string }[];
   };
 }
 
@@ -99,7 +99,7 @@ export const buildResearchLibrary = (pins: PinterestPinAnalysis[]): PinterestRes
   const topFonts = Array.from(fontFreq.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10)
-    .map(([font, frequency]) => ({font, frequency}));
+    .map(([font, frequency]) => ({ font, frequency }));
 
   // Aggregate colors
   const colorFreq = new Map<string, number>();
@@ -112,7 +112,7 @@ export const buildResearchLibrary = (pins: PinterestPinAnalysis[]): PinterestRes
   const topColors = Array.from(colorFreq.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10)
-    .map(([color, frequency]) => ({color, frequency}));
+    .map(([color, frequency]) => ({ color, frequency }));
 
   // Aggregate strategies
   const strategyFreq = new Map<string, number>();
@@ -125,7 +125,7 @@ export const buildResearchLibrary = (pins: PinterestPinAnalysis[]): PinterestRes
   const topStrategies = Array.from(strategyFreq.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10)
-    .map(([strategy, frequency]) => ({strategy, frequency}));
+    .map(([strategy, frequency]) => ({ strategy, frequency }));
 
   // Aggregate apps
   const appFreq = new Map<string, number>();
@@ -138,7 +138,7 @@ export const buildResearchLibrary = (pins: PinterestPinAnalysis[]): PinterestRes
   const topApps = Array.from(appFreq.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10)
-    .map(([app, frequency]) => ({app, frequency}));
+    .map(([app, frequency]) => ({ app, frequency }));
 
   // Recommended palettes (top 3 color combos)
   const recommendedPalettes = pins
@@ -149,7 +149,7 @@ export const buildResearchLibrary = (pins: PinterestPinAnalysis[]): PinterestRes
   // Recommended fonts (most common combo)
   const headlineFont = topFonts[0]?.font || 'Poppins';
   const bodyFont = topFonts[1]?.font || 'Inter';
-  const recommendedFonts = [{headline: headlineFont, body: bodyFont}];
+  const recommendedFonts = [{ headline: headlineFont, body: bodyFont }];
 
   // Average engagement
   const averageEngagement =
@@ -227,7 +227,9 @@ export const generatePinterestResearchTemplate = (): string => `
 
 // ── Apply learnings to FeedIA brain ──────────────────────────────────
 
-export const applyResearchToBrain = (library: PinterestResearchLibrary): {rules: string[]; recommendations: string[]} => {
+export const applyResearchToBrain = (
+  library: PinterestResearchLibrary,
+): { rules: string[]; recommendations: string[] } => {
   log.info(`[Brain Update] Applying Pinterest research (${library.pins.length} pins)`);
 
   const rules: string[] = [];
@@ -258,9 +260,7 @@ export const applyResearchToBrain = (library: PinterestResearchLibrary): {rules:
   }
 
   // Average engagement
-  rules.push(
-    `Target engagement: ${library.aggregated.averageEngagement}+ (average from research)`,
-  );
+  rules.push(`Target engagement: ${library.aggregated.averageEngagement}+ (average from research)`);
 
-  return {rules, recommendations};
+  return { rules, recommendations };
 };

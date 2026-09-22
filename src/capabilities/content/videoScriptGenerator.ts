@@ -29,10 +29,7 @@ export interface VideoScript {
   hashtags: string[];
 }
 
-export const generateVideoScript = async (
-  brief: VideoScriptBrief,
-  _brand?: BrandProfile,
-): Promise<VideoScript> => {
+export const generateVideoScript = async (brief: VideoScriptBrief, _brand?: BrandProfile): Promise<VideoScript> => {
   log.info(`[Video Script] Generating ${brief.duration}s script: ${brief.topic}`);
 
   const hookText = generateHook(brief.topic, brief.emotionalHook);
@@ -61,11 +58,7 @@ const generateHook = (topic: string, emotion: string): string => {
   return hooks[emotion] ?? hooks['curiosity']!;
 };
 
-const generateScenes = (
-  topic: string,
-  duration: number,
-  emotion: string,
-): VideoScript['scenes'] => {
+const generateScenes = (topic: string, duration: number, emotion: string): VideoScript['scenes'] => {
   const scenes: VideoScript['scenes'] = [];
   const sceneCount = Math.ceil(duration / 5); // ~5s per scene
 
@@ -117,10 +110,10 @@ const generateCTA = (topic: string): string => {
 };
 
 const generateHashtags = (topic: string): string[] => [
-    `#${topic.replace(/\s+/g, '')}`,
-    '#ReelsOfTheDay',
-    '#VoiceTok',
-    '#FYP',
-    '#ForYou',
-    '#MustWatch',
-  ];
+  `#${topic.replace(/\s+/g, '')}`,
+  '#ReelsOfTheDay',
+  '#VoiceTok',
+  '#FYP',
+  '#ForYou',
+  '#MustWatch',
+];

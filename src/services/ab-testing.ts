@@ -46,12 +46,7 @@ const completedTests: Map<string, ABTest> = new Map();
 const MIN_SAMPLE_SIZE = 500; // Min conversions per variant
 const CONFIDENCE_THRESHOLD = 0.95; // 95% confidence
 
-export const createTest = (
-  name: string,
-  hypothesis: string,
-  controlLabel: string,
-  variantLabels: string[]
-): ABTest => {
+export const createTest = (name: string, hypothesis: string, controlLabel: string, variantLabels: string[]): ABTest => {
   const testId = `test_${Date.now()}`;
   const traffic = 100 / (variantLabels.length + 1);
 
@@ -102,7 +97,7 @@ export const recordTestResults = (
   variantId: string,
   engagement: number,
   conversions: number,
-  sampleSize: number
+  sampleSize: number,
 ): void => {
   const test = runningTests.get(testId);
   if (!test) {
@@ -136,7 +131,8 @@ export const analyzeTest = (testId: string): TestResult => {
   }
 
   // Check if sufficient sample size
-  const minSampleReached = test.control.sampleSize >= MIN_SAMPLE_SIZE && test.variants.every((v) => v.sampleSize >= MIN_SAMPLE_SIZE);
+  const minSampleReached =
+    test.control.sampleSize >= MIN_SAMPLE_SIZE && test.variants.every((v) => v.sampleSize >= MIN_SAMPLE_SIZE);
 
   // Calculate statistical significance (simplified Chi-square test)
   let pValue = 1.0; // Default: no significance
@@ -163,7 +159,7 @@ export const analyzeTest = (testId: string): TestResult => {
 
   // Effect size (Cohen's h for proportions)
   const effectSize = Math.abs(
-    2 * Math.asin(Math.sqrt(test.control.conversionRate)) - 2 * Math.asin(Math.sqrt(maxConversionRate))
+    2 * Math.asin(Math.sqrt(test.control.conversionRate)) - 2 * Math.asin(Math.sqrt(maxConversionRate)),
   );
 
   const confidenceLevel = Math.min(CONFIDENCE_THRESHOLD, Math.max(0, 1 - pValue));
@@ -201,7 +197,9 @@ export const getActiveTests = (): ABTest[] => Array.from(runningTests.values());
 
 export const getCompletedTests = (): ABTest[] => Array.from(completedTests.values());
 
-export const getTestInsights = (testId: string): { winnerReason: string; rolloutStrategy: string; nextTest: string } => {
+export const getTestInsights = (
+  testId: string,
+): { winnerReason: string; rolloutStrategy: string; nextTest: string } => {
   const test = completedTests.get(testId) || runningTests.get(testId);
   if (!test || !test.winner) {
     return {
@@ -225,8 +223,9 @@ export const getTestInsights = (testId: string): { winnerReason: string; rollout
 };
 
 export const multivariatePrioritization = (
-  testIds: string[]
-): Array<{ testId: string; priority: number; expectedImpact: number }> => testIds.map((id) => {
+  testIds: string[],
+): Array<{ testId: string; priority: number; expectedImpact: number }> =>
+  testIds.map((id) => {
     const test = completedTests.get(id) || runningTests.get(id);
     if (!test || !test.winner) {
       return { testId: id, priority: 0, expectedImpact: 0 };

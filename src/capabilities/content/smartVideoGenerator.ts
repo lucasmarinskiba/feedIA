@@ -6,25 +6,14 @@
  */
 
 import { log } from '../../agent/logger.js';
-import {
-  selectColorPalette,
-  selectNarrativeStructure,
-  type PinterestPattern,
-} from './pinterestPatternEncoder.js';
+import { selectColorPalette, selectNarrativeStructure, type PinterestPattern } from './pinterestPatternEncoder.js';
 
 export interface VideoBrief {
   topic: string;
   emotion: 'fear' | 'hope' | 'joy' | 'anger' | 'curiosity';
   platform: 'tiktok' | 'reel' | 'youtube-short' | 'instagram-story';
   duration?: 15 | 30 | 45 | 60; // seconds, auto-selected if not specified
-  contentType?:
-    | 'how-to'
-    | 'story'
-    | 'motivation'
-    | 'entertainment'
-    | 'educational'
-    | 'review'
-    | 'trend';
+  contentType?: 'how-to' | 'story' | 'motivation' | 'entertainment' | 'educational' | 'review' | 'trend';
   hasAudio?: boolean; // TTS or voiceover
   subtitlesRequired?: boolean;
 }
@@ -94,9 +83,7 @@ const decideOptimalDuration = (platform: string, contentType?: string): number =
 // ── Generate Video ─────────────────────────────────────────────────────
 
 export const generateSmartVideo = async (brief: VideoBrief): Promise<GeneratedVideo> => {
-  log.info(
-    `[Smart Video] Generating ${brief.duration || 'optimal'}s ${brief.platform} video: "${brief.topic}"`,
-  );
+  log.info(`[Smart Video] Generating ${brief.duration || 'optimal'}s ${brief.platform} video: "${brief.topic}"`);
 
   const videoId = `video_${Date.now()}`;
   const duration = brief.duration || decideOptimalDuration(brief.platform, brief.contentType);
@@ -173,31 +160,15 @@ interface HookData {
 
 const generateHook = (topic: string, emotion: string, palette: PinterestPattern): HookData => {
   const hooks: Record<string, string[]> = {
-    fear: [
-      `Wait... you're doing this wrong`,
-      `Stop. Don't waste money on...`,
-      `This one mistake costs you...`,
-    ],
+    fear: [`Wait... you're doing this wrong`, `Stop. Don't waste money on...`, `This one mistake costs you...`],
     hope: [
       `I went from... to... and here's how`,
       `You won't believe what I just discovered`,
       `This changed everything for me`,
     ],
-    joy: [
-      `POV: You just realized...`,
-      `This is the funniest thing ever`,
-      `Wait for the plot twist`,
-    ],
-    curiosity: [
-      `Nobody's talking about this`,
-      `This is illegal in 3 countries`,
-      `This is crazy, watch till the end`,
-    ],
-    anger: [
-      `They've been LYING about this`,
-      `Big companies don't want you to know`,
-      `This SECRET they hide from you`,
-    ],
+    joy: [`POV: You just realized...`, `This is the funniest thing ever`, `Wait for the plot twist`],
+    curiosity: [`Nobody's talking about this`, `This is illegal in 3 countries`, `This is crazy, watch till the end`],
+    anger: [`They've been LYING about this`, `Big companies don't want you to know`, `This SECRET they hide from you`],
   };
 
   const hookText = (hooks[emotion] ?? hooks.curiosity ?? [])[Math.floor(Math.random() * 3)] ?? '';
@@ -297,7 +268,8 @@ const generateScenes = (
 
 // ── Generate Voiceover Script ──────────────────────────────────────────
 
-const generateVoiceoverScript = (scenes: VideoScene[]): string => scenes.map((scene, i) => `[${scene.second}s - ${scene.duration}s] ${scene.voiceover}`).join('\n');
+const generateVoiceoverScript = (scenes: VideoScene[]): string =>
+  scenes.map((scene, i) => `[${scene.second}s - ${scene.duration}s] ${scene.voiceover}`).join('\n');
 
 // ── Generate CTA ───────────────────────────────────────────────────────
 
@@ -391,11 +363,7 @@ const scoreVideoCoherence = (scenes: VideoScene[], palette: PinterestPattern): n
 
 // ── Score Video Engagement ─────────────────────────────────────────────
 
-const scoreVideoEngagement = (
-  hook: HookData,
-  scenes: VideoScene[],
-  cta: { text: string; action: string },
-): number => {
+const scoreVideoEngagement = (hook: HookData, scenes: VideoScene[], cta: { text: string; action: string }): number => {
   let score = 75;
 
   // Strong hook
@@ -404,9 +372,7 @@ const scoreVideoEngagement = (
   }
 
   // Retention triggers per scene
-  const retentionTriggers = scenes.filter((s) =>
-    s.retentionTrigger.toLowerCase().includes('must'),
-  ).length;
+  const retentionTriggers = scenes.filter((s) => s.retentionTrigger.toLowerCase().includes('must')).length;
   score += retentionTriggers * 3;
 
   // Clear CTA

@@ -8,14 +8,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import { metricsCollector } from './agency-metrics.js';
 
 // Sanitize user input for safe prompt inclusion
-const sanitizeInput = (input: string): string => 
-   input
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n')
-    .substring(0, 500) // Cap at 500 chars
-;
-
+const sanitizeInput = (input: string): string =>
+  input.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').substring(0, 500); // Cap at 500 chars
 const initializeClient = () => {
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
@@ -69,7 +63,9 @@ export interface CampaignOutput {
  * Strategy Director: Apply Godin + Miller frameworks
  * Phase 6: Real Claude API with token tracking
  */
-const strategyDirector = async (input: CampaignInput): Promise<{ strategy: Strategy; inputTokens: number; outputTokens: number }> => {
+const strategyDirector = async (
+  input: CampaignInput,
+): Promise<{ strategy: Strategy; inputTokens: number; outputTokens: number }> => {
   if (!client) throw new Error('ANTHROPIC_API_KEY not set. Fallback to mock.');
 
   // Sanitize all user inputs to prevent prompt injection
@@ -121,7 +117,9 @@ Return ONLY valid JSON (no markdown, no explanation):
  * Copywriter: Generate CTAs + emotional hooks
  * Phase 6: Real Claude API with token tracking
  */
-const copywriter = async (strategy: Strategy): Promise<{ copy: unknown; inputTokens: number; outputTokens: number }> => {
+const copywriter = async (
+  strategy: Strategy,
+): Promise<{ copy: unknown; inputTokens: number; outputTokens: number }> => {
   if (!client) throw new Error('ANTHROPIC_API_KEY not set. Fallback to mock.');
 
   const prompt = `You are a Schwartz + Cialdini master copywriter. Generate 5 headlines matching awareness levels.
@@ -164,7 +162,9 @@ Return ONLY valid JSON (no markdown):
  * Community Manager: Engagement loops + crisis protocol
  * Phase 6: Real Claude API with token tracking
  */
-const communityManager = async (strategy: Strategy): Promise<{ engagement: unknown; inputTokens: number; outputTokens: number }> => {
+const communityManager = async (
+  strategy: Strategy,
+): Promise<{ engagement: unknown; inputTokens: number; outputTokens: number }> => {
   if (!client) throw new Error('ANTHROPIC_API_KEY not set. Fallback to mock.');
 
   const prompt = `You are a CM expert (7 consumer values, 5 engagement keys, SPACES outcomes).
@@ -207,10 +207,10 @@ Return ONLY valid JSON:
  * QA Validator: Brand compliance + WCAG
  */
 const qaValidator = async (campaign: unknown): Promise<{ approved: boolean; score: number; issues: unknown[] }> => ({
-    approved: true,
-    score: 0.92,
-    issues: [],
-  });
+  approved: true,
+  score: 0.92,
+  issues: [],
+});
 
 /**
  * Fallback mock strategy (if LLM fails)
@@ -275,7 +275,9 @@ export const agencyOrchestrator = async (input: CampaignInput): Promise<Campaign
     const estimatedCost = (totalTokens / 1000000) * 3;
     const latencyMs = Date.now() - startTime;
 
-    console.log(`[TIER 8 Phase 6] Campaign complete: ${totalTokens} tokens, $${estimatedCost.toFixed(4)}, ${latencyMs}ms (REAL LLM)`);
+    console.log(
+      `[TIER 8 Phase 6] Campaign complete: ${totalTokens} tokens, $${estimatedCost.toFixed(4)}, ${latencyMs}ms (REAL LLM)`,
+    );
 
     // Record metrics
     metricsCollector.recordCampaign(latencyMs, totalTokens, estimatedCost, 'success');

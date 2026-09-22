@@ -38,10 +38,7 @@ const mimeFromExt = (path: string): string => {
  * parse the model's JSON response. Returns null on any failure so callers
  * can fall back to placeholder defaults.
  */
-async function callGeminiVisionJSON<T>(
-  imagePathOrBase64: string,
-  instructionPrompt: string
-): Promise<T | null> {
+async function callGeminiVisionJSON<T>(imagePathOrBase64: string, instructionPrompt: string): Promise<T | null> {
   if (!GEMINI_API_KEY) {
     log.warn('[GeminiVision] GEMINI_API_KEY not set — skipping real vision analysis, caller will use placeholder');
     return null;
@@ -70,15 +67,12 @@ async function callGeminiVisionJSON<T>(
         body: JSON.stringify({
           contents: [
             {
-              parts: [
-                { text: instructionPrompt },
-                { inline_data: { mime_type: mimeType, data: base64Data } },
-              ],
+              parts: [{ text: instructionPrompt }, { inline_data: { mime_type: mimeType, data: base64Data } }],
             },
           ],
           generationConfig: { responseMimeType: 'application/json' },
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -258,7 +252,7 @@ export async function generateRealTextEmbedding(text: string): Promise<number[] 
           model: `models/${EMBEDDING_MODEL}`,
           content: { parts: [{ text }] },
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -291,7 +285,7 @@ export async function generateRealTextEmbedding(text: string): Promise<number[] 
  * available. Documented honestly so this isn't mistaken for CLIP-equivalent.
  */
 export async function generateRealImageEmbeddingViaCaption(
-  imagePathOrBase64: string
+  imagePathOrBase64: string,
 ): Promise<{ embedding: number[]; caption: string } | null> {
   if (!GEMINI_API_KEY) return null;
 

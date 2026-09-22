@@ -159,7 +159,7 @@ class ConsistencyLockManager {
     frameCount: number,
     characterLock?: CharacterLock,
     productLock?: ProductLock,
-    environmentLock?: EnvironmentLock
+    environmentLock?: EnvironmentLock,
   ): SeriesLock {
     const seriesId = uuidv4();
 
@@ -248,10 +248,7 @@ class ConsistencyLockManager {
 
     for (let i = 0; i < frameCount; i++) {
       const frameIndicator = `[Frame ${i + 1}/${frameCount}]`;
-      const lockedPrompt = this.injectLockInstructions(
-        `${frameIndicator}\n${basePrompt}`,
-        seriesLock
-      );
+      const lockedPrompt = this.injectLockInstructions(`${frameIndicator}\n${basePrompt}`, seriesLock);
       lockedPrompts.push(lockedPrompt);
     }
 
@@ -298,8 +295,8 @@ class ConsistencyLockManager {
 
     return match[1]!
       .split(/[,;]/)
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
   }
 }
 

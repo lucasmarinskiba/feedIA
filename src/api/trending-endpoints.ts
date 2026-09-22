@@ -19,7 +19,7 @@ export const detectTrends = async (req: Request, res: Response): Promise<void> =
        WHERE user_id = $1 AND timestamp > NOW() - INTERVAL '${days} days'
        GROUP BY campaign_id, DATE(timestamp)
        ORDER BY current_events DESC LIMIT 10`,
-      [userId]
+      [userId],
     );
 
     const trends = trendsResult.rows.map((row: unknown) => {
@@ -27,7 +27,9 @@ export const detectTrends = async (req: Request, res: Response): Promise<void> =
       return {
         campaignId: typedRow.campaign_id,
         events: typedRow.current_events,
-        growth: typedRow.prev_events ? ((typedRow.current_events - typedRow.prev_events) / typedRow.prev_events * 100).toFixed(1) + '%' : 'new',
+        growth: typedRow.prev_events
+          ? (((typedRow.current_events - typedRow.prev_events) / typedRow.prev_events) * 100).toFixed(1) + '%'
+          : 'new',
       };
     });
 
@@ -48,12 +50,19 @@ export const getTrendingAudio = async (req: Request, res: Response): Promise<voi
        WHERE platform = $1
        ORDER BY virality_score DESC, uses DESC
        LIMIT $2`,
-      [platform, parseInt(limit, 10)]
+      [platform, parseInt(limit, 10)],
     );
 
     res.json({
       trending: result.rows.map((row: unknown) => {
-        const typedRow = row as { id: string; audio_name: string; artist: string; virality_score: number; uses: number; trend_status: string };
+        const typedRow = row as {
+          id: string;
+          audio_name: string;
+          artist: string;
+          virality_score: number;
+          uses: number;
+          trend_status: string;
+        };
         return {
           id: typedRow.id,
           name: typedRow.audio_name,

@@ -84,7 +84,7 @@ export const configureChannel = (config: ChannelConfig): void => {
 export const distributeContent = (
   contentId: string,
   contentType: 'carousel' | 'reel' | 'story' | 'static',
-  topic: string
+  topic: string,
 ): ContentDistribution => {
   const activeChannels = Array.from(channels.values()).filter((ch) => ch.enabled);
 
@@ -103,7 +103,7 @@ export const distributeContent = (
 
       // Expected reach
       const expectedReach = Math.round(
-        (channel.audienceSize * baseEngagement * contentFit) / (activeChannels.length || 1)
+        (channel.audienceSize * baseEngagement * contentFit) / (activeChannels.length || 1),
       );
 
       // Audience overlap with first channel (Instagram)
@@ -174,7 +174,8 @@ export const orchestrateSchedule = (period: 'week' | 'month'): OrchestratedSched
   // Detect content gaps
   const contentGaps: string[] = [];
   if (activeChannels.length < 3) contentGaps.push('Consider enabling more channels for broader reach');
-  if (activeChannels.some((ch) => ch.postFrequency === 'weekly')) contentGaps.push('Some channels inactive—increase frequency');
+  if (activeChannels.some((ch) => ch.postFrequency === 'weekly'))
+    contentGaps.push('Some channels inactive—increase frequency');
 
   // Channel balancing (% of content per channel)
   const channelBalancing: Record<string, number> = {};
@@ -187,7 +188,9 @@ export const orchestrateSchedule = (period: 'week' | 'month'): OrchestratedSched
   const recommendations: string[] = [];
   const topChannel = activeChannels.sort((a, b) => b.averageEngagement - a.averageEngagement)[0];
   if (topChannel) {
-    recommendations.push(`Prioritize ${topChannel.channel}—highest engagement (${(topChannel.averageEngagement * 100).toFixed(0)}%)`);
+    recommendations.push(
+      `Prioritize ${topChannel.channel}—highest engagement (${(topChannel.averageEngagement * 100).toFixed(0)}%)`,
+    );
   }
 
   recommendations.push('Stagger posts 4-6 hours apart to maximize reach');
@@ -234,7 +237,8 @@ export const getChannelMetrics = (): {
   const activeChannels = allChannels.filter((ch) => ch.enabled);
 
   const totalAudience = activeChannels.reduce((sum, ch) => sum + ch.audienceSize, 0);
-  const avgEngagementRate = activeChannels.reduce((sum, ch) => sum + ch.averageEngagement, 0) / Math.max(activeChannels.length, 1);
+  const avgEngagementRate =
+    activeChannels.reduce((sum, ch) => sum + ch.averageEngagement, 0) / Math.max(activeChannels.length, 1);
 
   const mostEffective = activeChannels.sort((a, b) => b.averageEngagement - a.averageEngagement)[0];
 
@@ -305,7 +309,7 @@ const generateScheduleTime = (channel: string): string => {
 
 const generateCrossChannelStrategy = (
   distributions: Array<{ channel: string; priority: number }>,
-  topic: string
+  topic: string,
 ): string => {
   const topChannel = distributions[0]?.channel ?? 'instagram';
   const strategy = `Publish first to ${topChannel} (highest priority). Monitor engagement for 2 hours, then amplify to secondary channels. ${topic}-focused content: tailor captions for each platform native audience.`;

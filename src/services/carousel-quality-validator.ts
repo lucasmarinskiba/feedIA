@@ -33,14 +33,19 @@ class CarouselQualityValidator {
     this.validateContent(carousel, errors, warnings, suggestions);
     this.validateBranding(carousel, errors, warnings, suggestions);
 
-    const criticalErrors = errors.filter(e => e.severity === 'critical');
+    const criticalErrors = errors.filter((e) => e.severity === 'critical');
     const isValid = criticalErrors.length === 0;
     const score = this.calculateScore(carousel, errors, warnings);
 
     return { isValid, score, errors, warnings, suggestions };
   }
 
-  private validateMetadata(carousel: Carousel, errors: ValidationError[], warnings: ValidationWarning[], suggestions: string[]): void {
+  private validateMetadata(
+    carousel: Carousel,
+    errors: ValidationError[],
+    warnings: ValidationWarning[],
+    suggestions: string[],
+  ): void {
     if (!carousel.title || carousel.title.trim().length === 0) {
       errors.push({
         type: 'MISSING_TITLE',
@@ -83,7 +88,12 @@ class CarouselQualityValidator {
     }
   }
 
-  private validateSlides(carousel: Carousel, errors: ValidationError[], warnings: ValidationWarning[], suggestions: string[]): void {
+  private validateSlides(
+    carousel: Carousel,
+    errors: ValidationError[],
+    warnings: ValidationWarning[],
+    suggestions: string[],
+  ): void {
     if (!carousel.slides || carousel.slides.length === 0) {
       errors.push({
         type: 'NO_SLIDES',
@@ -115,7 +125,7 @@ class CarouselQualityValidator {
     platform: string,
     errors: ValidationError[],
     warnings: ValidationWarning[],
-    suggestions: string[]
+    suggestions: string[],
   ): void {
     const field = `slides[${idx}]`;
 
@@ -186,8 +196,13 @@ class CarouselQualityValidator {
     }
   }
 
-  private validateContent(carousel: Carousel, errors: ValidationError[], warnings: ValidationWarning[], suggestions: string[]): void {
-    const allText = carousel.slides.map(s => (s.headline + ' ' + s.body + ' ' + s.cta).toLowerCase()).join(' ');
+  private validateContent(
+    carousel: Carousel,
+    errors: ValidationError[],
+    warnings: ValidationWarning[],
+    suggestions: string[],
+  ): void {
+    const allText = carousel.slides.map((s) => (s.headline + ' ' + s.body + ' ' + s.cta).toLowerCase()).join(' ');
 
     if (allText.split(' ').length < 10) {
       warnings.push({
@@ -228,7 +243,12 @@ class CarouselQualityValidator {
     }
   }
 
-  private validateBranding(carousel: Carousel, errors: ValidationError[], warnings: ValidationWarning[], suggestions: string[]): void {
+  private validateBranding(
+    carousel: Carousel,
+    errors: ValidationError[],
+    warnings: ValidationWarning[],
+    suggestions: string[],
+  ): void {
     if (carousel.metadata?.platform === 'instagram') {
       if (carousel.slides.length < 3) {
         suggestions.push('Instagram carousels should have at least 3 slides for better engagement.');
@@ -261,12 +281,12 @@ class CarouselQualityValidator {
   private calculateScore(carousel: Carousel, errors: ValidationError[], warnings: ValidationWarning[]): number {
     let score = 100;
 
-    errors.forEach(err => {
+    errors.forEach((err) => {
       if (err.severity === 'critical') score -= 25;
       else if (err.severity === 'high') score -= 15;
     });
 
-    warnings.forEach(warn => {
+    warnings.forEach((warn) => {
       if (warn.severity === 'medium') score -= 5;
       else if (warn.severity === 'low') score -= 2;
     });

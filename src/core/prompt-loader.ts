@@ -26,7 +26,8 @@ export const loadPromptIndex = (baseDir: string): PromptIndex => {
   };
 };
 
-export const getPromptByName = (index: PromptIndex, name: string): Skill | null => index.allPrompts.find((p) => p.name === name) || null;
+export const getPromptByName = (index: PromptIndex, name: string): Skill | null =>
+  index.allPrompts.find((p) => p.name === name) || null;
 
 export const searchPrompts = (index: PromptIndex, query: string): Skill[] => {
   const lower = query.toLowerCase();

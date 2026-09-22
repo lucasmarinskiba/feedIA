@@ -50,7 +50,9 @@ export interface SocialPublishResult {
   errors: string[];
 }
 
-const toContentType = (format: SocialPublishRequest['format']): 'reel' | 'carrusel' | 'post-imagen' | 'historia' | 'all' => {
+const toContentType = (
+  format: SocialPublishRequest['format'],
+): 'reel' | 'carrusel' | 'post-imagen' | 'historia' | 'all' => {
   if (format === 'post') return 'post-imagen';
   if (format === 'story') return 'historia';
   return format;
@@ -109,11 +111,19 @@ const publishSingle = async (
       upload: {
         ok: false,
         uploadId: '',
-        perPlatformResults: platforms.map((p) => ({ platform: p as 'instagram' | 'tiktok', status: 'failed' as const, error: issues.join('; ') })),
+        perPlatformResults: platforms.map((p) => ({
+          platform: p as 'instagram' | 'tiktok',
+          status: 'failed' as const,
+          error: issues.join('; '),
+        })),
         errors: issues,
         costEstimateUsd: 0,
       },
-      perPlatform: platforms.map((p) => ({ platform: p as 'instagram' | 'tiktok', status: 'failed', error: issues.join('; ') })),
+      perPlatform: platforms.map((p) => ({
+        platform: p as 'instagram' | 'tiktok',
+        status: 'failed',
+        error: issues.join('; '),
+      })),
     };
   }
 
@@ -172,7 +182,11 @@ export const publishToSocialPlatforms = async (req: SocialPublishRequest): Promi
       result.errors.push(`TikTok no soporta formato ${req.format}`);
       result.ok = false;
       result.perPlatform.push(
-        ...unsupported.map((p) => ({ platform: p as 'instagram' | 'tiktok', status: 'failed' as const, error: `Formato ${req.format} no soportado` })),
+        ...unsupported.map((p) => ({
+          platform: p as 'instagram' | 'tiktok',
+          status: 'failed' as const,
+          error: `Formato ${req.format} no soportado`,
+        })),
       );
     }
     const igPlatforms = platforms.filter((p) => p === 'instagram') as SocialPlatform[];

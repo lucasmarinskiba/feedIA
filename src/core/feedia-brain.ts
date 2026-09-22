@@ -95,14 +95,16 @@ class FeedIABrain {
   private extractTechniques(content: string): string[] {
     const regex = /\*\*(\d+\+? [\w\s/+]+)\*\*/g;
     const matches = content.match(regex) || [];
-    return matches.map(m => m.replace(/\*\*/g, ''));
+    return matches.map((m) => m.replace(/\*\*/g, ''));
   }
 
   private extractPrompts(content: string, section: string): string[] {
     const sectionRegex = new RegExp(`## ${section}.*?(?=##|$)`, 's');
     const sectionContent = content.match(sectionRegex)?.[0] || '';
     const prompts = sectionContent.split('\n###').length - 1;
-    return Array(prompts).fill(section).map((s, i) => `${s}_${i + 1}`);
+    return Array(prompts)
+      .fill(section)
+      .map((s, i) => `${s}_${i + 1}`);
   }
 
   private extractIdeas(content: string): string[] {
@@ -115,7 +117,7 @@ class FeedIABrain {
    */
   getRandomPrompt(domain?: string): string {
     const selectedDomains = domain
-      ? this.config.domains.filter(d => d.domain.toLowerCase().includes(domain.toLowerCase()))
+      ? this.config.domains.filter((d) => d.domain.toLowerCase().includes(domain.toLowerCase()))
       : this.config.domains;
 
     if (selectedDomains.length === 0) return '';
@@ -130,13 +132,13 @@ class FeedIABrain {
    */
   getCompositionIdeas(domain?: string, count: number = 5): string[] {
     const selectedDomains = domain
-      ? this.config.domains.filter(d => d.domain.toLowerCase().includes(domain.toLowerCase()))
+      ? this.config.domains.filter((d) => d.domain.toLowerCase().includes(domain.toLowerCase()))
       : this.config.domains;
 
     if (selectedDomains.length === 0) return [];
 
     const allIdeas: string[] = [];
-    selectedDomains.forEach(d => allIdeas.push(...d.compositionalIdeas));
+    selectedDomains.forEach((d) => allIdeas.push(...d.compositionalIdeas));
 
     const shuffled = allIdeas.sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count);
@@ -146,14 +148,14 @@ class FeedIABrain {
    * Get all domains for browsing/discovery
    */
   getDomains(): string[] {
-    return this.config.domains.map(d => d.domain);
+    return this.config.domains.map((d) => d.domain);
   }
 
   /**
    * Get prompts by batch ID
    */
   getPromptsByBatch(batchId: string): string[] {
-    const batch = this.config.domains.find(d => d.domain.toLowerCase().includes(batchId.toLowerCase()));
+    const batch = this.config.domains.find((d) => d.domain.toLowerCase().includes(batchId.toLowerCase()));
     if (!batch) return [];
     return [...batch.basePrompts, ...batch.variations];
   }

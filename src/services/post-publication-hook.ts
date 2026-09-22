@@ -152,7 +152,7 @@ export const processPostComments = async (
     text: string;
     timestamp: number;
   }>,
-   
+
   _brand?: unknown,
 ): Promise<{ responded: number; patterns: unknown }> => {
   try {
@@ -160,7 +160,7 @@ export const processPostComments = async (
     realtimeEngagementLoopService.recordComments(postId, comments);
 
     // Generate responses (in real use, these would be posted via IG API)
-     
+
     const responses: unknown[] = [];
     for (const comment of comments.slice(0, 5)) {
       // Top 5 by priority

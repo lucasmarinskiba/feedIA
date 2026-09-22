@@ -45,7 +45,9 @@ export interface PositioningStatement {
 /**
  * Analyze competitors in market
  */
-export const analyzeCompetitors = (competitors: CompetitorProfile[]): {
+export const analyzeCompetitors = (
+  competitors: CompetitorProfile[],
+): {
   averagePrice: number;
   priceRange: [number, number];
   topThreats: CompetitorProfile[];
@@ -56,7 +58,7 @@ export const analyzeCompetitors = (competitors: CompetitorProfile[]): {
 
   // Threats: high pricing + many features
   const threats = competitors
-    .sort((a, b) => (b.features.length + b.pricing / 100) - (a.features.length + a.pricing / 100))
+    .sort((a, b) => b.features.length + b.pricing / 100 - (a.features.length + a.pricing / 100))
     .slice(0, 3);
 
   // Gap opportunities: features claimed but missing in top 3
@@ -75,7 +77,10 @@ export const analyzeCompetitors = (competitors: CompetitorProfile[]): {
 /**
  * Recommend pricing strategy
  */
-export const recommendPricing = (context: StrategicContext, competitors: CompetitorProfile[]): PricingRecommendation => {
+export const recommendPricing = (
+  context: StrategicContext,
+  competitors: CompetitorProfile[],
+): PricingRecommendation => {
   const analysis = analyzeCompetitors(competitors);
 
   // Pricing strategy logic

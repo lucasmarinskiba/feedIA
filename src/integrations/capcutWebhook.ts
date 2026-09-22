@@ -17,7 +17,12 @@ export interface CapCutEnhancementInput {
   videoUrl: string;
   caption?: string;
   captions?: string[];
-  recipe?: 'capcut-auto-captions' | 'capcut-beat-sync' | 'capcut-add-b-roll' | 'capcut-color-grading' | 'capcut-export-1080';
+  recipe?:
+    | 'capcut-auto-captions'
+    | 'capcut-beat-sync'
+    | 'capcut-add-b-roll'
+    | 'capcut-color-grading'
+    | 'capcut-export-1080';
   webhookReturnUrl?: string;
 }
 

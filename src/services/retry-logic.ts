@@ -110,10 +110,7 @@ class CircuitBreaker {
  *
  * Returns result on success or throws last error after max retries
  */
-export const retryWithBackoff = async <T>(
-  fn: () => Promise<T>,
-  options: RetryOptions = {},
-): Promise<T> => {
+export const retryWithBackoff = async <T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> => {
   const {
     maxRetries = 3,
     initialDelayMs = 100,

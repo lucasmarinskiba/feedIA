@@ -52,7 +52,10 @@ export const gatherTrendSignals = async (brandName: string, dryRun = true): Prom
       trendingTopics,
       trendingHashtags: [], // se puede derivar con LLM o hashtagify en el futuro
       trendingAudio: [],
-      relevanceToBrand: trendingTopics.length > 0 ? Math.round(trendingTopics.reduce((s, t) => s + t.score, 0) / trendingTopics.length) : 50,
+      relevanceToBrand:
+        trendingTopics.length > 0
+          ? Math.round(trendingTopics.reduce((s, t) => s + t.score, 0) / trendingTopics.length)
+          : 50,
     };
   } catch (err) {
     log.warn('[TrendSignals] Error obteniendo tendencias:', err);

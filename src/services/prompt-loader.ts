@@ -88,7 +88,21 @@ export const promptLoader = {
       }
 
       // Generate sample prompts for this batch (expanded set for variety)
-      const basePrompts = ['A001', 'A025', 'A050', 'A075', 'A100', 'B001', 'B025', 'B050', 'B075', 'B100', 'C001', 'C050', 'C100'];
+      const basePrompts = [
+        'A001',
+        'A025',
+        'A050',
+        'A075',
+        'A100',
+        'B001',
+        'B025',
+        'B050',
+        'B075',
+        'B100',
+        'C001',
+        'C050',
+        'C100',
+      ];
       for (const baseId of basePrompts) {
         results.push({
           id: `${batchNum}-${baseId}`,

@@ -39,10 +39,7 @@ export interface CuCanvaPlan {
 
 // ── Interpret user instruction → design brief ────────────────────────────
 
-const interpretInstruction = (
-  instruction: string,
-  context: CuCanvaContext,
-): DesignBrief => {
+const interpretInstruction = (instruction: string, context: CuCanvaContext): DesignBrief => {
   const lower = instruction.toLowerCase();
 
   // Detect content type
@@ -138,10 +135,7 @@ const convertSpecToCuActions = (spec: CanvaDesignSpec, slideIndex: number = 0): 
 
 // ── Main orchestration: instruction → plan ──────────────────────────────
 
-export const planCanvaDesign = async (
-  instruction: string,
-  context: CuCanvaContext,
-): Promise<CuCanvaPlan> => {
+export const planCanvaDesign = async (instruction: string, context: CuCanvaContext): Promise<CuCanvaPlan> => {
   log.info(`[CU-Canva] Planning: ${instruction}`);
 
   // 1. Interpret
@@ -215,9 +209,7 @@ export const executeCuCanvaPlan = async (
 
 // ── Insight injection for Studio tools (fallback) ────────────────────────
 
-export const injectCanvaInsightsToStudio = async (
-  context: CuCanvaContext,
-): Promise<Record<string, string>> => {
+export const injectCanvaInsightsToStudio = async (context: CuCanvaContext): Promise<Record<string, string>> => {
   const brief = interpretInstruction(context.instruction || '', context);
   const spec = await consultCanvaSpecialist(brief);
 

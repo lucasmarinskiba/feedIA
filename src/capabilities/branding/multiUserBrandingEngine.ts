@@ -44,10 +44,7 @@ export interface UserBrandProfile {
 
 const userBrands: Map<string, UserBrandProfile> = new Map();
 
-export const createUserBrandProfile = (
-  userId: string,
-  data: Partial<UserBrandProfile>,
-): UserBrandProfile => {
+export const createUserBrandProfile = (userId: string, data: Partial<UserBrandProfile>): UserBrandProfile => {
   log.info(`[Phase 21] Brand profile: ${userId}`);
 
   // Validate fonts against 20 premium fonts
@@ -97,10 +94,7 @@ interface BrandLearningsUpdate {
   averageRetention?: number;
 }
 
-export const updateUserBrandLearnings = (
-  userId: string,
-  learnings: BrandLearningsUpdate,
-): UserBrandProfile | null => {
+export const updateUserBrandLearnings = (userId: string, learnings: BrandLearningsUpdate): UserBrandProfile | null => {
   const profile = userBrands.get(userId);
   if (!profile) return null;
   if (learnings.narratives) profile.learnedNarratives = learnings.narratives;
@@ -127,7 +121,9 @@ export const getPersonalizedGeneratorSettings = (userId: string): unknown => {
 
 export const getAvailableFonts = (): string[] => premiumFonts.map((f) => f.name);
 
-export const getFontsByCategory = (category: 'headline' | 'body' | 'display' | 'accent' | 'monospace' | 'script'): string[] => premiumFonts.filter((f) => f.category === category).map((f) => f.name);
+export const getFontsByCategory = (
+  category: 'headline' | 'body' | 'display' | 'accent' | 'monospace' | 'script',
+): string[] => premiumFonts.filter((f) => f.category === category).map((f) => f.name);
 
 export const getFontPairings = (niche: string): unknown => fontPairingsByNiche[niche] || fontPairingsByNiche['tech'];
 

@@ -11,9 +11,9 @@ import type { BrandProfile } from '../../config/types.js';
 export interface BrandLockdown {
   locked: boolean;
   typography: {
-    headline: {font: string; weights: number[]};
-    body: {font: string; weights: number[]};
-    accent?: {font: string; weights: number[]};
+    headline: { font: string; weights: number[] };
+    body: { font: string; weights: number[] };
+    accent?: { font: string; weights: number[] };
   };
   colors: {
     primary: string;
@@ -54,9 +54,7 @@ export const createBrandLockdown = (brand: BrandProfile): BrandLockdown => {
         font: brand.visual?.typography?.[1] || 'Inter',
         weights: [400, 500],
       },
-      accent: brand.visual?.typography?.[2]
-        ? {font: brand.visual.typography[2], weights: [400, 600]}
-        : undefined,
+      accent: brand.visual?.typography?.[2] ? { font: brand.visual.typography[2], weights: [400, 600] } : undefined,
     },
     colors: {
       primary: brand.visual?.palette?.[0] || '#E91E8C',
@@ -112,14 +110,10 @@ export const validateContentCompliance = (
 
   // Check slide count
   if (content.length < lockdown.contentRules.minSlides) {
-    violations.push(
-      `Carousel too short (${content.length}/${lockdown.contentRules.minSlides} min).`,
-    );
+    violations.push(`Carousel too short (${content.length}/${lockdown.contentRules.minSlides} min).`);
   }
   if (content.length > lockdown.contentRules.maxSlides) {
-    violations.push(
-      `Carousel too long (${content.length}/${lockdown.contentRules.maxSlides} max).`,
-    );
+    violations.push(`Carousel too long (${content.length}/${lockdown.contentRules.maxSlides} max).`);
   }
 
   // Check each slide
@@ -137,9 +131,7 @@ export const validateContentCompliance = (
     // Tone check
     const avoidedTerm = lockdown.voiceTone.avoidTerms.find((t) => slide.headline.toLowerCase().includes(t));
     if (avoidedTerm) {
-      violations.push(
-        `Slide ${idx + 1}: Prohibited term "${avoidedTerm}" in headline. Use brand-approved language.`,
-      );
+      violations.push(`Slide ${idx + 1}: Prohibited term "${avoidedTerm}" in headline. Use brand-approved language.`);
     }
 
     // Required elements check
@@ -174,10 +166,7 @@ export const validateContentCompliance = (
 
 // ── Enforce lockdown (rewrite violating content) ──────────────────────
 
-export const enforceComplianceAutomated = (
-  content: string,
-  lockdown: BrandLockdown,
-): string => {
+export const enforceComplianceAutomated = (content: string, lockdown: BrandLockdown): string => {
   log.info('[Enforcement] Auto-correcting content for brand compliance');
 
   let fixed = content;
@@ -212,7 +201,7 @@ export interface ContentCorrelation {
 }
 
 export const validateContentCorrelation = (
-  posts: Array<{content: string; emotion: string; colors: string[]; fonts: string[]}>,
+  posts: Array<{ content: string; emotion: string; colors: string[]; fonts: string[] }>,
   lockdown: BrandLockdown,
 ): ContentCorrelation => {
   log.info(`[Correlation] Checking ${posts.length} posts for brand coherence`);
@@ -258,9 +247,7 @@ export const validateContentCorrelation = (
 
   const overallCoherence = (visualCoherence + messagingCoherence + brandCoherence) / 3;
 
-  log.info(
-    `[Correlation] Visual=${visualCoherence}, Messaging=${messagingCoherence}, Brand=${brandCoherence}`,
-  );
+  log.info(`[Correlation] Visual=${visualCoherence}, Messaging=${messagingCoherence}, Brand=${brandCoherence}`);
 
   return {
     posts: posts.length,

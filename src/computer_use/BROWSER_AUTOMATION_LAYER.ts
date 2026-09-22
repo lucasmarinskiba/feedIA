@@ -47,7 +47,7 @@ class BrowserAutomationManager {
     await this.session.page.waitForLoadState('networkidle');
 
     // Check if logged in
-    const isLoggedIn = await this.session.page.$('[aria-label="Home"]') !== null;
+    const isLoggedIn = (await this.session.page.$('[aria-label="Home"]')) !== null;
     this.session.authenticated = isLoggedIn;
 
     if (!isLoggedIn) {
@@ -66,7 +66,7 @@ class BrowserAutomationManager {
 
     await this.session.page.waitForLoadState('networkidle');
 
-    const isLoggedIn = await this.session.page.$('[data-testid="nav-user-icon"]') !== null;
+    const isLoggedIn = (await this.session.page.$('[data-testid="nav-user-icon"]')) !== null;
     this.session.authenticated = isLoggedIn;
 
     if (!isLoggedIn) {
@@ -78,11 +78,7 @@ class BrowserAutomationManager {
 
   // ── INSTAGRAM AUTOMATION ──────────────────────────
 
-  async createInstagramCarousel(content: {
-    images: string[];
-    captions: string[];
-    hashtags: string;
-  }): Promise<void> {
+  async createInstagramCarousel(content: { images: string[]; captions: string[]; hashtags: string }): Promise<void> {
     if (!this.session || this.session.platform !== 'instagram') {
       throw new Error('Not on Instagram');
     }
@@ -163,10 +159,12 @@ class BrowserAutomationManager {
     console.log('[Instagram] Story posted successfully');
   }
 
-  async respondToComments(responses: {
-    commentId: string;
-    response: string;
-  }[]): Promise<void> {
+  async respondToComments(
+    responses: {
+      commentId: string;
+      response: string;
+    }[],
+  ): Promise<void> {
     if (!this.session || this.session.platform !== 'instagram') {
       throw new Error('Not on Instagram');
     }
@@ -231,11 +229,8 @@ class BrowserAutomationManager {
     );
 
     const avgEngagement =
-      postEngagement.reduce(
-        (sum: number, p) =>
-          sum + (parseInt(p.likes || '0') + parseInt(p.comments || '0')),
-        0,
-      ) / postEngagement.length || 0;
+      postEngagement.reduce((sum: number, p) => sum + (parseInt(p.likes || '0') + parseInt(p.comments || '0')), 0) /
+        postEngagement.length || 0;
 
     return {
       followers,
@@ -246,11 +241,7 @@ class BrowserAutomationManager {
 
   // ── TIKTOK AUTOMATION ──────────────────────────────
 
-  async createTikTokVideo(content: {
-    videoPath: string;
-    caption: string;
-    hashtags: string;
-  }): Promise<void> {
+  async createTikTokVideo(content: { videoPath: string; caption: string; hashtags: string }): Promise<void> {
     if (!this.session || this.session.platform !== 'tiktok') {
       throw new Error('Not on TikTok');
     }

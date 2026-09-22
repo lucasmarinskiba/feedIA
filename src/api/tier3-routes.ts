@@ -6,18 +6,8 @@
 import type { Express, Request, Response } from 'express';
 import { register, login, refresh, logout, verifyJWT } from './auth-endpoints.js';
 import { checkTier, checkCampaignLimit, checkBatchLimit, checkBrandingPermission } from './rbac-middleware.js';
-import {
-  batchCreateCampaigns,
-  getBatchStatus,
-  cancelBatch,
-  listBatchJobs,
-} from './batch-operations-endpoints.js';
-import {
-  createWebhook,
-  listWebhooks,
-  deleteWebhook,
-  testWebhook,
-} from './webhook-endpoints.js';
+import { batchCreateCampaigns, getBatchStatus, cancelBatch, listBatchJobs } from './batch-operations-endpoints.js';
+import { createWebhook, listWebhooks, deleteWebhook, testWebhook } from './webhook-endpoints.js';
 
 export const registerTier3Routes = (app: Express): void => {
   // ============ Authentication (no auth required) ============

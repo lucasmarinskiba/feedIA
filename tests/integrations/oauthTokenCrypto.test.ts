@@ -1,5 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { encryptToken, decryptToken, isEncryptionAvailable, getRawSecret } from '../../src/integrations/oauthTokenCrypto.js';
+import {
+  encryptToken,
+  decryptToken,
+  isEncryptionAvailable,
+  getRawSecret,
+} from '../../src/integrations/oauthTokenCrypto.js';
 
 describe('oauthTokenCrypto', () => {
   it('cifra y descifra un token', () => {

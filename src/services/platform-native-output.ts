@@ -178,18 +178,13 @@ const PLATFORM_SPECS: Record<string, Record<string, PlatformSpec>> = {
 };
 
 // Scheduling recommendations by platform
-const SCHEDULING_RULES: Record<
-  string,
-  { bestDays: string[]; bestHours: number[]; postingGap: number }
-> = {
+const SCHEDULING_RULES: Record<string, { bestDays: string[]; bestHours: number[]; postingGap: number }> = {
   instagram: { bestDays: ['Tuesday', 'Wednesday', 'Thursday'], bestHours: [6, 11, 19], postingGap: 24 },
   tiktok: { bestDays: ['Tuesday', 'Wednesday', 'Thursday', 'Saturday'], bestHours: [6, 9, 19, 21], postingGap: 4 },
   pinterest: { bestDays: ['Monday', 'Tuesday', 'Thursday', 'Friday'], bestHours: [8, 14, 20], postingGap: 72 },
 };
 
-export const formatForPlatform = (
-  metadata: ContentMetadata
-): FormattedOutput => {
+export const formatForPlatform = (metadata: ContentMetadata): FormattedOutput => {
   const platformData = PLATFORM_SPECS[metadata.platform];
   if (!platformData) {
     throw new Error(`Unsupported platform: ${metadata.platform}`);
@@ -205,7 +200,7 @@ export const formatForPlatform = (
 
   if (metadata.description && metadata.description.length > spec.maxTextLength) {
     warnings.push(
-      `Description too long (${metadata.description.length}/${spec.maxTextLength} chars). Will be truncated.`
+      `Description too long (${metadata.description.length}/${spec.maxTextLength} chars). Will be truncated.`,
     );
   }
 
@@ -274,9 +269,7 @@ export const validateContent = (metadata: ContentMetadata): { valid: boolean; er
   return { valid: errors.length === 0, errors };
 };
 
-export const optimizeForPlatform = (
-  content: ContentMetadata
-): ContentMetadata => {
+export const optimizeForPlatform = (content: ContentMetadata): ContentMetadata => {
   const optimized = { ...content };
 
   // Platform-specific optimizations

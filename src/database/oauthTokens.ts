@@ -139,10 +139,7 @@ export const saveOAuthToken = async (conn: OAuthConnection): Promise<boolean> =>
   }
 };
 
-export const getOAuthToken = async (
-  brandId: string,
-  platform: ConnectionPlatform,
-): Promise<OAuthConnection | null> => {
+export const getOAuthToken = async (brandId: string, platform: ConnectionPlatform): Promise<OAuthConnection | null> => {
   if (!isEncryptionAvailable()) return null;
 
   let ciphertext: string | null = null;

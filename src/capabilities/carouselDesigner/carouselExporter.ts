@@ -49,11 +49,7 @@ export const createCarouselExport = async (
       };
     });
 
-    writeFileSync(
-      join(exportDir, 'slides.json'),
-      JSON.stringify(slidesMetadata, null, 2),
-      'utf8',
-    );
+    writeFileSync(join(exportDir, 'slides.json'), JSON.stringify(slidesMetadata, null, 2), 'utf8');
 
     // 2. Write CSS animations
     writeFileSync(join(exportDir, 'animations.css'), animations.css, 'utf8');
@@ -62,15 +58,11 @@ export const createCarouselExport = async (
     type TimelineItem = { delay: number; duration: number; animation: string };
     const lastItem = animations.timeline[animations.timeline.length - 1] as TimelineItem | undefined;
     const timelineMetadata = {
-      total_duration_ms: lastItem ? (lastItem.delay + lastItem.duration) : 0,
+      total_duration_ms: lastItem ? lastItem.delay + lastItem.duration : 0,
       slides: animations.timeline,
     };
 
-    writeFileSync(
-      join(exportDir, 'timeline.json'),
-      JSON.stringify(timelineMetadata, null, 2),
-      'utf8',
-    );
+    writeFileSync(join(exportDir, 'timeline.json'), JSON.stringify(timelineMetadata, null, 2), 'utf8');
 
     // 4. Write main metadata.json
     const metadata = {
@@ -91,11 +83,7 @@ export const createCarouselExport = async (
       },
     };
 
-    writeFileSync(
-      join(exportDir, 'metadata.json'),
-      JSON.stringify(metadata, null, 2),
-      'utf8',
-    );
+    writeFileSync(join(exportDir, 'metadata.json'), JSON.stringify(metadata, null, 2), 'utf8');
 
     // 5. Create HTML preview
     const htmlPreview = generateHTMLPreview(slides, animations.css);
@@ -113,11 +101,7 @@ export const createCarouselExport = async (
       })),
     };
 
-    writeFileSync(
-      join(exportDir, 'MANIFEST.json'),
-      JSON.stringify(manifest, null, 2),
-      'utf8',
-    );
+    writeFileSync(join(exportDir, 'MANIFEST.json'), JSON.stringify(manifest, null, 2), 'utf8');
 
     // 7. Upload to Cloudinary (primary) or /tmp (fallback)
     let downloadUrl = `/api/skills/carousel-designer-pro/download/${jobId}/package`;
@@ -138,17 +122,14 @@ export const createCarouselExport = async (
       // Fallback to /tmp path
     }
 
-    const fileSize = files.reduce(
-      (sum, f) => {
-        try {
-          const fs = require('fs');
-          return sum + fs.statSync(join(exportDir, f)).size;
-        } catch {
-          return sum;
-        }
-      },
-      0,
-    );
+    const fileSize = files.reduce((sum, f) => {
+      try {
+        const fs = require('fs');
+        return sum + fs.statSync(join(exportDir, f)).size;
+      } catch {
+        return sum;
+      }
+    }, 0);
 
     return {
       zipPath: exportDir,
@@ -167,11 +148,9 @@ export const createCarouselExport = async (
  */
 const generateHTMLPreview = (slides: unknown[], css: string): string => {
   const slidesHTML = slides
-    .map(
-       
-      (rawSlide: unknown, idx: number) => {
-        const slide = rawSlide as any;
-        return `
+    .map((rawSlide: unknown, idx: number) => {
+      const slide = rawSlide as any;
+      return `
     <div class="slide slide-${idx + 1}" style="animation: ${slide.animation?.type || 'fade'} ${slide.animation?.duration || 400}ms ${slide.animation?.easing || 'ease-out'} forwards ${slide.animation?.delay || 0}ms;">
       <h2 style="font-size: ${slide.typography?.headline?.size || 32}px; font-weight: ${slide.typography?.headline?.weight || 700}; color: ${slide.colorPalette?.primary || '#000'};">
         ${slide.visualText}
@@ -182,8 +161,7 @@ const generateHTMLPreview = (slides: unknown[], css: string): string => {
       </p>
     </div>
   `;
-      },
-    )
+    })
     .join('');
 
   return `

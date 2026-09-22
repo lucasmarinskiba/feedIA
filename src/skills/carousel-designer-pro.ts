@@ -118,10 +118,7 @@ export const carouselDesignerPro = {
   /**
    * Batch design for multiple occasions
    */
-  async designBatch(
-    brand: BrandProfile,
-    occasions: string[],
-  ): Promise<CarouselDesign[]> {
+  async designBatch(brand: BrandProfile, occasions: string[]): Promise<CarouselDesign[]> {
     log.info('[CarouselDesignerPro] batch design', {
       brand: brand.name,
       occasions: occasions.length,

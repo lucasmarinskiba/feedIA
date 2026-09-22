@@ -5,12 +5,14 @@ Critical features blocking production users. 5-phase build.
 ## Phase 1: Real Authentication (JWT + Session)
 
 **Files:**
+
 - `api/_auth-real.js` — Login, signup, JWT tokens, refresh
 - `src/middleware/auth-session.ts` — Session management, rate limit by user
 - `src/db/users.ts` — User table schema + queries
 - `__tests__/auth.test.ts` — Auth flow tests
 
 **Endpoints:**
+
 ```
 POST   /api/auth/signup          (email, password, name)
 POST   /api/auth/login           (email, password)
@@ -22,6 +24,7 @@ POST   /api/auth/reset-password  (forgot password flow)
 ```
 
 **Database:**
+
 ```sql
 CREATE TABLE users (
   id UUID PRIMARY KEY,
@@ -47,11 +50,13 @@ CREATE TABLE sessions (
 ## Phase 2: Stripe Billing (Payment Flow)
 
 **Files:**
+
 - `api/_billing-real.js` — Stripe checkout, webhooks, subscriptions
 - `src/db/billing.ts` — Billing records
 - `__tests__/billing.test.ts` — Payment flow tests
 
 **Endpoints:**
+
 ```
 GET    /api/billing/plans              (list plans)
 POST   /api/billing/checkout           (create session)
@@ -63,12 +68,14 @@ GET    /api/billing/usage              (current usage/credits)
 ```
 
 **Stripe Setup:**
+
 - Products: free, starter, premium (tier-based)
 - Webhooks: payment_intent.succeeded, subscription.updated
 - Tax: VAT/sales tax calculation
 - Invoicing: auto-generate on payment
 
 **Database:**
+
 ```sql
 CREATE TABLE subscriptions (
   id UUID PRIMARY KEY,
@@ -97,11 +104,13 @@ CREATE TABLE billing_records (
 ## Phase 3: Email Notifications (SendGrid)
 
 **Files:**
+
 - `api/_email.js` — SendGrid integration
 - `src/services/email-templates.ts` — Email templates (Handlebars)
 - `__tests__/email.test.ts` — Email sending tests
 
 **Endpoints:**
+
 ```
 POST   /api/email/send              (internal only)
 GET    /api/email/templates         (list templates)
@@ -109,6 +118,7 @@ POST   /api/email/test              (send test email)
 ```
 
 **Email Types:**
+
 1. Welcome: Signup confirmation
 2. Invite: Team invitation
 3. Alert: Publish success/failure
@@ -117,6 +127,7 @@ POST   /api/email/test              (send test email)
 6. Report: Weekly analytics
 
 **Setup:**
+
 - SendGrid API key + domain verification
 - Email templates (Handlebars)
 - Unsubscribe management
@@ -127,11 +138,13 @@ POST   /api/email/test              (send test email)
 ## Phase 4: S3 Storage (Video/Image Uploads)
 
 **Files:**
+
 - `api/_storage.js` — S3 upload, CDN URLs
 - `src/services/s3-manager.ts` — S3 client wrapper
 - `__tests__/storage.test.ts` — Upload tests
 
 **Endpoints:**
+
 ```
 POST   /api/storage/upload           (get signed URL)
 GET    /api/storage/url/:key         (get CDN URL)
@@ -140,6 +153,7 @@ GET    /api/storage/usage            (usage stats)
 ```
 
 **S3 Config:**
+
 - Bucket: feedia-{env}-media
 - Lifecycle: Delete old uploads (30 days)
 - CloudFront CDN: distribution for fast delivery
@@ -147,6 +161,7 @@ GET    /api/storage/usage            (usage stats)
 - Signed URLs: 15-min expiry
 
 **Upload Flow:**
+
 1. Client requests signed URL from `/api/storage/upload`
 2. Client uploads directly to S3 (multipart)
 3. S3 triggers Lambda → compress/transcode
@@ -158,11 +173,13 @@ GET    /api/storage/usage            (usage stats)
 ## Phase 5: Admin Dashboard (Backend)
 
 **Files:**
+
 - `api/_admin.js` — Admin endpoints (auth-gated)
 - `src/db/admin.ts` — Admin queries
 - `__tests__/admin.test.ts` — Admin tests
 
 **Endpoints:**
+
 ```
 GET    /api/admin/users                  (list users, search, filter)
 GET    /api/admin/users/:id              (user details)
@@ -183,6 +200,7 @@ POST   /api/admin/feature-flag/:name     (toggle feature)
 ```
 
 **Auth Gate:**
+
 - Only OWNER_EMAIL has access
 - All actions logged + audit trail
 - No bulk operations (manual only)
@@ -216,4 +234,3 @@ POST   /api/admin/feature-flag/:name     (toggle feature)
 - [x] Email: Unsubscribe link mandatory
 - [x] S3: Signed URLs, CORS, bucket policy
 - [x] Admin: Owner-only gate + audit logging
-

@@ -141,7 +141,7 @@ export const generateSmartBatch = (goal: StrategyGoal): BatchResult => {
     const formats: Array<'carousel' | 'reel' | 'story'> = ['carousel', 'reel', 'story'];
 
     formats.forEach((format) => {
-      const quantity = Math.ceil(assetsPerWeek * ((formatDist[format] ?? 0.33)!));
+      const quantity = Math.ceil(assetsPerWeek * (formatDist[format] ?? 0.33)!);
 
       if (quantity > 0) {
         // Rotate topics
@@ -185,12 +185,15 @@ export const executeBatch = async (batch: BatchResult): Promise<BatchResult> => 
   const byFormat = groupBy(batch.roadmap, 'format');
 
   // Simulate parallel generation
-  const promises = Object.entries(byFormat).map(([format, plans]) => new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(`[SmartBatch] Generated ${plans.reduce((s, p) => s + p.quantity, 0)} ${format}s`);
-        resolve(true);
-      }, Math.random() * 2000); // Simulate generation time
-    }));
+  const promises = Object.entries(byFormat).map(
+    ([format, plans]) =>
+      new Promise((resolve) => {
+        setTimeout(() => {
+          console.log(`[SmartBatch] Generated ${plans.reduce((s, p) => s + p.quantity, 0)} ${format}s`);
+          resolve(true);
+        }, Math.random() * 2000); // Simulate generation time
+      }),
+  );
 
   await Promise.all(promises);
 
@@ -203,20 +206,14 @@ export const executeBatch = async (batch: BatchResult): Promise<BatchResult> => 
  */
 export const generateMultiQuarterStrategy = (
   goal: Omit<StrategyGoal, 'quarterGoal'> & { year: number },
-  quarters: Array<'Q1' | 'Q2' | 'Q3' | 'Q4'> = ['Q1', 'Q2', 'Q3', 'Q4']
+  quarters: Array<'Q1' | 'Q2' | 'Q3' | 'Q4'> = ['Q1', 'Q2', 'Q3', 'Q4'],
 ): Record<string, BatchResult> => {
   const results: Record<string, BatchResult> = {};
   let carryoverTopics: string[] = [];
 
   quarters.forEach((quarter) => {
     const quarterGoal =
-      quarter === 'Q1'
-        ? 'awareness'
-        : quarter === 'Q2'
-          ? 'engagement'
-          : quarter === 'Q3'
-            ? 'conversion'
-            : 'retention';
+      quarter === 'Q1' ? 'awareness' : quarter === 'Q2' ? 'engagement' : quarter === 'Q3' ? 'conversion' : 'retention';
 
     const batch = generateSmartBatch({
       ...goal,
@@ -259,19 +256,19 @@ const estimateBatchResults = (roadmap: BatchPlan[], goal: StrategyGoal) => {
   // Simplified estimation (would use ROI calculator in production)
   const benchmarks: Record<string, Record<string, { engagement: number; conversion: number }>> = {
     carousel: {
-      awareness: { engagement: 0.10, conversion: 0.02 },
+      awareness: { engagement: 0.1, conversion: 0.02 },
       engagement: { engagement: 0.12, conversion: 0.025 },
       conversion: { engagement: 0.08, conversion: 0.04 },
       retention: { engagement: 0.06, conversion: 0.03 },
     },
     reel: {
       awareness: { engagement: 0.16, conversion: 0.03 },
-      engagement: { engagement: 0.20, conversion: 0.04 },
+      engagement: { engagement: 0.2, conversion: 0.04 },
       conversion: { engagement: 0.14, conversion: 0.06 },
       retention: { engagement: 0.12, conversion: 0.04 },
     },
     story: {
-      awareness: { engagement: 0.20, conversion: 0.04 },
+      awareness: { engagement: 0.2, conversion: 0.04 },
       engagement: { engagement: 0.25, conversion: 0.05 },
       conversion: { engagement: 0.18, conversion: 0.08 },
       retention: { engagement: 0.28, conversion: 0.06 },
@@ -307,12 +304,13 @@ const calculateProductionTime = (roadmap: BatchPlan[]): string => {
   return `${Math.ceil(hours / 24)} days`;
 };
 
-const groupBy = <T extends object>(arr: T[], key: keyof T): Record<string, T[]> => arr.reduce(
+const groupBy = <T extends object>(arr: T[], key: keyof T): Record<string, T[]> =>
+  arr.reduce(
     (acc, item) => {
       const groupKey = String(item[key]);
       if (!acc[groupKey]) acc[groupKey] = [];
       acc[groupKey].push(item);
       return acc;
     },
-    {} as Record<string, T[]>
+    {} as Record<string, T[]>,
   );

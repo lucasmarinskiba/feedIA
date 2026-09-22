@@ -203,7 +203,7 @@ export interface AccountCoherence {
     primaryColors: string[];
     dominantLayout: string;
   };
-  topicClusters: Array<{topic: string; frequency: number; posts: number}>;
+  topicClusters: Array<{ topic: string; frequency: number; posts: number }>;
   issues: string[];
   recommendations: string[];
 }
@@ -276,11 +276,10 @@ export const validateAccountCoherence = (weeklyScores: ContentWeek[]): AccountCo
 
   // Recommendations
   const recommendations: string[] = [];
-  if (primaryFonts.length >= 1)
-    recommendations.push(`Lock fonts: ${primaryFonts.slice(0, 2).join(', ')}`);
-  if (primaryColors.length >= 1)
-    recommendations.push(`Lock colors: ${primaryColors.slice(0, 3).join(', ')}`);
-  if (topicClusters.length > 3) recommendations.push(`Focus on top 2-3 topics. Current: ${topicClusters.map((t) => t.topic).join(', ')}`);
+  if (primaryFonts.length >= 1) recommendations.push(`Lock fonts: ${primaryFonts.slice(0, 2).join(', ')}`);
+  if (primaryColors.length >= 1) recommendations.push(`Lock colors: ${primaryColors.slice(0, 3).join(', ')}`);
+  if (topicClusters.length > 3)
+    recommendations.push(`Focus on top 2-3 topics. Current: ${topicClusters.map((t) => t.topic).join(', ')}`);
 
   return {
     postsAnalyzed: allPosts.length,

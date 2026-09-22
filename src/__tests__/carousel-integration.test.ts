@@ -66,12 +66,14 @@ describe('Carousel Quality Validation', () => {
     });
 
     it('should warn if too many slides', () => {
-      const slides = Array(21).fill(null).map((_, i) => ({
-        slideNumber: i + 1,
-        headline: 'Title',
-        body: 'Body',
-        cta: 'CTA',
-      }));
+      const slides = Array(21)
+        .fill(null)
+        .map((_, i) => ({
+          slideNumber: i + 1,
+          headline: 'Title',
+          body: 'Body',
+          cta: 'CTA',
+        }));
       const carousel = { ...mockCarousel, slides };
       const warning = carousel.slides.length > 20;
       expect(warning).toBe(true);
@@ -119,12 +121,12 @@ describe('Carousel Quality Validation', () => {
       const errors: Array<{ severity: 'critical' | 'high' }> = [];
       const warnings: Array<{ severity: 'medium' | 'low' }> = [];
 
-      errors.forEach(e => {
+      errors.forEach((e) => {
         if (e.severity === 'critical') score -= 25;
         else if (e.severity === 'high') score -= 15;
       });
 
-      warnings.forEach(w => {
+      warnings.forEach((w) => {
         if (w.severity === 'medium') score -= 5;
         else if (w.severity === 'low') score -= 2;
       });

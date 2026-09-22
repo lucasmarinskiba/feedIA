@@ -39,12 +39,12 @@ export interface GeneratedVideo {
   visuals: {
     frames: number;
     transitions: string[];
-    keyframes: Array<{second: number; action: string}>;
+    keyframes: Array<{ second: number; action: string }>;
   };
   audio: {
     segments: number;
     totalDuration: number;
-    voiceProfile: {gender: string; tone: string};
+    voiceProfile: { gender: string; tone: string };
   };
   subtitles: {
     format: string;
@@ -65,10 +65,7 @@ export interface GeneratedVideo {
   };
 }
 
-export const generateVideoContent = async (
-  brief: VideoBrief,
-  brand?: BrandProfile,
-): Promise<GeneratedVideo> => {
+export const generateVideoContent = async (brief: VideoBrief, brand?: BrandProfile): Promise<GeneratedVideo> => {
   log.info(`[Video Orchestrator] Starting ${brief.duration}s ${brief.platform} video: ${brief.topic}`);
 
   try {
@@ -103,7 +100,10 @@ export const generateVideoContent = async (
     const specs = getVideoSpecs(brief.platform, brief.duration);
 
     // Step 6: Retention score
-    const retentionScore = calculateRetentionScore(script as unknown as Parameters<typeof calculateRetentionScore>[0], brief.duration);
+    const retentionScore = calculateRetentionScore(
+      script as unknown as Parameters<typeof calculateRetentionScore>[0],
+      brief.duration,
+    );
 
     const video: GeneratedVideo = {
       id: `video_${Date.now()}`,
@@ -152,10 +152,7 @@ export const generateVideoContent = async (
   }
 };
 
-const getVideoSpecs = (
-  platform: string,
-  duration: number,
-): GeneratedVideo['specs'] => {
+const getVideoSpecs = (platform: string, duration: number): GeneratedVideo['specs'] => {
   const platformSpecs: Record<string, GeneratedVideo['specs']> = {
     tiktok: {
       resolution: '1080x1920',

@@ -64,7 +64,7 @@ export interface VeoOperation {
  */
 export async function startVideoGeneration(
   prompt: string,
-  options: VeoGenerationOptions = {}
+  options: VeoGenerationOptions = {},
 ): Promise<VeoOperation | null> {
   if (!GEMINI_API_KEY) {
     log.warn('[VeoVideo] GEMINI_API_KEY not set — cannot start video generation');
@@ -177,7 +177,7 @@ export async function pollOperationStatus(operationName: string): Promise<VeoOpe
 export async function waitForVideoGeneration(
   operationName: string,
   maxWaitMs: number = 180000,
-  pollIntervalMs: number = 10000
+  pollIntervalMs: number = 10000,
 ): Promise<VeoOperation | null> {
   const startTime = Date.now();
 
@@ -194,7 +194,7 @@ export async function waitForVideoGeneration(
       return status;
     }
 
-    await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
   }
 
   log.warn('[VeoVideo] Generation timed out', { operationName, maxWaitMs });
@@ -208,7 +208,7 @@ export async function waitForVideoGeneration(
 export async function generateVideoAndWait(
   prompt: string,
   options: VeoGenerationOptions = {},
-  maxWaitMs: number = 180000
+  maxWaitMs: number = 180000,
 ): Promise<VeoOperation | null> {
   const started = await startVideoGeneration(prompt, options);
   if (!started) return null;

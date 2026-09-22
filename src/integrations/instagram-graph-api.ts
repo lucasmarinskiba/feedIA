@@ -24,10 +24,7 @@ export interface IGMetrics {
 /**
  * Fetch post metrics from Instagram API
  */
-export const fetchPostMetrics = async (
-  postId: string,
-  accessToken?: string,
-): Promise<IGMetrics | null> => {
+export const fetchPostMetrics = async (postId: string, accessToken?: string): Promise<IGMetrics | null> => {
   const token = accessToken || process.env.META_ACCESS_TOKEN;
 
   if (!token) {
@@ -118,7 +115,9 @@ export const fetchPostMetrics = async (
 /**
  * Fetch account insights (overall performance)
  */
-export const fetchAccountInsights = async (accessToken?: string): Promise<{ followers: number; posts: number } | null> => {
+export const fetchAccountInsights = async (
+  accessToken?: string,
+): Promise<{ followers: number; posts: number } | null> => {
   const token = accessToken || process.env.META_ACCESS_TOKEN;
   const businessId = process.env.META_IG_BUSINESS_ID;
 

@@ -61,7 +61,13 @@ export const recordVideoUsage = (record: Omit<VideoUsageRecord, 'id' | 'createdA
     workflow: 'brief-to-publish',
     agent: 'videoProducer',
     feature: 'video-ia',
-    metadata: { format: full.format, durationSec: full.durationSec, topic: full.topic, brandName: full.brandName, style: full.style },
+    metadata: {
+      format: full.format,
+      durationSec: full.durationSec,
+      topic: full.topic,
+      brandName: full.brandName,
+      style: full.style,
+    },
   });
   return full;
 };
@@ -81,4 +87,5 @@ export const getVideoUsage = (filters?: {
   return records;
 };
 
-export const getTotalVideoCostUsd = (filters?: { brandName?: string; since?: string }): number => getVideoUsage(filters).reduce((sum, r) => sum + r.costEstimateUsd, 0);
+export const getTotalVideoCostUsd = (filters?: { brandName?: string; since?: string }): number =>
+  getVideoUsage(filters).reduce((sum, r) => sum + r.costEstimateUsd, 0);

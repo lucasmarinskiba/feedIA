@@ -32,14 +32,12 @@ const getMigrations = async (client: PoolClient): Promise<Migration[]> => {
   return result.rows;
 };
 
-const splitSqlStatements = (sql: string): string[] => 
+const splitSqlStatements = (sql: string): string[] =>
   // Split by semicolon but preserve it
-   sql
+  sql
     .split(';')
     .map((stmt) => stmt.trim())
-    .filter((stmt) => stmt.length > 0)
-;
-
+    .filter((stmt) => stmt.length > 0);
 export const runMigrations = async (client: PoolClient): Promise<void> => {
   try {
     console.log('[Migrations] Starting migration runner...');
@@ -88,10 +86,10 @@ export const runMigrations = async (client: PoolClient): Promise<void> => {
         }
 
         // Record migration
-        await client.query('INSERT INTO schema_migrations (name, version, executed_at) VALUES ($1, $2, CURRENT_TIMESTAMP)', [
-          file,
-          version,
-        ]);
+        await client.query(
+          'INSERT INTO schema_migrations (name, version, executed_at) VALUES ($1, $2, CURRENT_TIMESTAMP)',
+          [file, version],
+        );
 
         console.log(`[Migrations] ✓ ${file} executed successfully`);
       } catch (err) {

@@ -114,7 +114,9 @@ const analyzeAccount = async (req: AuthRequest, res: Response): Promise<void> =>
     // Fetch account data from platform
     if (platform === 'instagram') {
       try {
-        const meRes = await fetch(`https://graph.instagram.com/v18.0/me?fields=id,username,followers_count&access_token=${accessToken}`);
+        const meRes = await fetch(
+          `https://graph.instagram.com/v18.0/me?fields=id,username,followers_count&access_token=${accessToken}`,
+        );
         if (meRes.ok) {
           const meData = (await meRes.json()) as { username: string; followers_count: number };
           accountData.username = meData.username;
@@ -123,10 +125,12 @@ const analyzeAccount = async (req: AuthRequest, res: Response): Promise<void> =>
 
         // Fetch insights
         const insightsRes = await fetch(
-          `https://graph.instagram.com/v18.0/${accountId}/insights?metric=engagement_rate,profile_views&access_token=${accessToken}`
+          `https://graph.instagram.com/v18.0/${accountId}/insights?metric=engagement_rate,profile_views&access_token=${accessToken}`,
         );
         if (insightsRes.ok) {
-          const insightsData = (await insightsRes.json()) as { data?: Array<{ name: string; values?: Array<{ value: number }> }> };
+          const insightsData = (await insightsRes.json()) as {
+            data?: Array<{ name: string; values?: Array<{ value: number }> }>;
+          };
           insightsData.data?.forEach((metric) => {
             if (metric.name === 'engagement_rate' && metric.values?.[0]) {
               accountData.engagement_rate = metric.values[0].value;
@@ -143,7 +147,7 @@ const analyzeAccount = async (req: AuthRequest, res: Response): Promise<void> =>
       `INSERT INTO user_content_metrics (user_id, platform, quality_score, created_at)
        VALUES ($1, $2, $3, NOW())
        ON CONFLICT (user_id) DO UPDATE SET updated_at = NOW()`,
-      [userId, platform, accountData.engagement_rate || 0.5]
+      [userId, platform, accountData.engagement_rate || 0.5],
     );
 
     res.json({
@@ -198,13 +202,7 @@ const generateStrategy = async (req: AuthRequest, res: Response): Promise<void> 
       target_audience: {
         age: targetAudience.age || '25-34',
         gender: targetAudience.gender || 'mixed',
-        psychographics: [
-          'ambitious',
-          'growth-minded',
-          'authentic-seeking',
-          'community-oriented',
-          'problem-solver',
-        ],
+        psychographics: ['ambitious', 'growth-minded', 'authentic-seeking', 'community-oriented', 'problem-solver'],
         pain_points: [
           'overwhelm from information',
           'lack of authentic connection',
@@ -268,7 +266,7 @@ const generateStrategy = async (req: AuthRequest, res: Response): Promise<void> 
         `AI-generated strategy for ${niche}`,
         JSON.stringify(strategy),
         JSON.stringify(['instagram', 'tiktok']),
-      ]
+      ],
     );
 
     res.json({
@@ -323,7 +321,7 @@ const cmAgent = async (req: AuthRequest, res: Response): Promise<void> => {
           { day: 'Sunday', task: 'Content calendar review, identify trends' },
         ],
         response_templates: {
-          thank_you: "Thanks for the love! 🙏 [personalized comment about their profile]",
+          thank_you: 'Thanks for the love! 🙏 [personalized comment about their profile]',
           question: '[Answer specific question] DM me if you want deeper dive!',
           collaboration: "Love your vibe! Let's collab — DM me",
           crisis: 'Thanks for feedback. [Take responsibility]. DM to discuss solutions.',
@@ -451,7 +449,8 @@ const growthAgent = async (req: AuthRequest, res: Response): Promise<void> => {
           },
         ],
         cross_platform: {
-          content_repurposing: 'Create 1 core idea → 5 variations (carousel, reel, TikTok, story series, long-form blog)',
+          content_repurposing:
+            'Create 1 core idea → 5 variations (carousel, reel, TikTok, story series, long-form blog)',
           youtube_shorts: 'Use TikTok/Reels, re-upload to Shorts (same audience, new discovery)',
           email_list: 'Drive DM → email opt-in → weekly newsletters (owned audience)',
           podcast: 'Turn scripts into podcast episodes (audio-first audience)',
@@ -546,7 +545,14 @@ const designAgent = async (req: AuthRequest, res: Response): Promise<void> => {
           {
             name: 'Numbered List + Twist',
             slides: 8,
-            structure: ['List intro', '#1-5 (quick hits)', 'Controversial take', 'Why people miss it', 'Solution', 'CTA'],
+            structure: [
+              'List intro',
+              '#1-5 (quick hits)',
+              'Controversial take',
+              'Why people miss it',
+              'Solution',
+              'CTA',
+            ],
             engagement: 'High (controversy)',
           },
         ],
@@ -625,16 +631,14 @@ const copyAgent = async (req: AuthRequest, res: Response): Promise<void> => {
           {
             name: 'Curiosity Gap Hook',
             formula: '[Surprising statement] → [Context] → [Reveal] → [CTA]',
-            example:
-              "This one 'mistake' cost me $10K. But here's why I'm grateful... [story] ... Save this for later.",
+            example: "This one 'mistake' cost me $10K. But here's why I'm grateful... [story] ... Save this for later.",
             engagement: 'Very High',
             platforms: ['instagram', 'tiktok'],
           },
           {
             name: 'Problem/Solution',
             formula: '[Pain point] → [Most people do X] → [Better way] → [Action]',
-            example:
-              "Mistake: Networking without a goal. Real way: [specific method]. Follow for daily tips.",
+            example: 'Mistake: Networking without a goal. Real way: [specific method]. Follow for daily tips.',
             engagement: 'High',
             platforms: ['instagram', 'tiktok'],
           },
@@ -655,7 +659,7 @@ const copyAgent = async (req: AuthRequest, res: Response): Promise<void> => {
         ],
         emotional_triggers: {
           high_arousal: ['Excitement', 'Anger', 'Surprise', 'Awe', 'Urgency'],
-          formula: `Use ${tone === "engaging" ? "excitement" : tone === "professional" ? "awe" : "surprise"} for ${niche}`,
+          formula: `Use ${tone === 'engaging' ? 'excitement' : tone === 'professional' ? 'awe' : 'surprise'} for ${niche}`,
           avoid: "Sadness, contentment, low-energy emotions (don't drive sharing)",
         },
         hashtag_strategy: {
@@ -928,7 +932,7 @@ const masterPlan = async (req: AuthRequest, res: Response): Promise<void> => {
         `Complete social growth plan for ${niche}`,
         JSON.stringify(plan),
         JSON.stringify(['instagram', 'tiktok']),
-      ]
+      ],
     );
 
     res.json({

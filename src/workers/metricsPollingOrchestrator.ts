@@ -11,7 +11,11 @@
  */
 
 import { log } from '../agent/logger.js';
-import { recordPostMetrics, processPostComments, extractAndAmplifyFeedback } from '../services/post-publication-hook.js';
+import {
+  recordPostMetrics,
+  processPostComments,
+  extractAndAmplifyFeedback,
+} from '../services/post-publication-hook.js';
 import { accountGrowthService } from '../services/account-growth-service.js';
 import { getInstagramToken } from '../api/instagram-oauth-routes.js';
 import { fetchPostMetrics } from '../integrations/instagram-graph-api.js';
@@ -92,7 +96,9 @@ const runMetricsPollingCycle = async (): Promise<void> => {
     // TODO: Call Instagram Graph API with igToken
     // GET /me/insights?metric=impressions,engagement_rate,profile_views&access_token={igToken}
   } else {
-    log.info('[MetricsPolling] No Instagram token — using mock metrics (click "Connect Instagram" to enable real metrics)');
+    log.info(
+      '[MetricsPolling] No Instagram token — using mock metrics (click "Connect Instagram" to enable real metrics)',
+    );
   }
 
   for (const [postId, job] of pollingQueue) {
@@ -236,24 +242,32 @@ export const startPollingScheduler = (config?: PollingConfig): { stop: () => voi
 
   // Engagement polling job (15-30m)
   const engagementInterval = setInterval(
-    () => runEngagementPollingCycle().catch((err) => log.error('[MetricsPolling] 15-30m cycle error', { err: String(err) })),
+    () =>
+      runEngagementPollingCycle().catch((err) =>
+        log.error('[MetricsPolling] 15-30m cycle error', { err: String(err) }),
+      ),
     cfg.engagementIntervalMs,
   );
 
   // Feedback extraction job (7d)
   const feedbackInterval = setInterval(
-    () => runFeedbackExtractionCycle().catch((err) => log.error('[MetricsPolling] 7d cycle error', { err: String(err) })),
+    () =>
+      runFeedbackExtractionCycle().catch((err) => log.error('[MetricsPolling] 7d cycle error', { err: String(err) })),
     cfg.feedbackIntervalMs,
   );
 
   // Run first cycle immediately (staggered: metrics now, engagement +5m, feedback +1h)
   runMetricsPollingCycle().catch((err) => log.error('[MetricsPolling] Initial 4h cycle', { err: String(err) }));
   setTimeout(
-    () => runEngagementPollingCycle().catch((err) => log.error('[MetricsPolling] Initial 15-30m cycle', { err: String(err) })),
+    () =>
+      runEngagementPollingCycle().catch((err) =>
+        log.error('[MetricsPolling] Initial 15-30m cycle', { err: String(err) }),
+      ),
     5 * 60 * 1000,
   );
   setTimeout(
-    () => runFeedbackExtractionCycle().catch((err) => log.error('[MetricsPolling] Initial 7d cycle', { err: String(err) })),
+    () =>
+      runFeedbackExtractionCycle().catch((err) => log.error('[MetricsPolling] Initial 7d cycle', { err: String(err) })),
     60 * 60 * 1000,
   );
 

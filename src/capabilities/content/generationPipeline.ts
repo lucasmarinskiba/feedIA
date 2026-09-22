@@ -63,7 +63,7 @@ export const executeGenerationPipeline = async (brief: UserContentBrief): Promis
     log.info('[Pipeline] Stage 1: Loading brand kit...');
 
     const brandKitSource = await autoLoadBrandKit(brief.userId);
-    const brand = brief.customBrand ? {...brandKitSource.data, ...brief.customBrand} : brandKitSource.data;
+    const brand = brief.customBrand ? { ...brandKitSource.data, ...brief.customBrand } : brandKitSource.data;
 
     log.info(`[Pipeline] ✓ Brand kit loaded (${brandKitSource.type}, confidence: ${brandKitSource.confidence}%)`);
 
@@ -133,7 +133,9 @@ export const executeGenerationPipeline = async (brief: UserContentBrief): Promis
     const emotionalImpact = extractEmotionalScore(enrichedContent);
     const engagementScore = Math.round((contentQuality + emotionalImpact) / 2);
 
-    log.info(`[Pipeline] ✓ Scores: content=${contentQuality}, emotion=${emotionalImpact}, engagement=${engagementScore}`);
+    log.info(
+      `[Pipeline] ✓ Scores: content=${contentQuality}, emotion=${emotionalImpact}, engagement=${engagementScore}`,
+    );
 
     // ── Stage 6: Export Prep ───────────────────────────────────────────────
     pipelineStages.push('export-prep');
@@ -175,12 +177,10 @@ export const executeGenerationPipeline = async (brief: UserContentBrief): Promis
   }
 };
 
-const calculateContentQuality = (_content: unknown): number => 
+const calculateContentQuality = (_content: unknown): number =>
   // Score based on structure validity, completeness, coherence
   // Mock: return 75-90
-   80
-;
-
+  80;
 type CarouselEnrichment = Awaited<ReturnType<typeof enrichCarouselWithEmotionAndHumor>>;
 type VideoEnrichment = Awaited<ReturnType<typeof enrichVideoWithEmotionAndHumor>>;
 
@@ -211,27 +211,28 @@ export interface PreviewRequest {
   format?: 'web' | 'mobile' | 'instagram' | 'tiktok';
 }
 
-export const getContentPreview = async (_req: PreviewRequest): Promise<{previewHtml: string; platforms: string[]}> => 
+export const getContentPreview = async (_req: PreviewRequest): Promise<{ previewHtml: string; platforms: string[] }> =>
   // Return HTML preview for web/mobile
   // OR native platform preview (Instagram, TikTok)
 
-   ({
+  ({
     previewHtml: '<div>Preview rendering...</div>',
     platforms: ['instagram', 'tiktok', 'youtube', 'facebook'],
-  })
-;
+  });
 
 export interface PublishRequest {
   generationId: string;
   targetPlatforms: Array<'instagram' | 'tiktok' | 'facebook' | 'youtube' | 'linkedin'>;
-  scheduling?: {scheduledAt: string; timezone: string};
+  scheduling?: { scheduledAt: string; timezone: string };
   caption?: string;
 }
 
-export const publishContent = async (req: PublishRequest): Promise<{success: boolean; platformResults: Record<string, {status: string; url?: string}>}> => {
+export const publishContent = async (
+  req: PublishRequest,
+): Promise<{ success: boolean; platformResults: Record<string, { status: string; url?: string }> }> => {
   log.info(`[Publish] Publishing to: ${req.targetPlatforms.join(', ')}`);
 
-  const platformResults: Record<string, {status: string; url?: string}> = {};
+  const platformResults: Record<string, { status: string; url?: string }> = {};
 
   for (const platform of req.targetPlatforms) {
     try {
@@ -241,7 +242,7 @@ export const publishContent = async (req: PublishRequest): Promise<{success: boo
         url: `https://${platform}.com/post/${Date.now()}`,
       };
     } catch (error) {
-      platformResults[platform] = {status: 'failed'};
+      platformResults[platform] = { status: 'failed' };
     }
   }
 

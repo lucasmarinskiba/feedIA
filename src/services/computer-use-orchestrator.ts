@@ -165,7 +165,9 @@ export const executeEngagementTask = async (task: EngagementTask): Promise<Engag
 /**
  * Schedule daily engagement routine (called by cron)
  */
-export const scheduleDailyEngagementRoutine = async (accountId: string): Promise<{ executed: number; skipped: number; errors: number }> => {
+export const scheduleDailyEngagementRoutine = async (
+  accountId: string,
+): Promise<{ executed: number; skipped: number; errors: number }> => {
   log.info('[ComputerUseOrchestrator] Daily engagement routine starting', { accountId });
 
   // TODO: Get list of target posts/accounts from engagement strategy
@@ -195,12 +197,13 @@ export const scheduleDailyEngagementRoutine = async (accountId: string): Promise
 /**
  * Get engagement metrics (for feedback loop)
  */
-export const getEngagementMetrics = (accountId: string): { likes: number; comments: number; follows: number; reaches: number } => 
+export const getEngagementMetrics = (
+  accountId: string,
+): { likes: number; comments: number; follows: number; reaches: number } =>
   // TODO: Pull from account growth service + engagement tracking
-   ({
+  ({
     likes: 0,
     comments: 0,
     follows: 0,
     reaches: 0,
-  })
-;
+  });

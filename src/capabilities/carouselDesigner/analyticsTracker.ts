@@ -18,11 +18,7 @@ const MAX_EVENTS = 10000;
 /**
  * Track analytics event.
  */
-export const trackEvent = (
-  event: string,
-  jobId?: string,
-  data?: Record<string, any>,
-): void => {
+export const trackEvent = (event: string, jobId?: string, data?: Record<string, any>): void => {
   const evt: AnalyticsEvent = {
     event,
     timestamp: new Date().toISOString(),
@@ -75,7 +71,8 @@ export const getAnalyticsSummary = (): {
 /**
  * Export analytics to JSON.
  */
-export const exportAnalytics = (): string => JSON.stringify(
+export const exportAnalytics = (): string =>
+  JSON.stringify(
     {
       exportDate: new Date().toISOString(),
       summary: getAnalyticsSummary(),

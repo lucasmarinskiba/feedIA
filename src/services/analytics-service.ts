@@ -49,7 +49,7 @@ export const analyticsService = {
   async recordMetricSnapshot(
     accountHandle: string,
     platform: 'instagram' | 'tiktok',
-    snapshot: MetricSnapshot
+    snapshot: MetricSnapshot,
   ): Promise<void> {
     const analytics = await this.loadAnalytics(accountHandle, platform);
 
@@ -65,7 +65,7 @@ export const analyticsService = {
   async recordContentMetrics(
     accountHandle: string,
     platform: 'instagram' | 'tiktok',
-    metrics: ContentMetrics
+    metrics: ContentMetrics,
   ): Promise<void> {
     const analytics = await this.loadAnalytics(accountHandle, platform);
 
@@ -81,10 +81,7 @@ export const analyticsService = {
     await this.saveAnalytics(accountHandle, platform, analytics);
   },
 
-  async loadAnalytics(
-    accountHandle: string,
-    platform: 'instagram' | 'tiktok'
-  ): Promise<AccountAnalytics> {
+  async loadAnalytics(accountHandle: string, platform: 'instagram' | 'tiktok'): Promise<AccountAnalytics> {
     const path = `/data/analytics/${accountHandle}-${platform}.json`;
 
     try {
@@ -119,7 +116,7 @@ export const analyticsService = {
   async saveAnalytics(
     accountHandle: string,
     platform: 'instagram' | 'tiktok',
-    analytics: AccountAnalytics
+    analytics: AccountAnalytics,
   ): Promise<void> {
     const dirPath = '/data/analytics';
 
@@ -138,7 +135,7 @@ export const analyticsService = {
   async getGrowthTrend(
     accountHandle: string,
     platform: 'instagram' | 'tiktok',
-    days: number = 30
+    days: number = 30,
   ): Promise<GrowthTrend> {
     const analytics = await this.loadAnalytics(accountHandle, platform);
     const now = new Date();
@@ -149,16 +146,13 @@ export const analyticsService = {
 
     const followerGrowth =
       recentMetrics.length > 1 && recentMetrics[0] && recentMetrics[recentMetrics.length - 1]
-        ? ((recentMetrics[recentMetrics.length - 1]!.followers || 0) -
-            (recentMetrics[0]!.followers || 0)) /
+        ? ((recentMetrics[recentMetrics.length - 1]!.followers || 0) - (recentMetrics[0]!.followers || 0)) /
           (recentMetrics[0]!.followers || 1)
         : 0;
 
-    const engagementRate =
-      recentMetrics.reduce((sum, m) => sum + (m.engagement || 0), 0) / recentMetrics.length || 0;
+    const engagementRate = recentMetrics.reduce((sum, m) => sum + (m.engagement || 0), 0) / recentMetrics.length || 0;
 
-    const averageReach =
-      recentMetrics.reduce((sum, m) => sum + (m.reach || 0), 0) / recentMetrics.length || 0;
+    const averageReach = recentMetrics.reduce((sum, m) => sum + (m.reach || 0), 0) / recentMetrics.length || 0;
 
     const topContent = recentContent.sort((a, b) => b.engagement - a.engagement).slice(0, 5);
 
@@ -174,18 +168,14 @@ export const analyticsService = {
   async getContentPerformance(
     accountHandle: string,
     platform: 'instagram' | 'tiktok',
-    limit: number = 20
+    limit: number = 20,
   ): Promise<ContentMetrics[]> {
     const analytics = await this.loadAnalytics(accountHandle, platform);
 
     return analytics.content.sort((a, b) => b.engagement - a.engagement).slice(0, limit);
   },
 
-  async getEngagementRate(
-    accountHandle: string,
-    platform: 'instagram' | 'tiktok',
-    days: number = 7
-  ): Promise<number> {
+  async getEngagementRate(accountHandle: string, platform: 'instagram' | 'tiktok', days: number = 7): Promise<number> {
     const analytics = await this.loadAnalytics(accountHandle, platform);
     const now = new Date();
     const cutoffDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
@@ -200,11 +190,7 @@ export const analyticsService = {
     return (totalEngagement / totalImpressions) * 100;
   },
 
-  async getReachTrend(
-    accountHandle: string,
-    platform: 'instagram' | 'tiktok',
-    days: number = 30
-  ): Promise<number[]> {
+  async getReachTrend(accountHandle: string, platform: 'instagram' | 'tiktok', days: number = 30): Promise<number[]> {
     const analytics = await this.loadAnalytics(accountHandle, platform);
     const now = new Date();
     const cutoffDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
@@ -229,16 +215,14 @@ export const analyticsService = {
       .sort()
       .map((date) => {
         const values = dailyReach[date];
-        return values && values.length > 0
-          ? values.reduce((a, b) => a + b, 0) / values.length
-          : 0;
+        return values && values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
       });
   },
 
   async getFollowerGrowth(
     accountHandle: string,
     platform: 'instagram' | 'tiktok',
-    days: number = 30
+    days: number = 30,
   ): Promise<number[]> {
     const analytics = await this.loadAnalytics(accountHandle, platform);
     const now = new Date();
@@ -249,10 +233,7 @@ export const analyticsService = {
     return recentMetrics.map((m) => m.followers || 0);
   },
 
-  async getRecommendations(
-    accountHandle: string,
-    platform: 'instagram' | 'tiktok'
-  ): Promise<string[]> {
+  async getRecommendations(accountHandle: string, platform: 'instagram' | 'tiktok'): Promise<string[]> {
     const analytics = await this.loadAnalytics(accountHandle, platform);
     const trend = await this.getGrowthTrend(accountHandle, platform);
     const recommendations: string[] = [];

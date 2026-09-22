@@ -16,7 +16,7 @@ async function enhanceGeneratedContent(
   content: GeneratedContent & { format?: string; prompts?: Array<{ prompt?: { text?: string } }> },
   brand: BrandProfile,
   occasion: string,
-  platform: 'instagram' | 'tiktok' = 'instagram'
+  platform: 'instagram' | 'tiktok' = 'instagram',
 ): Promise<{ content: GeneratedContent; avgQuality: number; avgWit: number }> {
   const contentTypeMap: Record<string, 'image' | 'video' | 'carousel'> = {
     carousel: 'carousel',
@@ -26,12 +26,14 @@ async function enhanceGeneratedContent(
   };
 
   const prompts = (content.prompts || []) as Array<{ prompt?: { text?: string } }>;
-  const rawPrompts = prompts.map((p: unknown) => ((p as Record<string, unknown>)?.prompt as Record<string, string>)?.text || '').filter(Boolean);
+  const rawPrompts = prompts
+    .map((p: unknown) => ((p as Record<string, unknown>)?.prompt as Record<string, string>)?.text || '')
+    .filter(Boolean);
   const enhanced = await masterContentPipeline.enhancePromptBatch(
     rawPrompts,
     platform,
     contentTypeMap[content.format as string] || 'image',
-    `${brand.name} — ${occasion}`
+    `${brand.name} — ${occasion}`,
   );
 
   prompts.forEach((p: unknown, idx: number) => {
@@ -261,18 +263,13 @@ router.post('/batch', async (req, res) => {
       return;
     }
 
-    const contents = await contentPipeline.generateBatch(
-      brand,
-      format,
-      occasions,
-      count || 1,
-    );
+    const contents = await contentPipeline.generateBatch(brand, format, occasions, count || 1);
 
     // Enhance every generated piece through the master pipeline in parallel
     await Promise.all(
       contents.map((content, idx) =>
-        enhanceGeneratedContent(content, brand, occasions[idx % occasions.length] ?? occasions[0], req.body.platform)
-      )
+        enhanceGeneratedContent(content, brand, occasions[idx % occasions.length] ?? occasions[0], req.body.platform),
+      ),
     );
 
     log.info('[ContentAPI] batch generated', {

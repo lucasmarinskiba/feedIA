@@ -5,7 +5,13 @@
 
 import { getUserTier } from '../db/user-tiers.js';
 
-export type FeatureName = 'advanced_analytics' | 'white_label' | 'api_webhooks' | 'priority_support' | 'custom_branding' | 'bulk_operations';
+export type FeatureName =
+  | 'advanced_analytics'
+  | 'white_label'
+  | 'api_webhooks'
+  | 'priority_support'
+  | 'custom_branding'
+  | 'bulk_operations';
 
 // db/user-tiers.ts's UserTier ('free' | 'starter' | 'pro' | 'agency') is
 // the real 4-tier set (matches the DB's own CHECK constraint) -- this
@@ -83,7 +89,9 @@ export const hasFeatureAccess = async (
 /**
  * Middleware for Express route protection
  */
-export const requireFeature = (feature: FeatureName) => async (req: any, res: any, next: any): Promise<void> => {
+export const requireFeature =
+  (feature: FeatureName) =>
+  async (req: any, res: any, next: any): Promise<void> => {
     try {
       const userId = req.userId || req.query.userId || req.body.userId;
 

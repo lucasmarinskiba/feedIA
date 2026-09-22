@@ -41,10 +41,7 @@ const brandPhilosophies: Map<string, BrandPhilosophy> = new Map();
 
 // ── CREATE BRAND PHILOSOPHY ────────────────────────────────────────────────
 
-export const createBrandPhilosophy = (
-  userId: string,
-  data: Partial<BrandPhilosophy>,
-): BrandPhilosophy => {
+export const createBrandPhilosophy = (userId: string, data: Partial<BrandPhilosophy>): BrandPhilosophy => {
   log.info(`[Phase 25] Creating brand philosophy for user: ${userId}`);
 
   const philosophy: BrandPhilosophy = {
@@ -56,8 +53,7 @@ export const createBrandPhilosophy = (
     voiceKeywords: data.voiceKeywords || ['clear', 'honest', 'inspiring'],
     targetAudience: data.targetAudience || 'professionals 25-45',
     uniqueProposition: data.uniqueProposition || 'Only brand that understands your needs',
-    competitiveDifferentiator:
-      data.competitiveDifferentiator || 'We listen, others talk',
+    competitiveDifferentiator: data.competitiveDifferentiator || 'We listen, others talk',
     tone: data.tone || 'professional',
     contentPillars: data.contentPillars || ['education', 'inspiration', 'community'],
     createdAt: new Date().toISOString(),
@@ -74,10 +70,7 @@ export const getBrandPhilosophy = (userId: string): BrandPhilosophy | null => br
 
 // ── UPDATE BRAND PHILOSOPHY ────────────────────────────────────────────────
 
-export const updateBrandPhilosophy = (
-  userId: string,
-  updates: Partial<BrandPhilosophy>,
-): BrandPhilosophy | null => {
+export const updateBrandPhilosophy = (userId: string, updates: Partial<BrandPhilosophy>): BrandPhilosophy | null => {
   const philosophy = brandPhilosophies.get(userId);
   if (!philosophy) return null;
 
@@ -113,9 +106,7 @@ export const validateVisualAgainstPhilosophy = (
 
   const appropriateFonts = toneToFontMap[philosophy.tone] || [];
   if (!appropriateFonts.includes(visual.headlineFont)) {
-    mismatches.push(
-      `Headline font "${visual.headlineFont}" doesn't match tone "${philosophy.tone}"`,
-    );
+    mismatches.push(`Headline font "${visual.headlineFont}" doesn't match tone "${philosophy.tone}"`);
   }
 
   // Check values alignment with colors (psychology)

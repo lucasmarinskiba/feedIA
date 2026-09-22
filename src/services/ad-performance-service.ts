@@ -155,7 +155,7 @@ export const adPerformanceService = {
   async updateCreativePerformance(
     campaignId: string,
     creativeId: string,
-    performance: AdCreative['performance']
+    performance: AdCreative['performance'],
   ): Promise<AdCampaign> {
     const campaign = await this.loadCampaign(campaignId);
     if (!campaign) throw new Error(`Campaign ${campaignId} not found`);

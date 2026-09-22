@@ -60,27 +60,10 @@ export const narrativePatterns: Record<number, SlideRole[]> = {
   6: ['hook', 'curiosity-build', 'value-1', 'value-2', 'proof', 'cta-urgent'],
 
   // 7-slide: Hook + Curiosity + 3 Values + Proof + CTA
-  7: [
-    'hook',
-    'curiosity-build',
-    'value-1',
-    'value-2',
-    'value-3',
-    'proof',
-    'cta-urgent',
-  ],
+  7: ['hook', 'curiosity-build', 'value-1', 'value-2', 'value-3', 'proof', 'cta-urgent'],
 
   // 8-slide: Hook + Curiosity + 3 Values + Objection + Proof + CTA
-  8: [
-    'hook',
-    'curiosity-build',
-    'value-1',
-    'value-2',
-    'value-3',
-    'objection-handler',
-    'proof',
-    'cta-urgent',
-  ],
+  8: ['hook', 'curiosity-build', 'value-1', 'value-2', 'value-3', 'objection-handler', 'proof', 'cta-urgent'],
 
   // 9-slide: Hook + Curiosity + 3 Values + Objection + Proof + CTA + Retention
   9: [
@@ -112,7 +95,7 @@ export const narrativePatterns: Record<number, SlideRole[]> = {
 
 // ── Slide progression rules ────────────────────────────────────────
 
-export const slideRolePurpose: Record<SlideRole, {purpose: string; copyPattern: string; retentionRule: string}> = {
+export const slideRolePurpose: Record<SlideRole, { purpose: string; copyPattern: string; retentionRule: string }> = {
   hook: {
     purpose: 'Stop scroll. Pattern interrupt. Establish relevance.',
     copyPattern: 'Question OR Controversial statement OR Social proof OR Curiosity loop',
@@ -295,11 +278,11 @@ const validateNarrativeCoherence = (slides: NarrativeSlide[], _topic: string): s
 };
 
 const generateNarrativeRecommendations = (slides: NarrativeSlide[], _issues: string[]): string[] => [
-    'Each slide must answer: "Why should I swipe to next?" If no answer = delete slide.',
-    'Vary copy style: Headline-heavy, image-heavy, data-heavy slides alternating.',
-    `Total flow: Hook (stop) → Curiosity (build) → Value (deliver) → Proof (believe) → CTA (act).`,
-    'No filler slides. Every slide earns its real estate.',
-  ];
+  'Each slide must answer: "Why should I swipe to next?" If no answer = delete slide.',
+  'Vary copy style: Headline-heavy, image-heavy, data-heavy slides alternating.',
+  `Total flow: Hook (stop) → Curiosity (build) → Value (deliver) → Proof (believe) → CTA (act).`,
+  'No filler slides. Every slide earns its real estate.',
+];
 
 const calculateNarrativeStrength = (slides: NarrativeSlide[], issues: string[]): number => {
   let score = 90;

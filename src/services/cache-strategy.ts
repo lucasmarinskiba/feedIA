@@ -18,11 +18,9 @@ import { getCache, setCache, deleteCache } from '../cache/redis-client.js';
  * Cache key generators for different endpoints
  */
 export const generateCacheKey = {
-  trends: (userId: string, days: string = '7'): string =>
-    `trends:detect:${userId}:${days}`,
+  trends: (userId: string, days: string = '7'): string => `trends:detect:${userId}:${days}`,
 
-  trendingAudio: (platform: string = 'tiktok', limit: string = '10'): string =>
-    `trends:audio:${platform}:${limit}`,
+  trendingAudio: (platform: string = 'tiktok', limit: string = '10'): string => `trends:audio:${platform}:${limit}`,
 
   roiCalculate: (format: string, topic: string, audience: string, budget: number): string =>
     `roi:calculate:${format}:${Buffer.from(`${topic}:${audience}`).toString('base64')}:${budget}`,
@@ -30,11 +28,9 @@ export const generateCacheKey = {
   roiCompare: (formats: string[], topic: string, audience: string, budget: number): string =>
     `roi:compare:${formats.sort().join(',')}:${Buffer.from(`${topic}:${audience}`).toString('base64')}:${budget}`,
 
-  abtestResults: (testId: string): string =>
-    `abtest:results:${testId}`,
+  abtestResults: (testId: string): string => `abtest:results:${testId}`,
 
-  carouselMetrics: (carouselId: string): string =>
-    `carousel:metrics:${carouselId}`,
+  carouselMetrics: (carouselId: string): string => `carousel:metrics:${carouselId}`,
 
   analyticsAggregation: (userId: string, metricType: string, period: string): string =>
     `analytics:agg:${userId}:${metricType}:${period}`,
@@ -119,11 +115,7 @@ export const cacheMiddleware = (ttlSeconds: number) => {
 /**
  * Manual cache operations for complex endpoints
  */
-export const withCaching = async <T>(
-  key: string,
-  ttlSeconds: number,
-  fetcher: () => Promise<T>,
-): Promise<T> => {
+export const withCaching = async <T>(key: string, ttlSeconds: number, fetcher: () => Promise<T>): Promise<T> => {
   // Try cache first
   const cached = await getCache<T>(key);
   if (cached) {
@@ -203,9 +195,7 @@ export const CACHE_TTL = {
  */
 export const prewarmCache = async (keys: Array<{ key: string; value: unknown; ttl: number }>): Promise<void> => {
   console.log(`[Cache] Prewarming ${keys.length} keys...`);
-  const results = await Promise.allSettled(
-    keys.map(({ key, value, ttl }) => setCache(key, value, ttl)),
-  );
+  const results = await Promise.allSettled(keys.map(({ key, value, ttl }) => setCache(key, value, ttl)));
 
   const failed = results.filter((r) => r.status === 'rejected').length;
   if (failed > 0) {

@@ -1126,7 +1126,8 @@ export const designPatternWorkflow = {
   videoCreation: 'Canva (sketch/idea) → CapCut (assembly) → Snapseed (polish photos)',
   contentStrategy: 'Identify pain → Create prompt → Organize → Document → Improve',
   strategyFirst: 'Strategy → Direction → Technology → Execution → Results',
-  agencyFramework: 'Mountain (deliver multi-services) → Handshake (partner) → Puzzle (solve) → Binoculars (see clearly) → Unlock (future)',
+  agencyFramework:
+    'Mountain (deliver multi-services) → Handshake (partner) → Puzzle (solve) → Binoculars (see clearly) → Unlock (future)',
 };
 
 // ── REAL CAROUSEL DESIGN PATTERNS ──────────────────────────────────────────
@@ -1590,7 +1591,7 @@ DESIGN RULES:
 - Clean, professional aesthetic
 - ROI/business language (not emotional)
     `,
-  }
+  },
 };
 
 // ── FOUNDATIONAL CONCEPTS (User Education) ────────────────────────────────
@@ -1636,7 +1637,7 @@ export const foundationalConcepts = {
 
   businessNeedsBoth: {
     name: 'Both Visual Identity AND Branding Required',
-    visualIdentityOnly: 'Incomplete tool. Attracts eyes. Won\'t retain trust or loyalty.',
+    visualIdentityOnly: "Incomplete tool. Attracts eyes. Won't retain trust or loyalty.",
     brandingOnly: 'Hard to remember. Strong values without recognizable face.',
     together: 'Complete strategy. Attracts → Engages → Retains → Scales',
     outcome: 'Invest in both = Assure future + scalability of business',
@@ -1650,7 +1651,8 @@ export const foundationalConcepts = {
       '4. Generate content: All content reflects both visual + brand',
     ],
     criticalInsight: 'BRANDING FIRST → VISUAL SECOND. Visual derives from Brand essence.',
-    whyMatters: 'If you design visual without clear branding, you\'ll confuse audience. If you define branding without visual identity, you\'ll be forgettable.',
+    whyMatters:
+      "If you design visual without clear branding, you'll confuse audience. If you define branding without visual identity, you'll be forgettable.",
   },
 
   strategyVsTactics: {
@@ -1717,17 +1719,39 @@ export const foundationalConcepts = {
 export const invertedCarouselPatterns = {
   // Pattern 1: Product/Object + "Won't" Statement
   productWontPattern: {
-    name: 'Product Won\'t Pattern (Punchline First)',
-    description: 'Beautiful product → bold claim it won\'t solve problem → reveal system',
+    name: "Product Won't Pattern (Punchline First)",
+    description: "Beautiful product → bold claim it won't solve problem → reveal system",
     slides: [
-      { slide: 1, type: 'Punchline', example: 'Este café no te hará productivo', purpose: 'Stop scroll, curiosity hook' },
+      {
+        slide: 1,
+        type: 'Punchline',
+        example: 'Este café no te hará productivo',
+        purpose: 'Stop scroll, curiosity hook',
+      },
       { slide: 2, type: 'Error ID', example: 'EL ERROR: Beber café = Ser productivo', purpose: 'Validate frustration' },
       { slide: 3, type: 'Proof', example: 'Formulas: + cafeína ≠ + energía', purpose: 'Build credibility' },
-      { slide: 4, type: 'System', example: 'Puzzle: Sueño + Café + Agua + Nutrición + Movimiento', purpose: 'Explain real solution' },
-      { slide: 5, type: 'Context', example: 'Tu café es ALIADO, no solución', purpose: 'Wisdom + permission' }
+      {
+        slide: 4,
+        type: 'System',
+        example: 'Puzzle: Sueño + Café + Agua + Nutrición + Movimiento',
+        purpose: 'Explain real solution',
+      },
+      { slide: 5, type: 'Context', example: 'Tu café es ALIADO, no solución', purpose: 'Wisdom + permission' },
     ],
-    adaptableFor: ['Coffee', 'Phone', 'Gym membership', 'Course', 'Book', 'Furniture', 'Tool', 'App', 'Service', 'Product', 'Experience'],
-    shareability: 'Slide 1 (meme) + Slide 5 (quote) both shareable independently'
+    adaptableFor: [
+      'Coffee',
+      'Phone',
+      'Gym membership',
+      'Course',
+      'Book',
+      'Furniture',
+      'Tool',
+      'App',
+      'Service',
+      'Product',
+      'Experience',
+    ],
+    shareability: 'Slide 1 (meme) + Slide 5 (quote) both shareable independently',
   },
 
   // Pattern 2: Monkey/Character + Message
@@ -1737,10 +1761,10 @@ export const invertedCarouselPatterns = {
     examples: [
       { object: 'Monkey', statement: 'Publicar solo en redes no es vender', industry: 'Social media' },
       { object: 'Turtle', statement: 'Un curso no te hace experto', industry: 'Education' },
-      { object: 'Person', statement: 'Una silla no arregla tu postura', industry: 'Wellness' }
+      { object: 'Person', statement: 'Una silla no arregla tu postura', industry: 'Wellness' },
     ],
     structure: 'Punchline (funny) → Error (frustration) → Proof (data) → System (solution) → Wisdom (context)',
-    viralMechanic: 'Slide 1 gets shared as meme. Reverse-reading forces full carousel swipes.'
+    viralMechanic: 'Slide 1 gets shared as meme. Reverse-reading forces full carousel swipes.',
   },
 
   // Pattern 3: Before-During-After (Inverted)
@@ -1752,8 +1776,8 @@ export const invertedCarouselPatterns = {
       { slide: 2, visual: 'Emotional moment (realization, breakthrough)', text: 'Hasta que descubriste que...' },
       { slide: 3, visual: 'Process (effort, multiple steps)', text: 'Entonces comenzaste...' },
       { slide: 4, visual: 'Root frustration', text: 'Porque estabas...' },
-      { slide: 5, visual: 'Before state (stuck)', text: 'Y todo empezó aquí' }
-    ]
+      { slide: 5, visual: 'Before state (stuck)', text: 'Y todo empezó aquí' },
+    ],
   },
 
   // Pattern 4: Fast Facts (Quick Debunk)
@@ -1763,9 +1787,9 @@ export const invertedCarouselPatterns = {
     examples: [
       { myth: 'Más followers = Más ventas', truth: 'Engagement quality matters' },
       { myth: 'Publicar mucho = Vender mucho', truth: 'Strategy matters' },
-      { myth: 'Hermosa foto = Conversión', truth: 'Copy + psychology matter' }
-    ]
-  }
+      { myth: 'Hermosa foto = Conversión', truth: 'Copy + psychology matter' },
+    ],
+  },
 };
 
 // ── PHASE 26: ADVANCED CAROUSEL MESSAGE PATTERNS ──────────────────────────
@@ -1775,81 +1799,93 @@ export const advancedMessagePatterns = {
     name: 'Before-During-After Journey',
     slides: ['Before (pain)', 'During (process)', 'After (transformation)'],
     psychology: 'Emotional arc forces completion. Relatability high.',
-    shareability: 'Before/After extremely shareable'
+    shareability: 'Before/After extremely shareable',
   },
 
   misconceptionFlip: {
     name: 'Misconception Flip',
-    slides: ['False Belief', 'Where it comes from', 'The trap', 'What\'s actually true', 'New path'],
+    slides: ['False Belief', 'Where it comes from', 'The trap', "What's actually true", 'New path'],
     psychology: 'Personal revelation = high engagement',
-    shareability: '"I believed this too" moment'
+    shareability: '"I believed this too" moment',
   },
 
   accumulationStrategy: {
     name: 'Small Act × Time = Big Result',
     formula: '1 small action × 365 days = Transformation',
     slides: ['Tiny act', 'Repetition over time', 'Math proof', 'Transformation', 'You can start today'],
-    examples: ['1L water/day = Health', '5min/day = Expertise', '1 client/week = Business']
+    examples: ['1L water/day = Health', '5min/day = Expertise', '1 client/week = Business'],
   },
 
   objectionLadder: {
     name: 'Escalating Objections',
     layers: ['Surface objection', 'Second layer', 'Third layer', 'Real fear', 'Permission forward'],
     psychology: 'Addresses multiple resistance levels',
-    examples: ['Too expensive → Necessity doubt → Fear of failure']
+    examples: ['Too expensive → Necessity doubt → Fear of failure'],
   },
 
   contrastStory: {
     name: 'Two People, Opposite Paths',
     split: ['Person A (right path)', 'Person B (wrong path)'],
     result: 'Side-by-side comparison after time period',
-    cta: 'Which person are YOU?'
+    cta: 'Which person are YOU?',
   },
 
   frameworkReveal: {
     name: 'Framework Explanation',
     slides: ['Problem (complexity)', 'Framework introduced', 'Component 1', 'Components 2-3', 'Full system working'],
-    psychology: 'Naming = memorability. Framework = scalability.'
+    psychology: 'Naming = memorability. Framework = scalability.',
   },
 
   patternInterrupt: {
     name: 'Expectation → Twist → Lesson',
     structure: ['Set expectation', 'Surprise twist', 'Why did this happen', 'The lesson', 'How YOU apply this'],
-    psychology: 'Surprise = stop scroll + attention spike'
+    psychology: 'Surprise = stop scroll + attention spike',
   },
 
   proofProgression: {
     name: 'Escalating Credibility Evidence',
     progression: ['Bold claim', 'Proof #1 (soft)', 'Proof #2 (stronger)', 'Proof #3 (strongest)', 'You can be next'],
-    psychology: 'Accumulation = undeniable credibility'
+    psychology: 'Accumulation = undeniable credibility',
   },
 
   speedVsQuality: {
     name: 'False Choice Revelation',
-    structure: ['The dilemma', 'Speed path results', 'Quality path results', 'The twist (false choice)', 'Real path (both)'],
-    psychology: 'Reframes limiting belief. Empowers action.'
+    structure: [
+      'The dilemma',
+      'Speed path results',
+      'Quality path results',
+      'The twist (false choice)',
+      'Real path (both)',
+    ],
+    psychology: 'Reframes limiting belief. Empowers action.',
   },
 
   authorityChallenge: {
     name: 'Question Expert Wisdom',
-    structure: ['Conventional wisdom', 'What if they\'re wrong?', 'Evidence against', 'What\'s actually true', 'Think differently'],
-    psychology: 'Permission to question = empowerment'
-  }
+    structure: [
+      'Conventional wisdom',
+      "What if they're wrong?",
+      'Evidence against',
+      "What's actually true",
+      'Think differently',
+    ],
+    psychology: 'Permission to question = empowerment',
+  },
 };
 
 // ── PHASE 26: CROSS-FORMAT STORYTELLING TEMPLATES ───────────────────────
 
 export const storytellingTemplates = {
   herosJourney: {
-    name: 'Hero\'s Journey (5-Act Story)',
+    name: "Hero's Journey (5-Act Story)",
     acts: [
       { act: 1, title: 'Ordinary World', duration: '5-10%', emotion: 'Relatability' },
       { act: 2, title: 'The Call', duration: '10-15%', emotion: 'Crisis/Realization' },
       { act: 3, title: 'Resistance & Journey', duration: '60-70%', emotion: 'Hope + Struggle' },
       { act: 4, title: 'The Transformation', duration: '10-15%', emotion: 'Breakthrough' },
-      { act: 5, title: 'Return Changed', duration: '5-10%', emotion: 'Wisdom + Invitation' }
+      { act: 5, title: 'Return Changed', duration: '5-10%', emotion: 'Wisdom + Invitation' },
     ],
-    adaptation: 'Product story (customer as hero), service story, founder story, learning story, health story'
+    adaptation: 'Product story (customer as hero), service story, founder story, learning story, health story',
   },
 
   problemAgitationSolution: {
@@ -1857,9 +1893,12 @@ export const storytellingTemplates = {
     sections: [
       { section: 'Problem', duration: '30-40%', action: 'Identify pain clearly' },
       { section: 'Agitation', duration: '30-40%', action: 'Amplify emotionally' },
-      { section: 'Solution', duration: '20-30%', action: 'Reveal path forward' }
+      { section: 'Solution', duration: '20-30%', action: 'Reveal path forward' },
     ],
-    timing: { video: '10s problem, 10s agitation, 10s solution', carousel: '2 slides problem, 2 agitation, 1 solution' }
+    timing: {
+      video: '10s problem, 10s agitation, 10s solution',
+      carousel: '2 slides problem, 2 agitation, 1 solution',
+    },
   },
 
   beforeDuringAfter: {
@@ -1867,8 +1906,8 @@ export const storytellingTemplates = {
     parts: [
       { part: 'Before', emotion: 'Frustration/stuck', duration: 'Brief' },
       { part: 'During', emotion: 'Hope + struggle', duration: 'Extended' },
-      { part: 'After', emotion: 'Joy/relief', duration: 'Celebration' }
-    ]
+      { part: 'After', emotion: 'Joy/relief', duration: 'Celebration' },
+    ],
   },
 
   curiosityLoop: {
@@ -1877,8 +1916,8 @@ export const storytellingTemplates = {
       { stage: 'Hook', duration: 'First 3s', purpose: 'Stop scroll' },
       { stage: 'Setup', duration: '10-15s', purpose: 'Build context' },
       { stage: 'Build', duration: '20-30s', purpose: 'Tension increase' },
-      { stage: 'Payoff', duration: '10-15s', purpose: 'Answer + satisfaction' }
-    ]
+      { stage: 'Payoff', duration: '10-15s', purpose: 'Answer + satisfaction' },
+    ],
   },
 
   teachingStory: {
@@ -1887,9 +1926,9 @@ export const storytellingTemplates = {
       { component: 'Premise', duration: '5-10%', action: 'Introduce topic' },
       { component: 'Context', duration: '10-15%', action: 'Why it matters' },
       { component: 'Teaching', duration: '60-70%', action: 'Step-by-step breakdown' },
-      { component: 'Application', duration: '10-15%', action: 'Try this now' }
-    ]
-  }
+      { component: 'Application', duration: '10-15%', action: 'Try this now' },
+    ],
+  },
 };
 
 // ── PHASE 26: PLATFORM-SPECIFIC STORYTELLING ─────────────────────────────
@@ -1900,7 +1939,7 @@ export const platformStoryTiming = {
     timing: 'User controls pace (can swipe fast or slow)',
     structure: 'Hook → Build (2-3 slides) → Reveal/Deliver → CTA',
     typography: 'Bold + readable on mobile',
-    recommendation: 'Each slide answers question from previous slide'
+    recommendation: 'Each slide answers question from previous slide',
   },
 
   instagramReel: {
@@ -1908,10 +1947,10 @@ export const platformStoryTiming = {
     timing: {
       first: '0-3s: Unmissable hook (trending audio)',
       middle: '3-45s: Build curiosity + deliver value',
-      end: '45-60s: Memorable ending'
+      end: '45-60s: Memorable ending',
     },
     format: 'Fast cuts, text overlays, captions',
-    recommendation: 'Audio-first design'
+    recommendation: 'Audio-first design',
   },
 
   instagramStory: {
@@ -1920,7 +1959,7 @@ export const platformStoryTiming = {
     pacing: 'Rapid fire, escalating urgency',
     structure: 'Hook → Quick clips/images → Deliver → Offer → CTA',
     tools: 'Emojis, stickers, text overlays, urgency',
-    recommendation: 'Time limits + swipe-up CTAs'
+    recommendation: 'Time limits + swipe-up CTAs',
   },
 
   tikTok: {
@@ -1929,15 +1968,15 @@ export const platformStoryTiming = {
       hook: '0-3s (MUST happen)',
       build: '3-15s (Pattern interrupt)',
       deliver: '15-45s (Teach/show/amuse)',
-      end: '45-60s (Memorable, challenge or question)'
+      end: '45-60s (Memorable, challenge or question)',
     },
-    recommendation: 'Sound-first, subtitles mandatory'
+    recommendation: 'Sound-first, subtitles mandatory',
   },
 
   youtubeShort: {
     format: '15-60 seconds',
     recommendation: 'Similar TikTok, can be extracted from longer videos',
-    tools: 'Thumbnail + first frame critical'
+    tools: 'Thumbnail + first frame critical',
   },
 
   linkedInPost: {
@@ -1946,7 +1985,7 @@ export const platformStoryTiming = {
     proof: 'Stats, example, case study',
     cta: 'Engagement ask (comment, share, DM)',
     length: '1-3 paragraphs (mobile reading)',
-    recommendation: 'Business language + personal touch'
+    recommendation: 'Business language + personal touch',
   },
 
   blogPost: {
@@ -1954,21 +1993,33 @@ export const platformStoryTiming = {
     firstParagraph: 'Grab attention',
     middle: 'Build case',
     keySection: 'Main insight',
-    ctaSection: 'Clear next step'
+    ctaSection: 'Clear next step',
   },
 
   email: {
     subject: 'Hook',
     body: 'Story',
     proof: 'Evidence',
-    cta: 'Action'
-  }
+    cta: 'Action',
+  },
 };
 
 // ── PHASE 26: 150+ INDUSTRY ADAPTATIONS (Compact) ──────────────────────
 
 export const industryAdaptations = {
-  products: ['Phone', 'Laptop', 'Camera', 'Headphones', 'Watch', 'Shoes', 'Clothing', 'Makeup', 'Furniture', 'Tool', 'Gadget'],
+  products: [
+    'Phone',
+    'Laptop',
+    'Camera',
+    'Headphones',
+    'Watch',
+    'Shoes',
+    'Clothing',
+    'Makeup',
+    'Furniture',
+    'Tool',
+    'Gadget',
+  ],
   services: ['Gym', 'Therapy', 'Coaching', 'Consulting', 'Education', 'Travel', 'Beauty', 'Medical', 'Law', 'Finance'],
   experiences: ['Course', 'Book', 'Podcast', 'Retreat', 'Conference', 'Workshop', 'Program', 'Event'],
   tools: ['Software', 'App', 'Platform', 'Plugin', 'Template', 'Framework', 'Automation', 'AI'],
@@ -1978,7 +2029,8 @@ export const industryAdaptations = {
   lifestyle: ['Car', 'House', 'Furniture', 'Decoration', 'Gadget', 'Fashion', 'Accessories', 'Travel gear'],
   digital: ['Followers', 'Views', 'Likes', 'Subscribers', 'Rankings', 'Traffic', 'Downloads', 'Engagement'],
 
-  patternRule: 'Use INVERTED structure for ALL industries: Punchline (funny/bold) → Error (frustration) → Proof (data) → System (solution) → Wisdom (context)'
+  patternRule:
+    'Use INVERTED structure for ALL industries: Punchline (funny/bold) → Error (frustration) → Proof (data) → System (solution) → Wisdom (context)',
 };
 
 // ── UNIVERSAL MASTER FORMULA (All Patterns) ─────────────────────────────
@@ -1987,32 +2039,32 @@ export const universalStoryFormula = {
   grab: {
     duration: '3 seconds / Slide 1',
     purpose: 'Stop scroll',
-    tactics: ['Emotional hook', 'Curiosity spike', 'Visual surprise', 'Bold statement']
+    tactics: ['Emotional hook', 'Curiosity spike', 'Visual surprise', 'Bold statement'],
   },
 
   connect: {
     duration: 'Middle section',
     purpose: 'Make them care',
-    tactics: ['Character relatable', 'Show struggle/effort', 'Emotional: build investment']
+    tactics: ['Character relatable', 'Show struggle/effort', 'Emotional: build investment'],
   },
 
   reveal: {
     duration: 'Build to peak',
     purpose: 'Force continuation',
-    tactics: ['Tension increase', 'Surprise or insight', 'Visual dynamic']
+    tactics: ['Tension increase', 'Surprise or insight', 'Visual dynamic'],
   },
 
   deliver: {
     duration: 'Payoff moment',
     purpose: 'Memorable takeaway',
-    tactics: ['Answer question', 'Satisfying conclusion', 'Emotional relief/joy/wisdom']
+    tactics: ['Answer question', 'Satisfying conclusion', 'Emotional relief/joy/wisdom'],
   },
 
   invite: {
     duration: 'Final CTA',
     purpose: 'Engagement/conversion',
-    tactics: ['Permission to act', 'Clear next step', 'Emotional empowerment']
-  }
+    tactics: ['Permission to act', 'Clear next step', 'Emotional empowerment'],
+  },
 };
 
 // ── PHASE 27: VISUAL GENIUS PATTERNS (Car/Hero Images + Genius Techniques) ──
@@ -2046,7 +2098,7 @@ ADAPTATIONS:
 - Business: Startup, agency, store, platform
     `,
     psychology: 'Removes objections via permission language',
-    shareability: 'High (empowering message)'
+    shareability: 'High (empowering message)',
   },
 
   isolationMetaphor: {
@@ -2078,7 +2130,7 @@ ADAPTATIONS:
 - Business: Partnership, collaboration, network
     `,
     psychology: 'Metaphor inversion = memorable. Isolation visual + solidarity message.',
-    shareability: 'High (vulnerable + hopeful)'
+    shareability: 'High (vulnerable + hopeful)',
   },
 
   overheadCar: {
@@ -2110,7 +2162,7 @@ ADAPTATIONS:
 - Journey metaphor: Career, learning, transformation
     `,
     psychology: 'Driving metaphor = agency + momentum. Overhead view = strategy perspective.',
-    shareability: 'Medium (aspirational)'
+    shareability: 'Medium (aspirational)',
   },
 
   drivingBeyondLimits: {
@@ -2140,14 +2192,14 @@ ADAPTATIONS:
 - Performance: Speed, acceleration, momentum
     `,
     psychology: 'Driving = active control. Beyond = aspirational growth.',
-    shareability: 'Medium (action-oriented, ambitious)'
+    shareability: 'Medium (action-oriented, ambitious)',
   },
 
   // 6 GENIUS PATTERNS (Psychology + Technique)
 
   typographyPhysicalLayer: {
     name: 'Typography Overlays Subject (Physical Interaction)',
-    description: 'Text overlaps person/object like it\'s part of composition. Not floating - embedded.',
+    description: "Text overlaps person/object like it's part of composition. Not floating - embedded.",
     template: `
 VISUAL:
 - Subject: [B&W or muted color for contrast]
@@ -2170,7 +2222,7 @@ ADAPTATIONS:
 - Business: Company name overlaps founder
     `,
     psychology: 'Text merging = embodied messaging, not external promotion',
-    shareability: 'High (bold, personal)'
+    shareability: 'High (bold, personal)',
   },
 
   productAsCanvas: {
@@ -2196,7 +2248,7 @@ ADAPTATIONS:
 - Game board → Gaming tournament (game pieces)
     `,
     psychology: 'Product becomes usable canvas. Text integration = functional design.',
-    shareability: 'High (clever integration, memorable)'
+    shareability: 'High (clever integration, memorable)',
   },
 
   surealGeometryReal: {
@@ -2222,7 +2274,7 @@ ADAPTATIONS:
 - Furniture: Geometric sitter + chair overhead
     `,
     psychology: 'Impossible perspective = surreal magnetism. Collision = memorability.',
-    shareability: 'High (surreal, shareable)'
+    shareability: 'High (surreal, shareable)',
   },
 
   floatingInformationArchitecture: {
@@ -2248,7 +2300,7 @@ ADAPTATIONS:
 - Trainer: Coach + floating class schedules
     `,
     psychology: 'Information as design element, not annotation. Floating = dynamism.',
-    shareability: 'High (information + visual merge)'
+    shareability: 'High (information + visual merge)',
   },
 
   monochromeAccentColor: {
@@ -2274,7 +2326,7 @@ ADAPTATIONS:
 - Luxury: Gold text on B&W product
     `,
     psychology: 'Single color decision = premium sophistication. Extreme contrast = clarity.',
-    shareability: 'High (clean, professional)'
+    shareability: 'High (clean, professional)',
   },
 
   doubleExposureLayered: {
@@ -2301,7 +2353,7 @@ ADAPTATIONS:
 - Book: Co-authors merged + title
     `,
     psychology: 'Merging = belonging + unity. Double exposure = intimacy.',
-    shareability: 'High (mysterious, relatable)'
+    shareability: 'High (mysterious, relatable)',
   },
 
   // ── PHASE 28: AUTO/MECHANIC PATTERNS ────────────────────────────────────────
@@ -2334,7 +2386,7 @@ ADAPTATIONS:
 - Tire service: "Agarre en cada ruta"
     `,
     psychology: 'Blur effect = speed perception. Mechanic hero = trust + authority.',
-    shareability: 'High (dynamic, viral motion)'
+    shareability: 'High (dynamic, viral motion)',
   },
 
   beforeAfterEngine: {
@@ -2365,7 +2417,7 @@ ADAPTATIONS:
 - Electrónico: "Lento vs instantáneo"
     `,
     psychology: 'Before-after = cognitive closure. Proof in image form = high credibility.',
-    shareability: 'Very high (transformation porn)'
+    shareability: 'Very high (transformation porn)',
   },
 
   partDissectionGrid: {
@@ -2396,7 +2448,7 @@ ADAPTATIONS:
 - Brakes: "Componentes de frenada"
     `,
     psychology: 'Transparency = trust. Grid = organized authority. Neon = modern tech vibes.',
-    shareability: 'High (educational, shareable content)'
+    shareability: 'High (educational, shareable content)',
   },
 
   professionalMechanicHero: {
@@ -2427,7 +2479,7 @@ ADAPTATIONS:
 - Paint: "Pintor profesional con garantía"
     `,
     psychology: 'Face = immediate trust. Credentials = authority. Floating data = authority pyramid.',
-    shareability: 'Medium-high (personal, credible)'
+    shareability: 'Medium-high (personal, credible)',
   },
 
   shockFactorDiagnosis: {
@@ -2456,7 +2508,7 @@ ADAPTATIONS:
 - Filter: "Aire que respira sucio"
     `,
     psychology: 'Shock = capture attention. Problem visibility = motivation to solve. Red = urgency.',
-    shareability: 'High (wow moment, shareable discovery)'
+    shareability: 'High (wow moment, shareable discovery)',
   },
 
   serviceStackingChecklist: {
@@ -2486,7 +2538,7 @@ ADAPTATIONS:
 - Accessories: "Catálogo completo"
     `,
     psychology: 'Abundance = high-value offer. Checklist = organized, trustworthy.',
-    shareability: 'Medium (informational, useful)'
+    shareability: 'Medium (informational, useful)',
   },
 
   colorBlockingCar: {
@@ -2515,7 +2567,7 @@ ADAPTATIONS:
 - Custom shop: Gradient background
     `,
     psychology: 'Bold color = brand recognition. Minimal = premium. Car hero = aspiration.',
-    shareability: 'High (clean, brandable)'
+    shareability: 'High (clean, brandable)',
   },
 
   carouselPreviewMockup: {
@@ -2543,7 +2595,7 @@ ADAPTATIONS:
 - Fleet options: "Selecciona tu vehículo"
     `,
     psychology: 'Transparency = trust. Meta carousel = novelty + engagement.',
-    shareability: 'Medium (innovative, unique format)'
+    shareability: 'Medium (innovative, unique format)',
   },
 
   testimonialTrust: {
@@ -2571,7 +2623,7 @@ ADAPTATIONS:
 - Specialist: "Expertos que recomiendo"
     `,
     psychology: 'Face + results = high credibility. Third-party voice = authentic trust.',
-    shareability: 'Very high (social proof, relatable)'
+    shareability: 'Very high (social proof, relatable)',
   },
 
   ctaIntegration: {
@@ -2599,14 +2651,14 @@ ADAPTATIONS:
 - Parts: "Cotización sin compromiso"
     `,
     psychology: 'Multiple CTAs = choice. Low friction = conversion. Urgency = action.',
-    shareability: 'Low (conversion-focused, not social)'
+    shareability: 'Low (conversion-focused, not social)',
   },
 
   // ── PHASE 28: LOGISTICS/TRANSPORT PATTERNS ──────────────────────────────────
 
   convenienceHookDelivery: {
     name: 'Convenience Hook (No Need Pattern)',
-    description: 'User doesn\'t need to do X because service handles it.',
+    description: "User doesn't need to do X because service handles it.",
     template: `
 VISUAL:
 - Slide 1: [Person at home, relaxed, phone in hand]
@@ -2632,7 +2684,7 @@ ADAPTATIONS:
 - B2B: "Entrega mientras produces"
     `,
     psychology: 'Problem erasure = emotional relief. Convenience = premium positioning.',
-    shareability: 'High (relatable, useful)'
+    shareability: 'High (relatable, useful)',
   },
 
   geographicCoverageHero: {
@@ -2661,7 +2713,7 @@ ADAPTATIONS:
 - Bi-national: "Colombia ↔ Venezuela"
     `,
     psychology: 'Geography = local trust. Landmarks = place awareness. National = authority.',
-    shareability: 'Medium (informational, regional interest)'
+    shareability: 'Medium (informational, regional interest)',
   },
 
   solutionStackingLogistics: {
@@ -2690,7 +2742,7 @@ ADAPTATIONS:
 - Distribution: "Local, regional, nacional"
     `,
     psychology: 'Abundance = high-value perception. Flexibility = trust. Education = authority.',
-    shareability: 'Medium-high (informational, useful)'
+    shareability: 'Medium-high (informational, useful)',
   },
 
   valueTriangleLogistics: {
@@ -2718,7 +2770,7 @@ ADAPTATIONS:
 - Distribution: "Cobertura, precio, exactitud"
     `,
     psychology: 'Triangle = complete value proposition. Three pillars = comprehensive.',
-    shareability: 'Medium (B2B professional tone)'
+    shareability: 'Medium (B2B professional tone)',
   },
 
   surealDeliveryFantasy: {
@@ -2749,7 +2801,7 @@ ADAPTATIONS:
 - B2B: "Piezas industriales a cualquier lugar"
     `,
     psychology: 'Impossibility = viral, shareable. Hyperbole = memorable, entertaining.',
-    shareability: 'Very high (meme-worthy, surreal)'
+    shareability: 'Very high (meme-worthy, surreal)',
   },
 
   problemErasureLogistics: {
@@ -2779,7 +2831,7 @@ ADAPTATIONS:
 - "No pagas sorpresas en destino"
     `,
     psychology: 'Problem erasure = relief + emotional connection. Narrative satisfaction.',
-    shareability: 'High (relatable, problem-focused)'
+    shareability: 'High (relatable, problem-focused)',
   },
 
   specialistHeroLogistics: {
@@ -2808,7 +2860,7 @@ ADAPTATIONS:
 - High-value: "Seguridad máxima"
     `,
     psychology: 'Face + credentials = high credibility. Professional equipment = trust.',
-    shareability: 'Medium (B2B professional)'
+    shareability: 'Medium (B2B professional)',
   },
 
   speedEscalation: {
@@ -2837,7 +2889,7 @@ ADAPTATIONS:
 - On-demand: Real-time pricing
     `,
     psychology: 'Escalation = urgency ladder. User chooses based on need + budget.',
-    shareability: 'Medium (informational, comparative)'
+    shareability: 'Medium (informational, comparative)',
   },
 
   geographicCoverageReveal: {
@@ -2866,7 +2918,7 @@ ADAPTATIONS:
 - "50 ciudades, 10,000+ entregas"
     `,
     psychology: 'Geographic expansion = growth credibility. Timeline = proof of market fit.',
-    shareability: 'Medium (company-focused, achievement-oriented)'
+    shareability: 'Medium (company-focused, achievement-oriented)',
   },
 
   objectionLadderLogistics: {
@@ -2896,7 +2948,7 @@ ADAPTATIONS:
 - "¿Qué horario?" → Proof: "Flexible, 24/7"
     `,
     psychology: 'Objection addressing = confidence. Proof ladder = credibility build.',
-    shareability: 'High (problem-solving focused)'
+    shareability: 'High (problem-solving focused)',
   },
 
   // ── PHASE 29: STRATEGIC FORMULAS (Multi-Industry) ───────────────────────────
@@ -2960,7 +3012,7 @@ ADAPTATIONS BY USER TYPE:
 - Agency: Emphasis on "system scalability + client success stories"
     `,
     psychology: 'Identity before aesthetics. Foundation before building. Rejection defines inclusion.',
-    shareability: 'High (framework-based, educational)'
+    shareability: 'High (framework-based, educational)',
   },
 
   templateReusabilityFormula: {
@@ -3023,7 +3075,7 @@ ADAPTATIONS BY USER TYPE:
 - Creator: Authenticity is priority ("My voice, not template voice")
     `,
     psychology: 'Templates = speed + confidence. Pre-built = reduced friction. One-click = adoption.',
-    shareability: 'Very high (tool-focused, efficiency-driven)'
+    shareability: 'Very high (tool-focused, efficiency-driven)',
   },
 
   hookErrorActionResultCta: {
@@ -3085,7 +3137,7 @@ ADAPTATIONS BY USER TYPE:
 - Service provider: Emphasis on process/results
     `,
     psychology: 'Promise-validation-proof escalation. Credibility climbs slide by slide. High conversion.',
-    shareability: 'Very high (educational, proven formula)'
+    shareability: 'Very high (educational, proven formula)',
   },
 
   questionAnswerDetailApplicationCta: {
@@ -3145,7 +3197,7 @@ ADAPTATIONS BY USER TYPE:
 - Creator: Emphasis on "audience engagement"
     `,
     psychology: 'Audience question = instant relevance. Direct answer = respect. Application = value.',
-    shareability: 'Very high (Q&A format = natural sharing)'
+    shareability: 'Very high (Q&A format = natural sharing)',
   },
 
   numericTitleResourceBonusCtaFormula: {
@@ -3196,7 +3248,7 @@ ADAPTATIONS BY USER TYPE:
 - Creator: "10 formatos de contenido que explotan"
     `,
     psychology: 'Numbers = specificity. Lists = scannable. Resources = immediately useful. Bonus = delight.',
-    shareability: 'Very high (listicle format is native-shareable)'
+    shareability: 'Very high (listicle format is native-shareable)',
   },
 
   // ── PHASE 30: VISUAL INTELLIGENCE + PORTABLE SYSTEMS ────────────────────────
@@ -3238,7 +3290,7 @@ ADAPTATIONS:
 - Product: "El empaque genérico que no diferencia"
     `,
     psychology: 'Shock + consequence = motivation to fix. Visual contrast = memorability.',
-    shareability: 'Very high (anxiety-driven, relatable problem)'
+    shareability: 'Very high (anxiety-driven, relatable problem)',
   },
 
   carouselConsistencySystem: {
@@ -3277,7 +3329,7 @@ ADAPTATIONS:
 - Service: Same service + varied problem scenarios
     `,
     psychology: 'Consistency = recognition. Variety = engagement. Person = trust.',
-    shareability: 'High (professional, branded, trustworthy)'
+    shareability: 'High (professional, branded, trustworthy)',
   },
 
   questionHookService: {
@@ -3320,7 +3372,7 @@ ADAPTATIONS:
 - Product: "¿Por qué este producto?"
     `,
     psychology: 'Question = cognitive engagement. Carousel answers = satisfaction. Proof = conversion.',
-    shareability: 'High (question format is inherently engaging)'
+    shareability: 'High (question format is inherently engaging)',
   },
 
   portableSystemsFraming: {
@@ -3362,7 +3414,7 @@ ADAPTATIONS:
 - Business: "How to structure a pitch"
     `,
     psychology: 'Portability = low friction + immediate utility. Systems = replicable confidence.',
-    shareability: 'Very high (immediately useful, shareable framework)'
+    shareability: 'Very high (immediately useful, shareable framework)',
   },
 
   patternRecognitionStory: {
@@ -3404,7 +3456,7 @@ ADAPTATIONS:
 - Mental health: "My healing journey (recognize yourself here)"
     `,
     psychology: 'Self-location > bragging. Relatability = trust. Timeline = possibility.',
-    shareability: 'Very high (deeply relatable, non-aggressive, educational)'
+    shareability: 'Very high (deeply relatable, non-aggressive, educational)',
   },
 
   timelineIntegrationPattern: {
@@ -3435,7 +3487,7 @@ ADAPTATIONS:
 - Event promotion: Countdown calendar + building hype
     `,
     psychology: 'Timeline visibility = accountability + urgency. Dates = progress tangibility.',
-    shareability: 'Medium (informational, systematic, professional)'
+    shareability: 'Medium (informational, systematic, professional)',
   },
 
   zoneBasedFraming: {
@@ -3480,7 +3532,7 @@ ADAPTATIONS:
 - Thumbnail design: Zone-based hierarchy for phone preview
     `,
     psychology: 'Zones = structure + confidence. Visual teaching = speed. Immediately useful.',
-    shareability: 'High (technical but accessible, immediately useful)'
+    shareability: 'High (technical but accessible, immediately useful)',
   },
 
   humbleMetricsIntegration: {
@@ -3519,7 +3571,7 @@ ADAPTATIONS:
 - Professional: Cases handled + success rate (embedded in teaching)
     `,
     psychology: 'Humble metrics = trust. Bragging = distrust. Embedded = authentic.',
-    shareability: 'High (relatable, non-aggressive, credible)'
+    shareability: 'High (relatable, non-aggressive, credible)',
   },
 
   personalityQuestionMashup: {
@@ -3560,7 +3612,7 @@ ADAPTATIONS:
 - Personal brand: "What can I teach you?"
     `,
     psychology: 'Authentic question = lowered defenses. Person = humanized. Thought bubble = identification.',
-    shareability: 'High (relatable, non-corporate, inviting)'
+    shareability: 'High (relatable, non-corporate, inviting)',
   },
 
   authenticityFirstPositioning: {
@@ -3600,7 +3652,7 @@ ADAPTATIONS:
 - Personal brand: "The messy middle of my journey"
     `,
     psychology: 'Authenticity > perfection. Vulnerability = trust. Real = relatable.',
-    shareability: 'Very high (non-corporate, deeply relatable, shareable vulnerability)'
+    shareability: 'Very high (non-corporate, deeply relatable, shareable vulnerability)',
   },
 
   // ── PHASE 31: INSTAGRAM ALGORITHM INTELLIGENCE (2026) ─────────────────────
@@ -3645,7 +3697,7 @@ ADAPTATIONS:
 - Service: "Content creation → coaches specifically" (niche service)
     `,
     psychology: 'Clarity = confidence. Mixed signals = confusion. Algo amplifies clear niches.',
-    shareability: 'High (educational, strategic positioning)'
+    shareability: 'High (educational, strategic positioning)',
   },
 
   creatorUserRelationship: {
@@ -3687,7 +3739,7 @@ ADAPTATIONS:
 - Coach: "50 committed students > 500 browser students"
     `,
     psychology: 'Depth signals = algo amplification. Interactions > followers.',
-    shareability: 'Very high (counter-narrative to follower obsession)'
+    shareability: 'Very high (counter-narrative to follower obsession)',
   },
 
   recencyOptimization: {
@@ -3733,7 +3785,7 @@ ADAPTATIONS:
 - E-commerce: "Post when shopping behavior peaks (Friday-Sunday)"
     `,
     psychology: 'Recency + consistency = algo confidence. Early engagement = amplification trigger.',
-    shareability: 'High (actionable, data-driven strategy)'
+    shareability: 'High (actionable, data-driven strategy)',
   },
 
   sessionDurationOptimization: {
@@ -3774,7 +3826,7 @@ ADAPTATIONS:
 - Product: "Carousel storytelling (product journey forces scroll)"
     `,
     psychology: 'Session duration = algo priority. Content pacing = engagement extension.',
-    shareability: 'Medium-high (strategic, educational, immediately useful)'
+    shareability: 'Medium-high (strategic, educational, immediately useful)',
   },
 
   originalityRewardSignal: {
@@ -3822,7 +3874,7 @@ ADAPTATIONS:
 - Writer: "Your perspective > trending topic topic"
     `,
     psychology: 'Originality = reward. Copies = penalize. Algo values unique content.',
-    shareability: 'High (counter-trend advice, strategic edge)'
+    shareability: 'High (counter-trend advice, strategic edge)',
   },
 
   exploreTabRecommendations: {
@@ -3870,7 +3922,7 @@ ADAPTATIONS:
 - Educators: "Explore finds students already interested in topic"
     `,
     psychology: 'Explore = algorithmic discovery. Interest-matching = recommendation.',
-    shareability: 'High (growth strategy, educational, actionable)'
+    shareability: 'High (growth strategy, educational, actionable)',
   },
 
   firstImpressionOptimization: {
@@ -3917,7 +3969,7 @@ ADAPTATIONS:
 - Product: "Beautiful hero shot (0-1 second)"
     `,
     psychology: 'First impression = quality signal. Short session = only chance. Make it count.',
-    shareability: 'Very high (actionable, universally useful)'
+    shareability: 'Very high (actionable, universally useful)',
   },
 
   communitySignalValue: {
@@ -3968,8 +4020,8 @@ ADAPTATIONS:
 - Brand: "Shareable insights (industry knowledge)"
     `,
     psychology: 'Comments > likes. Shares > comments. Community depth = algo priority.',
-    shareability: 'Very high (counter-intuitive, valuable insight)'
-  }
+    shareability: 'Very high (counter-intuitive, valuable insight)',
+  },
 };
 
 export default designPatternPrompts;

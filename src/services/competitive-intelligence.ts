@@ -40,9 +40,15 @@ export const addCompetitor = (name: string, niche: string, platforms: string[]):
     platforms,
     audienceSize: platforms.reduce((acc, p) => ({ ...acc, [p]: Math.floor(Math.random() * 1000000) + 50000 }), {}),
     avgEngagement: platforms.reduce((acc, p) => ({ ...acc, [p]: Math.random() * 0.25 + 0.05 }), {}),
-    postingFrequency: platforms.reduce((acc, p) => ({ ...acc, [p]: ['daily', '3x/week', '2x/week'][Math.floor(Math.random() * 3)]! }), {}),
+    postingFrequency: platforms.reduce(
+      (acc, p) => ({ ...acc, [p]: ['daily', '3x/week', '2x/week'][Math.floor(Math.random() * 3)]! }),
+      {},
+    ),
     topPerformingFormats: ['carousel', 'reel', 'story'].slice(0, Math.floor(Math.random() * 2) + 2),
-    topPerformingTopics: ['educational', 'entertaining', 'trending', 'lifestyle'].slice(0, Math.floor(Math.random() * 3) + 1),
+    topPerformingTopics: ['educational', 'entertaining', 'trending', 'lifestyle'].slice(
+      0,
+      Math.floor(Math.random() * 3) + 1,
+    ),
     estimatedMonthlyReach: Math.floor(Math.random() * 5000000) + 500000,
     strengths: ['consistent branding', 'high engagement', 'viral potential'],
     weaknesses: ['low conversion', 'outdated content', 'poor community'],
@@ -99,7 +105,9 @@ export const analyzeCompetitors = (yourNiche: string): CompetitiveAnalysis => {
   const threatAssessment: string[] = [];
   const topCompetitor = competitors.sort((a, b) => b.estimatedMonthlyReach - a.estimatedMonthlyReach)[0];
   if (topCompetitor) {
-    threatAssessment.push(`${topCompetitor.name} dominates with ${topCompetitor.estimatedMonthlyReach.toLocaleString()} monthly reach`);
+    threatAssessment.push(
+      `${topCompetitor.name} dominates with ${topCompetitor.estimatedMonthlyReach.toLocaleString()} monthly reach`,
+    );
   }
   if (competitors.some((c) => c.avgEngagement.tiktok ?? 0 > 0.25))
     threatAssessment.push('Top competitor thriving on TikTok—requires response');
@@ -123,7 +131,9 @@ export const analyzeCompetitors = (yourNiche: string): CompetitiveAnalysis => {
   };
 };
 
-export const getCompetitorBenchmarks = (niche: string): { formatBenchmark: Record<string, number>; topicBenchmark: Record<string, number> } => {
+export const getCompetitorBenchmarks = (
+  niche: string,
+): { formatBenchmark: Record<string, number>; topicBenchmark: Record<string, number> } => {
   const competitors = Array.from(competitorProfiles.values()).filter((c) => c.niche === niche);
 
   const formatBenchmark: Record<string, number> = {};

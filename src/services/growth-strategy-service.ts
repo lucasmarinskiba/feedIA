@@ -42,10 +42,7 @@ export interface GrowthRecommendation {
 }
 
 export const growthStrategyService = {
-  async createStrategy(
-    accountHandle: string,
-    platform: 'instagram' | 'tiktok'
-  ): Promise<GrowthStrategy> {
+  async createStrategy(accountHandle: string, platform: 'instagram' | 'tiktok'): Promise<GrowthStrategy> {
     const strategy: GrowthStrategy = {
       id: uuid(),
       accountHandle,
@@ -61,10 +58,7 @@ export const growthStrategyService = {
     return strategy;
   },
 
-  async addStrategyItem(
-    strategyId: string,
-    item: Omit<StrategyItem, 'id' | 'status'>
-  ): Promise<GrowthStrategy> {
+  async addStrategyItem(strategyId: string, item: Omit<StrategyItem, 'id' | 'status'>): Promise<GrowthStrategy> {
     const strategy = await this.loadStrategy(strategyId);
     if (!strategy) {
       throw new Error(`Strategy ${strategyId} not found`);
@@ -85,7 +79,7 @@ export const growthStrategyService = {
   async updateStrategyItem(
     strategyId: string,
     itemId: string,
-    updates: Partial<StrategyItem>
+    updates: Partial<StrategyItem>,
   ): Promise<GrowthStrategy> {
     const strategy = await this.loadStrategy(strategyId);
     if (!strategy) {
@@ -196,7 +190,7 @@ export const growthStrategyService = {
       followers?: number;
       reach?: number;
       contentType?: string;
-    }
+    },
   ): Promise<GrowthRecommendation[]> {
     const recommendations: GrowthRecommendation[] = [];
 
@@ -205,8 +199,7 @@ export const growthStrategyService = {
       recommendations.push({
         category: 'content-focus',
         recommendation: 'Focus on a single content format (Reels for IG, Shorts for TikTok)',
-        rationale:
-          'Algorithm favors consistency. Single format = higher engagement velocity.',
+        rationale: 'Algorithm favors consistency. Single format = higher engagement velocity.',
         expectedImpact: '+20-35% engagement rate',
         priority: 'high',
         actionItems: [
@@ -221,37 +214,26 @@ export const growthStrategyService = {
     recommendations.push({
       category: 'posting-schedule',
       recommendation: 'Post 5-7 times weekly at peak engagement times',
-      rationale:
-        'Consistency signals algorithm, peak times maximize reach.',
+      rationale: 'Consistency signals algorithm, peak times maximize reach.',
       expectedImpact: '+15-25% reach',
       priority: 'high',
-      actionItems: [
-        'Analyze existing posting times',
-        'Identify 3 peak time windows',
-        'Set calendar reminder',
-      ],
+      actionItems: ['Analyze existing posting times', 'Identify 3 peak time windows', 'Set calendar reminder'],
     });
 
     // Hashtag strategy
     recommendations.push({
       category: 'hashtag-strategy',
       recommendation: 'Use 20-30 mix of trending (10%), moderate (50%), niche (40%)',
-      rationale:
-        'Algorithm mix prevents shadowban, reaches right audience.',
+      rationale: 'Algorithm mix prevents shadowban, reaches right audience.',
       expectedImpact: '+30-50% reach per post',
       priority: 'high',
-      actionItems: [
-        'Research 50 niche hashtags',
-        'Track 10 trending hashtags',
-        'Create 3 hashtag templates',
-      ],
+      actionItems: ['Research 50 niche hashtags', 'Track 10 trending hashtags', 'Create 3 hashtag templates'],
     });
 
     // Engagement loop
     recommendations.push({
       category: 'engagement-loop',
-      recommendation:
-        'Respond to all comments in first hour, engage with 50 creator accounts daily',
+      recommendation: 'Respond to all comments in first hour, engage with 50 creator accounts daily',
       rationale: 'Algorithm rewards engagement. Reciprocal follows create growth loop.',
       expectedImpact: '+2-5% follower growth weekly',
       priority: 'medium',
@@ -266,8 +248,7 @@ export const growthStrategyService = {
     recommendations.push({
       category: 'collab-opportunity',
       recommendation: 'Collaborate with 5-10 accounts 2-3x per month (similar size)',
-      rationale:
-        'Cross-promotions introduce you to warm audience, algorithm boosts collab content.',
+      rationale: 'Cross-promotions introduce you to warm audience, algorithm boosts collab content.',
       expectedImpact: '+10-15% follower growth per collab',
       priority: 'medium',
       actionItems: [
@@ -281,10 +262,8 @@ export const growthStrategyService = {
     if ((currentMetrics?.engagement || 0) < 2) {
       recommendations.push({
         category: 'niche-pivot',
-        recommendation:
-          'Consider niche shift if current niche has <2% engagement after 3 months',
-        rationale:
-          'Low engagement = wrong niche or saturation. Early pivot saves time.',
+        recommendation: 'Consider niche shift if current niche has <2% engagement after 3 months',
+        rationale: 'Low engagement = wrong niche or saturation. Early pivot saves time.',
         expectedImpact: '+50-100% engagement if successful',
         priority: 'low',
         actionItems: [

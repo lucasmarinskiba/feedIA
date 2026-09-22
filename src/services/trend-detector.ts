@@ -51,7 +51,11 @@ export const detectTrend = (name: string, category: string, volume: number, keyw
 
   // Opportunity window
   const opportunityWindow =
-    trajectory === 'emerging' ? '7-14 days (get in early)' : trajectory === 'accelerating' ? '3-7 days (peak period)' : '1-3 days (declining)';
+    trajectory === 'emerging'
+      ? '7-14 days (get in early)'
+      : trajectory === 'accelerating'
+        ? '3-7 days (peak period)'
+        : '1-3 days (declining)';
 
   const trend: Trend = {
     trendId,
@@ -82,7 +86,9 @@ export const analyzeTrends = (): TrendAnalysis => {
   const sortedByMomentum = [...trends].sort((a, b) => b.momentum - a.momentum);
 
   // Categorize
-  const trendingNow = sortedByMomentum.filter((t) => t.trajectory === 'accelerating' || t.trajectory === 'plateauing').slice(0, 5);
+  const trendingNow = sortedByMomentum
+    .filter((t) => t.trajectory === 'accelerating' || t.trajectory === 'plateauing')
+    .slice(0, 5);
   const emerging = sortedByMomentum.filter((t) => t.trajectory === 'emerging').slice(0, 5);
   const declining = sortedByMomentum.filter((t) => t.trajectory === 'declining').slice(0, 3);
 
@@ -96,7 +102,9 @@ export const analyzeTrends = (): TrendAnalysis => {
   // Recommendations
   const recommendations: string[] = [];
   if (emerging.length > 0) {
-    recommendations.push(`Emerging trends (${emerging.map((t) => t.name).join(', ')})—enter early for first-mover advantage`);
+    recommendations.push(
+      `Emerging trends (${emerging.map((t) => t.name).join(', ')})—enter early for first-mover advantage`,
+    );
   }
   if (trendingNow.length > 0) {
     recommendations.push(`Riding ${trendingNow[0]?.name}—high volume but competition increasing`);
@@ -115,7 +123,9 @@ export const analyzeTrends = (): TrendAnalysis => {
   };
 };
 
-export const predictTrendLifecycle = (trendName: string): { phases: Array<{ phase: string; duration: string; engagement: number }>; recommendation: string } => {
+export const predictTrendLifecycle = (
+  trendName: string,
+): { phases: Array<{ phase: string; duration: string; engagement: number }>; recommendation: string } => {
   const trend = currentTrends.get(trendName);
   if (!trend) {
     return {
@@ -140,6 +150,7 @@ export const predictTrendLifecycle = (trendName: string): { phases: Array<{ phas
   return { phases, recommendation };
 };
 
-export const getTrendingByNiche = (niche: string): Trend[] => Array.from(currentTrends.values())
+export const getTrendingByNiche = (niche: string): Trend[] =>
+  Array.from(currentTrends.values())
     .filter((t) => t.category.toLowerCase().includes(niche.toLowerCase()))
     .sort((a, b) => b.momentum - a.momentum);

@@ -32,36 +32,36 @@ export interface ROIOutput {
 const BENCHMARKS: Record<string, Record<string, { engagementRate: number; cpr: number; conversionRate: number }>> = {
   carousel: {
     skincare: { engagementRate: 0.12, cpr: 0.08, conversionRate: 0.045 },
-    fashion: { engagementRate: 0.10, cpr: 0.12, conversionRate: 0.035 },
+    fashion: { engagementRate: 0.1, cpr: 0.12, conversionRate: 0.035 },
     fitness: { engagementRate: 0.14, cpr: 0.06, conversionRate: 0.055 },
     food: { engagementRate: 0.15, cpr: 0.05, conversionRate: 0.04 },
     business: { engagementRate: 0.08, cpr: 0.15, conversionRate: 0.025 },
-    education: { engagementRate: 0.11, cpr: 0.10, conversionRate: 0.03 },
-    default: { engagementRate: 0.10, cpr: 0.10, conversionRate: 0.03 },
+    education: { engagementRate: 0.11, cpr: 0.1, conversionRate: 0.03 },
+    default: { engagementRate: 0.1, cpr: 0.1, conversionRate: 0.03 },
   },
   reel: {
     skincare: { engagementRate: 0.18, cpr: 0.05, conversionRate: 0.06 },
     fashion: { engagementRate: 0.16, cpr: 0.07, conversionRate: 0.048 },
-    fitness: { engagementRate: 0.20, cpr: 0.04, conversionRate: 0.07 },
+    fitness: { engagementRate: 0.2, cpr: 0.04, conversionRate: 0.07 },
     food: { engagementRate: 0.22, cpr: 0.03, conversionRate: 0.055 },
-    business: { engagementRate: 0.12, cpr: 0.10, conversionRate: 0.035 },
+    business: { engagementRate: 0.12, cpr: 0.1, conversionRate: 0.035 },
     education: { engagementRate: 0.15, cpr: 0.08, conversionRate: 0.045 },
     default: { engagementRate: 0.16, cpr: 0.06, conversionRate: 0.05 },
   },
   story: {
     skincare: { engagementRate: 0.22, cpr: 0.04, conversionRate: 0.08 },
-    fashion: { engagementRate: 0.20, cpr: 0.06, conversionRate: 0.065 },
+    fashion: { engagementRate: 0.2, cpr: 0.06, conversionRate: 0.065 },
     fitness: { engagementRate: 0.25, cpr: 0.03, conversionRate: 0.09 },
     food: { engagementRate: 0.28, cpr: 0.025, conversionRate: 0.07 },
     business: { engagementRate: 0.15, cpr: 0.08, conversionRate: 0.045 },
     education: { engagementRate: 0.18, cpr: 0.07, conversionRate: 0.055 },
-    default: { engagementRate: 0.20, cpr: 0.05, conversionRate: 0.06 },
+    default: { engagementRate: 0.2, cpr: 0.05, conversionRate: 0.06 },
   },
   static: {
     skincare: { engagementRate: 0.08, cpr: 0.12, conversionRate: 0.025 },
     fashion: { engagementRate: 0.07, cpr: 0.14, conversionRate: 0.02 },
-    fitness: { engagementRate: 0.09, cpr: 0.10, conversionRate: 0.03 },
-    food: { engagementRate: 0.10, cpr: 0.08, conversionRate: 0.025 },
+    fitness: { engagementRate: 0.09, cpr: 0.1, conversionRate: 0.03 },
+    food: { engagementRate: 0.1, cpr: 0.08, conversionRate: 0.025 },
     business: { engagementRate: 0.06, cpr: 0.18, conversionRate: 0.015 },
     education: { engagementRate: 0.07, cpr: 0.15, conversionRate: 0.02 },
     default: { engagementRate: 0.08, cpr: 0.12, conversionRate: 0.02 },
@@ -158,22 +158,26 @@ const extractNiche = (topic: string): string => {
 const extractAudienceMultiplier = (audience: string): number => {
   const lower = audience.toLowerCase();
   if (lower.includes('luxury') && lower.includes('budget')) return AUDIENCE_MULTIPLIERS.luxury_budget!;
-  if (lower.includes('luxury') || lower.includes('premium') || lower.includes('high-income')) return AUDIENCE_MULTIPLIERS.luxury!;
-  if (lower.includes('budget') || lower.includes('affordable') || lower.includes('value')) return AUDIENCE_MULTIPLIERS.budget!;
+  if (lower.includes('luxury') || lower.includes('premium') || lower.includes('high-income'))
+    return AUDIENCE_MULTIPLIERS.luxury!;
+  if (lower.includes('budget') || lower.includes('affordable') || lower.includes('value'))
+    return AUDIENCE_MULTIPLIERS.budget!;
   if (lower.includes('gen z') || lower.includes('gen-z')) return AUDIENCE_MULTIPLIERS.gen_z!;
   if (lower.includes('millennial')) return AUDIENCE_MULTIPLIERS.millennial!;
   if (lower.includes('boomer') || lower.includes('senior')) return AUDIENCE_MULTIPLIERS.boomer!;
-  if (lower.includes('professional') || lower.includes('b2b') || lower.includes('enterprise')) return AUDIENCE_MULTIPLIERS.professional!;
+  if (lower.includes('professional') || lower.includes('b2b') || lower.includes('enterprise'))
+    return AUDIENCE_MULTIPLIERS.professional!;
   return AUDIENCE_MULTIPLIERS.default!;
 };
 
-const isCommonNiche = (niche: string): boolean => ['skincare', 'fashion', 'fitness', 'food', 'business', 'education'].includes(niche);
+const isCommonNiche = (niche: string): boolean =>
+  ['skincare', 'fashion', 'fitness', 'food', 'business', 'education'].includes(niche);
 
 const generateRecommendations = (
   input: ROIInput,
   engagementRate: number,
   cpr: number,
-  conversions: number
+  conversions: number,
 ): string[] => {
   const recs: string[] = [];
 
@@ -225,15 +229,16 @@ export const compareFormats = (
   topic: string,
   targetAudience: string,
   budget: number,
-  platform?: 'instagram' | 'tiktok' | 'pinterest'
-): ROIOutput[] => formats.map((format) =>
+  platform?: 'instagram' | 'tiktok' | 'pinterest',
+): ROIOutput[] =>
+  formats.map((format) =>
     calculateROI({
       format,
       topic,
       targetAudience,
       budget,
       platform,
-    })
+    }),
   );
 
 /**
@@ -243,7 +248,7 @@ export const optimizeBudgetAllocation = (
   totalBudget: number,
   topic: string,
   targetAudience: string,
-  platform?: 'instagram' | 'tiktok' | 'pinterest'
+  platform?: 'instagram' | 'tiktok' | 'pinterest',
 ): Record<string, { budget: number; conversions: number; roi: number }> => {
   const formats: Array<'carousel' | 'reel' | 'story' | 'static'> = ['carousel', 'reel', 'story'];
 

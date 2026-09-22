@@ -9,22 +9,26 @@
 ## Day 1: Setup Backblaze B2
 
 ### Step 1: Create Backblaze Account
+
 ```bash
 # Visit: https://www.backblaze.com/b2/cloud-storage.html
 # Sign up, add payment method
 ```
 
 ### Step 2: Create Bucket
+
 - Name: `feedia-carousels`
 - Type: `Private` (encrypt at rest)
 - CORS: Enable for cross-origin requests
 
 ### Step 3: Generate API Key
+
 1. Go: Account → Application Keys
 2. Create new key: `feedia-app-key`
 3. Copy: `keyID` + `applicationKey`
 
 ### Step 4: Update Railway Environment
+
 ```bash
 # Replace WASABI with BACKBLAZE env vars
 
@@ -37,6 +41,7 @@ railway vars set \
 ```
 
 ### Step 5: Test Connection
+
 ```bash
 curl -X GET \
   -H "Authorization: Basic $(echo -n $BACKBLAZE_KEY_ID:$BACKBLAZE_APP_KEY | base64)" \
@@ -50,6 +55,7 @@ curl -X GET \
 ## Day 2: Migrate Existing Files
 
 ### Migration Script (Node.js)
+
 ```bash
 # Create migration-wasabi-to-b2.ts
 
@@ -146,6 +152,7 @@ await migrateWasabiToB2();
 ```
 
 ### Run Migration
+
 ```bash
 npm install node-fetch
 
@@ -252,6 +259,7 @@ SELECT plan_name, storage_gb, price_usd FROM pricing_plans;
 ```
 
 ### Update Stripe
+
 ```bash
 # Via Stripe Dashboard:
 # 1. Products → FeedIA Storage
@@ -272,6 +280,7 @@ stripe products update prod_premium \
 ```
 
 ### Commit & Deploy
+
 ```bash
 # Commit
 git add \
@@ -304,16 +313,19 @@ railway logs -f
 ## Cost Analysis
 
 ### Before (Wasabi)
+
 - Storage: $5.99/mo + $0.00599/GB overage
 - 1,000 users @ 10GB avg = $215/mo
 - **Margin**: 90.4%
 
 ### After (Backblaze B2)
+
 - Storage: $0.006/GB
 - Same 1,000 users @ 10GB avg = **$60/mo** (-72%)
 - **Margin**: 98.5% (+8.1%)
 
 ### Revenue Impact
+
 - Free tier: 700 × $0 = $0
 - Pro tier: 250 × $9.99 = $2,497.50
 - Premium tier: 50 × $29.99 = $1,499.50
@@ -324,6 +336,7 @@ railway logs -f
 ## Rollback Plan
 
 If Backblaze issues arise:
+
 1. Keep Wasabi account active during migration
 2. Maintain DNS CNAME pointing to Backblaze for 30 days
 3. If needed, point CNAME back to Wasabi
@@ -351,12 +364,12 @@ railway vars set WASABI_ACTIVE=true
 
 ## Timeline
 
-| Day | Task | Status |
-|-----|------|--------|
-| Mon | Backblaze setup + test | ⏳ |
-| Tue | File migration + verify | ⏳ |
-| Wed | Code update + deploy | ⏳ |
-| Thu | Monitor + announce | ⏳ |
-| Fri | User communication | ⏳ |
+| Day | Task                    | Status |
+| --- | ----------------------- | ------ |
+| Mon | Backblaze setup + test  | ⏳     |
+| Tue | File migration + verify | ⏳     |
+| Wed | Code update + deploy    | ⏳     |
+| Thu | Monitor + announce      | ⏳     |
+| Fri | User communication      | ⏳     |
 
 **Total effort**: ~8 hours (mostly automated migration)

@@ -31,7 +31,7 @@ export const templateLibrary: ContentTemplate[] = [
 
   {
     id: 'carousel-listicle-fear',
-    name: '10 Mistakes You\'re Making',
+    name: "10 Mistakes You're Making",
     type: 'carousel',
     category: 'Education',
     emotion: 'fear',
@@ -41,12 +41,9 @@ export const templateLibrary: ContentTemplate[] = [
     tags: ['listicle', 'mistakes', 'avoid', 'education'],
     engagementPotential: 88,
     template: {
-      hook: 'STOP. You\'re probably making {{count}} of these critical mistakes...',
-      valuePoints: [
-        'Mistake 1: {{mistake}}. Here\'s why it fails...',
-        'Mistake 2: {{mistake}}. Most people do this...',
-      ],
-      cta: 'Don\'t make these mistakes. Follow for more tips →',
+      hook: "STOP. You're probably making {{count}} of these critical mistakes...",
+      valuePoints: ["Mistake 1: {{mistake}}. Here's why it fails...", 'Mistake 2: {{mistake}}. Most people do this...'],
+      cta: "Don't make these mistakes. Follow for more tips →",
     },
   },
 
@@ -62,12 +59,8 @@ export const templateLibrary: ContentTemplate[] = [
     tags: ['before-after', 'transformation', 'proof', 'conversion'],
     engagementPotential: 92,
     template: {
-      hook: 'This {{transformation}} transformation is real. Here\'s how {{person}} did it...',
-      valuePoints: [
-        'Day 1: {{before_state}}',
-        'Day 30: {{midpoint}}',
-        'Day 90: {{after_state}} 🎉',
-      ],
+      hook: "This {{transformation}} transformation is real. Here's how {{person}} did it...",
+      valuePoints: ['Day 1: {{before_state}}', 'Day 30: {{midpoint}}', 'Day 90: {{after_state}} 🎉'],
       cta: 'Ready for your transformation? Start today →',
     },
   },
@@ -107,11 +100,8 @@ export const templateLibrary: ContentTemplate[] = [
     tags: ['myth', 'reality', 'debunk', 'curiosity-loop'],
     engagementPotential: 89,
     template: {
-      hook: 'Everything you know about {{topic}} is WRONG. Here\'s the truth →',
-      valuePoints: [
-        'MYTH: {{common_belief}}. FALSE because...',
-        'REALITY: {{truth}}. Here\'s proof...',
-      ],
+      hook: "Everything you know about {{topic}} is WRONG. Here's the truth →",
+      valuePoints: ['MYTH: {{common_belief}}. FALSE because...', "REALITY: {{truth}}. Here's proof..."],
       cta: 'Stop believing lies. Learn the {{count}} truths everyone misses →',
     },
   },
@@ -130,11 +120,8 @@ export const templateLibrary: ContentTemplate[] = [
     tags: ['trend', 'humor', 'viral', 'relatable'],
     engagementPotential: 91,
     template: {
-      hook: '[TRENDING AUDIO]. POV: You\'re {{relatable_scenario}}',
-      valuePoints: [
-        'This {{scenario}} hits different',
-        'The energy? {{adjective}}',
-      ],
+      hook: "[TRENDING AUDIO]. POV: You're {{relatable_scenario}}",
+      valuePoints: ['This {{scenario}} hits different', 'The energy? {{adjective}}'],
       cta: 'Tag someone this is about 👇',
     },
   },
@@ -152,11 +139,7 @@ export const templateLibrary: ContentTemplate[] = [
     engagementPotential: 87,
     template: {
       hook: 'This {{product}} solves the {{problem}} problem. Watch →',
-      valuePoints: [
-        'Step 1: {{demo_scene_1}}',
-        'Step 2: {{demo_scene_2}}',
-        'Result: {{satisfying_reveal}}',
-      ],
+      valuePoints: ['Step 1: {{demo_scene_1}}', 'Step 2: {{demo_scene_2}}', 'Result: {{satisfying_reveal}}'],
       cta: 'Link in bio. First {{count}} get {{offer}} →',
     },
   },
@@ -175,11 +158,11 @@ export const templateLibrary: ContentTemplate[] = [
     tags: ['rant', 'exposed', 'truth', 'call-out'],
     engagementPotential: 86,
     template: {
-      hook: '🔥 They don\'t want you to know this about {{topic}}...',
+      hook: "🔥 They don't want you to know this about {{topic}}...",
       valuePoints: [
         'Lie #1: {{lie}}. Truth: {{truth}}',
         'Lie #2: {{lie}}. Truth: {{truth}}',
-        'That\'s why {{consequence}} happens',
+        "That's why {{consequence}} happens",
       ],
       cta: 'Stop believing the lie. {{cta}} now →',
     },
@@ -197,7 +180,7 @@ export const templateLibrary: ContentTemplate[] = [
     tags: ['tutorial', 'how-to', 'step-by-step', 'empowering'],
     engagementPotential: 84,
     template: {
-      hook: 'You can {{outcome}} in 3 steps. Here\'s how...',
+      hook: "You can {{outcome}} in 3 steps. Here's how...",
       valuePoints: [
         'Step 1 (15s): {{step_1_action}}',
         'Step 2 (15s): {{step_2_action}}',
@@ -248,13 +231,16 @@ export const templateLibrary: ContentTemplate[] = [
   },
 ];
 
-export const getTemplatesByCategory = (category: string): ContentTemplate[] => templateLibrary.filter((t) => t.category === category);
+export const getTemplatesByCategory = (category: string): ContentTemplate[] =>
+  templateLibrary.filter((t) => t.category === category);
 
-export const getTemplatesByEmotion = (emotion: string): ContentTemplate[] => templateLibrary.filter((t) => t.emotion === emotion);
+export const getTemplatesByEmotion = (emotion: string): ContentTemplate[] =>
+  templateLibrary.filter((t) => t.emotion === emotion);
 
 export const getTemplatesByType = (type: string): ContentTemplate[] => templateLibrary.filter((t) => t.type === type);
 
-export const getTopTemplates = (limit: number = 10): ContentTemplate[] => [...templateLibrary].sort((a, b) => b.engagementPotential - a.engagementPotential).slice(0, limit);
+export const getTopTemplates = (limit: number = 10): ContentTemplate[] =>
+  [...templateLibrary].sort((a, b) => b.engagementPotential - a.engagementPotential).slice(0, limit);
 
 export const searchTemplates = (query: string): ContentTemplate[] => {
   const q = query.toLowerCase();

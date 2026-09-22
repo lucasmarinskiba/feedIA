@@ -27,8 +27,18 @@ interface ExpansionResult {
 
 const TONE_OPTIONS_6 = ['emotional', 'entertaining', 'polemic', 'education', 'humor', 'debate'];
 const TONE_OPTIONS_12 = [
-  'emotional', 'entertaining', 'polemic', 'education', 'humor', 'debate',
-  'aspirational', 'introspective', 'energetic', 'calm', 'authoritative', 'playful'
+  'emotional',
+  'entertaining',
+  'polemic',
+  'education',
+  'humor',
+  'debate',
+  'aspirational',
+  'introspective',
+  'energetic',
+  'calm',
+  'authoritative',
+  'playful',
 ];
 
 /**
@@ -37,7 +47,7 @@ const TONE_OPTIONS_12 = [
 async function expandPrompt(
   basePromptId: string,
   basePromptText: string,
-  tones: string[] = TONE_OPTIONS_6
+  tones: string[] = TONE_OPTIONS_6,
 ): Promise<ExpandedPrompt[]> {
   try {
     const prompt = `
@@ -90,19 +100,20 @@ Generate now:
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
-    interface VariationData { tone: string; variation: string; }
-    const variations: ExpandedPrompt[] = (parsed.variations || []).map(
-      (v: unknown, index: number) => {
-        const vData = v as VariationData;
-        return {
-          id: `${basePromptId}-${vData.tone}-${Date.now()}-${index}`,
-          prompt_id: basePromptId,
-          tone: vData.tone,
-          variation_text: vData.variation,
-          version: 1,
-        };
-      }
-    );
+    interface VariationData {
+      tone: string;
+      variation: string;
+    }
+    const variations: ExpandedPrompt[] = (parsed.variations || []).map((v: unknown, index: number) => {
+      const vData = v as VariationData;
+      return {
+        id: `${basePromptId}-${vData.tone}-${Date.now()}-${index}`,
+        prompt_id: basePromptId,
+        tone: vData.tone,
+        variation_text: vData.variation,
+        version: 1,
+      };
+    });
 
     log.info('[PromptExpander] Variations generated', {
       basePromptId,
@@ -120,10 +131,7 @@ Generate now:
 /**
  * Expand single prompt + store variations in DB
  */
-async function expandAndStore(
-  basePromptId: string,
-  basePromptText: string
-): Promise<ExpansionResult> {
+async function expandAndStore(basePromptId: string, basePromptText: string): Promise<ExpansionResult> {
   const variations = await expandPrompt(basePromptId, basePromptText);
 
   // Store variations in database
@@ -166,7 +174,7 @@ async function expandBatch(batch: string = 'batch-90'): Promise<Record<string, a
 
       // Rate limiting: 10s delay between API calls (avoid rate limits)
       if (i > 0) {
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        await new Promise((resolve) => setTimeout(resolve, 10000));
       }
 
       const result = await expandAndStore(String(prompt.id), String(prompt.base_template));
@@ -213,9 +221,7 @@ async function getExpansionStatus(): Promise<Record<string, any>> {
       expansion_info: {
         base_prompts: stats.prompts || 0,
         variations_available: stats.variations || 0,
-        expansion_rate: stats.variations && stats.prompts
-          ? (stats.variations / stats.prompts).toFixed(1)
-          : '0',
+        expansion_rate: stats.variations && stats.prompts ? (stats.variations / stats.prompts).toFixed(1) : '0',
         tones_per_prompt: 6,
         target_scale: '34,500+ total prompts',
       },
@@ -231,10 +237,7 @@ async function getExpansionStatus(): Promise<Record<string, any>> {
  * Super-expand: Single prompt → 12 variations (instead of 6)
  * For scaling video/image/stories: 3,450 → 41,400 per library
  */
-async function superExpandAndStore(
-  basePromptId: string,
-  basePromptText: string
-): Promise<ExpansionResult> {
+async function superExpandAndStore(basePromptId: string, basePromptText: string): Promise<ExpansionResult> {
   const variations = await expandPrompt(basePromptId, basePromptText, TONE_OPTIONS_12);
 
   let stored = 0;

@@ -21,13 +21,7 @@ export const autonomousGenerator = {
   // "undefined is not iterable" immediately, on every single call to this
   // endpoint. Reshaped to match what the route (the actual consumer)
   // expects; still a stub (no real generation), just a consistent one.
-  async generateAll(
-    brand: BrandProfile,
-    occasion: string,
-    carouselCount = 1,
-    reelCount = 1,
-    storyCount = 3,
-  ) {
+  async generateAll(brand: BrandProfile, occasion: string, carouselCount = 1, reelCount = 1, storyCount = 3) {
     const startedAt = Date.now();
     const toItems = (count: number, type: string) => Array(count).fill({ id: 'stub', type });
     return {

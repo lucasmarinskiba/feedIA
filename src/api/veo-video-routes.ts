@@ -132,7 +132,8 @@ router.get('/health', async (req: Request, res: Response) => {
       status: 'ok',
       service: 'veo-video-generation',
       configured: isVeoConfigured(),
-      purpose: 'Real video rendering (Veo 3.1) — closes the gap between guaranteed prompts and actual publishable video files',
+      purpose:
+        'Real video rendering (Veo 3.1) — closes the gap between guaranteed prompts and actual publishable video files',
       models: VEO_MODELS,
       requirements: [
         'GEMINI_API_KEY (same key already used for vision/embeddings)',

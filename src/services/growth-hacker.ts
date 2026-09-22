@@ -31,7 +31,7 @@ const appliedLevers: Map<string, GrowthLever> = new Map();
 export const identifyGrowthLevers = (
   currentFollowers: number,
   engagementRate: number,
-  conversionRate: number
+  conversionRate: number,
 ): GrowthLever[] => {
   const levers: GrowthLever[] = [];
 
@@ -103,14 +103,20 @@ export const identifyGrowthLevers = (
   return levers;
 };
 
-export const buildGrowthStrategy = (currentFollowers: number, engagementRate: number, conversionRate: number): GrowthStrategy => {
+export const buildGrowthStrategy = (
+  currentFollowers: number,
+  engagementRate: number,
+  conversionRate: number,
+): GrowthStrategy => {
   const levers = identifyGrowthLevers(currentFollowers, engagementRate, conversionRate);
 
   // Quick wins: low effort, high ROI
   const quickWins = levers.filter((l) => l.effort === 'low' && l.roiMultiplier >= 2.0);
 
   // Longer-term: high effort, exponential growth
-  const longerTermPlays = levers.filter((l) => l.effort === 'high' || (l.effort === 'medium' && l.estimatedImpact > 1.5));
+  const longerTermPlays = levers.filter(
+    (l) => l.effort === 'high' || (l.effort === 'medium' && l.estimatedImpact > 1.5),
+  );
 
   // Project 30-day metrics
   const appliedLeverImpact = quickWins.reduce((sum, l) => sum + l.estimatedImpact, 1);
@@ -147,7 +153,10 @@ export const buildGrowthStrategy = (currentFollowers: number, engagementRate: nu
   return strategy;
 };
 
-export const calculateViralCoefficient = (invites: number, signups: number): { coefficient: number; doubleTime: string } => {
+export const calculateViralCoefficient = (
+  invites: number,
+  signups: number,
+): { coefficient: number; doubleTime: string } => {
   const coefficient = invites / Math.max(signups, 1);
 
   // Doubling time estimate (based on coefficient)

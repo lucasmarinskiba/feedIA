@@ -136,7 +136,9 @@ async function processPayment(paymentId: string): Promise<{ success: boolean; me
   }
 }
 
-async function processPaymentData(payment: MercadoPagoPayment): Promise<{ success: boolean; message: string; error?: string }> {
+async function processPaymentData(
+  payment: MercadoPagoPayment,
+): Promise<{ success: boolean; message: string; error?: string }> {
   try {
     // Parse external_reference: "userId:tier"
     const [userId, tier] = (payment.external_reference || '').split(':');

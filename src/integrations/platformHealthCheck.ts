@@ -133,10 +133,7 @@ export const checkTikTokHealth = async (brandId?: string): Promise<HealthCheckRe
 export const checkAllPlatforms = async (brandId?: string): Promise<HealthCheckResult[]> => {
   log.info('[platformHealthCheck] Checking all platforms...');
 
-  const [ig, tt] = await Promise.all([
-    checkInstagramHealth(brandId),
-    checkTikTokHealth(brandId),
-  ]);
+  const [ig, tt] = await Promise.all([checkInstagramHealth(brandId), checkTikTokHealth(brandId)]);
 
   const results = [ig, tt];
 

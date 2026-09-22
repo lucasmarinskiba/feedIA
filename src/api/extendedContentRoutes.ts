@@ -12,11 +12,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { log } from '../agent/logger.js';
 import { generateSmartCarousel, type CarouselBrief } from '../capabilities/content/smartCarouselGenerator.js';
 import { generateSmartVideo, type VideoBrief } from '../capabilities/content/smartVideoGenerator.js';
-import { pinterestPatternLibrary, selectColorPalette, selectNarrativeStructure } from '../capabilities/content/pinterestPatternEncoder.js';
 import {
-  generateCarouselWithAgents,
-  generateVideoWithAgents,
-} from './agentIntegrationLayer.js';
+  pinterestPatternLibrary,
+  selectColorPalette,
+  selectNarrativeStructure,
+} from '../capabilities/content/pinterestPatternEncoder.js';
+import { generateCarouselWithAgents, generateVideoWithAgents } from './agentIntegrationLayer.js';
 import { quotaCheckMiddleware, chargeQuota } from '../middleware/quota-enforcer.js';
 
 const router = Router();
@@ -87,54 +88,56 @@ router.get('/patterns', (req: Request, res: Response) => {
  *
  * Response: Carousel with slides, design system, retention curve
  */
-router.post('/carousel/generate', quotaCheckMiddleware('carousels', 1), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const generationId = uuidv4();
-    const brief: CarouselBrief = req.body;
+router.post(
+  '/carousel/generate',
+  quotaCheckMiddleware('carousels', 1),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const generationId = uuidv4();
+      const brief: CarouselBrief = req.body;
 
-    log.info(
-      `[Extended Routes] Carousel generation request: topic="${brief.topic}", emotion=${brief.emotion}`,
-    );
+      log.info(`[Extended Routes] Carousel generation request: topic="${brief.topic}", emotion=${brief.emotion}`);
 
-    // Validate input
-    if (!brief.topic) {
-      return void res.status(400).json({error: 'topic required'});
+      // Validate input
+      if (!brief.topic) {
+        return void res.status(400).json({ error: 'topic required' });
+      }
+
+      if (!brief.emotion) {
+        brief.emotion = 'curiosity'; // Default
+      }
+
+      // Generate with agent reasoning layer
+      log.info('[Extended Routes] Using agent reasoning layer for carousel');
+      const { plan, content } = await generateCarouselWithAgents(brief as unknown as Record<string, unknown>);
+
+      // Also generate using original smart carousel for comparison/validation
+      const carousel = await generateSmartCarousel(brief);
+
+      log.info(
+        `[Extended Routes] ✓ Carousel generated: ${carousel.slideCount} slides, retention=${carousel.metadata.averageRetention}%`,
+      );
+
+      // Charge quota on success
+      await chargeQuota(req, 'carousels', generationId);
+
+      res.json({
+        status: 'success',
+        data: {
+          ...carousel,
+          agentPlan: plan,
+          agentGeneratedContent: content,
+        },
+        message: `Generated ${carousel.slideCount}-slide carousel (Agent-reasoned + Pinterest-optimized)`,
+      });
+      return;
+    } catch (error) {
+      log.error(`[Extended Routes] Carousel generation failed: ${error}`);
+      res.status(500).json({ error: 'Carousel generation failed', details: String(error) });
+      return;
     }
-
-    if (!brief.emotion) {
-      brief.emotion = 'curiosity'; // Default
-    }
-
-    // Generate with agent reasoning layer
-    log.info('[Extended Routes] Using agent reasoning layer for carousel');
-    const { plan, content } = await generateCarouselWithAgents(brief as unknown as Record<string, unknown>);
-
-    // Also generate using original smart carousel for comparison/validation
-    const carousel = await generateSmartCarousel(brief);
-
-    log.info(
-      `[Extended Routes] ✓ Carousel generated: ${carousel.slideCount} slides, retention=${carousel.metadata.averageRetention}%`,
-    );
-
-    // Charge quota on success
-    await chargeQuota(req, 'carousels', generationId);
-
-    res.json({
-      status: 'success',
-      data: {
-        ...carousel,
-        agentPlan: plan,
-        agentGeneratedContent: content,
-      },
-      message: `Generated ${carousel.slideCount}-slide carousel (Agent-reasoned + Pinterest-optimized)`,
-    });
-    return;
-  } catch (error) {
-    log.error(`[Extended Routes] Carousel generation failed: ${error}`);
-    res.status(500).json({error: 'Carousel generation failed', details: String(error)});
-    return;
-  }
-});
+  },
+);
 
 // ── POST: Smart Video Generator ────────────────────────────────────────
 
@@ -153,58 +156,60 @@ router.post('/carousel/generate', quotaCheckMiddleware('carousels', 1), async (r
  *
  * Response: Video script with scenes, hook, CTA, retention curve
  */
-router.post('/video/generate', quotaCheckMiddleware('videos', 1), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const generationId = uuidv4();
-    const brief: VideoBrief = req.body;
+router.post(
+  '/video/generate',
+  quotaCheckMiddleware('videos', 1),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const generationId = uuidv4();
+      const brief: VideoBrief = req.body;
 
-    log.info(
-      `[Extended Routes] Video generation request: topic="${brief.topic}", platform=${brief.platform}`,
-    );
+      log.info(`[Extended Routes] Video generation request: topic="${brief.topic}", platform=${brief.platform}`);
 
-    // Validate
-    if (!brief.topic) {
-      return void res.status(400).json({error: 'topic required'});
+      // Validate
+      if (!brief.topic) {
+        return void res.status(400).json({ error: 'topic required' });
+      }
+
+      if (!brief.platform) {
+        brief.platform = 'tiktok'; // Default
+      }
+
+      if (!brief.emotion) {
+        brief.emotion = 'curiosity'; // Default
+      }
+
+      // Generate with agent reasoning layer
+      log.info('[Extended Routes] Using agent reasoning layer for video');
+      const { plan, content } = await generateVideoWithAgents(brief as unknown as Record<string, unknown>);
+
+      // Also generate using original smart video for comparison/validation
+      const video = await generateSmartVideo(brief);
+
+      log.info(
+        `[Extended Routes] ✓ Video generated: ${video.duration}s ${video.platform}, ${video.scenes.length} scenes, retention=${video.metadata.averageRetention}%`,
+      );
+
+      // Charge quota on success
+      await chargeQuota(req, 'videos', generationId);
+
+      res.json({
+        status: 'success',
+        data: {
+          ...video,
+          agentPlan: plan,
+          agentGeneratedContent: content,
+        },
+        message: `Generated ${video.duration}s ${video.platform} video script (Agent-reasoned + Pinterest-optimized)`,
+      });
+      return;
+    } catch (error) {
+      log.error(`[Extended Routes] Video generation failed: ${error}`);
+      res.status(500).json({ error: 'Video generation failed', details: String(error) });
+      return;
     }
-
-    if (!brief.platform) {
-      brief.platform = 'tiktok'; // Default
-    }
-
-    if (!brief.emotion) {
-      brief.emotion = 'curiosity'; // Default
-    }
-
-    // Generate with agent reasoning layer
-    log.info('[Extended Routes] Using agent reasoning layer for video');
-    const { plan, content } = await generateVideoWithAgents(brief as unknown as Record<string, unknown>);
-
-    // Also generate using original smart video for comparison/validation
-    const video = await generateSmartVideo(brief);
-
-    log.info(
-      `[Extended Routes] ✓ Video generated: ${video.duration}s ${video.platform}, ${video.scenes.length} scenes, retention=${video.metadata.averageRetention}%`,
-    );
-
-    // Charge quota on success
-    await chargeQuota(req, 'videos', generationId);
-
-    res.json({
-      status: 'success',
-      data: {
-        ...video,
-        agentPlan: plan,
-        agentGeneratedContent: content,
-      },
-      message: `Generated ${video.duration}s ${video.platform} video script (Agent-reasoned + Pinterest-optimized)`,
-    });
-    return;
-  } catch (error) {
-    log.error(`[Extended Routes] Video generation failed: ${error}`);
-    res.status(500).json({error: 'Video generation failed', details: String(error)});
-    return;
-  }
-});
+  },
+);
 
 // ── GET: Color Palette Recommendations ─────────────────────────────────
 
@@ -219,7 +224,7 @@ router.get('/patterns/colors', (req: Request, res: Response): void => {
   log.info(`[Extended Routes] Color palette recommendation: topic="${topic}", emotion=${emotion}`);
 
   if (!topic) {
-    return void res.status(400).json({error: 'topic required'});
+    return void res.status(400).json({ error: 'topic required' });
   }
 
   const palette = selectColorPalette(topic, emotion as any, undefined);
@@ -245,9 +250,7 @@ router.get('/patterns/narrative', (req: Request, res: Response) => {
   const slideCount = parseInt(req.query.slideCount as string) || 7;
   const contentType = req.query.contentType as string;
 
-  log.info(
-    `[Extended Routes] Narrative recommendation: slides=${slideCount}, type=${contentType}`,
-  );
+  log.info(`[Extended Routes] Narrative recommendation: slides=${slideCount}, type=${contentType}`);
 
   const narrative = selectNarrativeStructure(slideCount, contentType);
 
@@ -312,7 +315,7 @@ router.post('/carousel/batch', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error(`[Extended Routes] Batch carousel generation failed: ${error}`);
-    return res.status(500).json({error: 'Batch generation failed', details: String(error)});
+    return res.status(500).json({ error: 'Batch generation failed', details: String(error) });
   }
 });
 
@@ -341,7 +344,7 @@ router.post('/video/batch', async (req: Request, res: Response) => {
     });
   } catch (error) {
     log.error(`[Extended Routes] Batch video generation failed: ${error}`);
-    return res.status(500).json({error: 'Batch generation failed', details: String(error)});
+    return res.status(500).json({ error: 'Batch generation failed', details: String(error) });
   }
 });
 

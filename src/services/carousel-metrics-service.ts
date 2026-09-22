@@ -35,7 +35,7 @@ export const carouselMetricsService = {
     const db = feedIADatabase.getConnection();
     const stmt = db.prepare(
       `INSERT INTO carousel_events (id, carousel_id, user_id, event_type, source, user_agent, referrer, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     );
 
     stmt.run(
@@ -57,13 +57,11 @@ export const carouselMetricsService = {
 
     const todayStmt = db.prepare(
       `SELECT views, views_unique, shares, saves, likes, clicks, engagement_rate FROM carousel_metrics_daily
-       WHERE carousel_id = ? AND date = ?`
+       WHERE carousel_id = ? AND date = ?`,
     );
     const todayRow = todayStmt.get(carouselId, today) as any;
 
-    const yesterdayStmt = db.prepare(
-      `SELECT views FROM carousel_metrics_daily WHERE carousel_id = ? AND date = ?`
-    );
+    const yesterdayStmt = db.prepare(`SELECT views FROM carousel_metrics_daily WHERE carousel_id = ? AND date = ?`);
     const yesterdayRow = yesterdayStmt.get(carouselId, yesterday) as any;
 
     const todayMetrics = {
@@ -89,7 +87,7 @@ export const carouselMetricsService = {
     const stmt = db.prepare(
       `SELECT date, views, views_unique, shares, saves, likes, engagement_rate FROM carousel_metrics_daily
        WHERE carousel_id = ? AND date >= ?
-       ORDER BY date ASC`
+       ORDER BY date ASC`,
     );
 
     const rows = stmt.all(carouselId, cutoffDate) as MetricsHistory[];
@@ -107,7 +105,7 @@ export const carouselMetricsService = {
         SUM(CASE WHEN event_type = 'save' THEN 1 ELSE 0 END) as total_saves,
         SUM(CASE WHEN event_type = 'like' THEN 1 ELSE 0 END) as total_likes
        FROM carousel_events
-       WHERE user_id = ?`
+       WHERE user_id = ?`,
     );
 
     const row = stmt.get(userId) as any;
@@ -121,7 +119,10 @@ export const carouselMetricsService = {
     };
   },
 
-  async getUserTopCarousels(userId: string, limit = 5): Promise<Array<{ carouselId: string; views: number; engagement: number }>> {
+  async getUserTopCarousels(
+    userId: string,
+    limit = 5,
+  ): Promise<Array<{ carouselId: string; views: number; engagement: number }>> {
     const db = feedIADatabase.getConnection();
     const stmt = db.prepare(
       `SELECT
@@ -133,7 +134,7 @@ export const carouselMetricsService = {
        WHERE user_id = ?
        GROUP BY carousel_id
        ORDER BY views DESC
-       LIMIT ?`
+       LIMIT ?`,
     );
 
     const rows = stmt.all(userId, limit) as Array<{ carouselId: string; views: number; engagement: number }>;
@@ -153,7 +154,7 @@ export const carouselMetricsService = {
         COUNT(CASE WHEN event_type = 'click' THEN 1 END) as clicks,
         COUNT(DISTINCT user_id) as unique_users
        FROM carousel_events
-       WHERE carousel_id = ? AND created_at >= ?`
+       WHERE carousel_id = ? AND created_at >= ?`,
     );
 
     const row = stmt.get(carouselId, cutoffDate) as any;
@@ -183,7 +184,7 @@ export const carouselMetricsService = {
         COUNT(CASE WHEN event_type = 'click' THEN 1 END) as clicks
        FROM carousel_events
        WHERE DATE(created_at) = ?
-       GROUP BY carousel_id`
+       GROUP BY carousel_id`,
     );
 
     const rows = selectStmt.all(date) as Array<{
@@ -208,7 +209,7 @@ export const carouselMetricsService = {
         likes = excluded.likes,
         clicks = excluded.clicks,
         engagement_rate = excluded.engagement_rate,
-        updated_at = excluded.updated_at`
+        updated_at = excluded.updated_at`,
     );
 
     for (const row of rows) {

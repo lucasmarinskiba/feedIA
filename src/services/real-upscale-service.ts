@@ -30,10 +30,7 @@ export interface UpscaleResult {
  * hallucinating new ones — this pairs with facial-identity-preservation.ts's
  * guarantee that real uploaded faces aren't reinvented during enhancement.
  */
-export async function performRealUpscale(
-  imageUrl: string,
-  scaleFactor: 2 | 4 = 2
-): Promise<UpscaleResult | null> {
+export async function performRealUpscale(imageUrl: string, scaleFactor: 2 | 4 = 2): Promise<UpscaleResult | null> {
   if (!FAL_KEY || !imageUrl) {
     log.warn('[RealUpscale] FAL_KEY not set or no imageUrl — skipping real upscale', {
       hasKey: Boolean(FAL_KEY),

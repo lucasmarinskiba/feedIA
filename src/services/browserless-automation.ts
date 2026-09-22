@@ -36,7 +36,7 @@ const API_KEY = process.env.BROWSERLESS_API_KEY;
 export const executeBrowserlessAction = async (
   task: BrowserlessAction,
   igToken: string,
-  browserlessKey?: string
+  browserlessKey?: string,
 ): Promise<BrowserlessResult> => {
   const key = browserlessKey || API_KEY;
 

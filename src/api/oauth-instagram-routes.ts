@@ -14,7 +14,8 @@ const router = Router();
 // In production, use environment variables
 const INSTAGRAM_APP_ID = process.env.INSTAGRAM_APP_ID || '';
 const INSTAGRAM_APP_SECRET = process.env.INSTAGRAM_APP_SECRET || '';
-const INSTAGRAM_REDIRECT_URI = process.env.INSTAGRAM_REDIRECT_URI || 'https://feedia-production.up.railway.app/api/oauth/instagram/callback';
+const INSTAGRAM_REDIRECT_URI =
+  process.env.INSTAGRAM_REDIRECT_URI || 'https://feedia-production.up.railway.app/api/oauth/instagram/callback';
 
 // Store state tokens for CSRF protection
 const stateTokens = new Map<string, { userId: string; createdAt: number }>();

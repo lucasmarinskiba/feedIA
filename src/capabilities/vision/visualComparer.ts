@@ -60,7 +60,8 @@ export const findSimilarImages = (
   queryUrl: string,
   candidates: string[],
   threshold = 0.75,
-): Array<{ url: string; similarity: number }> => candidates
+): Array<{ url: string; similarity: number }> =>
+  candidates
     .map((url) => ({ url, similarity: compareImages(queryUrl, url).similarity }))
     .filter((r) => r.similarity >= threshold)
     .sort((a, b) => b.similarity - a.similarity);

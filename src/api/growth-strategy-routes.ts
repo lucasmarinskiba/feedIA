@@ -1,9 +1,5 @@
 import { Router, Request, Response } from 'express';
-import {
-  growthStrategyService,
-  StrategyItem,
-  GrowthRecommendation,
-} from '../services/growth-strategy-service';
+import { growthStrategyService, StrategyItem, GrowthRecommendation } from '../services/growth-strategy-service';
 
 const router = Router();
 
@@ -187,7 +183,7 @@ router.post('/recommendations', async (req: Request, res: Response): Promise<voi
     const recommendations = await growthStrategyService.generateRecommendations(
       accountHandle,
       platform,
-      currentMetrics
+      currentMetrics,
     );
 
     res.json({ ok: true, recommendations });

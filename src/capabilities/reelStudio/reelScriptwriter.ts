@@ -235,7 +235,8 @@ Devuelve:
 };
 
 /** Genera storyboard visual (descripciones para mockup). */
-export const generateStoryboard = (script: ReelScript): StoryboardFrame[] => script.scenes.map((scene) => ({
+export const generateStoryboard = (script: ReelScript): StoryboardFrame[] =>
+  script.scenes.map((scene) => ({
     sceneNumber: scene.sceneNumber,
     thumbnailDescription: `${scene.shotType} shot, ${scene.movement} movement, ${scene.visualDescription}`,
     composition: scene.shotType === 'close-up' ? 'centrado' : 'regla de tercios',

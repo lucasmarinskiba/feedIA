@@ -37,7 +37,9 @@ router.post('/create', quotaCheckMiddleware('carousels', 1), async (req: Request
     return res.status(statusCode).json(result);
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ success: false, error: `Creation failed: ${error}`, timestamp: new Date().toISOString() });
+    return res
+      .status(500)
+      .json({ success: false, error: `Creation failed: ${error}`, timestamp: new Date().toISOString() });
   }
 });
 
@@ -114,7 +116,9 @@ router.post('/import', async (req: Request, res: Response) => {
     return res.status(statusCode).json(result);
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ success: false, error: `Import failed: ${error}`, timestamp: new Date().toISOString() });
+    return res
+      .status(500)
+      .json({ success: false, error: `Import failed: ${error}`, timestamp: new Date().toISOString() });
   }
 });
 

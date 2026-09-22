@@ -22,12 +22,21 @@ export const generateFeedback = (
   const issues: string[] = [];
   const dims = score.dimensions;
 
-  if (dims.scrollStop < 70) issues.push('La portada/hook no es suficientemente scroll-stopping. Prometé valor concreto y usá un título que se entienda sin contexto.');
+  if (dims.scrollStop < 70)
+    issues.push(
+      'La portada/hook no es suficientemente scroll-stopping. Prometé valor concreto y usá un título que se entienda sin contexto.',
+    );
   if (dims.visualCoherence < 70) issues.push('Falta coherencia visual: unificá paleta, tipografía y grid.');
-  if (dims.storytelling < 70) issues.push('La narrativa es débil. Construí un arco: problema → tensión → insight → solución → CTA.');
-  if (dims.shareability < 70) issues.push('Poco shareable/guardable. Incluí un insight, lista o framework que la gente quiera guardar.');
-  if (dims.originality < 70) issues.push('El ángulo es genérico. Atacá el tema desde una opinión fuerte, un contraste o una experiencia propia.');
-  if (dims.pinterestAesthetic < 70) issues.push('La estética no llega al estándar Pinterest. Mejorá fotografía, espacio negativo y composición.');
+  if (dims.storytelling < 70)
+    issues.push('La narrativa es débil. Construí un arco: problema → tensión → insight → solución → CTA.');
+  if (dims.shareability < 70)
+    issues.push('Poco shareable/guardable. Incluí un insight, lista o framework que la gente quiera guardar.');
+  if (dims.originality < 70)
+    issues.push(
+      'El ángulo es genérico. Atacá el tema desde una opinión fuerte, un contraste o una experiencia propia.',
+    );
+  if (dims.pinterestAesthetic < 70)
+    issues.push('La estética no llega al estándar Pinterest. Mejorá fotografía, espacio negativo y composición.');
 
   const topIssues = issues.slice(0, 3);
 

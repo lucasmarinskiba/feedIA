@@ -170,8 +170,15 @@ const evalTaste = async (input?: TasteInput): Promise<{ score: number; issue: st
   try {
     const score = await evaluateTaste(input);
     if (score.overall >= 80) return { score: 18, issue: null };
-    if (score.overall >= 65) return { score: 14, issue: `Taste mejorable (${score.overall}/100): ${score.insights[0] ?? 'revisá coherencia visual y originalidad'}` };
-    return { score: 8, issue: `Taste bajo (${score.overall}/100): ${score.insights[0] ?? 'revisá estética y ángulo creativo'}` };
+    if (score.overall >= 65)
+      return {
+        score: 14,
+        issue: `Taste mejorable (${score.overall}/100): ${score.insights[0] ?? 'revisá coherencia visual y originalidad'}`,
+      };
+    return {
+      score: 8,
+      issue: `Taste bajo (${score.overall}/100): ${score.insights[0] ?? 'revisá estética y ángulo creativo'}`,
+    };
   } catch {
     return { score: 12, issue: null };
   }

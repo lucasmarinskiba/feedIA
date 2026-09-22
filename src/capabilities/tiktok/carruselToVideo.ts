@@ -58,7 +58,9 @@ export const carruselToVideoUrl = async (
   }
 
   if (Array.isArray(input)) {
-    log.warn('[CarruselToVideo] Solo se recibieron URLs de imágenes. Se necesita CarruselResult para generar video real.');
+    log.warn(
+      '[CarruselToVideo] Solo se recibieron URLs de imágenes. Se necesita CarruselResult para generar video real.',
+    );
     return undefined;
   }
 
@@ -66,7 +68,11 @@ export const carruselToVideoUrl = async (
   const reel = buildReelFromCarrusel(carrusel);
 
   // Opción 1: Canva reel template
-  const canvaRender = await renderReelToCanva(reel, `TikTok from carousel — ${caption?.slice(0, 40) ?? ''}`, userHandle);
+  const canvaRender = await renderReelToCanva(
+    reel,
+    `TikTok from carousel — ${caption?.slice(0, 40) ?? ''}`,
+    userHandle,
+  );
   if (canvaRender.ok && canvaRender.exportUrls?.[0]) {
     log.info(`[CarruselToVideo] Canva reel generado: ${canvaRender.exportUrls[0]}`);
     return canvaRender.exportUrls[0];

@@ -35,7 +35,7 @@ router.get('/fomo-triggers', (req: Request, res: Response): void => {
       campaignsUsed,
       campaignsLimit,
       monthlySignups,
-      agencySlotsRemaining
+      agencySlotsRemaining,
     );
 
     // Sort by urgency (high → low)
@@ -120,7 +120,7 @@ router.get('/pricing', (req: Request, res: Response): void => {
         'LLM Quality': ['Mock (basic)', 'Real Claude', 'Real Claude (priority)'],
         'Batch Size': ['1', '10', '100'],
         'Cost/Campaign': ['Free', '$1.58', '$0.998'],
-        'Support': ['Community', 'Email', '24h Priority'],
+        Support: ['Community', 'Email', '24h Priority'],
       },
       timestamp: new Date().toISOString(),
     });
@@ -160,7 +160,7 @@ router.get('/health', (req: Request, res: Response): void => {
         monthlyRecurringRevenue: {
           pro: `$${(metrics.proConversionsThisMonth * 79).toLocaleString()}`,
           agency: `$${(metrics.agencyConversionsThisMonth * 499).toLocaleString()}`,
-          total: `$${((metrics.proConversionsThisMonth * 79 + metrics.agencyConversionsThisMonth * 499)).toLocaleString()}`,
+          total: `$${(metrics.proConversionsThisMonth * 79 + metrics.agencyConversionsThisMonth * 499).toLocaleString()}`,
         },
       },
       timestamp: new Date().toISOString(),

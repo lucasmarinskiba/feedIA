@@ -3,7 +3,11 @@
  * Validates that 2-step reasoning (plan → generate) produces quality outputs
  */
 
-import { generateCarouselWithAgents, generateVideoWithAgents, generatePhotoWithAgents } from './agentIntegrationLayer.js';
+import {
+  generateCarouselWithAgents,
+  generateVideoWithAgents,
+  generatePhotoWithAgents,
+} from './agentIntegrationLayer.js';
 import { log } from '../agent/logger.js';
 
 interface QualityMetrics {
@@ -30,22 +34,12 @@ function validatePlanQuality(plan: string): { quality: string; evidence: string[
   }
 
   // Check 2: Design specs mentioned
-  if (
-    plan.includes('palette') ||
-    plan.includes('color') ||
-    plan.includes('lighting') ||
-    plan.includes('pose')
-  ) {
+  if (plan.includes('palette') || plan.includes('color') || plan.includes('lighting') || plan.includes('pose')) {
     evidence.push('✓ References design specifications');
   }
 
   // Check 3: Narrative structure
-  if (
-    plan.includes('stage') ||
-    plan.includes('arc') ||
-    plan.includes('structure') ||
-    plan.includes('progression')
-  ) {
+  if (plan.includes('stage') || plan.includes('arc') || plan.includes('structure') || plan.includes('progression')) {
     evidence.push('✓ Considers narrative structure');
   }
 
@@ -73,10 +67,7 @@ function validatePlanQuality(plan: string): { quality: string; evidence: string[
   return { quality, evidence };
 }
 
-function validateContentQuality(
-  content: string,
-  plan: string,
-): { quality: string; evidence: string[] } {
+function validateContentQuality(content: string, plan: string): { quality: string; evidence: string[] } {
   const evidence: string[] = [];
 
   // Check 1: Content references plan concepts
@@ -87,12 +78,7 @@ function validateContentQuality(
   }
 
   // Check 2: Specific copy present
-  if (
-    content.includes('"') ||
-    content.includes('Copy:') ||
-    content.includes('Slide') ||
-    content.includes('text')
-  ) {
+  if (content.includes('"') || content.includes('Copy:') || content.includes('Slide') || content.includes('text')) {
     evidence.push('✓ Contains specific copywriting');
   }
 

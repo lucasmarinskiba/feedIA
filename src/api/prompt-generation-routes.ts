@@ -2,7 +2,11 @@ import { Router, Request, Response } from 'express';
 import { log } from '../agent/logger.js';
 // Was commented out -- every route below referencing these names has
 // been throwing ReferenceError since whenever this got disabled.
-import { generatePromptVariations, batchGeneratePrompts, type PromptGenerationRequest } from '../agents/prompt-generation-agent.js';
+import {
+  generatePromptVariations,
+  batchGeneratePrompts,
+  type PromptGenerationRequest,
+} from '../agents/prompt-generation-agent.js';
 import { FeedbackLoop } from '../brain/neural/feedbackLoop.js';
 import type { BrandProfile } from '../config/types.js';
 
@@ -10,12 +14,16 @@ const router = Router();
 
 // ── Health ─────────────────────────────────────────────────────────────
 
-router.get('/health', (req: Request, res: Response) => void res.json({
-    status: 'ok',
-    service: 'prompt-generation',
-    batches: ['28-construction', '29-nano-banana'],
-    message: 'Autonomous prompt generation online',
-  }));
+router.get(
+  '/health',
+  (req: Request, res: Response) =>
+    void res.json({
+      status: 'ok',
+      service: 'prompt-generation',
+      batches: ['28-construction', '29-nano-banana'],
+      message: 'Autonomous prompt generation online',
+    }),
+);
 
 // ── POST: Generate Prompt Variations ───────────────────────────────────
 

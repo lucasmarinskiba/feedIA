@@ -144,7 +144,12 @@ const evaluateAndImproveTaste = async (
   carrusel: CarruselResult | undefined,
   reel: ReelScript | undefined,
   brand: BrandProfile,
-): Promise<{ tasteScore?: TasteScore; creativeFeedback?: string[]; improvedCarrusel?: CarruselResult; improvedReel?: ReelScript }> => {
+): Promise<{
+  tasteScore?: TasteScore;
+  creativeFeedback?: string[];
+  improvedCarrusel?: CarruselResult;
+  improvedReel?: ReelScript;
+}> => {
   const contentType: 'carrusel' | 'reel' = brief.formato === 'carrusel' ? 'carrusel' : 'reel';
   const tasteInput = {
     contentType,
@@ -300,7 +305,9 @@ export const briefToPublish = async (brand: BrandProfile, brief: BriefRequest): 
     if (tasteResult.improvedCarrusel) carrusel = tasteResult.improvedCarrusel;
     if (tasteResult.improvedReel) reel = tasteResult.improvedReel;
     if (tasteScore) {
-      log.info(`[CreativeDirector] Taste score: ${tasteScore.overall}/100 (${tasteScore.passed ? 'APROBADO' : 'MEJORABLE'})`);
+      log.info(
+        `[CreativeDirector] Taste score: ${tasteScore.overall}/100 (${tasteScore.passed ? 'APROBADO' : 'MEJORABLE'})`,
+      );
     }
   }
 
@@ -314,7 +321,9 @@ export const briefToPublish = async (brand: BrandProfile, brief: BriefRequest): 
   if (dsIssues.length > 0) {
     log.warn(`[Creative Suite] Design system warnings: ${dsIssues.join('; ')}`);
   }
-  log.info(`Creative Suite: tema "${designSystem.campaign?.name}" (${designSystem.campaign?.mood}) + template "${template.name}"`);
+  log.info(
+    `Creative Suite: tema "${designSystem.campaign?.name}" (${designSystem.campaign?.mood}) + template "${template.name}"`,
+  );
 
   // Motion graphic para reels/stories
   if (brief.formato === 'reel' && reel) {
@@ -395,13 +404,10 @@ export const briefToPublish = async (brand: BrandProfile, brief: BriefRequest): 
   // Quality Gate unificado (contenido + visual + marca + anti-promise)
   if (render) {
     try {
-      const campaignColors = designSystem.campaign?.colors
-        ? Object.values(designSystem.campaign.colors)
-        : [];
-      const colorsUsed = [
-        ...campaignColors,
-        ...(visualQAReal?.dominantColors ?? []),
-      ].filter((c): c is string => typeof c === 'string' && c.length > 0);
+      const campaignColors = designSystem.campaign?.colors ? Object.values(designSystem.campaign.colors) : [];
+      const colorsUsed = [...campaignColors, ...(visualQAReal?.dominantColors ?? [])].filter(
+        (c): c is string => typeof c === 'string' && c.length > 0,
+      );
       const fontsUsed = [designSystem.campaign?.fonts.heading, designSystem.campaign?.fonts.body].filter(
         (f): f is string => typeof f === 'string' && f.length > 0,
       );
@@ -579,9 +585,7 @@ export const briefFromStrategy = async (
   overrides: Partial<BriefRequest> = {},
 ): Promise<BriefOutcome> => {
   const format: BriefRequest['formato'] =
-    strategicBrief.format === 'reel' || strategicBrief.format === 'carrusel'
-      ? strategicBrief.format
-      : 'carrusel';
+    strategicBrief.format === 'reel' || strategicBrief.format === 'carrusel' ? strategicBrief.format : 'carrusel';
 
   const brief: BriefRequest = {
     idea: `${strategicBrief.topic}. ${strategicBrief.angle}`,

@@ -124,14 +124,23 @@ export const clearGrowthGoal = (): void => {
 
 // ── Daily metrics tracking ────────────────────────────────────────────────────
 
-export const recordDailySnapshot = (snapshot: Omit<DailyMetricSnapshot, 'followersDelta' | 'tiktokFollowersDelta' | 'instagramFollowersDelta'>): DailyMetricSnapshot => {
+export const recordDailySnapshot = (
+  snapshot: Omit<DailyMetricSnapshot, 'followersDelta' | 'tiktokFollowersDelta' | 'instagramFollowersDelta'>,
+): DailyMetricSnapshot => {
   const state = loadState();
   const yesterday = state.dailyMetrics[state.dailyMetrics.length - 1];
   const followersDelta = yesterday ? snapshot.followers - yesterday.followers : 0;
-  const tiktokFollowersDelta = yesterday && snapshot.tiktokFollowers ? snapshot.tiktokFollowers - (yesterday.tiktokFollowers ?? 0) : 0;
-  const instagramFollowersDelta = yesterday && snapshot.instagramFollowers ? snapshot.instagramFollowers - (yesterday.instagramFollowers ?? 0) : 0;
+  const tiktokFollowersDelta =
+    yesterday && snapshot.tiktokFollowers ? snapshot.tiktokFollowers - (yesterday.tiktokFollowers ?? 0) : 0;
+  const instagramFollowersDelta =
+    yesterday && snapshot.instagramFollowers ? snapshot.instagramFollowers - (yesterday.instagramFollowers ?? 0) : 0;
 
-  const fullSnapshot: DailyMetricSnapshot = { ...snapshot, followersDelta, tiktokFollowersDelta, instagramFollowersDelta };
+  const fullSnapshot: DailyMetricSnapshot = {
+    ...snapshot,
+    followersDelta,
+    tiktokFollowersDelta,
+    instagramFollowersDelta,
+  };
   state.dailyMetrics.push(fullSnapshot);
 
   // Mantener últimos 90 días

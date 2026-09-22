@@ -13,25 +13,29 @@ interface PromptTemplate {
 const promptTemplates: Record<string, PromptTemplate> = {
   en: {
     hook: 'Create compelling {domain} content: {brief}. Angle: {angle}. Style: {style}.',
-    showcase: 'Professional {domain} product/feature photography. Product: {product}. Lighting: {lighting}. Composition: {composition}.',
+    showcase:
+      'Professional {domain} product/feature photography. Product: {product}. Lighting: {lighting}. Composition: {composition}.',
     interactive: 'Engage audience with {domain} content. Question: {question}. Interactive element: {element}.',
     cta: 'High-conversion call-to-action carousel slide. Action: {action}. Urgency: {urgency}. Offer: {offer}.',
   },
   es: {
     hook: 'Crear contenido cautivador {domain}: {brief}. Ángulo: {angle}. Estilo: {style}.',
-    showcase: 'Fotografía profesional de producto/característica {domain}. Producto: {product}. Iluminación: {lighting}. Composición: {composition}.',
+    showcase:
+      'Fotografía profesional de producto/característica {domain}. Producto: {product}. Iluminación: {lighting}. Composición: {composition}.',
     interactive: 'Enganchar audiencia con contenido {domain}. Pregunta: {question}. Elemento interactivo: {element}.',
     cta: 'Diapositiva de llamada a la acción de alta conversión. Acción: {action}. Urgencia: {urgency}. Oferta: {offer}.',
   },
   ru: {
     hook: 'Создать привлекательный контент {domain}: {brief}. Угол: {angle}. Стиль: {style}.',
-    showcase: 'Профессиональная фотография товара/функции {domain}. Товар: {product}. Освещение: {lighting}. Композиция: {composition}.',
+    showcase:
+      'Профессиональная фотография товара/функции {domain}. Товар: {product}. Освещение: {lighting}. Композиция: {composition}.',
     interactive: 'Привлечь аудиторию контентом {domain}. Вопрос: {question}. Интерактивный элемент: {element}.',
     cta: 'Слайд призыва к действию с высокой конверсией. Действие: {action}. Срочность: {urgency}. Предложение: {offer}.',
   },
   pt: {
     hook: 'Criar conteúdo cativante {domain}: {brief}. Ângulo: {angle}. Estilo: {style}.',
-    showcase: 'Fotografia profissional de produto/recurso {domain}. Produto: {product}. Iluminação: {lighting}. Composição: {composition}.',
+    showcase:
+      'Fotografia profissional de produto/recurso {domain}. Produto: {product}. Iluminação: {lighting}. Composição: {composition}.',
     interactive: 'Engajar audiência com conteúdo {domain}. Pergunta: {question}. Elemento interativo: {element}.',
     cta: 'Slide de chamada à ação de alta conversão. Ação: {action}. Urgência: {urgency}. Oferta: {offer}.',
   },
@@ -61,7 +65,7 @@ class FeedIAI18n {
   generatePrompt(
     language: string,
     slideType: 'hook' | 'showcase' | 'interactive' | 'cta',
-    variables: Record<string, string>
+    variables: Record<string, string>,
   ): string {
     const template = this.getTemplate(language, slideType);
     return this.interpolate(template, variables);

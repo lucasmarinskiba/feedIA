@@ -118,9 +118,8 @@ const selectSubtitleStyle = (second: number, duration: number): string => {
   return 'cta'; // Bold, accent color
 };
 
-const generateSRT = (subtitles: Subtitle[]): string => subtitles
-    .map((sub) => `${sub.index}\n${sub.startTime} --> ${sub.endTime}\n${sub.text}\n`)
-    .join('\n');
+const generateSRT = (subtitles: Subtitle[]): string =>
+  subtitles.map((sub) => `${sub.index}\n${sub.startTime} --> ${sub.endTime}\n${sub.text}\n`).join('\n');
 
 export const exportSubtitlesAsSRT = (track: SubtitleTrack): string => track.srtContent || generateSRT(track.subtitles);
 

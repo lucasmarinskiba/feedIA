@@ -29,14 +29,7 @@ import { log } from '../agent/logger.js';
 
 const VALID_MODES: ProviderMode[] = ['auto', 'higgsfield-first', 'speed', 'quality'];
 
-const DEFAULT_MODELS = [
-  'seedance-v1-lite',
-  'seedance-v1-pro',
-  'wan-2.1-t2v',
-  'wan-2.1-i2v',
-  'kling-v1',
-  'kling-v1.5',
-];
+const DEFAULT_MODELS = ['seedance-v1-lite', 'seedance-v1-pro', 'wan-2.1-t2v', 'wan-2.1-i2v', 'kling-v1', 'kling-v1.5'];
 
 /** Resolve user handle from query param ?handle=@foo or request body. */
 const getHandle = (ctx: RouteContext): string | null =>
@@ -103,8 +96,7 @@ export const buildHiggsfieldRoutes = (): RouteDefinition[] => [
         connected: true,
         plan: validation.plan ?? 'standard',
         availableModels: validation.models ?? DEFAULT_MODELS,
-        message:
-          'Higgsfield conectado. Ahora podés generar videos con SeeDance, Wan 2.1, Kling y más.',
+        message: 'Higgsfield conectado. Ahora podés generar videos con SeeDance, Wan 2.1, Kling y más.',
       });
     },
   },

@@ -17,14 +17,7 @@ import { saveBrandProfile } from '../../config/accounts.js';
 import { planStrategy, type StrategyPlan } from './strategyPlanner.js';
 import { analyzeCompetitors, type CompetitorBaseline } from './competitorBaseline.js';
 
-export type OnboardingStep =
-  | 'business'
-  | 'audience'
-  | 'voice'
-  | 'goals'
-  | 'competitors'
-  | 'strategy'
-  | 'complete';
+export type OnboardingStep = 'business' | 'audience' | 'voice' | 'goals' | 'competitors' | 'strategy' | 'complete';
 
 export interface OnboardingAnswers {
   name?: string;
@@ -111,9 +104,7 @@ const hasValue = (v: unknown): boolean => {
 export const getMissingFields = (answers: OnboardingAnswers): string[] =>
   REQUIRED_FIELDS.filter((field) => !hasValue(answers[field]));
 
-export const buildBrandProfileFromState = (
-  state: OnboardingState,
-): { profile?: BrandProfile; missing: string[] } => {
+export const buildBrandProfileFromState = (state: OnboardingState): { profile?: BrandProfile; missing: string[] } => {
   const missing = getMissingFields(state.answers);
   if (missing.length > 0) return { missing };
 
@@ -271,4 +262,7 @@ export const quickOnboarding = async (
 };
 
 export const generateAccountId = (name: string): string =>
-  `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${randomUUID().slice(0, 8)}`;
+  `${name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')}-${randomUUID().slice(0, 8)}`;

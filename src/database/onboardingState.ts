@@ -30,5 +30,5 @@ export const loadOnboardingState = (accountId: string): OnboardingState | null =
 
 export const deleteOnboardingState = (accountId: string): void => {
   const db = getDb();
-  db.prepare("UPDATE accounts SET onboarding_json = NULL WHERE id = ?").run(accountId);
+  db.prepare('UPDATE accounts SET onboarding_json = NULL WHERE id = ?').run(accountId);
 };

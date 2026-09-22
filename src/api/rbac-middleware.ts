@@ -187,7 +187,7 @@ export const incrementCampaignUsage = async (req: Request, res: Response, next: 
     if (tier.tier !== 'agency') {
       await query(
         'UPDATE user_tiers SET campaigns_used_this_month = campaigns_used_this_month + 1 WHERE user_id = $1',
-        [userId]
+        [userId],
       );
     }
 

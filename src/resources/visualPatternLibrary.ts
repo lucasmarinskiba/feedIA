@@ -84,7 +84,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Big bold numbers + benefit callout per slide',
     visualGuide: 'Number 60% bg, photo 70%, benefit text bold',
     bestFor: ['fitness', 'gym', 'training', 'education', 'motivation'],
-    colorPalettes: ['neon-yellow', 'lime-green', 'orange-black']
+    colorPalettes: ['neon-yellow', 'lime-green', 'orange-black'],
   },
   {
     id: 'product-checklist-grid',
@@ -92,7 +92,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Product hero + feature checkboxes + benefit proof',
     visualGuide: '3-slide: product hero | feature checklist | lifestyle use',
     bestFor: ['equipment', 'tech', 'fitness-products', 'e-commerce'],
-    colorPalettes: ['orange-black', 'lime-green']
+    colorPalettes: ['orange-black', 'lime-green'],
   },
   {
     id: 'hand-holding-money',
@@ -100,7 +100,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Close-up: hand + cash/coins/document, professional lighting',
     visualGuide: 'Hand centered, object in focus (60%), soft background, top-down perspective',
     bestFor: ['finance', 'accounting', 'banking', 'investment', 'savings'],
-    colorPalettes: ['professional-blue', 'dark-blue-white']
+    colorPalettes: ['professional-blue', 'dark-blue-white'],
   },
   {
     id: 'money-tree-growth',
@@ -108,7 +108,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Tree/plant with coins growing, hand holding base',
     visualGuide: 'Plant 70%, hand holding base 30%, organic composition',
     bestFor: ['finance', 'investment', 'growth', 'wealth', 'savings'],
-    colorPalettes: ['professional-blue', 'green-accents']
+    colorPalettes: ['professional-blue', 'green-accents'],
   },
   {
     id: 'money-stack-shock',
@@ -116,7 +116,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Stack of bills/currency, close-up, emphasizing quantity',
     visualGuide: 'Stack 70% of frame, clean background 30%, top-down angle',
     bestFor: ['finance', 'cost-education', 'hiring', 'budget', 'price-revelation'],
-    colorPalettes: ['yellow-gold', 'professional-blue']
+    colorPalettes: ['yellow-gold', 'professional-blue'],
   },
   {
     id: 'calculator-professional',
@@ -124,7 +124,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Large calculator or numbers, person interacting',
     visualGuide: 'Calculator/numbers 60%, person 40%, white/minimal background',
     bestFor: ['accounting', 'finance', 'tax', 'numbers', 'precision'],
-    colorPalettes: ['dark-blue-white', 'professional-blue']
+    colorPalettes: ['dark-blue-white', 'professional-blue'],
   },
   {
     id: 'gradient-dark-gold',
@@ -132,7 +132,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Dark to gold gradient background, elegant typography hierarchy',
     visualGuide: 'Gradient 100%, vertical line divider, text centered',
     bestFor: ['finance', 'premium-services', 'consulting', 'cost-education'],
-    colorPalettes: ['dark-blue-gold', 'black-gold']
+    colorPalettes: ['dark-blue-gold', 'black-gold'],
   },
   {
     id: 'card-myth-series',
@@ -140,7 +140,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Rounded rectangle card, organized typography, line dividers between sections',
     visualGuide: 'Card 80% of frame, padding 20px, rounded corners 16px, line dividers 2px',
     bestFor: ['myth-busting', 'education', 'professional-services', 'q&a-format'],
-    colorPalettes: ['dark-blue-white', 'professional-blue', 'dark-blue-gold']
+    colorPalettes: ['dark-blue-white', 'professional-blue', 'dark-blue-gold'],
   },
   {
     id: 'yellow-truth-breakthrough',
@@ -148,7 +148,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Solid yellow background, bold dark text, celebratory feeling',
     visualGuide: 'Full yellow background (100%), text dark navy, high contrast, bold typography',
     bestFor: ['truth-reveals', 'breakthrough-moments', 'affirmations', 'benefits-summary'],
-    colorPalettes: ['yellow-gold-elegant', 'yellow-dark-blue']
+    colorPalettes: ['yellow-gold-elegant', 'yellow-dark-blue'],
   },
   {
     id: 'motivational-split',
@@ -156,7 +156,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Bold headline 50% + person 50%, strong copy',
     visualGuide: 'Text left (bold uppercase), person right (confident pose)',
     bestFor: ['fitness', 'motivation', 'coaching', 'personal-training'],
-    colorPalettes: ['neon-yellow', 'orange-black']
+    colorPalettes: ['neon-yellow', 'orange-black'],
   },
   {
     id: 'hero-list',
@@ -164,7 +164,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Person photo with bulleted benefits floating',
     visualGuide: 'Photo 70%, text overlay 30%, vertical center',
     bestFor: ['bikes', 'fitness', 'sports', 'lifestyle'],
-    colorPalettes: ['lime-green', 'neon-yellow']
+    colorPalettes: ['lime-green', 'neon-yellow'],
   },
   {
     id: 'close-up-detail',
@@ -172,7 +172,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Product 60% + minimal text 40%',
     visualGuide: 'Product detail centered, text bottom-right',
     bestFor: ['bikes', 'tech', 'accessories', 'equipment'],
-    colorPalettes: ['neon-yellow', 'blue']
+    colorPalettes: ['neon-yellow', 'blue'],
   },
   {
     id: 'lifestyle-full-bleed',
@@ -180,7 +180,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Person in environment edge-to-edge',
     visualGuide: 'Image fills entire slide, text overlay center',
     bestFor: ['sports', 'adventure', 'lifestyle', 'travel'],
-    colorPalettes: ['all']
+    colorPalettes: ['all'],
   },
   {
     id: 'feature-grid',
@@ -188,7 +188,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: '"X benefits" + numbered list + icons',
     visualGuide: 'Grid layout 3-4 items per row, consistent spacing',
     bestFor: ['education', 'features', 'benefits', 'comparison'],
-    colorPalettes: ['lime-green', 'neon-yellow']
+    colorPalettes: ['lime-green', 'neon-yellow'],
   },
   {
     id: 'testimonial-person',
@@ -196,7 +196,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Quote + face + action CTA',
     visualGuide: 'Person 50%, quote text 50%, side-by-side',
     bestFor: ['social-proof', 'reviews', 'case-studies'],
-    colorPalettes: ['blue', 'red-orange']
+    colorPalettes: ['blue', 'red-orange'],
   },
   {
     id: 'geometric-shapes',
@@ -204,7 +204,7 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Arrows/triangles + person = movement',
     visualGuide: 'Shapes 30%, person 70%, creates directional flow',
     bestFor: ['campaign', 'awareness', 'action', 'adventure'],
-    colorPalettes: ['red-orange', 'blue']
+    colorPalettes: ['red-orange', 'blue'],
   },
   {
     id: 'single-centered',
@@ -212,8 +212,8 @@ export const layoutTemplates: LayoutTemplate[] = [
     description: 'Person or product centered + bold shapes around',
     visualGuide: 'Subject centered, shapes in corners/edges',
     bestFor: ['campaign', 'holiday', 'special-event', 'announcement'],
-    colorPalettes: ['all']
-  }
+    colorPalettes: ['all'],
+  },
 ];
 
 // Learning engine: ingest new image
@@ -225,22 +225,43 @@ export const ingestVisualPattern = (image: unknown, metadata: Partial<VisualPatt
   // - element positioning
   // - composition rules
 
-   ({
+  ({
     id: `pattern-${Date.now()}`,
     name: metadata.name || 'Untitled',
     industry: metadata.industry || 'general',
     platform: metadata.platform || 'carousel',
     emotion: metadata.emotion || 'energetic',
     colors: metadata.colors || { primary: '#000000', secondary: '#FFFFFF', accent: '#FF0000', contrast: 'high' },
-    typography: metadata.typography || { headlineFont: 'sans-serif', bodyFont: 'sans-serif', headlineSize: 'large', hierarchy: 'strong' },
-    layout: metadata.layout || { type: 'hero-left', personPlacement: 'left', productPlacement: 'hero', whitespaceRatio: 0.2, textOverlapPhoto: true },
-    elements: metadata.elements || { geometricShapes: false, icons: false, illustrations: false, photoStyle: 'mixed', borderRadius: 'rounded' },
-    composition: metadata.composition || { rule_of_thirds: true, leading_lines: true, depth_layers: 3, movement_direction: 'horizontal' },
+    typography: metadata.typography || {
+      headlineFont: 'sans-serif',
+      bodyFont: 'sans-serif',
+      headlineSize: 'large',
+      hierarchy: 'strong',
+    },
+    layout: metadata.layout || {
+      type: 'hero-left',
+      personPlacement: 'left',
+      productPlacement: 'hero',
+      whitespaceRatio: 0.2,
+      textOverlapPhoto: true,
+    },
+    elements: metadata.elements || {
+      geometricShapes: false,
+      icons: false,
+      illustrations: false,
+      photoStyle: 'mixed',
+      borderRadius: 'rounded',
+    },
+    composition: metadata.composition || {
+      rule_of_thirds: true,
+      leading_lines: true,
+      depth_layers: 3,
+      movement_direction: 'horizontal',
+    },
     source: metadata.source,
     extractedFrom: metadata.extractedFrom,
-    successMetrics: metadata.successMetrics
-  })
-;
+    successMetrics: metadata.successMetrics,
+  });
 
 // Query patterns by criteria
 export const queryPatterns = (filters: {
@@ -248,7 +269,8 @@ export const queryPatterns = (filters: {
   platform?: string;
   emotion?: string;
   layoutType?: string;
-}): VisualPattern[] => visualPatterns.filter(p => {
+}): VisualPattern[] =>
+  visualPatterns.filter((p) => {
     if (filters.industry && p.industry !== filters.industry) return false;
     if (filters.platform && p.platform !== filters.platform) return false;
     if (filters.emotion && p.emotion !== filters.emotion) return false;
@@ -261,6 +283,6 @@ export const getMatchingTemplate = (briefing: {
   emotion: string;
   messageType: 'promo' | 'education' | 'lifestyle' | 'social-proof' | 'feature';
 }): LayoutTemplate => {
-  const matches = layoutTemplates.filter(t => t.bestFor.includes(briefing.industry));
+  const matches = layoutTemplates.filter((t) => t.bestFor.includes(briefing.industry));
   return matches[0] || layoutTemplates[0]!;
 };

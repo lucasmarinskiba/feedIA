@@ -46,7 +46,7 @@ export interface RenderResult {
 /** Maps FeedIA's platform+contentType vocabulary to imageGen.ts's aspect ratio format. */
 const toImageAspectRatio = (
   platform: 'instagram' | 'tiktok',
-  contentType: 'image' | 'video' | 'carousel'
+  contentType: 'image' | 'video' | 'carousel',
 ): ImageGenRequest['aspectRatio'] => {
   if (contentType === 'carousel') return '4:5';
   if (platform === 'tiktok') return '9:16';
@@ -106,7 +106,7 @@ async function tryHiggsfieldVideo(request: RenderRequest): Promise<RenderResult 
       aspectRatio,
       durationSeconds: duration,
     },
-    180000
+    180000,
   );
 
   if (result?.status === 'completed' && result.resultUrl) {
@@ -141,7 +141,7 @@ async function tryHiggsfieldImage(request: RenderRequest): Promise<RenderResult 
       aspectRatio: toImageAspectRatio(request.platform, request.contentType),
       numImages: 1,
     },
-    60000
+    60000,
   );
 
   if (result?.status === 'completed' && (result.resultUrl || result.resultUrls?.[0])) {
@@ -169,9 +169,9 @@ async function renderVideo(request: RenderRequest): Promise<RenderResult> {
   }
 
   const aspectRatio = toVideoAspectRatio(request.platform);
-  const duration = (request.durationSeconds && [4, 6, 8].includes(request.durationSeconds)
-    ? request.durationSeconds
-    : 8) as 4 | 6 | 8;
+  const duration = (
+    request.durationSeconds && [4, 6, 8].includes(request.durationSeconds) ? request.durationSeconds : 8
+  ) as 4 | 6 | 8;
 
   // 2. Try Veo 3.1
   const veoResult = await generateVideoAndWait(
@@ -181,7 +181,7 @@ async function renderVideo(request: RenderRequest): Promise<RenderResult> {
       durationSeconds: duration,
       referenceImageBase64: request.referenceImageBase64,
     },
-    180000
+    180000,
   );
 
   if (veoResult?.done && !veoResult.error && (veoResult.videoUrl || veoResult.videoBase64)) {
@@ -203,7 +203,7 @@ async function renderVideo(request: RenderRequest): Promise<RenderResult> {
   const seedanceResult = await generateSeedanceVideoAndWait(
     request.prompt,
     { aspectRatio, durationSeconds: seedanceDuration as 5 | 10 },
-    150000
+    150000,
   );
 
   if (seedanceResult?.done && !seedanceResult.error && seedanceResult.videoUrl) {
@@ -236,8 +236,7 @@ export async function renderAsset(request: RenderRequest): Promise<RenderResult>
     promptPreview: request.prompt.slice(0, 80),
   });
 
-  const result =
-    request.contentType === 'video' ? await renderVideo(request) : await renderImage(request);
+  const result = request.contentType === 'video' ? await renderVideo(request) : await renderImage(request);
 
   log.info('[RealAssetRenderer] Render complete', {
     ok: result.ok,
@@ -253,11 +252,7 @@ export async function renderAsset(request: RenderRequest): Promise<RenderResult>
  */
 export async function renderCarousel(
   framePrompts: string[],
-  platform: 'instagram' | 'tiktok'
+  platform: 'instagram' | 'tiktok',
 ): Promise<RenderResult[]> {
-  return Promise.all(
-    framePrompts.map(prompt =>
-      renderImage({ prompt, platform, contentType: 'carousel' })
-    )
-  );
+  return Promise.all(framePrompts.map((prompt) => renderImage({ prompt, platform, contentType: 'carousel' })));
 }

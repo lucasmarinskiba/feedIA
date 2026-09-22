@@ -176,7 +176,15 @@ class FeedIASeedGenerator {
           `INSERT INTO users (id, email, name, plan, storage_used_gb, analytics_retention_days, created_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7)
            ON CONFLICT (id) DO NOTHING`,
-          [user.id, user.email, user.name, user.plan, user.storage_used_gb, user.analytics_retention_days, user.created_at],
+          [
+            user.id,
+            user.email,
+            user.name,
+            user.plan,
+            user.storage_used_gb,
+            user.analytics_retention_days,
+            user.created_at,
+          ],
         );
 
         this.users.push(user);
@@ -334,9 +342,7 @@ class FeedIASeedGenerator {
         const row = result.rows[0];
         if (row && row.views > 0) {
           const engagement_rate =
-            row.views > 0
-              ? (((row.likes + row.shares + row.saves + row.clicks) / row.views) * 100).toFixed(2)
-              : '0';
+            row.views > 0 ? (((row.likes + row.shares + row.saves + row.clicks) / row.views) * 100).toFixed(2) : '0';
 
           const metricId = uuidv4();
           await this.pool.query(
@@ -399,10 +405,7 @@ class FeedIASeedGenerator {
         user_id: user.id,
         name: `Segment ${segmentIndex}: ${interests[i % interests.length]} audience`,
         criteria: {
-          interests: [
-            interests[i % interests.length],
-            interests[(i + 1) % interests.length],
-          ],
+          interests: [interests[i % interests.length], interests[(i + 1) % interests.length]],
           locations: [locations[i % locations.length]],
           age_range: ageRanges[Math.floor(Math.random() * ageRanges.length)],
           engagement_level: ['high', 'medium', 'low'][Math.floor(Math.random() * 3)],

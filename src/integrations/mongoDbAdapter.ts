@@ -106,11 +106,7 @@ export const listJobsFromDb = async (limit: number = 100): Promise<CarouselJob[]
 
   try {
     const collection = db.collection(JOBS_COLLECTION);
-    const jobs = await collection
-      .find()
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .toArray();
+    const jobs = await collection.find().sort({ createdAt: -1 }).limit(limit).toArray();
 
     return jobs as CarouselJob[];
   } catch (err) {

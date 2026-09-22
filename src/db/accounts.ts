@@ -192,10 +192,7 @@ export const getUserAccounts = async (userId: string): Promise<UserAccount[]> =>
  */
 export const getAccount = async (accountId: string): Promise<UserAccount | null> => {
   try {
-    const result = await getPool().query(
-      `SELECT * FROM user_accounts WHERE id = $1`,
-      [accountId],
-    );
+    const result = await getPool().query(`SELECT * FROM user_accounts WHERE id = $1`, [accountId]);
 
     if (!result.rows || result.rows.length === 0) return null;
     return parseAccountRecord(result.rows[0] as Record<string, unknown>);
@@ -210,10 +207,10 @@ export const getAccount = async (accountId: string): Promise<UserAccount | null>
  */
 export const disconnectAccount = async (accountId: string, userId: string): Promise<boolean> => {
   try {
-    const result = await getPool().query(
-      `DELETE FROM user_accounts WHERE id = $1 AND user_id = $2`,
-      [accountId, userId],
-    );
+    const result = await getPool().query(`DELETE FROM user_accounts WHERE id = $1 AND user_id = $2`, [
+      accountId,
+      userId,
+    ]);
 
     return (result.rowCount || 0) > 0;
   } catch (err) {
@@ -225,10 +222,7 @@ export const disconnectAccount = async (accountId: string, userId: string): Prom
 /**
  * Update quota allocation (% of tier's limit for this account)
  */
-export const updateAccountQuotaPercent = async (
-  accountId: string,
-  quotaPercent: number,
-): Promise<boolean> => {
+export const updateAccountQuotaPercent = async (accountId: string, quotaPercent: number): Promise<boolean> => {
   try {
     if (quotaPercent <= 0 || quotaPercent > 100) {
       throw new Error('Quota percent must be 1-100');
@@ -322,10 +316,10 @@ export const checkAccountFormatQuota = async (
     const now = new Date();
     const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const result = await getPool().query(
-      `SELECT * FROM account_quotas WHERE account_id = $1 AND period_start = $2`,
-      [accountId, periodStart],
-    );
+    const result = await getPool().query(`SELECT * FROM account_quotas WHERE account_id = $1 AND period_start = $2`, [
+      accountId,
+      periodStart,
+    ]);
 
     if (!result.rows || result.rows.length === 0) {
       return { allowed: false, used: 0, limit: 0, reason: 'Quota not initialized' };
@@ -419,10 +413,10 @@ export const updateContentMetrics = async (
   metrics: { likes?: number; comments?: number; shares?: number; saves?: number; reach?: number; impressions?: number },
 ): Promise<boolean> => {
   try {
-    const result = await getPool().query(
-      `UPDATE account_content SET metrics = $1, updated_at = NOW() WHERE id = $2`,
-      [JSON.stringify(metrics), contentId],
-    );
+    const result = await getPool().query(`UPDATE account_content SET metrics = $1, updated_at = NOW() WHERE id = $2`, [
+      JSON.stringify(metrics),
+      contentId,
+    ]);
 
     return (result.rowCount || 0) > 0;
   } catch (err) {

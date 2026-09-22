@@ -25,10 +25,7 @@ export const generateContent = async (req: Request, res: Response): Promise<void
     }
 
     // Verify campaign ownership
-    const campaignResult = await query(
-      'SELECT * FROM campaigns WHERE id = $1 AND user_id = $2',
-      [campaignId, userId]
-    );
+    const campaignResult = await query('SELECT * FROM campaigns WHERE id = $1 AND user_id = $2', [campaignId, userId]);
 
     if (campaignResult.rowCount === 0) {
       res.status(404).json({ error: 'Campaign not found' });
@@ -69,7 +66,7 @@ export const generateContent = async (req: Request, res: Response): Promise<void
           content.title,
           content.description,
           content.status,
-        ]
+        ],
       );
 
       generatedContent.push(content);
@@ -129,10 +126,11 @@ export const publishContent = async (req: Request, res: Response): Promise<void>
     const { platform = 'tiktok' } = req.body;
 
     // Verify ownership
-    const result = await query(
-      'SELECT * FROM content WHERE id = $1 AND user_id = $2 AND status = $3',
-      [id, userId, 'ready']
-    );
+    const result = await query('SELECT * FROM content WHERE id = $1 AND user_id = $2 AND status = $3', [
+      id,
+      userId,
+      'ready',
+    ]);
 
     if (result.rowCount === 0) {
       res.status(404).json({ error: 'Content not found or not ready' });
@@ -151,7 +149,7 @@ export const publishContent = async (req: Request, res: Response): Promise<void>
     await query(
       `INSERT INTO analytics_events (id, content_id, user_id, event_type, platform, metric_value, timestamp)
        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW())`,
-      [id, userId, 'published', platform, 1]
+      [id, userId, 'published', platform, 1],
     );
 
     res.json({
@@ -197,7 +195,7 @@ export const listContent = async (req: Request, res: Response): Promise<void> =>
       `SELECT * FROM content ${whereClause}
        ORDER BY created_at DESC
        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
-      [...params, parseInt(limit as string, 10), parseInt(offset as string, 10)]
+      [...params, parseInt(limit as string, 10), parseInt(offset as string, 10)],
     );
 
     res.json({
@@ -222,10 +220,11 @@ export const deleteContent = async (req: Request, res: Response): Promise<void> 
     const { id } = req.params;
 
     // Verify ownership + not published
-    const result = await query(
-      'SELECT * FROM content WHERE id = $1 AND user_id = $2 AND status != $3',
-      [id, userId, 'published']
-    );
+    const result = await query('SELECT * FROM content WHERE id = $1 AND user_id = $2 AND status != $3', [
+      id,
+      userId,
+      'published',
+    ]);
 
     if (result.rowCount === 0) {
       res.status(400).json({ error: 'Cannot delete published content' });

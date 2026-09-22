@@ -3,9 +3,7 @@
  */
 
 export { planNextContent } from './contentStrategyEngine.js';
-export type {
-  StrategyEngineOptions,
-} from './contentStrategyEngine.js';
+export type { StrategyEngineOptions } from './contentStrategyEngine.js';
 
 export { scoreOpportunity } from './opportunityScorer.js';
 export type { OpportunityInput, OpportunityScore } from './opportunityScorer.js';

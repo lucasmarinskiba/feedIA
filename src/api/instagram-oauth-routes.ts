@@ -34,7 +34,7 @@ const saveToken = async (
   userId: string,
   accessToken: string,
   accountId: string,
-  expiresInSeconds: number
+  expiresInSeconds: number,
 ): Promise<void> => {
   await getPool().query(
     `INSERT INTO user_social_tokens (user_id, platform, access_token, account_id, expires_at, created_at, updated_at)
@@ -44,7 +44,7 @@ const saveToken = async (
        account_id = EXCLUDED.account_id,
        expires_at = EXCLUDED.expires_at,
        updated_at = NOW()`,
-    [userId, PLATFORM, accessToken, accountId, new Date(Date.now() + expiresInSeconds * 1000)]
+    [userId, PLATFORM, accessToken, accountId, new Date(Date.now() + expiresInSeconds * 1000)],
   );
 };
 
@@ -59,7 +59,7 @@ const loadTokens = async (): Promise<StoredToken[]> => {
       WHERE platform = $1
         AND (expires_at IS NULL OR expires_at > NOW())
       ORDER BY updated_at DESC`,
-    [PLATFORM]
+    [PLATFORM],
   );
   return result.rows as StoredToken[];
 };
@@ -68,11 +68,10 @@ const loadTokens = async (): Promise<StoredToken[]> => {
 // are on different origins — this service answers on Railway, while the app the
 // user actually sees is the Vercel deployment — so a relative redirect would
 // land them on this service's JSON root instead of back in the product.
-const FRONTEND_URL = (
-  process.env.FRONTEND_URL ||
-  process.env.PUBLIC_BASE_URL ||
-  'https://feedia.vercel.app'
-).replace(/\/+$/, '');
+const FRONTEND_URL = (process.env.FRONTEND_URL || process.env.PUBLIC_BASE_URL || 'https://feedia.vercel.app').replace(
+  /\/+$/,
+  '',
+);
 
 /**
  * GET /oauth/instagram/connect
@@ -162,7 +161,9 @@ router.get('/callback', async (req: Request, res: Response): Promise<void> => {
         status: tokenResponse.status,
         error: errorData.error?.message,
       });
-      res.status(400).json({ ok: false, error: `Instagram auth failed: ${errorData.error?.message || 'unknown error'}` });
+      res
+        .status(400)
+        .json({ ok: false, error: `Instagram auth failed: ${errorData.error?.message || 'unknown error'}` });
       return;
     }
 
@@ -193,9 +194,7 @@ router.get('/callback', async (req: Request, res: Response): Promise<void> => {
     });
 
     // Redirect to dashboard with success
-    res.redirect(
-      `${FRONTEND_URL}/?instagram_connected=true&account=${encodeURIComponent(accountId)}`
-    );
+    res.redirect(`${FRONTEND_URL}/?instagram_connected=true&account=${encodeURIComponent(accountId)}`);
   } catch (err) {
     log.error('[InstagramOAuth] Callback failed', { error: String(err) });
     res.redirect(`${FRONTEND_URL}/?instagram_error=${encodeURIComponent(String(err))}`);
@@ -245,10 +244,10 @@ router.post('/disconnect', async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const result = await getPool().query(
-      `DELETE FROM user_social_tokens WHERE platform = $1 AND account_id = $2`,
-      [PLATFORM, accountId]
-    );
+    const result = await getPool().query(`DELETE FROM user_social_tokens WHERE platform = $1 AND account_id = $2`, [
+      PLATFORM,
+      accountId,
+    ]);
 
     if (result.rowCount === 0) {
       res.status(404).json({ ok: false, error: `No connected account ${accountId}` });

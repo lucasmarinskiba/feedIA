@@ -28,9 +28,24 @@ const getCurrentUser = async (req: AuthRequest, res: Response): Promise<void> =>
     }
 
     interface UserRow {
-      id: string; email: string; username: string; tier: string; plan: string; first_name: string; last_name: string; avatar_url: string;
-      storage_used_gb: string; storage_limit_gb: number; video_storage_used_gb: string; video_storage_limit_gb: number;
-      api_calls_this_month: number; api_calls_limit: number; created_at: string; language: string; timezone: string; dark_mode: boolean;
+      id: string;
+      email: string;
+      username: string;
+      tier: string;
+      plan: string;
+      first_name: string;
+      last_name: string;
+      avatar_url: string;
+      storage_used_gb: string;
+      storage_limit_gb: number;
+      video_storage_used_gb: string;
+      video_storage_limit_gb: number;
+      api_calls_this_month: number;
+      api_calls_limit: number;
+      created_at: string;
+      language: string;
+      timezone: string;
+      dark_mode: boolean;
     }
     const result = await queryAs<UserRow>(
       `SELECT id, email, username, tier, plan, first_name, last_name, avatar_url,

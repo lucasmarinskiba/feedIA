@@ -55,7 +55,14 @@ router.post('/carousel', async (req: Request, res: Response) => {
     }
 
     // Record in database (increments quota)
-    const content = await recordPublishedContent(userId, accountId, 'instagram', igPostId, 'carousel', new Date(scheduledAt || Date.now()));
+    const content = await recordPublishedContent(
+      userId,
+      accountId,
+      'instagram',
+      igPostId,
+      'carousel',
+      new Date(scheduledAt || Date.now()),
+    );
 
     log.info('[Publishing] Carousel published', { userId, accountId, postId: igPostId });
 
@@ -121,14 +128,24 @@ router.post('/video', async (req: Request, res: Response) => {
     }
 
     // Record in database
-    const content = await recordPublishedContent(userId, accountId, platform as any, videoId, 'video', new Date(scheduledAt || Date.now()));
+    const content = await recordPublishedContent(
+      userId,
+      accountId,
+      platform as any,
+      videoId,
+      'video',
+      new Date(scheduledAt || Date.now()),
+    );
 
     log.info('[Publishing] Video published', { userId, accountId, videoId, platform });
 
     return res.json({
       ok: true,
       videoId,
-      url: platform === 'instagram' ? `https://instagram.com/reel/${videoId}` : `https://tiktok.com/@${account.accountHandle}/video/${videoId}`,
+      url:
+        platform === 'instagram'
+          ? `https://instagram.com/reel/${videoId}`
+          : `https://tiktok.com/@${account.accountHandle}/video/${videoId}`,
       recordedAt: content.publishedAt,
     });
   } catch (err) {
@@ -177,7 +194,14 @@ router.post('/story', async (req: Request, res: Response) => {
     }
 
     // Record in database
-    const content = await recordPublishedContent(userId, accountId, 'instagram', storyId, 'story', new Date(scheduledAt || Date.now()));
+    const content = await recordPublishedContent(
+      userId,
+      accountId,
+      'instagram',
+      storyId,
+      'story',
+      new Date(scheduledAt || Date.now()),
+    );
 
     log.info('[Publishing] Story published', { userId, accountId, storyId });
 

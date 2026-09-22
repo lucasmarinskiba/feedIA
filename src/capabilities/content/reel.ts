@@ -1,7 +1,13 @@
 import { askJson } from '../../agent/tokenRouter.js';
 import { brandContext } from '../../agent/memory.js';
 import type { BrandProfile } from '../../config/types.js';
-import { CREATIVE_DIRECTOR, COPYWRITER_GROWTH, SOCIAL_MEDIA_ANALYST, formatAestheticForPrompt, getAestheticByKeywords } from '../creativeDirector/index.js';
+import {
+  CREATIVE_DIRECTOR,
+  COPYWRITER_GROWTH,
+  SOCIAL_MEDIA_ANALYST,
+  formatAestheticForPrompt,
+  getAestheticByKeywords,
+} from '../creativeDirector/index.js';
 
 export interface ReelBeat {
   segundo: number;

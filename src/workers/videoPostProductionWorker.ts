@@ -30,7 +30,8 @@ export interface VideoPostProductionPayload {
   webhookReturnUrl?: string;
 }
 
-const parsePayload = (job: Job<FeediaJob>): VideoPostProductionPayload => job.data.payload as unknown as VideoPostProductionPayload;
+const parsePayload = (job: Job<FeediaJob>): VideoPostProductionPayload =>
+  job.data.payload as unknown as VideoPostProductionPayload;
 
 const runPostProduction = async (payload: VideoPostProductionPayload) => {
   const { provider, requestId, videoUrl, audioUrl, recipe, brandName, title, durationSec, webhookReturnUrl } = payload;
@@ -50,15 +51,27 @@ const runPostProduction = async (payload: VideoPostProductionPayload) => {
   };
 
   if (provider === 'inshot') {
-    const engine = new InShotEngine({ recipe: recipe as InShotEngine['recipe'], brandName, webhookReturnUrl, timeoutMs: 10 * 60 * 1000 });
+    const engine = new InShotEngine({
+      recipe: recipe as InShotEngine['recipe'],
+      brandName,
+      webhookReturnUrl,
+      timeoutMs: 10 * 60 * 1000,
+    });
     return engine.render(request);
   }
 
-  const engine = new CapCutEngine({ recipe: recipe as CapCutEngine['recipe'], brandName, webhookReturnUrl, timeoutMs: 10 * 60 * 1000 });
+  const engine = new CapCutEngine({
+    recipe: recipe as CapCutEngine['recipe'],
+    brandName,
+    webhookReturnUrl,
+    timeoutMs: 10 * 60 * 1000,
+  });
   return engine.render(request);
 };
 
-export const processVideoPostProduction = async (job: Job<FeediaJob>): Promise<{ ok: boolean; refinedUrl?: string; provider: string; error?: string }> => {
+export const processVideoPostProduction = async (
+  job: Job<FeediaJob>,
+): Promise<{ ok: boolean; refinedUrl?: string; provider: string; error?: string }> => {
   const payload = parsePayload(job);
   log.info(`[VideoPostProductionWorker] Job ${job.id}: ${payload.provider} / ${payload.requestId}`);
 
@@ -113,4 +126,5 @@ export const processVideoPostProduction = async (job: Job<FeediaJob>): Promise<{
   return { ok: result.ok, refinedUrl, provider: payload.provider, error: result.error };
 };
 
-export const startVideoPostProductionWorker = (): ReturnType<typeof createWorker> => createWorker('videoPostProduction', processVideoPostProduction);
+export const startVideoPostProductionWorker = (): ReturnType<typeof createWorker> =>
+  createWorker('videoPostProduction', processVideoPostProduction);

@@ -35,7 +35,14 @@ export const animationEngine = () => {
    * Generates CSS keyframes + timing array for MP4 generation.
    */
   const buildAnimationTimeline = (
-    slides: Array<{ animation?: { type?: 'fade' | 'slideLeft' | 'slideUp' | 'zoom' | 'rotate'; duration?: number; delay?: number; easing?: string } }>,
+    slides: Array<{
+      animation?: {
+        type?: 'fade' | 'slideLeft' | 'slideUp' | 'zoom' | 'rotate';
+        duration?: number;
+        delay?: number;
+        easing?: string;
+      };
+    }>,
     totalDuration: number,
     defaultAnimationStyle: 'fade' | 'slideLeft' | 'slideUp' | 'zoom' | 'rotate',
   ): AnimationTimeline => {
@@ -213,15 +220,16 @@ ${slideCSS}
     startTime: number;
     duration: number;
     transition: string;
-  }> => timeline.map((timing) => {
-    const t = timing as { slideId: number; delay: number; duration: number; animation: string };
-    return {
-      slideIndex: t.slideId,
-      startTime: t.delay / 1000, // Convert to seconds
-      duration: t.duration / 1000,
-      transition: t.animation,
-    };
-  });
+  }> =>
+    timeline.map((timing) => {
+      const t = timing as { slideId: number; delay: number; duration: number; animation: string };
+      return {
+        slideIndex: t.slideId,
+        startTime: t.delay / 1000, // Convert to seconds
+        duration: t.duration / 1000,
+        transition: t.animation,
+      };
+    });
 
   return {
     buildAnimationTimeline,

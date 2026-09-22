@@ -7,7 +7,10 @@ const router = Router();
 // POST /api/carousels - Create carousel
 router.post(
   '/',
-  async (req: Request<Record<string, never>, Carousel | { error: string }, CarouselCreateRequest>, res: Response<Carousel | { error: string }>): Promise<void> => {
+  async (
+    req: Request<Record<string, never>, Carousel | { error: string }, CarouselCreateRequest>,
+    res: Response<Carousel | { error: string }>,
+  ): Promise<void> => {
     try {
       const { userId, title, format, slides, platform, sourceCategory } = req.body;
 
@@ -69,7 +72,10 @@ router.get(
 // PUT /api/carousels/:carouselId - Update carousel
 router.put(
   '/:carouselId',
-  async (req: Request<{ carouselId: string }, Carousel | { error: string }, CarouselUpdateRequest>, res: Response<Carousel | { error: string }>): Promise<void> => {
+  async (
+    req: Request<{ carouselId: string }, Carousel | { error: string }, CarouselUpdateRequest>,
+    res: Response<Carousel | { error: string }>,
+  ): Promise<void> => {
     try {
       const updated = await carouselStorageService.update(req.params.carouselId, req.body);
 
@@ -91,7 +97,10 @@ router.put(
 // DELETE /api/carousels/:carouselId - Delete carousel
 router.delete(
   '/:carouselId',
-  async (req: Request<{ carouselId: string }>, res: Response<{ success: boolean } | { error: string }>): Promise<void> => {
+  async (
+    req: Request<{ carouselId: string }>,
+    res: Response<{ success: boolean } | { error: string }>,
+  ): Promise<void> => {
     try {
       const deleted = await carouselStorageService.delete(req.params.carouselId);
 
@@ -113,7 +122,10 @@ router.delete(
 // POST /api/carousels/:carouselId/publish - Publish carousel
 router.post(
   '/:carouselId/publish',
-  async (req: Request<{ carouselId: string }, Carousel | { error: string }, { platform: string }>, res: Response<Carousel | { error: string }>): Promise<void> => {
+  async (
+    req: Request<{ carouselId: string }, Carousel | { error: string }, { platform: string }>,
+    res: Response<Carousel | { error: string }>,
+  ): Promise<void> => {
     try {
       const published = await carouselStorageService.publish(req.params.carouselId, req.body.platform as any);
 
@@ -135,7 +147,10 @@ router.post(
 // POST /api/carousels/:carouselId/metrics - Update metrics
 router.post(
   '/:carouselId/metrics',
-  async (req: Request<{ carouselId: string }, { success: boolean } | { error: string }, Record<string, number>>, res: Response<{ success: boolean } | { error: string }>): Promise<void> => {
+  async (
+    req: Request<{ carouselId: string }, { success: boolean } | { error: string }, Record<string, number>>,
+    res: Response<{ success: boolean } | { error: string }>,
+  ): Promise<void> => {
     try {
       await carouselStorageService.updateMetrics(req.params.carouselId, req.body);
       res.json({ success: true });

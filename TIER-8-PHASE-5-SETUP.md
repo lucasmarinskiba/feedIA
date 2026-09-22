@@ -1,9 +1,11 @@
 # TIER 8 Phase 5: Real PostgreSQL Setup
 
 ## Objective
+
 Enable real PostgreSQL persistence for agency campaigns (currently using mock fallback).
 
 ## Prerequisites
+
 - Railway account with PostgreSQL service OR external PostgreSQL database
 - ACCESS to Railway project secrets/environment variables
 
@@ -12,6 +14,7 @@ Enable real PostgreSQL persistence for agency campaigns (currently using mock fa
 ### 1. Create PostgreSQL Database
 
 #### Option A: Railway PostgreSQL Service (Recommended)
+
 ```bash
 # In Railway dashboard:
 1. Go to your FeedIA project
@@ -22,6 +25,7 @@ Enable real PostgreSQL persistence for agency campaigns (currently using mock fa
 ```
 
 #### Option B: External PostgreSQL
+
 - Use Supabase, Render, Neon, or AWS RDS
 - Get connection string: `postgresql://user:password@host:port/database`
 
@@ -39,11 +43,13 @@ Add new variable:
 ### 3. Verify Real Database Connection
 
 After Railway redeploys, test:
+
 ```bash
 curl https://web-production-fa7b5.up.railway.app/api/agency/health
 ```
 
 Expected response (Phase 5 + real DB):
+
 ```json
 {
   "status": "healthy",
@@ -90,26 +96,29 @@ Expected: Returns array with campaign(s) just created
 ## Code Changes (Phase 5)
 
 **New File:** `src/db/postgres-real.ts`
+
 - Real pg pool with connection pooling
 - Fallback to mock pool if DATABASE_URL missing
 - Auto-initialization with pool config
 
 **Updated:** `src/agents/agency-persistence.ts`
+
 - Switch from `carouselDB.pool.query()` → `getPool().query()`
 - Add database status logging
 - No logic changes (same SQL)
 
 **Updated:** `src/api/agency-simple-routes.ts` (ready for Phase 6)
+
 - GET /health endpoint reports db status
 - POST endpoints log to console
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| "DATABASE_URL not set" | Add to Railway Variables, redeploy |
-| "Connection timeout" | Verify connection string, check firewall |
-| "Table creation fails" | Ensure database user has CREATE TABLE permission |
+| Issue                         | Solution                                                                                     |
+| ----------------------------- | -------------------------------------------------------------------------------------------- |
+| "DATABASE_URL not set"        | Add to Railway Variables, redeploy                                                           |
+| "Connection timeout"          | Verify connection string, check firewall                                                     |
+| "Table creation fails"        | Ensure database user has CREATE TABLE permission                                             |
 | Persistence still not working | Check if real DB actually connected: `curl /api/agency/health` should show "real PostgreSQL" |
 
 ## Commit
@@ -120,6 +129,7 @@ Expected: Returns array with campaign(s) just created
 ## Next Phase
 
 Phase 6: Real LLM Integration
+
 - Set ANTHROPIC_API_KEY in Railway secrets
 - Remove mock fallback (or keep for resilience)
 - Token tracking + cost metering live

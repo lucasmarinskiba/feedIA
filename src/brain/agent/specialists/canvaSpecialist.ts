@@ -17,9 +17,7 @@ export interface CanvaDesignSpec {
   layout?: string;
 }
 
-export const consultCanvaSpecialist = async (
-  brief: DesignBrief,
-): Promise<CanvaDesignSpec> => {
+export const consultCanvaSpecialist = async (brief: DesignBrief): Promise<CanvaDesignSpec> => {
   log.info('[CanvaSpecialist] consulted', { format: brief.format });
 
   return {

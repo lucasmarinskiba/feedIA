@@ -30,7 +30,7 @@ export const toolLibrary: Tool[] = [
     integratedWithFeedIA: true,
     pros: ['Real-time metrics', 'Competitor analysis', 'Content calendar integration'],
     cons: ['Paid tier required for advanced features'],
-    alternatives: ['Later', 'Buffer', 'Hootsuite']
+    alternatives: ['Later', 'Buffer', 'Hootsuite'],
   },
   {
     id: 'canva',
@@ -43,7 +43,7 @@ export const toolLibrary: Tool[] = [
     integratedWithFeedIA: false,
     pros: ['User-friendly', 'Massive template library', 'Brand kit support'],
     cons: ['Limited control', 'Quality varies by template'],
-    alternatives: ['Adobe Express', 'Figma', 'PicMonkey']
+    alternatives: ['Adobe Express', 'Figma', 'PicMonkey'],
   },
   {
     id: 'figma',
@@ -56,7 +56,7 @@ export const toolLibrary: Tool[] = [
     integratedWithFeedIA: true,
     pros: ['Component systems', 'Collaboration', 'Dev integration', 'Version control'],
     cons: ['Steep learning curve', 'Paid'],
-    alternatives: ['Adobe XD', 'Sketch', 'Penpot']
+    alternatives: ['Adobe XD', 'Sketch', 'Penpot'],
   },
   {
     id: 'midjourney',
@@ -69,7 +69,7 @@ export const toolLibrary: Tool[] = [
     integratedWithFeedIA: false,
     pros: ['High-quality images', 'Style consistency', 'Fast iteration'],
     cons: ['Discord-only', 'Limited control', 'Paid'],
-    alternatives: ['DALL-E', 'Stable Diffusion', 'Adobe Firefly']
+    alternatives: ['DALL-E', 'Stable Diffusion', 'Adobe Firefly'],
   },
   {
     id: 'strava',
@@ -82,7 +82,7 @@ export const toolLibrary: Tool[] = [
     integratedWithFeedIA: false,
     pros: ['Large fitness community', 'Real performance data', 'Social integration'],
     cons: ['Limited to fitness domain', 'API rate limits'],
-    alternatives: ['Fitbit', 'Apple Health', 'Garmin Connect']
+    alternatives: ['Fitbit', 'Apple Health', 'Garmin Connect'],
   },
   {
     id: 'adobe-firefly',
@@ -95,8 +95,8 @@ export const toolLibrary: Tool[] = [
     integratedWithFeedIA: false,
     pros: ['Adobe suite integration', 'Fast generation', 'Ethical AI'],
     cons: ['Requires subscription', 'Web-based'],
-    alternatives: ['Midjourney', 'DALL-E', 'Stable Diffusion']
-  }
+    alternatives: ['Midjourney', 'DALL-E', 'Stable Diffusion'],
+  },
 ];
 
 export interface ToolRecommendation {
@@ -111,44 +111,44 @@ export const recommendations: ToolRecommendation[] = [
     task: 'Design carousel from scratch',
     recommendedTool: 'Figma',
     reason: 'Professional control, component systems, brand consistency',
-    workflow: 'Build design system in Figma → Export → Import to FeedIA'
+    workflow: 'Build design system in Figma → Export → Import to FeedIA',
   },
   {
     task: 'Quick carousel customization',
     recommendedTool: 'Canva',
     reason: 'Speed, templates, brand kit integration',
-    workflow: 'Select template → Customize in Canva → Export → Post'
+    workflow: 'Select template → Customize in Canva → Export → Post',
   },
   {
     task: 'Measure carousel performance',
     recommendedTool: 'Metricool',
     reason: 'Real-time metrics, learn what works',
-    workflow: 'Publish carousel → Track with Metricool → Learn pattern → FeedIA improves'
+    workflow: 'Publish carousel → Track with Metricool → Learn pattern → FeedIA improves',
   },
   {
     task: 'Generate carousel images',
     recommendedTool: 'Midjourney',
     reason: 'Style consistency, visual exploration',
-    workflow: 'Prompt Midjourney → Generate images → Use in carousel'
-  }
+    workflow: 'Prompt Midjourney → Generate images → Use in carousel',
+  },
 ];
 
 export const getToolFor = (task: string): Tool | null => {
-  const rec = recommendations.find(r => r.task.includes(task));
+  const rec = recommendations.find((r) => r.task.includes(task));
   if (!rec) return null;
-  return toolLibrary.find(t => t.name === rec.recommendedTool) || null;
+  return toolLibrary.find((t) => t.name === rec.recommendedTool) || null;
 };
 
 export const ingestTool = (tool: Partial<Tool>): Tool => ({
-    id: `tool-${Date.now()}`,
-    name: tool.name || 'Untitled Tool',
-    category: tool.category || 'design',
-    capability: tool.capability || [],
-    useCase: tool.useCase || '',
-    platform: tool.platform || 'web',
-    apiAvailable: tool.apiAvailable || false,
-    integratedWithFeedIA: tool.integratedWithFeedIA || false,
-    pros: tool.pros || [],
-    cons: tool.cons || [],
-    alternatives: tool.alternatives || []
-  });
+  id: `tool-${Date.now()}`,
+  name: tool.name || 'Untitled Tool',
+  category: tool.category || 'design',
+  capability: tool.capability || [],
+  useCase: tool.useCase || '',
+  platform: tool.platform || 'web',
+  apiAvailable: tool.apiAvailable || false,
+  integratedWithFeedIA: tool.integratedWithFeedIA || false,
+  pros: tool.pros || [],
+  cons: tool.cons || [],
+  alternatives: tool.alternatives || [],
+});

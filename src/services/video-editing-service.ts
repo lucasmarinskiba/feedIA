@@ -95,7 +95,7 @@ export const videoEditingService = {
       'top-right': `x=W-w-10:y=10`,
       'bottom-left': `x=10:y=H-h-10`,
       'bottom-right': `x=W-w-10:y=H-h-10`,
-      'center': `x=(W-w)/2:y=(H-h)/2`,
+      center: `x=(W-w)/2:y=(H-h)/2`,
     };
     const pos = posMap[params.position] || posMap.center;
     const opacity = params.opacity !== undefined ? `:alpha=${params.opacity}` : '';

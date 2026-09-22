@@ -6,9 +6,13 @@ export interface GeneratedContent {
   [key: string]: unknown;
 }
 
-export const contentPipeline = async (input: unknown): Promise<GeneratedContent[]> => [{ id: '1', type: 'stub', content: {} }];
+export const contentPipeline = async (input: unknown): Promise<GeneratedContent[]> => [
+  { id: '1', type: 'stub', content: {} },
+];
 
-contentPipeline.generateCarousel = async (input: unknown): Promise<GeneratedContent[]> => [{ id: '1', type: 'carousel', content: {} }];
+contentPipeline.generateCarousel = async (input: unknown): Promise<GeneratedContent[]> => [
+  { id: '1', type: 'carousel', content: {} },
+];
 
 // generateReel/generateStory/generatePost/generateBatch/getStats: never
 // implemented. api/content-routes.ts calls all five — every request to
@@ -25,17 +29,24 @@ contentPipeline.generateCarousel = async (input: unknown): Promise<GeneratedCont
 // carousel/video generators (generateCarouselContent/
 // generateVideoContent) that reel/story/post generation likely belongs
 // on top of — flagged for whoever picks this up next.
-const notImplemented = (name: string) => async (_input: unknown): Promise<GeneratedContent[]> => {
-  throw new Error(`contentPipeline.${name} is not implemented yet`);
-};
+const notImplemented =
+  (name: string) =>
+  async (_input: unknown): Promise<GeneratedContent[]> => {
+    throw new Error(`contentPipeline.${name} is not implemented yet`);
+  };
 contentPipeline.generateReel = notImplemented('generateReel');
 contentPipeline.generateStory = notImplemented('generateStory');
 contentPipeline.generatePost = notImplemented('generatePost');
 contentPipeline.generateBatch = async (..._args: unknown[]): Promise<GeneratedContent[]> => {
   throw new Error('contentPipeline.generateBatch is not implemented yet');
 };
-contentPipeline.getStats = async (_input?: unknown): Promise<{ totalGenerated: number; byType: Record<string, number> }> => {
+contentPipeline.getStats = async (
+  _input?: unknown,
+): Promise<{ totalGenerated: number; byType: Record<string, number> }> => {
   throw new Error('contentPipeline.getStats is not implemented yet');
 };
 
-export const contentGenerationPipeline = async (input: unknown): Promise<unknown> => ({ content: [], status: 'generated' });
+export const contentGenerationPipeline = async (input: unknown): Promise<unknown> => ({
+  content: [],
+  status: 'generated',
+});

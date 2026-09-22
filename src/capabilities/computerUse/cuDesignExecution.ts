@@ -55,7 +55,9 @@ export const executeDesignCuPlan = async (
 ): Promise<DesignCuExecutionResult> => {
   const startTime = Date.now();
 
-  log.info(`[CU Design] Executing plan ${(context.plan as unknown as { workflowId?: string }).workflowId ?? 'unknown'}`);
+  log.info(
+    `[CU Design] Executing plan ${(context.plan as unknown as { workflowId?: string }).workflowId ?? 'unknown'}`,
+  );
 
   // 1. Optimize actions
   const optimizedActions = optimizeDesignPlan(context.plan.cuActions);

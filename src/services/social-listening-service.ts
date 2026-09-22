@@ -70,7 +70,7 @@ export const socialListeningService = {
     accountHandle: string,
     platform: 'instagram' | 'tiktok',
     sentiment?: 'positive' | 'neutral' | 'negative',
-    limit: number = 50
+    limit: number = 50,
   ): Promise<Mention[]> {
     let mentions = await this.loadMentions(accountHandle, platform);
 
@@ -99,11 +99,7 @@ export const socialListeningService = {
     }
   },
 
-  async saveMentions(
-    accountHandle: string,
-    platform: 'instagram' | 'tiktok',
-    mentions: Mention[]
-  ): Promise<void> {
+  async saveMentions(accountHandle: string, platform: 'instagram' | 'tiktok', mentions: Mention[]): Promise<void> {
     const dirPath = '/data/mentions';
 
     try {
@@ -153,7 +149,7 @@ export const socialListeningService = {
   async getHashtagMetrics(
     platform: 'instagram' | 'tiktok',
     trend?: 'rising' | 'stable' | 'declining',
-    limit: number = 20
+    limit: number = 20,
   ): Promise<HashtagMetric[]> {
     const path = `/data/hashtags/${platform}-hashtags.json`;
 
@@ -205,10 +201,7 @@ export const socialListeningService = {
     return newMention;
   },
 
-  async getCompetitorMentions(
-    competitorHandle: string,
-    limit: number = 50
-  ): Promise<CompetitorMention[]> {
+  async getCompetitorMentions(competitorHandle: string, limit: number = 50): Promise<CompetitorMention[]> {
     const path = `/data/competitor-mentions/${competitorHandle}.json`;
 
     try {
@@ -232,7 +225,7 @@ export const socialListeningService = {
   async getSentimentAnalysis(
     accountHandle: string,
     platform: 'instagram' | 'tiktok',
-    days: number = 30
+    days: number = 30,
   ): Promise<{
     positive: number;
     neutral: number;

@@ -36,7 +36,8 @@ const buildRunwayPrompt = (input: VideoProductionInput): string => {
   return parts.join(' ');
 };
 
-const buildHeyGenScript = (input: VideoProductionInput): string => `${input.script.hookVisual}. ${input.script.caption}. ${input.script.cta}`;
+const buildHeyGenScript = (input: VideoProductionInput): string =>
+  `${input.script.hookVisual}. ${input.script.caption}. ${input.script.cta}`;
 
 const produceWithRunway = async (input: VideoProductionInput): Promise<ProducedVideo> => {
   const prompt = buildRunwayPrompt(input);
@@ -140,18 +141,20 @@ const produceMock = (input: VideoProductionInput): ProducedVideo => {
 
 const checkBudget = (input: VideoProductionInput, config: VideoEngineConfig): boolean => {
   if (!config.maxCostUsd || config.maxCostUsd <= 0) return true;
-  const rough = estimateVideoCost(input.style === 'avatar' ? 'heygen' : 'runway', input.durationSec ?? DEFAULT_DURATION);
+  const rough = estimateVideoCost(
+    input.style === 'avatar' ? 'heygen' : 'runway',
+    input.durationSec ?? DEFAULT_DURATION,
+  );
   if (rough > config.maxCostUsd) {
-    log.warn(`[VideoProducer] Costo estimado $${rough.toFixed(2)} excede presupuesto $${config.maxCostUsd}. Abortando.`);
+    log.warn(
+      `[VideoProducer] Costo estimado $${rough.toFixed(2)} excede presupuesto $${config.maxCostUsd}. Abortando.`,
+    );
     return false;
   }
   return true;
 };
 
-const resolveProvider = (
-  input: VideoProductionInput,
-  config: VideoEngineConfig,
-): 'runway' | 'heygen' | 'mock' => {
+const resolveProvider = (input: VideoProductionInput, config: VideoEngineConfig): 'runway' | 'heygen' | 'mock' => {
   const { preferredProvider } = config;
   const style = input.style ?? 'mixed';
 

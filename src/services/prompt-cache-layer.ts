@@ -45,7 +45,12 @@ const TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 /**
  * Generate cache key
  */
-const generateKey = (pillar: ContentPillar, variant: VariantType, platform: 'instagram' | 'tiktok', brandNiche: string): string => {
+const generateKey = (
+  pillar: ContentPillar,
+  variant: VariantType,
+  platform: 'instagram' | 'tiktok',
+  brandNiche: string,
+): string => {
   const str = `${pillar}:${variant}:${platform}:${brandNiche}`;
   return crypto.createHash('sha256').update(str).digest('hex');
 };
@@ -207,7 +212,15 @@ export const suggestCachedVariant = (
 /**
  * Warm cache with common prompts (bootstrap)
  */
-export const warmCache = (commonPrompts: Array<{ pillar: ContentPillar; variant: VariantType; platform: 'instagram' | 'tiktok'; brandNiche: string; prompt: string }>) => {
+export const warmCache = (
+  commonPrompts: Array<{
+    pillar: ContentPillar;
+    variant: VariantType;
+    platform: 'instagram' | 'tiktok';
+    brandNiche: string;
+    prompt: string;
+  }>,
+) => {
   log.info('[PromptCache] Warming cache', { count: commonPrompts.length });
 
   for (const item of commonPrompts) {

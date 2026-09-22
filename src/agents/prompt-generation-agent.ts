@@ -19,8 +19,14 @@ export interface GeneratedPrompt {
   occasion?: string;
 }
 
-export const generatePromptVariations = async (req: PromptGenerationRequest, ...args: unknown[]): Promise<GeneratedPrompt[]> => [{ id: '1', prompt: 'stub' }];
+export const generatePromptVariations = async (
+  req: PromptGenerationRequest,
+  ...args: unknown[]
+): Promise<GeneratedPrompt[]> => [{ id: '1', prompt: 'stub' }];
 
-export const batchGeneratePrompts = async (requests: PromptGenerationRequest[], ...args: unknown[]): Promise<GeneratedPrompt[]> => requests.map((_, i) => ({ id: String(i), prompt: 'stub' }));
+export const batchGeneratePrompts = async (
+  requests: PromptGenerationRequest[],
+  ...args: unknown[]
+): Promise<GeneratedPrompt[]> => requests.map((_, i) => ({ id: String(i), prompt: 'stub' }));
 
 export const promptGenerationAgent = async (input: unknown): Promise<unknown> => ({ prompt: 'stub', batch: [] });

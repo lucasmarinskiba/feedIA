@@ -1,9 +1,5 @@
 import { Router, Request, Response } from 'express';
-import {
-  automationSchedulerService,
-  AutomationTask,
-  Execution,
-} from '../services/automation-scheduler-service';
+import { automationSchedulerService, AutomationTask, Execution } from '../services/automation-scheduler-service';
 
 const router = Router();
 

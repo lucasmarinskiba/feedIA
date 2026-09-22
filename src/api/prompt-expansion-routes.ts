@@ -5,12 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import { log } from '../agent/logger.js';
-import {
-  expandAndStore,
-  superExpandAndStore,
-  expandBatch,
-  getExpansionStatus,
-} from '../services/prompt-expander.js';
+import { expandAndStore, superExpandAndStore, expandBatch, getExpansionStatus } from '../services/prompt-expander.js';
 import type { BrandProfile } from '../config/types.js';
 
 const router = Router();
@@ -68,7 +63,8 @@ router.post('/super-expand', async (req: Request, res: Response): Promise<void> 
     res.json({
       status: 'success',
       expansion: result,
-      message: '12 variations generated (2x standard: emotional, entertaining, polemic, education, humor, debate + aspirational, introspective, energetic, calm, authoritative, playful)',
+      message:
+        '12 variations generated (2x standard: emotional, entertaining, polemic, education, humor, debate + aspirational, introspective, energetic, calm, authoritative, playful)',
       scalingInfo: '3,450 base × 12 = 41,400 total prompts per library',
       brand: brand?.name,
       metadata: { expandedAt: new Date().toISOString() },
@@ -94,11 +90,13 @@ router.post('/expand-batch', async (req: Request, res: Response) => {
     log.info('[PromptExpansion] Batch expansion requested', { batch });
 
     // Queue expansion job (don't wait for completion)
-    expandBatch(batch).then(result => {
-      log.info('[PromptExpansion] Batch expansion completed', result);
-    }).catch(error => {
-      log.error('[PromptExpansion] Batch expansion error', error);
-    });
+    expandBatch(batch)
+      .then((result) => {
+        log.info('[PromptExpansion] Batch expansion completed', result);
+      })
+      .catch((error) => {
+        log.error('[PromptExpansion] Batch expansion error', error);
+      });
 
     return res.json({
       status: 'queued',

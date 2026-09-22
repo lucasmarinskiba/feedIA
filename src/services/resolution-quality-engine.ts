@@ -5,7 +5,12 @@
  */
 
 import { log } from '../agent/logger.js';
-import { performRealUpscale, performMultiPassUpscale, isUpscaleConfigured, type UpscaleResult } from './real-upscale-service.js';
+import {
+  performRealUpscale,
+  performMultiPassUpscale,
+  isUpscaleConfigured,
+  type UpscaleResult,
+} from './real-upscale-service.js';
 
 interface ResolutionSpec {
   platform: 'instagram' | 'tiktok';
@@ -153,7 +158,7 @@ class ResolutionQualityEngine {
    * Get spec for platform + format
    */
   getSpec(platform: 'instagram' | 'tiktok', format: string): ResolutionSpec | undefined {
-    return this.SPECS.find(s => s.platform === platform && s.format === format);
+    return this.SPECS.find((s) => s.platform === platform && s.format === format);
   }
 
   /**
@@ -209,7 +214,7 @@ ${spec.recommendedBitrateKbps > 0 ? `- Bitrate: ${spec.recommendedBitrateKbps}kb
     actualWidth: number,
     actualHeight: number,
     actualBitrateKbps?: number,
-    actualFileSizeMB?: number
+    actualFileSizeMB?: number,
   ): QualityCheckResult {
     const targetSpec = this.getBestSpec(platform, contentType);
     const issues: string[] = [];
@@ -218,9 +223,7 @@ ${spec.recommendedBitrateKbps > 0 ? `- Bitrate: ${spec.recommendedBitrateKbps}kb
 
     // Resolution check
     if (actualWidth < targetSpec.width || actualHeight < targetSpec.height) {
-      issues.push(
-        `Resolution ${actualWidth}x${actualHeight} below target ${targetSpec.width}x${targetSpec.height}`
-      );
+      issues.push(`Resolution ${actualWidth}x${actualHeight} below target ${targetSpec.width}x${targetSpec.height}`);
       recommendations.push('Apply AI upscaling (Real-ESRGAN) to reach target resolution before export');
       upscaleNeeded = true;
     }
@@ -270,13 +273,18 @@ ${spec.recommendedBitrateKbps > 0 ? `- Bitrate: ${spec.recommendedBitrateKbps}kb
    * Get all specs for a platform (reference table)
    */
   getAllSpecsForPlatform(platform: 'instagram' | 'tiktok'): ResolutionSpec[] {
-    return this.SPECS.filter(s => s.platform === platform);
+    return this.SPECS.filter((s) => s.platform === platform);
   }
 
   /**
    * Get upscale recommendation (strategy only — no API call)
    */
-  getUpscaleStrategy(currentWidth: number, currentHeight: number, targetWidth: number, targetHeight: number): Record<string, any> {
+  getUpscaleStrategy(
+    currentWidth: number,
+    currentHeight: number,
+    targetWidth: number,
+    targetHeight: number,
+  ): Record<string, any> {
     const scaleFactor = Math.max(targetWidth / currentWidth, targetHeight / currentHeight);
 
     let method = 'standard-upscale';
@@ -291,7 +299,10 @@ ${spec.recommendedBitrateKbps > 0 ? `- Bitrate: ${spec.recommendedBitrateKbps}kb
       tool: isUpscaleConfigured()
         ? 'fal-clarity-upscaler (real, configured — call executeUpscale() to run it)'
         : 'fal-clarity-upscaler (FAL_KEY not set — strategy only, cannot execute)',
-      warning: scaleFactor > 4 ? 'Extreme upscale — quality ceiling limited, consider regenerating at higher native resolution instead' : null,
+      warning:
+        scaleFactor > 4
+          ? 'Extreme upscale — quality ceiling limited, consider regenerating at higher native resolution instead'
+          : null,
     };
   }
 
@@ -307,7 +318,7 @@ ${spec.recommendedBitrateKbps > 0 ? `- Bitrate: ${spec.recommendedBitrateKbps}kb
     currentWidth: number,
     currentHeight: number,
     targetWidth: number,
-    targetHeight: number
+    targetHeight: number,
   ): Promise<UpscaleResult | null> {
     const scaleFactor = Math.max(targetWidth / currentWidth, targetHeight / currentHeight);
 

@@ -153,7 +153,7 @@ router.get('/suggest/:contentType', async (req: Request, res: Response): Promise
     }
 
     const suggestions = creativityWitEngine.suggestTwistForContentType(
-      contentType as 'carousel' | 'reel' | 'story' | 'image'
+      contentType as 'carousel' | 'reel' | 'story' | 'image',
     );
 
     res.json({

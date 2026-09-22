@@ -2,15 +2,8 @@
  * Tests básicos para integración Canva y validador de templates.
  */
 import { describe, it, expect } from 'vitest';
-import {
-  autofillTemplate,
-  exportDesign,
-  uploadAsset,
-} from '../../src/integrations/canva.js';
-import {
-  validateCanvaTemplate,
-  validateAllCanvaTemplates,
-} from '../../src/integrations/canvaTemplateValidator.js';
+import { autofillTemplate, exportDesign, uploadAsset } from '../../src/integrations/canva.js';
+import { validateCanvaTemplate, validateAllCanvaTemplates } from '../../src/integrations/canvaTemplateValidator.js';
 
 describe('Canva integration (DRY_RUN)', () => {
   it('autofillTemplate devuelve un designId simulado', async () => {

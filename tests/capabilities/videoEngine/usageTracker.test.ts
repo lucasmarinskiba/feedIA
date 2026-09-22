@@ -2,7 +2,11 @@
  * Tests del tracker de uso de video IA.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { recordVideoUsage, getVideoUsage, getTotalVideoCostUsd } from '../../../src/capabilities/videoEngine/usageTracker.js';
+import {
+  recordVideoUsage,
+  getVideoUsage,
+  getTotalVideoCostUsd,
+} from '../../../src/capabilities/videoEngine/usageTracker.js';
 
 describe('VideoEngine usage tracker', () => {
   beforeEach(() => {
@@ -32,8 +36,24 @@ describe('VideoEngine usage tracker', () => {
 
   it('suma costos correctamente', () => {
     const brand = `brand-${Date.now()}`;
-    recordVideoUsage({ provider: 'heygen', format: 'tiktok', durationSec: 30, costEstimateUsd: 1.25, topic: 't1', brandName: brand, success: true });
-    recordVideoUsage({ provider: 'mock', format: 'reel', durationSec: 15, costEstimateUsd: 0, topic: 't2', brandName: brand, success: true });
+    recordVideoUsage({
+      provider: 'heygen',
+      format: 'tiktok',
+      durationSec: 30,
+      costEstimateUsd: 1.25,
+      topic: 't1',
+      brandName: brand,
+      success: true,
+    });
+    recordVideoUsage({
+      provider: 'mock',
+      format: 'reel',
+      durationSec: 15,
+      costEstimateUsd: 0,
+      topic: 't2',
+      brandName: brand,
+      success: true,
+    });
 
     const total = getTotalVideoCostUsd({ brandName: brand });
     expect(total).toBeGreaterThanOrEqual(1.25);

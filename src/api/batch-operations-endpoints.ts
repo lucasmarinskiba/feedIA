@@ -30,7 +30,7 @@ export const batchCreateCampaigns = async (req: Request, res: Response): Promise
     await query(
       `INSERT INTO batch_jobs (id, user_id, job_type, status, input, created_at)
        VALUES ($1, $2, $3, $4, $5, NOW())`,
-      [jobId, userId, 'generate', 'processing', JSON.stringify({ campaigns })]
+      [jobId, userId, 'generate', 'processing', JSON.stringify({ campaigns })],
     );
 
     // Process batch asynchronously
@@ -61,10 +61,7 @@ const processBatchCampaigns = async (jobId: string, userId: string, campaigns: a
 
   try {
     // Update job to started
-    await query(
-      'UPDATE batch_jobs SET started_at = NOW(), status = $1 WHERE id = $2',
-      ['processing', jobId]
-    );
+    await query('UPDATE batch_jobs SET started_at = NOW(), status = $1 WHERE id = $2', ['processing', jobId]);
 
     // Process each campaign
     for (const campaignData of campaigns) {
@@ -88,18 +85,20 @@ const processBatchCampaigns = async (jobId: string, userId: string, campaigns: a
     }
 
     // Update job to completed
-    await query(
-      `UPDATE batch_jobs SET status = $1, output = $2, completed_at = NOW() WHERE id = $3`,
-      ['completed', JSON.stringify({ created: createdIds, ...results }), jobId]
-    );
+    await query(`UPDATE batch_jobs SET status = $1, output = $2, completed_at = NOW() WHERE id = $3`, [
+      'completed',
+      JSON.stringify({ created: createdIds, ...results }),
+      jobId,
+    ]);
 
     console.log(`[Batch] Job ${jobId} completed: ${results.success} success, ${results.failed} failed`);
   } catch (err) {
     console.error('[Batch] Processing failed:', err);
-    await query(
-      `UPDATE batch_jobs SET status = $1, error_message = $2, completed_at = NOW() WHERE id = $3`,
-      ['failed', (err as Error).message, jobId]
-    );
+    await query(`UPDATE batch_jobs SET status = $1, error_message = $2, completed_at = NOW() WHERE id = $3`, [
+      'failed',
+      (err as Error).message,
+      jobId,
+    ]);
   }
 };
 
@@ -112,10 +111,7 @@ export const getBatchStatus = async (req: Request, res: Response): Promise<void>
     const userId = (req as any).userId;
     const { jobId } = req.params;
 
-    const result = await query(
-      'SELECT * FROM batch_jobs WHERE id = $1 AND user_id = $2',
-      [jobId, userId]
-    );
+    const result = await query('SELECT * FROM batch_jobs WHERE id = $1 AND user_id = $2', [jobId, userId]);
 
     if (result.rowCount === 0) {
       res.status(404).json({ error: 'Batch job not found' });
@@ -155,10 +151,11 @@ export const cancelBatch = async (req: Request, res: Response): Promise<void> =>
     const { jobId } = req.params;
 
     // Check ownership
-    const result = await query(
-      'SELECT * FROM batch_jobs WHERE id = $1 AND user_id = $2 AND status = $3',
-      [jobId, userId, 'processing']
-    );
+    const result = await query('SELECT * FROM batch_jobs WHERE id = $1 AND user_id = $2 AND status = $3', [
+      jobId,
+      userId,
+      'processing',
+    ]);
 
     if (result.rowCount === 0) {
       res.status(400).json({ error: 'Job not found or already completed' });
@@ -166,10 +163,7 @@ export const cancelBatch = async (req: Request, res: Response): Promise<void> =>
     }
 
     // Cancel job
-    await query(
-      `UPDATE batch_jobs SET status = $1, completed_at = NOW() WHERE id = $2`,
-      ['cancelled', jobId]
-    );
+    await query(`UPDATE batch_jobs SET status = $1, completed_at = NOW() WHERE id = $2`, ['cancelled', jobId]);
 
     res.json({ message: 'Batch job cancelled', jobId });
     return;
@@ -204,7 +198,7 @@ export const listBatchJobs = async (req: Request, res: Response): Promise<void> 
        FROM batch_jobs ${whereClause}
        ORDER BY created_at DESC
        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
-      [...params, parseInt(limit as string, 10), parseInt(offset as string, 10)]
+      [...params, parseInt(limit as string, 10), parseInt(offset as string, 10)],
     );
 
     res.json({

@@ -62,7 +62,7 @@ class FacialIdentityPreservationService {
    */
   async extractFacialLandmarks(
     imagePath: string,
-    imageFeatures?: Record<string, any>
+    imageFeatures?: Record<string, any>,
   ): Promise<{ landmarks: FacialLandmarks; modelConfidence: number | null }> {
     const realAnalysis = isGeminiConfigured() ? await analyzeFacialFeatures(imagePath) : null;
 
@@ -105,7 +105,7 @@ class FacialIdentityPreservationService {
   async createIdentityLock(
     sourceImageId: string,
     sourceImagePath: string,
-    imageFeatures?: Record<string, any>
+    imageFeatures?: Record<string, any>,
   ): Promise<IdentityLock> {
     const { landmarks, modelConfidence } = await this.extractFacialLandmarks(sourceImagePath, imageFeatures);
 
@@ -199,10 +199,7 @@ ${distinguishingMarksText}
    * (Text-level check; production would compare actual output image
    * embeddings against source image embedding for real verification)
    */
-  async validatePreservation(
-    lockId: string,
-    generatedDescription: string
-  ): Promise<PreservationValidation> {
+  async validatePreservation(lockId: string, generatedDescription: string): Promise<PreservationValidation> {
     const identityLock = this.identityLocks.get(lockId);
 
     if (!identityLock) {
@@ -235,9 +232,7 @@ ${distinguishingMarksText}
 
     // Check feature consistency mentions (soft check)
     if (l.distinguishingMarks.length > 0) {
-      const marksmentioned = l.distinguishingMarks.some(mark =>
-        lowerDesc.includes(mark.toLowerCase())
-      );
+      const marksmentioned = l.distinguishingMarks.some((mark) => lowerDesc.includes(mark.toLowerCase()));
       if (!marksmentioned && lowerDesc.length > 50) {
         deviations.push('Distinguishing marks not explicitly referenced in output description');
       }

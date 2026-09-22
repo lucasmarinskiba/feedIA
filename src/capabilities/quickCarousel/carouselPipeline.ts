@@ -307,7 +307,12 @@ export const runCarouselPipeline = async (
         break;
       }
       case 'C-fal-ai': {
-        const result = await renderViaFalAi(brand, pkg, { model: config.falModel, style: config.falStyle }, userHandle ?? brand.handle);
+        const result = await renderViaFalAi(
+          brand,
+          pkg,
+          { model: config.falModel, style: config.falStyle },
+          userHandle ?? brand.handle,
+        );
         slidePaths = result.pngPaths;
         break;
       }

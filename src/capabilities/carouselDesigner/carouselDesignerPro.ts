@@ -2,7 +2,12 @@ import type { Anthropic } from '@anthropic-ai/sdk';
 import { createQuickCarousel } from '../quickCarousel/quickCarousel';
 import { artDirector } from '../creativeDirector/artDirector';
 import { animationEngine } from './animationEngine';
-import { downloadImageFromUrl, downloadAndUploadToCanva, detectImageRequests, searchImageUrls } from '../../integrations/imageDownloader';
+import {
+  downloadImageFromUrl,
+  downloadAndUploadToCanva,
+  detectImageRequests,
+  searchImageUrls,
+} from '../../integrations/imageDownloader';
 import { generateAnimatedCarousel, isRunwayAvailable } from '../../integrations/runway';
 import { validateAesthetic, autoFixAesthetic } from './visualQA';
 import { createCarouselExport } from './carouselExporter';
@@ -99,46 +104,44 @@ export const designCarouselPinterest = async (
     });
 
     // Step 2: Enhance with Pinterest aesthetics
-    const pinterestSlides = baseCarousel.slides.map((slide: { visualText: string; designNotes: string }, idx: number) => {
-      const pinterestPattern = getPinterestPattern(idx, slideCount);
-      const palette = getPinterestPalette(style);
-      const textAnim = getTextAnimation(animationStyle, idx);
+    const pinterestSlides = baseCarousel.slides.map(
+      (slide: { visualText: string; designNotes: string }, idx: number) => {
+        const pinterestPattern = getPinterestPattern(idx, slideCount);
+        const palette = getPinterestPalette(style);
+        const textAnim = getTextAnimation(animationStyle, idx);
 
-      return {
-        slide: idx + 1,
-        visualText: slide.visualText,
-        designNotes: slide.designNotes,
-        wordCount: slide.visualText.split(' ').length,
-        pinterestPattern,
-        colorPalette: palette,
-        typography: {
-          headline: { size: 32, weight: 700 },
-          body: { size: 16, weight: 400 },
-          decorative: { size: 14, weight: 300 },
-        },
-        animation: {
-          type: animationStyle as any,
-          duration: 400,
-          delay: idx * 100,
-          easing: 'ease-out' as const,
-        },
-        imageUrl: undefined,
-        cssKeyframes: '',
-      } as PinterestSlide;
-    });
+        return {
+          slide: idx + 1,
+          visualText: slide.visualText,
+          designNotes: slide.designNotes,
+          wordCount: slide.visualText.split(' ').length,
+          pinterestPattern,
+          colorPalette: palette,
+          typography: {
+            headline: { size: 32, weight: 700 },
+            body: { size: 16, weight: 400 },
+            decorative: { size: 14, weight: 300 },
+          },
+          animation: {
+            type: animationStyle as any,
+            duration: 400,
+            delay: idx * 100,
+            easing: 'ease-out' as const,
+          },
+          imageUrl: undefined,
+          cssKeyframes: '',
+        } as PinterestSlide;
+      },
+    );
 
     // Step 3: Generate Pinterest-aligned image prompts
     const enhancedSlides = await Promise.all(
       pinterestSlides.map(async (slide) => {
-        const imagePrompt = artDirector.generatePinterestPrompt(
-          `${input.prompt} - slide ${slide.slide}`,
-          brand,
-          {
-            palette: slide.colorPalette,
-            pattern: slide.pinterestPattern,
-            style,
-          },
-        );
+        const imagePrompt = artDirector.generatePinterestPrompt(`${input.prompt} - slide ${slide.slide}`, brand, {
+          palette: slide.colorPalette,
+          pattern: slide.pinterestPattern,
+          style,
+        });
 
         // Optionally download image from Pinterest/web
         let imageUrl: string | undefined;
@@ -167,10 +170,7 @@ export const designCarouselPinterest = async (
           const slideIdx = Math.floor((i / imagesToProcess.length) * enhancedSlides.length);
           const imageUrl = imagesToProcess[i];
           if (!imageUrl) continue;
-          const result = await downloadAndUploadToCanva(
-            imageUrl,
-            `carousel-slide-${slideIdx + 1}.png`,
-          );
+          const result = await downloadAndUploadToCanva(imageUrl, `carousel-slide-${slideIdx + 1}.png`);
           if (result.assetId) {
             downloadedImages.set(slideIdx, result.assetId);
           }
@@ -208,11 +208,15 @@ export const designCarouselPinterest = async (
         const slides = enhancedSlides.map((s) => `carousel-slide-${s.slide}`); // Placeholder paths
         const timings = animationEngine_instance.generateMP4Timing(enhancedSlides, animations.timeline);
 
-        const result = await generateAnimatedCarousel(slides, timings as unknown as Parameters<typeof generateAnimatedCarousel>[1], {
-          duration: slideCount * 2.5,
-          quality: 'high',
-          musicUrl: input.includeMusic ? 'default' : undefined,
-        });
+        const result = await generateAnimatedCarousel(
+          slides,
+          timings as unknown as Parameters<typeof generateAnimatedCarousel>[1],
+          {
+            duration: slideCount * 2.5,
+            quality: 'high',
+            musicUrl: input.includeMusic ? 'default' : undefined,
+          },
+        );
 
         if (result) {
           mp4Url = result.mp4Url;
@@ -391,4 +395,3 @@ const generateHTMLPreview = (slides: PinterestSlide[], animations: { css: string
 </html>
   `;
 };
-

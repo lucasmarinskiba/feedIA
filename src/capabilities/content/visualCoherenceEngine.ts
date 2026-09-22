@@ -16,11 +16,11 @@ export interface VisualSpec {
     padding: string; // "20px 30px"
   };
   typography: {
-    headline: {font: string; size: number; weight: number; color: string};
-    body: {font: string; size: number; weight: number; color: string};
+    headline: { font: string; size: number; weight: number; color: string };
+    body: { font: string; size: number; weight: number; color: string };
   };
   layout: {
-    safeZones: {top: number; bottom: number; left: number; right: number}; // % margins
+    safeZones: { top: number; bottom: number; left: number; right: number }; // % margins
     alignment: 'left' | 'center' | 'right';
     maxWidth: string;
   };
@@ -67,7 +67,7 @@ export const generateVisualSpecs = (slideCount: number, brandColors: Record<stri
         },
       },
       layout: {
-        safeZones: {top: 20, bottom: 20, left: 20, right: 20}, // % margins
+        safeZones: { top: 20, bottom: 20, left: 20, right: 20 }, // % margins
         alignment: i % 2 === 0 ? 'left' : 'center',
         maxWidth: '90%',
       },
@@ -191,16 +191,12 @@ const calculateVisualCoherence = (slides: VisualSpec[], issues: string[]): numbe
 export interface BackgroundStrategy {
   type: 'hero' | 'gradient' | 'image-text' | 'solid';
   imageUrl?: string;
-  gradient?: {start: string; end: string};
+  gradient?: { start: string; end: string };
   position: 'center' | 'top' | 'bottom';
   size: 'cover' | 'contain';
 }
 
-export const selectBackgroundImage = (
-  slideNumber: number,
-  topic: string,
-  emotion: string,
-): BackgroundStrategy => {
+export const selectBackgroundImage = (slideNumber: number, topic: string, emotion: string): BackgroundStrategy => {
   const strategies: Record<string, BackgroundStrategy> = {
     'hero-full-bleed': {
       type: 'hero',
@@ -239,8 +235,8 @@ export const selectBackgroundImage = (
 export const calculateSafeZones = (
   containerWidth: number,
   containerHeight: number,
-  margins: {top: number; bottom: number; left: number; right: number},
-): {x: number; y: number; width: number; height: number} => {
+  margins: { top: number; bottom: number; left: number; right: number },
+): { x: number; y: number; width: number; height: number } => {
   // Margins as percentage
   const topPx = (containerHeight * margins.top) / 100;
   const bottomPx = (containerHeight * margins.bottom) / 100;

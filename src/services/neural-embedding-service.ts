@@ -80,11 +80,7 @@ class NeuralEmbeddingService {
    * cross-modal comparison instead of comparing two unrelated random vectors.
    * Falls back to a simulated 3072-dim vector if the real call fails/unset.
    */
-  async generateImageEmbedding(
-    imageUrl: string,
-    features?: Record<string, any>,
-    id?: string
-  ): Promise<ImageEmbedding> {
+  async generateImageEmbedding(imageUrl: string, features?: Record<string, any>, id?: string): Promise<ImageEmbedding> {
     const embeddingId = id || `img-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
     const real = isGeminiConfigured() ? await generateRealImageEmbeddingViaCaption(imageUrl) : null;

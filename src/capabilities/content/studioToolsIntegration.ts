@@ -23,10 +23,7 @@ import { runCarouselFactory } from './carouselFactory.js';
 import { createReel } from './reel.js';
 import { generateCarouselContent, type CarouselBrief } from './carouselContentOrchestrator.js';
 import { generateVideoContent, type VideoBrief } from './videoContentOrchestrator.js';
-import {
-  enrichCarouselWithEmotionAndHumor,
-  enrichVideoWithEmotionAndHumor,
-} from './emotionHumorOrchestrator.js';
+import { enrichCarouselWithEmotionAndHumor, enrichVideoWithEmotionAndHumor } from './emotionHumorOrchestrator.js';
 import type { Emotion } from './emotionPsychologyEngine.js';
 
 // Re-export enhanced versions for use throughout codebase
@@ -65,10 +62,7 @@ export const createCarouselWithBrainGuidance = async (
 /**
  * Reel Creator con brain guidance
  */
-export const createReelWithBrainGuidance = async (
-  idea: string,
-  brand: BrandProfile,
-): Promise<any> => {
+export const createReelWithBrainGuidance = async (idea: string, brand: BrandProfile): Promise<any> => {
   log.info(`[Studio Integration] Reel with brain guidance: ${idea}`);
 
   const result = await enhanceReelCreation(
@@ -88,18 +82,12 @@ export const createReelWithBrainGuidance = async (
 /**
  * TikTok Video Creator con brain guidance
  */
-export const createTikTokVideoWithBrainGuidance = async (
-  topic: string,
-  brand: BrandProfile,
-): Promise<any> => {
+export const createTikTokVideoWithBrainGuidance = async (topic: string, brand: BrandProfile): Promise<any> => {
   log.info(`[Studio Integration] TikTok Video with brain guidance: ${topic}`);
 
-  const result = await enhanceTikTokVideo(
-    { topic, brand },
-    async (t, b) => 
-      // TODO: Call actual TikTok video creator
-       ({ topic: t, format: 'tiktok-video', status: 'planned' })
-    ,
+  const result = await enhanceTikTokVideo({ topic, brand }, async (t, b) =>
+    // TODO: Call actual TikTok video creator
+    ({ topic: t, format: 'tiktok-video', status: 'planned' }),
   );
 
   const validation = await validateStudioOutput(result, 'tiktok-video');
@@ -111,18 +99,12 @@ export const createTikTokVideoWithBrainGuidance = async (
 /**
  * TikTok Photo Creator con brain guidance
  */
-export const createTikTokPhotoWithBrainGuidance = async (
-  description: string,
-  brand: BrandProfile,
-): Promise<any> => {
+export const createTikTokPhotoWithBrainGuidance = async (description: string, brand: BrandProfile): Promise<any> => {
   log.info(`[Studio Integration] TikTok Photo with brain guidance: ${description}`);
 
-  const result = await enhanceTikTokPhoto(
-    { description, brand },
-    async (d, b) => 
-      // TODO: Call actual TikTok photo creator
-       ({ description: d, format: 'tiktok-photo', status: 'planned' })
-    ,
+  const result = await enhanceTikTokPhoto({ description, brand }, async (d, b) =>
+    // TODO: Call actual TikTok photo creator
+    ({ description: d, format: 'tiktok-photo', status: 'planned' }),
   );
 
   const validation = await validateStudioOutput(result, 'tiktok-photo');
@@ -134,18 +116,12 @@ export const createTikTokPhotoWithBrainGuidance = async (
 /**
  * TikTok Script Creator con brain guidance
  */
-export const createTikTokScriptWithBrainGuidance = async (
-  topic: string,
-  brand: BrandProfile,
-): Promise<any> => {
+export const createTikTokScriptWithBrainGuidance = async (topic: string, brand: BrandProfile): Promise<any> => {
   log.info(`[Studio Integration] TikTok Script with brain guidance: ${topic}`);
 
-  const result = await enhanceTikTokScript(
-    { topic, brand },
-    async (t, b) => 
-      // TODO: Call actual TikTok script creator
-       ({ topic: t, format: 'tiktok-script', status: 'planned' })
-    ,
+  const result = await enhanceTikTokScript({ topic, brand }, async (t, b) =>
+    // TODO: Call actual TikTok script creator
+    ({ topic: t, format: 'tiktok-script', status: 'planned' }),
   );
 
   const validation = await validateStudioOutput(result, 'tiktok-script');
@@ -157,18 +133,12 @@ export const createTikTokScriptWithBrainGuidance = async (
 /**
  * Story Creator con brain guidance
  */
-export const createStoryWithBrainGuidance = async (
-  idea: string,
-  brand: BrandProfile,
-): Promise<any> => {
+export const createStoryWithBrainGuidance = async (idea: string, brand: BrandProfile): Promise<any> => {
   log.info(`[Studio Integration] Story with brain guidance: ${idea}`);
 
-  const result = await enhanceStoryCreation(
-    { idea, brand },
-    async (i, b) => 
-      // TODO: Call actual Story creator
-       ({ idea: i, format: 'story', status: 'planned' })
-    ,
+  const result = await enhanceStoryCreation({ idea, brand }, async (i, b) =>
+    // TODO: Call actual Story creator
+    ({ idea: i, format: 'story', status: 'planned' }),
   );
 
   const validation = await validateStudioOutput(result, 'story');
@@ -195,7 +165,9 @@ export const generateCarousel = async (
   };
 
   const carousel = await generateCarouselContent(brief, brand);
-  log.info(`[Studio Integration] ✓ Carousel: ${carousel.slideCount} slides, score=${carousel.metadata.engagementScore}`);
+  log.info(
+    `[Studio Integration] ✓ Carousel: ${carousel.slideCount} slides, score=${carousel.metadata.engagementScore}`,
+  );
 
   return carousel;
 };
@@ -229,19 +201,14 @@ export const generateVideo = async (
 // ── Phase 12: Emotion + Humor Layer ────────────────────────────
 
 export const enrichCarouselWithPsychology = async (
-  carouselSlides: Array<{number: number; headline: string; body: string}>,
+  carouselSlides: Array<{ number: number; headline: string; body: string }>,
   topic: string,
   emotion: Emotion,
   brand?: BrandProfile,
 ): Promise<any> => {
   log.info(`[Studio Integration] Enriching carousel with ${emotion} emotion + humor`);
 
-  const enriched = await enrichCarouselWithEmotionAndHumor(
-    carouselSlides,
-    topic,
-    emotion,
-    brand,
-  );
+  const enriched = await enrichCarouselWithEmotionAndHumor(carouselSlides, topic, emotion, brand);
 
   const avgScore = Math.round(
     enriched.reduce((sum, e) => sum + e.enriched.score.overallEngagement, 0) / enriched.length,
@@ -253,19 +220,14 @@ export const enrichCarouselWithPsychology = async (
 };
 
 export const enrichVideoWithPsychology = async (
-  videoScript: {hook: string; scenes: Array<{second: number; voiceover: string}>; cta: string},
+  videoScript: { hook: string; scenes: Array<{ second: number; voiceover: string }>; cta: string },
   topic: string,
   emotion: Emotion,
   brand?: BrandProfile,
 ): Promise<any> => {
   log.info(`[Studio Integration] Enriching video with ${emotion} emotion + humor`);
 
-  const enriched = await enrichVideoWithEmotionAndHumor(
-    videoScript,
-    topic,
-    emotion,
-    brand,
-  );
+  const enriched = await enrichVideoWithEmotionAndHumor(videoScript, topic, emotion, brand);
 
   log.info(
     `[Studio Integration] ✓ Video enriched: hook=${enriched.hook.score.overallEngagement}, cta=${enriched.cta.score.overallEngagement}`,
@@ -300,10 +262,10 @@ interface ContentPieceData {
 }
 
 export const validateWeeklyContentCoherence = async (
-  contentPieces: Array<{type: 'carousel' | 'video' | 'story' | 'reel'; data: ContentPieceData}>,
+  contentPieces: Array<{ type: 'carousel' | 'video' | 'story' | 'reel'; data: ContentPieceData }>,
   brand?: BrandProfile,
 ): Promise<any> => {
-  const {validateWeeklyCoherence} = await import('./contentCoherenceValidator.js');
+  const { validateWeeklyCoherence } = await import('./contentCoherenceValidator.js');
 
   const posts = contentPieces.map((piece) => ({
     type: piece.type,

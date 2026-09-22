@@ -31,7 +31,7 @@ export const generateSceneBreakdown = (script: VideoScript): SceneBreakdown => {
   log.info(`[Scene Breakdown] Analyzing ${script.duration}s video structure`);
 
   const frames: VisualFrame[] = [];
-  const transitions: Array<{from: number; to: number; effect: string}> = [];
+  const transitions: Array<{ from: number; to: number; effect: string }> = [];
 
   // Frame 0-3s: Hook (intro + title)
   frames.push({
@@ -52,7 +52,7 @@ export const generateSceneBreakdown = (script: VideoScript): SceneBreakdown => {
       voiceover: scene.voiceover,
       visualType,
       action: scene.action || selectDefaultAction(scene.second, script.duration),
-      duration: idx < script.scenes.length - 1 ? (script.scenes[idx + 1]!.second - scene.second) : 5,
+      duration: idx < script.scenes.length - 1 ? script.scenes[idx + 1]!.second - scene.second : 5,
       transitionEffect: selectTransition(idx),
     });
 

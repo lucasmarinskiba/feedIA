@@ -28,10 +28,7 @@ export interface CompetitorBaseline {
   recommendations: string[];
 }
 
-const analyzeWithClaude = async (
-  brand: BrandProfile,
-  competitors: string[],
-): Promise<CompetitorBaseline> => {
+const analyzeWithClaude = async (brand: BrandProfile, competitors: string[]): Promise<CompetitorBaseline> => {
   const prompt = `Actuá como analista de competencia de Instagram.
 
 MARCA: ${brand.name}
@@ -77,10 +74,7 @@ const baselineForHandle = (handle: string, niche: string): CompetitorProfile => 
   opportunities: ['Responder comentarios más rápido', 'Crear contenido educativo específico'],
 });
 
-export const analyzeCompetitors = async (
-  brand: BrandProfile,
-  competitors: string[],
-): Promise<CompetitorBaseline> => {
+export const analyzeCompetitors = async (brand: BrandProfile, competitors: string[]): Promise<CompetitorBaseline> => {
   const handles = competitors.map((c) => c.replace(/^@/, '').trim()).filter(Boolean);
 
   if (hasApiKey() && handles.length > 0) {

@@ -123,10 +123,7 @@ export const generateAnimatedCarousel = async (
 
   try {
     // Calculate total duration from timings
-    const totalDurationMs = Math.max(
-      ...timings.map((t) => t.delay + t.duration),
-      (options?.duration || 30) * 1000,
-    );
+    const totalDurationMs = Math.max(...timings.map((t) => t.delay + t.duration), (options?.duration || 30) * 1000);
     const totalDurationS = totalDurationMs / 1000;
 
     // Build prompt describing the carousel video

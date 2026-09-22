@@ -185,7 +185,11 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
         const longLivedUrl =
           `https://graph.facebook.com/v18.0/oauth/access_token?grant_type=fb_exchange_token` +
           `&client_id=${clientId}&client_secret=${clientSecret}&fb_exchange_token=${shortToken}`;
-        const longRes = await metaFetch(longLivedUrl, {}, { description: 'Meta OAuth long-lived token', maxAttempts: 3 });
+        const longRes = await metaFetch(
+          longLivedUrl,
+          {},
+          { description: 'Meta OAuth long-lived token', maxAttempts: 3 },
+        );
         const longData = (await longRes.json()) as { access_token?: string; expires_in?: number };
         const longLivedToken = longData.access_token ?? shortToken;
         const expiresIn = longData.expires_in ?? tokenData.expires_in ?? 5_184_000;

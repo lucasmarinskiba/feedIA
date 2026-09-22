@@ -108,7 +108,12 @@ router.post('/forecasting/compare', (req: Request, res: Response): void => {
 
 router.post('/testing/create', (req: Request, res: Response): void => {
   try {
-    const { name, hypothesis, controlLabel, variantLabels } = req.body as { name: string; hypothesis: string; controlLabel: string; variantLabels: string[] };
+    const { name, hypothesis, controlLabel, variantLabels } = req.body as {
+      name: string;
+      hypothesis: string;
+      controlLabel: string;
+      variantLabels: string[];
+    };
     const test = ABTesting.createTest(name, hypothesis, controlLabel, variantLabels);
     res.json({ success: true, test });
     return;
@@ -133,7 +138,11 @@ router.get('/testing/active', (req: Request, res: Response): void => {
 
 router.post('/orchestration/distribute', (req: Request, res: Response): void => {
   try {
-    const { contentId, contentType, topic } = req.body as { contentId: string; contentType: 'carousel' | 'reel' | 'story' | 'static'; topic: string };
+    const { contentId, contentType, topic } = req.body as {
+      contentId: string;
+      contentType: 'carousel' | 'reel' | 'story' | 'static';
+      topic: string;
+    };
     const distribution = ChannelOrchestration.distributeContent(contentId, contentType, topic);
     res.json({ success: true, distribution });
     return;
@@ -236,7 +245,12 @@ router.get('/compliance/stats', (req: Request, res: Response): void => {
 
 router.post('/trends/detect', (req: Request, res: Response): void => {
   try {
-    const { name, category, volume, keywords } = req.body as { name: string; category: string; volume: number; keywords: string[] };
+    const { name, category, volume, keywords } = req.body as {
+      name: string;
+      category: string;
+      volume: number;
+      keywords: string[];
+    };
     const trend = TrendDetector.detectTrend(name, category, volume, keywords);
     res.json({ success: true, trend });
     return;
@@ -261,7 +275,11 @@ router.get('/trends/analyze', (req: Request, res: Response): void => {
 
 router.post('/growth/strategy', (req: Request, res: Response): void => {
   try {
-    const { currentFollowers, engagementRate, conversionRate } = req.body as { currentFollowers: number; engagementRate: number; conversionRate: number };
+    const { currentFollowers, engagementRate, conversionRate } = req.body as {
+      currentFollowers: number;
+      engagementRate: number;
+      conversionRate: number;
+    };
     const strategy = GrowthHacker.buildGrowthStrategy(currentFollowers, engagementRate, conversionRate);
     res.json({ success: true, strategy });
     return;

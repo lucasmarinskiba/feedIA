@@ -72,7 +72,11 @@ export const initializeBudget = (accountId: string, tier: BudgetTier = 'free'): 
 /**
  * Record a request cost
  */
-export const recordCost = (accountId: string, provider: string, costUSD: number): { ok: boolean; canProceed: boolean; alert?: string } => {
+export const recordCost = (
+  accountId: string,
+  provider: string,
+  costUSD: number,
+): { ok: boolean; canProceed: boolean; alert?: string } => {
   let budget = budgets.get(accountId);
   if (!budget) {
     budget = initializeBudget(accountId);
@@ -131,7 +135,9 @@ export const recordCost = (accountId: string, provider: string, costUSD: number)
 /**
  * Get budget status for account
  */
-export const getBudgetStatus = (accountId: string): {
+export const getBudgetStatus = (
+  accountId: string,
+): {
   accountId: string;
   monthlyBudget: number;
   spent: number;

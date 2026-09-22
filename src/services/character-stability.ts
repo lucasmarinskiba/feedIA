@@ -21,10 +21,7 @@ class CharacterStabilityService {
   /**
    * Validate character consistency across prompts
    */
-  async validateCharacterConsistency(
-    seriesId: string,
-    prompts: string[]
-  ): Promise<StabilityReport> {
+  async validateCharacterConsistency(seriesId: string, prompts: string[]): Promise<StabilityReport> {
     const seriesLock = consistencyLockManager.getSeriesLock(seriesId);
 
     if (!seriesLock) {
@@ -91,10 +88,7 @@ class CharacterStabilityService {
         }
 
         // Check for shape/color changes
-        if (
-          prompt.toLowerCase().includes('different shape') ||
-          prompt.toLowerCase().includes('different color')
-        ) {
+        if (prompt.toLowerCase().includes('different shape') || prompt.toLowerCase().includes('different color')) {
           issues.push(`Frame ${i + 1}: Product appearance changed`);
           consistencyScore -= 12;
         }
@@ -116,10 +110,7 @@ class CharacterStabilityService {
         }
 
         // Check for lighting changes
-        if (
-          prompt.toLowerCase().includes('different lighting') ||
-          prompt.toLowerCase().includes('different time')
-        ) {
+        if (prompt.toLowerCase().includes('different lighting') || prompt.toLowerCase().includes('different time')) {
           issues.push(`Frame ${i + 1}: Lighting/time inconsistency`);
           consistencyScore -= 8;
         }
@@ -164,7 +155,7 @@ class CharacterStabilityService {
     basePrompt: string,
     seriesId: string,
     frameCount: number,
-    narrativeArc?: string[]
+    narrativeArc?: string[],
   ): Promise<string[]> {
     const seriesLock = consistencyLockManager.getSeriesLock(seriesId);
 
@@ -202,10 +193,7 @@ Narrative: ${narrativeSteps[frameNum]}
   /**
    * Suggest stability improvements for existing prompts
    */
-  async suggestStabilityImprovements(
-    seriesId: string,
-    prompts: string[]
-  ): Promise<Record<string, any>> {
+  async suggestStabilityImprovements(seriesId: string, prompts: string[]): Promise<Record<string, any>> {
     const validation = await this.validateCharacterConsistency(seriesId, prompts);
 
     if (validation.consistencyScore >= 80) {

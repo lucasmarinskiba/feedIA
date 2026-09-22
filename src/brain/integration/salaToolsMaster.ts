@@ -14,11 +14,7 @@
  */
 
 import { log } from '../../agent/logger.js';
-import {
-  getAllExpertAdvice,
-  getMultiExpertAdvice,
-  type ExpertAdvice,
-} from '../experts/expertRegistry.js';
+import { getAllExpertAdvice, getMultiExpertAdvice, type ExpertAdvice } from '../experts/expertRegistry.js';
 
 export interface SalaToolContext {
   tool: string;
@@ -74,8 +70,8 @@ export const getToolGuidance = async (context: SalaToolContext): Promise<SalaToo
     'error-rate': '< 2%',
     'user-satisfaction': '> 4.5/5',
     'data-accuracy': '> 98%',
-    'consistency': '100%',
-    'accessibility': 'WCAG AA minimum',
+    consistency: '100%',
+    accessibility: 'WCAG AA minimum',
   };
 
   return {

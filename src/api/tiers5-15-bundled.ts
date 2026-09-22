@@ -9,13 +9,18 @@ import { query } from '../db/client.js';
 export const createAudienceSegment = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = (req as unknown as { userId: string }).userId;
-    const { campaignId, name, segmentType, rules } = req.body as { campaignId: string; name: string; segmentType: string; rules: unknown };
+    const { campaignId, name, segmentType, rules } = req.body as {
+      campaignId: string;
+      name: string;
+      segmentType: string;
+      rules: unknown;
+    };
 
     const segmentId = crypto.randomUUID();
     await query(
       `INSERT INTO audience_segments (id, user_id, campaign_id, name, segment_type, rules, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`,
-      [segmentId, userId, campaignId, name, segmentType, JSON.stringify(rules)]
+      [segmentId, userId, campaignId, name, segmentType, JSON.stringify(rules)],
     );
 
     res.status(201).json({ id: segmentId, name, segmentType });
@@ -48,13 +53,18 @@ export const listAudienceSegments = async (req: Request, res: Response): Promise
 export const createABTest = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = (req as unknown as { userId: string }).userId;
-    const { campaignId, name, variantAId, variantBId } = req.body as { campaignId: string; name: string; variantAId: string; variantBId: string };
+    const { campaignId, name, variantAId, variantBId } = req.body as {
+      campaignId: string;
+      name: string;
+      variantAId: string;
+      variantBId: string;
+    };
 
     const testId = crypto.randomUUID();
     await query(
       `INSERT INTO ab_tests (id, campaign_id, user_id, name, variant_a_id, variant_b_id, status, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
-      [testId, campaignId, userId, name, variantAId, variantBId, 'running']
+      [testId, campaignId, userId, name, variantAId, variantBId, 'running'],
     );
 
     res.status(201).json({ id: testId, status: 'running' });
@@ -77,14 +87,12 @@ export const getABTestResults = async (req: Request, res: Response): Promise<voi
     }
 
     const test = result.rows[0] as { status: string; variant_a_id: string; variant_b_id: string };
-    const metricsA = await query(
-      'SELECT COUNT(*) as events FROM analytics_events WHERE content_id = $1',
-      [test.variant_a_id]
-    );
-    const metricsB = await query(
-      'SELECT COUNT(*) as events FROM analytics_events WHERE content_id = $1',
-      [test.variant_b_id]
-    );
+    const metricsA = await query('SELECT COUNT(*) as events FROM analytics_events WHERE content_id = $1', [
+      test.variant_a_id,
+    ]);
+    const metricsB = await query('SELECT COUNT(*) as events FROM analytics_events WHERE content_id = $1', [
+      test.variant_b_id,
+    ]);
 
     // COUNT() comes back as a string from node-postgres (it's BIGINT)
     const eventsA = Number((metricsA.rows[0] as { events: string })?.events || 0);
@@ -109,24 +117,28 @@ export const calculateROI = async (req: Request, res: Response): Promise<void> =
   try {
     const userId = (req as unknown as { userId: string }).userId;
 
-    const costResult = await query(
-      'SELECT SUM(cost) as total FROM api_costs WHERE user_id = $1',
-      [userId]
-    );
+    const costResult = await query('SELECT SUM(cost) as total FROM api_costs WHERE user_id = $1', [userId]);
 
     const revenueResult = await query(
       `SELECT
         COUNT(CASE WHEN event_type = 'conversion' THEN 1 END) * 50 as estimated_revenue
        FROM analytics_events
        WHERE user_id = $1`,
-      [userId]
+      [userId],
     );
 
     const cost = Number((costResult.rows[0] as { total: string } | undefined)?.total || 0);
-    const revenue = Number((revenueResult.rows[0] as { estimated_revenue: string } | undefined)?.estimated_revenue || 0);
-    const roi = cost > 0 ? ((revenue - cost) / cost * 100).toFixed(2) : 'N/A';
+    const revenue = Number(
+      (revenueResult.rows[0] as { estimated_revenue: string } | undefined)?.estimated_revenue || 0,
+    );
+    const roi = cost > 0 ? (((revenue - cost) / cost) * 100).toFixed(2) : 'N/A';
 
-    res.json({ cost, revenue, roi: roi + '%', payback: cost > 0 ? (cost / revenue * 30).toFixed(1) + ' days' : 'N/A' });
+    res.json({
+      cost,
+      revenue,
+      roi: roi + '%',
+      payback: cost > 0 ? ((cost / revenue) * 30).toFixed(1) + ' days' : 'N/A',
+    });
     return;
   } catch {
     res.status(500).json({ error: 'ROI calculation failed' });
@@ -158,13 +170,18 @@ export const optimizeBatch = async (req: Request, res: Response): Promise<void> 
 export const trackCost = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = (req as unknown as { userId: string }).userId;
-    const { provider, operation, cost, metadata } = req.body as { provider: string; operation: string; cost: number; metadata?: unknown };
+    const { provider, operation, cost, metadata } = req.body as {
+      provider: string;
+      operation: string;
+      cost: number;
+      metadata?: unknown;
+    };
 
     const costId = crypto.randomUUID();
     await query(
       `INSERT INTO api_costs (id, user_id, provider, operation, cost, metadata, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
-      [costId, userId, provider, operation, cost, JSON.stringify(metadata || {})]
+      [costId, userId, provider, operation, cost, JSON.stringify(metadata || {})],
     );
 
     res.status(201).json({ id: costId, cost });
@@ -187,7 +204,7 @@ export const getCostSummary = async (req: Request, res: Response): Promise<void>
        FROM api_costs
        WHERE user_id = $1
        GROUP BY provider`,
-      [userId]
+      [userId],
     );
 
     res.json({ summary: result.rows });

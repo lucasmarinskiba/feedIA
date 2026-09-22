@@ -16,7 +16,7 @@ export const upsertUser = async (email: string, passwordHash: string, username?:
      VALUES (gen_random_uuid(), $1, $2, $3, NOW(), NOW())
      ON CONFLICT (email) DO UPDATE SET updated_at = NOW()
      RETURNING *`,
-    [email, passwordHash, username]
+    [email, passwordHash, username],
   );
   return result.rows[0] as User;
 };
@@ -49,7 +49,7 @@ export const createRefreshToken = async (userId: string): Promise<{ token: strin
   await query(
     `INSERT INTO user_sessions (id, user_id, refresh_token, refresh_token_expires_at, created_at)
      VALUES ($1, $2, $3, $4, NOW())`,
-    [sessionId, userId, token, expiresAt]
+    [sessionId, userId, token, expiresAt],
   );
 
   return { token, expiresAt };
@@ -59,12 +59,13 @@ export const createRefreshToken = async (userId: string): Promise<{ token: strin
  * Validate and rotate refresh token
  * Old token is deleted, new one issued
  */
-export const rotateRefreshToken = async (oldToken: string): Promise<{ token: string; expiresAt: Date } | null> => transaction(async (client) => {
+export const rotateRefreshToken = async (oldToken: string): Promise<{ token: string; expiresAt: Date } | null> =>
+  transaction(async (client) => {
     // Verify old token exists and not expired
     const result = await client.query(
       `SELECT id, user_id FROM user_sessions
        WHERE refresh_token = $1 AND refresh_token_expires_at > NOW()`,
-      [oldToken]
+      [oldToken],
     );
 
     if (result.rowCount === 0) {
@@ -83,7 +84,7 @@ export const rotateRefreshToken = async (oldToken: string): Promise<{ token: str
     await client.query(
       `INSERT INTO user_sessions (id, user_id, refresh_token, refresh_token_expires_at, created_at)
        VALUES (gen_random_uuid(), $1, $2, $3, NOW())`,
-      [session.user_id, newToken, expiresAt]
+      [session.user_id, newToken, expiresAt],
     );
 
     return { token: newToken, expiresAt };
@@ -118,7 +119,7 @@ export const getUserSessions = async (userId: string): Promise<UserSession[]> =>
     `SELECT * FROM user_sessions
      WHERE user_id = $1 AND refresh_token_expires_at > NOW()
      ORDER BY created_at DESC`,
-    [userId]
+    [userId],
   );
   return result.rows as UserSession[];
 };

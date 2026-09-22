@@ -40,7 +40,9 @@ export interface Execution {
 }
 
 export const automationSchedulerService = {
-  async createTask(data: Omit<AutomationTask, 'id' | 'execution_history' | 'createdAt' | 'updatedAt'>): Promise<AutomationTask> {
+  async createTask(
+    data: Omit<AutomationTask, 'id' | 'execution_history' | 'createdAt' | 'updatedAt'>,
+  ): Promise<AutomationTask> {
     const task: AutomationTask = {
       ...data,
       id: uuid(),
@@ -212,9 +214,7 @@ export const automationSchedulerService = {
       case 'interval':
         if (!schedule.interval_minutes) return null;
         if (!lastExecution) return now;
-        const nextInterval = new Date(
-          lastExecution.timestamp.getTime() + schedule.interval_minutes * 60 * 1000
-        );
+        const nextInterval = new Date(lastExecution.timestamp.getTime() + schedule.interval_minutes * 60 * 1000);
         return nextInterval > now ? nextInterval : now;
 
       case 'monthly':

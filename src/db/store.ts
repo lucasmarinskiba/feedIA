@@ -60,10 +60,7 @@ export const store = {
   async updateUser(userId: string, updates: any): Promise<void> {
     const db = await getDB();
     const filter: Filter<any> = { _id: userId };
-    await db.collection('users').updateOne(
-      filter as any,
-      { $set: { ...updates, updatedAt: new Date() } }
-    );
+    await db.collection('users').updateOne(filter as any, { $set: { ...updates, updatedAt: new Date() } });
   },
 
   // Workspaces
@@ -85,17 +82,12 @@ export const store = {
   async addWorkspaceMember(workspaceId: string, member: any): Promise<void> {
     const db = await getDB();
     const filter: Filter<any> = { _id: workspaceId };
-    await db.collection('workspaces').updateOne(
-      filter as any,
-      { $push: { members: member } }
-    );
+    await db.collection('workspaces').updateOne(filter as any, { $push: { members: member } });
   },
 
   async getUserWorkspaces(userId: string): Promise<any[]> {
     const db = await getDB();
-    return db.collection('workspaces')
-      .find({ 'members.userId': userId })
-      .toArray();
+    return db.collection('workspaces').find({ 'members.userId': userId }).toArray();
   },
 
   // Content
@@ -122,19 +114,12 @@ export const store = {
 
   async getWorkspaceContent(workspaceId: string, limit = 50): Promise<any[]> {
     const db = await getDB();
-    return db.collection('content')
-      .find({ workspaceId })
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .toArray();
+    return db.collection('content').find({ workspaceId }).sort({ createdAt: -1 }).limit(limit).toArray();
   },
 
   async updateContentMetrics(contentId: string, metrics: any): Promise<void> {
     const db = await getDB();
-    await db.collection('content').updateOne(
-      { _id: contentId } as any,
-      { $set: { metrics } }
-    );
+    await db.collection('content').updateOne({ _id: contentId } as any, { $set: { metrics } });
   },
 
   // Analytics
@@ -148,16 +133,14 @@ export const store = {
 
   async getContentAnalytics(contentId: string): Promise<any[]> {
     const db = await getDB();
-    return db.collection('analytics')
-      .find({ contentId })
-      .sort({ recordedAt: -1 })
-      .toArray();
+    return db.collection('analytics').find({ contentId }).sort({ recordedAt: -1 }).toArray();
   },
 
   async getUserAnalytics(userId: string, days = 30): Promise<any[]> {
     const db = await getDB();
     const since = new Date(Date.now() - days * 86400000);
-    return db.collection('analytics')
+    return db
+      .collection('analytics')
       .find({ userId, recordedAt: { $gte: since } })
       .sort({ recordedAt: -1 })
       .toArray();
@@ -180,10 +163,7 @@ export const store = {
 
   async acceptInvitation(invitationId: string): Promise<void> {
     const db = await getDB();
-    await db.collection('invitations').updateOne(
-      { _id: invitationId } as any,
-      { $set: { status: 'accepted' } }
-    );
+    await db.collection('invitations').updateOne({ _id: invitationId } as any, { $set: { status: 'accepted' } });
   },
 
   // Templates
@@ -198,27 +178,20 @@ export const store = {
 
   async getUserTemplates(userId: string): Promise<any[]> {
     const db = await getDB();
-    return db.collection('templates')
-      .find({ userId })
-      .sort({ createdAt: -1 })
-      .toArray();
+    return db.collection('templates').find({ userId }).sort({ createdAt: -1 }).toArray();
   },
 
   // Feedback
   async saveFeedback(feedback: any): Promise<void> {
     const db = await getDB();
-    await db.collection('feedback').updateOne(
-      { userId: feedback.userId, contentId: feedback.contentId },
-      { $set: feedback },
-      { upsert: true }
-    );
+    await db
+      .collection('feedback')
+      .updateOne({ userId: feedback.userId, contentId: feedback.contentId }, { $set: feedback }, { upsert: true });
   },
 
   async getFeedback(contentId: string): Promise<any[]> {
     const db = await getDB();
-    return db.collection('feedback')
-      .find({ contentId })
-      .toArray();
+    return db.collection('feedback').find({ contentId }).toArray();
   },
 
   // Cleanup

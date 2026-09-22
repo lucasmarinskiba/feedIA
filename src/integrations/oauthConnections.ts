@@ -79,10 +79,7 @@ export const saveConnection = async (conn: OAuthConnection): Promise<void> => {
   log.info('[oauthConnections] saved', { brandId: conn.brandId, platform: conn.platform });
 };
 
-export const getConnection = async (
-  brandId: string,
-  platform: ConnectionPlatform,
-): Promise<OAuthConnection | null> => {
+export const getConnection = async (brandId: string, platform: ConnectionPlatform): Promise<OAuthConnection | null> => {
   if (isEncryptionAvailable()) {
     const fromDb = await getOAuthToken(brandId, platform);
     if (fromDb) return fromDb;

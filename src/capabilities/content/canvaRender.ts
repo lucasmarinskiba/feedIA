@@ -49,11 +49,7 @@ const fetchImageAsBuffer = async (url: string): Promise<Buffer> => {
   return Buffer.from(await res.arrayBuffer());
 };
 
-const uploadImageFromUrl = async (
-  url: string,
-  filename: string,
-  userHandle?: string,
-): Promise<string | undefined> => {
+const uploadImageFromUrl = async (url: string, filename: string, userHandle?: string): Promise<string | undefined> => {
   try {
     const buf = await fetchImageAsBuffer(url);
     const up = await uploadAsset({ fileBytes: buf, filename, mimeType: 'image/png', userHandle });

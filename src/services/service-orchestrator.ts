@@ -42,7 +42,9 @@ export interface OrchestratorResult {
   error?: string;
 }
 
-const analyzeRequest = (req: OrchestratorRequest): {
+const analyzeRequest = (
+  req: OrchestratorRequest,
+): {
   targetQuality: QualityLevel;
   priorityChain: string[];
   expectedCost: number;
@@ -67,13 +69,13 @@ const analyzeRequest = (req: OrchestratorRequest): {
     'flux-schnell': 3000,
     'flux-pro': 8000,
     'flux-dev': 20000,
-    'gpt4v': 5000,
+    gpt4v: 5000,
     'dall-e': 10000,
   };
 
   const providers = qualityTiers[qualityLevel] || qualityTiers.good;
   const budget = tierBudgets[tier];
-  const avgDuration = providers.length > 0 ? durationEstimates[providers[0]!.split(':')[1]!] ?? 5000 : 5000;
+  const avgDuration = providers.length > 0 ? (durationEstimates[providers[0]!.split(':')[1]!] ?? 5000) : 5000;
 
   return {
     targetQuality: qualityLevel,
@@ -102,7 +104,12 @@ export const orchestrateContentGeneration = async (req: OrchestratorRequest): Pr
     req.brandProfile?.niche || 'default',
   );
 
-  if (cached.hit && cached.prompt && cached.qualityScore && cached.qualityScore >= (req.qualityLevel === 'excellent' ? 80 : 60)) {
+  if (
+    cached.hit &&
+    cached.prompt &&
+    cached.qualityScore &&
+    cached.qualityScore >= (req.qualityLevel === 'excellent' ? 80 : 60)
+  ) {
     const durationMs = Date.now() - startTime;
     log.info('[Orchestrator] Cache hit, skipping generation', {
       durationMs,
@@ -151,7 +158,8 @@ export const orchestrateContentGeneration = async (req: OrchestratorRequest): Pr
                 ? 'tiktok-photo'
                 : 'post-image',
           userHandle: req.userHandle,
-          style: plan.targetQuality === 'draft' ? 'minimal' : plan.targetQuality === 'excellent' ? 'detailed' : 'balanced',
+          style:
+            plan.targetQuality === 'draft' ? 'minimal' : plan.targetQuality === 'excellent' ? 'detailed' : 'balanced',
         });
       } else {
         result = await routeVideoGen({

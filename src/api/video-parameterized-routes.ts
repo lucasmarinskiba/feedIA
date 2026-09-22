@@ -47,7 +47,9 @@ router.post('/parameterized-prompt', async (req: Request, res: Response): Promis
     } = req.body as VideoPromptRequest;
 
     if (!category) {
-      return void res.status(400).json({ error: 'category required: emotional|narrative|transformation|lifestyle|technical' });
+      return void res
+        .status(400)
+        .json({ error: 'category required: emotional|narrative|transformation|lifestyle|technical' });
     }
 
     log.info('[VideoParameterizedRoutes] Prompt request', {
@@ -64,9 +66,9 @@ router.post('/parameterized-prompt', async (req: Request, res: Response): Promis
     }
 
     // Select template (use provided or first available)
-    const selectedTemplate = (templateId
-      ? templates.find(t => t.id === templateId) ?? templates[0]
-      : templates[0])!;
+    const selectedTemplate = (
+      templateId ? (templates.find((t) => t.id === templateId) ?? templates[0]) : templates[0]
+    )!;
 
     // Generate prompt
     const generatedPrompt = videoPromptEngine.generatePrompt(selectedTemplate.id, {
@@ -114,78 +116,82 @@ router.post('/parameterized-prompt', async (req: Request, res: Response): Promis
  * POST /api/video/batch-generate
  * Generate multiple video prompts in parallel + quota enforcement
  */
-router.post('/batch-generate', quotaCheckMiddleware('videos', 1), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { checkFormatQuota } = await import('../middleware/quota-enforcer.js');
-    const userId = req.headers['x-user-id'] as string;
-    const extReq = req as unknown as Record<string, unknown>;
-    const brand = extReq.brand as BrandProfile;
-    const { requests } = req.body as { requests: VideoPromptRequest[] };
+router.post(
+  '/batch-generate',
+  quotaCheckMiddleware('videos', 1),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { checkFormatQuota } = await import('../middleware/quota-enforcer.js');
+      const userId = req.headers['x-user-id'] as string;
+      const extReq = req as unknown as Record<string, unknown>;
+      const brand = extReq.brand as BrandProfile;
+      const { requests } = req.body as { requests: VideoPromptRequest[] };
 
-    if (!requests || !Array.isArray(requests) || requests.length === 0) {
-      return void res.status(400).json({ error: 'requests array required' });
-    }
+      if (!requests || !Array.isArray(requests) || requests.length === 0) {
+        return void res.status(400).json({ error: 'requests array required' });
+      }
 
-    // Check quota for batch count
-    const quotaCheck = await checkFormatQuota(userId, 'videos', requests.length);
-    if (!quotaCheck.allowed) {
-      return void res.status(403).json({
-        error: `Cannot generate ${requests.length} videos, only ${quotaCheck.limit - quotaCheck.used} remaining`,
-        requested: requests.length,
-        available: quotaCheck.limit - quotaCheck.used,
-      });
-    }
-
-    if (requests.length > 10) {
-      return void res.status(400).json({ error: 'Maximum 10 requests per batch' });
-    }
-
-    log.info('[VideoParameterizedRoutes] Batch generation', {
-      requestCount: requests.length,
-    });
-
-    const generatedPrompts = requests
-      .map(req => {
-        const templates = videoPromptEngine.getTemplatesByCategory(req.category);
-        const selectedTemplate = templates[0];
-        if (!selectedTemplate) return null;
-
-        return videoPromptEngine.generatePrompt(selectedTemplate.id, {
-          category: req.category,
-          product: req.product,
-          persona: req.persona,
-          location: req.location,
-          duration: req.duration,
-          tone: req.tone,
-          culturalContext: req.culturalContext,
-          emotionalArc: req.emotionalArc,
-          specs: req.specs,
+      // Check quota for batch count
+      const quotaCheck = await checkFormatQuota(userId, 'videos', requests.length);
+      if (!quotaCheck.allowed) {
+        return void res.status(403).json({
+          error: `Cannot generate ${requests.length} videos, only ${quotaCheck.limit - quotaCheck.used} remaining`,
+          requested: requests.length,
+          available: quotaCheck.limit - quotaCheck.used,
         });
-      })
-      .filter((p): p is NonNullable<typeof p> => p != null);
+      }
 
-    // Charge quota for each generated prompt
-    for (let i = 0; i < generatedPrompts.length; i++) {
-      await chargeQuota(req, 'videos', `param-${uuidv4()}`);
+      if (requests.length > 10) {
+        return void res.status(400).json({ error: 'Maximum 10 requests per batch' });
+      }
+
+      log.info('[VideoParameterizedRoutes] Batch generation', {
+        requestCount: requests.length,
+      });
+
+      const generatedPrompts = requests
+        .map((req) => {
+          const templates = videoPromptEngine.getTemplatesByCategory(req.category);
+          const selectedTemplate = templates[0];
+          if (!selectedTemplate) return null;
+
+          return videoPromptEngine.generatePrompt(selectedTemplate.id, {
+            category: req.category,
+            product: req.product,
+            persona: req.persona,
+            location: req.location,
+            duration: req.duration,
+            tone: req.tone,
+            culturalContext: req.culturalContext,
+            emotionalArc: req.emotionalArc,
+            specs: req.specs,
+          });
+        })
+        .filter((p): p is NonNullable<typeof p> => p != null);
+
+      // Charge quota for each generated prompt
+      for (let i = 0; i < generatedPrompts.length; i++) {
+        await chargeQuota(req, 'videos', `param-${uuidv4()}`);
+      }
+
+      res.json({
+        status: 'success',
+        totalRequested: requests.length,
+        totalGenerated: generatedPrompts.length,
+        prompts: generatedPrompts,
+        brand: brand?.name,
+        metadata: {
+          generatedAt: new Date().toISOString(),
+        },
+      });
+      return;
+    } catch (error) {
+      log.error('[VideoParameterizedRoutes] Batch generation error', error);
+      res.status(500).json({ error: 'Batch generation failed' });
+      return;
     }
-
-    res.json({
-      status: 'success',
-      totalRequested: requests.length,
-      totalGenerated: generatedPrompts.length,
-      prompts: generatedPrompts,
-      brand: brand?.name,
-      metadata: {
-        generatedAt: new Date().toISOString(),
-      },
-    });
-    return;
-  } catch (error) {
-    log.error('[VideoParameterizedRoutes] Batch generation error', error);
-    res.status(500).json({ error: 'Batch generation failed' });
-    return;
-  }
-});
+  },
+);
 
 /**
  * GET /api/video/library-status
@@ -202,11 +208,11 @@ router.get('/library-status', async (req: Request, res: Response) => {
       templates: {
         total: templates.length,
         byCategory: {
-          emotional: templates.filter(t => t.category === 'emotional').length,
-          narrative: templates.filter(t => t.category === 'narrative').length,
-          transformation: templates.filter(t => t.category === 'transformation').length,
-          lifestyle: templates.filter(t => t.category === 'lifestyle').length,
-          technical: templates.filter(t => t.category === 'technical').length,
+          emotional: templates.filter((t) => t.category === 'emotional').length,
+          narrative: templates.filter((t) => t.category === 'narrative').length,
+          transformation: templates.filter((t) => t.category === 'transformation').length,
+          lifestyle: templates.filter((t) => t.category === 'lifestyle').length,
+          technical: templates.filter((t) => t.category === 'technical').length,
         },
       },
       endpoints: {
@@ -231,13 +237,13 @@ router.get('/templates', async (req: Request, res: Response) => {
 
     let templates = videoPromptEngine.listTemplates();
     if (category) {
-      templates = templates.filter(t => t.category === category);
+      templates = templates.filter((t) => t.category === category);
     }
 
     return res.json({
       status: 'success',
       total: templates.length,
-      templates: templates.map(t => ({
+      templates: templates.map((t) => ({
         id: t.id,
         name: t.name,
         category: t.category,

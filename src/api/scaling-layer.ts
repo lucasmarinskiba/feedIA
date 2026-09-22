@@ -47,9 +47,7 @@ class PromptCache {
 
     // Evict oldest if cache full (simple LRU)
     if (this.cache.size >= this.maxSize) {
-      const oldestKey = Array.from(this.cache.entries()).sort(
-        (a, b) => a[1].timestamp - b[1].timestamp,
-      )[0]?.[0];
+      const oldestKey = Array.from(this.cache.entries()).sort((a, b) => a[1].timestamp - b[1].timestamp)[0]?.[0];
       if (oldestKey) this.cache.delete(oldestKey);
     }
 
@@ -299,11 +297,7 @@ export const scalingLayer = {
     }
 
     // 2. Try database
-    const dbResults = await promptDb.query(
-      req.basePromptId || '',
-      req.styleOverride || 'default',
-      numberOfVariations,
-    );
+    const dbResults = await promptDb.query(req.basePromptId || '', req.styleOverride || 'default', numberOfVariations);
     if (dbResults.length >= numberOfVariations) {
       log.info('[ScalingLayer] db hit', { count: dbResults.length });
       promptCache.set(req, dbResults);

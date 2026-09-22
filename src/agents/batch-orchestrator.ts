@@ -33,7 +33,7 @@ interface BatchResult {
 const processWorkerPool = async (
   jobs: BatchJob[],
   workerCount: number = 3,
-  onProgress?: (completed: number, total: number) => void
+  onProgress?: (completed: number, total: number) => void,
 ): Promise<BatchJob[]> => {
   const results: BatchJob[] = [];
   let completed = 0;
@@ -82,7 +82,7 @@ const processWorkerPool = async (
 export const batchOrchestrator = async (
   inputs: CampaignInput[],
   accountId: string,
-  workerCount: number = 3
+  workerCount: number = 3,
 ): Promise<BatchResult> => {
   // Validate worker count (prevent DOS via memory exhaustion)
   const clampedWorkerCount = Math.max(1, Math.min(8, workerCount));

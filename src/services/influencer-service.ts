@@ -152,7 +152,7 @@ export const influencerService = {
   async updateCollaborationStatus(
     influencerId: string,
     collabId: string,
-    status: Collaboration['status']
+    status: Collaboration['status'],
   ): Promise<Influencer> {
     const influencer = await this.loadInfluencer(influencerId);
     if (!influencer) throw new Error(`Influencer ${influencerId} not found`);

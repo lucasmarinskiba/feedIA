@@ -257,8 +257,7 @@ export const pinterestPatternLibrary: PatternLibrary = {
         breathing: 'creates premium, sophisticated feel',
         alignment: 'avoid center symmetry',
       },
-      notes:
-        'Modern, high-design approach. Whitespace = premium perception. Best for luxury, design-forward brands.',
+      notes: 'Modern, high-design approach. Whitespace = premium perception. Best for luxury, design-forward brands.',
     },
   ],
 
@@ -277,8 +276,7 @@ export const pinterestPatternLibrary: PatternLibrary = {
             number: 1,
             role: 'hook',
             purpose: 'stop scroll',
-            copyPattern:
-              'Question OR Benefit statement OR Social proof ("1.4M people...") OR Curiosity teaser',
+            copyPattern: 'Question OR Benefit statement OR Social proof ("1.4M people...") OR Curiosity teaser',
             retentionTrigger: 'Pattern interrupt, emotional hook, "Wait..."',
           },
           {
@@ -313,8 +311,7 @@ export const pinterestPatternLibrary: PatternLibrary = {
         optimalFor: 'product features, transformations, simple workflows',
         retentionEstimate: '80-85%',
       },
-      notes:
-        'Sweet spot. Fast, complete arc. Works for most topics. Holds attention without fatigue.',
+      notes: 'Sweet spot. Fast, complete arc. Works for most topics. Holds attention without fatigue.',
     },
     {
       id: 'listicle-structure-7',
@@ -324,20 +321,19 @@ export const pinterestPatternLibrary: PatternLibrary = {
       applicableTo: ['carousel'],
       implementation: {
         slides: [
-          {number: 1, role: 'hook', copyPattern: '"5 Mistakes You\'re Making" or "Here\'s what nobody tells you"'},
-          {number: 2, role: 'item', label: 'Mistake/Tip #1 (basic/obvious)', retention: 'Quick win'},
-          {number: 3, role: 'item', label: 'Mistake/Tip #2 (intermediate)', retention: 'Deep dive'},
-          {number: 4, role: 'item', label: 'Mistake/Tip #3 (subtle)', retention: 'Aha moment'},
-          {number: 5, role: 'item', label: 'Mistake/Tip #4 (advanced)', retention: '"I didn\'t know this"'},
-          {number: 6, role: 'item', label: 'Mistake/Tip #5 (meta/unexpected)', retention: 'Plot twist'},
-          {number: 7, role: 'cta', copyPattern: 'Follow for more', retention: 'Clear ask'},
+          { number: 1, role: 'hook', copyPattern: '"5 Mistakes You\'re Making" or "Here\'s what nobody tells you"' },
+          { number: 2, role: 'item', label: 'Mistake/Tip #1 (basic/obvious)', retention: 'Quick win' },
+          { number: 3, role: 'item', label: 'Mistake/Tip #2 (intermediate)', retention: 'Deep dive' },
+          { number: 4, role: 'item', label: 'Mistake/Tip #3 (subtle)', retention: 'Aha moment' },
+          { number: 5, role: 'item', label: 'Mistake/Tip #4 (advanced)', retention: '"I didn\'t know this"' },
+          { number: 6, role: 'item', label: 'Mistake/Tip #5 (meta/unexpected)', retention: 'Plot twist' },
+          { number: 7, role: 'cta', copyPattern: 'Follow for more', retention: 'Clear ask' },
         ],
         optimalFor: 'tips, mistakes, lessons, advice',
         retentionEstimate: '75-80%',
         escalationPattern: 'Obvious → Subtle → Advanced → Unexpected',
       },
-      notes:
-        'Highest engagement format. Numbered = FOMO. Each item = reason to swipe. Avoid filler items.',
+      notes: 'Highest engagement format. Numbered = FOMO. Each item = reason to swipe. Avoid filler items.',
     },
     {
       id: 'before-after-transformation-5',
@@ -347,11 +343,11 @@ export const pinterestPatternLibrary: PatternLibrary = {
       applicableTo: ['carousel', 'reel'],
       implementation: {
         slides: [
-          {number: 1, role: 'hook', copyPattern: '"See this transformation" or "What changed?"'},
-          {number: 2, role: 'before', visual: 'problem state', copyPattern: 'Problem description'},
-          {number: 3, role: 'transformation', copyPattern: 'Method/steps/how-to', visual: 'process illustration'},
-          {number: 4, role: 'after', visual: 'solution state', copyPattern: 'Result description, benefits'},
-          {number: 5, role: 'cta', copyPattern: 'DM for guide / Follow for more'},
+          { number: 1, role: 'hook', copyPattern: '"See this transformation" or "What changed?"' },
+          { number: 2, role: 'before', visual: 'problem state', copyPattern: 'Problem description' },
+          { number: 3, role: 'transformation', copyPattern: 'Method/steps/how-to', visual: 'process illustration' },
+          { number: 4, role: 'after', visual: 'solution state', copyPattern: 'Result description, benefits' },
+          { number: 5, role: 'cta', copyPattern: 'DM for guide / Follow for more' },
         ],
         optimalFor: 'transformations, makeovers, problem-solving, improvements',
         retentionEstimate: '85-90%',
@@ -367,7 +363,7 @@ export const pinterestPatternLibrary: PatternLibrary = {
       applicableTo: ['carousel'],
       implementation: {
         slides: [
-          {number: 1, role: 'hook', copyPattern: 'Question or benefit', visual: 'attention-grabbing'},
+          { number: 1, role: 'hook', copyPattern: 'Question or benefit', visual: 'attention-grabbing' },
           {
             number: 2,
             role: 'lesson',
@@ -386,14 +382,13 @@ export const pinterestPatternLibrary: PatternLibrary = {
             copyPattern: '3 action steps (numbered, scannable)',
             visual: 'simple numbered list or icons',
           },
-          {number: 5, role: 'cta', copyPattern: 'Follow / Link in bio', visual: 'clear button'},
+          { number: 5, role: 'cta', copyPattern: 'Follow / Link in bio', visual: 'clear button' },
         ],
         optimalFor: 'educational content, how-to, thought leadership',
         retentionEstimate: '80-85%',
         structure: 'Principle → Evidence → Application → Action',
       },
-      notes:
-        'Educational + actionable. Great for tutorials, business tips, advice. Structured = high retention.',
+      notes: 'Educational + actionable. Great for tutorials, business tips, advice. Structured = high retention.',
     },
   ],
 
@@ -429,8 +424,7 @@ export const pinterestPatternLibrary: PatternLibrary = {
         usage: 'first 3 slides (hook phase), less in proof phase',
         benefit: 'universal, culturally neutral, brand-building',
       },
-      notes:
-        'Better than stock photos. Creates cohesive visual brand. Siluetas > photos for abstract concepts.',
+      notes: 'Better than stock photos. Creates cohesive visual brand. Siluetas > photos for abstract concepts.',
     },
     {
       id: 'mockup-device-display',
@@ -460,8 +454,7 @@ export const pinterestPatternLibrary: PatternLibrary = {
         shadow: 'subtle 0 2px 8px rgba(0,0,0,0.15)',
         effect: 'softens design, feels modern',
       },
-      notes:
-        'Square corners = dated. Always round. Adds perceived professionalism + modernity.',
+      notes: 'Square corners = dated. Always round. Adds perceived professionalism + modernity.',
     },
   ],
 };
@@ -510,10 +503,7 @@ export const selectLayoutPattern = (contentPhase: 'hook' | 'value' | 'proof' | '
   return pinterestPatternLibrary.layoutPatterns[0]!; // Default
 };
 
-export const selectNarrativeStructure = (
-  slideCount?: number,
-  contentType?: string,
-): PinterestPattern => {
+export const selectNarrativeStructure = (slideCount?: number, contentType?: string): PinterestPattern => {
   if (slideCount === 5) {
     return pinterestPatternLibrary.narrativeStructures[0]!; // Hook-Value-Proof-CTA-5
   }

@@ -142,7 +142,8 @@ export const getPlatformRecommendations = (): Record<string, { format: string; t
     if (platformContent.length === 0) return;
 
     const bestByScore = [...platformContent].sort(
-      (a, b) => (curationScores.get(b.promptId)?.overallScore ?? 0) - (curationScores.get(a.promptId)?.overallScore ?? 0)
+      (a, b) =>
+        (curationScores.get(b.promptId)?.overallScore ?? 0) - (curationScores.get(a.promptId)?.overallScore ?? 0),
     )[0];
 
     if (bestByScore) {

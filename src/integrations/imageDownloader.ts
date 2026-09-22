@@ -18,10 +18,7 @@ export interface DownloadImageOptions {
  * Download image from URL with anti-SSRF guards.
  * Returns Buffer or throws error.
  */
-export const downloadImageFromUrl = async (
-  urlString: string,
-  options: DownloadImageOptions = {},
-): Promise<Buffer> => {
+export const downloadImageFromUrl = async (urlString: string, options: DownloadImageOptions = {}): Promise<Buffer> => {
   const {
     maxSize = 5 * 1024 * 1024, // 5MB
     timeout = 15000,
@@ -57,7 +54,8 @@ const downloadWithTimeout = async (
   maxSize: number,
   timeout: number,
   userAgent: string,
-): Promise<Buffer> => new Promise((resolve, reject) => {
+): Promise<Buffer> =>
+  new Promise((resolve, reject) => {
     const url = new URL(urlString);
     const isHttps = url.protocol === 'https:';
     const client = isHttps ? https : http;
@@ -280,9 +278,7 @@ export const searchImageUrls = async (keywords: string[]): Promise<string[]> => 
       icono: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400',
     };
 
-    const fallbackUrls = keywords
-      .map((k) => mockUrls[k.toLowerCase()])
-      .filter((url) => url !== undefined);
+    const fallbackUrls = keywords.map((k) => mockUrls[k.toLowerCase()]).filter((url) => url !== undefined);
 
     return fallbackUrls;
   }

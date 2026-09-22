@@ -112,7 +112,7 @@ class ContentStrategyEngine {
     brand: BrandProfile,
     days: number = 7,
     cadence: Record<FeedFormat, number> = DEFAULT_WEEKLY_CADENCE,
-    pillars: ContentPillar[] = DEFAULT_PILLARS
+    pillars: ContentPillar[] = DEFAULT_PILLARS,
   ): Promise<CalendarPlanResult> {
     const formatSequence = buildFormatSequence(days, cadence);
     const items: CalendarPlanItem[] = [];
@@ -193,14 +193,16 @@ class ContentStrategyEngine {
   async advanceStage(
     postId: string,
     newStage: ContentStage,
-    updates?: { caption?: string; mediaUrls?: string[]; scheduledAt?: string }
+    updates?: { caption?: string; mediaUrls?: string[]; scheduledAt?: string },
   ): Promise<void> {
     const metadataPatch: Record<string, unknown> = { stage: newStage };
 
     await updateCalendarPost(postId, {
       ...(updates?.caption !== undefined ? { caption: updates.caption } : {}),
       ...(updates?.mediaUrls !== undefined ? { mediaUrls: updates.mediaUrls } : {}),
-      ...(newStage === 'scheduled' && updates?.scheduledAt ? { scheduledAt: updates.scheduledAt, status: 'scheduled' } : {}),
+      ...(newStage === 'scheduled' && updates?.scheduledAt
+        ? { scheduledAt: updates.scheduledAt, status: 'scheduled' }
+        : {}),
       metadata: metadataPatch,
     });
 
@@ -215,7 +217,7 @@ class ContentStrategyEngine {
   async getContentCompass(
     accountId: string,
     brand: BrandProfile,
-    cadence: Record<FeedFormat, number> = DEFAULT_WEEKLY_CADENCE
+    cadence: Record<FeedFormat, number> = DEFAULT_WEEKLY_CADENCE,
   ): Promise<Record<string, any>> {
     const since = new Date();
     since.setDate(since.getDate() - 14);
@@ -232,7 +234,7 @@ class ContentStrategyEngine {
 
     // Ideal over 2 weeks = cadence * 2
     const gaps: Array<{ format: FeedFormat; ideal: number; actual: number; deficit: number }> = [];
-    (Object.keys(cadence) as FeedFormat[]).forEach(format => {
+    (Object.keys(cadence) as FeedFormat[]).forEach((format) => {
       const ideal = cadence[format] * 2;
       const actual = actualDistribution[format];
       const deficit = ideal - actual;
@@ -251,10 +253,12 @@ class ContentStrategyEngine {
       accountId,
       windowDays: 14,
       actualDistribution,
-      idealDistribution: Object.fromEntries((Object.keys(cadence) as FeedFormat[]).map(f => [f, cadence[f] * 2])),
+      idealDistribution: Object.fromEntries((Object.keys(cadence) as FeedFormat[]).map((f) => [f, cadence[f] * 2])),
       gaps,
       recommendation,
-      suggestedPillarFocus: gaps.length ? DEFAULT_PILLARS.find(p => p.weight === Math.max(...DEFAULT_PILLARS.map(pl => pl.weight)))?.name : null,
+      suggestedPillarFocus: gaps.length
+        ? DEFAULT_PILLARS.find((p) => p.weight === Math.max(...DEFAULT_PILLARS.map((pl) => pl.weight)))?.name
+        : null,
     };
   }
 

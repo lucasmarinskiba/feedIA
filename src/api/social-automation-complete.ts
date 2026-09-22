@@ -51,7 +51,8 @@ const instagramAuthorize = async (req: AuthRequest, res: Response): Promise<void
 
     const clientId = process.env.INSTAGRAM_APP_ID;
     const redirectUri = `${process.env.APP_URL || 'http://localhost:3000'}/api/social/oauth/instagram/callback`;
-    const scope = 'instagram_business_basic,instagram_business_content_publish,instagram_business_insights,instagram_business_manage_comments,instagram_business_manage_messages';
+    const scope =
+      'instagram_business_basic,instagram_business_content_publish,instagram_business_insights,instagram_business_manage_comments,instagram_business_manage_messages';
 
     const authUrl = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code&state=${userId}`;
 
@@ -120,7 +121,7 @@ const instagramCallback = async (req: Request, res: Response): Promise<void> => 
        ON CONFLICT(user_id, platform) DO UPDATE SET
          access_token = $3,
          expires_at = $4`,
-      [userId, 'instagram', token.token, new Date(token.expiresAt)]
+      [userId, 'instagram', token.token, new Date(token.expiresAt)],
     );
 
     res.json({ success: true, message: 'Instagram connected', userId });
@@ -214,7 +215,7 @@ const tiktokCallback = async (req: Request, res: Response): Promise<void> => {
          access_token = $3,
          refresh_token = $4,
          expires_at = $5`,
-      [userId, 'tiktok', token.token, token.refreshToken, new Date(token.expiresAt)]
+      [userId, 'tiktok', token.token, token.refreshToken, new Date(token.expiresAt)],
     );
 
     res.json({ success: true, message: 'TikTok connected', userId });
@@ -262,7 +263,7 @@ const schedulePost = async (req: AuthRequest, res: Response): Promise<void> => {
       `INSERT INTO scheduled_posts (user_id, content_id, scheduled_at, platforms, status, retry_count, created_at)
        VALUES ($1, $2, $3, $4, 'pending', 0, NOW())
        RETURNING id, scheduled_at`,
-      [userId, contentId, scheduledTime, JSON.stringify(platforms)]
+      [userId, contentId, scheduledTime, JSON.stringify(platforms)],
     );
 
     // TODO: Queue job in scheduler (Redis or cron)
@@ -366,7 +367,7 @@ const getAnalytics = async (req: AuthRequest, res: Response): Promise<void> => {
     if (platform === 'instagram') {
       // Get Instagram insights
       const insightsResponse = await fetch(
-        `https://graph.instagram.com/v18.0/me/insights?metric=impressions,reach,profile_views&access_token=${token.token}`
+        `https://graph.instagram.com/v18.0/me/insights?metric=impressions,reach,profile_views&access_token=${token.token}`,
       );
       const data = await insightsResponse.json();
       res.json({ platform: 'instagram', insights: data });
@@ -415,7 +416,7 @@ const getDashboard = async (req: AuthRequest, res: Response): Promise<void> => {
         AVG(COALESCE(engagement_rate, 0)) as avg_engagement
        FROM user_content_metrics
        WHERE user_id = $1`,
-      [userId]
+      [userId],
     );
 
     res.json({
@@ -494,7 +495,7 @@ const getTemplates = async (req: AuthRequest, res: Response): Promise<void> => {
 
     const result = await queryAs(
       `SELECT id, name, description, template_json, platforms FROM content_templates WHERE user_id = $1`,
-      [userId]
+      [userId],
     );
 
     res.json({ templates: result });

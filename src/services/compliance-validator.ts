@@ -85,7 +85,12 @@ export const validateContent = (contentId: string, content: string, platform: st
 
     let flagged = false;
 
-    if (ruleConfig.ruleId === 'ftc_disclosure' && content.toLowerCase().includes('buy') && !content.includes('#ad') && !content.includes('#sponsored')) {
+    if (
+      ruleConfig.ruleId === 'ftc_disclosure' &&
+      content.toLowerCase().includes('buy') &&
+      !content.includes('#ad') &&
+      !content.includes('#sponsored')
+    ) {
       flagged = true;
     }
 
@@ -93,7 +98,12 @@ export const validateContent = (contentId: string, content: string, platform: st
       flagged = true;
     }
 
-    if (ruleConfig.ruleId === 'gdpr_consent' && content.includes('email') && !content.includes('privacy') && !content.includes('consent')) {
+    if (
+      ruleConfig.ruleId === 'gdpr_consent' &&
+      content.includes('email') &&
+      !content.includes('privacy') &&
+      !content.includes('consent')
+    ) {
       flagged = true;
     }
 
@@ -101,7 +111,12 @@ export const validateContent = (contentId: string, content: string, platform: st
       flagged = true;
     }
 
-    if (ruleConfig.ruleId === 'misleading_claims' && content.toLowerCase().includes('before') && content.toLowerCase().includes('after') && !content.includes('results not typical')) {
+    if (
+      ruleConfig.ruleId === 'misleading_claims' &&
+      content.toLowerCase().includes('before') &&
+      content.toLowerCase().includes('after') &&
+      !content.includes('results not typical')
+    ) {
       flagged = true;
     }
 
@@ -124,7 +139,8 @@ export const validateContent = (contentId: string, content: string, platform: st
   if (criticalViolations > 0) recommendations.push('Fix critical violations before posting');
   if (warningViolations > 0) recommendations.push('Review warning violations');
   if (content.length < 50) recommendations.push('Consider adding more context to reduce ambiguity');
-  if (!content.includes('link') && !content.includes('bio')) recommendations.push('Add CTA link for clickthrough tracking');
+  if (!content.includes('link') && !content.includes('bio'))
+    recommendations.push('Add CTA link for clickthrough tracking');
 
   const checkId = `comp_${contentId}_${Date.now()}`;
   const check: ComplianceCheck = {
@@ -139,12 +155,18 @@ export const validateContent = (contentId: string, content: string, platform: st
   };
 
   complianceChecks.set(checkId, check);
-  console.log('[ComplianceValidator] Content checked:', { contentId, score: complianceScore, approved: check.isApproved });
+  console.log('[ComplianceValidator] Content checked:', {
+    contentId,
+    score: complianceScore,
+    approved: check.isApproved,
+  });
 
   return check;
 };
 
-export const batchValidate = (contents: Array<{ contentId: string; text: string; platform: string }>): Array<ComplianceCheck> => contents.map((c) => validateContent(c.contentId, c.text, c.platform));
+export const batchValidate = (
+  contents: Array<{ contentId: string; text: string; platform: string }>,
+): Array<ComplianceCheck> => contents.map((c) => validateContent(c.contentId, c.text, c.platform));
 
 export const getComplianceStats = (): { totalChecked: number; approvalRate: number; commonViolations: string[] } => {
   const checks = Array.from(complianceChecks.values());
@@ -171,7 +193,8 @@ export const getComplianceStats = (): { totalChecked: number; approvalRate: numb
   return { totalChecked: checks.length, approvalRate, commonViolations };
 };
 
-export const getApprovedContent = (limit: number = 10): ComplianceCheck[] => Array.from(complianceChecks.values())
+export const getApprovedContent = (limit: number = 10): ComplianceCheck[] =>
+  Array.from(complianceChecks.values())
     .filter((c) => c.isApproved)
     .sort((a, b) => b.complianceScore - a.complianceScore)
     .slice(0, limit);

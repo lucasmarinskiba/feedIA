@@ -1118,9 +1118,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockCondition: '100 likes acumulados en TikTok',
     evaluator: (): boolean => {
       const posts = getRecentPosts(365);
-      const ttLikes = posts
-        .filter((p) => p.platform === 'tiktok')
-        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      const ttLikes = posts.filter((p) => p.platform === 'tiktok').reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
       return ttLikes >= 100;
     },
     points: 20,
@@ -1141,9 +1139,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockCondition: '1.000 likes acumulados en TikTok',
     evaluator: (): boolean => {
       const posts = getRecentPosts(365);
-      const ttLikes = posts
-        .filter((p) => p.platform === 'tiktok')
-        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      const ttLikes = posts.filter((p) => p.platform === 'tiktok').reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
       return ttLikes >= 1000;
     },
     points: 80,
@@ -1164,9 +1160,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockCondition: '10.000 likes acumulados en TikTok',
     evaluator: (): boolean => {
       const posts = getRecentPosts(365);
-      const ttLikes = posts
-        .filter((p) => p.platform === 'tiktok')
-        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      const ttLikes = posts.filter((p) => p.platform === 'tiktok').reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
       return ttLikes >= 10000;
     },
     points: 300,
@@ -1187,9 +1181,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockCondition: '100.000 likes acumulados en TikTok',
     evaluator: (): boolean => {
       const posts = getRecentPosts(365);
-      const ttLikes = posts
-        .filter((p) => p.platform === 'tiktok')
-        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      const ttLikes = posts.filter((p) => p.platform === 'tiktok').reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
       return ttLikes >= 100000;
     },
     points: 800,
@@ -1210,9 +1202,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockCondition: '1.000.000 likes acumulados en TikTok',
     evaluator: (): boolean => {
       const posts = getRecentPosts(365);
-      const ttLikes = posts
-        .filter((p) => p.platform === 'tiktok')
-        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      const ttLikes = posts.filter((p) => p.platform === 'tiktok').reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
       return ttLikes >= 1000000;
     },
     points: 2000,
@@ -1317,9 +1307,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockCondition: '100 likes acumulados en Instagram',
     evaluator: (): boolean => {
       const posts = getRecentPosts(365);
-      const igLikes = posts
-        .filter((p) => p.platform === 'instagram')
-        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      const igLikes = posts.filter((p) => p.platform === 'instagram').reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
       return igLikes >= 100;
     },
     points: 20,
@@ -1340,9 +1328,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockCondition: '1.000 likes acumulados en Instagram',
     evaluator: (): boolean => {
       const posts = getRecentPosts(365);
-      const igLikes = posts
-        .filter((p) => p.platform === 'instagram')
-        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      const igLikes = posts.filter((p) => p.platform === 'instagram').reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
       return igLikes >= 1000;
     },
     points: 80,
@@ -1363,9 +1349,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockCondition: '10.000 likes acumulados en Instagram',
     evaluator: (): boolean => {
       const posts = getRecentPosts(365);
-      const igLikes = posts
-        .filter((p) => p.platform === 'instagram')
-        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      const igLikes = posts.filter((p) => p.platform === 'instagram').reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
       return igLikes >= 10000;
     },
     points: 300,
@@ -1386,9 +1370,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockCondition: '100.000 likes acumulados en Instagram',
     evaluator: (): boolean => {
       const posts = getRecentPosts(365);
-      const igLikes = posts
-        .filter((p) => p.platform === 'instagram')
-        .reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
+      const igLikes = posts.filter((p) => p.platform === 'instagram').reduce((s, p) => s + (p.metrics?.likes ?? 0), 0);
       return igLikes >= 100000;
     },
     points: 800,

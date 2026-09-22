@@ -13,12 +13,7 @@ import {
   type Emotion,
   type EmotionMap,
 } from './emotionPsychologyEngine.js';
-import {
-  generateHumorMap,
-  validateHumorFit,
-  injectHumor,
-  type HumorMap,
-} from './humorInjectionEngine.js';
+import { generateHumorMap, validateHumorFit, injectHumor, type HumorMap } from './humorInjectionEngine.js';
 
 export interface ContentEnrichmentBrief {
   content: string; // Original copy/script
@@ -53,11 +48,7 @@ export const enrichContentWithEmotionAndHumor = async (
   log.info(`[Enrichment] ${brief.contentType}: ${brief.topic} (${brief.primaryEmotion})`);
 
   // Step 1: Create emotion map
-  const emotionMap = createEmotionMap(
-    brief.primaryEmotion,
-    brief.topic,
-    brief.audience || 'general',
-  );
+  const emotionMap = createEmotionMap(brief.primaryEmotion, brief.topic, brief.audience || 'general');
 
   // Step 2: Validate emotion coherence
   const emotionValidation = validateEmotionCoherence(emotionMap);
@@ -70,11 +61,7 @@ export const enrichContentWithEmotionAndHumor = async (
   const humorMap = generateHumorMap(brief.topic, brief.content.length, comedyStyle);
 
   // Step 4: Validate humor fit
-  const humorValidation = validateHumorFit(
-    brief.topic,
-    humorMap,
-    brief.audience || 'general',
-  );
+  const humorValidation = validateHumorFit(brief.topic, humorMap, brief.audience || 'general');
   if (humorValidation.warnings.length > 0) {
     log.warn(`[Enrichment] Humor warnings: ${humorValidation.warnings.join(', ')}`);
   }
@@ -155,9 +142,7 @@ const calculateEngagementScore = (
   contentType: string,
 ): EnrichedContent['score'] => {
   // Emotional impact: Hook strength + secondary emotion texture
-  const emotionalImpact = Math.round(
-    (emotionMap.hookStrength * 0.7 + (emotionMap.secondary ? 20 : 0)) / 1.0,
-  );
+  const emotionalImpact = Math.round((emotionMap.hookStrength * 0.7 + (emotionMap.secondary ? 20 : 0)) / 1.0);
 
   // Comedy resonance: Humor count + timing quality
   const timingScore: Record<string, number> = {
@@ -166,9 +151,7 @@ const calculateEngagementScore = (
     risky: 50,
   };
 
-  const comedyResonance = Math.round(
-    (humorMap.totalLaughs * 10 + (timingScore[humorMap.timing] ?? 50)) / 2,
-  );
+  const comedyResonance = Math.round((humorMap.totalLaughs * 10 + (timingScore[humorMap.timing] ?? 50)) / 2);
 
   // Overall engagement: Combined, with content-type modifiers
   let overall = (emotionalImpact + comedyResonance) / 2;
@@ -186,11 +169,11 @@ const calculateEngagementScore = (
 // ── Batch enrichment for entire carousel/video ──────────────────────
 
 export const enrichCarouselWithEmotionAndHumor = async (
-  slides: Array<{number: number; headline: string; body: string}>,
+  slides: Array<{ number: number; headline: string; body: string }>,
   topic: string,
   primaryEmotion: Emotion,
   brand?: BrandProfile,
-): Promise<Array<{number: number; enriched: EnrichedContent}>> => {
+): Promise<Array<{ number: number; enriched: EnrichedContent }>> => {
   log.info(`[Batch Enrichment] ${slides.length}-slide carousel: ${topic}`);
 
   const enriched = await Promise.all(
@@ -215,11 +198,15 @@ export const enrichCarouselWithEmotionAndHumor = async (
 };
 
 export const enrichVideoWithEmotionAndHumor = async (
-  videoScript: {hook: string; scenes: Array<{second: number; voiceover: string}>; cta: string},
+  videoScript: { hook: string; scenes: Array<{ second: number; voiceover: string }>; cta: string },
   topic: string,
   primaryEmotion: Emotion,
   brand?: BrandProfile,
-): Promise<{hook: EnrichedContent; scenes: Array<{second: number; enriched: EnrichedContent}>; cta: EnrichedContent}> => {
+): Promise<{
+  hook: EnrichedContent;
+  scenes: Array<{ second: number; enriched: EnrichedContent }>;
+  cta: EnrichedContent;
+}> => {
   log.info(`[Batch Enrichment] Video script: ${topic}`);
 
   const hook = await enrichContentWithEmotionAndHumor(
