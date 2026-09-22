@@ -40,6 +40,16 @@ RUN pnpm rebuild better-sqlite3 sharp
 COPY . .
 RUN pnpm run build:prod || true
 
+# dist-static (the dashboard SPA served below) used to be a stale snapshot
+# committed straight to git and copied through unbuilt — every edit under
+# src/server/static/ since 2026-08-25 (four weeks of work, multiple merged
+# PRs) silently never reached production because nothing here ever
+# regenerated it. build:static is what actually turns src/server/static/
+# into dist-static/ (minified via esbuild); it was always a real script,
+# just never wired into the image build. Never allowed to fail the build
+# (an empty/missing dist-static is worse than an unminified one).
+RUN pnpm run build:static || true
+
 # Drop devDependencies so the runtime stage inherits a production-only tree.
 # Best-effort: if this fails the image just carries devDependencies, which is
 # wasteful but harmless, so it must never fail the build.
