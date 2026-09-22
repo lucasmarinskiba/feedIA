@@ -45,11 +45,23 @@ const isQuietHour = (): boolean => {
   return hour >= start || hour < end;
 };
 
-export const evaluateRails = (ctx: UserContext, mensajeEntrante: string): RailsDecision => {
+export interface RailsOptions {
+  /**
+   * Modo observación (Comment Brain en `suggest`): NO se envía nada, solo se clasifica y se guarda un
+   * borrador. El interruptor maestro y el horario silencioso protegen ENVÍOS, así que no aplican.
+   * El resto de las reglas (límite por usuario, usuario escalado, patrones sensibles) siguen vigentes:
+   * además de proteger, ahorran gasto de LLM.
+   */
+  observeOnly?: boolean;
+}
+
+export const evaluateRails = (ctx: UserContext, mensajeEntrante: string, opts: RailsOptions = {}): RailsDecision => {
   const motivos: BlockReason[] = [];
 
-  if (!env.bot.autoReplyEnabled) motivos.push('auto-reply-deshabilitado');
-  if (isQuietHour()) motivos.push('horario-silencio');
+  if (!opts.observeOnly) {
+    if (!env.bot.autoReplyEnabled) motivos.push('auto-reply-deshabilitado');
+    if (isQuietHour()) motivos.push('horario-silencio');
+  }
   if (ctx.escaladoAHumano) motivos.push('usuario-escalado');
   if (autoRepliesToday(ctx) >= env.bot.maxAutoRepliesPerUserPerDay) {
     motivos.push('limite-diario-usuario');

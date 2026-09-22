@@ -12,6 +12,7 @@ import {
 import { recordOutgoingReply, escalateToHuman, type Channel } from './conversationMemory.js';
 import { generateSmartReply, type SmartReplyOutput } from '../replies/unifiedReplyOrchestrator.js';
 import { evaluateComment, evaluateDm } from '../conversion/index.js';
+import { isAnyBotEnabled, isBotEnabled, type BotId } from '../botControl/index.js';
 
 const SINCE_FILE_KEY = 'lastBotPoll';
 const sinceMemory: Record<string, string> = {};
@@ -24,8 +25,26 @@ export interface ProcessedItem {
   envioOk?: boolean;
 }
 
+/** Salida sintética cuando el bot que atiende este canal está apagado: no se consulta ni memoria ni LLM. */
+const disabledOutcome = (bot: BotId): SmartReplyOutput => ({
+  reply: '',
+  sent: false,
+  escalated: false,
+  blocked: false,
+  source: 'disabled',
+  intent: `bot-apagado:${bot}`,
+  confidence: 1,
+});
+
 export const processInbound = async (brand: BrandProfile, inbound: MetaInbound): Promise<ProcessedItem> => {
   const channel = channelFromInbound(inbound);
+
+  // Bot Control: el interruptor del bot manda sobre TODO lo demás y corta antes de cualquier gasto.
+  const governing: BotId = channel === 'dm' ? 'dm-bot' : 'comment-bot';
+  if (!isBotEnabled(governing)) {
+    log.debug(`[BotControl] ${inbound.type} de ${inbound.remitente} omitido: ${governing} apagado`);
+    return { inbound, outcome: disabledOutcome(governing) };
+  }
 
   const outcome = await generateSmartReply({
     userId: inbound.remitente,
@@ -34,18 +53,13 @@ export const processInbound = async (brand: BrandProfile, inbound: MetaInbound):
     message: inbound.texto,
     brand,
     postId: inbound.postId,
-    ...(inbound.postId
-      ? {
-          postContext: {
-            postId: inbound.postId,
-            tipo: 'post',
-            resumenContenido: '(contexto del post no disponible vía API en esta versión)',
-          },
-        }
-      : {}),
+    // El id del comentario permite leer el hilo; el caption del post lo resuelve el Comment Brain.
+    ...(channel === 'comentario' ? { commentId: inbound.id } : {}),
   });
 
-  if (outcome.escalated) {
+  // Un borrador en la cola de revisión NO marca al usuario como escalado: eso bloquearía
+  // toda respuesta automática futura a esa persona. Solo los escalamientos duros lo hacen.
+  if (outcome.escalated && outcome.brain?.action !== 'draft-for-review') {
     escalateToHuman(
       inbound.remitente,
       `Intent=${outcome.intent} confianza=${outcome.confidence} source=${outcome.source}`,
@@ -74,9 +88,13 @@ export const processInbound = async (brand: BrandProfile, inbound: MetaInbound):
       `Sin auto-reply para ${inbound.remitente}: ${
         outcome.blocked
           ? `bloqueado: ${outcome.rails?.motivos.join('+') ?? 'rails'}`
-          : outcome.escalated
-            ? `escalado source=${outcome.source}`
-            : 'desconocido'
+          : outcome.source === 'ignored'
+            ? `ignorado por criterio (${outcome.brain?.reasons.join('; ') ?? 'sin motivo'})`
+            : outcome.brain?.action === 'draft-for-review'
+              ? `borrador en cola de revisión (${outcome.brain.reasons.join('; ')})`
+              : outcome.escalated
+                ? `escalado source=${outcome.source}`
+                : 'desconocido'
       }`,
     );
     return { inbound, outcome };
@@ -122,6 +140,13 @@ export const processInbound = async (brand: BrandProfile, inbound: MetaInbound):
 };
 
 export const runOnce = async (brand: BrandProfile): Promise<ProcessedItem[]> => {
+  // Con ambos bots apagados ni se consulta a Meta. Se avanza la ventana `since`: al reactivarlos solo
+  // se atiende lo NUEVO, no el backlog de horas (un pico de gasto que nadie pidió).
+  if (!isAnyBotEnabled(['comment-bot', 'dm-bot'])) {
+    sinceMemory[SINCE_FILE_KEY] = new Date().toISOString();
+    log.debug('[BotControl] poll omitido: comment-bot y dm-bot apagados');
+    return [];
+  }
   const since = sinceMemory[SINCE_FILE_KEY] ?? new Date(Date.now() - 3600_000).toISOString();
   const items = await fetchInbound(since);
   sinceMemory[SINCE_FILE_KEY] = new Date().toISOString();

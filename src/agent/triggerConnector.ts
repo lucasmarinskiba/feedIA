@@ -5,6 +5,7 @@
  */
 
 import { on } from './bus.js';
+import { botsForEvent, isAnyBotEnabled } from '../capabilities/botControl/index.js';
 import { handleEvent } from './agentTriggers.js';
 import { log } from './logger.js';
 import type { BrandProfile } from '../config/types.js';
@@ -26,6 +27,11 @@ export const startTriggerConnector = (brand: BrandProfile): void => {
 
   for (const eventType of events) {
     const unsub = on(eventType, async (busEvent) => {
+      // Bot Control: un evento no debe despertar agentes (LLM) si los bots que lo atienden están apagados.
+      if (!isAnyBotEnabled(botsForEvent(eventType))) {
+        log.debug(`[TriggerConnector] ${eventType} omitido: bot apagado`);
+        return;
+      }
       try {
         await handleEvent(eventType, busEvent.payload as Record<string, unknown>, brand);
       } catch (err) {

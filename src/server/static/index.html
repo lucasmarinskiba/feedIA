@@ -928,6 +928,11 @@
         </div>
       </div>
 
+      <!-- ═══ BOTS BAR · botón maestro ON/OFF + interruptor por bot (lib/botsBar.js) ═══
+           Va DESPUÉS del topbar Y del header móvil: ambos son sticky y solo uno se ve según el ancho.
+           Si la barra estuviera antes del header móvil, su sticky-top la empujaría encima de él. -->
+      <div class="bots-strip" id="bots-strip" role="toolbar" aria-label="Control de bots automáticos" hidden></div>
+
       <div id="view" class="view-container">
         <div class="loading-screen"><span class="spinner lg"></span></div>
       </div>

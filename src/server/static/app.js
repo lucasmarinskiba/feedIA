@@ -2,6 +2,7 @@ import { initVoiceUI } from './lib/voiceUI.js';
 import { initChatbotUI } from './lib/chatbotUI.js';
 import { toast } from './lib/toast.js';
 import { initTopbar, refreshTopbarState } from './lib/topbar.js';
+import { initBotsBar, setBotsBarRoute } from './lib/botsBar.js';
 import { initUsageWidget } from './lib/usageWidget.js';
 import { initGlobalSearch } from './lib/globalSearch.js';
 import { initPlatformSwitcher } from './lib/platform.js';
@@ -190,6 +191,7 @@ let _currentRoute = '';
 const navigate = async (route) => {
   if (!ROUTES[route]) route = 'feed';
   _currentRoute = route;
+  setBotsBarRoute(route);
 
   /* Update URL hash so browser shows correct route */
   if (location.hash !== `#${route}`) history.pushState(null, '', `#${route}`);
@@ -550,6 +552,7 @@ window.__feediaRouteSearch = (q) => {
   if (match) navigate(match[0]);
 };
 initTopbar();
+initBotsBar();
 initUsageWidget();
 window.__refreshTopbar = refreshTopbarState;
 

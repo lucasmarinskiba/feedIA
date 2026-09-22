@@ -98,7 +98,7 @@ const doFetch = async (path, opts) => {
     }
     res = await fetch(path, {
       method,
-      headers,
+      headers: { ...headers, ...(opts.headers ?? {}) },
       body: opts.body ? JSON.stringify(opts.body) : undefined,
       credentials: 'same-origin',
     });

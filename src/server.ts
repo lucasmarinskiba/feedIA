@@ -70,6 +70,8 @@ import carouselCreationRoutes from './api/carousel-creation-routes.js';
 import carouselAnalyticsRoutes from './api/carousel-analytics-routes.js';
 import carouselGenerationIntegrationRoutes from './api/carousel-generation-integration-routes.js';
 import costGuardianRoutes from './api/cost-guardian-routes.js';
+import commentBrainRoutes from './api/comment-brain-routes.js';
+import botControlRoutes from './api/bot-control-routes.js';
 import selliaDashboardRoutes from './api/sellia-dashboard-routes.js';
 import predictiveRoutes from './api/predictive-routes.js';
 import orchestratorRoutes from './api/orchestrator-routes.js';
@@ -379,6 +381,12 @@ app.get('/admin', adminKeyAuth, (req: Request, res: Response) => {
 
 // Mount cost guardian (spend vs revenue governance) — financial data, admin key required
 app.use('/api/cost-guardian', adminKeyAuth, costGuardianRoutes);
+
+// Mount comment brain review queue — third-party comments + reply drafts, admin key required
+app.use('/api/comment-brain', adminKeyAuth, commentBrainRoutes);
+
+// Mount bot control panel (on/off per bot + master switch) — controls spend, admin key required
+app.use('/api/bots', adminKeyAuth, botControlRoutes);
 
 // Mount creativity/ocurrencia routes (wit analysis + twist injection + cliché removal)
 app.use('/api/creativity', creativityRoutes);
