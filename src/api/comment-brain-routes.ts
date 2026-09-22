@@ -8,9 +8,12 @@
  * GET  /api/comment-brain/status              — modo activo + cola + topes de gasto
  * GET  /api/comment-brain/review              — items pendientes (?action=draft-for-review|escalate|ignore &limit=50)
  * POST /api/comment-brain/review/:id/resolve  — marcar un item como atendido (lo saca de la cola)
+ * POST /api/comment-brain/review/:id/approve  — aprobar (y ENCOLAR el envío) un borrador
+ * GET  /api/comment-brain/outbox              — cola de envío (?view=pending|failed|history|all)
+ * POST /api/comment-brain/outbox/:id/retry|cancel
  *
- * Solo lectura + resolver: NO envía respuestas. Enviar sigue siendo una decisión
- * con compliance y GlassBox, fuera de este router.
+ * Aprobar no envía directo: encola en el outbox, que respeta el ritmo de compliance
+ * (ver capabilities/replyOutbox).
  */
 
 import express, { NextFunction, Request, Response } from 'express';
@@ -22,6 +25,9 @@ import {
   brainReview,
   brainStatus,
   checkAdminAccess,
+  outboxCancel,
+  outboxList,
+  outboxRetry,
   type CoreResponse,
 } from './controlCore.js';
 
@@ -55,6 +61,13 @@ router.post('/review/:id/reject', (req: Request, res: Response): void =>
 );
 router.post('/review/:id/resolve', (req: Request, res: Response): void =>
   send(res, brainResolve(String(req.params['id'] ?? ''))),
+);
+router.get('/outbox', (req: Request, res: Response): void => send(res, outboxList(req.query)));
+router.post('/outbox/:id/retry', (req: Request, res: Response): void => {
+  void outboxRetry(String(req.params['id'] ?? '')).then((r) => send(res, r));
+});
+router.post('/outbox/:id/cancel', (req: Request, res: Response): void =>
+  send(res, outboxCancel(String(req.params['id'] ?? ''))),
 );
 
 export default router;

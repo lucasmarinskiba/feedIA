@@ -34,8 +34,10 @@ export interface DecisionRecord {
   draft?: string;
   finalText?: string;
   reason?: string;
-  /** Salió de verdad por la red (false con DRY_RUN activo). */
+  /** Ya había salido de verdad por la red al decidir (false con DRY_RUN activo o si quedó en cola). */
   sent?: boolean;
+  /** Entrada del outbox de envío: ahí queda la entrega real (estado, intentos, errores). */
+  outboxId?: string;
 }
 
 /**

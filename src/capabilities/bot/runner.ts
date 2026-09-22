@@ -13,6 +13,7 @@ import { recordOutgoingReply, escalateToHuman, type Channel } from './conversati
 import { generateSmartReply, type SmartReplyOutput } from '../replies/unifiedReplyOrchestrator.js';
 import { evaluateComment, evaluateDm } from '../conversion/index.js';
 import { isAnyBotEnabled, isBotEnabled, type BotId } from '../botControl/index.js';
+import { getReplyOutbox } from '../replyOutbox/index.js';
 
 const SINCE_FILE_KEY = 'lastBotPoll';
 const sinceMemory: Record<string, string> = {};
@@ -22,7 +23,10 @@ const channelFromInbound = (inbound: MetaInbound): Channel => (inbound.type === 
 export interface ProcessedItem {
   inbound: MetaInbound;
   outcome: SmartReplyOutput;
+  /** Confirmado por la red. Un comentario que quedó en la cola de envío no lo fija hasta que sale (ver `queued`). */
   envioOk?: boolean;
+  /** La respuesta a un comentario quedó en el outbox: sale respetando el ritmo de compliance. */
+  queued?: boolean;
 }
 
 /** Salida sintética cuando el bot que atiende este canal está apagado: no se consulta ni memoria ni LLM. */
@@ -119,6 +123,42 @@ export const processInbound = async (brand: BrandProfile, inbound: MetaInbound):
     log.error(`[COMPLIANCE] Bot reply bloqueado: ${complianceDecision.reason}`);
     escalateToHuman(inbound.remitente, `Bloqueado por compliance: ${complianceDecision.reason}`);
     return { inbound, outcome, envioOk: false };
+  }
+
+  // Los comentarios salen por el outbox: un lote de respuestas no puede chocar con el límite de ritmo
+  // de compliance y perderse. Los DMs siguen directos (tienen su propio límite y no se acumulan igual).
+  if (channel === 'comentario' && inbound.id) {
+    const outbox = getReplyOutbox();
+    if (outbox) {
+      const enq = outbox.enqueue({
+        commentId: inbound.id,
+        text: reply,
+        origin: 'auto',
+        accountKey: brand.id ?? brand.name,
+        handle: inbound.remitente,
+        ...(inbound.postId ? { postId: inbound.postId } : {}),
+        intent: outcome.intent,
+      });
+      if (!enq.ok) {
+        log.error(
+          `[ReplyOutbox] no pude encolar la respuesta a ${inbound.remitente}: ${enq.reason} ${enq.detail ?? ''}`,
+        );
+        complianceRecordFailure('bot_auto_reply', complianceCtx, `Outbox: ${enq.reason}`);
+        return { inbound, outcome, envioOk: false };
+      }
+      if (enq.duplicate) {
+        log.info(`[ReplyOutbox] el comentario ${inbound.id} ya tiene una respuesta en cola o enviada`);
+        return { inbound, outcome, queued: true };
+      }
+      // La decisión de responder ya está tomada: cuenta para el tope diario por usuario aunque salga más tarde.
+      recordOutgoingReply(inbound.remitente, reply, true, outcome.intent);
+      await outbox.kick(2000);
+      const delivered = outbox.view(enq.entry.id)?.status === 'sent';
+      log.success(
+        `Auto-reply ${delivered ? 'enviado' : 'en cola de envío'} para ${inbound.remitente} (intent=${outcome.intent})`,
+      );
+      return { inbound, outcome, queued: !delivered, ...(delivered ? { envioOk: true } : {}) };
+    }
   }
 
   let envioOk = false;

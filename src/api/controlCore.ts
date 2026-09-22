@@ -14,6 +14,9 @@
  *   POST /api/comment-brain/review/:id/approve  — { text?, force? } ENVÍA el borrador (opcionalmente editado)
  *   POST /api/comment-brain/review/:id/reject   — { reason? } descarta un borrador
  *   POST /api/comment-brain/review/:id/resolve  — "ya lo resolví yo" (escalados, ignorados)
+ *   GET  /api/comment-brain/outbox              — cola de envío de respuestas (?view=pending|failed|history|all)
+ *   POST /api/comment-brain/outbox/:id/retry    — reintenta una respuesta fallida o vencida
+ *   POST /api/comment-brain/outbox/:id/cancel   — descarta una respuesta en cola o fallida
  */
 
 import { createHash, timingSafeEqual } from 'node:crypto';
@@ -36,6 +39,7 @@ import {
   summarizeQueue,
   type ActionResult,
 } from '../capabilities/commentBrain/index.js';
+import { getReplyOutbox, type OutboxActionResult, type OutboxStatus } from '../capabilities/replyOutbox/index.js';
 
 export interface CoreResponse {
   status: number;
@@ -145,6 +149,12 @@ const ReviewQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(200).default(50),
 });
 
+/** Estado de la cola de envío para el panel: lo justo para saber si algo espera, falla o está en pausa. */
+const outboxOverview = (): unknown => {
+  const outbox = getReplyOutbox();
+  return outbox ? { enabled: true, ...outbox.report() } : { enabled: false };
+};
+
 export const brainStatus = (): CoreResponse => {
   try {
     const config = resolveBrainConfig();
@@ -163,6 +173,7 @@ export const brainStatus = (): CoreResponse => {
         graduation: evaluateGraduation(),
         decisions: summarizeDecisions(),
         costGuards: getCostGuardStats(),
+        outbox: outboxOverview(),
       },
     };
   } catch (err) {
@@ -194,6 +205,11 @@ const actionResponse = (r: ActionResult): CoreResponse => {
         sent: r.sent,
         dryRun: r.dryRun,
         ...(r.finalText ? { finalText: r.finalText } : {}),
+        // Con cola de envío, aprobar no implica que ya salió: la UI tiene que poder decirlo.
+        ...(r.delivery ? { delivery: r.delivery } : {}),
+        ...(r.outboxId ? { outboxId: r.outboxId } : {}),
+        ...(r.etaSec !== undefined ? { etaSec: r.etaSec } : {}),
+        ...(r.deliveryNote ? { deliveryNote: r.deliveryNote } : {}),
       },
     };
   }
@@ -210,6 +226,9 @@ const actionResponse = (r: ActionResult): CoreResponse => {
       return { status: 422, body: { ok: false, error: 'validation', issues: r.issues ?? [] } };
     case 'brand-unavailable':
       return { status: 503, body: { ok: false, error: 'brand-unavailable' } };
+    case 'queue-full':
+    case 'outbox-unavailable':
+      return { status: 503, body: { ok: false, error: r.code, detail: r.error } };
     case 'send-failed':
       return { status: 502, body: { ok: false, error: 'send-failed', detail: r.error } };
   }
@@ -265,5 +284,60 @@ export const brainResolve = (id: string): CoreResponse => {
   } catch (err) {
     log.error(`[comment-brain] resolve: ${err instanceof Error ? err.message : String(err)}`);
     return { status: 500, body: { error: 'comment-brain-resolve' } };
+  }
+};
+
+// ── Cola de envío ─────────────────────────────────────────────────────────────
+
+const VIEW_STATUSES: Record<'pending' | 'failed' | 'history', readonly OutboxStatus[]> = {
+  pending: ['queued', 'sending'],
+  failed: ['failed'],
+  history: ['sent', 'cancelled', 'expired'],
+};
+
+const OutboxQuerySchema = z.object({
+  view: z.enum(['pending', 'failed', 'history', 'all']).default('pending'),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+});
+
+export const outboxList = (query: Record<string, unknown>): CoreResponse => {
+  const parsed = OutboxQuerySchema.safeParse(query);
+  if (!parsed.success) return { status: 400, body: { ok: false, error: parsed.error.issues } };
+  try {
+    const outbox = getReplyOutbox();
+    if (!outbox) return { status: 200, body: { ok: true, enabled: false, count: 0, items: [] } };
+    const { view, limit } = parsed.data;
+    const items = outbox.list({ ...(view === 'all' ? {} : { statuses: VIEW_STATUSES[view] }), limit });
+    return { status: 200, body: { ok: true, enabled: true, count: items.length, items, ...outbox.report() } };
+  } catch (err) {
+    log.error(`[reply-outbox] list: ${err instanceof Error ? err.message : String(err)}`);
+    return { status: 500, body: { error: 'reply-outbox-list' } };
+  }
+};
+
+const outboxActionResponse = (r: OutboxActionResult): CoreResponse =>
+  r.ok
+    ? { status: 200, body: { ok: true, item: r.entry } }
+    : { status: r.code === 'not-found' ? 404 : 409, body: { ok: false, error: r.code } };
+
+export const outboxRetry = async (id: string): Promise<CoreResponse> => {
+  const outbox = getReplyOutbox();
+  if (!outbox) return { status: 409, body: { ok: false, error: 'outbox-disabled' } };
+  try {
+    return outboxActionResponse(await outbox.retry(id));
+  } catch (err) {
+    log.error(`[reply-outbox] retry: ${err instanceof Error ? err.message : String(err)}`);
+    return { status: 500, body: { error: 'reply-outbox-retry' } };
+  }
+};
+
+export const outboxCancel = (id: string): CoreResponse => {
+  const outbox = getReplyOutbox();
+  if (!outbox) return { status: 409, body: { ok: false, error: 'outbox-disabled' } };
+  try {
+    return outboxActionResponse(outbox.cancel(id));
+  } catch (err) {
+    log.error(`[reply-outbox] cancel: ${err instanceof Error ? err.message : String(err)}`);
+    return { status: 500, body: { error: 'reply-outbox-cancel' } };
   }
 };

@@ -74,6 +74,20 @@ export const env = {
       maxPerAuthorPerHour: Number(optional('COMMENT_BRAIN_MAX_PER_AUTHOR_HOUR', '5')),
       maxPerHour: Number(optional('COMMENT_BRAIN_MAX_PER_HOUR', '120')),
     },
+    // Cola de envío de respuestas a comentarios: ritmo, reintentos y vida útil. Ver capabilities/replyOutbox.
+    replyOutbox: {
+      // false → las respuestas se envían en el acto, sin cola (camino anterior). Interruptor de rollback.
+      enabled: optional('REPLY_OUTBOX_ENABLED', 'true').toLowerCase() !== 'false',
+      // Separación mínima entre respuestas (+ jitter al azar). Compliance exige >= 20 s.
+      minGapSec: Number(optional('REPLY_OUTBOX_MIN_GAP_SEC', '30')),
+      jitterSec: Number(optional('REPLY_OUTBOX_JITTER_SEC', '15')),
+      maxAttempts: Number(optional('REPLY_OUTBOX_MAX_ATTEMPTS', '5')),
+      // Una respuesta que ya no llegó a tiempo pierde sentido: vence en vez de salir tarde.
+      autoTtlMin: Number(optional('REPLY_OUTBOX_AUTO_TTL_MIN', '180')),
+      humanTtlMin: Number(optional('REPLY_OUTBOX_HUMAN_TTL_MIN', '1440')),
+      // Tope de respuestas del bot esperando (las de personas tienen un cupo extra).
+      maxQueued: Number(optional('REPLY_OUTBOX_MAX_QUEUED', '200')),
+    },
   },
   notifications: {
     slackWebhook: optional('SLACK_WEBHOOK_URL'),

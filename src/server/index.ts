@@ -26,6 +26,7 @@ import { buildInShotWebhookRoutes } from './inshotWebhookRoute.js';
 import { startAutonomousOS } from '../os/autonomousCore.js';
 import { buildVerifyHandler, buildEventHandler } from './metaWebhook.js';
 import { startScheduler } from '../scheduler/index.js';
+import { startReplyOutbox, stopReplyOutbox } from '../capabilities/replyOutbox/index.js';
 import { startTriggerConnector } from '../agent/triggerConnector.js';
 import { env } from '../config/index.js';
 import { initBrandRegistry } from '../config/brandRegistry.js';
@@ -169,6 +170,10 @@ export const startDaemon = (opts: DaemonOptions = {}): { stop: () => void } => {
     stopScheduler = handle.stop;
   }
 
+  // Cola de envío de respuestas a comentarios: despacha lo que aprobó una persona o decidió el bot,
+  // respetando el ritmo de compliance. Va aunque el scheduler esté apagado (hay respuestas pendientes en disco).
+  startReplyOutbox();
+
   // Start trigger connector (event bus → agent triggers)
   if (opts.enableTriggers !== false) {
     startTriggerConnector(brand);
@@ -290,6 +295,7 @@ export const startDaemon = (opts: DaemonOptions = {}): { stop: () => void } => {
   return {
     stop: (): void => {
       stopScheduler?.();
+      void stopReplyOutbox();
       httpClose?.();
       log.info('Daemon detenido');
     },

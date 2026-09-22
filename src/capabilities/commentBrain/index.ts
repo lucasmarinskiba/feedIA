@@ -40,7 +40,14 @@ export { validateReply, hasBlockingIssue, similarity } from './validators.js';
 export { getPostContext, getThreadContext } from './postContext.js';
 export { listReviewQueue, resolveReview, summarizeQueue, configureReviewStore } from './reviewQueue.js';
 export { getCostGuardStats, configureCostGuards, resetCostGuards } from './costGuards.js';
-export { approveReview, rejectReview, markHandled, type ActionResult, type ActionFailure } from './reviewActions.js';
+export {
+  approveReview,
+  rejectReview,
+  markHandled,
+  type ActionResult,
+  type ActionFailure,
+  type Delivery,
+} from './reviewActions.js';
 export {
   configureDecisionStore,
   evaluateGraduation,
