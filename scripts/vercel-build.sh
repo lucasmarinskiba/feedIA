@@ -1,15 +1,19 @@
 #!/bin/bash
 set -e
+# Was: cp -rp public/. — a separate, independently-stale frontend (own copy of
+# the SPA, own serverless backend in api/_*.js) that hadn't tracked src/server/
+# static/ since 2026-08-25. Vercel now serves the REAL frontend (built fresh
+# from src/server/static/, same source the Railway "web" service builds into
+# dist-static/) and proxies /api/* to the real backend running there — one
+# frontend, one backend, instead of two independently-drifting copies of the
+# whole app.
+npm run build:static
 node scripts/check-frontend.mjs
 mkdir -p .vercel/output/static
-cp -rp public/. .vercel/output/static/
-# Explicit route to the [...path] catch-all function by its literal function
-# identifier (not a reconstructed path) — with a custom buildCommand, Vercel
-# does not appear to auto-expand bracket rest-parameter routing the way it
-# would in a zero-config/Next.js build, so nested /api/* paths (2+ segments)
-# 404'd at the platform level without invoking the function while single-
-# segment /api/* paths worked. Pointing dest directly at the function name
-# removes the ambiguity. api/index.ts (a separate Express app, Phase 3
-# orchestration routes: /api/orchestrate, /api/generators, /api/info) is
-# routed there explicitly first so it isn't shadowed by the catch-all.
-printf '{"version":3,"routes":[{"src":"^/api/(orchestrate|generators|info)(/.*)?$","dest":"/api/index"},{"src":"^/api/.*$","dest":"/api/[...path]"},{"handle":"filesystem"},{"src":"^/pricing/?$","dest":"/pricing.html"},{"src":"^/checkout/?$","dest":"/checkout.html"},{"src":"/(.*)","dest":"/index.html","status":200}]}' > .vercel/output/config.json
+cp -rp dist-static/. .vercel/output/static/
+# RAILWAY_API_ORIGIN: the "web" service's public URL (dist/server.js — the
+# real Express app + all real /api/* routes). Set as a Vercel project env var;
+# this default is only a fallback so the build doesn't hard-fail if it's ever
+# unset, not something to rely on long-term.
+API_ORIGIN="${RAILWAY_API_ORIGIN:-https://web-production-fa7b5.up.railway.app}"
+printf '{"version":3,"routes":[{"src":"^/api/(.*)$","dest":"%s/api/$1"},{"handle":"filesystem"},{"src":"^/pricing/?$","dest":"/pricing.html"},{"src":"/(.*)","dest":"/index.html","status":200}]}' "$API_ORIGIN" > .vercel/output/config.json

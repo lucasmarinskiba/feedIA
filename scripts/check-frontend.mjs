@@ -1,15 +1,11 @@
 #!/usr/bin/env node
 /**
- * Verifies public/ frontend is intact before deploy.
- * Run: node scripts/check-frontend.mjs
+ * Verifies dist-static/ (built by build:static from src/server/static/) is
+ * intact before deploy. Run after `npm run build:static`.
  */
 import { existsSync, statSync } from 'fs';
 
-const REQUIRED = [
-  'public/index.html',
-  'public/app.js',
-  'public/style.css',
-];
+const REQUIRED = ['dist-static/index.html', 'dist-static/app.js', 'dist-static/style.css'];
 
 let ok = true;
 for (const f of REQUIRED) {
@@ -26,8 +22,8 @@ for (const f of REQUIRED) {
 }
 
 if (!ok) {
-  console.error('\nFrontend check FAILED — public/ is damaged or incomplete.');
+  console.error('\nFrontend check FAILED — dist-static/ is damaged or incomplete.');
   process.exit(1);
 }
 
-console.log('Frontend OK — public/ intact.');
+console.log('Frontend OK — dist-static/ intact.');
