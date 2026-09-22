@@ -33,6 +33,7 @@
   "exclude": [
     "node_modules",
     "dist",
+    "src/__tests__/**",
     "src/capabilities/recipes/recipes.ts",
     "src/capabilities/conversion/dmTriggers.ts",
     "src/agent/tools.ts",
