@@ -25,8 +25,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      # `npm ci` here reproduces the lockfile literally and, with this project's
+      # optionalDependencies (rolldown's per-platform native bindings), that can
+      # skip installing the Linux binary — a documented npm bug (npm/cli#4828):
+      # "Cannot find native binding" crashes vitest before a single test runs.
+      # `npm install` instead reconciles against the runner's actual platform.
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run verify
         run: npm run verify
@@ -98,7 +103,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Trivy filesystem scanner
-        uses: aquasecurity/trivy-action@0.29.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -125,7 +130,7 @@ jobs:
       security-events: write
     steps:
       - name: Run Trivy image scanner
-        uses: aquasecurity/trivy-action@0.29.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}'
           format: 'sarif'
