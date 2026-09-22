@@ -65,7 +65,20 @@ const TABS = [
   },
   { id: 'escalate', label: 'Escalados', empty: 'Nada escalado. Los casos delicados (legal, salud, odio) llegan acá.' },
   { id: 'ignore', label: 'Ignorados', empty: 'Sin ignorados para auditar.' },
+  {
+    id: 'outbox',
+    label: 'Envíos',
+    empty: 'Nada en la cola de envío. Lo que se aprueba sale respetando el ritmo de la cuenta.',
+  },
 ];
+const OUTBOX_STATUS = {
+  queued: ['En cola', ''],
+  sending: ['Enviando…', 'info'],
+  sent: ['Enviado', 'ok'],
+  failed: ['No se pudo enviar', 'warn'],
+  cancelled: ['Descartado', ''],
+  expired: ['Venció sin enviarse', 'warn'],
+};
 const AUTONOMY = {
   suggest: ['Modo sugerencia', 'Nada se envía solo: cada respuesta pasa por esta bandeja.'],
   balanced: ['Modo balanceado', 'El bot responde solo lo seguro; el resto llega a esta bandeja.'],
@@ -195,7 +208,91 @@ const summaryView = () => {
       ),
     );
   }
+
+  const ob = s.outbox;
+  if (ob?.enabled) {
+    const counts = ob.summary?.counts ?? {};
+    const uncertain = ob.summary?.uncertain ?? 0;
+    const held = ob.dispatcher?.holdReason;
+    const bits = [`${counts.queued ?? 0} en cola`, `${counts.sent ?? 0} enviadas (última hora: ${ob.summary?.sentLastHour ?? 0})`];
+    if (counts.failed) bits.push(`${counts.failed} con problemas${uncertain ? ` (${uncertain} sin confirmar)` : ''}`);
+    box.append(
+      h('div', { class: 'rv-muted rv-cost' }, `Cola de envío: ${bits.join(' · ')}.`),
+      held ? h('div', { class: 'rv-alert', role: 'note' }, `Envíos en pausa: ${held}.`) : null,
+    );
+  } else if (ob && !ob.enabled) {
+    box.append(h('div', { class: 'rv-muted' }, 'Cola de envío desactivada: las respuestas salen directo al aprobar.'));
+  }
   return box;
+};
+
+const outboxCardView = (item, { onDone }) => {
+  const [label, tone] = OUTBOX_STATUS[item.status] ?? [item.status, ''];
+  const article = h('article', { class: 'rv-card', 'data-id': item.id, 'aria-label': `Envío a @${item.handle}` });
+  const feedback = h('div', { class: 'rv-feedback', role: 'status', 'aria-live': 'polite' });
+
+  const meta = [`@${item.handle}`, timeAgo(item.enqueuedAt ? new Date(item.enqueuedAt).toISOString() : item.updatedAt)];
+  article.append(
+    h('div', { class: 'rv-card-head' }, [
+      h('strong', {}, meta[0]),
+      h('span', { class: 'rv-muted' }, meta[1]),
+      badge(label, tone),
+      item.origin === 'human' ? badge('Aprobado por vos', 'info') : badge('Automático'),
+    ]),
+    h('blockquote', { class: 'rv-quote' }, item.text),
+  );
+  if (item.status === 'queued' && item.etaSec != null) {
+    article.append(
+      h(
+        'div',
+        { class: 'rv-muted' },
+        item.ahead ? `${item.ahead} adelante · sale en ~${item.etaSec}s` : `sale en ~${item.etaSec}s`,
+      ),
+    );
+  }
+  if (item.lastError) {
+    article.append(h('div', { class: 'rv-muted' }, `Último error: ${item.lastError}`));
+  }
+
+  const buttons = [];
+  let busy = false;
+  const setBusy = (v) => {
+    busy = v;
+    for (const b of buttons) b.disabled = v;
+    article.setAttribute('aria-busy', String(v));
+  };
+  const run = async (path, okMessage) => {
+    if (busy) return;
+    setBusy(true);
+    feedback.replaceChildren();
+    try {
+      await adminApi(`/api/comment-brain/outbox/${enc(item.id)}/${path}`, { method: 'POST' }, { interactive: true });
+      toast(okMessage, 'ok');
+      article.remove();
+      onDone(item);
+    } catch (err) {
+      feedback.append(h('div', { class: 'rv-alert', role: 'alert' }, explainError(err)));
+      if (isAuthError(err)) clearAdminKey();
+    } finally {
+      setBusy(false);
+    }
+  };
+  const mk = (label_, cls, onclick) => {
+    const b = h('button', { type: 'button', class: `btn ${cls}`.trim(), onclick }, label_);
+    buttons.push(b);
+    return b;
+  };
+
+  const actions = h('div', { class: 'rv-actions' });
+  if (item.status === 'failed' || item.status === 'expired') {
+    actions.append(mk('Reintentar', 'primary', () => run('retry', 'Reintentando el envío')));
+  }
+  if (item.status === 'queued' || item.status === 'failed') {
+    actions.append(mk('Descartar', 'ghost', () => run('cancel', 'Envío descartado')));
+  }
+  if (actions.children.length) article.append(actions);
+  article.append(feedback);
+  return article;
 };
 
 const cardView = (item, { onDone }) => {
@@ -363,6 +460,11 @@ export const renderCommentReview = async (root) => {
   );
 
   const counts = () => state.status?.queue?.byAction ?? {};
+  const tabCount = (id) => {
+    if (id !== 'outbox') return counts()[id] ?? 0;
+    const c = state.status?.outbox?.summary?.counts;
+    return c ? (c.queued ?? 0) + (c.failed ?? 0) : 0;
+  };
 
   const paintTabs = () => {
     tabsHost.replaceChildren(
@@ -380,7 +482,7 @@ export const renderCommentReview = async (root) => {
               void load();
             },
           },
-          `${t.label} (${counts()[t.id] ?? 0})`,
+          `${t.label} (${tabCount(t.id)})`,
         ),
       ),
     );
@@ -417,7 +519,7 @@ export const renderCommentReview = async (root) => {
       return;
     }
     for (const item of state.items) {
-      const card = cardView(item, { onDone: onDone });
+      const card = state.tab === 'outbox' ? outboxCardView(item, { onDone: onDone }) : cardView(item, { onDone: onDone });
       const ta = card.querySelector('textarea');
       if (ta) {
         if (drafts.has(item.id)) {
@@ -459,10 +561,14 @@ export const renderCommentReview = async (root) => {
     paintTabs();
     paintList();
     try {
-      const [status, review] = await Promise.all([
-        adminApi('/api/comment-brain/status'),
-        adminApi(`/api/comment-brain/review?action=${enc(state.tab)}&limit=100`),
-      ]);
+      const itemsCall =
+        state.tab === 'outbox'
+          ? adminApi('/api/comment-brain/outbox?view=pending&limit=100').then(async (pending) => {
+              const failed = await adminApi('/api/comment-brain/outbox?view=failed&limit=100');
+              return { items: [...(pending.items ?? []), ...(failed.items ?? [])] };
+            })
+          : adminApi(`/api/comment-brain/review?action=${enc(state.tab)}&limit=100`);
+      const [status, review] = await Promise.all([adminApi('/api/comment-brain/status'), itemsCall]);
       state.status = status;
       state.items = review.items ?? [];
     } catch (err) {

@@ -35,9 +35,8 @@ const SENSITIVE_PATTERNS: Array<{ regex: RegExp; reason: BlockReason }> = [
   { regex: /(?:contrato|firma|legal|términos del acuerdo)/i, reason: 'precio-confirmacion' },
 ];
 
-const isQuietHour = (): boolean => {
-  const now = new Date();
-  const hour = now.getHours();
+export const isQuietHour = (at: Date = new Date()): boolean => {
+  const hour = at.getHours();
   const start = env.bot.quietHoursStart;
   const end = env.bot.quietHoursEnd;
   if (start === end) return false;

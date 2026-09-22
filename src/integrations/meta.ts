@@ -10,7 +10,7 @@ import {
 import { actionGate } from '../glassbox/index.js';
 import type { ActionCategory } from '../compliance/index.js';
 import { resolveMetaCredentials, type MetaAccountCredentials } from './metaAccountResolver.js';
-import { metaFetch } from './metaApiClient.js';
+import { metaFetch, MetaApiError } from './metaApiClient.js';
 
 export interface PublishRequest {
   format: 'reel' | 'carrusel' | 'imagen' | 'historia';
@@ -338,7 +338,16 @@ export const fetchInbound = async (sinceIso: string): Promise<MetaInbound[]> => 
   }
 };
 
-export const replyToComment = async (commentId: string, text: string): Promise<{ ok: boolean; error?: string }> => {
+/** Resultado de responder un comentario. `code`/`status` (si la red respondió) permiten al outbox decidir qué hacer con un fallo. */
+export interface ReplyResult {
+  ok: boolean;
+  error?: string;
+  /** Código de Meta: "código/subcódigo/tipo". */
+  code?: string;
+  status?: number;
+}
+
+export const replyToComment = async (commentId: string, text: string): Promise<ReplyResult> => {
   if (!checkEmergencyBeforeAction('replyToComment')) {
     return { ok: false, error: 'Sistema en estado de emergencia. No se permiten respuestas.' };
   }
@@ -387,11 +396,15 @@ export const replyToComment = async (commentId: string, text: string): Promise<{
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         recordFailure('comment_reply', ctx, msg);
-        return { ok: false, error: msg };
+        return {
+          ok: false,
+          error: msg,
+          ...(err instanceof MetaApiError ? { code: err.code, status: err.status } : {}),
+        };
       }
     },
     { actionCategory: 'comment_reply', guardianContext: ctx, correlationId: `meta-reply-${Date.now()}` },
-  ) as Promise<{ ok: boolean; error?: string }>;
+  ) as Promise<ReplyResult>;
 };
 
 export const sendDm = async (igUserId: string, text: string): Promise<{ ok: boolean; error?: string }> => {

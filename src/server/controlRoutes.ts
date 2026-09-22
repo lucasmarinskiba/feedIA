@@ -15,6 +15,9 @@ import {
   brainStatus,
   checkAdminAccess,
   listBots,
+  outboxCancel,
+  outboxList,
+  outboxRetry,
   setBot,
   setMaster,
   type CoreResponse,
@@ -54,5 +57,16 @@ export const buildControlRoutes = (): RouteDefinition[] => [
     method: 'POST',
     pattern: '/api/comment-brain/review/:id/resolve',
     handler: guarded((ctx) => brainResolve(ctx.params['id'] ?? '')),
+  },
+  { method: 'GET', pattern: '/api/comment-brain/outbox', handler: guarded((ctx) => outboxList(ctx.query)) },
+  {
+    method: 'POST',
+    pattern: '/api/comment-brain/outbox/:id/retry',
+    handler: guarded((ctx) => outboxRetry(ctx.params['id'] ?? '')),
+  },
+  {
+    method: 'POST',
+    pattern: '/api/comment-brain/outbox/:id/cancel',
+    handler: guarded((ctx) => outboxCancel(ctx.params['id'] ?? '')),
   },
 ];

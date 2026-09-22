@@ -213,6 +213,9 @@ describe('rutas del daemon (donde corren los bots)', () => {
         'POST /api/comment-brain/review/:id/approve',
         'POST /api/comment-brain/review/:id/reject',
         'POST /api/comment-brain/review/:id/resolve',
+        'GET /api/comment-brain/outbox',
+        'POST /api/comment-brain/outbox/:id/retry',
+        'POST /api/comment-brain/outbox/:id/cancel',
       ].sort(),
     );
   });

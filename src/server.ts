@@ -111,6 +111,7 @@ import { registerSocialPublishingRoutes } from './api/social-publishing-routes.j
 import { registerSocialAutomationRoutes } from './api/social-automation-complete.js';
 import { registerSocialIntelligenceRoutes } from './api/social-intelligence-agents.js';
 import { registerNeuralAgentRoutes } from './api/neural-agents.js';
+import { startReplyOutbox, stopReplyOutbox } from './capabilities/replyOutbox/index.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -875,8 +876,12 @@ const server = app.listen(PORT, () => {
 // Graceful shutdown
 log.info(`[Server] listening on port ${PORT}`);
 
+// Las aprobaciones de la API encolan respuestas: este proceso también tiene que despacharlas.
+startReplyOutbox();
+
 process.on('SIGTERM', () => {
   log.info('[Server] SIGTERM received, starting graceful shutdown');
+  void stopReplyOutbox();
   server.close(() => {
     log.info('[Server] HTTP server closed');
     process.exit(0);

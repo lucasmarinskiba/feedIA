@@ -2,7 +2,7 @@
  * Integración: bot/runner.ts con el Comment Brain.
  * Se prueba qué se le pasa al orquestador y cómo reacciona el runner a cada decisión.
  */
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../../src/integrations/meta.js', () => ({
   fetchInbound: vi.fn(async () => []),
@@ -28,10 +28,12 @@ vi.mock('../../../src/capabilities/conversion/index.js', () => ({
 import { escalateToHuman } from '../../../src/capabilities/bot/conversationMemory.js';
 import { processInbound, runOnce } from '../../../src/capabilities/bot/runner.js';
 import { configureBotControlStore, setBotEnabled } from '../../../src/capabilities/botControl/state.js';
+import { setReplyOutboxForTests } from '../../../src/capabilities/replyOutbox/runtime.js';
 import type { SmartReplyOutput } from '../../../src/capabilities/replies/unifiedReplyOrchestrator.js';
 import { generateSmartReply } from '../../../src/capabilities/replies/unifiedReplyOrchestrator.js';
 import type { BrainResult } from '../../../src/capabilities/commentBrain/types.js';
 import { fetchInbound, replyToComment, sendDm, type MetaInbound } from '../../../src/integrations/meta.js';
+import { makeHarness, type SendFn } from '../replyOutbox/helpers.js';
 import { cls, makeBrand } from './helpers.js';
 
 const comment: MetaInbound = {
@@ -62,9 +64,18 @@ const outcome = (over: Partial<SmartReplyOutput>): SmartReplyOutput => ({
   ...over,
 });
 
+// Outbox real (log en memoria) con separación cero: los comentarios que el bot aprueba salen en el
+// acto en el test, igual que con la cola libre en producción, sin depender del reloj.
+const viaMeta: SendFn = (commentId, text) => replyToComment(commentId, text) as ReturnType<SendFn>;
+
 beforeEach(() => {
   vi.clearAllMocks();
   configureBotControlStore(null); // estado de bots en memoria: todo prendido por defecto
+  setReplyOutboxForTests(makeHarness({ send: viaMeta, dispatcher: { minGapMs: 0, jitterMs: 0 } }).outbox);
+});
+
+afterEach(() => {
+  setReplyOutboxForTests(undefined);
 });
 
 describe('processInbound + Comment Brain', () => {
@@ -77,7 +88,7 @@ describe('processInbound + Comment Brain', () => {
     expect(arg?.postContext).toBeUndefined();
   });
 
-  it('envía la respuesta aprobada como reply al comentario correcto', async () => {
+  it('la respuesta aprobada se encola y, con la cola libre, sale en el acto', async () => {
     vi.mocked(generateSmartReply).mockResolvedValue(
       outcome({ sent: true, reply: 'Ni las zapatillas se animan a discutirte eso' }),
     );
@@ -86,6 +97,31 @@ describe('processInbound + Comment Brain', () => {
     expect(replyToComment).toHaveBeenCalledWith('c-99', 'Ni las zapatillas se animan a discutirte eso');
     expect(sendDm).not.toHaveBeenCalled();
     expect(res.envioOk).toBe(true);
+    expect(res.queued).toBe(false);
+  });
+
+  it('con el outbox desactivado se envía directo, como antes', async () => {
+    setReplyOutboxForTests(null);
+    vi.mocked(generateSmartReply).mockResolvedValue(outcome({ sent: true, reply: 'Directo, sin cola' }));
+    const res = await processInbound(makeBrand(), comment);
+
+    expect(replyToComment).toHaveBeenCalledWith('c-99', 'Directo, sin cola');
+    expect(res.envioOk).toBe(true);
+    expect(res.queued).toBeUndefined();
+  });
+
+  it('si la cola de envío está ocupada, la respuesta queda pendiente y el runner no se lo atribuye como enviado', async () => {
+    setReplyOutboxForTests(makeHarness({ send: viaMeta, dispatcher: { minGapMs: 30_000, jitterMs: 0 } }).outbox);
+    vi.mocked(generateSmartReply)
+      .mockResolvedValueOnce(outcome({ sent: true, reply: 'primera' }))
+      .mockResolvedValueOnce(outcome({ sent: true, reply: 'segunda' }));
+
+    await processInbound(makeBrand(), comment);
+    const second = await processInbound(makeBrand(), { ...comment, id: 'c-100' });
+
+    expect(replyToComment).toHaveBeenCalledTimes(1);
+    expect(second).toMatchObject({ queued: true });
+    expect(second.envioOk).toBeUndefined();
   });
 
   it('un borrador en la cola NO marca al usuario como escalado (no se lo silencia para siempre)', async () => {
