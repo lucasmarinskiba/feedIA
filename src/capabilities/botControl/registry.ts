@@ -41,7 +41,7 @@ export const BOTS: readonly BotDefinition[] = [
     description: 'Lee y responde comentarios públicos (Comment Brain: tipo + sarcasmo + riesgo).',
     costly: true,
     defaultEnabled: true,
-    views: ['inbox', 'community', 'revision', 'crisis', 'home', 'feed'],
+    views: ['inbox', 'community', 'community-manager', 'revision', 'crisis', 'home', 'feed'],
   },
   {
     id: 'dm-bot',
@@ -49,7 +49,7 @@ export const BOTS: readonly BotDefinition[] = [
     description: 'Triage, respuestas automáticas y seguimiento de mensajes directos y leads.',
     costly: true,
     defaultEnabled: true,
-    views: ['inbox', 'community', 'crisis'],
+    views: ['inbox', 'community', 'community-manager', 'crisis'],
   },
   {
     id: 'community-bot',
@@ -57,7 +57,7 @@ export const BOTS: readonly BotDefinition[] = [
     description: 'Engagement diario, bienvenidas a fans, re-engagement y comentarios faro.',
     costly: true,
     defaultEnabled: true,
-    views: ['community', 'collab', 'ugc', 'inbox'],
+    views: ['community', 'community-manager', 'collab', 'ugc', 'inbox'],
   },
   {
     id: 'content-bot',
@@ -86,7 +86,7 @@ export const BOTS: readonly BotDefinition[] = [
     description: 'Detecta tendencias, optimiza FYP y produce contenido nativo de TikTok.',
     costly: true,
     defaultEnabled: true,
-    views: ['studio-tiktok', 'studio-tiktok-script', 'studio-tiktok-photo'],
+    views: ['studio-tiktok', 'studio-tiktok-script', 'studio-tiktok-photo', 'community-manager'],
   },
   {
     id: 'computer-use-bot',

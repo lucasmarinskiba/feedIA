@@ -12155,3 +12155,31 @@ details[open] > summary::after {
 .rv-actions [hidden] {
   display: none !important;
 }
+
+/* ── Community Manager (views/communityManager.js) ── */
+.cm-page { max-width: 980px; }
+.cm-body { display: flex; flex-direction: column; gap: 18px; }
+.cm-section-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted, #9CA3AF);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.cm-brain-card, .cm-tiktok-note {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cm-brain-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cm-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}

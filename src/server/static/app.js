@@ -95,6 +95,7 @@ const ROUTES = {
   rituals: V('./views/rituals.js', 'renderRituals'),
   community: V('./views/communityHub.js', 'renderCommunityHub'),
   revision: V('./views/commentReview.js', 'renderCommentReview'),
+  'community-manager': V('./views/communityManager.js', 'renderCommunityManager'),
   taskboard: V('./views/taskboard.js', 'renderTaskboard'),
   'canva-runner': V('./views/canvaRunner.js', 'renderCanvaRunner'),
   diseñador: V('./views/diseñador.js', 'renderDiseñador'),
@@ -160,6 +161,7 @@ const ROUTE_LABELS = {
   community: 'Community Hub · Inbox · Leads · FAQ · Fans · UGC · Menciones · Soporte',
   revision:
     'Revisión de comentarios · Borradores · Aprobar y enviar · Escalados · Sarcasmo · Bot de comentarios · Graduación a balanced',
+  'community-manager': 'Community Manager · Bots · Inbox · Soporte · FAQ · Instagram · TikTok · Comentarios · DMs',
   taskboard: 'Task Board · Kanban del equipo · Tareas · Workload · Daily standup',
   'canva-runner': 'Canva → Instagram · Pipeline visual · Cursor diseñando · Auto-publish',
   replay: 'Replay · Sesiones grabadas · Computer Use · Paso a paso · Auditoría visual',
