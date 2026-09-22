@@ -9,18 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />
     <title>FeedIA</title>
-    <script>
-      /* Tema aplicado ANTES de pintar CSS → sin parpadeo (FOUC) */
-      (function () {
-        try {
-          var t = localStorage.getItem('fx_theme');
-          if (!t) t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-          document.documentElement.setAttribute('data-theme', t);
-        } catch (e) {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        }
-      })();
-    </script>
+    <script src="/lib/themeInit.js"></script>
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" id="personalization-css" href="/api/personalization/css" />
     <!-- Vistas lazy, pero precargamos la ruta por defecto → primer render instantáneo -->
@@ -1211,26 +1200,5 @@
     <!-- ═══ SCRIPTS ═══ -->
     <script type="module" src="/app.js?v=2026-05-29-16"></script>
     <script type="module" src="/views/siamese.js?v=1"></script>
-
-    <!-- Debug Feed visibility (development) -->
-    <script>
-      window.debugFeed = () => {
-        const feedBtn = document.querySelector('[data-route="feed"]');
-        if (!feedBtn) { console.error('❌ Feed button NOT FOUND'); return; }
-        const computed = window.getComputedStyle(feedBtn);
-        const rect = feedBtn.getBoundingClientRect();
-        console.log('Feed Debug:', {
-          found: true,
-          display: computed.display,
-          visibility: computed.visibility,
-          opacity: computed.opacity,
-          position: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
-          visible: rect.width > 0 && rect.height > 0,
-          classes: feedBtn.className,
-        });
-      };
-      setTimeout(debugFeed, 500);
-      setTimeout(debugFeed, 2000);
-    </script>
   </body>
 </html>
