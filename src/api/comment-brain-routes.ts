@@ -14,7 +14,16 @@
  */
 
 import express, { NextFunction, Request, Response } from 'express';
-import { brainResolve, brainReview, brainStatus, checkAdminAccess, type CoreResponse } from './controlCore.js';
+import {
+  brainApprove,
+  brainDecisions,
+  brainReject,
+  brainResolve,
+  brainReview,
+  brainStatus,
+  checkAdminAccess,
+  type CoreResponse,
+} from './controlCore.js';
 
 const router = express.Router();
 
@@ -37,6 +46,13 @@ router.use((req: Request, res: Response, next: NextFunction): void => {
 
 router.get('/status', (_req: Request, res: Response): void => send(res, brainStatus()));
 router.get('/review', (req: Request, res: Response): void => send(res, brainReview(req.query)));
+router.get('/decisions', (req: Request, res: Response): void => send(res, brainDecisions(req.query)));
+router.post('/review/:id/approve', (req: Request, res: Response): void => {
+  void brainApprove(String(req.params['id'] ?? ''), req.body).then((r) => send(res, r));
+});
+router.post('/review/:id/reject', (req: Request, res: Response): void =>
+  send(res, brainReject(String(req.params['id'] ?? ''), req.body)),
+);
 router.post('/review/:id/resolve', (req: Request, res: Response): void =>
   send(res, brainResolve(String(req.params['id'] ?? ''))),
 );

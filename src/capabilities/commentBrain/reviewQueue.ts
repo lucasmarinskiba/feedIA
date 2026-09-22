@@ -144,6 +144,11 @@ export const listReviewQueue = (filter: { action?: ReviewItem['action']; limit?:
   return filter.limit ? items.slice(0, filter.limit) : items;
 };
 
+export const getReviewItem = (id: string): ReviewItem | undefined => {
+  hydrate();
+  return queue.find((q) => q.id === id);
+};
+
 export const resolveReview = (id: string): boolean => {
   hydrate();
   const idx = queue.findIndex((q) => q.id === id);

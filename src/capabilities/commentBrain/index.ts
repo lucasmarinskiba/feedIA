@@ -40,6 +40,16 @@ export { validateReply, hasBlockingIssue, similarity } from './validators.js';
 export { getPostContext, getThreadContext } from './postContext.js';
 export { listReviewQueue, resolveReview, summarizeQueue, configureReviewStore } from './reviewQueue.js';
 export { getCostGuardStats, configureCostGuards, resetCostGuards } from './costGuards.js';
+export { approveReview, rejectReview, markHandled, type ActionResult, type ActionFailure } from './reviewActions.js';
+export {
+  configureDecisionStore,
+  evaluateGraduation,
+  listDecisions,
+  summarizeDecisions,
+  GRADUATION_THRESHOLDS,
+  type DecisionRecord,
+  type ReviewOutcome,
+} from './reviewDecisions.js';
 
 /** Umbral de "calidad del chiste" que el propio modelo debe declarar para enviar humor sin revisión. */
 const HUMOR_MIN_CONFIDENCE = 0.6;
