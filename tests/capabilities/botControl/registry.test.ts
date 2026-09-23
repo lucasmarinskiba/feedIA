@@ -7,11 +7,13 @@ import {
   BOT_IDS,
   CLASSIFIED_JOB_NAMES,
   INFRA_JOBS,
+  TIER_RANK,
   botsForEvent,
   botsForJob,
   classifyJob,
   getBotDefinition,
   isBotId,
+  tierUnlocksBot,
 } from '../../../src/capabilities/botControl/registry.js';
 
 describe('registro de bots', () => {
@@ -24,6 +26,17 @@ describe('registro de bots', () => {
     }
     expect(isBotId('no-existe')).toBe(false);
     expect(() => getBotDefinition('no-existe' as never)).toThrow();
+  });
+
+  it('todo bot declara un plan mínimo válido, y ningún bot queda desbloqueado en free', () => {
+    for (const b of BOTS) {
+      expect(TIER_RANK[b.minTier], `${b.id}.minTier`).toBeDefined();
+      expect(tierUnlocksBot('free', b), `${b.id} no debería desbloquearse en free`).toBe(false);
+    }
+  });
+
+  it('agency siempre desbloquea todo (es el techo de la escala)', () => {
+    for (const b of BOTS) expect(tierUnlocksBot('agency', b)).toBe(true);
   });
 });
 

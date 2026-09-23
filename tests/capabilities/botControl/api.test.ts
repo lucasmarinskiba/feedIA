@@ -11,22 +11,32 @@ vi.mock('../../../src/agent/bus.js', () => ({ emit: vi.fn() }));
 
 import botControlRoutes from '../../../src/api/bot-control-routes.js';
 import { checkAdminAccess } from '../../../src/api/controlCore.js';
-import { configureBotControlStore, isBotEnabled } from '../../../src/capabilities/botControl/state.js';
+import { resetAccountBotStoreForTests } from '../../../src/capabilities/botControl/index.js';
+import { configureBotControlStore } from '../../../src/capabilities/botControl/state.js';
 import { configureReviewStore } from '../../../src/capabilities/commentBrain/reviewQueue.js';
+import { upsertUserTier, type UserTier } from '../../../src/db/user-tiers.js';
 import { buildControlRoutes } from '../../../src/server/controlRoutes.js';
 import type { RouteContext } from '../../../src/server/http.js';
 
 interface BotsBody {
   ok: boolean;
-  master: { state: string; enabled: number; total: number };
-  bots: Array<{ id: string; enabled: boolean; jobs?: number; views: string[] }>;
+  master: { state: string; enabled: number; total: number; locked: number };
+  bots: Array<{ id: string; enabled: boolean; locked: boolean; requiredTier: string; jobs?: number; views: string[] }>;
   infraJobs?: number;
   corrupt: boolean;
+  skippedLocked?: string[];
 }
+
+let uid = 0;
+/** Un userId nuevo por test: evita que el tier seedeado por un caso se filtre a otro. */
+const freshUserId = (): string => `bots-test-${Date.now()}-${uid++}`;
+const seedTier = (userId: string, tier: UserTier): Promise<unknown> =>
+  upsertUserTier(userId, `${userId}@test.local`, tier);
 
 beforeEach(() => {
   vi.unstubAllEnvs();
   configureBotControlStore(null);
+  resetAccountBotStoreForTests();
   configureReviewStore(null);
 });
 
@@ -68,7 +78,7 @@ describe('checkAdminAccess', () => {
   });
 });
 
-describe('Express /api/bots', () => {
+describe('Express /api/bots — gate por plan, no por admin key', () => {
   let server: Server;
   let base: string;
 
@@ -85,73 +95,121 @@ describe('Express /api/bots', () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   });
 
-  const post = (path: string, body: unknown): Promise<Response> =>
+  const get = (userId: string, extraHeaders: Record<string, string> = {}): Promise<Response> =>
+    fetch(base, { headers: { 'x-user-id': userId, ...extraHeaders } });
+
+  const post = (
+    path: string,
+    body: unknown,
+    userId: string,
+    extraHeaders: Record<string, string> = {},
+  ): Promise<Response> =>
     fetch(`${base}${path}`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'x-user-id': userId, ...extraHeaders },
       body: JSON.stringify(body),
     });
 
-  it('GET lista los 8 bots con cuántas tareas gobierna cada uno y cuántas son infraestructura', async () => {
-    const res = await fetch(base);
+  it('GET siempre devuelve los 8 bots (nunca se filtra la lista) con cuántas tareas gobierna cada uno', async () => {
+    const res = await get(freshUserId());
     const body = (await res.json()) as BotsBody;
     expect(res.status).toBe(200);
     expect(body.bots).toHaveLength(8);
-    expect(body.master).toMatchObject({ state: 'all-on', total: 8 });
     expect(body.infraJobs).toBe(1); // calendar-dispatcher
     expect(body.bots.find((b) => b.id === 'dm-bot')?.jobs).toBe(2); // bot-poll + cm-inbox-tick
     expect(body.bots.find((b) => b.id === 'comment-bot')?.views).toContain('inbox');
   });
 
-  it('el botón maestro apaga todos; después se puede reactivar UNO; y el maestro restaura los anteriores', async () => {
-    const off = (await (await post('/master', { enabled: false })).json()) as BotsBody;
-    expect(off.master.state).toBe('all-off');
-    expect(off.bots.every((b) => !b.enabled)).toBe(true);
-    expect(isBotEnabled('dm-bot')).toBe(false); // efecto real en el estado, no solo en la respuesta
-
-    const one = (await (await post('/comment-bot/state', { enabled: true })).json()) as BotsBody;
-    expect(one.master.state).toBe('partial');
-    expect(one.bots.filter((b) => b.enabled).map((b) => b.id)).toEqual(['comment-bot']);
-
-    const back = (await (await post('/master', { enabled: true })).json()) as BotsBody;
-    expect(back.master.state).toBe('all-on');
+  it('cuenta nueva (free, sin tier seedeado): los 8 bots aparecen pero todos bloqueados, maestro all-off', async () => {
+    const body = (await (await get(freshUserId())).json()) as BotsBody;
+    expect(body.bots.every((b) => b.locked)).toBe(true);
+    expect(body.bots.every((b) => !b.enabled)).toBe(true);
+    expect(body.master).toMatchObject({ state: 'all-off', enabled: 0, locked: 8 });
   });
 
-  it('apagar un bot individual', async () => {
-    const r = (await (await post('/tiktok-bot/state', { enabled: false })).json()) as BotsBody;
-    expect(r.bots.find((b) => b.id === 'tiktok-bot')?.enabled).toBe(false);
-    expect(r.master.state).toBe('partial');
+  it('plan starter: desbloquea comment/dm/community/tiktok, deja bloqueados content/ads/computer-use/intelligence', async () => {
+    const u = freshUserId();
+    await seedTier(u, 'starter');
+    const body = (await (await get(u)).json()) as BotsBody;
+    const locked = (id: string): boolean => !!body.bots.find((b) => b.id === id)?.locked;
+    expect(locked('comment-bot')).toBe(false);
+    expect(locked('dm-bot')).toBe(false);
+    expect(locked('community-bot')).toBe(false);
+    expect(locked('tiktok-bot')).toBe(false);
+    expect(locked('content-bot')).toBe(true);
+    expect(locked('ads-bot')).toBe(true);
+    expect(locked('computer-use-bot')).toBe(true);
+    expect(locked('intelligence-bot')).toBe(true);
   });
 
-  it('valida la entrada: cuerpo inválido → 400, bot inexistente → 404 (y no toca el estado)', async () => {
-    expect((await post('/master', { enabled: 'si' })).status).toBe(400);
-    expect((await post('/master', {})).status).toBe(400);
-    expect((await post('/tiktok-bot/state', { enabled: 1 })).status).toBe(400);
-    expect((await post('/bot-fantasma/state', { enabled: false })).status).toBe(404);
-    expect(isBotEnabled('tiktok-bot')).toBe(true);
+  it('prender un bot que el plan no cubre → 403 tier-required (no cambia nada); prender uno cubierto → 200 y persiste', async () => {
+    const u = freshUserId();
+    await seedTier(u, 'starter');
+
+    const denied = await post('/content-bot/state', { enabled: true }, u);
+    expect(denied.status).toBe(403);
+    expect(await denied.json()).toMatchObject({ error: 'tier-required', requiredTier: 'pro', currentTier: 'starter' });
+
+    const ok = (await (await post('/comment-bot/state', { enabled: true }, u)).json()) as BotsBody;
+    expect(ok.bots.find((b) => b.id === 'comment-bot')).toMatchObject({ enabled: true, locked: false });
+
+    // Persiste: una consulta GET separada ve el mismo estado, no solo la respuesta del POST.
+    const again = (await (await get(u)).json()) as BotsBody;
+    expect(again.bots.find((b) => b.id === 'comment-bot')?.enabled).toBe(true);
   });
 
-  it('en producción sin FEEDIA_ADMIN_KEY: 503 en TODAS las rutas y no se cambia nada', async () => {
+  it('apagar un bot bloqueado nunca da 403 — bajar gasto siempre está permitido', async () => {
+    const u = freshUserId(); // free: todo bloqueado
+    const res = await post('/ads-bot/state', { enabled: false }, u);
+    expect(res.status).toBe(200);
+  });
+
+  it('valida la entrada: cuerpo inválido → 400, bot inexistente → 404', async () => {
+    const u = freshUserId();
+    expect((await post('/master', { enabled: 'si' }, u)).status).toBe(400);
+    expect((await post('/master', {}, u)).status).toBe(400);
+    expect((await post('/tiktok-bot/state', { enabled: 1 }, u)).status).toBe(400);
+    expect((await post('/bot-fantasma/state', { enabled: false }, u)).status).toBe(404);
+  });
+
+  it('en producción, sin FEEDIA_ADMIN_KEY configurada: GET y POST siguen andando (el gate ya no es la admin key)', async () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('FEEDIA_ADMIN_KEY', '');
-    expect((await fetch(base)).status).toBe(503);
-    expect((await post('/master', { enabled: false })).status).toBe(503);
-    expect((await post('/ads-bot/state', { enabled: false })).status).toBe(503);
-    expect(isBotEnabled('ads-bot')).toBe(true);
+    const u = freshUserId();
+    await seedTier(u, 'starter');
+    expect((await get(u)).status).toBe(200);
+    expect((await post('/master', { enabled: false }, u)).status).toBe(200);
+    expect((await post('/comment-bot/state', { enabled: true }, u)).status).toBe(200);
   });
 
-  it('con clave configurada: sin clave 403, con clave 200 y cambia', async () => {
+  it('admin key válida: bypass total, sin importar el plan de la cuenta', async () => {
     vi.stubEnv('FEEDIA_ADMIN_KEY', 'sekret');
-    expect((await post('/master', { enabled: false })).status).toBe(403);
-    expect(isBotEnabled('ads-bot')).toBe(true);
+    const u = freshUserId(); // free, nunca seedeado
+    const withKey = { 'x-admin-key': 'sekret' };
 
-    const ok = await fetch(`${base}/ads-bot/state`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-admin-key': 'sekret' },
-      body: JSON.stringify({ enabled: false }),
-    });
+    const body = (await (await get(u, withKey)).json()) as BotsBody;
+    expect(body.bots.every((b) => !b.locked)).toBe(true);
+
+    const ok = await post('/ads-bot/state', { enabled: true }, u, withKey);
     expect(ok.status).toBe(200);
-    expect(isBotEnabled('ads-bot')).toBe(false);
+
+    // Sin la clave, la misma cuenta vuelve a estar bloqueada.
+    const withoutKey = (await (await get(u)).json()) as BotsBody;
+    expect(withoutKey.bots.find((b) => b.id === 'ads-bot')?.locked).toBe(true);
+  });
+
+  it('botón maestro: prender solo restaura lo que el plan permite y reporta lo que se salteó', async () => {
+    const u = freshUserId();
+    await seedTier(u, 'starter');
+    await post('/master', { enabled: false }, u); // arranca de "todo apagado" explícito
+
+    const body = (await (await post('/master', { enabled: true }, u)).json()) as BotsBody;
+    expect(body.master.enabled).toBe(4); // comment/dm/community/tiktok
+    expect(body.skippedLocked).toHaveLength(4);
+    expect(body.skippedLocked).toEqual(
+      expect.arrayContaining(['content-bot', 'ads-bot', 'computer-use-bot', 'intelligence-bot']),
+    );
+    expect(body.bots.find((b) => b.id === 'content-bot')?.enabled).toBe(false);
   });
 });
 
@@ -238,38 +296,59 @@ describe('rutas del daemon (donde corren los bots)', () => {
     }
   });
 
-  it('GET /api/bots y el maestro funcionan igual que en Express', async () => {
-    const list = await call('GET', '/api/bots');
+  it('GET /api/bots y el maestro funcionan igual que en Express (con admin key: todo desbloqueado)', async () => {
+    vi.stubEnv('FEEDIA_ADMIN_KEY', 'sekret');
+    const withKey = { headers: { 'x-admin-key': 'sekret' } };
+
+    const list = await call('GET', '/api/bots', withKey);
     expect(list.status).toBe(200);
     expect((list.body as BotsBody).bots).toHaveLength(8);
 
-    const off = await call('POST', '/api/bots/master', { body: { enabled: false } });
+    const off = await call('POST', '/api/bots/master', { ...withKey, body: { enabled: false } });
     expect((off.body as BotsBody).master.state).toBe('all-off');
-    expect(isBotEnabled('comment-bot')).toBe(false);
   });
 
-  it('el interruptor individual usa :id y valida', async () => {
-    const ok = await call('POST', '/api/bots/:id/state', { params: { id: 'ads-bot' }, body: { enabled: false } });
-    expect(ok.status).toBe(200);
-    expect(isBotEnabled('ads-bot')).toBe(false);
-    expect(
-      (await call('POST', '/api/bots/:id/state', { params: { id: 'nope' }, body: { enabled: false } })).status,
-    ).toBe(404);
-    expect((await call('POST', '/api/bots/:id/state', { params: { id: 'ads-bot' }, body: {} })).status).toBe(400);
-  });
-
-  it('respeta el guard de admin (403 sin clave) y no cambia nada', async () => {
+  it('el interruptor individual usa :id y valida (con admin key: sin bloqueo por plan)', async () => {
     vi.stubEnv('FEEDIA_ADMIN_KEY', 'sekret');
-    const denied = await call('POST', '/api/bots/master', { body: { enabled: false } });
-    expect(denied).toEqual({ status: 403, body: { error: 'forbidden' } });
-    expect(isBotEnabled('comment-bot')).toBe(true);
+    const withKey = { headers: { 'x-admin-key': 'sekret' } };
 
-    const allowed = await call('POST', '/api/bots/master', {
+    const ok = await call('POST', '/api/bots/:id/state', {
+      ...withKey,
+      params: { id: 'ads-bot' },
       body: { enabled: false },
-      headers: { 'x-admin-key': 'sekret' },
     });
-    expect(allowed.status).toBe(200);
-    expect(isBotEnabled('comment-bot')).toBe(false);
+    expect(ok.status).toBe(200);
+    expect(
+      (await call('POST', '/api/bots/:id/state', { ...withKey, params: { id: 'nope' }, body: { enabled: false } }))
+        .status,
+    ).toBe(404);
+    expect(
+      (await call('POST', '/api/bots/:id/state', { ...withKey, params: { id: 'ads-bot' }, body: {} })).status,
+    ).toBe(400);
+  });
+
+  it('sin admin key: apagar funciona igual (self-service); prender algo fuera del plan da tier-required, no "forbidden"', async () => {
+    const asFree = { headers: { 'x-user-id': freshUserId() } };
+    const off = await call('POST', '/api/bots/master', { ...asFree, body: { enabled: false } });
+    expect(off.status).toBe(200);
+
+    const denied = await call('POST', '/api/bots/:id/state', {
+      ...asFree,
+      params: { id: 'comment-bot' },
+      body: { enabled: true },
+    });
+    expect(denied).toMatchObject({ status: 403, body: { error: 'tier-required', requiredTier: 'starter' } });
+  });
+
+  it('admin key inválida no bypassea nada (sigue evaluando por plan)', async () => {
+    vi.stubEnv('FEEDIA_ADMIN_KEY', 'sekret');
+    const wrongKey = { headers: { 'x-admin-key': 'otra', 'x-user-id': freshUserId() } };
+    const denied = await call('POST', '/api/bots/:id/state', {
+      ...wrongKey,
+      params: { id: 'comment-bot' },
+      body: { enabled: true },
+    });
+    expect(denied).toMatchObject({ status: 403, body: { error: 'tier-required' } });
   });
 
   it('las rutas de la cola del Comment Brain también están y también están protegidas', async () => {

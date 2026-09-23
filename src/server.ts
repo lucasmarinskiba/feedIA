@@ -87,6 +87,7 @@ import oauthInstagramRoutes from './api/oauth-instagram-routes.js';
 import publishingRoutes from './api/publishing-routes.js';
 import { startMetricsPolling } from './services/metrics-polling.js';
 import { initializeUserTiersTable, resetMonthlyUsage } from './db/user-tiers.js';
+import { initializeBotControlStateTable } from './capabilities/botControl/index.js';
 import { initializePaymentTokenTables } from './db/payments-tokens.js';
 import { initializeAccountsTables } from './db/accounts.js';
 // Used by /api/admin/migrate below — was never imported, so that whole
@@ -388,8 +389,11 @@ app.use('/api/cost-guardian', adminKeyAuth, costGuardianRoutes);
 // Mount comment brain review queue — third-party comments + reply drafts, admin key required
 app.use('/api/comment-brain', adminKeyAuth, commentBrainRoutes);
 
-// Mount bot control panel (on/off per bot + master switch) — controls spend, admin key required
-app.use('/api/bots', adminKeyAuth, botControlRoutes);
+// Mount bot control panel (on/off per bot + master switch) — gated by account
+// tier inside controlCore.ts's resolveCaller, not by adminKeyAuth: every
+// account sees all 8 bots and can enable whatever its plan unlocks. A valid
+// FEEDIA_ADMIN_KEY still works as an owner-only bypass, checked internally.
+app.use('/api/bots', botControlRoutes);
 
 // Mount creativity/ocurrencia routes (wit analysis + twist injection + cliché removal)
 app.use('/api/creativity', creativityRoutes);
@@ -668,6 +672,7 @@ Promise.all([
   carouselDB.initialize(),
   initializeUserTiersTable(),
   initializeAccountsTables(),
+  initializeBotControlStateTable(),
   initializePaymentTokenTables(),
   initializeQuotaLogging(),
   initFeedbackSchema(),

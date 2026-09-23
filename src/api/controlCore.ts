@@ -24,7 +24,16 @@ import type { IncomingHttpHeaders } from 'node:http';
 import { z } from 'zod';
 import { log } from '../agent/logger.js';
 import { env } from '../config/index.js';
-import { getBotControlSnapshot, isBotId, setAllBots, setBotEnabled } from '../capabilities/botControl/index.js';
+import {
+  botsForJob,
+  classifyJob,
+  getAccountSnapshot,
+  isBotId,
+  setAccountBotEnabled,
+  setAllAccountBots,
+  type BotDefinition,
+} from '../capabilities/botControl/index.js';
+import { getOrCreateUserTier, type UserTier } from '../db/user-tiers.js';
 import {
   approveReview,
   evaluateGraduation,
@@ -95,6 +104,11 @@ export const checkAdminAccess = (
 };
 
 // ── Bots ──────────────────────────────────────────────────────────────────────
+//
+// El panel de bots ya NO se bloquea por FEEDIA_ADMIN_KEY: cada cuenta ve los 8
+// bots siempre, y puede prender los que su plan (user_tiers) desbloquea — ver
+// BotDefinition.minTier en botControl/registry.ts. La admin key sigue sirviendo
+// de bypass total (dueño de la instancia), pero dejó de ser el gate principal.
 
 const EnabledBodySchema = z.object({ enabled: z.boolean() });
 
@@ -108,34 +122,83 @@ const loadJobNames = async (): Promise<string[] | undefined> => {
   }
 };
 
-export const listBots = async (): Promise<CoreResponse> => {
+interface Caller {
+  userId: string;
+  tier: UserTier;
+  /** Presentó una FEEDIA_ADMIN_KEY válida: bypassea el gate de plan por completo. */
+  isOwner: boolean;
+}
+
+const resolveCaller = async (headers: IncomingHttpHeaders): Promise<Caller> => {
+  const userId = (headers['x-user-id'] as string | undefined)?.trim() || 'test-user';
+  const adminKeys = parseKeys(process.env['FEEDIA_ADMIN_KEY']);
+  const presented = extractKey(headers);
+  const isOwner = adminKeys.length > 0 && !!presented && safeMatch(presented, adminKeys);
+  if (isOwner) return { userId, tier: 'agency', isOwner: true };
+  const tierRecord = await getOrCreateUserTier(userId);
+  return { userId, tier: tierRecord.tier, isOwner: false };
+};
+
+const listBotsFor = async (caller: Caller): Promise<CoreResponse> => {
+  const jobNames = await loadJobNames();
+  const jobCounter = jobNames
+    ? (bot: BotDefinition): number =>
+        jobNames.filter((n) => classifyJob(n).kind === 'bots' && botsForJob(n).includes(bot.id)).length
+    : undefined;
+  const snapshot = await getAccountSnapshot(caller.userId, caller.tier, caller.isOwner, jobCounter);
+  return {
+    status: 200,
+    body: {
+      ok: true,
+      ...snapshot,
+      corrupt: false,
+      ...(jobNames ? { infraJobs: jobNames.filter((n) => classifyJob(n).kind === 'infra').length } : {}),
+    },
+  };
+};
+
+export const listBots = async (headers: IncomingHttpHeaders): Promise<CoreResponse> => {
   try {
-    return { status: 200, body: { ok: true, ...getBotControlSnapshot(await loadJobNames()) } };
+    return await listBotsFor(await resolveCaller(headers));
   } catch (err) {
     log.error(`[bots] list: ${err instanceof Error ? err.message : String(err)}`);
     return { status: 500, body: { error: 'bots-list' } };
   }
 };
 
-export const setMaster = async (body: unknown): Promise<CoreResponse> => {
+export const setMaster = async (headers: IncomingHttpHeaders, body: unknown): Promise<CoreResponse> => {
   const parsed = EnabledBodySchema.safeParse(body);
   if (!parsed.success) return { status: 400, body: { ok: false, error: parsed.error.issues } };
   try {
-    setAllBots(parsed.data.enabled);
-    return listBots();
+    const caller = await resolveCaller(headers);
+    const { restored, skippedLocked } = await setAllAccountBots(
+      caller.userId,
+      caller.tier,
+      caller.isOwner,
+      parsed.data.enabled,
+    );
+    const res = await listBotsFor(caller);
+    return { ...res, body: { ...(res.body as object), restored, skippedLocked } };
   } catch (err) {
     log.error(`[bots] master: ${err instanceof Error ? err.message : String(err)}`);
     return { status: 500, body: { error: 'bots-master' } };
   }
 };
 
-export const setBot = async (id: string, body: unknown): Promise<CoreResponse> => {
+export const setBot = async (id: string, headers: IncomingHttpHeaders, body: unknown): Promise<CoreResponse> => {
   if (!isBotId(id)) return { status: 404, body: { ok: false, error: 'unknown-bot' } };
   const parsed = EnabledBodySchema.safeParse(body);
   if (!parsed.success) return { status: 400, body: { ok: false, error: parsed.error.issues } };
   try {
-    setBotEnabled(id, parsed.data.enabled);
-    return listBots();
+    const caller = await resolveCaller(headers);
+    const result = await setAccountBotEnabled(caller.userId, caller.tier, caller.isOwner, id, parsed.data.enabled);
+    if (!result.ok) {
+      return {
+        status: 403,
+        body: { ok: false, error: 'tier-required', requiredTier: result.requiredTier, currentTier: caller.tier },
+      };
+    }
+    return listBotsFor(caller);
   } catch (err) {
     log.error(`[bots] set ${id}: ${err instanceof Error ? err.message : String(err)}`);
     return { status: 500, body: { error: 'bots-set' } };

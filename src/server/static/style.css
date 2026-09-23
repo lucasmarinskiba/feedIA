@@ -11925,6 +11925,32 @@ details[open] > summary::after {
   color: var(--warn, #f59e0b);
   background: rgba(245, 158, 11, 0.1);
 }
+.bots-row-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warn, #f59e0b);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+.bots-row-locked .bots-row-desc,
+.bots-row-locked .bots-row-meta {
+  opacity: 0.7;
+}
+.bots-switch-locked {
+  opacity: 0.55;
+}
+.bots-switch-locked .bots-switch-track {
+  background: var(--bg-glass, rgba(255, 255, 255, 0.04));
+}
+.bots-chip-locked {
+  opacity: 0.6;
+}
 
 @media (pointer: coarse) {
   .bots-switch,

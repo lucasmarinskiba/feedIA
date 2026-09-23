@@ -11,14 +11,16 @@
    que el servidor devuelve tras cada cambio.
    ══════════════════════════════════════════════════════════════════════════════ */
 import { apiBust } from './api.js';
-import { adminApi, askAdminKey, clearAdminKey, isAuthError } from './adminKey.js';
+import { adminApi } from './adminKey.js';
 import { toast } from './toast.js';
 
 const POLL_MS = 30_000;
 
+// Plan → texto corto para el badge de un bot bloqueado.
+const TIER_LABEL = { free: 'Free', starter: 'Starter', pro: 'Pro', agency: 'Agency' };
+
 let snapshot = null; // último estado devuelto por el servidor
-let unavailable = ''; // motivo por el que no se puede controlar (vacío = ok)
-let needsKey = false; // el servidor pidió la clave de admin (401/403): el maestro sirve para ingresarla
+let unavailable = ''; // el backend no respondió (red caída, 404, 5xx) — no incluye "bloqueado por plan"
 let busy = false;
 let route = '';
 let panelOpen = false;
@@ -71,18 +73,19 @@ const ensureStrip = () => {
 
 /* ── Red ──────────────────────────────────────────────────────────────────── */
 
+/** Errores de backend genuino — YA NO incluye 401/403/503 "falta la clave":
+ * el panel se lee siempre (el gate ahora es el plan de la cuenta, evaluado
+ * bot por bot vía `locked`, no una puerta a la lista completa). */
 const describeError = (err) => {
   const s = err?.status;
-  if (s === 401 || s === 403) return 'Hace falta la clave de admin para controlar los bots.';
-  if (s === 503)
-    return 'El servidor no tiene FEEDIA_ADMIN_KEY configurada: el control de bots está bloqueado por seguridad.';
   if (s === 404 || err?.code === 'API_NOT_FOUND')
     return 'Este servidor no tiene el panel de bots todavía. Reinicialo para activarlo.';
   return 'Sin conexión con el servidor.';
 };
 
-/** interactive=true: si el servidor pide clave, se la pide al usuario (solo tras una acción suya, nunca en el polling). */
-const request = (path, opts = {}, interactive = false) => adminApi(path, opts, { interactive });
+/** Nunca pide la clave de admin acá — eso es solo para el dueño de la instancia (ver comentReview.js).
+ * Si ya hay una clave cargada en memoria (desbloqueada desde otra pantalla) se manda igual, como bypass. */
+const request = (path, opts = {}) => adminApi(path, opts, { interactive: false });
 
 let loadInFlight = null;
 
@@ -91,10 +94,8 @@ const doLoad = async () => {
   try {
     snapshot = await request('/api/bots');
     unavailable = '';
-    needsKey = false;
   } catch (err) {
     unavailable = describeError(err);
-    needsKey = isAuthError(err);
   }
   // El polling no debe repintar (ni robar el foco del teclado) si nada cambió.
   if (JSON.stringify([snapshot, unavailable]) !== before) render();
@@ -117,62 +118,59 @@ const mutate = async (path, enabled, okMessage) => {
   busy = true;
   render();
   try {
-    snapshot = await request(path, { method: 'POST', body: { enabled } }, true);
+    snapshot = await request(path, { method: 'POST', body: { enabled } });
     unavailable = '';
-    needsKey = false;
     apiBust('/api/bots');
     toast(okMessage(snapshot), 'info');
     window.dispatchEvent(new CustomEvent('feedia:bots-changed', { detail: snapshot }));
   } catch (err) {
-    unavailable = describeError(err);
-    needsKey = isAuthError(err);
-    if (needsKey) clearAdminKey(); // la clave era incorrecta: que el próximo intento la vuelva a pedir
-    toast(unavailable, 'error');
+    if (err?.code === 'tier-required') {
+      const need = TIER_LABEL[err.payload?.requiredTier] ?? err.payload?.requiredTier ?? 'superior';
+      toast(`Este bot necesita el plan ${need} o superior.`, 'warn');
+    } else {
+      unavailable = describeError(err);
+      toast(unavailable, 'error');
+    }
   } finally {
     busy = false;
     render();
   }
 };
 
-const toggleBot = (bot) =>
-  mutate(
+const toggleBot = (bot) => {
+  if (bot.locked) {
+    const need = TIER_LABEL[bot.requiredTier] ?? bot.requiredTier;
+    toast(`${bot.label} necesita el plan ${need} o superior.`, 'warn');
+    return;
+  }
+  return mutate(
     `/api/bots/${encodeURIComponent(bot.id)}/state`,
     !bot.enabled,
     () => `${bot.label}: ${!bot.enabled ? 'encendido' : 'apagado'}`,
   );
-
-/** Sin clave (o con una incorrecta) el maestro se convierte en "ingresar clave": si no, el usuario nunca llegaría a ver el prompt. */
-const unlock = async () => {
-  if (!askAdminKey()) return;
-  await load();
-  if (needsKey) {
-    clearAdminKey();
-    toast('La clave no es válida.', 'error');
-  } else {
-    toast('Control de bots desbloqueado.', 'info');
-  }
 };
 
-/** Clic en el maestro: si está todo apagado → restaura; en cualquier otro estado → apaga todo. */
+/** Clic en el maestro: si está todo apagado → restaura (solo lo que el plan permite); en cualquier otro estado → apaga todo. */
 const toggleMaster = () => {
   const turnOn = snapshot?.master?.state === 'all-off';
-  return mutate('/api/bots/master', turnOn, (s) =>
-    turnOn
-      ? `Bots restaurados (${s.master.enabled}/${s.master.total} encendidos)`
-      : 'Todos los bots apagados. Podés reactivar los que quieras.',
-  );
+  return mutate('/api/bots/master', turnOn, (s) => {
+    if (!turnOn) return 'Todos los bots apagados. Podés reactivar los que quieras.';
+    const skipped = s.skippedLocked?.length ?? 0;
+    return skipped > 0
+      ? `${s.master.enabled}/${s.master.total} bots encendidos — ${skipped} necesitan un plan superior.`
+      : `Bots restaurados (${s.master.enabled}/${s.master.total} encendidos)`;
+  });
 };
 
 /* ── Render ───────────────────────────────────────────────────────────────── */
 
 const masterLabel = () => {
-  if (needsKey) return 'Bots 🔒';
   if (unavailable) return 'Bots';
   if (!snapshot) return 'Bots…';
-  const { state, enabled, total } = snapshot.master;
-  if (state === 'all-on') return 'Bots ON';
+  const { state, enabled, total, locked } = snapshot.master;
+  if (state === 'all-on') return locked > 0 ? `Bots ON (${locked} 🔒)` : 'Bots ON';
   if (state === 'all-off') return 'Bots OFF';
-  return `Bots ${enabled}/${total}`;
+  return `Bots ${enabled}/${total - locked}`;
 };
 
 const masterState = () => (unavailable ? 'unavailable' : (snapshot?.master?.state ?? 'loading'));
@@ -232,23 +230,33 @@ const renderPanel = () => {
 
   const list = el('ul', { class: 'bots-list' });
   for (const bot of snapshot.bots) {
-    const meta = [bot.jobs != null ? `${bot.jobs} tarea${bot.jobs === 1 ? '' : 's'}` : '', bot.costly ? 'gasta IA' : '']
+    const need = TIER_LABEL[bot.requiredTier] ?? bot.requiredTier;
+    const meta = [
+      bot.jobs != null ? `${bot.jobs} tarea${bot.jobs === 1 ? '' : 's'}` : '',
+      bot.costly ? 'gasta IA' : '',
+      bot.locked ? `plan ${need}+` : '',
+    ]
       .filter(Boolean)
       .join(' · ');
     list.append(
-      el('li', { class: 'bots-row' }, [
+      el('li', { class: `bots-row${bot.locked ? ' bots-row-locked' : ''}` }, [
         el('div', { class: 'bots-row-text' }, [
-          el('span', { class: 'bots-row-name', text: bot.label }),
+          el('span', { class: 'bots-row-name' }, [
+            bot.label,
+            bot.locked ? el('span', { class: 'bots-row-badge', text: `Plan ${need}+` }) : null,
+          ]),
           el('span', { class: 'bots-row-desc', text: bot.description }),
           meta ? el('span', { class: 'bots-row-meta', text: meta }) : null,
         ]),
         wire(
           switchButton({
             key: `row:${bot.id}`,
-            label: bot.enabled ? 'ON' : 'OFF',
+            label: bot.locked ? '🔒' : bot.enabled ? 'ON' : 'OFF',
             checked: bot.enabled,
-            extraClass: 'bots-switch-sm',
-            title: `${bot.label}: ${bot.enabled ? 'apagar' : 'encender'}`,
+            extraClass: `bots-switch-sm${bot.locked ? ' bots-switch-locked' : ''}`,
+            title: bot.locked
+              ? `Necesita el plan ${need} o superior`
+              : `${bot.label}: ${bot.enabled ? 'apagar' : 'encender'}`,
           }),
           () => toggleBot(bot),
         ),
@@ -256,7 +264,10 @@ const renderPanel = () => {
     );
     list.lastChild
       .querySelector('button')
-      ?.setAttribute('aria-label', `${bot.label}: ${bot.enabled ? 'encendido' : 'apagado'}`);
+      ?.setAttribute(
+        'aria-label',
+        bot.locked ? `${bot.label}: requiere plan ${need}` : `${bot.label}: ${bot.enabled ? 'encendido' : 'apagado'}`,
+      );
   }
   panel.append(list);
 
@@ -285,42 +296,40 @@ const render = () => {
       key: 'master',
       label: masterLabel(),
       checked: state !== 'all-off' && state !== 'unavailable' && state !== 'loading',
-      disabled: !needsKey && (!!unavailable || !snapshot),
+      disabled: !!unavailable || !snapshot,
       extraClass: `bots-master bots-master-${state}`,
-      title: needsKey
-        ? 'Ingresar la clave de admin para controlar los bots'
-        : unavailable ||
-          (state === 'all-off'
-            ? 'Restaurar los bots que estaban encendidos'
-            : 'Apagar todos los bots (después podés reactivar los que quieras)'),
+      title:
+        unavailable ||
+        (state === 'all-off'
+          ? 'Restaurar los bots que tu plan permite'
+          : 'Apagar todos los bots (después podés reactivar los que quieras)'),
     }),
-    () => (needsKey ? unlock() : toggleMaster()),
+    toggleMaster,
   );
   master.dataset.state = state;
-  master.setAttribute(
-    'aria-label',
-    needsKey
-      ? 'Bots: ingresar la clave de admin'
-      : unavailable
-        ? `Bots: ${unavailable}`
-        : 'Bots automáticos: encender o apagar todos',
-  );
+  master.setAttribute('aria-label', unavailable ? `Bots: ${unavailable}` : 'Bots automáticos: encender o apagar todos');
   strip.append(master);
 
   const chips = el('div', { class: 'bots-chips', role: 'group', 'aria-label': 'Bots de esta vista' });
   if (snapshot && !unavailable) {
     for (const bot of snapshot.bots.filter((b) => b.views.includes(route))) {
+      const need = TIER_LABEL[bot.requiredTier] ?? bot.requiredTier;
       const chip = wire(
         switchButton({
           key: `chip:${bot.id}`,
-          label: bot.label,
+          label: bot.locked ? `${bot.label} 🔒` : bot.label,
           checked: bot.enabled,
-          extraClass: 'bots-chip',
-          title: `${bot.label}: ${bot.enabled ? 'apagar' : 'encender'}`,
+          extraClass: `bots-chip${bot.locked ? ' bots-chip-locked' : ''}`,
+          title: bot.locked
+            ? `Necesita el plan ${need} o superior`
+            : `${bot.label}: ${bot.enabled ? 'apagar' : 'encender'}`,
         }),
         () => toggleBot(bot),
       );
-      chip.setAttribute('aria-label', `${bot.label}: ${bot.enabled ? 'encendido' : 'apagado'}`);
+      chip.setAttribute(
+        'aria-label',
+        bot.locked ? `${bot.label}: requiere plan ${need}` : `${bot.label}: ${bot.enabled ? 'encendido' : 'apagado'}`,
+      );
       chips.append(chip);
     }
   }

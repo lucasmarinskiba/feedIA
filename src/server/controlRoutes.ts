@@ -32,13 +32,23 @@ const guarded =
     json(ctx.res, response.status, response.body);
   };
 
+const respond =
+  (run: (ctx: RouteContext) => CoreResponse | Promise<CoreResponse>): RouteHandler =>
+  async (ctx): Promise<void> => {
+    const response = await run(ctx);
+    json(ctx.res, response.status, response.body);
+  };
+
 export const buildControlRoutes = (): RouteDefinition[] => [
-  { method: 'GET', pattern: '/api/bots', handler: guarded(() => listBots()) },
-  { method: 'POST', pattern: '/api/bots/master', handler: guarded((ctx) => setMaster(ctx.body)) },
+  // /api/bots ya no pasa por `guarded` (admin-key-only) — controlCore.listBots/setBot/setMaster
+  // resuelven el gate por plan internamente (ver resolveCaller); una admin key válida sigue
+  // funcionando como bypass, ahora evaluada adentro en vez de acá afuera.
+  { method: 'GET', pattern: '/api/bots', handler: respond((ctx) => listBots(ctx.req.headers)) },
+  { method: 'POST', pattern: '/api/bots/master', handler: respond((ctx) => setMaster(ctx.req.headers, ctx.body)) },
   {
     method: 'POST',
     pattern: '/api/bots/:id/state',
-    handler: guarded((ctx) => setBot(ctx.params['id'] ?? '', ctx.body)),
+    handler: respond((ctx) => setBot(ctx.params['id'] ?? '', ctx.req.headers, ctx.body)),
   },
   { method: 'GET', pattern: '/api/comment-brain/status', handler: guarded(() => brainStatus()) },
   { method: 'GET', pattern: '/api/comment-brain/review', handler: guarded((ctx) => brainReview(ctx.query)) },

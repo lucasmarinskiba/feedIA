@@ -12,6 +12,8 @@
  * que el usuario espera (un post programado que no sale).
  */
 
+import type { UserTier } from '../../db/user-tiers.js';
+
 export type BotId =
   | 'comment-bot'
   | 'dm-bot'
@@ -32,7 +34,12 @@ export interface BotDefinition {
   defaultEnabled: boolean;
   /** Vistas de la SPA donde la barra de herramientas muestra este bot. */
   views: string[];
+  /** Plan mínimo que desbloquea este bot. La cuenta lo ve siempre; prenderlo por debajo de esto es lo que se bloquea. */
+  minTier: UserTier;
 }
+
+/** Orden de los planes, de menor a mayor — para comparar "¿esta cuenta llega al mínimo del bot?". */
+export const TIER_RANK: Readonly<Record<UserTier, number>> = { free: 0, starter: 1, pro: 2, agency: 3 };
 
 export const BOTS: readonly BotDefinition[] = [
   {
@@ -42,6 +49,7 @@ export const BOTS: readonly BotDefinition[] = [
     costly: true,
     defaultEnabled: true,
     views: ['inbox', 'community', 'community-manager', 'revision', 'crisis', 'home', 'feed'],
+    minTier: 'starter',
   },
   {
     id: 'dm-bot',
@@ -50,6 +58,7 @@ export const BOTS: readonly BotDefinition[] = [
     costly: true,
     defaultEnabled: true,
     views: ['inbox', 'community', 'community-manager', 'crisis'],
+    minTier: 'starter',
   },
   {
     id: 'community-bot',
@@ -58,6 +67,7 @@ export const BOTS: readonly BotDefinition[] = [
     costly: true,
     defaultEnabled: true,
     views: ['community', 'community-manager', 'collab', 'ugc', 'inbox'],
+    minTier: 'starter',
   },
   {
     id: 'content-bot',
@@ -79,6 +89,7 @@ export const BOTS: readonly BotDefinition[] = [
       'brandkit',
       'diseñador',
     ],
+    minTier: 'pro',
   },
   {
     id: 'tiktok-bot',
@@ -87,6 +98,7 @@ export const BOTS: readonly BotDefinition[] = [
     costly: true,
     defaultEnabled: true,
     views: ['studio-tiktok', 'studio-tiktok-script', 'studio-tiktok-photo', 'community-manager'],
+    minTier: 'starter',
   },
   {
     id: 'computer-use-bot',
@@ -95,6 +107,7 @@ export const BOTS: readonly BotDefinition[] = [
     costly: true,
     defaultEnabled: true,
     views: ['pantalla', 'replay', 'vision', 'visión', 'studio-manager', 'canva-runner', 'handsfree'],
+    minTier: 'pro',
   },
   {
     id: 'ads-bot',
@@ -103,6 +116,7 @@ export const BOTS: readonly BotDefinition[] = [
     costly: true,
     defaultEnabled: true,
     views: ['analytics', 'experiments', 'reportes', 'imperio'],
+    minTier: 'agency',
   },
   {
     id: 'intelligence-bot',
@@ -111,8 +125,13 @@ export const BOTS: readonly BotDefinition[] = [
     costly: true,
     defaultEnabled: true,
     views: ['agents', 'skills', 'predictor', 'audit', 'optimize', 'inteligencia', 'brujula', 'assistant', 'glassbox'],
+    minTier: 'agency',
   },
 ];
+
+/** ¿La cuenta con este plan puede prender este bot? */
+export const tierUnlocksBot = (tier: UserTier, bot: BotDefinition): boolean =>
+  TIER_RANK[tier] >= TIER_RANK[bot.minTier];
 
 export const BOT_IDS: readonly BotId[] = BOTS.map((b) => b.id);
 
