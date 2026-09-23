@@ -8,8 +8,13 @@ output
 .env
 .env.local
 src/skills/carrusel-instagram/.env
-# Exclude TypeScript source — Vercel only needs public/ and api/
-src
+# src/server/static/ is the real frontend source — build:static (esbuild)
+# compiles it into dist-static/. Everything else under src/ (server.ts,
+# capabilities/, etc.) isn't used by the Vercel build, but excluding "src"
+# wholesale also hid src/server/static from the upload, which silently kept
+# Vercel building an ancient snapshot for weeks. Simplest correct fix: stop
+# excluding src/ at all — it's source, not secrets, and this is a build-time
+# ignore file, not a deploy-time content filter.
 supabase
 feedIA
 tsconfig*.json

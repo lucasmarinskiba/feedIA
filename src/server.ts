@@ -54,6 +54,8 @@ import { feedIADatabase } from './db/database.js';
 import { BrandProfileSchema } from './config/types.js';
 import { startPollingScheduler } from './workers/metricsPollingOrchestrator.js';
 import createStudioRoutes from './server/studioRoutes.js';
+import { buildExtendedRoutes } from './server/extendedRoutes.js';
+import { createRequestHandler } from './server/http.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
@@ -507,6 +509,22 @@ app.get('/api/debug/memorydb', async (_req: Request, res: Response): Promise<voi
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }
+});
+
+// Community Manager backend (inbox/support/FAQ/leads/UGC/etc — /api/cm/*).
+// These routes live in extendedRoutes.ts, written for the separate home-grown
+// http.js server (src/server/index.ts, only ever run via `tsx src/cli.ts` in
+// dev) and never mounted on this Express app — so every /api/cm/* request
+// fell through to the SPA catch-all below and got index.html back instead of
+// JSON. createRequestHandler is a plain (req,res) Node handler, Express-
+// compatible; scoped to /api/cm/ so its internal 404 fallback never swallows
+// other routes.
+const cmRequestHandler = createRequestHandler(
+  buildExtendedRoutes(mockBrand).filter((r) => r.pattern.startsWith('/api/cm/')),
+);
+app.use((req: Request, res: Response, next) => {
+  if (!req.path.startsWith('/api/cm/')) return next();
+  cmRequestHandler(req, res);
 });
 
 // Pricing page (embedded HTML constant, served before SPA catch-all)
