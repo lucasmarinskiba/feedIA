@@ -110,24 +110,24 @@ describe('Express /api/bots — gate por plan, no por admin key', () => {
       body: JSON.stringify(body),
     });
 
-  it('GET siempre devuelve los 8 bots (nunca se filtra la lista) con cuántas tareas gobierna cada uno', async () => {
+  it('GET siempre devuelve los 12 bots (nunca se filtra la lista) con cuántas tareas gobierna cada uno', async () => {
     const res = await get(freshUserId());
     const body = (await res.json()) as BotsBody;
     expect(res.status).toBe(200);
-    expect(body.bots).toHaveLength(8);
+    expect(body.bots).toHaveLength(12);
     expect(body.infraJobs).toBe(1); // calendar-dispatcher
     expect(body.bots.find((b) => b.id === 'dm-bot')?.jobs).toBe(2); // bot-poll + cm-inbox-tick
     expect(body.bots.find((b) => b.id === 'comment-bot')?.views).toContain('inbox');
   });
 
-  it('cuenta nueva (free, sin tier seedeado): los 8 bots aparecen pero todos bloqueados, maestro all-off', async () => {
+  it('cuenta nueva (free, sin tier seedeado): los 12 bots aparecen pero todos bloqueados, maestro all-off', async () => {
     const body = (await (await get(freshUserId())).json()) as BotsBody;
     expect(body.bots.every((b) => b.locked)).toBe(true);
     expect(body.bots.every((b) => !b.enabled)).toBe(true);
-    expect(body.master).toMatchObject({ state: 'all-off', enabled: 0, locked: 8 });
+    expect(body.master).toMatchObject({ state: 'all-off', enabled: 0, locked: 12 });
   });
 
-  it('plan starter: desbloquea comment/dm/community/tiktok, deja bloqueados content/ads/computer-use/intelligence', async () => {
+  it('plan starter: desbloquea comment/dm/community/tiktok, deja bloqueados el resto (pro/agency)', async () => {
     const u = freshUserId();
     await seedTier(u, 'starter');
     const body = (await (await get(u)).json()) as BotsBody;
@@ -136,17 +136,21 @@ describe('Express /api/bots — gate por plan, no por admin key', () => {
     expect(locked('dm-bot')).toBe(false);
     expect(locked('community-bot')).toBe(false);
     expect(locked('tiktok-bot')).toBe(false);
-    expect(locked('content-bot')).toBe(true);
-    expect(locked('ads-bot')).toBe(true);
+    expect(locked('design-bot')).toBe(true);
+    expect(locked('video-bot')).toBe(true);
+    expect(locked('strategy-bot')).toBe(true);
     expect(locked('computer-use-bot')).toBe(true);
-    expect(locked('intelligence-bot')).toBe(true);
+    expect(locked('growth-bot')).toBe(true);
+    expect(locked('brain-bot')).toBe(true);
+    expect(locked('quality-bot')).toBe(true);
+    expect(locked('ads-bot')).toBe(true);
   });
 
   it('prender un bot que el plan no cubre → 403 tier-required (no cambia nada); prender uno cubierto → 200 y persiste', async () => {
     const u = freshUserId();
     await seedTier(u, 'starter');
 
-    const denied = await post('/content-bot/state', { enabled: true }, u);
+    const denied = await post('/design-bot/state', { enabled: true }, u);
     expect(denied.status).toBe(403);
     expect(await denied.json()).toMatchObject({ error: 'tier-required', requiredTier: 'pro', currentTier: 'starter' });
 
@@ -205,11 +209,20 @@ describe('Express /api/bots — gate por plan, no por admin key', () => {
 
     const body = (await (await post('/master', { enabled: true }, u)).json()) as BotsBody;
     expect(body.master.enabled).toBe(4); // comment/dm/community/tiktok
-    expect(body.skippedLocked).toHaveLength(4);
+    expect(body.skippedLocked).toHaveLength(8);
     expect(body.skippedLocked).toEqual(
-      expect.arrayContaining(['content-bot', 'ads-bot', 'computer-use-bot', 'intelligence-bot']),
+      expect.arrayContaining([
+        'design-bot',
+        'video-bot',
+        'strategy-bot',
+        'computer-use-bot',
+        'growth-bot',
+        'brain-bot',
+        'quality-bot',
+        'ads-bot',
+      ]),
     );
-    expect(body.bots.find((b) => b.id === 'content-bot')?.enabled).toBe(false);
+    expect(body.bots.find((b) => b.id === 'design-bot')?.enabled).toBe(false);
   });
 });
 
@@ -302,7 +315,7 @@ describe('rutas del daemon (donde corren los bots)', () => {
 
     const list = await call('GET', '/api/bots', withKey);
     expect(list.status).toBe(200);
-    expect((list.body as BotsBody).bots).toHaveLength(8);
+    expect((list.body as BotsBody).bots).toHaveLength(12);
 
     const off = await call('POST', '/api/bots/master', { ...withKey, body: { enabled: false } });
     expect((off.body as BotsBody).master.state).toBe('all-off');

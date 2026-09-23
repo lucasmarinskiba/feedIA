@@ -51,7 +51,7 @@ describe('triggerConnector + Bot Control', () => {
   });
 
   it('los eventos analíticos dependen del bot de inteligencia, no de los de mensajes', async () => {
-    setBotEnabled('intelligence-bot', false);
+    setBotEnabled('brain-bot', false);
     await fire('anomaly_detected');
     await fire('trend_detected');
     expect(handleEvent).not.toHaveBeenCalled();

@@ -3,9 +3,14 @@
  *
  * Un "bot" es una unidad que el usuario puede prender/apagar: agrupa procesos
  * autónomos que actúan o gastan LLM sin que nadie los pida. La clasificación de
- * jobs es explícita; lo que no esté clasificado cae en `intelligence-bot` (nunca
- * en "siempre encendido"), para que apagar todo apague de verdad todo el gasto
+ * jobs es explícita; lo que no esté clasificado cae en `brain-bot` (nunca en
+ * "siempre encendido"), para que apagar todo apague de verdad todo el gasto
  * autónomo y un job nuevo no se escape del control sin que nadie lo note.
+ *
+ * `content-bot` e `intelligence-bot` (versiones anteriores de este registro)
+ * eran cajones de sastre — 28 y 67 jobs respectivamente, sin ninguna forma de
+ * apagar solo una parte. Separados en 6 bots más chicos y reconocibles para
+ * que "Todos los bots" refleje de verdad qué está corriendo.
  *
  * INFRA = jobs que NO se pueden apagar desde acá: publican lo que una persona
  * ya programó, miden salud o limpian. No gastan LLM o su apagado rompería algo
@@ -18,11 +23,15 @@ export type BotId =
   | 'comment-bot'
   | 'dm-bot'
   | 'community-bot'
-  | 'content-bot'
   | 'tiktok-bot'
+  | 'design-bot'
+  | 'video-bot'
+  | 'strategy-bot'
   | 'computer-use-bot'
-  | 'ads-bot'
-  | 'intelligence-bot';
+  | 'growth-bot'
+  | 'brain-bot'
+  | 'quality-bot'
+  | 'ads-bot';
 
 export interface BotDefinition {
   id: BotId;
@@ -70,28 +79,6 @@ export const BOTS: readonly BotDefinition[] = [
     minTier: 'starter',
   },
   {
-    id: 'content-bot',
-    label: 'Contenido',
-    description: 'Crea contenido solo: ciclo CMO, autopilot semanal, stories, diseños, videos y reels.',
-    costly: true,
-    defaultEnabled: true,
-    views: [
-      'calendar',
-      'scheduler',
-      'autopilot',
-      'studio-carousel',
-      'studio-reel',
-      'studio-stories',
-      'curator',
-      'forge',
-      'mission',
-      'hooks',
-      'brandkit',
-      'diseñador',
-    ],
-    minTier: 'pro',
-  },
-  {
     id: 'tiktok-bot',
     label: 'TikTok',
     description: 'Detecta tendencias, optimiza FYP y produce contenido nativo de TikTok.',
@@ -99,6 +86,33 @@ export const BOTS: readonly BotDefinition[] = [
     defaultEnabled: true,
     views: ['studio-tiktok', 'studio-tiktok-script', 'studio-tiktok-photo', 'community-manager'],
     minTier: 'starter',
+  },
+  {
+    id: 'design-bot',
+    label: 'Diseño y Carruseles',
+    description: 'Curaduría de assets, stories y render de carruseles/diseños del studio.',
+    costly: true,
+    defaultEnabled: true,
+    views: ['studio-carousel', 'studio-stories', 'curator', 'brandkit', 'diseñador', 'forge'],
+    minTier: 'pro',
+  },
+  {
+    id: 'video-bot',
+    label: 'Video y Reels',
+    description: 'Edición y producción de video: Canva, CapCut, audio, efectos AR y reels.',
+    costly: true,
+    defaultEnabled: true,
+    views: ['studio-reel', 'hooks'],
+    minTier: 'pro',
+  },
+  {
+    id: 'strategy-bot',
+    label: 'Estrategia y Calendario',
+    description: 'Planifica el calendario, rota hashtags, corre playbooks y el ciclo CMO/autopilot.',
+    costly: true,
+    defaultEnabled: true,
+    views: ['calendar', 'scheduler', 'autopilot', 'mission'],
+    minTier: 'pro',
   },
   {
     id: 'computer-use-bot',
@@ -110,21 +124,39 @@ export const BOTS: readonly BotDefinition[] = [
     minTier: 'pro',
   },
   {
+    id: 'growth-bot',
+    label: 'Growth y Analytics',
+    description: 'KPIs, reportes periódicos, tendencias, competidores y seguimiento de objetivos.',
+    costly: true,
+    defaultEnabled: true,
+    views: ['predictor', 'optimize', 'inteligencia', 'brujula'],
+    minTier: 'agency',
+  },
+  {
+    id: 'brain-bot',
+    label: 'Cerebro y Memoria',
+    description: 'Orquestación central, memoria semántica/RAG, swarm de agentes y evolución del sistema.',
+    costly: true,
+    defaultEnabled: true,
+    views: ['agents', 'skills', 'assistant', 'glassbox'],
+    minTier: 'agency',
+  },
+  {
+    id: 'quality-bot',
+    label: 'Calidad y Compliance',
+    description: 'Modera contenido, revisa caras/duplicados, consistencia de marca y cumplimiento de promesas.',
+    costly: true,
+    defaultEnabled: true,
+    views: ['audit'],
+    minTier: 'agency',
+  },
+  {
     id: 'ads-bot',
     label: 'Anuncios y ventas',
     description: 'Campañas, presupuesto, boosts, funnel y atribución de ingresos.',
     costly: true,
     defaultEnabled: true,
     views: ['analytics', 'experiments', 'reportes', 'imperio'],
-    minTier: 'agency',
-  },
-  {
-    id: 'intelligence-bot',
-    label: 'Inteligencia y reportes',
-    description: 'Cerebro, análisis, predicciones, competidores y reportes periódicos.',
-    costly: true,
-    defaultEnabled: true,
-    views: ['agents', 'skills', 'predictor', 'audit', 'optimize', 'inteligencia', 'brujula', 'assistant', 'glassbox'],
     minTier: 'agency',
   },
 ];
@@ -175,19 +207,14 @@ export const INFRA_JOBS: ReadonlySet<string> = new Set([
   'smart-reply-daily',
 ]);
 
-/** Análisis, predicción, aprendizaje, auditorías y reportes periódicos: el grueso del gasto autónomo de LLM. */
-const INTELLIGENCE_JOBS: readonly string[] = [
-  'digest-diario',
-  'aesthetic-audit',
+/** KPIs, reportes periódicos, tendencias, competidores, objetivos y auto-tuning de performance. */
+const GROWTH_JOBS: readonly string[] = [
   'playbook-viral-scan',
   'discipline-audit',
   'predictor-weekly',
-  'brand-consistency-check',
   'competitor-monitor',
   'weekly-kpi-audit',
   'auto-optimization',
-  'os-tick',
-  'timing-model-rebuild',
   'performance-weekly-digest',
   'growth-milestone-check',
   'growth-daily-recommendations',
@@ -200,18 +227,30 @@ const INTELLIGENCE_JOBS: readonly string[] = [
   'period-report-annual',
   'brand-audit-monthly',
   'bandit-sync',
-  'ig-knowledge-study',
-  'trigger-autonomous',
-  'agent-evolution-weekly',
   'competitor-weekly-intelligence',
   'profile-monthly-audit',
   'audience-monthly-segment',
   'anomaly-scan',
+  'brain-competitor-track',
+  'brain-revenue-sync',
+  'anomaly-daily-scan',
+  'trend-forecast-weekly',
+  'engagement-model-train',
+  'performance-weekly-review',
+  'strategy-auto-tune',
+];
+
+/** Orquestación central, memoria (RAG/semántica), swarm de agentes y evolución del sistema. */
+const BRAIN_JOBS: readonly string[] = [
+  'digest-diario',
+  'os-tick',
+  'timing-model-rebuild',
+  'ig-knowledge-study',
+  'trigger-autonomous',
+  'agent-evolution-weekly',
   'brain-orchestrator-daily',
   'brain-crisis-scan',
-  'brain-competitor-track',
   'brain-recycler-scan',
-  'brain-revenue-sync',
   'brain-lifecycle-sync',
   'brain-social-listening',
   'brain-crossbrand-sync',
@@ -228,10 +267,13 @@ const INTELLIGENCE_JOBS: readonly string[] = [
   'attention-routing-daily',
   'swarm-daily-orchestration',
   'predictive-content-score',
-  'anomaly-daily-scan',
-  'trend-forecast-weekly',
-  'engagement-model-train',
   'swarm-consensus-daily',
+];
+
+/** Moderación, revisión de caras/duplicados, consistencia visual de marca y cumplimiento de promesas. */
+const QUALITY_JOBS: readonly string[] = [
+  'aesthetic-audit',
+  'brand-consistency-check',
   'vision-daily-content-audit',
   'auto-moderation-scan',
   'visual-palette-sync',
@@ -239,8 +281,6 @@ const INTELLIGENCE_JOBS: readonly string[] = [
   'face-check-compliance',
   'similar-content-detection',
   'feedback-daily-collect',
-  'performance-weekly-review',
-  'strategy-auto-tune',
   'promise-daily-check',
   'promise-weekly-report',
   'anti-promise-audit',
@@ -270,27 +310,33 @@ const EXPLICIT: Readonly<Record<string, readonly BotId[]>> = {
   'ig-beacon-engagement': ['community-bot', 'computer-use-bot'],
   'post-boost-tick': ['community-bot'],
   'retention-pulse-plan': ['community-bot'],
-  // ── Contenido ────────────────────────────────────────────────────────────
-  'cmo-daily-cycle': ['content-bot'],
-  'autopilot-semanal': ['content-bot'],
-  'autopilot-weekly': ['content-bot'],
-  'autonomous-producer-batch': ['content-bot'],
-  'content-pipeline-daily': ['content-bot'],
-  'studio-daily-render': ['content-bot'],
-  'cm-stories-daily': ['content-bot'],
-  'repurpose-daily': ['content-bot'],
-  'asset-curation': ['content-bot'],
-  'curator-fetch': ['content-bot'],
-  'directives-tick': ['content-bot'],
-  'custom-playbook-scheduler': ['content-bot'],
-  'calendar-prep-processor': ['content-bot'],
-  'strategy-plan-weekly': ['content-bot'],
-  'hashtag-rotation': ['content-bot'],
-  'ritual-weekly-plan': ['content-bot'],
+  // ── Diseño y Carruseles ──────────────────────────────────────────────────
+  'content-pipeline-daily': ['design-bot'],
+  'studio-daily-render': ['design-bot'],
+  'cm-stories-daily': ['design-bot'],
+  'repurpose-daily': ['design-bot'],
+  'asset-curation': ['design-bot'],
+  'curator-fetch': ['design-bot'],
+  // ── Video y Reels ────────────────────────────────────────────────────────
+  'autonomous-producer-batch': ['video-bot'],
+  // ── Estrategia y Calendario ──────────────────────────────────────────────
+  'cmo-daily-cycle': ['strategy-bot'],
+  'autopilot-semanal': ['strategy-bot'],
+  'autopilot-weekly': ['strategy-bot'],
+  'directives-tick': ['strategy-bot'],
+  'custom-playbook-scheduler': ['strategy-bot'],
+  'calendar-prep-processor': ['strategy-bot'],
+  'strategy-plan-weekly': ['strategy-bot'],
+  'hashtag-rotation': ['strategy-bot'],
+  'ritual-weekly-plan': ['strategy-bot'],
   // ── Computer Use ─────────────────────────────────────────────────────────
   'ig-weekly-growth': ['computer-use-bot'],
-  // ── Inteligencia y reportes ──────────────────────────────────────────────
-  ...Object.fromEntries(INTELLIGENCE_JOBS.map((n) => [n, ['intelligence-bot'] as const])),
+  // ── Growth y Analytics ───────────────────────────────────────────────────
+  ...Object.fromEntries(GROWTH_JOBS.map((n) => [n, ['growth-bot'] as const])),
+  // ── Cerebro y Memoria ────────────────────────────────────────────────────
+  ...Object.fromEntries(BRAIN_JOBS.map((n) => [n, ['brain-bot'] as const])),
+  // ── Calidad y Compliance ─────────────────────────────────────────────────
+  ...Object.fromEntries(QUALITY_JOBS.map((n) => [n, ['quality-bot'] as const])),
   // ── Anuncios y ventas ────────────────────────────────────────────────────
   'sales-funnel-daily': ['ads-bot'],
   'lead-score-sync': ['ads-bot'],
@@ -303,7 +349,8 @@ const PREFIX_RULES: ReadonlyArray<readonly [RegExp, BotId]> = [
   [/^tiktok-/, 'tiktok-bot'],
   [/^(cu-|browser-|antidetect-)/, 'computer-use-bot'],
   [/^(campaign-|budget-|smart-boost|revenue-)/, 'ads-bot'],
-  [/^(canva-|capcut-|video-|audio-|fomo-|ar-)/, 'content-bot'],
+  [/^canva-/, 'design-bot'],
+  [/^(capcut-|video-|audio-|fomo-|ar-)/, 'video-bot'],
 ];
 
 /** Todos los nombres de job clasificados a mano (infraestructura + explícitos). Sirve para detectar typos en los tests. */
@@ -322,18 +369,18 @@ export const classifyJob = (jobName: string): JobClassification => {
   for (const [re, bot] of PREFIX_RULES) {
     if (re.test(jobName)) return { kind: 'bots', bots: [bot], via: 'prefix' };
   }
-  return { kind: 'bots', bots: ['intelligence-bot'], via: 'fallback' };
+  return { kind: 'bots', bots: ['brain-bot'], via: 'fallback' };
 };
 
 /**
  * Eventos del bus que despiertan agentes (triggerConnector). Un evento no tiene que gastar
- * LLM si los bots que lo atienden están apagados. Lo no listado cae en `intelligence-bot`.
+ * LLM si los bots que lo atienden están apagados. Lo no listado cae en `brain-bot`.
  */
 const EVENT_BOTS: Readonly<Record<string, readonly BotId[]>> = {
   inbound_message_received: ['comment-bot', 'dm-bot'],
 };
 
-export const botsForEvent = (eventType: string): readonly BotId[] => EVENT_BOTS[eventType] ?? ['intelligence-bot'];
+export const botsForEvent = (eventType: string): readonly BotId[] => EVENT_BOTS[eventType] ?? ['brain-bot'];
 
 /** Bots que gobiernan un job. Vacío = infraestructura (siempre corre). */
 export const botsForJob = (jobName: string): readonly BotId[] => {

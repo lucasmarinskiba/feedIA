@@ -134,10 +134,10 @@ describe('reglas puntuales', () => {
     expect(botsForJob('ig-community-daily')).toEqual(['comment-bot', 'dm-bot', 'community-bot']);
   });
 
-  it('un job desconocido/nuevo cae en intelligence-bot: nunca queda "siempre encendido" sin que alguien lo decida', () => {
+  it('un job desconocido/nuevo cae en brain-bot: nunca queda "siempre encendido" sin que alguien lo decida', () => {
     expect(classifyJob('job-que-no-existe-todavia')).toEqual({
       kind: 'bots',
-      bots: ['intelligence-bot'],
+      bots: ['brain-bot'],
       via: 'fallback',
     });
   });
@@ -146,12 +146,14 @@ describe('reglas puntuales', () => {
     expect(botsForJob('tiktok-trend-scout')).toEqual(['tiktok-bot']);
     expect(botsForJob('cu-morning-routine')).toEqual(['computer-use-bot']);
     expect(botsForJob('campaign-audit-weekly')).toEqual(['ads-bot']);
+    expect(botsForJob('canva-template-sync')).toEqual(['design-bot']);
+    expect(botsForJob('video-render-batch')).toEqual(['video-bot']);
     // tiktok-analytics-sync tiene prefijo tiktok- pero es lectura de métricas: la infraestructura gana.
     expect(botsForJob('tiktok-analytics-sync')).toEqual([]);
   });
 
-  it('los eventos del bus: los entrantes los atienden los bots de mensajes; el resto, inteligencia', () => {
+  it('los eventos del bus: los entrantes los atienden los bots de mensajes; el resto, cerebro', () => {
     expect(botsForEvent('inbound_message_received')).toEqual(['comment-bot', 'dm-bot']);
-    expect(botsForEvent('anomaly_detected')).toEqual(['intelligence-bot']);
+    expect(botsForEvent('anomaly_detected')).toEqual(['brain-bot']);
   });
 });

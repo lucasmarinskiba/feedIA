@@ -23,7 +23,7 @@ describe('fireScheduledJob — guard del cron', () => {
   });
 
   it('con el bot apagado, el job NO corre: cero gasto (ni se llama al handler)', () => {
-    setBotEnabled('content-bot', false);
+    setBotEnabled('strategy-bot', false);
     const j = job('cmo-daily-cycle');
     const run = vi.fn(async () => undefined);
     expect(fireScheduledJob(j, makeBrand(), run)).toBe(false);
@@ -35,9 +35,9 @@ describe('fireScheduledJob — guard del cron', () => {
     const run = vi.fn(async () => undefined);
     const j = job('cmo-daily-cycle');
     fireScheduledJob(j, makeBrand(), run);
-    setBotEnabled('content-bot', false);
+    setBotEnabled('strategy-bot', false);
     fireScheduledJob(j, makeBrand(), run);
-    setBotEnabled('content-bot', true);
+    setBotEnabled('strategy-bot', true);
     fireScheduledJob(j, makeBrand(), run);
     expect(run).toHaveBeenCalledTimes(2); // 1º y 3º; el 2º estaba apagado
   });

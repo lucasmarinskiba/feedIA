@@ -126,7 +126,7 @@ describe('botón maestro', () => {
     expect(getMasterState().state).toBe('all-off');
     setAllBots(true);
     expect(isBotEnabled('ads-bot')).toBe(false);
-    expect(isBotEnabled('content-bot')).toBe(true);
+    expect(isBotEnabled('design-bot')).toBe(true);
   });
 });
 
@@ -140,10 +140,10 @@ describe('shouldRunJob', () => {
 
   it('un job corre si su bot está prendido y se corta si está apagado, con el motivo', () => {
     expect(shouldRunJob('cmo-daily-cycle').run).toBe(true);
-    setBotEnabled('content-bot', false);
+    setBotEnabled('strategy-bot', false);
     const d = shouldRunJob('cmo-daily-cycle');
     expect(d.run).toBe(false);
-    expect(d.reason).toMatch(/content-bot/);
+    expect(d.reason).toMatch(/strategy-bot/);
   });
 
   it('un job compartido corre si ALGUNO de sus bots está prendido', () => {
@@ -153,9 +153,9 @@ describe('shouldRunJob', () => {
     expect(shouldRunJob('bot-poll').run).toBe(false);
   });
 
-  it('un job desconocido queda gobernado por intelligence-bot', () => {
+  it('un job desconocido queda gobernado por brain-bot', () => {
     expect(shouldRunJob('job-nuevo').run).toBe(true);
-    setBotEnabled('intelligence-bot', false);
+    setBotEnabled('brain-bot', false);
     expect(shouldRunJob('job-nuevo').run).toBe(false);
   });
 
@@ -222,7 +222,7 @@ describe('snapshot para la API', () => {
     expect(snap.infraJobs).toBe(1);
     expect(snap.bots.find((b) => b.id === 'dm-bot')?.jobs).toBe(2);
     expect(snap.bots.find((b) => b.id === 'comment-bot')?.jobs).toBe(1);
-    expect(snap.bots.find((b) => b.id === 'content-bot')?.jobs).toBe(1);
+    expect(snap.bots.find((b) => b.id === 'strategy-bot')?.jobs).toBe(1);
   });
 
   it('sin lista de jobs no inventa conteos', () => {
