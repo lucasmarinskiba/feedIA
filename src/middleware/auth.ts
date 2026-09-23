@@ -36,6 +36,12 @@ const extractKey = (req: Request): string | null => {
   const xApiKey = req.headers['x-api-key'];
   if (typeof xApiKey === 'string' && xApiKey.length > 0) return xApiKey;
 
+  // Admin panel (botsBar.js/adminKey.js) only ever sends this header — without
+  // it, adminKeyAuth always 403s the admin UI even with the correct key once
+  // FEEDIA_ADMIN_KEY is configured, since it'd never see anything to compare.
+  const xAdminKey = req.headers['x-admin-key'];
+  if (typeof xAdminKey === 'string' && xAdminKey.length > 0) return xAdminKey;
+
   const authHeader = req.headers['authorization'];
   if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
     return authHeader.slice(7);
