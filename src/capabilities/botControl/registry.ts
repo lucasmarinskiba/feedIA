@@ -12,6 +12,13 @@
  * apagar solo una parte. Separados en 6 bots más chicos y reconocibles para
  * que "Todos los bots" refleje de verdad qué está corriendo.
  *
+ * `instagram-bot` existe por simetría con `tiktok-bot`: ambos son chicos a
+ * propósito, gobiernan solo automatizaciones específicas de esa plataforma
+ * (jobs `ig-*` / `tiktok-*`). El resto del producto es Instagram por
+ * defecto y sigue repartido por función (Comentarios, DMs, Comunidad,
+ * Diseño, Video, Estrategia, etc.) — un bot "Instagram" que englobara todo
+ * eso sería casi todo el registro de nuevo.
+ *
  * INFRA = jobs que NO se pueden apagar desde acá: publican lo que una persona
  * ya programó, miden salud o limpian. No gastan LLM o su apagado rompería algo
  * que el usuario espera (un post programado que no sale).
@@ -23,6 +30,7 @@ export type BotId =
   | 'comment-bot'
   | 'dm-bot'
   | 'community-bot'
+  | 'instagram-bot'
   | 'tiktok-bot'
   | 'design-bot'
   | 'video-bot'
@@ -76,6 +84,16 @@ export const BOTS: readonly BotDefinition[] = [
     costly: true,
     defaultEnabled: true,
     views: ['community', 'community-manager', 'collab', 'ugc', 'inbox'],
+    minTier: 'starter',
+  },
+  {
+    id: 'instagram-bot',
+    label: 'Instagram',
+    description:
+      'Automatizaciones propias de Instagram: notificaciones, engagement diario, beacon y crecimiento semanal.',
+    costly: true,
+    defaultEnabled: true,
+    views: ['inbox', 'community', 'community-manager', 'home', 'feed'],
     minTier: 'starter',
   },
   {
@@ -291,8 +309,6 @@ const EXPLICIT: Readonly<Record<string, readonly BotId[]>> = {
   // ── Comentarios / DMs ────────────────────────────────────────────────────
   'bot-poll': ['comment-bot', 'dm-bot'],
   'events-processor': ['comment-bot', 'dm-bot'],
-  'ig-process-notifications': ['comment-bot'],
-  'ig-community-daily': ['comment-bot', 'dm-bot', 'community-bot'],
   'cm-inbox-tick': ['dm-bot'],
   'dm-triage-hourly': ['dm-bot'],
   'cm-leads-followups': ['dm-bot'],
@@ -307,9 +323,13 @@ const EXPLICIT: Readonly<Record<string, readonly BotId[]>> = {
   'cm-fan-refresh': ['community-bot'],
   'cm-fan-churning-detect': ['community-bot'],
   'cm-community-snapshot': ['community-bot'],
-  'ig-beacon-engagement': ['community-bot', 'computer-use-bot'],
   'post-boost-tick': ['community-bot'],
   'retention-pulse-plan': ['community-bot'],
+  // ── Instagram ────────────────────────────────────────────────────────────
+  'ig-process-notifications': ['instagram-bot'],
+  'ig-community-daily': ['instagram-bot'],
+  'ig-beacon-engagement': ['instagram-bot'],
+  'ig-weekly-growth': ['instagram-bot'],
   // ── Diseño y Carruseles ──────────────────────────────────────────────────
   'content-pipeline-daily': ['design-bot'],
   'studio-daily-render': ['design-bot'],
@@ -329,8 +349,6 @@ const EXPLICIT: Readonly<Record<string, readonly BotId[]>> = {
   'strategy-plan-weekly': ['strategy-bot'],
   'hashtag-rotation': ['strategy-bot'],
   'ritual-weekly-plan': ['strategy-bot'],
-  // ── Computer Use ─────────────────────────────────────────────────────────
-  'ig-weekly-growth': ['computer-use-bot'],
   // ── Growth y Analytics ───────────────────────────────────────────────────
   ...Object.fromEntries(GROWTH_JOBS.map((n) => [n, ['growth-bot'] as const])),
   // ── Cerebro y Memoria ────────────────────────────────────────────────────

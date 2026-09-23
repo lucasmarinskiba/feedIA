@@ -131,7 +131,7 @@ describe('reglas puntuales', () => {
 
   it('los jobs compartidos pertenecen a varios bots', () => {
     expect(botsForJob('bot-poll')).toEqual(['comment-bot', 'dm-bot']);
-    expect(botsForJob('ig-community-daily')).toEqual(['comment-bot', 'dm-bot', 'community-bot']);
+    expect(botsForJob('ig-community-daily')).toEqual(['instagram-bot']);
   });
 
   it('un job desconocido/nuevo cae en brain-bot: nunca queda "siempre encendido" sin que alguien lo decida', () => {
