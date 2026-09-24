@@ -227,6 +227,17 @@ const computeSentiment = (text: string): number => {
   return Math.max(-1, Math.min(1, score));
 };
 
+// INT-005: la API de Instagram Messaging solo permite mensajes libres (incluyendo
+// promocionales) dentro de las 24h desde el último mensaje del usuario.
+const MESSAGING_WINDOW_HOURS = 24;
+
+const outsideMessagingWindow = (conv: Conversation): boolean => {
+  const lastFromThem = [...conv.messages].reverse().find((m) => m.sender === 'them');
+  if (!lastFromThem) return true;
+  const hoursSince = (Date.now() - new Date(lastFromThem.timestamp).getTime()) / (60 * 60 * 1000);
+  return hoursSince > MESSAGING_WINDOW_HOURS;
+};
+
 const assignTo = (intent: ConversationIntent, priority: ConversationPriority): Conversation['assignedTo'] => {
   if (priority === 'critical' && intent === 'soporte') return 'gard';
   if (intent === 'comercial') return 'luca';
@@ -476,6 +487,14 @@ JSON:
       sentiment: conv.sentiment > 0.3 ? 'positive' : conv.sentiment < -0.3 ? 'negative' : 'neutral',
     },
   });
+
+  // INT-005: fuera de la ventana de 24h desde el último mensaje del usuario, un
+  // envío libre puede fallar en la API o violar la política de Meta — no se
+  // auto-envía, se fuerza a revisión humana (o a esperar a que el usuario vuelva).
+  if (options.autoSend && !suggestion.shouldEscalate && outsideMessagingWindow(conv)) {
+    suggestion.shouldEscalate = true;
+    suggestion.rationale = `${suggestion.rationale} (fuera de la ventana de 24h de Instagram Messaging — requiere que el usuario escriba de nuevo o revisión humana)`;
+  }
 
   // Auto-send opcional
   if (options.autoSend && !suggestion.shouldEscalate) {

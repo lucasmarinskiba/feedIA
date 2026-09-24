@@ -72,6 +72,23 @@ export const INSTAGRAM_RULES: InstagramRule[] = [
       'Implementar delays razonables entre acciones para no saturar servidores',
     ],
   },
+  {
+    code: 'AUTO-003',
+    category: 'automatizacion',
+    description:
+      'A diferencia de TikTok, Instagram SÍ permite automatización avanzada de mensajería vía Graph API oficial: comment-to-DM por palabra clave, respuestas automáticas a Story replies/mentions, e Ice Breakers (menú al abrir el chat por primera vez) — siempre que el bot reaccione a una acción del usuario, nunca inicie en frío.',
+    source: 'Meta for Developers: Instagram Messaging API + Ice Breakers',
+    severity: 'baja',
+    examples: [
+      'Ninguna forma prohibida per se — la restricción real está en AUTO-001/002 (no simular humano) e INT-001 (no mensaje masivo sin gatillo)',
+    ],
+    allowedExamples: [
+      'Comentá "INFO" y te mando el link por DM (ver capabilities/conversion/commentToDm.ts, ya implementado)',
+      'DM automático al recibir una respuesta o mención en una Story',
+      'Menú de Preguntas Frecuentes (Ice Breaker) al abrir el chat por primera vez',
+      'Programar publicaciones vía partners autorizados (Hootsuite, Buffer, Later, Metricool)',
+    ],
+  },
 
   // === CONTENIDO ===
   {
@@ -202,6 +219,31 @@ export const INSTAGRAM_RULES: InstagramRule[] = [
     ],
     allowedExamples: ['Cuentas de parodia claramente identificadas', 'Cuentas oficiales verificadas de la marca'],
   },
+  {
+    code: 'INT-005',
+    category: 'interaccion',
+    description:
+      'La API de Instagram Messaging solo permite enviar mensajes libres (incluyendo promocionales) dentro de las 24 horas desde la última interacción del usuario. Pasada esa ventana, un envío automático puede fallar o violar la política — hay que escalar a un humano o esperar a que el usuario vuelva a escribir.',
+    source: 'Meta for Developers: Instagram Messaging API — 24-hour messaging window',
+    severity: 'alta',
+    examples: ['Auto-enviar un mensaje de venta/nurture 3 días después del último mensaje del usuario'],
+    allowedExamples: [
+      'Responder dentro de las 24h desde el último mensaje del usuario',
+      'Fuera de la ventana: escalar a humano o esperar a que el usuario escriba de nuevo',
+    ],
+  },
+  {
+    code: 'INT-006',
+    category: 'interaccion',
+    description:
+      'Los bots de chat/DM interactivos deben informar de manera transparente, al inicio de la conversación, que el usuario está hablando con un sistema automatizado. Esto aplica a conversaciones de chat (DM), NO a respuestas de comentarios públicos en la voz de la marca (eso es un contexto distinto, ver validators.ts de Comment Brain).',
+    source: 'Meta for Developers: Instagram Messaging Platform Policies — Automated Experiences',
+    severity: 'media',
+    examples: ['DM automatizado que nunca aclara que es un bot en toda la conversación'],
+    allowedExamples: [
+      'Primer mensaje del flujo automatizado incluye un aviso breve (ej. "🤖 Te escribe el asistente automático de @marca")',
+    ],
+  },
 
   // === DATOS ===
   {
@@ -260,6 +302,16 @@ export const INSTAGRAM_RULES: InstagramRule[] = [
     severity: 'media',
     examples: ['Usuario @miempresa.com', 'Usuario con URL comercial sin autorización'],
     allowedExamples: ['Nombres de usuario basados en la marca registrada'],
+  },
+  {
+    code: 'ACCT-003',
+    category: 'cuenta',
+    description:
+      'Solo las Cuentas de Creador o de Empresa conectadas a una página de Facebook pueden usar automatización oficial (Graph API). Las cuentas personales no tienen acceso a esa API.',
+    source: 'Meta for Developers: Instagram Platform — requisitos de cuenta para la API',
+    severity: 'alta',
+    examples: ['Intentar conectar la Graph API a una cuenta personal (no profesional)'],
+    allowedExamples: ['Cuenta de Empresa o Creador vinculada a una página de Facebook, con token de acceso propio'],
   },
 
   // === TÉCNICA ===
