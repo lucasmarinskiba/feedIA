@@ -15,7 +15,14 @@
  */
 
 export type TikTokRuleSeverity = 'critica' | 'alta' | 'media' | 'baja';
-export type TikTokRuleCategory = 'engagement-falso' | 'automatizacion' | 'live' | 'mensajeria';
+export type TikTokRuleCategory =
+  | 'engagement-falso'
+  | 'automatizacion'
+  | 'live'
+  | 'mensajeria'
+  | 'publicacion'
+  | 'shop'
+  | 'creacion';
 
 export interface TikTokRule {
   code: string;
@@ -100,5 +107,68 @@ export const TIKTOK_RULES: TikTokRule[] = [
       'Marcar comentarios como spam/ofensivos para que el creador los oculte',
       'Elegir qué comentarios leer en voz alta (texto a voz) para el creador',
     ],
+  },
+  {
+    code: 'TT-AUTO-004',
+    category: 'mensajeria',
+    description:
+      'TikTok NO tiene API abierta para leer comentarios públicos en tiempo real y disparar un DM automático a partir de ellos ("comentá LINK y te lo mando por privado"). Cualquier herramienta que prometa esto usa automatización de navegador o scraping en segundo plano — detectable por huella de dispositivo/IP y bannea la cuenta. El único flujo seguro es guiar al usuario a escribir por DM primero (vía link en bio o palabra clave), nunca automatizar la lectura del comentario en sí.',
+    severity: 'critica',
+    examples: [
+      'Bot que lee comentarios públicos en tiempo real y envía un DM automático a quien comentó',
+      'Automatización de navegador/headless que simula abrir cada comentario para responder por privado',
+    ],
+    allowedExamples: [
+      'Pedir en el video/bio que escriban una palabra clave por DM directamente',
+      'Responder automáticamente SOLO una vez que el DM ya llegó (ver TT-BIZ-001)',
+    ],
+  },
+  {
+    code: 'TT-SCHED-001',
+    category: 'publicacion',
+    description:
+      'Programar y publicar contenido de forma automática está permitido SOLO vía la Content Posting API oficial de TikTok, a través de un partner autorizado (ej. Later, Buffer, Hootsuite, Metricool). El propio sistema oficial limita a los partners externos a un máximo de 15 publicaciones por cuenta cada 24 horas.',
+    severity: 'alta',
+    examples: [
+      'Publicar más de 15 videos en 24h por cuenta a través de la API de un partner',
+      'Publicar sin pasar por un partner/API oficial (upload manual automatizado por scraping del panel web)',
+    ],
+    allowedExamples: [
+      'Subir y programar videos vía Content Posting API (o un agregador certificado que la use)',
+      'Redactar caption/hashtags de antemano y dejarlos programados para su hora',
+    ],
+  },
+  {
+    code: 'TT-SHOP-001',
+    category: 'shop',
+    description:
+      'Bots de respuestas frecuentes (FAQ) en el chat de TikTok Shop están permitidos (saludo automático, menú interactivo). En mercados regulados (ej. UE) sus respuestas NO cuentan para la tasa de respuesta obligatoria de 24h y deben etiquetarse visiblemente como generadas por IA.',
+    severity: 'media',
+    examples: [
+      'FAQ bot sin etiqueta de IA visible en mercados que la exigen',
+      'Contar respuestas del bot como si fueran respuesta humana para la métrica de 24h',
+    ],
+    allowedExamples: [
+      'Saludo/menú automático claramente etiquetado como bot/IA',
+      'Responder precio/stock/horarios desde un catálogo fijo',
+    ],
+  },
+  {
+    code: 'TT-SHOP-002',
+    category: 'shop',
+    description:
+      'Sincronización automática de inventario, pedidos y pagos (ej. conector con Shopify/ERP) está permitida: actualizar stock, procesar pagos, enviar número de seguimiento — es infraestructura de e-commerce, no interacción social simulada.',
+    severity: 'baja',
+    examples: ['Ninguno — esta categoría es infraestructura, no interacción, y no tiene forma prohibida per se'],
+    allowedExamples: ['Actualizar stock en tiempo real', 'Enviar tracking automáticamente al confirmarse el envío'],
+  },
+  {
+    code: 'TT-CREATE-001',
+    category: 'creacion',
+    description:
+      'Herramientas de creación/edición automatizada de contenido (subtitulado automático, adaptar horizontal→9:16, TikTok Symphony para doblaje/avatares) están permitidas sin restricción: no simulan usuarios ni interactúan con cuentas ajenas, solo producen el archivo que después el creador (o un partner de TT-SCHED-001) publica.',
+    severity: 'baja',
+    examples: ['Ninguno — la edición/creación de contenido nunca es, por sí sola, "engagement falso"'],
+    allowedExamples: ['Subtitulado automático', 'Reencuadre 16:9 → 9:16', 'Doblaje/traducción automática vía Symphony'],
   },
 ];

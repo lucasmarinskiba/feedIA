@@ -113,6 +113,7 @@ export const respondToBusinessMessage = async (
     actor: 'tiktok-business-bot',
     targetTikTokUserId: message.senderId,
     userInitiatedContact: true, // por diseño: esta función solo procesa mensajes entrantes reales
+    contactChannel: 'dm', // IncomingBusinessMessage solo modela DMs — nunca comentarios (ver TT-AUTO-004)
     contentText: draft.text,
   });
 

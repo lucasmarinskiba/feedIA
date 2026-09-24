@@ -42,7 +42,8 @@ export type ActionType =
   | 'story_reaction'
   | 'api_call'
   | 'tiktok_business_reply'
-  | 'tiktok_live_moderate';
+  | 'tiktok_live_moderate'
+  | 'tiktok_publish';
 
 interface ActionWindow {
   /** Acciones en la ventana actual */
@@ -78,6 +79,9 @@ export const RATE_LIMITS: Record<ActionType, { maxPerHour: number; minSecondsBet
   // Moderación de LIVE: solo clasifica/sugiere, no ejecuta acciones reales —
   // límite alto porque el volumen de un chat en vivo puede ser grande.
   tiktok_live_moderate: { maxPerHour: 500, minSecondsBetween: 0, maxPerDay: 5000 },
+  // TT-SCHED-001: el límite oficial de la Content Posting API para partners
+  // externos es 15 publicaciones/cuenta cada 24h — este tope lo refleja.
+  tiktok_publish: { maxPerHour: 5, minSecondsBetween: 300, maxPerDay: 15 },
 };
 
 const ensureDb = (path: string): void => {

@@ -27,6 +27,12 @@ export interface TikTokGuardianContext {
   targetTikTokUserId?: string;
   /** ¿El usuario escribió primero? Mensajería automatizada solo es válida como respuesta. */
   userInitiatedContact?: boolean;
+  /**
+   * Por dónde llegó el contacto que se está respondiendo. 'dm' es el único
+   * canal válido para mensajería automatizada (TT-BIZ-001) — TikTok no tiene
+   * API para leer comentarios públicos y disparar un DM desde ahí (TT-AUTO-004).
+   */
+  contactChannel?: 'dm' | 'comment';
   /** Texto que se va a enviar/publicar/moderar */
   contentText?: string;
 }
@@ -41,13 +47,13 @@ export interface TikTokGuardianDecision {
 
 const ACTION_TO_RATE_LIMIT: Record<
   TikTokActionCategory,
-  'tiktok_business_reply' | 'tiktok_live_moderate' | 'api_call'
+  'tiktok_business_reply' | 'tiktok_live_moderate' | 'tiktok_publish'
 > = {
   business_dm_reply: 'tiktok_business_reply',
   catalog_send: 'tiktok_business_reply',
   appointment_booking: 'tiktok_business_reply',
   live_moderate: 'tiktok_live_moderate',
-  publish: 'api_call',
+  publish: 'tiktok_publish',
 };
 
 const ACTION_TO_AUDIT: Record<TikTokActionCategory, AuditAction> = {
@@ -90,11 +96,22 @@ const checkContextRules = (category: TikTokActionCategory, ctx: TikTokGuardianCo
   const isMessaging =
     category === 'business_dm_reply' || category === 'catalog_send' || category === 'appointment_booking';
 
-  // TT-BIZ-001: mensajería automatizada solo como RESPUESTA a alguien que ya
-  // escribió — nunca mass-messaging a cuentas que no iniciaron contacto.
-  if (isMessaging && (!ctx.userInitiatedContact || !ctx.targetTikTokUserId)) {
-    const rule = TIKTOK_RULES.find((r) => r.code === 'TT-BIZ-001');
-    if (rule) hits.push(rule);
+  if (isMessaging) {
+    // TT-AUTO-004: TikTok no tiene API para leer un comentario público y
+    // disparar un DM desde ahí — eso siempre es scraping/automatización de
+    // navegador en la sombra. Se chequea PRIMERO y bloquea sin importar lo
+    // demás: no hay forma legítima de que esto pase.
+    if (ctx.contactChannel === 'comment') {
+      const rule = TIKTOK_RULES.find((r) => r.code === 'TT-AUTO-004');
+      if (rule) hits.push(rule);
+    }
+
+    // TT-BIZ-001: mensajería automatizada solo como RESPUESTA a alguien que ya
+    // escribió — nunca mass-messaging a cuentas que no iniciaron contacto.
+    if (!ctx.userInitiatedContact || !ctx.targetTikTokUserId) {
+      const rule = TIKTOK_RULES.find((r) => r.code === 'TT-BIZ-001');
+      if (rule) hits.push(rule);
+    }
   }
 
   return hits;

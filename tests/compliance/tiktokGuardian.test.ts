@@ -74,6 +74,49 @@ describe('tiktokGuardian: mensajería de negocio solo como respuesta (TT-BIZ-001
   });
 });
 
+describe('tiktokGuardian: no hay DM automático desde un comentario público (TT-AUTO-004)', () => {
+  it('contactChannel comment → siempre bloqueado, aunque el resto parezca válido', () => {
+    const decision = evaluate('business_dm_reply', {
+      actor: 'test',
+      targetTikTokUserId: 'u1',
+      userInitiatedContact: true,
+      contactChannel: 'comment',
+      contentText: 'Te mando el link!',
+    });
+    expect(decision.allowed).toBe(false);
+    expect(decision.violatedRules.map((r) => r.code)).toContain('TT-AUTO-004');
+  });
+
+  it('contactChannel dm (o sin especificar) no dispara TT-AUTO-004', () => {
+    const decision = evaluate('business_dm_reply', {
+      actor: 'test',
+      targetTikTokUserId: 'u1',
+      userInitiatedContact: true,
+      contactChannel: 'dm',
+      contentText: 'Claro, te paso el catálogo',
+    });
+    expect(decision.violatedRules.map((r) => r.code)).not.toContain('TT-AUTO-004');
+    expect(decision.allowed).toBe(true);
+  });
+});
+
+describe('tiktokGuardian: publicación respeta el tope oficial de partners (TT-SCHED-001, 15/día)', () => {
+  it('bloquea la publicación número 16 del día', () => {
+    const ctx = { actor: 'test', targetTikTokUserId: 'brand-1', contentText: 'video de hoy' };
+    // Se registran las 15 directamente (recordSuccess) para no chocar con el
+    // espaciado mínimo entre publicaciones al hacerlas sincrónicas en el test.
+    for (let i = 0; i < 15; i++) recordSuccess('publish', ctx);
+    const decision = evaluate('publish', ctx);
+    expect(decision.allowed).toBe(false);
+    expect(decision.rateLimit.currentCount).toBe(15);
+  });
+
+  it('la primera publicación del día siempre está permitida', () => {
+    const decision = evaluate('publish', { actor: 'test', targetTikTokUserId: 'brand-2', contentText: 'video' });
+    expect(decision.allowed).toBe(true);
+  });
+});
+
 describe('tiktokGuardian: rate limiting', () => {
   it('respeta el límite de business_dm_reply y se recupera al limpiar el store', () => {
     const ctx = { actor: 'test', targetTikTokUserId: 'u2', userInitiatedContact: true, contentText: 'ok' };

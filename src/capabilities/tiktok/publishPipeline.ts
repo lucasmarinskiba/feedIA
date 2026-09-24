@@ -15,6 +15,7 @@ import { adaptContentToTikTok, type TikTokContentPlan } from './contentAdapter.j
 import { recommendSound } from './soundLibrary.js';
 import { scrapeTrends } from './trendScraper.js';
 import { auditPromises } from '../antiPromiseAuditor/antiPromiseAuditor.js';
+import * as tiktokGuardian from '../../compliance/tiktokGuardian.js';
 
 export interface TikTokPublishOutcome {
   ok: boolean;
@@ -86,7 +87,17 @@ export const tikTokBriefToPublish = async (input: TikTokPublishInput): Promise<T
 
   let upload: UploadResult | undefined;
 
-  if (env.dryRun) {
+  // TT-SCHED-001: la Content Posting API limita a los partners externos a 15
+  // publicaciones/cuenta cada 24h — el guardian aplica ese tope acá, antes de
+  // subir nada, sea DRY_RUN o real.
+  const guardianDecision = tiktokGuardian.evaluate('publish', {
+    actor: 'tiktok-publish-pipeline',
+    targetTikTokUserId: brand.handle,
+    contentText: fullText,
+  });
+  if (!guardianDecision.allowed) {
+    errors.push(guardianDecision.reason ?? 'Publicación bloqueada por compliance.');
+  } else if (env.dryRun) {
     log.info('[TikTokPipeline] DRY_RUN: simulando publicación TikTok');
     upload = await uploadToSocial({
       platforms: ['tiktok'],
@@ -113,6 +124,10 @@ export const tikTokBriefToPublish = async (input: TikTokPublishInput): Promise<T
     });
   } else {
     errors.push('Publicación bloqueada por anti-promise audit.');
+  }
+
+  if (upload?.ok) {
+    tiktokGuardian.recordSuccess('publish', { actor: 'tiktok-publish-pipeline', targetTikTokUserId: brand.handle });
   }
 
   const tiktokResult = upload?.perPlatformResults.find((r) => r.platform === 'tiktok');
