@@ -74,6 +74,7 @@ import carouselGenerationIntegrationRoutes from './api/carousel-generation-integ
 import costGuardianRoutes from './api/cost-guardian-routes.js';
 import commentBrainRoutes from './api/comment-brain-routes.js';
 import botControlRoutes from './api/bot-control-routes.js';
+import tiktokRoutes from './api/tiktok-routes.js';
 import selliaDashboardRoutes from './api/sellia-dashboard-routes.js';
 import predictiveRoutes from './api/predictive-routes.js';
 import orchestratorRoutes from './api/orchestrator-routes.js';
@@ -388,6 +389,9 @@ app.use('/api/cost-guardian', adminKeyAuth, costGuardianRoutes);
 
 // Mount comment brain review queue — third-party comments + reply drafts, admin key required
 app.use('/api/comment-brain', adminKeyAuth, commentBrainRoutes);
+
+// Mount TikTok business messaging + LIVE moderation — third-party content, admin key required
+app.use('/api/tiktok', adminKeyAuth, tiktokRoutes);
 
 // Mount bot control panel (on/off per bot + master switch) — gated by account
 // tier inside controlCore.ts's resolveCaller, not by adminKeyAuth: every

@@ -14,7 +14,21 @@ import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { log } from '../agent/logger.js';
 
-const RATE_LIMIT_DB_PATH = resolve('data/runtime/rate-limits.json');
+const DEFAULT_RATE_LIMIT_DB_PATH = resolve('data/runtime/rate-limits.json');
+let dbPath: string | null = DEFAULT_RATE_LIMIT_DB_PATH;
+let memoryState: RateLimitState | null = null;
+
+/**
+ * Cambia (o desactiva con null = solo memoria) el archivo. Los tests lo usan
+ * para no compartir data/runtime/rate-limits.json entre archivos de test que
+ * corren en paralelo — sin esto, tests de distintos archivos pisan la misma
+ * ventana de rate limit y se vuelven flaky (mismo problema que
+ * botControl/state.ts ya resuelve con configureBotControlStore).
+ */
+export const configureRateLimitStore = (path: string | null): void => {
+  dbPath = path;
+  memoryState = null;
+};
 
 export type ActionType =
   | 'publish_post'
@@ -26,7 +40,9 @@ export type ActionType =
   | 'unfollow_account'
   | 'comment_external'
   | 'story_reaction'
-  | 'api_call';
+  | 'api_call'
+  | 'tiktok_business_reply'
+  | 'tiktok_live_moderate';
 
 interface ActionWindow {
   /** Acciones en la ventana actual */
@@ -56,20 +72,27 @@ export const RATE_LIMITS: Record<ActionType, { maxPerHour: number; minSecondsBet
   comment_external: { maxPerHour: 10, minSecondsBetween: 180, maxPerDay: 30 },
   story_reaction: { maxPerHour: 30, minSecondsBetween: 30, maxPerDay: 200 },
   api_call: { maxPerHour: 150, minSecondsBetween: 5, maxPerDay: 2000 },
+  // TikTok Business messaging: solo respuestas 1:1 a alguien que escribió
+  // primero — nunca mass-messaging, de ahí el límite conservador.
+  tiktok_business_reply: { maxPerHour: 20, minSecondsBetween: 30, maxPerDay: 100 },
+  // Moderación de LIVE: solo clasifica/sugiere, no ejecuta acciones reales —
+  // límite alto porque el volumen de un chat en vivo puede ser grande.
+  tiktok_live_moderate: { maxPerHour: 500, minSecondsBetween: 0, maxPerDay: 5000 },
 };
 
-const ensureDb = (): void => {
-  const dir = resolve('data/runtime');
+const ensureDb = (path: string): void => {
+  const dir = resolve(path, '..');
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  if (!existsSync(RATE_LIMIT_DB_PATH)) {
-    writeFileSync(RATE_LIMIT_DB_PATH, JSON.stringify({ windows: {}, lastReset: Date.now() }, null, 2));
+  if (!existsSync(path)) {
+    writeFileSync(path, JSON.stringify({ windows: {}, lastReset: Date.now() }, null, 2));
   }
 };
 
 const loadState = (): RateLimitState => {
-  ensureDb();
+  if (!dbPath) return memoryState ?? { windows: {}, lastReset: Date.now() };
+  ensureDb(dbPath);
   try {
-    const raw = JSON.parse(readFileSync(RATE_LIMIT_DB_PATH, 'utf-8')) as RateLimitState;
+    const raw = JSON.parse(readFileSync(dbPath, 'utf-8')) as RateLimitState;
     return raw;
   } catch {
     return { windows: {}, lastReset: Date.now() };
@@ -77,7 +100,11 @@ const loadState = (): RateLimitState => {
 };
 
 const saveState = (state: RateLimitState): void => {
-  writeFileSync(RATE_LIMIT_DB_PATH, JSON.stringify(state, null, 2));
+  if (!dbPath) {
+    memoryState = state;
+    return;
+  }
+  writeFileSync(dbPath, JSON.stringify(state, null, 2));
 };
 
 const getUserKey = (actionType: ActionType, userIdentifier?: string): string =>
