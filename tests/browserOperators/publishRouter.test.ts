@@ -1,5 +1,10 @@
 /**
  * Tests del Publish Router.
+ *
+ * El fallback a Instagram Web/App (Playwright con fingerprint spoofing contra
+ * la sesión real del usuario) se deshabilitó: violaba AUTO-002 y arriesgaba
+ * el baneo de la cuenta. Estos tests confirman que sigue apagado — no que
+ * "funcione", sino que nunca intenta controlar un navegador.
  */
 import { describe, it, expect } from 'vitest';
 import { checkPublishHealth, publishToInstagramViaRouter } from '../../src/browserOperators/instagram/publishRouter.js';
@@ -8,37 +13,49 @@ import { loadBrandProfile } from '../../src/config/index.js';
 const brand = loadBrandProfile();
 
 describe('PublishRouter', () => {
-  it('checkPublishHealth retorna estado de las 3 vías', async () => {
+  it('checkPublishHealth: web/app siempre false, recommended siempre api', async () => {
     const health = await checkPublishHealth(brand);
-    expect(health).toHaveProperty('api');
-    expect(health).toHaveProperty('web');
-    expect(health).toHaveProperty('app');
-    expect(health).toHaveProperty('recommended');
-    expect(['api', 'web', 'app']).toContain(health.recommended);
+    expect(health.web).toBe(false);
+    expect(health.app).toBe(false);
+    expect(health.recommended).toBe('api');
   });
 
-  it('publishToInstagramViaRouter funciona en dry_run', async () => {
+  it('sin credenciales de Meta, falla con error claro en vez de caer a web/app', async () => {
     const result = await publishToInstagramViaRouter(brand, {
       format: 'post',
       mediaPaths: ['test.jpg'],
       caption: 'Test via router',
     });
-    // En dry_run, debería intentar API primero, luego fallback
-    expect(result).toHaveProperty('ok');
-    expect(result).toHaveProperty('via');
-    expect(result).toHaveProperty('durationMs');
+    expect(result.ok).toBe(false);
+    expect(result.via).toBe('api');
+    expect(result.error).toMatch(/OAuth|credenciales/i);
   });
 
-  it('publishToInstagramViaRouter con via forzada', async () => {
-    const result = await publishToInstagramViaRouter(
+  it('un formato que la API no soporta (story) falla en vez de automatizar el navegador', async () => {
+    const result = await publishToInstagramViaRouter(brand, {
+      format: 'story',
+      mediaPaths: ['test.jpg'],
+      caption: '',
+    });
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatch(/no está soportado/i);
+  });
+
+  it('forzar via "web" o "app" explícitamente también queda bloqueado', async () => {
+    const web = await publishToInstagramViaRouter(
       brand,
-      {
-        format: 'story',
-        mediaPaths: ['test.jpg'],
-        caption: '',
-      },
+      { format: 'post', mediaPaths: ['test.jpg'], caption: 'x' },
       'web',
     );
-    expect(result.via).toBe('web');
+    expect(web.ok).toBe(false);
+    expect(web.error).toMatch(/deshabilitada/i);
+
+    const app = await publishToInstagramViaRouter(
+      brand,
+      { format: 'post', mediaPaths: ['test.jpg'], caption: 'x' },
+      'app',
+    );
+    expect(app.ok).toBe(false);
+    expect(app.error).toMatch(/deshabilitada/i);
   });
 });

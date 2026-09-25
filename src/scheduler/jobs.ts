@@ -1,7 +1,6 @@
 import type { BrandProfile } from '../config/types.js';
 import { enviarDigest } from '../capabilities/digest/index.js';
 import { isAutopilotModuleActive, isAutopilotMasterActivated, markModuleRun } from '../capabilities/autopilot/index.js';
-import { env } from '../config/index.js';
 import { procesarTodasLasSources } from '../capabilities/curator/index.js';
 import { ejecutarPasosListos } from '../capabilities/nurture/index.js';
 import { runOnce as botRunOnce } from '../capabilities/bot/index.js';
@@ -1730,51 +1729,14 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
     },
   },
 
-  {
-    name: 'browser-session-warmup',
-    description: 'Calienta sesiones de navegador visitando páginas inocuas para romper patrones de bot.',
-    defaultCron: '0 */4 * * *',
-    handler: async (brand): Promise<{ warmedUp: number }> => {
-      const { InstagramWebOperator } = await import('../browserOperators/instagram/instagramWebOperator.js');
-      const op = new InstagramWebOperator({ brand, headless: true, dryRun: env.dryRun });
-      try {
-        await op.initSession();
-        const page = op.getPage();
-        if (page) {
-          const { warmUpSession } = await import('../browserOperators/core/antiDetection.js');
-          await warmUpSession(page as unknown as Parameters<typeof warmUpSession>[0]);
-        }
-        await op.closeSession();
-        return { warmedUp: 1 };
-      } catch (err) {
-        await op.closeSession();
-        log.error(`[browser-session-warmup] Error: ${err instanceof Error ? err.message : String(err)}`);
-        return { warmedUp: 0 };
-      }
-    },
-  },
-
-  {
-    name: 'antidetect-health-check',
-    description: 'Verifica el estado de anti-detección de las sesiones de navegador activas.',
-    defaultCron: '0 */6 * * *',
-    handler: async (brand): Promise<{ healthy: boolean; details: unknown }> => {
-      const { InstagramWebOperator } = await import('../browserOperators/instagram/instagramWebOperator.js');
-      const op = new InstagramWebOperator({ brand, headless: true, dryRun: true });
-      const health = await op.healthCheck();
-      await op.closeSession();
-      if (!health.healthy) {
-        await sendAlert({
-          severity: 'warn',
-          title: `${brand.name}: sesión de navegador posiblemente detectable`,
-          body:
-            ((health.details as Record<string, unknown>).warnings as string[] | undefined)?.join('\n') ??
-            'Revisar configuración anti-detection',
-        });
-      }
-      return { healthy: health.healthy, details: health.details };
-    },
-  },
+  // 'browser-session-warmup' y 'antidetect-health-check' se eliminaron: su
+  // único propósito era mantener viva la sesión de navegador con fingerprint
+  // spoofing (browserOperators/instagram/instagramWebOperator.ts) para
+  // "romper patrones de bot" y evadir detección — exactamente lo que
+  // AUTO-002 prohíbe y lo que arriesga el baneo real de una cuenta. Ese
+  // fallback ya se deshabilitó en publishRouter.ts; sin él, mantener estos
+  // jobs corriendo cada 4-6h solo seguía siendo una probing activo contra
+  // Instagram sin ningún propósito funcional.
 
   // ── Competitive Intelligence ──────────────────────────────────────────────
   {
