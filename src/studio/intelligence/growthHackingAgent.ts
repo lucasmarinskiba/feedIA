@@ -1,4 +1,3 @@
-import { executeWithRecovery } from '../computerUse/reliableSession.js';
 import { log } from '../../agent/logger.js';
 import type { NicheCategory } from './nicheAnalyzer.js';
 import type { BrandProfile } from '../../config/types.js';
@@ -6,8 +5,10 @@ import type { AccountIntelligence } from './accountProfiler.js';
 
 /**
  * Growth Hacking Agent
- * Niche-specific growth automation: viral loops, engagement farming, collab strategies
- * Executes Computer Use growth tactics autonomously
+ * Niche-specific growth playbooks: viral loops, content series, collab strategies.
+ * getPlaybook() returns the plan; executeGrowthTactic() no longer auto-runs it via
+ * Computer Use (some tactic steps involve real ad spend or off-API posting/DMs —
+ * see executeGrowthTactic's docstring) — plans are for manual/human execution.
  */
 
 export interface GrowthExperiment {
@@ -339,57 +340,31 @@ export class GrowthHackingAgent {
     };
   }
 
+  /**
+   * DESHABILITADO: ejecutaba lo que sea que diga tactic.steps vía Computer
+   * Use real, sin distinguir entre pasos seguros (planificar contenido) y
+   * pasos que arriesgan la cuenta o gastan dinero real (publicar fuera de la
+   * API, "Boost con $20/day TikTok Spark Ads", DM funnels sin pasar por
+   * ManyChat/la API real). El playbook (getPlaybook) sigue devolviendo el
+   * plan completo — solo dejó de auto-ejecutarlo.
+   */
   async executeGrowthTactic(
     tactic: GrowthExperiment,
-    intel: AccountIntelligence,
-    brand: BrandProfile,
+    _intel: AccountIntelligence,
+    _brand: BrandProfile,
   ): Promise<GrowthExecutionResult> {
-    if (!tactic.automatable) {
-      return {
-        tactic: tactic.name,
-        platform: tactic.platform,
-        status: 'partial',
-        actionsCompleted: ['Strategy plan generated — manual execution required'],
-        estimatedImpact: tactic.expectedLift,
-      };
-    }
-
-    log.info(`[GrowthHacking] Executing: ${tactic.name}`);
-    const goal = this.buildExecutionGoal(tactic, intel);
-
-    const result = await executeWithRecovery(brand, {
-      goal,
-      maxIterations: 15,
-      operationName: `Growth tactic: ${tactic.name}`,
-      maxRetries: 2,
-    });
-
+    log.info(
+      `[GrowthHacking] Tactic "${tactic.name}" no se auto-ejecuta (Computer Use deshabilitado) — plan disponible para ejecución manual`,
+    );
     return {
       tactic: tactic.name,
       platform: tactic.platform,
-      status: result.ok ? 'executed' : 'partial',
-      actionsCompleted: tactic.steps,
+      status: 'partial',
+      actionsCompleted: [
+        'Strategy plan generated — manual execution required (auto-ejecución deshabilitada por riesgo de baneo/gasto no controlado)',
+      ],
       estimatedImpact: tactic.expectedLift,
     };
-  }
-
-  private buildExecutionGoal(tactic: GrowthExperiment, intel: AccountIntelligence): string {
-    return `Execute growth tactic for ${intel.platform} account @${intel.handle}:
-
-TACTIC: ${tactic.name}
-DESCRIPTION: ${tactic.tactic}
-EXPECTED RESULT: ${tactic.expectedLift}
-
-STEPS TO EXECUTE:
-${tactic.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
-
-ACCOUNT CONTEXT:
-- Niche: ${intel.niche.nicheCategory}
-- Growth stage: ${intel.niche.growthStage}
-- Primary CTA: ${intel.strategy.cta}
-- Tone: ${intel.strategy.contentTone}
-
-Complete each step. Log what was accomplished per step.`;
   }
 
   private buildWeeklyPriority(experiments: GrowthExperiment[], stage: string): string[] {

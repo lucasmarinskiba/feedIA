@@ -297,24 +297,24 @@ export const navegarInstagram = async (
   });
 };
 
+/**
+ * DESHABILITADO: like/comentar/guardar/compartir un post arbitrario vía
+ * Computer Use real, sin restricción de que sea un post propio, sin chequeo
+ * de compliance ni rate limit. Mismo riesgo que darLike/comentarEnPost/
+ * platform_auto_reply (ya deshabilitados esta sesión) — automatización de
+ * engagement fuera de la API oficial, arriesga el baneo de la cuenta.
+ */
 export const interactuarConPost = async (
-  brand: BrandProfile,
+  _brand: BrandProfile,
   accion: 'like' | 'comentar' | 'guardar' | 'compartir',
-  contexto: string,
-): Promise<ComputerUseResult> => {
-  const accionDescripcion: Record<typeof accion, string> = {
-    like: `dar Me gusta (clic en el ícono de corazón) en ${contexto}`,
-    comentar: `escribir un comentario en ${contexto}. ${contexto}`,
-    guardar: `guardar el post (clic en el ícono de marcador) de ${contexto}`,
-    compartir: `compartir el post (clic en el ícono de avión de papel) de ${contexto}`,
-  };
-
-  return runComputerUseSession(brand, {
-    goal: accionDescripcion[accion],
-    context: buildInstagramContext('feed'),
-    maxIterations: 10,
-  });
-};
+  _contexto: string,
+): Promise<ComputerUseResult> => ({
+  ok: false,
+  summary:
+    'Interactuar con posts (like/comentar/guardar/compartir) vía Computer Use está deshabilitado por riesgo de baneo de cuenta — no se ejecuta.',
+  actionsExecuted: 0,
+  error: `Acción "${accion}" deshabilitada`,
+});
 
 export const leerFeed = async (brand: BrandProfile, cantidadPosts = 5): Promise<ComputerUseResult> =>
   runComputerUseSession(brand, {

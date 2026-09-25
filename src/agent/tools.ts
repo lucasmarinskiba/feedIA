@@ -2667,12 +2667,14 @@ export const tools: RegisteredTool[] = [
   ),
   tool(
     'instagram_navegar',
-    'Navega a una sección específica de Instagram usando control de computadora. Destinos: feed, barraHistorias, cabecera, buscador, explorar, reels, historias, crearPublicacion, perfil, fotoDePerfil, biografia, historiasDestacadas, contadores, grid, botonMeGusta, botonCompartir, botonGuardar, caption, comentarios, mensajesDirectos, notificaciones.',
+    'Navega a una sección específica de Instagram y OBSERVA (solo lectura) usando control de computadora. NO uses accionEspecifica para pedir like/comentar/seguir/guardar/compartir ni ninguna acción sobre cuentas ajenas — eso está deshabilitado por riesgo de baneo; usalo únicamente para mirar/leer. Destinos: feed, barraHistorias, cabecera, buscador, explorar, reels, historias, crearPublicacion, perfil, fotoDePerfil, biografia, historiasDestacadas, contadores, grid, botonMeGusta, botonCompartir, botonGuardar, caption, comentarios, mensajesDirectos, notificaciones.',
     {
       type: 'object',
       properties: {
         destino: str(`Sección de Instagram a la que navegar. Opciones: ${Object.keys(INSTAGRAM_UI_ZONES).join(', ')}`),
-        accionEspecifica: str('Acción específica a realizar una vez en esa sección (opcional)'),
+        accionEspecifica: str(
+          'Acción de OBSERVACIÓN a realizar una vez en esa sección (ej. "leer los comentarios", "anotar el bio") — nunca like/comentar/seguir/guardar/compartir (opcional)',
+        ),
         cuentaObjetivo: str('Nombre de usuario (@) si la acción es sobre una cuenta específica (opcional)'),
         maxIterations: { type: 'number', description: 'Máximo de pasos (default: 15)' },
       },
@@ -2688,7 +2690,7 @@ export const tools: RegisteredTool[] = [
   ),
   tool(
     'instagram_interactuar_post',
-    'Da like, comenta, guarda o comparte un post de Instagram usando control de computadora.',
+    'DESHABILITADO: like/comentario/guardado/compartido automatizado en un post arbitrario arriesgaba el baneo de la cuenta (mismo motivo que darLike/comentarEnPost, ya deshabilitados). Siempre devuelve error — no ejecuta nada.',
     {
       type: 'object',
       properties: {
