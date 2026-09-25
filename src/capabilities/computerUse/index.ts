@@ -61,22 +61,13 @@ export { planCapCutVideo, type CapCutBeat } from './capcutPlan.js';
 
 export { computerUseLiveEnabled, isComputerUseLiveAvailable } from './anthropicDriver.js';
 
-// ── Instagram Actions API (high-level wrappers with DryRun gates)
+// ── Instagram Actions API — solo cuenta propia, publicar va vía Upload-Post
+// API (ver desktopWorkflows.ts), no por acá. Ver header de instagramActions.ts.
 export {
-  darLike,
-  comentarEnPost,
-  publicarPost,
-  publicarHistoria,
-  publicarReel,
-  seguirCuenta,
-  enviarDM,
-  responderDMsPendientes,
   editarPerfil,
-  realizarBeaconEngagement,
   procesarNotificaciones,
   leerInsights,
   moderarComentariosDePost,
-  interactuarConTendencia,
   crearHighlight,
   auditarPerfil,
   verAnaliticasPost,

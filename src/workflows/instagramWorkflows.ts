@@ -843,13 +843,13 @@ export const WORKFLOW_CANVA_TO_INSTAGRAM: PlaybookDefinition = {
     {
       id: 'canva-publish-to-instagram',
       agentId: 'talia',
-      goal: 'Publicar: opción A) Upload-Post API (server, device puede estar off) o B) Computer Use abriendo IG con publicarPost y arrastrando el archivo. Default: Upload-Post para no requerir display abierto.',
+      goal: 'Publicar vía Upload-Post API (server-side, no requiere display abierto ni controlar el navegador).',
       dependsOn: ['canva-checkpoint-approve'],
     },
     {
       id: 'canva-schedule-boost',
       agentId: 'max',
-      goal: 'INMEDIATAMENTE después de publicar, llamar a boost_schedule para activar la ventana de algoritmo (anchor comment, community prime, beacon engagement, métricas T+120min).',
+      goal: 'INMEDIATAMENTE después de publicar, llamar a boost_schedule para activar la ventana de algoritmo (anchor comment, community prime, métricas T+120min).',
       dependsOn: ['canva-publish-to-instagram'],
     },
     {

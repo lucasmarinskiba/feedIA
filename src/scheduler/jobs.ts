@@ -27,11 +27,7 @@ import { produceBatch } from '../capabilities/autonomous/index.js';
 import { planRetentionPulses, defaultSignals, getPulseStats } from '../capabilities/retentionPulse/index.js';
 import { clearOldFingerprints } from '../capabilities/originality/index.js';
 import { osTick } from '../os/autonomousCore.js';
-import {
-  realizarBeaconEngagement,
-  procesarNotificaciones,
-  leerInsights,
-} from '../capabilities/computerUse/instagramActions.js';
+import { procesarNotificaciones, leerInsights } from '../capabilities/computerUse/instagramActions.js';
 import { recordPost, getAccountSummary } from '../capabilities/analytics/performanceDB.js';
 import { rebuildTimingModel } from '../capabilities/analytics/audienceTiming.js';
 import { processQueue, getQueueStatus } from '../integrations/eventReactor.js';
@@ -131,7 +127,6 @@ export type JobName =
   | 'cm-community-snapshot'
   | 'originality-fingerprint-prune'
   | 'os-tick'
-  | 'ig-beacon-engagement'
   | 'ig-process-notifications'
   | 'ig-read-insights'
   | 'ig-weekly-growth'
@@ -869,39 +864,21 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
 
   // ── Instagram Automation Jobs ─────────────────────────────────────────────
 
-  {
-    name: 'ig-beacon-engagement',
-    description: 'Beacon engagement diario: interactúa con cuentas faro del niche para potenciar alcance orgánico.',
-    defaultCron: '0 9,18 * * *', // 9am y 6pm
-    handler: async (brand): Promise<unknown> => {
-      const beaconAccounts: string[] = ((brand as Record<string, unknown>).beaconAccounts as string[]) ?? [
-        'cuenta_faro_1',
-        'cuenta_faro_2',
-        'cuenta_faro_3',
-      ];
-      return realizarBeaconEngagement(brand, {
-        targetAccounts: beaconAccounts.slice(0, 5),
-        actionsPerAccount: 3,
-        commentTexts: [
-          '¡Qué buen contenido! ¿Con qué herramienta lo hacés?',
-          'Exactamente lo que necesitaba ver hoy 🔥',
-          'Muy buena perspectiva sobre este tema',
-          'Completamente de acuerdo con este enfoque',
-          'Esto es exactamente lo que la gente necesita escuchar',
-        ],
-      });
-    },
-  },
+  // 'ig-beacon-engagement' se eliminó: corría dos veces al día auto-likeando
+  // y auto-comentando en cuentas de terceros ("cuentas faro") para inflar
+  // alcance — el ejemplo de libro de "engagement pod"/fake engagement que
+  // INT-003 y AUTO-001 prohíben, y que arriesgaba el baneo real de la cuenta
+  // del cliente. realizarBeaconEngagement() se eliminó de instagramActions.ts
+  // por el mismo motivo.
 
   {
     name: 'ig-process-notifications',
-    description: 'Procesa notificaciones de Instagram: responde comentarios prioritarios y gestiona nuevos follows.',
+    description: 'Procesa notificaciones de Instagram: responde comentarios prioritarios en posts propios.',
     defaultCron: '0 10,14,20 * * *', // 3 veces al día
     handler: async (brand): Promise<unknown> =>
       procesarNotificaciones(brand, {
         respondToComments: true,
         respondToDMs: false, // DMs los maneja el bot por separado
-        followBackRelevant: false,
         maxActions: 15,
       }),
   },

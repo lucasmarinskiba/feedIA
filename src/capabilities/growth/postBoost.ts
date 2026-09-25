@@ -13,12 +13,7 @@ import { log } from '../../agent/logger.js';
 import { sendAlert } from '../../integrations/notifications.js';
 import { generateReply, ask as routerAsk } from '../../agent/tokenRouter.js';
 import { loadBrandProfile } from '../../config/index.js';
-import {
-  comentarEnPost,
-  darLike,
-  realizarBeaconEngagement,
-  verAnaliticasPost,
-} from '../computerUse/instagramActions.js';
+import { verAnaliticasPost } from '../computerUse/instagramActions.js';
 
 const BOOST_PATH = join(process.cwd(), 'data', 'analytics', 'post-boost.json');
 
@@ -27,12 +22,16 @@ const BOOST_PATH = join(process.cwd(), 'data', 'analytics', 'post-boost.json');
 export type BoostStage = 'scheduled' | 'in-progress' | 'completed' | 'failed' | 'cancelled';
 
 export type BoostActionType =
-  | 'community-prime' // comentar el post desde cuentas del equipo
-  | 'beacon-engagement' // engagement con cuentas faro (post + recíproco)
+  | 'community-prime' // comentario propio "anchor" con tono de fan genuino
   | 'pinned-comment' // dejar un comentario "anchor" desde la propia cuenta
   | 'cross-promotion' // story de la propia cuenta promocionando el post
   | 'reply-thread' // responder TODOS los comentarios entrantes en la 1ª hora
   | 'check-metrics'; // medir lift al final
+
+// 'beacon-engagement' se eliminó: auto-like + auto-comentario en cuentas
+// AJENAS ("faro") para inflar alcance — engagement pod/fake engagement
+// (INT-003, AUTO-001). realizarBeaconEngagement() ya no existe en
+// instagramActions.ts por el mismo motivo.
 
 export interface BoostAction {
   type: BoostActionType;
@@ -100,12 +99,10 @@ const buildActionSchedule = (publishedAt: string): BoostAction[] => {
   return [
     // T+5 min: comentario propio anclando la conversación
     { type: 'pinned-comment', scheduledAt: offset(5), status: 'pending' },
-    // T+15 min: prime de comunidad (comentarios de equipo / cuentas internas)
+    // T+15 min: prime de comunidad (comentario propio con tono de fan)
     { type: 'community-prime', scheduledAt: offset(15), status: 'pending' },
     // T+25 min: cross-promotion en stories de la propia cuenta
     { type: 'cross-promotion', scheduledAt: offset(25), status: 'pending' },
-    // T+40 min: engagement con cuentas faro para tracción cruzada
-    { type: 'beacon-engagement', scheduledAt: offset(40), status: 'pending' },
     // T+60 min: respuestas a comentarios entrantes
     { type: 'reply-thread', scheduledAt: offset(60), status: 'pending' },
     // T+120 min: medición de lift
@@ -166,6 +163,17 @@ El comentario debe:
 - 1-2 líneas
 - Sin emojis innecesarios`;
 
+// Ambas funciones generan el texto del comentario pero NO lo publican
+// automáticamente: instagramActions.ts ya no automatiza el navegador para
+// comentar (ver su header), y el reemplazo compliant (integrations/meta.ts
+// commentOnPost(mediaId, text), vía Graph API) necesita el media ID real de
+// Instagram, que hoy no llega hasta acá — schedulePostBoost() solo recibe
+// postUrl/postId del agregador de publicación, no el media ID de Meta. Hasta
+// que ese dato se pase (ver uploadResult.perPlatformResults[].socialPostId
+// en integrations/uploadPost.ts), estas acciones dejan el texto listo para
+// revisión humana en vez de inventar un envío que fallaría o de volver a
+// controlar el navegador.
+
 const executePinnedComment = async (plan: PostBoostPlan): Promise<string> => {
   const brand = loadBrandProfile();
   const result = await routerAsk(
@@ -174,8 +182,7 @@ const executePinnedComment = async (plan: PostBoostPlan): Promise<string> => {
   );
   const comment = result.text.trim();
   if (!plan.postUrl) return 'sin postUrl: se omite acción';
-  await comentarEnPost(brand, { postUrl: plan.postUrl, commentText: comment });
-  return `Anchor comment: "${comment.slice(0, 80)}..."`;
+  return `Anchor comment listo para revisión humana (no se auto-publica): "${comment.slice(0, 80)}..."`;
 };
 
 const executeCommunityPrime = async (plan: PostBoostPlan): Promise<string> => {
@@ -186,9 +193,7 @@ const executeCommunityPrime = async (plan: PostBoostPlan): Promise<string> => {
   });
   const comment = result.text.trim();
   if (!plan.postUrl) return 'sin postUrl';
-  await darLike(brand, `post propio recién publicado: ${plan.postUrl}`);
-  await comentarEnPost(brand, { postUrl: plan.postUrl, commentText: comment });
-  return `Community prime: like + comentario "${comment.slice(0, 60)}..."`;
+  return `Community prime listo para revisión humana (no se auto-publica): "${comment.slice(0, 60)}..."`;
 };
 
 const executeCrossPromotion = async (_plan: PostBoostPlan): Promise<string> => {
@@ -196,23 +201,6 @@ const executeCrossPromotion = async (_plan: PostBoostPlan): Promise<string> => {
   // Marcamos como una acción que requiere validación de timing
   log.info(`[PostBoost] Cross-promotion en stories disparado para ${_plan.postId}`);
   return 'Cross-promotion enviado al cola de stories';
-};
-
-const executeBeaconEngagement = async (plan: PostBoostPlan): Promise<string> => {
-  const brand = loadBrandProfile();
-  const beaconAccounts = brand.competitors.slice(0, 5);
-  if (beaconAccounts.length === 0) return 'Sin cuentas faro configuradas en brand.competitors';
-  await realizarBeaconEngagement(brand, {
-    targetAccounts: beaconAccounts,
-    actionsPerAccount: 2,
-    commentTexts: [
-      'Esto está buenísimo, gracias por compartirlo',
-      'Excelente punto, me lo guardo',
-      'Justo lo que necesitaba leer hoy',
-      'Coincido, sumo a la conversación',
-    ],
-  });
-  return `Beacon engagement con ${beaconAccounts.length} cuentas faro tras post ${plan.postId}`;
 };
 
 const executeReplyThread = async (plan: PostBoostPlan): Promise<string> => {
@@ -315,9 +303,6 @@ export const runBoostTick = async (): Promise<BoostTickResult> => {
             break;
           case 'cross-promotion':
             detail = await executeCrossPromotion(plan);
-            break;
-          case 'beacon-engagement':
-            detail = await executeBeaconEngagement(plan);
             break;
           case 'reply-thread':
             detail = await executeReplyThread(plan);

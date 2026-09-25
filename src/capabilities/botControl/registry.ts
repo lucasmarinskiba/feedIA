@@ -328,7 +328,6 @@ const EXPLICIT: Readonly<Record<string, readonly BotId[]>> = {
   // ── Instagram ────────────────────────────────────────────────────────────
   'ig-process-notifications': ['instagram-bot'],
   'ig-community-daily': ['instagram-bot'],
-  'ig-beacon-engagement': ['instagram-bot'],
   'ig-weekly-growth': ['instagram-bot'],
   // ── Diseño y Carruseles ──────────────────────────────────────────────────
   'content-pipeline-daily': ['design-bot'],

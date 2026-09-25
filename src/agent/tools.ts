@@ -226,20 +226,10 @@ import {
   CONTENT_FORMATS,
 } from './instagramExpert.js';
 import {
-  publicarPost,
-  publicarHistoria,
-  publicarReel,
-  comentarEnPost,
-  darLike,
-  seguirCuenta,
-  enviarDM,
-  responderDMsPendientes,
   editarPerfil,
-  realizarBeaconEngagement,
   procesarNotificaciones,
   leerInsights,
   moderarComentariosDePost,
-  interactuarConTendencia,
   crearHighlight,
   auditarPerfil,
   verAnaliticasPost,
@@ -3250,186 +3240,20 @@ export const tools: RegisteredTool[] = [
 ];
 
 // ── Instagram Actions (Computer Use Atómico) ─────────────────────────────────
+//
+// Publicar (post/historia/reel/carrusel) ya no tiene tools ig_publicar_* acá:
+// usá el tool genérico 'upload_to_social' (más abajo, sección Upload-Post),
+// que hace exactamente esto vía la API oficial — nunca controla el navegador.
+//
+// Se eliminaron los tools que interactuaban con cuentas AJENAS o duplicaban un
+// sistema ya compliant vía API: ig_comentar_post/ig_dar_like/ig_seguir_cuenta
+// (engagement automatizado sobre terceros, AUTO-001/002, INT-001/003),
+// ig_enviar_dm/ig_responder_dms_bulk (duplicaba capabilities/community/
+// dmInbox.ts, que ya respeta la ventana de 24h y el disclosure de IA),
+// ig_beacon_engagement/ig_interactuar_tendencia (bots de "engagement pod"
+// sobre cuentas faro/hashtags de terceros). Ver instagramActions.ts.
 
 tools.push(
-  tool(
-    'ig_publicar_post',
-    'Publica un post (imagen o carrusel) en Instagram. Incluye seleccionar media, escribir caption con hashtags y publicar.',
-    {
-      type: 'object',
-      properties: {
-        imagePath: str('Ruta local de la imagen o video a publicar'),
-        caption: str('Caption completo con hashtags y CTA (ya formateado)'),
-        location: str('Ubicación opcional a agregar al post'),
-        altText: str('Texto alternativo para accesibilidad (opcional)'),
-        collaborator: str('Username de cuenta para Collab post (opcional, sin @)'),
-        isCarousel: { type: 'boolean', description: 'true si es un carrusel con múltiples imágenes' },
-        additionalImages: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Rutas de imágenes adicionales para carrusel',
-        },
-      },
-      required: ['imagePath', 'caption'],
-    },
-    async (input, brand) =>
-      publicarPost(brand, {
-        imagePath: input.imagePath as string,
-        caption: input.caption as string,
-        location: input.location as string | undefined,
-        altText: input.altText as string | undefined,
-        collaborator: input.collaborator as string | undefined,
-        isCarousel: input.isCarousel as boolean | undefined,
-        additionalImages: input.additionalImages as string[] | undefined,
-      }),
-  ),
-
-  tool(
-    'ig_publicar_historia',
-    'Publica una Historia (Story) en Instagram con stickers interactivos opcionales (poll, pregunta, quiz, link, countdown).',
-    {
-      type: 'object',
-      properties: {
-        mediaPath: str('Ruta local de la imagen o video para la historia'),
-        sticker: str('Tipo de sticker: poll | question | quiz | link | countdown | emoji_slider'),
-        stickerText: str('Texto del sticker (pregunta, título del countdown, etc.)'),
-        stickerOption1: str('Opción 1 del poll'),
-        stickerOption2: str('Opción 2 del poll'),
-        linkUrl: str('URL para el link sticker'),
-        mentionAccount: str('Cuenta a mencionar en la historia (sin @)'),
-        hashtagToAdd: str('Hashtag a agregar como sticker (sin #)'),
-      },
-      required: ['mediaPath'],
-    },
-    async (input, brand) =>
-      publicarHistoria(brand, {
-        mediaPath: input.mediaPath as string,
-        sticker: input.sticker as never,
-        stickerText: input.stickerText as string | undefined,
-        stickerOption1: input.stickerOption1 as string | undefined,
-        stickerOption2: input.stickerOption2 as string | undefined,
-        linkUrl: input.linkUrl as string | undefined,
-        mentionAccount: input.mentionAccount as string | undefined,
-        hashtagToAdd: input.hashtagToAdd as string | undefined,
-      }),
-  ),
-
-  tool(
-    'ig_publicar_reel',
-    'Publica un Reel en Instagram. Sube el video, agrega caption, busca audio trending si se especifica y publica.',
-    {
-      type: 'object',
-      properties: {
-        videoPath: str('Ruta local del video MP4 del Reel'),
-        caption: str('Caption del Reel con hashtags y CTA'),
-        audioName: str('Nombre del audio trending a usar (opcional)'),
-        coverFrameTime: { type: 'number', description: 'Segundo del video a usar como portada (opcional)' },
-        shareToFeed: { type: 'boolean', description: 'true para también compartir en el feed (default: true)' },
-      },
-      required: ['videoPath', 'caption'],
-    },
-    async (input, brand) =>
-      publicarReel(brand, {
-        videoPath: input.videoPath as string,
-        caption: input.caption as string,
-        audioName: input.audioName as string | undefined,
-        coverFrameTime: input.coverFrameTime as number | undefined,
-        shareToFeed: input.shareToFeed as boolean | undefined,
-      }),
-  ),
-
-  tool(
-    'ig_comentar_post',
-    'Escribe un comentario en un post de Instagram. Puede ser un comentario nuevo o respuesta a otro comentario.',
-    {
-      type: 'object',
-      properties: {
-        postUrl: str('URL directa del post (opcional si se provee postContext)'),
-        postContext: str('Descripción del post a comentar si no hay URL disponible'),
-        commentText: str('Texto exacto del comentario a escribir'),
-        replyToUser: str('Username del comentario a responder (sin @), para responder un comentario específico'),
-      },
-      required: ['commentText'],
-    },
-    async (input, brand) =>
-      comentarEnPost(brand, {
-        postUrl: input.postUrl as string | undefined,
-        postContext: input.postContext as string | undefined,
-        commentText: input.commentText as string,
-        replyToUser: input.replyToUser as string | undefined,
-      }),
-  ),
-
-  tool(
-    'ig_dar_like',
-    'Da Like (Me gusta) a un post específico de Instagram.',
-    {
-      type: 'object',
-      properties: {
-        postContext: str('URL del post o descripción de qué post likear (ej: "último post de @usuario" o URL directa)'),
-      },
-      required: ['postContext'],
-    },
-    async (input, brand) => darLike(brand, input.postContext as string),
-  ),
-
-  tool(
-    'ig_seguir_cuenta',
-    'Sigue una cuenta de Instagram. Verifica que no esté ya seguida antes de actuar.',
-    {
-      type: 'object',
-      properties: {
-        cuenta: str('Username de la cuenta a seguir (sin @)'),
-      },
-      required: ['cuenta'],
-    },
-    async (input, brand) => seguirCuenta(brand, input.cuenta as string),
-  ),
-
-  tool(
-    'ig_enviar_dm',
-    'Envía un mensaje directo (DM) a una cuenta de Instagram.',
-    {
-      type: 'object',
-      properties: {
-        username: str('Username del destinatario (sin @)'),
-        message: str('Texto del mensaje a enviar'),
-        isNewConversation: { type: 'boolean', description: 'true si es una conversación nueva, false si ya existe' },
-      },
-      required: ['username', 'message'],
-    },
-    async (input, brand) =>
-      enviarDM(brand, {
-        username: input.username as string,
-        message: input.message as string,
-        isNewConversation: input.isNewConversation as boolean | undefined,
-      }),
-  ),
-
-  tool(
-    'ig_responder_dms_bulk',
-    'Responde múltiples DMs pendientes en Instagram de forma secuencial con delays humanos.',
-    {
-      type: 'object',
-      properties: {
-        respuestas: {
-          type: 'array',
-          description: 'Array de {username, respuesta} para responder cada DM',
-          items: {
-            type: 'object',
-            properties: {
-              username: str('Username del destinatario (sin @)'),
-              respuesta: str('Texto de la respuesta a enviar'),
-            },
-          },
-        },
-      },
-      required: ['respuestas'],
-    },
-    async (input, brand) =>
-      responderDMsPendientes(brand, input.respuestas as Array<{ username: string; respuesta: string }>),
-  ),
-
   tool(
     'ig_editar_perfil',
     'Edita el perfil de Instagram: bio, nombre, website o foto de perfil.',
@@ -3452,45 +3276,13 @@ tools.push(
   ),
 
   tool(
-    'ig_beacon_engagement',
-    'Realiza el "Beacon Engagement" estratégico: interactúa con cuentas faro del niche para potenciar el alcance orgánico propio.',
-    {
-      type: 'object',
-      properties: {
-        targetAccounts: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Lista de usernames de cuentas faro (sin @, máx 5)',
-        },
-        actionsPerAccount: {
-          type: 'number',
-          description: 'Número de acciones por cuenta (likes + comentarios, máx 5)',
-        },
-        commentTexts: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Array de textos de comentarios para rotar entre cuentas',
-        },
-      },
-      required: ['targetAccounts', 'commentTexts'],
-    },
-    async (input, brand) =>
-      realizarBeaconEngagement(brand, {
-        targetAccounts: input.targetAccounts as string[],
-        actionsPerAccount: (input.actionsPerAccount as number) ?? 3,
-        commentTexts: input.commentTexts as string[],
-      }),
-  ),
-
-  tool(
     'ig_procesar_notificaciones',
-    'Lee y procesa las notificaciones de Instagram: responde comentarios, gestiona follows, da likes a comentarios relevantes.',
+    'Lee y procesa las notificaciones de Instagram: responde comentarios en los propios posts.',
     {
       type: 'object',
       properties: {
         respondToComments: { type: 'boolean', description: 'true para responder comentarios en los propios posts' },
         respondToDMs: { type: 'boolean', description: 'true para revisar y responder DMs urgentes' },
-        followBackRelevant: { type: 'boolean', description: 'true para seguir de vuelta a followers relevantes' },
         maxActions: { type: 'number', description: 'Límite total de acciones a realizar (default: 20)' },
       },
     },
@@ -3498,7 +3290,6 @@ tools.push(
       procesarNotificaciones(brand, {
         respondToComments: input.respondToComments as boolean | undefined,
         respondToDMs: input.respondToDMs as boolean | undefined,
-        followBackRelevant: input.followBackRelevant as boolean | undefined,
         maxActions: input.maxActions as number | undefined,
       }),
   ),
@@ -3528,27 +3319,6 @@ tools.push(
     },
     async (input, brand) =>
       moderarComentariosDePost(brand, input.postUrl as string, input.criteriosModeración as string),
-  ),
-
-  tool(
-    'ig_interactuar_tendencia',
-    'Interactúa con posts de un hashtag trending: da likes y/o comentarios para capitalizar el alcance de la tendencia.',
-    {
-      type: 'object',
-      properties: {
-        hashtag: str('Hashtag trending a explotar (sin #)'),
-        cantidadInteracciones: { type: 'number', description: 'Número total de interacciones (máx 15)' },
-        tipoInteraccion: str('Tipo: like | comentar | ambos (default: ambos)'),
-      },
-      required: ['hashtag'],
-    },
-    async (input, brand) =>
-      interactuarConTendencia(
-        brand,
-        input.hashtag as string,
-        (input.cantidadInteracciones as number) ?? 10,
-        (input.tipoInteraccion as 'like' | 'comentar' | 'ambos') ?? 'ambos',
-      ),
   ),
 
   tool(

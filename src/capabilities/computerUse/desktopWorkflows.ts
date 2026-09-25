@@ -16,7 +16,6 @@ import {
 } from './canvaStudio.js';
 import { runDesignToolWorkflow, type DesignTool } from './designToolsGeneric.js';
 import { detectRecentDownload, captureLatestDownload, validateAsset } from './fileBridge.js';
-import { publicarPost, publicarReel, publicarHistoria } from './instagramActions.js';
 import { uploadToSocial, type SocialPlatform } from '../../integrations/uploadPost.js';
 import { startReplaySession, endReplaySession, logStep } from './visualReplayLog.js';
 import {
@@ -39,7 +38,10 @@ import type { BrandProfile } from '../../config/types.js';
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 export type PostType = 'feed-post' | 'reel' | 'story' | 'carousel';
-export type PublishMethod = 'computer-use' | 'upload-post-api' | 'preview-only';
+// 'computer-use' se eliminó: publicaba controlando el navegador en vez de la
+// API real. upload-post-api (Upload-Post, el mismo agregador certificado que
+// ya usa TikTok) es ahora el único método de publicación real.
+export type PublishMethod = 'upload-post-api' | 'preview-only';
 
 export interface CanvaToInstagramInput {
   topic: string;
@@ -297,38 +299,6 @@ export const runCanvaToInstagram = async (
         postUrl: uploadResult.perPlatformResults.find((r) => r.platform === 'instagram')?.socialUrl,
         durationMs: Date.now() - publishStart,
       };
-    } else {
-      // Computer use: abrir IG y publicar manualmente con cursor
-      logStep({
-        sessionId: replay.id,
-        actionType: 'upload-file',
-        description: 'Publicando via Computer Use (cursor + teclado real)',
-        rationale: 'El usuario verá el cursor moverse y la pieza subirse a IG',
-      });
-
-      if (!asset?.storedPath) {
-        result.publishStep = { ok: false, method: 'computer-use', durationMs: Date.now() - publishStart };
-      } else {
-        let publishResult;
-        if (input.postType === 'reel') {
-          publishResult = await publicarReel(brand, {
-            videoPath: asset.storedPath,
-            caption: `${finalCaption}\n\n${finalHashtags.map((h) => `#${h}`).join(' ')}`,
-          });
-        } else if (input.postType === 'story') {
-          publishResult = await publicarHistoria(brand, { mediaPath: asset.storedPath });
-        } else {
-          publishResult = await publicarPost(brand, {
-            imagePath: asset.storedPath,
-            caption: `${finalCaption}\n\n${finalHashtags.map((h) => `#${h}`).join(' ')}`,
-          });
-        }
-        result.publishStep = {
-          ok: publishResult.ok,
-          method: 'computer-use',
-          durationMs: Date.now() - publishStart,
-        };
-      }
     }
 
     // STEP 5: Schedule boost (solo si publicación efectiva)
