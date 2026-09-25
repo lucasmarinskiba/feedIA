@@ -4261,12 +4261,15 @@ tools.push(
 
   tool(
     'boost_schedule',
-    'Programa el boost post-publicación: comentario anchor, community prime, beacon engagement, reply-thread y check-metrics en las próximas 2 horas. Llamar INMEDIATAMENTE después de publicar.',
+    'Programa el boost post-publicación: comentario anchor, community prime, reply-thread y check-metrics en las próximas 2 horas. Llamar INMEDIATAMENTE después de publicar. Pasar mediaId (el ID real de Graph API que devuelve upload_to_social) para que el anchor/prime comment se auto-publique vía API — sin mediaId queda como texto para revisión humana.',
     {
       type: 'object',
       properties: {
         postId: str('ID del post'),
         postUrl: str('URL del post en Instagram (opcional pero recomendada)'),
+        mediaId: str(
+          'Media ID real de Instagram (socialPostId que devolvió upload_to_social) — habilita auto-post del anchor/prime comment',
+        ),
         postFormat: str('Formato del post'),
         publishedAt: str('Timestamp ISO de la publicación'),
       },
@@ -4276,6 +4279,7 @@ tools.push(
       schedulePostBoost({
         postId: String(input.postId),
         postUrl: input.postUrl as string | undefined,
+        mediaId: input.mediaId as string | undefined,
         postFormat: String(input.postFormat),
         publishedAt: String(input.publishedAt),
       }),

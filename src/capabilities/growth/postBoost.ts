@@ -14,6 +14,7 @@ import { sendAlert } from '../../integrations/notifications.js';
 import { generateReply, ask as routerAsk } from '../../agent/tokenRouter.js';
 import { loadBrandProfile } from '../../config/index.js';
 import { verAnaliticasPost } from '../computerUse/instagramActions.js';
+import { commentOnPost } from '../../integrations/meta.js';
 
 const BOOST_PATH = join(process.cwd(), 'data', 'analytics', 'post-boost.json');
 
@@ -45,6 +46,8 @@ export interface PostBoostPlan {
   id: string;
   postId: string;
   postUrl?: string;
+  /** Media ID real de Instagram (Graph API) — habilita auto-post de anchor/prime comment vía commentOnPost(). Sin esto, esas acciones quedan como texto para revisión humana. */
+  mediaId?: string;
   postFormat: string;
   publishedAt: string;
   stage: BoostStage;
@@ -115,6 +118,8 @@ const buildActionSchedule = (publishedAt: string): BoostAction[] => {
 export interface SchedulePostBoostInput {
   postId: string;
   postUrl?: string;
+  /** Media ID real de Instagram (Graph API), si se conoce al momento de publicar. */
+  mediaId?: string;
   postFormat: string;
   publishedAt: string;
 }
@@ -125,6 +130,7 @@ export const schedulePostBoost = (input: SchedulePostBoostInput): PostBoostPlan 
     id: `boost-${input.postId}-${Date.now()}`,
     postId: input.postId,
     postUrl: input.postUrl,
+    mediaId: input.mediaId,
     postFormat: input.postFormat,
     publishedAt: input.publishedAt,
     stage: 'scheduled',
@@ -163,16 +169,28 @@ El comentario debe:
 - 1-2 líneas
 - Sin emojis innecesarios`;
 
-// Ambas funciones generan el texto del comentario pero NO lo publican
-// automáticamente: instagramActions.ts ya no automatiza el navegador para
-// comentar (ver su header), y el reemplazo compliant (integrations/meta.ts
-// commentOnPost(mediaId, text), vía Graph API) necesita el media ID real de
-// Instagram, que hoy no llega hasta acá — schedulePostBoost() solo recibe
-// postUrl/postId del agregador de publicación, no el media ID de Meta. Hasta
-// que ese dato se pase (ver uploadResult.perPlatformResults[].socialPostId
-// en integrations/uploadPost.ts), estas acciones dejan el texto listo para
-// revisión humana en vez de inventar un envío que fallaría o de volver a
-// controlar el navegador.
+// Con mediaId (Graph API media ID real, ver PostBoostPlan.mediaId) se publica
+// de verdad vía integrations/meta.ts commentOnPost() — API oficial, pasa por
+// el compliance guardian igual que cualquier otro comentario. Sin mediaId
+// (plan viejo, o publicado por una vía que no lo expone) el texto queda listo
+// para que un humano lo pegue manualmente, en vez de automatizar el navegador
+// o inventar un envío con un ID que no existe.
+
+const postOrDeferToHuman = async (
+  plan: PostBoostPlan,
+  comment: string,
+  label: 'Anchor comment' | 'Community prime',
+): Promise<string> => {
+  if (!plan.postUrl && !plan.mediaId) return 'sin postUrl/mediaId: se omite acción';
+  if (!plan.mediaId) {
+    return `${label} listo para revisión humana (sin media ID, no se auto-publica): "${comment.slice(0, 80)}..."`;
+  }
+  const result = await commentOnPost(plan.mediaId, comment);
+  if (!result.ok) {
+    return `${label} bloqueado/falló al auto-publicar (queda para revisión humana): "${comment.slice(0, 80)}..." — ${result.error ?? 'error desconocido'}`;
+  }
+  return `${label} publicado automáticamente (commentId ${result.commentId}): "${comment.slice(0, 80)}..."`;
+};
 
 const executePinnedComment = async (plan: PostBoostPlan): Promise<string> => {
   const brand = loadBrandProfile();
@@ -180,9 +198,7 @@ const executePinnedComment = async (plan: PostBoostPlan): Promise<string> => {
     `${PINNED_COMMENT_PROMPT}\n\nMarca: ${brand.name}\nNicho: ${brand.niche}\nTono: ${brand.voice.tone.join(', ')}`,
     { taskType: 'response', maxTokens: 300 },
   );
-  const comment = result.text.trim();
-  if (!plan.postUrl) return 'sin postUrl: se omite acción';
-  return `Anchor comment listo para revisión humana (no se auto-publica): "${comment.slice(0, 80)}..."`;
+  return postOrDeferToHuman(plan, result.text.trim(), 'Anchor comment');
 };
 
 const executeCommunityPrime = async (plan: PostBoostPlan): Promise<string> => {
@@ -191,9 +207,7 @@ const executeCommunityPrime = async (plan: PostBoostPlan): Promise<string> => {
     taskType: 'response',
     maxTokens: 300,
   });
-  const comment = result.text.trim();
-  if (!plan.postUrl) return 'sin postUrl';
-  return `Community prime listo para revisión humana (no se auto-publica): "${comment.slice(0, 60)}..."`;
+  return postOrDeferToHuman(plan, result.text.trim(), 'Community prime');
 };
 
 const executeCrossPromotion = async (_plan: PostBoostPlan): Promise<string> => {

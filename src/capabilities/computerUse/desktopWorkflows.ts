@@ -62,7 +62,15 @@ export interface CanvaToInstagramResult {
   designStep: { ok: boolean; filePath?: string; durationMs: number };
   fileRegistration: { ok: boolean; assetId?: string; validations: ReturnType<typeof validateAsset> | null };
   captionGeneration: { caption?: string; hashtags?: string[]; cta?: string; toneScore?: number };
-  publishStep: { ok: boolean; method: PublishMethod; postUrl?: string; uploadId?: string; durationMs: number };
+  publishStep: {
+    ok: boolean;
+    method: PublishMethod;
+    postUrl?: string;
+    uploadId?: string;
+    /** Media ID real de Instagram (Graph API) — habilita auto-post en Post Boost (ver postBoost.ts). */
+    mediaId?: string;
+    durationMs: number;
+  };
   boostScheduled: boolean;
   totalDurationMs: number;
   error?: string;
@@ -292,11 +300,13 @@ export const runCanvaToInstagram = async (
         scheduleAt: input.scheduleAt,
       });
 
+      const igResult = uploadResult.perPlatformResults.find((r) => r.platform === 'instagram');
       result.publishStep = {
         ok: uploadResult.ok,
         method: 'upload-post-api',
         uploadId: uploadResult.uploadId,
-        postUrl: uploadResult.perPlatformResults.find((r) => r.platform === 'instagram')?.socialUrl,
+        postUrl: igResult?.socialUrl,
+        mediaId: igResult?.socialPostId,
         durationMs: Date.now() - publishStart,
       };
     }
@@ -306,6 +316,7 @@ export const runCanvaToInstagram = async (
       schedulePostBoost({
         postId: result.publishStep.uploadId ?? `post-${Date.now()}`,
         postUrl: result.publishStep.postUrl,
+        mediaId: result.publishStep.mediaId,
         postFormat: input.postType,
         publishedAt: new Date().toISOString(),
       });
@@ -313,7 +324,7 @@ export const runCanvaToInstagram = async (
       logStep({
         sessionId: replay.id,
         actionType: 'decision',
-        description: 'Post Boost programado (anchor comment, community prime, beacon, métricas)',
+        description: 'Post Boost programado (anchor comment, community prime, métricas)',
         rationale: 'Activación de la ventana crítica del algoritmo (primeros 60-120min)',
       });
     }
