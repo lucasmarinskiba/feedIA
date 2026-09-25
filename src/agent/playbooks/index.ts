@@ -932,7 +932,7 @@ export const PLAYBOOKS: PlaybookDefinition[] = [
       {
         id: 'pel-5',
         agentId: 'community-manager',
-        goal: 'Ejecutar beacon engagement con 3-5 cuentas faro del nicho',
+        goal: 'Generar sugerencias de comentarios (comentar_cuentas_faro) para 3-5 cuentas faro del nicho — texto para revisión humana, nunca se auto-publica en cuentas ajenas',
         dependsOn: ['pel-4'],
       },
       {
@@ -1020,7 +1020,7 @@ export const PLAYBOOKS: PlaybookDefinition[] = [
       {
         id: 'faw-6',
         agentId: 'community-manager',
-        goal: 'Ejecutar engagement loop para cada publicación (comentarios, DMs, beacon)',
+        goal: 'Responder comentarios/DMs de cada publicación y generar sugerencias de comentarios faro (comentar_cuentas_faro, revisión humana)',
         dependsOn: ['faw-5'],
       },
       {

@@ -139,7 +139,7 @@ export const GROWTH_PLAYBOOKS = [
   {
     name: 'Beacon Engagement',
     description:
-      'Interactuar diariamente con las cuentas faro (5-10 cuentas de referencia en el niche) dentro de la primera hora de su publicación.',
+      'Interactuar diariamente con las cuentas faro (5-10 cuentas de referencia en el niche) dentro de la primera hora de su publicación. Táctica MANUAL para un humano — FeedIA no automatiza like/comentario en cuentas ajenas (riesgo de baneo bajo las reglas de Instagram). El tool comentar_cuentas_faro / growth_beacon_comments solo genera sugerencias de comentarios para que un humano las revise y publique.',
     steps: [
       'Identificar 10 cuentas faro: mismo niche, más grandes (50k-500k), audiencia superpuesta.',
       'Comentar de forma sustancial (5+ palabras, agregar valor, hacer pregunta) en sus últimos 3 posts.',

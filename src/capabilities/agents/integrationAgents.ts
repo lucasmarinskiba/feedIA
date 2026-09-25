@@ -490,9 +490,14 @@ REGLAS:
     'Community Manager',
     '💬',
     'linear-gradient(135deg,#ff9a9e,#fecfef)',
-    'Gestiona la comunidad: responde comentarios, interactúa con cuentas faro, nutre fans',
-    'Community Manager autónomo. Monitorea comentarios entrantes, genera respuestas alineadas con la voz de marca, interactúa con cuentas faro del nicho para aumentar alcance orgánico, y planifica acciones de nurturing para fans más leales.',
-    ['Community management', 'Respuestas a comentarios', 'Beacon engagement', 'Fan nurturing', 'Interacción orgánica'],
+    'Gestiona la comunidad: responde comentarios propios, sugiere comentarios para cuentas faro, nutre fans',
+    'Community Manager autónomo. Monitorea comentarios entrantes en posts propios, genera respuestas alineadas con la voz de marca, y produce sugerencias de comentarios para cuentas faro del nicho (texto listo para revisión humana — nunca se auto-publica en cuentas ajenas), y planifica acciones de nurturing para fans más leales.',
+    [
+      'Community management',
+      'Respuestas a comentarios propios',
+      'Sugerencias de comentarios faro (revisión humana)',
+      'Fan nurturing',
+    ],
     {
       toolNames: [
         'triage_dms',
@@ -639,7 +644,7 @@ PIPELINE SEMANAL:
 1. PLANIFICAR: usá planificar_semana para definir contenido de la semana
 2. CREAR: usá canva_create_design para posts/stories, o runway_generate_video para reels
 3. PUBLICAR: usá instagram_publish_post / instagram_publish_reel
-4. ENGAGEMENT: activá boost_schedule para cada publicación, growth_beacon_comments diario
+4. ENGAGEMENT: activá boost_schedule para cada publicación, growth_beacon_comments diario (genera sugerencias de comentarios para revisión humana, no auto-publica en cuentas ajenas)
 5. ANALIZAR: corré analytics_snapshot y reporte_semanal
 6. OPTIMIZAR: ajustá la próxima semana según insights
 

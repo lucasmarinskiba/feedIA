@@ -77,7 +77,7 @@ export const WORKFLOW_CRECIMIENTO_SEMANAL: PlaybookDefinition = {
     {
       id: 'plan-engagement-semanal',
       agentId: 'lia',
-      goal: 'Crear el plan de engagement de la semana: qué cuentas faro monitorear cada día, qué tipos de comentarios escribir, horarios de engagement. Objetivo: mínimo 10 comentarios estratégicos por día en cuentas faro.',
+      goal: 'Crear el plan de engagement de la semana: qué cuentas faro monitorear cada día, qué tipos de comentarios generar. Usar comentar_cuentas_faro para producir sugerencias de comentarios listas para que un humano las revise y publique manualmente — no hay automatización que las postee en cuentas ajenas.',
       dependsOn: ['configurar-beacon-accounts'],
     },
     {
@@ -179,18 +179,18 @@ export const WORKFLOW_GESTION_COMUNIDAD: PlaybookDefinition = {
     {
       id: 'beacon-engagement',
       agentId: 'lia',
-      goal: 'Realizar el beacon engagement del día: ir a las 5 cuentas faro del niche y hacer engagement estratégico en sus últimos posts (comentario genuino de 5+ palabras + like). Priorizar las cuentas con más actividad hoy. Registrar qué se comentó en cada cuenta.',
+      goal: 'Generar sugerencias de comentarios faro del día: usar comentar_cuentas_faro sobre los últimos posts de las 5 cuentas faro del niche con más actividad hoy. Esto SOLO produce texto — no hay automatización de Instagram que postee en cuentas ajenas, así que el resultado queda listo para que un humano lo revise y lo pegue manualmente si quiere.',
       dependsOn: ['responder-comentarios-propios'],
     },
     {
       id: 'monitoreo-menciones',
       agentId: 'gard',
-      goal: 'Buscar menciones de la marca o cuenta en Instagram: buscar el nombre/hashtag de marca en Explorar, revisar comentarios en cuentas faro. Si hay menciones positivas, interactuar. Si hay menciones negativas, evaluar si requiere respuesta o gestión de crisis.',
+      goal: 'Buscar menciones de la marca o cuenta en Instagram: buscar el nombre/hashtag de marca en Explorar, revisar comentarios en cuentas faro. Si hay menciones positivas o negativas, registrarlas y —si corresponde— generar una sugerencia de respuesta para revisión humana (nunca postear automáticamente en cuentas ajenas). Si hay menciones negativas graves, evaluar si requiere gestión de crisis.',
     },
     {
       id: 'resumen-comunidad',
       agentId: 'lia',
-      goal: 'Generar el resumen de gestión de comunidad: estadísticas (cuántos comentarios respondidos, cuántos DMs procesados, leads identificados), acciones de beacon engagement realizadas, menciones detectadas, alertas si las hay.',
+      goal: 'Generar el resumen de gestión de comunidad: estadísticas (cuántos comentarios respondidos, cuántos DMs procesados, leads identificados), sugerencias de comentarios faro generadas (pendientes de revisión humana), menciones detectadas, alertas si las hay.',
       dependsOn: ['responder-comentarios-propios', 'calificar-leads-dms', 'beacon-engagement', 'monitoreo-menciones'],
     },
   ],
@@ -461,7 +461,7 @@ export const WORKFLOW_GROWTH_SPRINT: PlaybookDefinition = {
   id: 'ig-growth-sprint',
   name: 'Growth Sprint Intensivo',
   description:
-    'Sprint de 3-7 días para acelerar el crecimiento: detecta virales del nicho, produce con hooks A/B testados, programa boost post-publicación, ejecuta beacon engagement coordinado y reporta crecimiento diario.',
+    'Sprint de 3-7 días para acelerar el crecimiento: detecta virales del nicho, produce con hooks A/B testados, programa boost post-publicación, genera sugerencias de comentarios faro coordinadas (revisión humana) y reporta crecimiento diario.',
   tasks: [
     {
       id: 'sprint-snapshot',
@@ -509,7 +509,7 @@ export const WORKFLOW_GROWTH_SPRINT: PlaybookDefinition = {
     {
       id: 'sprint-beacon-coordinado',
       agentId: 'lia',
-      goal: 'Durante todo el sprint, ejecutar beacon_engagement con las cuentas faro 2 veces al día (mañana y tarde). Enfocar comentarios en aportar valor real (no genéricos). Track de las cuentas que más responden recíprocamente.',
+      goal: 'Durante todo el sprint, generar sugerencias de comentarios con comentar_cuentas_faro para las cuentas faro 2 veces al día (mañana y tarde) — texto listo para revisión humana, nunca se auto-publica en cuentas ajenas. Enfocar comentarios en aportar valor real (no genéricos).',
       dependsOn: ['sprint-ejecutar-publicaciones'],
     },
     {
@@ -770,7 +770,7 @@ export const WORKFLOW_CROSS_PLATFORM_PUBLISH: PlaybookDefinition = {
     {
       id: 'publish-post-boost',
       agentId: 'talia',
-      goal: 'En Instagram específicamente: llamar a boost_schedule inmediatamente después de confirmada la publicación para activar la ventana del algoritmo (anchor comment, community prime, beacon).',
+      goal: 'En Instagram específicamente: llamar a boost_schedule inmediatamente después de confirmada la publicación para activar la ventana del algoritmo (anchor comment, community prime). Si getUploadStatus devolvió el media ID real (socialPostId), pasarlo como mediaId para que el anchor/prime comment se auto-publique vía API; si no, quedará listo para revisión humana.',
       dependsOn: ['publish-execute'],
     },
   ],

@@ -9570,7 +9570,7 @@ tools.push(
 
   tool(
     'instagram_publish_post',
-    'Publica un post (imagen o carrusel) en Instagram usando la mejor vía disponible: API, Web o App.',
+    'Publica un post (imagen o carrusel) en Instagram vía la API oficial de Meta (el fallback por navegador/app está deshabilitado por riesgo de baneo — ver publishRouter.ts).',
     {
       type: 'object',
       properties: {
@@ -9602,7 +9602,7 @@ tools.push(
 
   tool(
     'instagram_publish_reel',
-    'Publica un Reel en Instagram usando la mejor vía disponible: API, Web o App.',
+    'Publica un Reel en Instagram vía la API oficial de Meta (el fallback por navegador/app está deshabilitado por riesgo de baneo).',
     {
       type: 'object',
       properties: {
@@ -9628,7 +9628,7 @@ tools.push(
 
   tool(
     'instagram_publish_story',
-    'Publica una Historia en Instagram usando la mejor vía disponible: Web o App.',
+    'Publica una Historia en Instagram vía la API oficial de Meta. No soporta stickers interactivos (eso no existe en ninguna API oficial). El fallback por navegador/app está deshabilitado por riesgo de baneo.',
     {
       type: 'object',
       properties: {
@@ -9649,7 +9649,7 @@ tools.push(
 
   tool(
     'instagram_publish_health',
-    'Verifica el estado de salud de las 3 vías de publicación en Instagram (API, Web, App).',
+    'Verifica si la API oficial de Instagram está disponible para publicar (web/app quedaron deshabilitados por riesgo de baneo).',
     {
       type: 'object',
       properties: {},
