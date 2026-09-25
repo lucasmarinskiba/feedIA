@@ -1,16 +1,23 @@
 /**
- * RobotModeRouter — Orquestador inteligente de acciones de Instagram.
+ * RobotModeRouter — Orquestador de acciones de Instagram, SOLO vía API oficial.
  *
- * Filosofía del Robot Cauteloso:
- *   1. API oficial de Meta PRIMERO (100% segura, aprobada por Meta)
- *   2. Playwright/Web SEGUNDO (para lo que la API no permite)
- *   3. Computer Use ÚLTIMO RECURSO (recovery ante cambios de UI)
+ * Antes tenía 3 vías ("Robot Cauteloso": API → Playwright/Web → Computer Use
+ * como "recovery"), pero para like/comment/follow/dm la API oficial NUNCA es
+ * una opción soportada (Meta no expone esas acciones sobre cuentas ajenas) —
+ * así que en la práctica esas cuatro acciones SIEMPRE se ejecutaban vía
+ * browser automation (fingerprint spoofing) o un emulador Android controlando
+ * like/comment/follow/DM sobre cuentas de terceros. Eso es exactamente
+ * "engagement falso"/mass-follow/auto-DM: lo que AUTO-001/002/003 e INT-001
+ * prohíben, y arriesga el baneo real de la cuenta del cliente.
+ *
+ * Ahora: publish/comment_reply van por la API oficial (lo único soportado).
+ * like/comment/follow/dm quedan deshabilitadas acá — fallan con un error
+ * claro en vez de controlar un navegador o emulador en secreto.
  *
  * Cada acción pasa por:
  *   • UnifiedRateLimiter (límites globales por tier + warmup)
  *   • Compliance Guardian (reglas de Instagram)
- *   • GlassBox Gate (supervised para vías riesgosas)
- *   • Ejecución con fallback automático entre vías
+ *   • GlassBox Gate (supervised)
  */
 
 import { env } from '../config/index.js';
@@ -33,13 +40,17 @@ import {
 } from './unifiedRateLimiter.js';
 import { buildAccountContext, recordWarmupAction } from './warmupTracker.js';
 import { checkResponseForBlocks, preSessionHealthCheck } from './blockDetection.js';
-import { seguirCuenta, comentarEnPost, darLike, enviarDM } from '../capabilities/computerUse/instagramActions.js';
 
 // ── Integraciones existentes ──────────────────────────────────────────────────
 
 import { publishToInstagram } from '../integrations/meta.js';
 import type { PublishRequest as ApiPublishRequest } from '../integrations/meta.js';
-import { InstagramWebOperator } from '../browserOperators/instagram/instagramWebOperator.js';
+
+/** Acciones que la API oficial nunca soporta sobre cuentas ajenas — deshabilitadas, no automatizadas por navegador/emulador. */
+const DISABLED_ACTION_TYPES: ReadonlySet<RobotAction['type']> = new Set(['like', 'comment', 'follow', 'dm']);
+
+const DISABLED_REASON =
+  'Esta acción (like/comment/follow/DM sobre una cuenta ajena) no está soportada por la API oficial de Instagram, y la automatización vía navegador/emulador está deshabilitada por riesgo de baneo real de la cuenta (AUTO-001/002/003, INT-001). No se ejecuta.';
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -370,197 +381,6 @@ const executePublishApi = async (action: PublishAction): Promise<RobotResult> =>
   };
 };
 
-/** Ejecuta publicación via Web (Playwright) */
-const executePublishWeb = async (action: PublishAction): Promise<RobotResult> => {
-  const start = Date.now();
-  const operator = new InstagramWebOperator({ brand: action.brand, headless: false, dryRun: env.dryRun });
-
-  try {
-    if (action.format === 'post' || action.format === 'carousel') {
-      const result = await operator.publishPost({
-        imagePaths: action.mediaPaths,
-        caption: action.caption,
-        hashtags: action.hashtags,
-        altText: action.altText,
-        location: action.location,
-        collaborator: action.collaborator,
-      });
-      return {
-        ok: result.ok,
-        via: 'web',
-        actionType: 'publish',
-        error: result.error,
-        durationMs: Date.now() - start,
-        riskScore: 15,
-      };
-    }
-
-    if (action.format === 'reel') {
-      const result = await operator.publishReel({
-        videoPath: action.mediaPaths[0]!,
-        caption: action.caption,
-        audioName: action.audioName,
-        shareToFeed: action.shareToFeed,
-      });
-      return {
-        ok: result.ok,
-        via: 'web',
-        actionType: 'publish',
-        error: result.error,
-        durationMs: Date.now() - start,
-        riskScore: 15,
-      };
-    }
-
-    if (action.format === 'story') {
-      const result = await operator.publishStory({
-        mediaPath: action.mediaPaths[0]!,
-      });
-      return {
-        ok: result.ok,
-        via: 'web',
-        actionType: 'publish',
-        error: result.error,
-        durationMs: Date.now() - start,
-        riskScore: 15,
-      };
-    }
-
-    return {
-      ok: false,
-      via: 'web',
-      actionType: 'publish',
-      error: `Formato no soportado: ${action.format}`,
-      durationMs: Date.now() - start,
-      riskScore: 0,
-    };
-  } finally {
-    await operator.closeSession();
-  }
-};
-
-/** Ejecuta like via Web (la API no lo soporta para cuentas ajenas) */
-const executeLikeWeb = async (action: LikeAction): Promise<RobotResult> => {
-  const start = Date.now();
-  const operator = new InstagramWebOperator({ brand: action.brand, headless: false, dryRun: env.dryRun });
-
-  try {
-    const result = await operator.likePost(action.postUrl);
-    return {
-      ok: result.ok,
-      via: 'web',
-      actionType: 'like',
-      error: result.error,
-      durationMs: Date.now() - start,
-      riskScore: 20,
-    };
-  } finally {
-    await operator.closeSession();
-  }
-};
-
-/** Ejecuta comment via Web */
-const executeCommentWeb = async (action: CommentAction): Promise<RobotResult> => {
-  const start = Date.now();
-  const operator = new InstagramWebOperator({ brand: action.brand, headless: false, dryRun: env.dryRun });
-
-  try {
-    const result = await operator.commentOnPost(action.postUrl, action.text);
-    return {
-      ok: result.ok,
-      via: 'web',
-      actionType: 'comment',
-      error: result.error,
-      durationMs: Date.now() - start,
-      riskScore: 25,
-    };
-  } finally {
-    await operator.closeSession();
-  }
-};
-
-/** Ejecuta follow via Computer Use (la API no lo soporta y Web tampoco tiene método) */
-const executeFollowComputerUse = async (action: FollowAction): Promise<RobotResult> => {
-  const start = Date.now();
-  const result = await seguirCuenta(action.brand, action.username);
-  return {
-    ok: result.ok,
-    via: 'computer_use',
-    actionType: 'follow',
-    error: result.error,
-    durationMs: Date.now() - start,
-    riskScore: 30,
-  };
-};
-
-/** Ejecuta like via Computer Use (recovery cuando web falla) */
-const executeLikeComputerUse = async (action: LikeAction): Promise<RobotResult> => {
-  const start = Date.now();
-  const result = await darLike(action.brand, action.postUrl);
-  return {
-    ok: result.ok,
-    via: 'computer_use',
-    actionType: 'like',
-    error: result.error,
-    durationMs: Date.now() - start,
-    riskScore: 25,
-  };
-};
-
-/** Ejecuta comment via Computer Use (recovery cuando web falla) */
-const executeCommentComputerUse = async (action: CommentAction): Promise<RobotResult> => {
-  const start = Date.now();
-  const result = await comentarEnPost(action.brand, {
-    postUrl: action.postUrl,
-    commentText: action.text,
-  });
-  return {
-    ok: result.ok,
-    via: 'computer_use',
-    actionType: 'comment',
-    error: result.error,
-    durationMs: Date.now() - start,
-    riskScore: 25,
-  };
-};
-
-/** Ejecuta DM via Computer Use (recovery cuando web falla) */
-const executeDmComputerUse = async (action: SendDMAction): Promise<RobotResult> => {
-  const start = Date.now();
-  const result = await enviarDM(action.brand, {
-    username: action.username,
-    message: action.message,
-  });
-  return {
-    ok: result.ok,
-    via: 'computer_use',
-    actionType: 'dm',
-    error: result.error,
-    durationMs: Date.now() - start,
-    riskScore: 25,
-  };
-};
-
-/** Ejecuta DM via Web */
-const executeDmWeb = async (action: SendDMAction): Promise<RobotResult> => {
-  const start = Date.now();
-  const operator = new InstagramWebOperator({ brand: action.brand, headless: false, dryRun: env.dryRun });
-
-  try {
-    const result = await operator.sendDM(action.username, action.message);
-    return {
-      ok: result.ok,
-      via: 'web',
-      actionType: 'dm',
-      error: result.error,
-      durationMs: Date.now() - start,
-      riskScore: 25,
-    };
-  } finally {
-    await operator.closeSession();
-  }
-};
-
 // ── Router principal ──────────────────────────────────────────────────────────
 
 /**
@@ -578,6 +398,44 @@ export const executeRobotAction = async (action: RobotAction): Promise<RobotResu
   const start = Date.now();
   const actionId = action.actionId ?? `robot-${Date.now()}`;
   const unifiedType = action.type as UnifiedActionType;
+
+  // like/comment/follow/dm: la API oficial nunca las soporta sobre cuentas
+  // ajenas, y la automatización por navegador/emulador está deshabilitada —
+  // fallar rápido y claro, sin tocar un navegador ni un emulador.
+  if (DISABLED_ACTION_TYPES.has(action.type)) {
+    log.warn(`[RobotModeRouter] ${action.type} deshabilitado: ${DISABLED_REASON}`);
+    return {
+      ok: false,
+      via: 'none',
+      actionType: unifiedType,
+      error: DISABLED_REASON,
+      durationMs: Date.now() - start,
+      riskScore: 0,
+    };
+  }
+  if (action.type === 'publish' && requiresWebOrApp(action)) {
+    const reason = `El formato "${action.format}"${action.collaborator ? ' con colaborador' : ''} no está soportado por la API oficial, y la publicación por navegador está deshabilitada por riesgo de baneo. Publicá esto manualmente.`;
+    return {
+      ok: false,
+      via: 'none',
+      actionType: unifiedType,
+      error: reason,
+      durationMs: Date.now() - start,
+      riskScore: 0,
+    };
+  }
+  if (action.type === 'publish' && !isApiAvailable()) {
+    const reason =
+      'La cuenta de Instagram no tiene credenciales de la API de Meta configuradas. Conectá la cuenta vía OAuth — no hay fallback por navegador.';
+    return {
+      ok: false,
+      via: 'none',
+      actionType: unifiedType,
+      error: reason,
+      durationMs: Date.now() - start,
+      riskScore: 0,
+    };
+  }
 
   // Autocompletar accountCtx si no se proporcionó
   const accountCtx = action.accountCtx ?? buildAccountContext(action.brand);
@@ -640,23 +498,8 @@ export const executeRobotAction = async (action: RobotAction): Promise<RobotResu
 
         switch (action.type) {
           case 'publish':
-            if (via === 'api') result = await executePublishApi(action);
-            else result = await executePublishWeb(action);
-            break;
-          case 'like':
-            if (via === 'computer_use') result = await executeLikeComputerUse(action);
-            else result = await executeLikeWeb(action);
-            break;
-          case 'comment':
-            if (via === 'computer_use') result = await executeCommentComputerUse(action);
-            else result = await executeCommentWeb(action);
-            break;
-          case 'dm':
-            if (via === 'computer_use') result = await executeDmComputerUse(action);
-            else result = await executeDmWeb(action);
-            break;
-          case 'follow':
-            result = await executeFollowComputerUse(action);
+            // El guard de arriba ya garantiza via === 'api' acá (web deshabilitado).
+            result = await executePublishApi(action);
             break;
           default:
             result = {
