@@ -41,6 +41,8 @@ export interface GuardianContext {
   contentText?: string;
   /** Es una acción iniciada por el usuario humano (true) o automatizada (false)? */
   humanInitiated?: boolean;
+  /** ISO timestamp del último mensaje entrante del usuario (para validar la ventana de 24h, INT-005). */
+  lastInteractionAt?: string;
 }
 
 export interface GuardianDecision {
@@ -199,6 +201,26 @@ const checkContextRules = (category: ActionCategory, ctx: GuardianContext): Rule
         rule,
         violated: true,
         reason: 'DM automatizado sin identificador de destinatario verificable',
+      });
+    }
+  }
+
+  // INT-005: Ventana de 24h de la Instagram Messaging API.
+  // Acotado a 'nurture_sequence' (envíos programados días después del trigger,
+  // ver src/capabilities/nurture/sequences.ts) — no a 'dm' en general, porque
+  // los demás emisores de sendDm() (ej. bot/runner.ts) responden en el mismo
+  // turno a un mensaje entrante y no llevan lastInteractionAt propio.
+  if (category === 'nurture_sequence' && !ctx.humanInitiated) {
+    const rule = INSTAGRAM_RULES.find((r) => r.code === 'INT-005')!;
+    const last = ctx.lastInteractionAt ? new Date(ctx.lastInteractionAt).getTime() : NaN;
+    const withinWindow = !Number.isNaN(last) && Date.now() - last <= 24 * 60 * 60 * 1000;
+    if (!withinWindow) {
+      results.push({
+        rule,
+        violated: true,
+        reason: ctx.lastInteractionAt
+          ? `Última interacción del usuario hace más de 24h (${ctx.lastInteractionAt}); fuera de la ventana de mensajería de Meta`
+          : 'Sin interacción verificable del usuario dentro de las últimas 24h',
       });
     }
   }
