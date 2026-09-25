@@ -1,7 +1,6 @@
 // @ts-nocheck
 import type { Tool } from '@anthropic-ai/sdk/resources/messages.js';
 import { postingController } from '../../studio/controllers/postingController.js';
-import { executeWithRecovery } from '../../studio/computerUse/reliableSession.js';
 import { audiencePsychologyAgent } from '../../studio/intelligence/audiencePsychologyAgent.js';
 import { trendIntelligenceAgent } from '../../studio/intelligence/trendIntelligenceAgent.js';
 import { contentAlgorithmAgent } from '../../studio/intelligence/contentAlgorithmAgent.js';
@@ -239,7 +238,7 @@ tools.posting_story_sequence = {
 tools.posting_first_comment = {
   name: 'posting_first_comment',
   description:
-    'Automatically post a branded first comment immediately after publishing — moves hashtags to first comment for clean caption, adds engagement prompt, signals activity to algorithm',
+    'Generate a branded first-comment text ready for human review after publishing — moves hashtags to first comment for clean caption, adds engagement prompt. Does NOT auto-post: no browser automation, no compliant API path with a real media ID at this call site yet.',
   input_schema: {
     type: 'object' as const,
     properties: {
@@ -776,31 +775,19 @@ ${baseCaptionInput}
 
         const comment = commentTemplates[commentType] ?? commentTemplates['hashtags-only'];
 
-        const goal = `Post this first comment on ${platform} post at ${postUrl}:
-
-"${comment}"
-
-Steps:
-1. Open post URL: ${postUrl}
-2. Tap comment icon
-3. Paste exactly: "${comment}"
-4. Post comment
-5. Confirm posted and output: COMMENT_POSTED: true`;
-
-        const result = await executeWithRecovery(brand, {
-          goal,
-          maxIterations: 8,
-          operationName: `First comment: ${platform}`,
-          maxRetries: 2,
-        });
-
+        // Ya no controla el navegador para pegar esto — arriesgaba el baneo de
+        // la cuenta (automatización fuera de la API oficial, AUTO-002/TT-SCHED-001)
+        // y no tiene el media ID real que necesitaría integrations/meta.ts
+        // commentOnPost() para publicarlo de verdad vía API (ver postBoost.ts,
+        // mismo patrón). El texto queda listo para pegarlo a mano.
         return JSON.stringify({
-          ok: result.ok,
+          ok: true,
           comment_text: comment,
           hashtag_count: hashtags.length,
           comment_type: commentType,
           algo_benefit: 'First comment within 2 min of posting signals activity → algorithm boosts distribution',
-          summary: result.summary,
+          summary: `Comentario listo para revisión humana (no se auto-publica): "${comment.slice(0, 80)}..."`,
+          post_url: postUrl,
         });
       }
 

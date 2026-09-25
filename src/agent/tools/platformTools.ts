@@ -7,7 +7,6 @@ import {
   tiktokAdsCreate,
   applyContentEffects,
 } from '../../studio/computerUse/platformControllers.js';
-import { executeWithRecovery } from '../../studio/computerUse/reliableSession.js';
 import { contentAlgorithmAgent } from '../../studio/intelligence/contentAlgorithmAgent.js';
 import { audiencePsychologyAgent } from '../../studio/intelligence/audiencePsychologyAgent.js';
 import type { BrandProfile } from '../../config/types.js';
@@ -283,6 +282,18 @@ tools.platform_profile_optimize = {
 
 export const platformTools = tools;
 
+// Estos tools armaban un goal en lenguaje natural y se lo pasaban a
+// executeWithRecovery()/runComputerUseSession() — Computer Use real (cursor +
+// teclado vía la API de Claude) contra Instagram/TikTok, sin ningún chequeo
+// de compliance — la publicación de contenido propio ya tiene un camino
+// compliant real (integrations/uploadPost.ts, ver desktopWorkflows.ts), y
+// like/reply automatizado en comentarios (platform_auto_reply) es
+// automatización de engagement prohibida sin importar de quién sea el post.
+// Ver platformControllers.ts para el mismo tratamiento en los tools que
+// llaman ahí en vez de acá directamente.
+const CU_DISABLED_REASON =
+  'Automatización de Instagram/TikTok vía navegador (Computer Use) deshabilitada por riesgo de baneo de cuenta — no se ejecuta.';
+
 export const executePlatformTool = async (
   toolName: string,
   input: Record<string, unknown>,
@@ -353,55 +364,16 @@ export const executePlatformTool = async (
       // ── AI Intelligence Cases ───────────────────────────────────────────────
 
       case 'instagram_reel_upload': {
-        const videoPath = (input.video_path as string) || '';
-        const caption = (input.caption as string) || '';
-        const hashtags = (input.hashtags as string[]) || [];
         const coverTimestamp = typeof input.cover_frame_timestamp === 'number' ? input.cover_frame_timestamp : 0;
         const audioName = (input.audio_name as string) || '';
-        const shareToFeed = (input.share_to_feed as boolean) ?? true;
-        const collabAccount = (input.collab_account as string) || '';
 
-        const hashtagsStr = hashtags
-          .slice(0, 5)
-          .map((h) => `#${h}`)
-          .join(' ');
-
-        const goal = `Upload a Reel to Instagram with the following settings:
-
-VIDEO: ${videoPath}
-CAPTION: "${caption}
-
-${hashtagsStr}"
-COVER: Select frame at ${coverTimestamp}s
-AUDIO: ${audioName ? `Search and apply trending audio: "${audioName}"` : 'Keep original audio'}
-SHARE TO FEED: ${shareToFeed ? 'Yes' : 'No'}
-COLLAB: ${collabAccount ? `Invite @${collabAccount} as collaborator` : 'No collab'}
-
-STEPS:
-1. Open instagram.com → Create → Reel
-2. Upload video: ${videoPath}
-3. Select cover frame at ${coverTimestamp}s
-4. ${audioName ? `Add audio: search "${audioName}"` : 'Keep original audio'}
-5. Add caption with hashtags (shown above)
-6. ${collabAccount ? `Add collaborator: @${collabAccount}` : 'Skip collaborator'}
-7. ${shareToFeed ? 'Enable "Share to feed"' : 'Uncheck "Share to feed"'}
-8. Post the reel
-9. Output: REEL_URL: [url]`;
-
-        const result = await executeWithRecovery(brand, {
-          goal,
-          maxIterations: 20,
-          operationName: 'Instagram reel upload',
-          maxRetries: 2,
-        });
-
-        const urlMatch = result.summary.match(/REEL_URL:\s*(https?:\/\/[^\s]+)/);
         return JSON.stringify({
-          ok: result.ok,
-          reel_url: urlMatch?.[1] ?? null,
+          ok: false,
+          reel_url: null,
           cover_timestamp: coverTimestamp,
           audio_applied: audioName || 'original',
-          summary: result.summary,
+          error: CU_DISABLED_REASON,
+          note: 'Usá upload_to_social (integrations/uploadPost.ts) para publicar el reel vía la API oficial.',
         });
       }
 
@@ -410,104 +382,34 @@ STEPS:
         const closeFriendsOnly = (input.close_friends_only as boolean) ?? false;
         const archiveHighlight = (input.archive_highlight as string) || '';
 
-        const slideGoals = slides
-          .map((slide, i) => {
-            const interactive = (slide.interactive_element as string) ?? 'none';
-            const interactiveInstruction =
-              interactive === 'poll'
-                ? `Add poll: "${String((slide.interactive_params && (slide.interactive_params as Record<string, unknown>).question) ?? 'Which one?')}" with options`
-                : interactive === 'question'
-                  ? 'Add question sticker'
-                  : interactive === 'link'
-                    ? `Add link sticker → ${String(slide.link_url ?? '')}`
-                    : interactive === 'countdown'
-                      ? 'Add countdown sticker'
-                      : '';
-            return `SLIDE ${i + 1}: Upload "${String(slide.media_path ?? '')}"${slide.text_overlay ? ` → Add text: "${String(slide.text_overlay)}"` : ''}${interactiveInstruction ? ` → ${interactiveInstruction}` : ''}`;
-          })
-          .join('\n');
-
-        const goal = `Post Instagram Story sequence (${slides.length} stories):
-
-${slideGoals}
-
-OPTIONS:
-- Close friends only: ${closeFriendsOnly ? 'Yes' : 'No'}
-- Archive to highlights: ${archiveHighlight ? `"${archiveHighlight}"` : 'No'}
-
-STEPS:
-1. Open instagram.com → Story camera
-2. For each slide: upload media, add elements as specified
-3. Post all slides in sequence
-4. ${archiveHighlight ? `Archive to "${archiveHighlight}" highlight` : ''}
-5. Output: STORIES_POSTED: ${slides.length}`;
-
-        const result = await executeWithRecovery(brand, {
-          goal,
-          maxIterations: 15 + slides.length * 3,
-          operationName: `Instagram story sequence (${slides.length} slides)`,
-          maxRetries: 2,
-        });
-
+        // Stories con stickers interactivos (poll/quiz/link/countdown) no
+        // existen en ninguna API oficial — publicarlas requeriría Computer
+        // Use real, que quedó deshabilitado por riesgo de baneo. Un story
+        // simple (sin stickers) SÍ puede ir por upload_to_social.
         return JSON.stringify({
-          ok: result.ok,
-          slides_posted: slides.length,
+          ok: false,
+          slides_posted: 0,
           close_friends: closeFriendsOnly,
           archived_to: archiveHighlight || null,
           interactive_elements: slides.filter((s) => s.interactive_element && s.interactive_element !== 'none').length,
-          summary: result.summary,
+          error: CU_DISABLED_REASON,
+          note: 'Para stories sin stickers interactivos, usá upload_to_social (mediaType: "story"). Con stickers, no hay automatización disponible — hacelo manualmente.',
         });
       }
 
       case 'tiktok_fyp_optimize': {
-        const videoPath = (input.video_path as string) || '';
         const niche = input.niche as string as NicheCategory;
-        const caption = (input.caption as string) || '';
         const trendingAudio = (input.trending_audio as string) || '';
-        const location = (input.location as string) || '';
-        const scheduleTime = (input.schedule_time as string) || '';
         const allowDuet = (input.allow_duet as boolean) ?? true;
         const allowStitch = (input.allow_stitch as boolean) ?? true;
 
         const algProfile = contentAlgorithmAgent.getAlgorithmProfile('tiktok', niche);
         const topSignal = algProfile.rankingFactors[0];
-
         const fypHashtags = ['#fyp', '#foryou', '#foryoupage', `#${niche.replace('-', '')}`];
-        const optimizedCaption = `${caption}\n\n${fypHashtags.join(' ')}`;
 
-        const goal = `Upload and optimize TikTok video for FYP:
-
-VIDEO: ${videoPath}
-CAPTION: "${optimizedCaption}"
-AUDIO: ${trendingAudio ? `Search and apply: "${trendingAudio}"` : 'Keep original (original audio gets extra reach)'}
-LOCATION: ${location || 'Skip location tag'}
-SCHEDULE: ${scheduleTime || 'Post now'}
-ALLOW DUET: ${allowDuet ? 'Yes' : 'No'}
-ALLOW STITCH: ${allowStitch ? 'Yes' : 'No'}
-
-STEPS:
-1. Open TikTok Studio (studio.tiktok.com)
-2. Upload video: ${videoPath}
-3. ${trendingAudio ? `Search sounds for "${trendingAudio}" and apply` : 'Keep original audio'}
-4. Set caption with FYP hashtags
-5. ${location ? `Add location: ${location}` : 'Skip location'}
-6. Enable: Duet=${allowDuet}, Stitch=${allowStitch}
-7. ${scheduleTime ? `Schedule for: ${scheduleTime}` : 'Post immediately'}
-8. Output: VIDEO_URL: [url]
-
-FYP PRIORITY: Optimize for "${topSignal?.factor ?? 'completion'}" — top ranking signal (${((topSignal?.weight ?? 0.35) * 100).toFixed(0)}%)`;
-
-        const result = await executeWithRecovery(brand, {
-          goal,
-          maxIterations: 20,
-          operationName: `TikTok FYP upload: ${niche}`,
-          maxRetries: 2,
-        });
-
-        const urlMatch = result.summary.match(/VIDEO_URL:\s*(https?:\/\/[^\s]+)/);
         return JSON.stringify({
-          ok: result.ok,
-          video_url: urlMatch?.[1] ?? null,
+          ok: false,
+          video_url: null,
           fyp_optimizations: {
             audio: trendingAudio || 'original',
             duet_enabled: allowDuet,
@@ -515,46 +417,25 @@ FYP PRIORITY: Optimize for "${topSignal?.factor ?? 'completion'}" — top rankin
             hashtags_added: fypHashtags,
             top_algorithm_signal: topSignal?.factor,
           },
-          summary: result.summary,
+          error: CU_DISABLED_REASON,
+          note: 'Usá upload_to_social (mediaType: "reel", platform: "tiktok") para publicar vía la Content Posting API oficial.',
         });
       }
 
       case 'tiktok_duet_stitch': {
         const sourceUrl = (input.source_video_url as string) || '';
         const responseType = (input.response_type as string) || 'stitch';
-        const responseCaption = (input.response_caption as string) || '';
-        const stitch_secs = typeof input.stitch_seconds === 'number' ? input.stitch_seconds : 5;
 
-        const goal = `Create a TikTok ${responseType} of: ${sourceUrl}
-
-TYPE: ${responseType}
-CAPTION: "${responseCaption}"
-${responseType === 'stitch' ? `STITCH_SECONDS: ${stitch_secs} seconds from source` : 'DUET: Side-by-side layout'}
-
-STEPS:
-1. Open TikTok app/studio
-2. Navigate to source video: ${sourceUrl}
-3. Tap the "${responseType}" button (share menu → ${responseType})
-4. ${responseType === 'stitch' ? `Select ${stitch_secs}s clip from source` : 'Set up side-by-side layout'}
-5. Record or upload your response video
-6. Add caption: "${responseCaption}"
-7. Post and output: ${responseType.toUpperCase()}_URL: [url]`;
-
-        const result = await executeWithRecovery(brand, {
-          goal,
-          maxIterations: 18,
-          operationName: `TikTok ${responseType}`,
-          maxRetries: 2,
-        });
-
-        const urlMatch = result.summary.match(/(?:DUET|STITCH)_URL:\s*(https?:\/\/[^\s]+)/i);
+        // Duet/stitch de un video AJENO vía Computer Use — automatización de
+        // TikTok fuera de la API oficial, no soportada por ninguna Content
+        // Posting API. No se ejecuta.
         return JSON.stringify({
-          ok: result.ok,
+          ok: false,
           response_type: responseType,
           source_url: sourceUrl,
-          response_url: urlMatch?.[1] ?? null,
-          discovery_boost: `${responseType}s get 2-3x extra algorithmic distribution vs. original posts`,
-          summary: result.summary,
+          response_url: null,
+          error: CU_DISABLED_REASON,
+          note: 'Duet/stitch requiere la app de TikTok — no hay automatización disponible. Hacelo manualmente.',
         });
       }
 
@@ -562,47 +443,19 @@ STEPS:
         const platform = (input.platform as string) || 'instagram';
         const monitorType = (input.monitor_type as string) || 'comments';
         const postCount = Math.min(10, typeof input.post_count === 'number' ? input.post_count : 5);
-        const respondToQuestions = (input.respond_to_questions as boolean) ?? true;
 
-        const goal = `Monitor ${monitorType} on ${platform}:
-
-SCOPE: Last ${postCount} posts
-FOCUS: ${respondToQuestions ? 'Identify all unanswered questions + engagement opportunities' : 'Log all new interactions'}
-
-STEPS:
-1. Open ${platform} account
-2. Check last ${postCount} posts for new ${monitorType}
-3. For each post, log:
-   - New comments count
-   - Questions needing response (marked with ?)
-   - Positive feedback to amplify
-   - Potential DM conversations
-4. Output structured report:
-TOTAL_INTERACTIONS: [n]
-QUESTIONS_PENDING: [list]
-HIGH_VALUE_COMMENTS: [list]
-DM_OPPORTUNITIES: [list]`;
-
-        const result = await executeWithRecovery(brand, {
-          goal,
-          maxIterations: 15,
-          operationName: `Engagement monitor: ${platform}`,
-          maxRetries: 1,
-        });
-
-        const totalMatch = result.summary.match(/TOTAL_INTERACTIONS:\s*(\d+)/);
-        const questionsMatch = result.summary.match(/QUESTIONS_PENDING:\s*([^\n]+)/);
-
+        // Ver comment-brain / dmInbox.ts / instagramActions.ts.procesarNotificaciones
+        // para el camino real y compliant de leer comentarios/DMs. Esto
+        // controlaba el navegador para hacer lo mismo sin ningún beneficio.
         return JSON.stringify({
-          ok: result.ok,
+          ok: false,
           platform,
           monitor_type: monitorType,
           posts_checked: postCount,
-          total_interactions: totalMatch ? parseInt(totalMatch[1] ?? '0') : null,
-          questions_pending: questionsMatch?.[1]?.trim() ?? null,
-          summary: result.summary,
-          engagement_tip:
-            'Reply within 30min of posting — early replies boost comment velocity and algorithm distribution',
+          total_interactions: null,
+          questions_pending: null,
+          error: CU_DISABLED_REASON,
+          note: 'Usá ig_procesar_notificaciones (cuenta propia) o el sistema de Comment Brain / DM Inbox para esto.',
         });
       }
 
@@ -610,65 +463,19 @@ DM_OPPORTUNITIES: [list]`;
         const platform = (input.platform as string) || 'instagram';
         const postUrl = (input.post_url as string) || '';
         const replyStrategy = (input.reply_strategy as string) || 'engage-questions';
-        const niche = input.niche as string as NicheCategory;
-        const customReplies = (input.custom_replies as Array<{ trigger_keyword: string; reply_text: string }>) || [];
 
-        const psychProfile = audiencePsychologyAgent.buildPsychProfile(niche, DEFAULT_AUDIENCE);
-        const trustSignal = psychProfile?.psychographics.trustSignals[0] ?? 'results';
-
-        const replyTemplates: Record<string, string[]> = {
-          'engage-questions': [
-            'Great question! [Answer]. Want me to go deeper on this? Let me know 👇',
-            '[Answer in 1-2 sentences]. I actually covered this more in-depth in my [highlight/post] — check it out!',
-          ],
-          'thank-compliments': [
-            "Thank you so much 🙏 This means a lot! More coming — make sure you're following for updates.",
-            'Appreciate you! 🔥 This is exactly why I create this content. Save this post for later reference!',
-          ],
-          'handle-objections': [
-            "I totally understand that concern! [Address objection]. Here's why it's actually easier than it looks:",
-            "Valid point — and here's how I handle that: [Solution]. Does that help clarify?",
-          ],
-          'drive-to-bio': [
-            `The full breakdown is in my bio link! [Value statement based on "${trustSignal}"] → Link above ↑`,
-            'I made a free resource exactly for this — grab it in my bio! 🎯',
-          ],
-        };
-
-        const strategyReplies: string[] = replyTemplates[replyStrategy] ?? replyTemplates['engage-questions'] ?? [];
-
-        const goal = `Post replies to comments on ${platform} post: ${postUrl}
-
-STRATEGY: ${replyStrategy}
-NICHE CONTEXT: ${niche}
-
-Reply templates to use:
-1. "${strategyReplies[0] ?? 'Great question! Thanks for asking.'}"
-2. "${strategyReplies[1] ?? 'Thanks for the comment!'}"
-${customReplies.map((r, i) => `3${i + 1}. When comment contains "${r.trigger_keyword}": "${r.reply_text}"`).join('\n')}
-
-STEPS:
-1. Open post: ${postUrl}
-2. Find comments matching the ${replyStrategy} pattern
-3. Reply using appropriate template
-4. Like all replied-to comments
-5. Output: REPLIES_POSTED: [count]`;
-
-        const result = await executeWithRecovery(brand, {
-          goal,
-          maxIterations: 15,
-          operationName: `Auto reply: ${platform}`,
-          maxRetries: 1,
-        });
-
-        const repliesMatch = result.summary.match(/REPLIES_POSTED:\s*(\d+)/);
+        // Auto-reply + "like all replied-to comments" vía Computer Use —
+        // automatización de engagement en comentarios sin chequeo de
+        // compliance, rate limit ni disclosure de IA. Prohibido sin importar
+        // de quién sea el post. Ver Comment Brain (capabilities/commentBrain)
+        // para el sistema real con revisión humana.
         return JSON.stringify({
-          ok: result.ok,
+          ok: false,
           platform,
           reply_strategy: replyStrategy,
-          replies_posted: repliesMatch ? parseInt(repliesMatch[1] ?? '0') : null,
-          templates_used: strategyReplies,
-          summary: result.summary,
+          replies_posted: null,
+          error: CU_DISABLED_REASON,
+          note: 'Usá el sistema de Comment Brain (capabilities/commentBrain) — respuestas con revisión humana, nunca auto-post + auto-like sin control.',
         });
       }
 
@@ -721,34 +528,18 @@ STEPS:
           algorithm_note: algProfile.boostSignals[0] ?? 'Post consistently for algorithm trust signals',
         };
 
+        // execute_changes ya no dispara Computer Use acá — instagramActions.ts
+        // ya tiene editarPerfil() para esto (mismo tipo de acción, cuenta
+        // propia, sin alternativa de API), revisado y con dryRun. Este tool
+        // quedó como generador del plan de optimización solamente, para no
+        // mantener dos caminos de automatización del mismo perfil.
         if (execute && ctaLink) {
-          const goal = `Update ${platform} profile with optimized settings:
-
-BIO: "${bioTemplate}"
-LINK IN BIO: ${ctaLink}
-${highlights.length > 0 && platform === 'instagram' ? `HIGHLIGHTS: Create/update: ${highlights.join(', ')}` : ''}
-
-STEPS:
-1. Open ${platform} account settings → Edit profile
-2. Set bio to exactly: "${bioTemplate}"
-3. Set link in bio to: ${ctaLink}
-4. ${highlights.length > 0 ? `Create story highlights: ${highlights.join(', ')}` : 'Skip highlights'}
-5. Save changes
-6. Output: PROFILE_UPDATED: true`;
-
-          const result = await executeWithRecovery(brand, {
-            goal,
-            maxIterations: 15,
-            operationName: `Profile optimize: ${platform}`,
-            maxRetries: 2,
-          });
-
           return JSON.stringify({
-            ok: result.ok,
+            ok: true,
             platform,
-            executed: true,
+            executed: false,
             optimization_plan: optimizationPlan,
-            summary: result.summary,
+            note: 'No se ejecuta acá — usá editarPerfil (capabilities/computerUse/instagramActions.ts) con este plan.',
           });
         }
 
@@ -759,7 +550,7 @@ STEPS:
           optimization_plan: optimizationPlan,
           seo_impact: `Bio keywords "${seoKeywords[0]}" increase profile discovery in ${platform} search`,
           desire_alignment: `Bio triggers core desire: "${desire}"`,
-          note: 'Set execute_changes: true to apply changes via Computer Use',
+          note: 'Plan only — no auto-execution here. Use editarPerfil (instagramActions.ts) to apply it.',
         });
       }
 
