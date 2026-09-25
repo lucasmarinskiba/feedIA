@@ -91,3 +91,28 @@ describe('POST /api/tiktok/live/moderate', () => {
     expect((await post('/live/moderate', { comments: [] })).status).toBe(400);
   });
 });
+
+describe('POST /api/tiktok/shop/faq', () => {
+  const catalog = {
+    entries: [{ sku: 'SKU-1', name: 'Serum Vitamina C', price: '$8.500', stock: 'in-stock' as const }],
+  };
+
+  it('responde una consulta de precio desde el catálogo fijo, con disclosure de IA (TT-SHOP-001)', async () => {
+    const res = await post('/shop/faq', { senderId: 'u1', text: '¿cuánto cuesta el serum?', catalog });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { sent: boolean; text: string };
+    expect(body.sent).toBe(true);
+    expect(body.text).toMatch(/🤖/);
+    expect(body.text).toContain('$8.500');
+  });
+
+  it('con tiktok-bot apagado, 409', async () => {
+    setBotEnabled('tiktok-bot', false);
+    const res = await post('/shop/faq', { senderId: 'u1', text: 'hola', catalog });
+    expect(res.status).toBe(409);
+  });
+
+  it('cuerpo inválido (sin catálogo) → 400', async () => {
+    expect((await post('/shop/faq', { senderId: 'u1', text: 'hola' })).status).toBe(400);
+  });
+});
