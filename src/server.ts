@@ -75,6 +75,7 @@ import costGuardianRoutes from './api/cost-guardian-routes.js';
 import commentBrainRoutes from './api/comment-brain-routes.js';
 import botControlRoutes from './api/bot-control-routes.js';
 import tiktokRoutes from './api/tiktok-routes.js';
+import instagramRoutes from './api/instagram-routes.js';
 import selliaDashboardRoutes from './api/sellia-dashboard-routes.js';
 import predictiveRoutes from './api/predictive-routes.js';
 import orchestratorRoutes from './api/orchestrator-routes.js';
@@ -392,6 +393,9 @@ app.use('/api/comment-brain', adminKeyAuth, commentBrainRoutes);
 
 // Mount TikTok business messaging + LIVE moderation — third-party content, admin key required
 app.use('/api/tiktok', adminKeyAuth, tiktokRoutes);
+
+// Mount Instagram Ice Breakers config (AUTO-003) — reaches real users, admin key required
+app.use('/api/instagram', adminKeyAuth, instagramRoutes);
 
 // Mount bot control panel (on/off per bot + master switch) — gated by account
 // tier inside controlCore.ts's resolveCaller, not by adminKeyAuth: every
