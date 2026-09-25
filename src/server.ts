@@ -433,8 +433,13 @@ app.use('/oauth/instagram', instagramOAuthRoutes);
 // Cache management routes (60% fewer API calls via prompt reuse)
 app.use('/api/cache', cacheManagementRoutes);
 
-// Engagement routes (Computer Use orchestration: likes/comments/follows with budget control)
-app.use('/api/engagement', engagementRoutes);
+// Engagement routes — DISABLED underneath (services/computer-use-orchestrator.ts):
+// automated like/comment/follow/story-view on third-party accounts violates
+// Instagram's rules and risks account bans. This mount used to have NO auth at
+// all (publicly reachable, free for an attacker, real cost + ban risk for the
+// account owner) — adminKeyAuth added here for defense in depth even though
+// the underlying execution is now a hard no-op either way.
+app.use('/api/engagement', adminKeyAuth, engagementRoutes);
 
 // Browserless settings routes (per-user API key management for SaaS)
 app.use('/api/settings/browserless', browserlessSettingsRoutes);
