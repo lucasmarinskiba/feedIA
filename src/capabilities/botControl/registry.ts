@@ -89,8 +89,7 @@ export const BOTS: readonly BotDefinition[] = [
   {
     id: 'instagram-bot',
     label: 'Instagram',
-    description:
-      'Automatizaciones propias de Instagram: notificaciones, engagement diario, beacon y crecimiento semanal.',
+    description: 'Automatizaciones propias de Instagram: notificaciones, engagement diario y crecimiento semanal.',
     costly: true,
     defaultEnabled: true,
     views: ['inbox', 'community', 'community-manager', 'home', 'feed'],

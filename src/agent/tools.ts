@@ -972,7 +972,7 @@ export const tools: RegisteredTool[] = [
   ),
   tool(
     'comentar_cuentas_faro',
-    'Genera comentarios inteligentes para posts recientes de cuentas faro del nicho.',
+    'Genera SUGERENCIAS de comentarios para posts recientes de cuentas faro del nicho — solo texto para revisión humana, nunca se auto-publica en cuentas ajenas.',
     {
       type: 'object',
       properties: {
@@ -10098,7 +10098,7 @@ tools.push(
 
   tool(
     'growth_beacon_comments',
-    'Genera comentarios inteligentes para interactuar con cuentas faro del nicho.',
+    'Genera SUGERENCIAS de comentarios para cuentas faro del nicho — solo texto para revisión humana, nunca se auto-publica en cuentas ajenas.',
     {
       type: 'object',
       properties: {

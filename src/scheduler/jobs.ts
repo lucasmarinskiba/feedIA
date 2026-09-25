@@ -1256,7 +1256,7 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
   {
     name: 'post-boost-tick',
     description:
-      'Ejecuta las acciones de post-boost programadas (anchor comment, community prime, beacon engagement, métricas).',
+      'Ejecuta las acciones de post-boost programadas (anchor comment, community prime, reply-thread, métricas).',
     defaultCron: '*/5 * * * *', // Cada 5 minutos
     handler: async (_brand): Promise<unknown> => {
       const active = getActiveBoosts();
@@ -1957,7 +1957,8 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
 
   {
     name: 'community-daily-engagement',
-    description: 'Ejecuta el engagement diario de comunidad: beacon comments, fan nurturing, respuestas a comentarios.',
+    description:
+      'Ejecuta el engagement diario de comunidad: sugerencias de comentarios faro (solo texto, revisión humana), fan nurturing, respuestas a comentarios propios.',
     defaultCron: '0 10,18 * * *',
     handler: async (brand): Promise<unknown> => {
       const { runAgentTask } = await import('../agent/orchestrator.js');
@@ -1967,7 +1968,7 @@ Respondé EXCLUSIVAMENTE con JSON: { "predictions": [{ "format": string, "hookSu
       return runAgentTask(
         brand,
         agent,
-        `Ejecutá el engagement diario de comunidad para ${brand.name}. Interactuá con cuentas faro, revisá comentarios prioritarios, y planificá acciones de fan nurturing.`,
+        `Ejecutá el engagement diario de comunidad para ${brand.name}. Generá sugerencias de comentarios para cuentas faro (comentar_cuentas_faro — quedan listos para revisión humana, nunca se auto-publican en cuentas ajenas), revisá comentarios prioritarios en posts propios, y planificá acciones de fan nurturing.`,
         `community-daily-${Date.now()}`,
       );
     },
