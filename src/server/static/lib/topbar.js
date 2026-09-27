@@ -228,7 +228,6 @@ export const initTopbar = () => {
   const narratorCheckbox = document.getElementById('cua-narrator-checkbox');
   const searchInput = document.getElementById('global-search');
   const notifBtn = document.getElementById('topbar-notif');
-  const tasksBtn = document.getElementById('topbar-tasks');
 
   if (!cuaBtn) return;
 
@@ -384,12 +383,7 @@ export const initTopbar = () => {
   // Notif button — el handler que abre la campanita está en bootNotifications (app.js)
   // No agregamos handler acá para no chocar.
 
-  // Tasks button
-  if (tasksBtn) {
-    tasksBtn.addEventListener('click', () => {
-      window.location.hash = '#taskboard';
-    });
-  }
+  // Tasks button: dropdown bubble propio, ver lib/tasksWidget.js (initTasksWidget)
 
   startPolling();
 

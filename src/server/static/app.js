@@ -4,6 +4,7 @@ import { toast } from './lib/toast.js';
 import { initTopbar, refreshTopbarState } from './lib/topbar.js';
 import { initBotsBar, setBotsBarRoute } from './lib/botsBar.js';
 import { initUsageWidget } from './lib/usageWidget.js';
+import { initTasksWidget } from './lib/tasksWidget.js';
 import { initGlobalSearch } from './lib/globalSearch.js';
 import { initPlatformSwitcher } from './lib/platform.js';
 import { initShortcuts, openShortcuts } from './lib/shortcuts.js';
@@ -559,6 +560,7 @@ window.__feediaRouteSearch = (q) => {
 initTopbar();
 initBotsBar();
 initUsageWidget();
+initTasksWidget();
 window.__refreshTopbar = refreshTopbarState;
 
 /* Global search · autocomplete + keyboard nav + quick actions */
