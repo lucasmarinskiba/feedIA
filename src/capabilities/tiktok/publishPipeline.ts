@@ -14,7 +14,7 @@ import type { ReelScript } from '../content/reel.js';
 import { adaptContentToTikTok, type TikTokContentPlan } from './contentAdapter.js';
 import { recommendSound } from './soundLibrary.js';
 import { scrapeTrends } from './trendScraper.js';
-import { auditPromises } from '../antiPromiseAuditor/antiPromiseAuditor.js';
+import { auditContentForEmptyPromises } from '../antiPromiseAuditor/antiPromiseAuditor.js';
 import * as tiktokGuardian from '../../compliance/tiktokGuardian.js';
 
 export interface TikTokPublishOutcome {
@@ -77,11 +77,11 @@ export const tikTokBriefToPublish = async (input: TikTokPublishInput): Promise<T
 
   // Anti-promise audit
   const fullText = buildTikTokCaption(plan);
-  const audit = auditPromises(fullText);
-  if (audit.veredicto === 'hard-promise') {
-    errors.push(`Anti-promise HARD: ${audit.issues.map((i) => i.phrase).join(', ')}`);
+  const audit = auditContentForEmptyPromises(fullText);
+  if (audit.verdict === 'hard-promise') {
+    errors.push(`Anti-promise HARD: ${audit.matches.map((m) => m.pattern).join(', ')}`);
   }
-  const antiPromiseClean = audit.veredicto !== 'hard-promise';
+  const antiPromiseClean = audit.verdict !== 'hard-promise';
 
   const videoUrl = deriveVideoUrl(input);
 
