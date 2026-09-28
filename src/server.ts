@@ -48,6 +48,7 @@ import instagramOAuthRoutes from './api/instagram-oauth-routes.js';
 import cacheManagementRoutes from './api/cache-management-routes.js';
 import engagementRoutes from './api/engagement-routes.js';
 import browserlessSettingsRoutes from './api/browserless-settings-routes.js';
+import cuRecipesRoutes from './api/cu-recipes-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
@@ -503,6 +504,9 @@ app.use('/api/publish', publishingRoutes);
 
 // Feature Flags: Tier-based feature access control
 app.use('/api/features', featureFlagsRoutes);
+
+// Computer Use Toolbox: recipe library gated by plan tier
+app.use('/api/cu', cuRecipesRoutes);
 
 // TIERS 5-15: Autonomous Systems (Trending, Audience, A/B, ROI, etc.)
 registerTrendingRoutes(app);

@@ -14,6 +14,13 @@
       "runtimeArgs": ["tsx", "src/cli.ts", "daemon"],
       "port": 7321,
       "autoPort": false
+    },
+    {
+      "name": "FeedIA Express Server",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["tsx", "src/server.ts"],
+      "port": 3010,
+      "autoPort": false
     }
   ]
 }
