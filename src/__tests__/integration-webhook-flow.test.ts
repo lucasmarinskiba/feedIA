@@ -12,13 +12,24 @@ import {
   recordLeadSignal,
   aggregateLiveDashboard,
 } from '../services/real-data-sync.js';
+import { getDb } from '../database/db.js';
 
 describe('Integration: Webhook → Dashboard', () => {
   const accountId = 'test-account-123';
 
   beforeEach(() => {
-    // Reset state between tests
-    // TODO: Clear in-memory cache + DB
+    // recordConversion/recordFanEngagement/recordLeadSignal persist to the real,
+    // file-backed SQLite DB (not reset between test files). Wipe this test's rows
+    // before each test so assertions like "totalFans === 0" aren't polluted by
+    // fans/leads/conversions inserted by earlier tests in this same describe block.
+    const db = getDb();
+    for (const table of ['conversions', 'fan_engagement', 'lead_signals']) {
+      try {
+        db.prepare(`DELETE FROM ${table} WHERE account_id = ?`).run(accountId);
+      } catch {
+        // Table not created yet (first run) — nothing to clear.
+      }
+    }
   });
 
   describe('Conversion Flow', () => {

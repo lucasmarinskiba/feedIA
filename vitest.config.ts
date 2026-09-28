@@ -15,6 +15,13 @@ export default defineConfig({
     // carry their own copies of this same test suite; they must never run in parallel
     // against shared local state (data/, ports) with the real one.
     exclude: [...configDefaults.exclude, '.claude/**', 'feedIA/**'],
+    // Many test files share one real, file-backed SQLite DB (src/database/db.ts,
+    // data/runtime/agent.db — not an in-memory or per-file DB). Running test files
+    // in parallel workers lets them write to it concurrently, which surfaces as
+    // sporadic "database is locked" errors swallowed into `null` return values
+    // (e.g. aggregateLiveDashboard) and flaky "expected null to be truthy" failures.
+    // Running files sequentially removes that source of flakiness.
+    fileParallelism: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

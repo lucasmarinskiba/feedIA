@@ -14,12 +14,15 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
  *
  * Usage:
  * STAGING_API_URL=http://localhost:3000 npm test -- e2e-webhook-flow.test.ts
+ *
+ * CI never starts a staging server, so the whole suite is skipped unless
+ * STAGING_API_URL is explicitly set.
  */
 
 const STAGING_API_URL = process.env.STAGING_API_URL ?? 'http://localhost:3000';
 const TEST_ACCOUNT_ID = 'e2e-test-account-' + Date.now();
 
-describe('E2E: Webhook → Dashboard Flow', () => {
+describe.skipIf(!process.env.STAGING_API_URL)('E2E: Webhook → Dashboard Flow', () => {
   beforeAll(async () => {
     // Wait for API to be ready
     let retries = 5;

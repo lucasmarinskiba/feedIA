@@ -6,7 +6,10 @@
 import crypto from 'crypto';
 import { describe, it, expect } from 'vitest';
 
-describe('MercadoPago E2E Flow', () => {
+// These tests hit a live API (checkout, webhooks, user lookup) and are meant to run
+// manually against a running server: `API_URL=http://localhost:3000 npm test -- mercado-pago-e2e`.
+// CI never starts that server, so skip unless API_URL is explicitly set.
+describe.skipIf(!process.env.API_URL)('MercadoPago E2E Flow', () => {
   const MERCADOPAGO_SECRET = process.env.MERCADOPAGO_SECRET || 'test-secret';
   const BASE_URL = process.env.API_URL || 'http://localhost:3000';
 

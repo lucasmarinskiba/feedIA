@@ -8,8 +8,59 @@
  */
 
 import { z } from 'zod';
+import type Database from 'better-sqlite3';
 import { log } from '../agent/logger.js';
 import { getDb } from '../database/db.js';
+
+// Each record* function used to create its own table lazily, right before its INSERT.
+// That left getLiveMetrics reading from tables that may not exist yet (e.g. an account
+// with a conversion but no fan-engagement/lead-signal activity yet), throwing
+// "no such table" and making the whole dashboard silently return null. Creating all
+// three up front — cheap, idempotent — keeps every reader/writer schema-consistent.
+const ensureSchema = (db: Database.Database): void => {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS conversions (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      post_id TEXT NOT NULL,
+      value REAL NOT NULL,
+      timestamp TEXT NOT NULL,
+      source TEXT NOT NULL,
+      fan_id TEXT,
+      refunded BOOLEAN DEFAULT 0,
+      recorded_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(account_id, post_id, timestamp)
+    )
+  `);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS fan_engagement (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      fan_id TEXT NOT NULL,
+      engagement_score INTEGER NOT NULL,
+      last_activity TEXT NOT NULL,
+      tier TEXT NOT NULL,
+      total_spent REAL NOT NULL,
+      status TEXT NOT NULL,
+      updated_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(account_id, fan_id)
+    )
+  `);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS lead_signals (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      lead_id TEXT NOT NULL,
+      email TEXT NOT NULL,
+      score INTEGER NOT NULL,
+      signals TEXT,
+      stage TEXT NOT NULL,
+      value REAL NOT NULL,
+      updated_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(account_id, lead_id)
+    )
+  `);
+};
 
 // ─── Validation Schemas ─────────────────────────────────────────────────
 
@@ -142,20 +193,7 @@ export const recordConversion = async (accountId: string | undefined, event: unk
 
     // Step 4: Persist to SQLite DB
     const db = getDb();
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS conversions (
-        id TEXT PRIMARY KEY,
-        account_id TEXT NOT NULL,
-        post_id TEXT NOT NULL,
-        value REAL NOT NULL,
-        timestamp TEXT NOT NULL,
-        source TEXT NOT NULL,
-        fan_id TEXT,
-        refunded BOOLEAN DEFAULT 0,
-        recorded_at TEXT DEFAULT (datetime('now')),
-        UNIQUE(account_id, post_id, timestamp)
-      )
-    `);
+    ensureSchema(db);
 
     const convId = `conv-${accountId}-${validated.postId}-${Date.now()}`;
     db.prepare(
@@ -234,20 +272,7 @@ export const recordFanEngagement = async (accountId: string | undefined, event: 
 
     // Persist to SQLite DB
     const db = getDb();
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS fan_engagement (
-        id TEXT PRIMARY KEY,
-        account_id TEXT NOT NULL,
-        fan_id TEXT NOT NULL,
-        engagement_score INTEGER NOT NULL,
-        last_activity TEXT NOT NULL,
-        tier TEXT NOT NULL,
-        total_spent REAL NOT NULL,
-        status TEXT NOT NULL,
-        updated_at TEXT DEFAULT (datetime('now')),
-        UNIQUE(account_id, fan_id)
-      )
-    `);
+    ensureSchema(db);
 
     const engId = `eng-${accountId}-${validated.fanId}`;
     db.prepare(
@@ -324,20 +349,7 @@ export const recordLeadSignal = async (accountId: string | undefined, event: unk
 
     // Persist to SQLite DB
     const db = getDb();
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS lead_signals (
-        id TEXT PRIMARY KEY,
-        account_id TEXT NOT NULL,
-        lead_id TEXT NOT NULL,
-        email TEXT NOT NULL,
-        score INTEGER NOT NULL,
-        signals TEXT,
-        stage TEXT NOT NULL,
-        value REAL NOT NULL,
-        updated_at TEXT DEFAULT (datetime('now')),
-        UNIQUE(account_id, lead_id)
-      )
-    `);
+    ensureSchema(db);
 
     const sigId = `sig-${accountId}-${validated.leadId}`;
     db.prepare(
@@ -402,6 +414,7 @@ export const getLiveMetrics = async (
 } | null> => {
   try {
     const db = getDb();
+    ensureSchema(db);
 
     // Conversions (last 7 days)
     const convStmt = db.prepare(`
