@@ -30,6 +30,7 @@ import type { BrandProfile } from '../config/types.js';
 const createMockBrand = (): BrandProfile => ({
   id: 'test-account-001',
   name: 'Test Brand',
+  handle: '',
   type: 'empresa',
   niche: 'tech',
   audience: {
@@ -45,16 +46,24 @@ const createMockBrand = (): BrandProfile => ({
   },
   visual: {
     palette: ['#0066cc', '#ffffff', '#f5f5f5'],
+    textColor: '#ffffff',
+    bgColor: '#0066cc',
+    accentColor: '#f5f5f5',
     typography: ['Inter', 'Poppins'],
+    fontStyle: 'sans-modern',
     style: 'minimalista',
     mood: 'profesional',
     photographyStyle: 'natural',
     compositionRules: [],
     allowedIconography: ['line-icons', 'minimal'],
     forbiddenIconography: [],
+    visualElements: [],
+    heroImageUrl: '',
+    logoUrl: '',
     moodboardUrls: [],
     density: 'medium',
     imageTextRatio: 'balanced',
+    imageSource: 'ai-generated',
   },
   goals: {
     primary: 'awareness',

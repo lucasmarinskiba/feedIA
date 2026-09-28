@@ -5,6 +5,25 @@
 import { escape } from '../lib/dom.js';
 import { toast } from '../lib/toast.js';
 
+/**
+ * Otros componentes (home.js, handsfree.js) llaman a /api/account/profile
+ * al mismo tiempo que esta vista al cargar la página — un 429 pasajero de
+ * ese choque no debe vaciar el formulario y borrar lo que el usuario ya
+ * guardó. Un reintento corto alcanza (la marca es 1 sola, no cambia entre
+ * llamadas).
+ */
+const fetchProfileWithRetry = async (payload, retries = 2) => {
+  for (let attempt = 0; ; attempt++) {
+    const r = await fetch('/api/account/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (r.ok || attempt >= retries) return r;
+    await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+  }
+};
+
 const getPlatform = async () => {
   try {
     const mod = await import('../lib/platform.js');
@@ -52,11 +71,7 @@ let cached = null;
 
 export const loadBrandKit = async (accountId = '') => {
   try {
-    const r = await fetch('/api/account/profile', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'get', accountId }),
-    });
+    const r = await fetchProfileWithRetry({ action: 'get', accountId });
     const j = await r.json();
     cached = j?.profile?.brandKit || null;
     return cached;
@@ -196,16 +211,7 @@ export const renderBrandKit = async (container) => {
       return '';
     }
   })();
-  let kit = {};
-  try {
-    const r = await fetch('/api/account/profile', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'get', accountId }),
-    });
-    const j = await r.json();
-    kit = j?.profile?.brandKit || j?.profile || {};
-  } catch {}
+  const kit = (await loadBrandKit(accountId)) || {};
 
   container.innerHTML = renderShell(kit);
 

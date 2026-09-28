@@ -58,7 +58,13 @@ import type { AgentMessage } from '../capabilities/agents/index.js';
 import { listCheckpoints } from '../agent/checkpoints.js';
 import { topPerformers, initMemory } from '../agent/memory.js';
 import { runHealthChecks } from '../observability/healthChecks.js';
-import { listBrandProfiles, activateBrandProfile, getActiveBrandFile } from '../config/brandRegistry.js';
+import {
+  listBrandProfiles,
+  activateBrandProfile,
+  getActiveBrandFile,
+  updateActiveBrand,
+} from '../config/brandRegistry.js';
+import { brandKitFromProfile, brandKitToProfilePatch, type BrandKitUi } from '../config/brandKitMapping.js';
 import { subscribe, publishOp, presenceCount, roomKey, type CollabOp } from './collabHub.js';
 import {
   HOOK_PATTERNS,
@@ -3286,6 +3292,37 @@ Generá exactamente 7 entradas, una por día (dayOffset 0=lunes ... 6=domingo).`
     method: 'GET',
     pattern: '/api/moodboard',
     handler: ({ res }) => json(res, 200, getMoodboard(brand)),
+  },
+  {
+    method: 'PUT',
+    pattern: '/api/moodboard',
+    handler: ({ res, body }) => {
+      const updated = updateActiveBrand({ visual: body ?? {} });
+      json(res, 200, getMoodboard(updated));
+    },
+  },
+
+  // ── Brand Kit — 1 sola carga (colores, tipografía, foto protagonista,
+  // logo, elementos visuales) leída automáticamente por Manos Libres,
+  // Piloto automático, Brújula, Carruseles, Reels e Historias. Se guarda
+  // sobre el mismo BrandProfile activo: todo lo que ya lee `brand.visual`
+  // en este archivo queda actualizado al instante, sin reiniciar. ──────────
+  {
+    method: 'POST',
+    pattern: '/api/account/profile',
+    handler: ({ res, body }) => {
+      const b = (body ?? {}) as { action?: string; fields?: { brandKit?: Partial<BrandKitUi> } };
+      if (b.action === 'save') {
+        const kit = b.fields?.brandKit;
+        if (!kit) return json(res, 400, { error: 'fields.brandKit requerido' });
+        const patch = brandKitToProfilePatch(kit);
+        const updated = updateActiveBrand(patch);
+        return json(res, 200, { profile: { brandKit: brandKitFromProfile(updated) } });
+      }
+      // action === 'get' (default): siempre devuelve la marca activa —
+      // este server sirve una cuenta a la vez (ver brandRegistry.ts).
+      json(res, 200, { profile: { brandKit: brandKitFromProfile(brand) } });
+    },
   },
   {
     method: 'GET',

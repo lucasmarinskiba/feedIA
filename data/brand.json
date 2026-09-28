@@ -1,5 +1,6 @@
 {
   "name": "Paithon Labs",
+  "handle": "",
   "type": "empresa",
   "niche": "Automatización con IA para PyMEs en LATAM",
   "audience": {
@@ -28,8 +29,24 @@
   },
   "visual": {
     "palette": ["#0A0A0A", "#F5F5F5", "#FF5F1F"],
+    "textColor": "",
+    "bgColor": "",
+    "accentColor": "",
     "typography": ["Inter", "JetBrains Mono"],
-    "style": "minimalismo técnico con acentos cálidos"
+    "fontStyle": "",
+    "style": "minimalismo técnico con acentos cálidos",
+    "mood": "profesional",
+    "photographyStyle": "natural",
+    "compositionRules": [],
+    "allowedIconography": [],
+    "forbiddenIconography": [],
+    "visualElements": [],
+    "heroImageUrl": "",
+    "logoUrl": "",
+    "moodboardUrls": [],
+    "density": "medium",
+    "imageTextRatio": "balanced",
+    "imageSource": "ai-generated"
   },
   "goals": {
     "primary": "leads",
@@ -39,5 +56,23 @@
   "hashtagPools": {
     "core": ["#automatizacionIA", "#pymeLatam", "#agentesIA"],
     "amplio": ["#productividad", "#emprendimiento", "#IAaplicada"]
+  },
+  "contentPillars": [],
+  "complianceRules": [],
+  "brandStrategy": {
+    "vision": "",
+    "mission": "",
+    "values": [],
+    "promise": "",
+    "positioning": "",
+    "story": "",
+    "personality": [],
+    "archetype": "",
+    "architecture": "master-brand",
+    "differentiators": [],
+    "experiencePrinciples": [],
+    "targetPersonas": [],
+    "brandVoiceRules": [],
+    "visualUsageRules": []
   }
 }

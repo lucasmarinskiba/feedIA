@@ -52,10 +52,12 @@ import cuRecipesRoutes from './api/cu-recipes-routes.js';
 import { scalingLayer } from './api/scaling-layer.js';
 import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
-import { BrandProfileSchema } from './config/types.js';
 import { startPollingScheduler } from './workers/metricsPollingOrchestrator.js';
 import createStudioRoutes from './server/studioRoutes.js';
 import createCmRoutes from './server/cmRoutes.js';
+import { buildStudioRoutes } from './server/studioApi.js';
+import { initBrandRegistry, updateActiveBrand } from './config/brandRegistry.js';
+import { brandKitFromProfile, brandKitToProfilePatch, type BrandKitUi } from './config/brandKitMapping.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
@@ -204,43 +206,15 @@ app.use(inputSanitizer);
 
 // ──────────────────────────────────────────────────────────────────────────────
 
-// Brand context middleware (mock)
-const mockBrand = BrandProfileSchema.parse({
-  name: process.env.BRAND_NAME || 'FeedIA',
-  type: 'empresa',
-  niche: process.env.BRAND_NICHE || 'instagram-growth',
-  audience: {
-    description: process.env.BRAND_AUDIENCE || 'creators',
-    pains: [],
-    desires: [],
-    locale: 'es-AR',
-  },
-  voice: {
-    tone: ['professional', 'creative'],
-    forbidden: [],
-    referenceQuotes: [],
-  },
-  visual: {
-    palette: [],
-    typography: [],
-    style: 'minimalista',
-    mood: 'profesional',
-    photographyStyle: 'natural',
-    compositionRules: [],
-    allowedIconography: [],
-    forbiddenIconography: [],
-    moodboardUrls: [],
-    density: 'medium',
-    imageTextRatio: 'balanced',
-  },
-  goals: {
-    primary: 'engagement',
-    metricsToWatch: [],
-  },
-});
+// Brand context middleware — la marca REAL y persistente (data/brand.json),
+// la misma que edita el Brand Kit (/api/account/profile más abajo). Objeto
+// estable: updateActiveBrand() lo muta in-place, así que toda ruta que ya
+// cerró sobre `brand` (incl. /api/studio/*) ve los cambios al instante, sin
+// reiniciar. Reemplaza el mockBrand seedeado por env vars que había acá.
+const brand = initBrandRegistry();
 
 app.use((req: Request, res: Response, next) => {
-  req.brand = mockBrand;
+  req.brand = brand;
   next();
 });
 
@@ -445,7 +419,7 @@ app.use('/api/engagement', adminKeyAuth, engagementRoutes);
 app.use('/api/settings/browserless', browserlessSettingsRoutes);
 
 // Studio routes (carousel, reel, stories, vision, predictor generation)
-app.use('/api/studio', createStudioRoutes(mockBrand));
+app.use('/api/studio', createStudioRoutes(brand));
 
 // Security routes (Week 3: 2FA + IP whitelist + audit + GDPR/CCPA)
 app.use(securityRoutes);
@@ -541,7 +515,54 @@ app.get('/api/debug/memorydb', async (_req: Request, res: Response): Promise<voi
 // createRequestHandler's own readBody(), which re-attaches 'data'/'end'
 // listeners to a stream express.json() already fully consumed above —
 // 'end' never fires again, so every POST with a JSON body hung forever.
-app.use(createCmRoutes(mockBrand));
+app.use(createCmRoutes(brand));
+
+// Brand Kit — 1 sola carga (colores, tipografía, foto protagonista, logo,
+// elementos visuales), leída automáticamente por todo lo que ya usa `brand`
+// más arriba (Carruseles/Reels/Historias vía /api/studio/*, y todo lo que
+// llama a brandContext()). Guarda sobre el mismo BrandProfile activo.
+app.post('/api/account/profile', (req: Request, res: Response) => {
+  const b = (req.body ?? {}) as { action?: string; fields?: { brandKit?: Partial<BrandKitUi> } };
+  if (b.action === 'save') {
+    const kit = b.fields?.brandKit;
+    if (!kit) {
+      res.status(400).json({ error: 'fields.brandKit requerido' });
+      return;
+    }
+    const updated = updateActiveBrand(brandKitToProfilePatch(kit));
+    res.json({ profile: { brandKit: brandKitFromProfile(updated) } });
+    return;
+  }
+  res.json({ profile: { brandKit: brandKitFromProfile(brand) } });
+});
+
+// Manos Libres (/api/handsfree/run) + Piloto automático
+// (/api/autopilot/create-post) — sus handlers viven en studioApi.ts
+// (RouteDefinition[], compartido con /api/studio/* más arriba), acá se
+// montan en sus rutas reales sin el prefijo /api/studio. A diferencia de
+// cmRequestHandler (que relee el stream crudo del request vía readBody() y
+// por eso se cuelga para siempre en cualquier POST con body — express.json()
+// ya drenó ese stream más arriba en la cadena de middlewares), este adapter
+// reusa req.body ya parseado por Express, igual que createStudioRoutes.
+const handsFreeAndAutopilotRoutes = buildStudioRoutes(brand).filter(
+  (r) => r.pattern === '/api/handsfree/run' || r.pattern === '/api/autopilot/create-post',
+);
+for (const route of handsFreeAndAutopilotRoutes) {
+  app.post(route.pattern, async (req: Request, res: Response, next) => {
+    try {
+      await route.handler({
+        req,
+        res,
+        params: req.params as Record<string, string>,
+        query: req.query as Record<string, string>,
+        body: req.body,
+        rawBody: (req as Request & { rawBody?: Buffer }).rawBody || Buffer.alloc(0),
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+}
 
 // Pricing page (embedded HTML constant, served before SPA catch-all)
 app.get('/pricing', (req: Request, res: Response) => {

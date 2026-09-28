@@ -483,6 +483,7 @@ Generá un brief consolidado en JSON exacto (todas las arrays deben tener mínim
 
 export const briefToBrandProfile = (brief: BrandBrief, existing?: Partial<BrandProfile>): BrandProfile => ({
   name: brief.identidad.nombre || existing?.name || 'Mi Marca',
+  handle: existing?.handle ?? '',
   type: existing?.type ?? 'marca-personal',
   niche: existing?.niche ?? brief.identidad.posicionamiento,
   audience: {
@@ -498,16 +499,24 @@ export const briefToBrandProfile = (brief: BrandBrief, existing?: Partial<BrandP
   },
   visual: existing?.visual ?? {
     palette: [],
+    textColor: '',
+    bgColor: '',
+    accentColor: '',
     typography: [],
+    fontStyle: '',
     style: 'minimalista',
     mood: 'profesional',
     photographyStyle: 'natural',
     compositionRules: [],
     allowedIconography: [],
     forbiddenIconography: [],
+    visualElements: [],
+    heroImageUrl: '',
+    logoUrl: '',
     moodboardUrls: [],
     density: 'medium',
     imageTextRatio: 'balanced',
+    imageSource: 'ai-generated',
   },
   goals: {
     primary: existing?.goals?.primary ?? 'autoridad',
