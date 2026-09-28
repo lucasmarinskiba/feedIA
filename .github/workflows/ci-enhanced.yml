@@ -23,6 +23,8 @@ jobs:
   lint:
     name: Lint & Format Check
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,6 +69,8 @@ jobs:
     name: TypeScript Type Check
     runs-on: ubuntu-latest
     needs: lint
+    permissions:
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -105,6 +109,8 @@ jobs:
     name: Build & Test
     runs-on: ubuntu-latest
     needs: typecheck
+    permissions:
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -303,6 +309,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, typecheck, build, security-audit, trivy-fs]
     if: always()
+    permissions:
+      deployments: write
     steps:
       - name: Check CI status
         run: |

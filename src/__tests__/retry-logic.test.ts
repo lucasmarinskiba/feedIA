@@ -54,10 +54,11 @@ describe('Retry Logic', () => {
       ).rejects.toThrow();
 
       const elapsed = Date.now() - startTime;
-      // Expected: 50ms (fail) + 100ms (backoff) + 50ms (fail) + 200ms (backoff) = ~400ms
-      // Allow ±100ms for timing variations
-      expect(elapsed).toBeGreaterThan(250);
-      expect(elapsed).toBeLessThan(500);
+      // fn rejects instantly, so elapsed is just the backoff waits between attempts:
+      // 50ms (after attempt 0) + 100ms (after attempt 1) = ~150ms. No wait after the
+      // final attempt (it throws immediately). Wide bounds absorb CI scheduling jitter.
+      expect(elapsed).toBeGreaterThan(100);
+      expect(elapsed).toBeLessThan(400);
     });
 
     it('respects maxDelayMs cap', async () => {
