@@ -3,12 +3,16 @@
  * Serves the Computer Use recipe library (IG/TikTok/Canva/CapCut/Runway/Pika/Luma/Kling/HeyGen/InVideo/Veed/Ideogram/Freepik/Veed)
  * gated by plan tier, to the CU Toolbox frontend view.
  *
- * Data lives in src/data/cu-recipes.json, shared with the Vercel serverless
- * copy of this library (api/_cuRecipeLibrary.js) so both deployments stay in sync.
+ * Data lives in src/data/cu-recipes.ts (a plain TS module, not JSON — the
+ * production build, scripts/build-prod.mjs, transpiles only .ts files under
+ * src/ with esbuild and does not copy standalone asset files, so a JSON
+ * import here would silently vanish from dist/ and crash the server at
+ * startup with ERR_MODULE_NOT_FOUND). Mirrors the separate Vercel serverless
+ * copy of this library, api/_cuRecipeLibrary.js.
  */
 
 import { Router, Request, Response } from 'express';
-import cuRecipeData from '../data/cu-recipes.json' with { type: 'json' };
+import { CU_RECIPES as RAW_RECIPES, CU_TOOLS as RAW_TOOLS } from '../data/cu-recipes.js';
 
 interface CuRecipeStep {
   n: number;
@@ -40,8 +44,8 @@ interface CuTool {
   freeTier?: string;
 }
 
-const CU_RECIPES = cuRecipeData.recipes as unknown as Record<string, CuRecipe>;
-const CU_TOOLS = cuRecipeData.tools as unknown as Record<string, CuTool>;
+const CU_RECIPES = RAW_RECIPES as unknown as Record<string, CuRecipe>;
+const CU_TOOLS = RAW_TOOLS as unknown as Record<string, CuTool>;
 
 const PLAN_ORDER = ['free', 'starter', 'pro', 'gold', 'premium'];
 
