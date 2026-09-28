@@ -234,6 +234,7 @@ jobs:
       packages: write
       attestations: write
       id-token: write
+      security-events: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -269,10 +270,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # docker/metadata-action lowercases the repo owner/name into steps.meta.outputs.tags
+      # (OCI references reject uppercase, and this repo's name is "feedIA"). Reuse that
+      # normalized tag instead of rebuilding ${REGISTRY}/${IMAGE_NAME}:${{ github.sha }}
+      # from the raw env var, which still contains "feedIA" and never resolves.
       - name: Generate SBOM (Software Bill of Materials)
         uses: anchore/sbom-action@v0
         with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          image: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           format: 'spdx-json'
           output-file: 'sbom.spdx.json'
 
@@ -286,7 +291,7 @@ jobs:
       - name: Run Trivy image scan
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           format: 'sarif'
           output: 'trivy-image-results.sarif'
           severity: 'CRITICAL,HIGH'
