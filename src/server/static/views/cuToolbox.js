@@ -38,10 +38,13 @@ const renderRecipeCard = (recipe) => {
   const badge = PLAN_BADGES[recipe.minPlan] || PLAN_BADGES.free;
   const locked = !isPlanGte(currentUserPlan, recipe.minPlan);
   return `
-    <div class="ctb-recipe ${locked ? 'locked' : ''}" data-recipe-id="${escape(recipe.id)}">
+    <div class="ctb-recipe ${locked ? 'locked' : 'available'}" data-recipe-id="${escape(recipe.id)}">
       <div class="ctb-recipe-head">
         <div class="ctb-recipe-title">${escape(recipe.label)}</div>
-        <span class="ctb-badge" style="background:${badge.bg};color:${badge.color};">${badge.label}+</span>
+        <div class="ctb-recipe-badges">
+          ${!locked ? `<span class="ctb-available-tag">✓ Disponible</span>` : ''}
+          <span class="ctb-badge" style="background:${badge.bg};color:${badge.color};">${badge.label}+</span>
+        </div>
       </div>
       <div class="ctb-recipe-meta">
         <span class="ctb-meta-item">⏱️ ${recipe.estimatedMin} min</span>
@@ -196,11 +199,15 @@ export const renderCuToolbox = async (root) => {
       .ctb-group{margin-bottom:24px;}
       .ctb-group-title{font-size:14px;font-weight:700;margin:0 0 10px;color:var(--text-primary,var(--fg));text-transform:uppercase;letter-spacing:.05em;padding:6px 10px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:8px;display:inline-block;}
       .ctb-recipes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;}
-      .ctb-recipe{background:var(--bg-card,#fff);border:1px solid var(--border);border-radius:12px;padding:14px;transition:transform .15s,border-color .15s;color:var(--text-primary,var(--fg));}
+      .ctb-recipe{background:var(--bg-card,#fff);border:1px solid var(--border);border-radius:12px;padding:14px;transition:transform .15s,border-color .15s,box-shadow .15s;color:var(--text-primary,var(--fg));}
       .ctb-recipe:hover{transform:translateY(-2px);border-color:rgba(168,85,247,.3);}
       .ctb-recipe.locked{opacity:.62;}
+      .ctb-recipe.available{border-color:#EFFF3D;box-shadow:0 0 0 1px rgba(239,255,61,.55),0 0 16px rgba(239,255,61,.22);}
+      .ctb-recipe.available:hover{transform:translateY(-2px);border-color:#EFFF3D;box-shadow:0 0 0 1px rgba(239,255,61,.8),0 0 22px rgba(239,255,61,.35);}
       .ctb-recipe-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:8px;}
       .ctb-recipe-title{font-weight:700;font-size:14px;line-height:1.3;flex:1;}
+      .ctb-recipe-badges{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+      .ctb-available-tag{font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;letter-spacing:.03em;background:#EFFF3D;color:#1a1a05;white-space:nowrap;}
       .ctb-badge{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:999px;letter-spacing:.03em;flex-shrink:0;}
       .ctb-recipe-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:11px;color:var(--text-tertiary,#888);margin-bottom:8px;}
       .ctb-meta-item{padding:2px 6px;background:var(--bg-soft,rgba(17,18,22,.04));border-radius:5px;}
