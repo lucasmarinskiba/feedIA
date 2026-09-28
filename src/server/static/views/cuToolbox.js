@@ -2,7 +2,7 @@
    CU TOOLBOX — Recetas Computer Use por tool, gateadas por plan.
    IG/TT/Canva/CapCut/Runway/Pika/Luma/Kling/HeyGen/InVideo/Veed.
    ══════════════════════════════════════════════════════════════════════════════ */
-import { apiSafe } from '../lib/api.js';
+import { apiSafe, api, getUserId } from '../lib/api.js';
 import { escape } from '../lib/dom.js';
 import { toast } from '../lib/toast.js';
 
@@ -20,15 +20,20 @@ const GROUP_LABELS = {
   videoGen: '🎥 Generación IA de video',
 };
 
+// Names + order match the real billing tiers (src/db/user-tiers.ts, the table
+// Stripe/Mercado Pago webhooks actually write to, and what pricing.html sells:
+// Free / Starter / Pro / Agency). This used to be a made-up 5-tier scheme
+// (free/starter/pro/gold/premium) that no real subscription could ever reach
+// past Pro — "gold" and "premium" weren't real plans, so those recipes were
+// permanently locked for every paying user.
 const PLAN_BADGES = {
   free: { label: 'Free', color: '#6B7280', bg: 'rgba(107,114,128,.15)' },
   starter: { label: 'Starter', color: '#3B82F6', bg: 'rgba(59,130,246,.12)' },
   pro: { label: 'Pro', color: '#A855F7', bg: 'rgba(168,85,247,.12)' },
-  gold: { label: 'Gold', color: '#F59E0B', bg: 'rgba(245,158,11,.15)' },
-  premium: { label: 'Premium', color: '#EC4899', bg: 'rgba(236,72,153,.15)' },
+  agency: { label: 'Agency', color: '#F59E0B', bg: 'rgba(245,158,11,.15)' },
 };
 
-const PLAN_ORDER = ['free', 'starter', 'pro', 'gold', 'premium'];
+const PLAN_ORDER = ['free', 'starter', 'pro', 'agency'];
 let activeTool = 'all';
 let currentUserPlan = 'free';
 
@@ -165,18 +170,39 @@ const wireRecipeActions = (root, allRecipes) => {
     });
   });
   root.querySelectorAll('[data-execute]').forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const id = btn.dataset.execute;
       const recipe = allRecipes.find((r) => r.id === id);
-      if (!recipe) return;
-      // Free-tier: muestra modal con preview, no ejecuta CU real
-      const cuMinutes = recipe.estimatedMin;
-      toast(`▶️ Ejecutando "${recipe.label}" — ${cuMinutes} min CU se descontarán de tu cap diario`, 'info');
-      // En implementación real: POST /api/cu/execute con recipe.id
-      // Por ahora: redirect a panel CU
-      setTimeout(() => {
-        window.location.hash = '#pantalla';
-      }, 1500);
+      if (!recipe || btn.disabled) return;
+
+      const originalLabel = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '⏳ Validando...';
+
+      try {
+        // The server re-checks the user's real billing tier here — the
+        // client-side lock/unlock above is cosmetic only, this is the actual
+        // gate. It doesn't drive a browser bot against the user's real
+        // account (that needs separate Computer Use infra this deployment
+        // doesn't run); it confirms the plan covers this recipe and hands
+        // back the exact steps to follow.
+        const result = await api('/api/cu/execute', { body: { recipeId: id } });
+        toast(`✅ "${result.recipe.label}" habilitada para tu plan — seguí los pasos`, 'ok');
+        const details = btn.closest('.ctb-recipe')?.querySelector('.ctb-steps');
+        if (details) details.open = true;
+      } catch (err) {
+        if (err?.status === 403) {
+          toast(`🔒 "${recipe.label}" requiere plan ${err.payload?.requiredPlan || recipe.minPlan}+`, 'err');
+          setTimeout(() => {
+            window.location.href = '/pricing.html';
+          }, 1500);
+        } else {
+          toast('No se pudo validar la recipe — intentá de nuevo', 'err');
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+      }
     });
   });
 };
@@ -248,19 +274,19 @@ export const renderCuToolbox = async (root) => {
       .ctb-empty{padding:40px;text-align:center;color:var(--text-tertiary,#888);}
     </style>`;
 
-  // Load user plan
-  try {
-    const meRes = await fetch('/api/auth/me', { credentials: 'include' });
-    if (meRes.ok) {
-      const me = await meRes.json();
-      currentUserPlan = me?.user?.plan || 'free';
-    }
-  } catch {
-    /* default free */
+  // Load user plan — from the REAL billing tier (user_tiers, the table
+  // Stripe/Mercado Pago webhooks write to on actual payment), not
+  // /api/auth/me's legacy `user.plan` field, which nothing in the payment
+  // flow ever updates and would leave every paying user stuck on "free" here.
+  const userId = getUserId();
+  if (userId) {
+    const { data: tierData } = await apiSafe(`/api/billing/tier?userId=${encodeURIComponent(userId)}`, null);
+    currentUserPlan = tierData?.tier || 'free';
   }
 
-  // Load full library (no filter — frontend filtra por tool)
-  const { data, error } = await apiSafe(`/api/cu/recipes?planId=premium`, null);
+  // Load full library (no filter — frontend filtra por tool). "agency" is the
+  // real top tier (see PLAN_ORDER) — pass it here to fetch the unfiltered 80.
+  const { data, error } = await apiSafe(`/api/cu/recipes?planId=agency`, null);
   const container = root.querySelector('#ctb-root');
   if (error || !data) {
     container.innerHTML = '<div class="ctb-empty">No se pudo cargar la biblioteca.</div>';

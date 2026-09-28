@@ -1357,7 +1357,7 @@ export const CU_RECIPES = {
     category: 'monetization',
     label: '🎵 TT · Iniciar Live Shopping con productos',
     estimatedMin: 5,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'low',
     steps: [
       {
@@ -1895,7 +1895,7 @@ export const CU_RECIPES = {
     category: 'vfx',
     label: '🎞️ CapCut · Color grading cinematic',
     estimatedMin: 4,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {
@@ -1970,7 +1970,7 @@ export const CU_RECIPES = {
     category: 'video-gen',
     label: '🎥 Runway · Text-to-Video Gen-3 Alpha',
     estimatedMin: 3,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {
@@ -2056,7 +2056,7 @@ export const CU_RECIPES = {
     category: 'video-gen',
     label: '🎥 Pika · Crear video stylized',
     estimatedMin: 3,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {
@@ -2094,7 +2094,7 @@ export const CU_RECIPES = {
     category: 'video-gen',
     label: '🎥 Luma · Dream Machine cinematic',
     estimatedMin: 4,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {
@@ -2138,7 +2138,7 @@ export const CU_RECIPES = {
     category: 'video-gen',
     label: '🎥 Kling · Pro video 1080p',
     estimatedMin: 4,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {
@@ -2187,7 +2187,7 @@ export const CU_RECIPES = {
     category: 'avatar',
     label: '🎥 HeyGen · Avatar talking head (script → video)',
     estimatedMin: 5,
-    minPlan: 'premium',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {
@@ -2527,7 +2527,7 @@ export const CU_RECIPES = {
     category: 'native-editor',
     label: '🎵 TT · Crear AR Effect personalizado (Effect House)',
     estimatedMin: 25,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {
@@ -2590,7 +2590,7 @@ export const CU_RECIPES = {
     category: 'monetization',
     label: '🎵 TT · TikTok Series (contenido pago)',
     estimatedMin: 10,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {
@@ -2815,7 +2815,7 @@ export const CU_RECIPES = {
     category: 'narrative',
     label: '🔄 Multi · Saga arc multi-mes cross-platform',
     estimatedMin: 60,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'low',
     steps: [
       {
@@ -3067,7 +3067,7 @@ export const CU_RECIPES = {
     category: 'branding',
     label: '🎨 Ideogram · Remix con brand kit consistency',
     estimatedMin: 5,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {
@@ -3292,7 +3292,7 @@ export const CU_RECIPES = {
     category: 'video-gen',
     label: '🖼️ Freepik · Video gen (Kling + Runway + Pika via Freepik)',
     estimatedMin: 5,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {
@@ -3378,7 +3378,7 @@ export const CU_RECIPES = {
     category: 'video-gen',
     label: '🎥 Kling · Image-to-Video con motion brush',
     estimatedMin: 5,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {
@@ -3437,7 +3437,7 @@ export const CU_RECIPES = {
     category: 'lip-sync',
     label: '🎥 Kling · Lip-sync (audio → mouth movement)',
     estimatedMin: 5,
-    minPlan: 'premium',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {
@@ -3475,7 +3475,7 @@ export const CU_RECIPES = {
     category: 'product',
     label: '🎥 Kling · Virtual Try-On (e-commerce product on model)',
     estimatedMin: 4,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {
@@ -3519,7 +3519,7 @@ export const CU_RECIPES = {
     category: 'localization',
     label: '🎞️ Veed · Subtítulos + traducción multi-idioma',
     estimatedMin: 4,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       {

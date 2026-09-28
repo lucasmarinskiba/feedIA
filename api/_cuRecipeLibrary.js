@@ -535,7 +535,7 @@ export const CU_RECIPES = {
     category: 'monetization',
     label: '🎵 TT · Iniciar Live Shopping con productos',
     estimatedMin: 5,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'low',
     steps: [
       { n: 1, action: 'tap-create-plus', icon: '➕' },
@@ -763,7 +763,7 @@ export const CU_RECIPES = {
     category: 'vfx',
     label: '🎞️ CapCut · Color grading cinematic',
     estimatedMin: 4,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'select-all-clips', icon: '☑️' },
@@ -797,7 +797,7 @@ export const CU_RECIPES = {
     category: 'video-gen',
     label: '🎥 Runway · Text-to-Video Gen-3 Alpha',
     estimatedMin: 3,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'open', target: 'runwayml.com', icon: '🌐' },
@@ -833,7 +833,7 @@ export const CU_RECIPES = {
     category: 'video-gen',
     label: '🎥 Pika · Crear video stylized',
     estimatedMin: 3,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'open', target: 'pika.art', icon: '🌐' },
@@ -851,7 +851,7 @@ export const CU_RECIPES = {
     category: 'video-gen',
     label: '🎥 Luma · Dream Machine cinematic',
     estimatedMin: 4,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'open', target: 'lumalabs.ai/dream-machine', icon: '🌐' },
@@ -870,7 +870,7 @@ export const CU_RECIPES = {
     category: 'video-gen',
     label: '🎥 Kling · Pro video 1080p',
     estimatedMin: 4,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'open', target: 'klingai.com', icon: '🌐' },
@@ -890,7 +890,7 @@ export const CU_RECIPES = {
     category: 'avatar',
     label: '🎥 HeyGen · Avatar talking head (script → video)',
     estimatedMin: 5,
-    minPlan: 'premium',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'open', target: 'heygen.com', icon: '🌐' },
@@ -1031,7 +1031,7 @@ export const CU_RECIPES = {
     category: 'native-editor',
     label: '🎵 TT · Crear AR Effect personalizado (Effect House)',
     estimatedMin: 25,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'open', target: 'effecthouse.tiktok.com', icon: '🌐' },
@@ -1052,7 +1052,7 @@ export const CU_RECIPES = {
     category: 'monetization',
     label: '🎵 TT · TikTok Series (contenido pago)',
     estimatedMin: 10,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'check-eligibility', detail: 'requires creator next gen', icon: '✅' },
@@ -1140,7 +1140,7 @@ export const CU_RECIPES = {
     category: 'narrative',
     label: '🔄 Multi · Saga arc multi-mes cross-platform',
     estimatedMin: 60,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'low',
     steps: [
       { n: 1, action: 'design-arc-7-parts', detail: 'historia mensual creciente', icon: '📚' },
@@ -1240,7 +1240,7 @@ export const CU_RECIPES = {
     category: 'branding',
     label: '🎨 Ideogram · Remix con brand kit consistency',
     estimatedMin: 5,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'upload-winning-design', detail: 'design previo que funcionó', icon: '⭐' },
@@ -1328,7 +1328,7 @@ export const CU_RECIPES = {
     category: 'video-gen',
     label: '🖼️ Freepik · Video gen (Kling + Runway + Pika via Freepik)',
     estimatedMin: 5,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'open-ai-video', target: 'freepik.com/ai/video', icon: '🎥' },
@@ -1364,7 +1364,7 @@ export const CU_RECIPES = {
     category: 'video-gen',
     label: '🎥 Kling · Image-to-Video con motion brush',
     estimatedMin: 5,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'open', target: 'klingai.com', icon: '🌐' },
@@ -1384,7 +1384,7 @@ export const CU_RECIPES = {
     category: 'lip-sync',
     label: '🎥 Kling · Lip-sync (audio → mouth movement)',
     estimatedMin: 5,
-    minPlan: 'premium',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'open-lip-sync-tool', icon: '👄' },
@@ -1400,7 +1400,7 @@ export const CU_RECIPES = {
     category: 'product',
     label: '🎥 Kling · Virtual Try-On (e-commerce product on model)',
     estimatedMin: 4,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'open-virtual-tryon', icon: '👗' },
@@ -1419,7 +1419,7 @@ export const CU_RECIPES = {
     category: 'localization',
     label: '🎞️ Veed · Subtítulos + traducción multi-idioma',
     estimatedMin: 4,
-    minPlan: 'gold',
+    minPlan: 'agency',
     riskLevel: 'safe',
     steps: [
       { n: 1, action: 'open', target: 'veed.io', icon: '🌐' },
@@ -1499,7 +1499,7 @@ export const CU_TOOLS = {
   veed: { id: 'veed', label: 'Veed', icon: '🎞️', baseUrl: 'veed.io', authRequired: true, freeTier: '10 min/mes' },
 };
 
-const PLAN_ORDER = ['free', 'starter', 'pro', 'gold', 'premium'];
+const PLAN_ORDER = ['free', 'starter', 'pro', 'agency'];
 
 export const isPlanGteRequired = (userPlan, minPlan) => {
   return PLAN_ORDER.indexOf(userPlan) >= PLAN_ORDER.indexOf(minPlan);
