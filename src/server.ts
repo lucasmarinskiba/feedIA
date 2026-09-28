@@ -55,8 +55,7 @@ import { feedIADatabase } from './db/database.js';
 import { BrandProfileSchema } from './config/types.js';
 import { startPollingScheduler } from './workers/metricsPollingOrchestrator.js';
 import createStudioRoutes from './server/studioRoutes.js';
-import { buildExtendedRoutes } from './server/extendedRoutes.js';
-import { createRequestHandler } from './server/http.js';
+import createCmRoutes from './server/cmRoutes.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
@@ -537,16 +536,12 @@ app.get('/api/debug/memorydb', async (_req: Request, res: Response): Promise<voi
 // http.js server (src/server/index.ts, only ever run via `tsx src/cli.ts` in
 // dev) and never mounted on this Express app — so every /api/cm/* request
 // fell through to the SPA catch-all below and got index.html back instead of
-// JSON. createRequestHandler is a plain (req,res) Node handler, Express-
-// compatible; scoped to /api/cm/ so its internal 404 fallback never swallows
-// other routes.
-const cmRequestHandler = createRequestHandler(
-  buildExtendedRoutes(mockBrand).filter((r) => r.pattern.startsWith('/api/cm/')),
-);
-app.use((req: Request, res: Response, next) => {
-  if (!req.path.startsWith('/api/cm/')) return next();
-  cmRequestHandler(req, res);
-});
+// JSON. createCmRoutes adapts them to Express (same pattern as
+// createStudioRoutes) reusing the already-parsed req.body, instead of
+// createRequestHandler's own readBody(), which re-attaches 'data'/'end'
+// listeners to a stream express.json() already fully consumed above —
+// 'end' never fires again, so every POST with a JSON body hung forever.
+app.use(createCmRoutes(mockBrand));
 
 // Pricing page (embedded HTML constant, served before SPA catch-all)
 app.get('/pricing', (req: Request, res: Response) => {
