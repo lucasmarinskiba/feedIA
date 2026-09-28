@@ -86,10 +86,14 @@ const renderToolsBar = (tools, allRecipes) => {
   allRecipes.forEach((r) => {
     counts[r.tool] = (counts[r.tool] || 0) + 1;
   });
+  const availableCount = allRecipes.filter((r) => isPlanGte(currentUserPlan, r.minPlan)).length;
   return `
     <div class="ctb-tools-bar">
       <button class="ctb-tool-pill ${activeTool === 'all' ? 'active' : ''}" data-tool="all">
         🌐 Todas <span class="ctb-count">${counts.all}</span>
+      </button>
+      <button class="ctb-tool-pill ctb-tool-pill-available ${activeTool === 'available' ? 'active' : ''}" data-tool="available">
+        ✅ Disponibles <span class="ctb-count">${availableCount}</span>
       </button>
       ${Object.entries(tools)
         .map(
@@ -104,7 +108,12 @@ const renderToolsBar = (tools, allRecipes) => {
 };
 
 const renderGroupedRecipes = (allRecipes, tools) => {
-  const filtered = activeTool === 'all' ? allRecipes : allRecipes.filter((r) => r.tool === activeTool);
+  const filtered =
+    activeTool === 'all'
+      ? allRecipes
+      : activeTool === 'available'
+        ? allRecipes.filter((r) => isPlanGte(currentUserPlan, r.minPlan))
+        : allRecipes.filter((r) => r.tool === activeTool);
   if (filtered.length === 0) return '<div class="ctb-empty">Sin recetas para este tool en tu plan.</div>';
   // Agrupar por categoría dentro del tool
   const grouped = {};
@@ -196,6 +205,11 @@ export const renderCuToolbox = async (root) => {
       .ctb-tool-pill.active{background:linear-gradient(135deg,#e1306c,#a855f7);color:#fff;box-shadow:0 2px 10px rgba(168,85,247,.25);}
       .ctb-count{padding:2px 6px;background:rgba(17,18,22,.08);border-radius:99px;font-size:10.5px;font-weight:700;}
       .ctb-tool-pill.active .ctb-count{background:rgba(255,255,255,.25);color:#fff;}
+      .ctb-tool-pill-available{color:#c9c400;box-shadow:inset 0 0 0 1px rgba(239,255,61,.5);}
+      .ctb-tool-pill-available:hover{background:rgba(239,255,61,.1);color:#a8a300;}
+      .ctb-tool-pill-available .ctb-count{background:rgba(239,255,61,.18);color:#8a8500;}
+      .ctb-tool-pill-available.active{background:linear-gradient(135deg,#EFFF3D,#c9e000);color:#1a1a05;box-shadow:0 2px 10px rgba(239,255,61,.4);}
+      .ctb-tool-pill-available.active .ctb-count{background:rgba(0,0,0,.15);color:#1a1a05;}
       .ctb-group{margin-bottom:24px;}
       .ctb-group-title{font-size:14px;font-weight:700;margin:0 0 10px;color:var(--text-primary,var(--fg));text-transform:uppercase;letter-spacing:.05em;padding:6px 10px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:8px;display:inline-block;}
       .ctb-recipes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;}
