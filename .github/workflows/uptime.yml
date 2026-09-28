@@ -27,10 +27,15 @@ jobs:
         run: |
           curl -fsS --max-time 30 -o /dev/null -w "%{http_code}\n" "${{ secrets.PUBLIC_BASE_URL_PROD }}/"
 
+      # `secrets` isn't a context `if:` can read (see backup-prod.yml for the
+      # full explanation) — this made the whole file invalid, so this job
+      # (running every 5 minutes) never actually executed at all.
       - name: Notify on failure
-        if: failure() && secrets.ADMIN_WEBHOOK_URL != ''
+        if: failure() && env.ADMIN_WEBHOOK_URL != ''
+        env:
+          ADMIN_WEBHOOK_URL: ${{ secrets.ADMIN_WEBHOOK_URL }}
         run: |
-          curl -fsS -X POST "${{ secrets.ADMIN_WEBHOOK_URL }}" \
+          curl -fsS -X POST "$ADMIN_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d '{"text":"❌ FeedIA production uptime check failed"}'
 
@@ -56,8 +61,10 @@ jobs:
           curl -fsS --max-time 30 -o /dev/null -w "%{http_code}\n" "${{ secrets.PUBLIC_BASE_URL_STAGING }}/"
 
       - name: Notify on failure
-        if: failure() && secrets.ADMIN_WEBHOOK_URL != ''
+        if: failure() && env.ADMIN_WEBHOOK_URL != ''
+        env:
+          ADMIN_WEBHOOK_URL: ${{ secrets.ADMIN_WEBHOOK_URL }}
         run: |
-          curl -fsS -X POST "${{ secrets.ADMIN_WEBHOOK_URL }}" \
+          curl -fsS -X POST "$ADMIN_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d '{"text":"❌ FeedIA staging uptime check failed"}'

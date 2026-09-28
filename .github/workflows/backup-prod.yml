@@ -50,16 +50,27 @@ jobs:
           path: backups/*.sql
           retention-days: 30
 
+      # `secrets` isn't in the set of contexts an `if:` can read (only env,
+      # github, job, etc. — see actionlint / the GH Actions context-
+      # availability table), so `if: ... && secrets.X != ''` fails schema
+      # validation before any job runs — this is what made the whole
+      # workflow file "invalid" and skip execution entirely, including the
+      # actual backup step above. Route it through `env:` instead, which
+      # `if:` can read.
       - name: Notify on success
-        if: success() && secrets.ADMIN_WEBHOOK_URL != ''
+        if: success() && env.ADMIN_WEBHOOK_URL != ''
+        env:
+          ADMIN_WEBHOOK_URL: ${{ secrets.ADMIN_WEBHOOK_URL }}
         run: |
-          curl -fsS -X POST "${{ secrets.ADMIN_WEBHOOK_URL }}" \
+          curl -fsS -X POST "$ADMIN_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d '{"text":"✅ FeedIA production backup completed","run_url":"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'
 
       - name: Notify on failure
-        if: failure() && secrets.ADMIN_WEBHOOK_URL != ''
+        if: failure() && env.ADMIN_WEBHOOK_URL != ''
+        env:
+          ADMIN_WEBHOOK_URL: ${{ secrets.ADMIN_WEBHOOK_URL }}
         run: |
-          curl -fsS -X POST "${{ secrets.ADMIN_WEBHOOK_URL }}" \
+          curl -fsS -X POST "$ADMIN_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d '{"text":"❌ FeedIA production backup failed","run_url":"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'
