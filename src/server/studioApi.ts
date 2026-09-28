@@ -31,6 +31,9 @@ import type { BrandProfile, ContentFormat } from '../config/types.js';
 import { json, type RouteContext, type RouteDefinition } from './http.js';
 import { checkFormatQuota, commitFormatUsage } from '../middleware/tier-enforcer.js';
 import type { ContentFormat as TierContentFormat } from '../db/user-tiers.js';
+import { ask } from '../agent/tokenRouter.js';
+import { brandContext } from '../agent/memory.js';
+import { runAutoCreate, type AutoCreateFormat } from '../capabilities/content/autoCreate.js';
 
 /**
  * userContextMiddleware attaches req.userId on the live Express Request
@@ -164,6 +167,43 @@ interface CanvaStoriesBody {
   titulo: string;
   userHandle?: string;
 }
+interface HandsFreeBody {
+  input: string;
+  accountId?: string;
+  platform?: string;
+  autoPublish?: boolean;
+  goal?: string;
+}
+interface AutopilotCreatePostBody {
+  topic: string;
+  niche?: string;
+  goal?: string;
+  platform?: string;
+  format?: 'carousel' | 'reel' | 'historia' | 'story';
+  accountId?: string;
+  autoPublish?: boolean;
+}
+
+const CREATIVE_INTENT_RE = /carrusel|reel|historia|stories?|post|publicar|generar|crear|hac[eé]/i;
+
+const detectAutoCreateFormat = (text: string): AutoCreateFormat => {
+  const t = text.toLowerCase();
+  if (/\breel(s)?\b/.test(t)) return 'reel';
+  if (/\bhistorias?\b|\bstor(y|ies)\b/.test(t)) return 'historia';
+  return 'carousel';
+};
+
+/** Pedido en lenguaje natural -> tema, quitando el verbo/formato de comando. */
+const extractTopicFromCommand = (text: string): string => {
+  const stripped = text
+    .replace(/^\s*feedia[,:]?\s*/i, '')
+    .replace(
+      /\b(cre[aá]|gener[aá]|arm[aá]|hac[eé]|public[aá])\s+(un[oa]?\s+)?(carrusel|reel|historia|stor(y|ies))\s*(sobre|de|acerca de)?\s*/i,
+      '',
+    )
+    .trim();
+  return stripped || text.trim();
+};
 
 export const buildStudioRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
@@ -492,6 +532,101 @@ export const buildStudioRoutes = (brand: BrandProfile): RouteDefinition[] => [
         tone: brand.voice.tone,
         visual: brand.visual,
         goals: brand.goals,
+      });
+    },
+  },
+
+  // ── Manos Libres — comando de voz/texto en lenguaje natural. La UI
+  // (handsfree.js) llamaba a este endpoint desde siempre; no existía en el
+  // servidor real. Reusa el mismo runAutoCreate brand-aware que Carruseles/
+  // Reels/Historias, así que hereda el Brand Kit automáticamente. ─────────
+  {
+    method: 'POST',
+    pattern: '/api/handsfree/run',
+    handler: async (ctx) => {
+      const { res, body } = ctx;
+      const b = (body ?? {}) as HandsFreeBody;
+      const input = (b.input ?? '').trim();
+      if (!input) return json(res, 400, { ok: false, error: 'input requerido' });
+
+      const timeline: Array<{ at: number; icon: string; text: string; status: 'done' | 'fail' }> = [];
+      let step = 0;
+      const push = (icon: string, text: string, status: 'done' | 'fail' = 'done'): void => {
+        timeline.push({ at: step++, icon, text, status });
+      };
+      push('🧠', 'Interpretando el pedido…');
+
+      if (!CREATIVE_INTENT_RE.test(input)) {
+        push('💬', 'Respondiendo con la voz de marca…');
+        const reply = await ask(
+          `${brandContext(brand)}\n\nEl usuario te habla por voz/texto: "${input}"\n\nRespondé breve (máximo 3 frases), en la voz de marca, directo y útil.`,
+          { taskType: 'response', maxTokens: 300 },
+        );
+        push('✓', 'Listo.');
+        return json(res, 200, { ok: true, action: 'reply', timeline, output: { reply: reply.text } });
+      }
+
+      const format = detectAutoCreateFormat(input);
+      const topic = extractTopicFromCommand(input);
+      const quotaFormat: TierContentFormat =
+        format === 'reel' ? 'videos' : format === 'historia' ? 'stories' : 'carousels';
+      const quotaUserId = await enforceFormatQuota(ctx, quotaFormat);
+      if (!quotaUserId) return;
+
+      push('🎨', `Generando ${format} sobre "${topic}"…`);
+      const result = await runAutoCreate(brand, topic, { format, autoPublish: b.autoPublish });
+      await commitFormatUsage(quotaUserId, quotaFormat);
+      for (const line of result.log.slice(1)) push('✓', line);
+      if (result.status === 'held')
+        timeline[timeline.length - 1] = { ...timeline[timeline.length - 1]!, status: 'fail' };
+
+      json(res, 200, {
+        ok: true,
+        action: `content:${format}`,
+        timeline,
+        output: {
+          content: result.content,
+          carouselSlides: result.slides,
+          publish: result.publish,
+        },
+      });
+    },
+  },
+
+  // ── Piloto automático (Brújula) — crear + validar + publicar de punta a
+  // punta. brujula.js ya mandaba topic/niche/goal/format/autoPublish a este
+  // endpoint; no existía en el servidor real. Mismo runAutoCreate. ────────
+  {
+    method: 'POST',
+    pattern: '/api/autopilot/create-post',
+    handler: async (ctx) => {
+      const { res, body } = ctx;
+      const b = (body ?? {}) as AutopilotCreatePostBody;
+      const topic = (b.topic ?? '').trim();
+      if (!topic) return json(res, 400, { ok: false, error: 'topic requerido' });
+
+      const format: AutoCreateFormat =
+        b.format === 'reel' ? 'reel' : b.format === 'historia' || b.format === 'story' ? 'historia' : 'carousel';
+      const quotaFormat: TierContentFormat =
+        format === 'reel' ? 'videos' : format === 'historia' ? 'stories' : 'carousels';
+      const quotaUserId = await enforceFormatQuota(ctx, quotaFormat);
+      if (!quotaUserId) return;
+
+      const result = await runAutoCreate(brand, topic, { format, autoPublish: b.autoPublish });
+      await commitFormatUsage(quotaUserId, quotaFormat);
+
+      json(res, 200, {
+        ok: true,
+        status: result.status,
+        note: result.note,
+        publish: result.publish,
+        content: result.content,
+        validation: {
+          prediction: { viralScore: result.prediction.scoreGeneral, virality: result.prediction.riesgoFlop },
+          carousel: { verdict: result.safety.veredicto },
+        },
+        carouselSlides: result.slides,
+        log: result.log,
       });
     },
   },

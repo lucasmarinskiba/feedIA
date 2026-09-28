@@ -133,3 +133,31 @@ export const activateBrandProfile = (file: string): ActivationResult => {
     };
   }
 };
+
+const isPlainObject = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null && !Array.isArray(v);
+
+/** One-level-aware recursive merge: plain objects merge key-by-key, arrays/primitives replace. */
+const deepMerge = <T extends Record<string, unknown>>(base: T, patch: Record<string, unknown>): T => {
+  const out: Record<string, unknown> = { ...base };
+  for (const [k, v] of Object.entries(patch)) {
+    if (v === undefined) continue;
+    const existing = out[k];
+    out[k] = isPlainObject(v) && isPlainObject(existing) ? deepMerge(existing, v) : v;
+  }
+  return out as T;
+};
+
+/**
+ * Merge a partial patch (e.g. Brand Kit edits from the UI) into the active
+ * BrandProfile, validate it, persist to the active profile file, and mutate
+ * the stable in-memory object in place so every route sees it instantly.
+ */
+export const updateActiveBrand = (patch: Record<string, unknown>): BrandProfile => {
+  if (!active) initBrandRegistry();
+  const merged = deepMerge(active as unknown as Record<string, unknown>, patch);
+  const validated = BrandProfileSchema.parse(merged);
+  writeFileSync(resolve(DATA_DIR, activeFile), JSON.stringify(validated, null, 2), 'utf-8');
+  swapInPlace(active!, validated);
+  return active!;
+};

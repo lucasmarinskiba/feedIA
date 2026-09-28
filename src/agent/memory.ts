@@ -52,6 +52,30 @@ export const topPerformers = (limit = 5): PerformanceRecord[] => {
     .slice(0, limit);
 };
 
+/**
+ * Brand Kit: cargado 1 sola vez por el usuario (colores, tipografía, foto
+ * protagonista, logo, elementos visuales) y leído automáticamente acá. Como
+ * brandContext() se inyecta en todos los agentes (ver createAgentBase), esto
+ * alcanza a Manos Libres, Piloto automático, Carruseles, Reels e Historias
+ * sin cablear nada por separado.
+ */
+const brandVisualBlock = (brand: BrandProfile): string => {
+  const v = brand.visual;
+  const lines = [
+    `- Paleta: ${v.palette.join(', ') || 'libre, coherente con el mood'}`,
+    `- Tipografía: ${v.typography.join(', ') || 'sans serif legible'}`,
+    `- Mood / estilo: ${v.mood} · ${v.style}`,
+    `- Elementos visuales del nicho a reutilizar: ${v.visualElements.join(', ') || 'ninguno definido'}`,
+  ];
+  if (v.heroImageUrl) {
+    lines.push(
+      '- Hay una foto protagonista de marca cargada: priorizar composiciones que la integren o referencien (la persona/producto real de la marca), en vez de gente o escenas genéricas.',
+    );
+  }
+  if (v.logoUrl) lines.push('- Hay logo de marca cargado: dejar espacio para watermark/firma cuando aplique.');
+  return lines.join('\n');
+};
+
 export const brandContext = (brand: BrandProfile): string =>
   `MARCA: ${brand.name} (${brand.type})
 NICHO: ${brand.niche}
@@ -60,6 +84,9 @@ DOLORES: ${brand.audience.pains.join(' · ')}
 DESEOS: ${brand.audience.desires.join(' · ')}
 TONO: ${brand.voice.tone.join(', ')}
 PROHIBIDO DECIR: ${brand.voice.forbidden.join(', ') || 'nada en particular'}
+IDENTIDAD VISUAL (Brand Kit):
+${brandVisualBlock(brand)}
+${brand.brandStrategy?.promise ? `CLAIM DE MARCA: "${brand.brandStrategy.promise}"` : ''}
 OBJETIVO PRIMARIO: ${brand.goals.primary}
 MÉTRICAS A VIGILAR: ${brand.goals.metricsToWatch.join(', ')}
 ${brand.voice.referenceQuotes.length ? `FRASES DE REFERENCIA:\n- ${brand.voice.referenceQuotes.join('\n- ')}` : ''}`;
