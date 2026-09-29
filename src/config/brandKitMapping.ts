@@ -69,8 +69,11 @@ export const brandKitToProfilePatch = (kit: Partial<BrandKitUi>): Record<string,
   if (kit.textColor !== undefined) visual.textColor = kit.textColor;
   if (kit.bgColor !== undefined) visual.bgColor = kit.bgColor;
   if (kit.accentColor !== undefined) visual.accentColor = kit.accentColor;
-  if (kit.bgColor !== undefined || kit.accentColor !== undefined || kit.textColor !== undefined) {
-    visual.palette = dedupe([kit.bgColor ?? '', kit.accentColor ?? '', kit.textColor ?? '']);
+  // palette is derived from all three swatches together — only rebuild it when
+  // the patch carries all three, so a partial edit (e.g. just accentColor)
+  // can't wipe the other two colors out of the existing palette.
+  if (kit.bgColor !== undefined && kit.accentColor !== undefined && kit.textColor !== undefined) {
+    visual.palette = dedupe([kit.bgColor, kit.accentColor, kit.textColor]);
   }
   if (kit.font !== undefined) {
     visual.fontStyle = kit.font;
