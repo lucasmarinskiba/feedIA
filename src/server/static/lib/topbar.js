@@ -191,7 +191,11 @@ const startPolling = () => {
     updateUI(info);
   };
   poll();
-  pollTimer = setInterval(poll, 8000);
+  // Runs for the whole session (mounted once in app.js, not gated by dropdown
+  // visibility like usageWidget/tasksWidget) — 5 parallel endpoints every 8s
+  // was ~37 req/min of background chatter alone. 20s keeps the dot reasonably
+  // fresh while cutting that to ~15 req/min.
+  pollTimer = setInterval(poll, 20000);
 };
 
 const stopPolling = () => {
