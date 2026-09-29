@@ -121,6 +121,220 @@ const saveStore = (store: AchievementsStore): void => {
   writeFileSync(ACHIEVEMENTS_PATH, JSON.stringify(store, null, 2), 'utf8');
 };
 
+// ── Generadores de hitos por plataforma (seguidores + likes-en-un-post) ────────
+//
+// Mismo shape repetido a través de dos plataformas (TikTok/Instagram) y dos
+// métricas (seguidores de la cuenta vs. likes de UNA publicación puntual) en
+// ~12 umbrales cada uno — de ahí el generador en vez de 70+ objetos calcados
+// a mano. El copy (flavorText) sigue siendo curado a mano por umbral, no
+// generado.
+
+const soundFor = (rarity: AchievementRarity): AchievementDefinition['unlockSound'] =>
+  rarity === 'mítica'
+    ? 'mythic-revelation'
+    : rarity === 'legendaria'
+      ? 'legendary-choir'
+      : rarity === 'épica'
+        ? 'epic-orchestra'
+        : rarity === 'rara'
+          ? 'rare-fanfare'
+          : 'common-chime';
+
+const animationFor = (rarity: AchievementRarity): AchievementDefinition['unlockAnimation'] =>
+  rarity === 'mítica'
+    ? 'cosmic-reveal'
+    : rarity === 'legendaria'
+      ? 'phoenix-rise'
+      : rarity === 'épica'
+        ? 'star-explosion'
+        : rarity === 'rara'
+          ? 'confetti-burst'
+          : 'sparkle';
+
+const fmt = (n: number): string => n.toLocaleString('es-AR');
+
+interface MilestoneTier {
+  threshold: number;
+  id: string; // usado en el achievement id, ej. '250k'
+  label: string; // usado en el nombre, ej. '250K'
+  rarity: AchievementRarity;
+  points: number;
+  emoji: string;
+  badgeIcon: string;
+}
+
+type Platform = 'tiktok' | 'instagram';
+
+const platformLabel = (p: Platform): string => (p === 'tiktok' ? 'TikTok' : 'Instagram');
+const platformPrefix = (p: Platform): 'tt' | 'ig' => (p === 'tiktok' ? 'tt' : 'ig');
+
+/** Hito de SEGUIDORES de cuenta — completa los umbrales que faltan en cada plataforma. */
+const followerMilestone = (platform: Platform, tier: MilestoneTier, flavorText: string): AchievementDefinition => {
+  const label = platformLabel(platform);
+  const prefix = platformPrefix(platform);
+  return {
+    id: `${prefix}-${tier.id}-seg`,
+    name: `${tier.label} en ${label}`,
+    description: `${fmt(tier.threshold)} seguidores en ${label}`,
+    category: platform === 'tiktok' ? 'tiktok-crecimiento' : 'instagram-crecimiento',
+    rarity: tier.rarity,
+    emoji: tier.emoji,
+    badgeIcon: `${prefix}-${tier.badgeIcon}`,
+    flavorText,
+    unlockCondition: `Alcanzar ${fmt(tier.threshold)} seguidores en ${label}`,
+    evaluator: (): boolean => {
+      const last = getRecentDailyMetrics(60).pop();
+      const value = platform === 'tiktok' ? (last?.tiktokFollowers ?? 0) : (last?.instagramFollowers ?? 0);
+      return value >= tier.threshold;
+    },
+    points: tier.points,
+    hidden: false,
+    unlockSound: soundFor(tier.rarity),
+    unlockAnimation: animationFor(tier.rarity),
+    shareableText: `${fmt(tier.threshold)} en ${label} ${tier.emoji}`,
+  };
+};
+
+/** Hito de LIKES EN UNA SOLA PUBLICACIÓN — "por primera vez superé X en un post". */
+const postLikesMilestone = (platform: Platform, tier: MilestoneTier, flavorText: string): AchievementDefinition => {
+  const label = platformLabel(platform);
+  const prefix = platformPrefix(platform);
+  return {
+    id: `${prefix}-post-${tier.id}-likes`,
+    name: `${tier.label} en un post (${label})`,
+    description: `Un solo post superó ${fmt(tier.threshold)} likes en ${label}`,
+    category: platform === 'tiktok' ? 'tiktok-engagement' : 'instagram-engagement',
+    rarity: tier.rarity,
+    emoji: tier.emoji,
+    badgeIcon: `${prefix}-post-${tier.badgeIcon}`,
+    flavorText,
+    unlockCondition: `Un post con ${fmt(tier.threshold)}+ likes en ${label}`,
+    evaluator: (): boolean =>
+      getRecentPosts(365).some((p) => p.platform === platform && (p.metrics?.likes ?? 0) >= tier.threshold),
+    points: tier.points,
+    hidden: false,
+    unlockSound: soundFor(tier.rarity),
+    unlockAnimation: animationFor(tier.rarity),
+    shareableText: `Un post mío superó ${fmt(tier.threshold)} likes en ${label} ${tier.emoji}`,
+  };
+};
+
+const TIER: Record<string, MilestoneTier> = {
+  t50: { threshold: 50, id: '50', label: '50', rarity: 'común', points: 12, emoji: '🌱', badgeIcon: 'seed-tiny' },
+  t100: { threshold: 100, id: '100', label: '100', rarity: 'común', points: 20, emoji: '🌿', badgeIcon: 'sprout' },
+  t250: { threshold: 250, id: '250', label: '250', rarity: 'común', points: 30, emoji: '🪴', badgeIcon: 'sapling' },
+  t500: { threshold: 500, id: '500', label: '500', rarity: 'rara', points: 45, emoji: '🌼', badgeIcon: 'bloom' },
+  t1k: { threshold: 1000, id: '1k', label: '1K', rarity: 'rara', points: 70, emoji: '🚀', badgeIcon: 'rocket-mini' },
+  t10k: { threshold: 10000, id: '10k', label: '10K', rarity: 'épica', points: 250, emoji: '🔥', badgeIcon: 'blaze' },
+  t25k: {
+    threshold: 25000,
+    id: '25k',
+    label: '25K',
+    rarity: 'épica',
+    points: 400,
+    emoji: '⚡',
+    badgeIcon: 'spark-surge',
+  },
+  t50k: {
+    threshold: 50000,
+    id: '50k',
+    label: '50K',
+    rarity: 'legendaria',
+    points: 600,
+    emoji: '💫',
+    badgeIcon: 'nova',
+  },
+  t100k: {
+    threshold: 100000,
+    id: '100k',
+    label: '100K',
+    rarity: 'legendaria',
+    points: 950,
+    emoji: '🌟',
+    badgeIcon: 'supernova',
+  },
+  t250k: {
+    threshold: 250000,
+    id: '250k',
+    label: '250K',
+    rarity: 'legendaria',
+    points: 1300,
+    emoji: '🌠',
+    badgeIcon: 'comet',
+  },
+  t500k: {
+    threshold: 500000,
+    id: '500k',
+    label: '500K',
+    rarity: 'mítica',
+    points: 1800,
+    emoji: '☄️',
+    badgeIcon: 'meteor',
+  },
+  t1m: {
+    threshold: 1000000,
+    id: '1m',
+    label: '1M',
+    rarity: 'mítica',
+    points: 3000,
+    emoji: '👑',
+    badgeIcon: 'legend-crown',
+  },
+};
+
+// Flavor text curado por umbral — mismo para ambas plataformas (solo cambia
+// el nombre de la plataforma vía la función generadora), distinto entre
+// "seguidores de la cuenta" y "likes de una sola publicación".
+const FOLLOWER_FLAVOR: Record<string, string> = {
+  t50: 'Los primeros siempre cuentan doble.',
+  t250: 'Un cuarto de mil ya es comunidad.',
+  t500: 'Medio millar te está mirando.',
+  t25k: 'Un estadio mediano, lleno de gente que te sigue.',
+  t50k: 'Cincuenta mil. Esto ya no es casualidad.',
+  t250k: 'Cuarto de millón. Ya sos un medio de comunicación.',
+  t500k: 'Medio millón de personas creyeron en vos.',
+  t1m: 'Un millón te sigue en esta plataforma. Esto se cuenta a los nietos.',
+};
+
+const POST_LIKES_FLAVOR: Record<string, string> = {
+  t50: 'Tu primer empujón real. Así empiezan los virales.',
+  t100: 'Cien likes en un solo post. Algo hizo click.',
+  t250: 'Un cuarto de mil en una sola publicación. Ya no es casualidad.',
+  t500: 'Medio millar de likes en un post. El algoritmo lo notó.',
+  t1k: 'Mil likes en UNA publicación. Eso es viral de verdad.',
+  t10k: 'Diez mil likes en un solo post. Saliste del radar normal.',
+  t25k: 'Veinticinco mil likes en una publicación. Esto se comparte solo.',
+  t50k: 'Cincuenta mil likes en un post. El contenido ya no es tuyo, es de todos.',
+  t100k: 'Cien mil likes en UNA publicación. Nivel viral serio.',
+  t250k: 'Un cuarto de millón de likes en un solo post. Estás en la conversación.',
+  t500k: 'Medio millón de likes en una publicación. Esto es historia de tu cuenta.',
+  t1m: 'Un millón de likes en UN SOLO post. Momento que se recuerda para siempre.',
+};
+
+// Umbrales de seguidores que faltan por plataforma (los ya existentes como
+// literales más abajo — 100/1K/10K/100K en ambas, más 500/2.5K/5K/25K/50K en
+// TikTok — no se regeneran acá para no duplicar ids).
+const TIKTOK_FOLLOWER_GAPS = ['t50', 't250', 't250k', 't500k', 't1m'].map((k) => TIER[k]!);
+const INSTAGRAM_FOLLOWER_GAPS = ['t50', 't250', 't500', 't25k', 't50k', 't250k', 't500k', 't1m'].map((k) => TIER[k]!);
+
+// Likes-en-una-sola-publicación: track nuevo completo, los 12 umbrales en
+// ambas plataformas (no existía ningún achievement de "post individual" para
+// likes — sólo para saves).
+const ALL_TIERS_ORDERED = [
+  't50',
+  't100',
+  't250',
+  't500',
+  't1k',
+  't10k',
+  't25k',
+  't50k',
+  't100k',
+  't250k',
+  't500k',
+  't1m',
+];
+
 // ── Catálogo de achievements ──────────────────────────────────────────────────
 
 export const ACHIEVEMENTS: AchievementDefinition[] = [
@@ -1104,6 +1318,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockAnimation: 'phoenix-rise',
     shareableText: '100K celebridad en TikTok 🌟',
   },
+  ...TIKTOK_FOLLOWER_GAPS.map((tier) => followerMilestone('tiktok', tier, FOLLOWER_FLAVOR[`t${tier.id}`]!)),
 
   // ── TIKTOK ENGAGEMENT ───────────────────────────────────────────────────────
   {
@@ -1211,6 +1426,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockAnimation: 'cosmic-reveal',
     shareableText: '1M en TikTok 👑',
   },
+  ...ALL_TIERS_ORDERED.map((k) => postLikesMilestone('tiktok', TIER[k]!, POST_LIKES_FLAVOR[k]!)),
 
   // ── INSTAGRAM CRECIMIENTO ───────────────────────────────────────────────────
   {
@@ -1293,6 +1509,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockAnimation: 'phoenix-rise',
     shareableText: '100K en Instagram 👑',
   },
+  ...INSTAGRAM_FOLLOWER_GAPS.map((tier) => followerMilestone('instagram', tier, FOLLOWER_FLAVOR[`t${tier.id}`]!)),
 
   // ── INSTAGRAM ENGAGEMENT ────────────────────────────────────────────────────
   {
@@ -1379,6 +1596,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     unlockAnimation: 'phoenix-rise',
     shareableText: '100K sensación en Instagram 💎',
   },
+  ...ALL_TIERS_ORDERED.map((k) => postLikesMilestone('instagram', TIER[k]!, POST_LIKES_FLAVOR[k]!)),
 ];
 
 // ── Evaluación de achievements ────────────────────────────────────────────────
