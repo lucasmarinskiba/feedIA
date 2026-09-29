@@ -38,6 +38,7 @@ const mockBrand: BrandProfile = {
     accentColor: '',
     typography: [],
     fontStyle: '',
+    typeScale: 'medium',
     style: 'modern-minimalist',
     mood: 'profesional',
     photographyStyle: 'natural',

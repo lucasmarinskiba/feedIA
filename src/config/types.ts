@@ -108,6 +108,7 @@ export const BrandProfileSchema = z.object({
     accentColor: z.string().default(''),
     typography: z.array(z.string()).default([]),
     fontStyle: z.string().default(''),
+    typeScale: z.enum(['small', 'medium', 'large']).default('medium'),
     style: z.string().default('minimalista'),
     mood: z.string().default('profesional'),
     photographyStyle: z.string().default('natural'),

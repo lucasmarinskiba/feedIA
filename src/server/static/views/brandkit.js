@@ -166,18 +166,49 @@ const INDUSTRY_CATEGORIES = [
 ];
 
 // Tipografía corporativa: mismos 10 pairings reales de Phase 25 (src/capabilities/branding/typographySystem.ts).
+// [id, etiqueta, mood, fuente de preview] — la fuente de preview es la que hay
+// como @font-face más abajo (headline de la pairing, o body si el headline es
+// una fuente premium que no se puede embeber libremente — ver nota junto a
+// FONT_FACES). '' = sin preview disponible, se ve con la fuente por defecto.
 const FONT_PAIRINGS = [
-  ['tech', 'Tech — Outfit / DM Sans', 'moderno, limpio, profesional'],
-  ['finance', 'Finanzas — Space Grotesk / DM Sans', 'audaz, confiable, moderno'],
-  ['wellness', 'Wellness — Manrope / Fraunces', 'calmo, cálido, en paz'],
-  ['luxury', 'Luxury — Playfair Display / DM Sans', 'elegante, premium, sofisticado'],
-  ['education', 'Educación — Work Sans', 'educativo, claro, accesible'],
-  ['coaching', 'Coaching — Fraunces / Manrope', 'emocional, cálido, reflexivo'],
-  ['playful', 'Playful — Plus Jakarta / Manrope', 'amigable, cercano, creativo'],
-  ['minimal', 'Minimal — League Spartan / DM Sans', 'limpio, moderno, geométrico'],
-  ['bold', 'Bold — Gulfs Display / DM Sans', 'poderoso, confiado, impactante'],
-  ['vintage', 'Vintage — Offlander / Proxima Nova', 'nostálgico, elegante, atemporal'],
+  ['tech', 'Tech — Outfit / DM Sans', 'moderno, limpio, profesional', 'Outfit'],
+  ['finance', 'Finanzas — Space Grotesk / DM Sans', 'audaz, confiable, moderno', 'Space Grotesk'],
+  ['wellness', 'Wellness — Manrope / Fraunces', 'calmo, cálido, en paz', 'Manrope'],
+  ['luxury', 'Luxury — Playfair Display / DM Sans', 'elegante, premium, sofisticado', 'Playfair Display'],
+  ['education', 'Educación — Work Sans', 'educativo, claro, accesible', 'Work Sans'],
+  ['coaching', 'Coaching — Fraunces / Manrope', 'emocional, cálido, reflexivo', 'Fraunces'],
+  ['playful', 'Playful — Plus Jakarta / Manrope', 'amigable, cercano, creativo', 'Plus Jakarta Sans'],
+  ['minimal', 'Minimal — League Spartan / DM Sans', 'limpio, moderno, geométrico', 'League Spartan'],
+  ['bold', 'Bold — Gulfs Display / DM Sans', 'poderoso, confiado, impactante', 'DM Sans'],
+  ['vintage', 'Vintage — Offlander / Proxima Nova', 'nostálgico, elegante, atemporal', ''],
+  ['developer', 'Developer — Motor / Roboto Mono', 'técnico, preciso, código', 'Roboto Mono'],
+  ['streetwear', 'Streetwear — Bernoru Condensed / Work Sans', 'audaz, urbano, compacto', 'Work Sans'],
+  ['artisanal', 'Artesanal — Hertical Rough / Manrope', 'hecho a mano, auténtico', 'Manrope'],
+  ['statement', 'Statement — Rumble Brave / DM Sans', 'confiado, expresivo, audaz', 'DM Sans'],
+  ['compact', 'Compacto — Cubao Narrow / Roboto Mono', 'eficiente, denso, técnico', 'Roboto Mono'],
 ];
+
+// Fuentes reales autohospedadas (/fonts/*.woff2, mismo origen — el CSP de la
+// app no permite cargar fonts.googleapis.com). Solo las que están libres en
+// Google Fonts; las premium (Offlander, Proxima Nova, Gulfs Display, Motor,
+// Bernoru Condensed, Hertical Rough, Rumble Brave, Cubao Narrow) no se pueden
+// embeber legalmente acá — esas opciones se ven con la tipografía por defecto.
+const FONT_FACES = [
+  ['Outfit', 'outfit-700'],
+  ['DM Sans', 'dmsans-700'],
+  ['Space Grotesk', 'spacegrotesk-700'],
+  ['Manrope', 'manrope-700'],
+  ['Fraunces', 'fraunces-700'],
+  ['Playfair Display', 'playfairdisplay-700'],
+  ['Work Sans', 'worksans-700'],
+  ['Plus Jakarta Sans', 'plusjakarta-700'],
+  ['League Spartan', 'leaguespartan-700'],
+  ['Roboto Mono', 'robotomono-700'],
+];
+const FONT_FACES_CSS = FONT_FACES.map(
+  ([fam, file]) =>
+    `@font-face{font-family:'${fam}';font-weight:700;font-style:normal;font-display:swap;src:url('/fonts/${file}.woff2') format('woff2');}`,
+).join('');
 
 // Paletas predefinidas (CLAUDE.md § Pinterest Design Patterns) — punto de partida de 1 click.
 const PALETTE_PRESETS = {
@@ -282,8 +313,8 @@ const renderShell = (kit = {}) => `
       <div class="bk-card">
         <div class="bk-card-label">✍️ Tipografía corporativa</div>
         <select id="bk-font" class="bk-input">${FONT_PAIRINGS.map(
-          ([v, l, mood]) =>
-            `<option value="${v}" ${(kit.font || 'tech') === v ? 'selected' : ''}>${escape(l)} — ${escape(mood)}</option>`,
+          ([v, l, mood, previewFont]) =>
+            `<option value="${v}" ${(kit.font || 'tech') === v ? 'selected' : ''}${previewFont ? ` style="font-family:'${previewFont}',sans-serif;font-weight:700;"` : ''}>${escape(l)} — ${escape(mood)}</option>`,
         ).join('')}</select>
         <select id="bk-mood" class="bk-input">
           <option value="premium" ${kit.mood === 'premium' || !kit.mood ? 'selected' : ''}>Mood: Premium (oscuro elegante)</option>
@@ -294,6 +325,12 @@ const renderShell = (kit = {}) => `
           <option value="monochrome" ${kit.mood === 'monochrome' ? 'selected' : ''}>Mood: Monocromo</option>
           <option value="techno" ${kit.mood === 'techno' ? 'selected' : ''}>Mood: Techno (neón)</option>
           <option value="organico" ${kit.mood === 'organico' ? 'selected' : ''}>Mood: Orgánico</option>
+        </select>
+        <input id="bk-style" type="text" class="bk-input" placeholder="Estilo general (ej: minimalismo técnico con acentos cálidos)" value="${escape(kit.style || '')}" />
+        <select id="bk-type-scale" class="bk-input">
+          <option value="small" ${kit.typeScale === 'small' ? 'selected' : ''}>Escala tipográfica: Compacta</option>
+          <option value="medium" ${kit.typeScale === 'medium' || !kit.typeScale ? 'selected' : ''}>Escala tipográfica: Estándar</option>
+          <option value="large" ${kit.typeScale === 'large' ? 'selected' : ''}>Escala tipográfica: Grande</option>
         </select>
       </div>
 
@@ -395,6 +432,7 @@ const renderShell = (kit = {}) => `
   </div>
 
   <style>
+    ${FONT_FACES_CSS}
     .bk-shell{width:100vw;margin:0 calc(-50vw + 50%);padding:0 8px;}
     #view{padding:0!important;}
     .bk-hero{display:flex;gap:8px;align-items:center;margin-bottom:6px;padding:6px 8px;border-radius:6px;background:transparent;}
@@ -518,6 +556,8 @@ export const renderBrandKit = async (container) => {
         secondaryColor2: val('#bk-c-sec2-h'),
         font: val('#bk-font') || 'tech',
         mood: val('#bk-mood') || 'premium',
+        style: val('#bk-style'),
+        typeScale: val('#bk-type-scale') || 'medium',
         elements: toTags(val('#bk-elements')),
         tagline: val('#bk-tagline'),
         photo,

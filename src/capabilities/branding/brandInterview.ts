@@ -504,6 +504,7 @@ export const briefToBrandProfile = (brief: BrandBrief, existing?: Partial<BrandP
     accentColor: '',
     typography: [],
     fontStyle: '',
+    typeScale: 'medium',
     style: 'minimalista',
     mood: 'profesional',
     photographyStyle: 'natural',

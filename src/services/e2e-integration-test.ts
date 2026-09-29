@@ -51,6 +51,7 @@ const createMockBrand = (): BrandProfile => ({
     accentColor: '#f5f5f5',
     typography: ['Inter', 'Poppins'],
     fontStyle: 'sans-modern',
+    typeScale: 'medium',
     style: 'minimalista',
     mood: 'profesional',
     photographyStyle: 'natural',

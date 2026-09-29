@@ -63,7 +63,7 @@ const brandVisualBlock = (brand: BrandProfile): string => {
   const v = brand.visual;
   const lines = [
     `- Paleta: ${v.palette.join(', ') || 'libre, coherente con el mood'}`,
-    `- Tipografía: ${v.typography.join(', ') || 'sans serif legible'}`,
+    `- Tipografía: ${v.typography.join(', ') || 'sans serif legible'} (escala ${v.typeScale})`,
     `- Mood / estilo: ${v.mood} · ${v.style}`,
     `- Estilo fotográfico: ${v.photographyStyle}`,
     `- Elementos visuales del nicho a reutilizar: ${v.visualElements.join(', ') || 'ninguno definido'}`,

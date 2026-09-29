@@ -28,6 +28,8 @@ export interface BrandKitUi {
   colors: string[];
   font: string;
   mood: string;
+  style: string;
+  typeScale: string;
   elements: string[];
   tagline: string;
   photo: string;
@@ -54,7 +56,7 @@ export interface BrandKitUi {
 
 /**
  * Tipografía corporativa: pares reales (headline+body+acento) por nicho —
- * mismos 20 fonts premium y 10 pairings que ya usa Phase 25
+ * mismos 20 fonts premium y 15 pairings que ya usa Phase 25
  * (typographySystem.ts), no una lista inventada aparte.
  */
 export { fontPairingsByNiche };
@@ -133,6 +135,8 @@ export const brandKitFromProfile = (brand: BrandProfile): BrandKitUi => {
     colors: v.palette,
     font: v.fontStyle || 'tech',
     mood: v.mood || 'premium',
+    style: v.style || '',
+    typeScale: v.typeScale || 'medium',
     elements: v.visualElements,
     tagline: bs?.promise || '',
     photo: v.heroImageUrl || '',
@@ -187,6 +191,8 @@ export const brandKitToProfilePatch = (kit: Partial<BrandKitUi>): Record<string,
     visual.typography = pairing ? dedupe([pairing.headline, pairing.body, pairing.accent ?? '']) : [];
   }
   if (kit.mood !== undefined) visual.mood = kit.mood;
+  if (kit.style !== undefined) visual.style = kit.style;
+  if (kit.typeScale !== undefined) visual.typeScale = kit.typeScale;
   if (kit.elements !== undefined) visual.visualElements = kit.elements;
   if (kit.photo !== undefined) visual.heroImageUrl = kit.photo;
   if (kit.logo !== undefined) visual.logoUrl = kit.logo;
