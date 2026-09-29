@@ -55,6 +55,7 @@ import { feedIADatabase } from './db/database.js';
 import { startPollingScheduler } from './workers/metricsPollingOrchestrator.js';
 import createStudioRoutes from './server/studioRoutes.js';
 import createCmRoutes from './server/cmRoutes.js';
+import createAchievementsRoutes from './server/achievementsRoutes.js';
 import { buildStudioRoutes } from './server/studioApi.js';
 import { initBrandRegistry } from './config/brandRegistry.js';
 import { handleAccountProfileRequest } from './config/brandKitMapping.js';
@@ -516,6 +517,12 @@ app.get('/api/debug/memorydb', async (_req: Request, res: Response): Promise<voi
 // listeners to a stream express.json() already fully consumed above —
 // 'end' never fires again, so every POST with a JSON body hung forever.
 app.use(createCmRoutes(brand));
+
+// Achievements (/api/achievements*, /api/stream/achievements) — same
+// unmounted-on-Express bug as /api/cm/* above: real handlers only exist in
+// extendedRoutes.ts for the http.js dev server, so prod fell through to the
+// SPA catch-all and /#achievements showed "Sin conexión al backend".
+app.use(createAchievementsRoutes(brand));
 
 // Brand Kit — 1 sola carga (colores, tipografía, foto protagonista, logo,
 // elementos visuales), leída automáticamente por todo lo que ya usa `brand`
