@@ -10,7 +10,7 @@ export interface StyleGuide {
   typography: {
     headings: string[];
     body: string[];
-    scale: 'small' | 'medium' | 'large';
+    scale: 'xs' | 'small' | 'medium' | 'large' | 'xl';
   };
   photography: {
     style: string;

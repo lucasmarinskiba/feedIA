@@ -227,7 +227,7 @@ Respondé siempre en español rioplatense. Sé organizado, detallado y accionabl
             name: 'objective',
             label: 'Objetivo',
             type: 'select',
-            options: ['awareness', 'engagement', 'leads', 'ventas', 'autoridad'],
+            options: ['awareness', 'engagement', 'leads', 'ventas', 'autoridad', 'trafico', 'comunidad', 'retencion'],
             required: false,
           },
         ],

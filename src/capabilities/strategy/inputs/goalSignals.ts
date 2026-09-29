@@ -5,7 +5,9 @@
 import type { BrandProfile } from '../../../config/types.js';
 import type { ContentPillar } from '../output/strategicBrief.js';
 
-export type BrandGoal = 'awareness' | 'engagement' | 'leads' | 'ventas' | 'autoridad';
+// Derivado del schema (config/types.ts) en vez de una unión duplicada a mano,
+// para que agregar una meta ahí no vuelva a desincronizarse acá en silencio.
+export type BrandGoal = BrandProfile['goals']['primary'];
 
 export interface GoalSignals {
   primary: BrandGoal;
@@ -21,6 +23,9 @@ const GOAL_TO_PILLARS: Record<BrandGoal, ContentPillar[]> = {
   leads: ['conversion', 'authority', 'education'],
   ventas: ['conversion', 'authority', 'awareness'],
   autoridad: ['authority', 'education', 'conversion'],
+  trafico: ['conversion', 'awareness', 'education'],
+  comunidad: ['community', 'entertainment', 'authority'],
+  retencion: ['community', 'education', 'authority'],
 };
 
 const GOAL_TO_FORMATS: Record<BrandGoal, string[]> = {
@@ -29,6 +34,9 @@ const GOAL_TO_FORMATS: Record<BrandGoal, string[]> = {
   leads: ['carrusel', 'reel', 'post-imagen'],
   ventas: ['carrusel', 'reel', 'post-imagen'],
   autoridad: ['carrusel', 'reel', 'post-imagen'],
+  trafico: ['carrusel', 'reel', 'historia'],
+  comunidad: ['historia', 'reel', 'carrusel'],
+  retencion: ['carrusel', 'historia', 'reel'],
 };
 
 const GOAL_SECONDARY: Record<BrandGoal, BrandGoal> = {
@@ -37,6 +45,9 @@ const GOAL_SECONDARY: Record<BrandGoal, BrandGoal> = {
   leads: 'autoridad',
   ventas: 'autoridad',
   autoridad: 'leads',
+  trafico: 'leads',
+  comunidad: 'retencion',
+  retencion: 'comunidad',
 };
 
 export const gatherGoalSignals = (brand: BrandProfile): GoalSignals => {

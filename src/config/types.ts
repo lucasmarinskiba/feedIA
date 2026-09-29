@@ -108,7 +108,7 @@ export const BrandProfileSchema = z.object({
     accentColor: z.string().default(''),
     typography: z.array(z.string()).default([]),
     fontStyle: z.string().default(''),
-    typeScale: z.enum(['small', 'medium', 'large']).default('medium'),
+    typeScale: z.enum(['xs', 'small', 'medium', 'large', 'xl']).default('medium'),
     style: z.string().default('minimalista'),
     mood: z.string().default('profesional'),
     photographyStyle: z.string().default('natural'),
@@ -124,7 +124,7 @@ export const BrandProfileSchema = z.object({
     imageSource: z.enum(['ai-generated', 'stock-internet', 'hero-photo-first']).default('ai-generated'),
   }),
   goals: z.object({
-    primary: z.enum(['awareness', 'engagement', 'leads', 'ventas', 'autoridad']),
+    primary: z.enum(['awareness', 'engagement', 'leads', 'ventas', 'autoridad', 'trafico', 'comunidad', 'retencion']),
     metricsToWatch: z.array(z.string()),
   }),
   competitors: z.array(z.string()).default([]),

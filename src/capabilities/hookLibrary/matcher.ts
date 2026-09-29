@@ -55,6 +55,9 @@ const shortlistPatterns = (
     leads: ['educativo', 'transformacion', 'callout'],
     ventas: ['transformacion', 'revelacion', 'comparacion'],
     autoridad: ['educativo', 'storytelling', 'revelacion'],
+    trafico: ['lista', 'comparacion', 'revelacion'],
+    comunidad: ['pregunta-abierta', 'storytelling', 'entretenimiento'],
+    retencion: ['storytelling', 'educativo', 'transformacion'],
   };
   const affinityCats = goalAffinity[goal] ?? [];
 

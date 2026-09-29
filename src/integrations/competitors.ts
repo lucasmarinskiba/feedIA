@@ -14,13 +14,30 @@ export interface CompetitorSnapshot {
 }
 
 /**
+ * Brand Kit's competitor field (see config/brandKitMapping.ts) accepts a
+ * bare @handle, a full Instagram profile URL, or just a company name typed
+ * in — normalize down to a clean username before hitting any provider, so
+ * whichever format the user pasted still resolves to something trackable.
+ * A bare company name (no instagram.com match, no @) passes through as-is;
+ * providers will simply fail to find that account, same as an invalid
+ * handle would — this only makes the two valid formats interchangeable.
+ */
+export const extractInstagramHandle = (input: string): string => {
+  const trimmed = input.trim();
+  const urlMatch = trimmed.match(/instagram\.com\/([a-zA-Z0-9._]+)/i);
+  if (urlMatch?.[1]) return urlMatch[1];
+  return trimmed.replace(/^@/, '');
+};
+
+/**
  * Tracks competitors using available APIs.
  * Supports:
  * - RapidAPI Instagram Data API
  * - Apify Instagram scraper webhook
  * - Manual JSON ingestion via webhook
  */
-export const trackCompetitor = async (handle: string): Promise<CompetitorSnapshot> => {
+export const trackCompetitor = async (handleOrUrl: string): Promise<CompetitorSnapshot> => {
+  const handle = extractInstagramHandle(handleOrUrl);
   // Try RapidAPI first
   const rapidApiKey = process.env.RAPIDAPI_KEY;
   if (rapidApiKey) {

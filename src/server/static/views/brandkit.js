@@ -246,6 +246,45 @@ const PALETTE_PRESETS = {
   },
 };
 
+// Mood visual (BrandProfile.visual.mood — string libre, cualquier valor sirve).
+const MOODS = [
+  ['premium', 'Mood: Premium (oscuro elegante)'],
+  ['editorial', 'Mood: Editorial (revista)'],
+  ['minimalista', 'Mood: Minimalista'],
+  ['brutal', 'Mood: Brutal (amarillo fuerte)'],
+  ['luxury', 'Mood: Luxury (dorado)'],
+  ['monochrome', 'Mood: Monocromo'],
+  ['techno', 'Mood: Techno (neón)'],
+  ['organico', 'Mood: Orgánico'],
+  ['playful', 'Mood: Lúdico (colorido, divertido)'],
+  ['pastel', 'Mood: Pastel (suave, delicado)'],
+  ['vintage', 'Mood: Vintage (retro, nostálgico)'],
+  ['corporate', 'Mood: Corporativo (serio, institucional)'],
+  ['futurista', 'Mood: Futurista (sci-fi, avanzado)'],
+  ['maximalista', 'Mood: Maximalista (denso, máximo impacto)'],
+];
+
+// Escala tipográfica (BrandProfile.visual.typeScale — src/config/types.ts).
+const TYPE_SCALES = [
+  ['xs', 'Escala tipográfica: Extra compacta'],
+  ['small', 'Escala tipográfica: Compacta'],
+  ['medium', 'Escala tipográfica: Estándar'],
+  ['large', 'Escala tipográfica: Grande'],
+  ['xl', 'Escala tipográfica: Extra grande'],
+];
+
+// Objetivo primario (BrandProfile.goals.primary — src/config/types.ts).
+const GOALS = [
+  ['awareness', 'Awareness (alcance)'],
+  ['engagement', 'Engagement (interacción)'],
+  ['leads', 'Leads (contactos)'],
+  ['ventas', 'Ventas'],
+  ['autoridad', 'Autoridad (marca personal)'],
+  ['trafico', 'Tráfico (llevar gente a tu sitio/tienda)'],
+  ['comunidad', 'Comunidad (pertenencia, conversación)'],
+  ['retencion', 'Retención (fidelizar audiencia existente)'],
+];
+
 // 12 arquetipos de marca (Mark & Pearson) — personalidad consistente en todo el copy.
 const ARCHETYPES = [
   ['', '— sin definir —'],
@@ -316,22 +355,9 @@ const renderShell = (kit = {}) => `
           ([v, l, mood, previewFont]) =>
             `<option value="${v}" ${(kit.font || 'tech') === v ? 'selected' : ''}${previewFont ? ` style="font-family:'${previewFont}',sans-serif;font-weight:700;"` : ''}>${escape(l)} — ${escape(mood)}</option>`,
         ).join('')}</select>
-        <select id="bk-mood" class="bk-input">
-          <option value="premium" ${kit.mood === 'premium' || !kit.mood ? 'selected' : ''}>Mood: Premium (oscuro elegante)</option>
-          <option value="editorial" ${kit.mood === 'editorial' ? 'selected' : ''}>Mood: Editorial (revista)</option>
-          <option value="minimalista" ${kit.mood === 'minimalista' ? 'selected' : ''}>Mood: Minimalista</option>
-          <option value="brutal" ${kit.mood === 'brutal' ? 'selected' : ''}>Mood: Brutal (amarillo fuerte)</option>
-          <option value="luxury" ${kit.mood === 'luxury' ? 'selected' : ''}>Mood: Luxury (dorado)</option>
-          <option value="monochrome" ${kit.mood === 'monochrome' ? 'selected' : ''}>Mood: Monocromo</option>
-          <option value="techno" ${kit.mood === 'techno' ? 'selected' : ''}>Mood: Techno (neón)</option>
-          <option value="organico" ${kit.mood === 'organico' ? 'selected' : ''}>Mood: Orgánico</option>
-        </select>
+        <select id="bk-mood" class="bk-input">${opts(MOODS, kit.mood || 'premium')}</select>
         <input id="bk-style" type="text" class="bk-input" placeholder="Estilo general (ej: minimalismo técnico con acentos cálidos)" value="${escape(kit.style || '')}" />
-        <select id="bk-type-scale" class="bk-input">
-          <option value="small" ${kit.typeScale === 'small' ? 'selected' : ''}>Escala tipográfica: Compacta</option>
-          <option value="medium" ${kit.typeScale === 'medium' || !kit.typeScale ? 'selected' : ''}>Escala tipográfica: Estándar</option>
-          <option value="large" ${kit.typeScale === 'large' ? 'selected' : ''}>Escala tipográfica: Grande</option>
-        </select>
+        <select id="bk-type-scale" class="bk-input">${opts(TYPE_SCALES, kit.typeScale || 'medium')}</select>
       </div>
 
       <div class="bk-card">
@@ -369,13 +395,7 @@ const renderShell = (kit = {}) => `
 
       <div class="bk-card">
         <div class="bk-card-label">📈 Objetivo</div>
-        <select id="bk-goal-primary" class="bk-input">
-          <option value="awareness" ${kit.goalPrimary === 'awareness' ? 'selected' : ''}>Awareness (alcance)</option>
-          <option value="engagement" ${kit.goalPrimary === 'engagement' || !kit.goalPrimary ? 'selected' : ''}>Engagement (interacción)</option>
-          <option value="leads" ${kit.goalPrimary === 'leads' ? 'selected' : ''}>Leads (contactos)</option>
-          <option value="ventas" ${kit.goalPrimary === 'ventas' ? 'selected' : ''}>Ventas</option>
-          <option value="autoridad" ${kit.goalPrimary === 'autoridad' ? 'selected' : ''}>Autoridad (marca personal)</option>
-        </select>
+        <select id="bk-goal-primary" class="bk-input">${opts(GOALS, kit.goalPrimary || 'engagement')}</select>
         <input id="bk-goal-metrics" type="text" class="bk-input" placeholder="Métricas a vigilar (ej: guardados, DMs)" value="${escape(fromTags(kit.goalMetrics))}" />
       </div>
 
@@ -387,7 +407,8 @@ const renderShell = (kit = {}) => `
 
       <div class="bk-card">
         <div class="bk-card-label">🏁 Competencia</div>
-        <input id="bk-competitors" type="text" class="bk-input" placeholder="@competidor1, @competidor2 (para diferenciarte)" value="${escape(fromTags(kit.competitors))}" />
+        <textarea id="bk-competitors" class="bk-input bk-textarea" rows="3" placeholder="1 por línea — @handle de Instagram, link del perfil (instagram.com/... o el sitio web de la empresa), o nombre de marca">${escape(fromLines(kit.competitors))}</textarea>
+        <div class="bk-hint">Se usa para diferenciar tu copy — y cuando cargás un @handle o link de Instagram, el sistema también puede analizar su actividad (posts, engagement).</div>
       </div>
 
       <div class="bk-card bk-full">
@@ -449,6 +470,7 @@ const renderShell = (kit = {}) => `
     .bk-input:focus{outline:none;border-color:var(--accent,#10F2B0);box-shadow:0 0 0 2px rgba(16,242,176,.1);}
     .bk-input-sm{padding:6px 10px;font-size:12px;}
     .bk-textarea{resize:vertical;font-family:inherit;line-height:1.4;}
+    .bk-hint{font-size:11px;color:var(--text-tertiary,var(--fg-3));line-height:1.4;}
     .bk-color-row{display:flex;flex-direction:column;gap:10px;}
     .bk-color-cell{display:flex;align-items:center;gap:12px;}
     .bk-color-cell span{font-size:12px;font-weight:600;width:50px;color:var(--text-secondary,var(--fg-2));}
@@ -572,7 +594,7 @@ export const renderBrandKit = async (container) => {
         goalMetrics: toTags(val('#bk-goal-metrics')),
         archetype: val('#bk-archetype'),
         personality: toTags(val('#bk-personality')),
-        competitors: toTags(val('#bk-competitors')),
+        competitors: toLines(container.querySelector('#bk-competitors')?.value || ''),
         photographyStyle: val('#bk-photo-style') || 'natural',
         density: val('#bk-density') || 'medium',
         imageTextRatio: val('#bk-image-text-ratio') || 'balanced',
