@@ -3,16 +3,19 @@
  * No external dependency. Redis-optional (degrades to in-memory gracefully).
  *
  * Limits (per route group):
- *   ai      — 10 req/min  (generation endpoints: expensive)
- *   api     — 60 req/min  (standard API)
- *   auth    — 5 req/min   (auth-sensitive: prevent brute force)
- *   public  — 120 req/min (health, static)
+ *   ai      — 10 req/min   (generation endpoints: expensive)
+ *   api     — 60 req/min   (standard API — mutations: POST/PUT/PATCH/DELETE)
+ *   auth    — 5 req/min    (auth-sensitive: prevent brute force)
+ *   status  — 300 req/min  (idempotent GET reads: status/mode checks, dashboard
+ *                           widgets polling on mount — side-effect-free, so a
+ *                           generous ceiling is safe; still bounded, not unlimited)
+ *   public  — 120 req/min  (health, static)
  */
 
 import { Request, Response, NextFunction } from 'express';
 import { securityLogger } from './security-logger.js';
 
-export type RateLimitGroup = 'ai' | 'api' | 'auth' | 'public';
+export type RateLimitGroup = 'ai' | 'api' | 'auth' | 'status' | 'public';
 
 interface WindowEntry {
   timestamps: number[];
@@ -25,6 +28,7 @@ const LIMITS: Record<RateLimitGroup, { maxRequests: number; windowMs: number }> 
   ai: { maxRequests: 10, windowMs: 60_000 },
   api: { maxRequests: 60, windowMs: 60_000 },
   auth: { maxRequests: 5, windowMs: 60_000 },
+  status: { maxRequests: 300, windowMs: 60_000 },
   public: { maxRequests: 120, windowMs: 60_000 },
 };
 
@@ -147,6 +151,16 @@ export const autoRateLimiter = (req: Request, res: Response, next: NextFunction)
     group = 'ai';
   } else if (path.startsWith('/oauth') || path.startsWith('/api/settings')) {
     group = 'auth';
+  } else if (req.method === 'GET' || req.method === 'HEAD') {
+    // The SPA shell mounts a dozen+ status/mode-check widgets on every page
+    // (topbar CUA state, bots bar, badges, notifications, offline ping, etc.)
+    // that poll on an interval regardless of which route is active. These are
+    // idempotent reads with no side effects, so they get a generous, separate
+    // ceiling instead of sharing the 60/min budget with real mutations —
+    // POST/PUT/PATCH/DELETE (and anything under /api/settings or /oauth,
+    // handled above) still fall through to the stricter buckets so genuine
+    // abuse on write endpoints is still caught.
+    group = 'status';
   }
   // Note: /health is exempted above (doesn't start with /api or /oauth), so
   // the 'public' group is currently unused — kept in LIMITS for any future
