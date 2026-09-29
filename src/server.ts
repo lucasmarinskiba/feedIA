@@ -54,11 +54,11 @@ import { feedIAOrchestrator } from './services/feedia-agents-orchestrator.js';
 import { feedIADatabase } from './db/database.js';
 import { startPollingScheduler } from './workers/metricsPollingOrchestrator.js';
 import createStudioRoutes from './server/studioRoutes.js';
+import createCmRoutes from './server/cmRoutes.js';
+import createAchievementsRoutes from './server/achievementsRoutes.js';
 import { buildStudioRoutes } from './server/studioApi.js';
-import { buildExtendedRoutes } from './server/extendedRoutes.js';
-import { createRequestHandler } from './server/http.js';
-import { initBrandRegistry, updateActiveBrand } from './config/brandRegistry.js';
-import { brandKitFromProfile, brandKitToProfilePatch, type BrandKitUi } from './config/brandKitMapping.js';
+import { initBrandRegistry } from './config/brandRegistry.js';
+import { handleAccountProfileRequest } from './config/brandKitMapping.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
@@ -511,34 +511,29 @@ app.get('/api/debug/memorydb', async (_req: Request, res: Response): Promise<voi
 // http.js server (src/server/index.ts, only ever run via `tsx src/cli.ts` in
 // dev) and never mounted on this Express app — so every /api/cm/* request
 // fell through to the SPA catch-all below and got index.html back instead of
-// JSON. createRequestHandler is a plain (req,res) Node handler, Express-
-// compatible; scoped to /api/cm/ so its internal 404 fallback never swallows
-// other routes.
-const cmRequestHandler = createRequestHandler(
-  buildExtendedRoutes(brand).filter((r) => r.pattern.startsWith('/api/cm/')),
-);
-app.use((req: Request, res: Response, next) => {
-  if (!req.path.startsWith('/api/cm/')) return next();
-  cmRequestHandler(req, res);
-});
+// JSON. createCmRoutes adapts them to Express (same pattern as
+// createStudioRoutes) reusing the already-parsed req.body, instead of
+// createRequestHandler's own readBody(), which re-attaches 'data'/'end'
+// listeners to a stream express.json() already fully consumed above —
+// 'end' never fires again, so every POST with a JSON body hung forever.
+app.use(createCmRoutes(brand));
+
+// Achievements (/api/achievements*, /api/stream/achievements) — same
+// unmounted-on-Express bug as /api/cm/* above: real handlers only exist in
+// extendedRoutes.ts for the http.js dev server, so prod fell through to the
+// SPA catch-all and /#achievements showed "Sin conexión al backend".
+app.use(createAchievementsRoutes(brand));
 
 // Brand Kit — 1 sola carga (colores, tipografía, foto protagonista, logo,
 // elementos visuales), leída automáticamente por todo lo que ya usa `brand`
 // más arriba (Carruseles/Reels/Historias vía /api/studio/*, y todo lo que
 // llama a brandContext()). Guarda sobre el mismo BrandProfile activo.
+// handleAccountProfileRequest vive en brandKitMapping.ts: es la MISMA lógica
+// que dashboardApi.ts monta en el server plano de dev, para que las dos
+// implementaciones no puedan divergir.
 app.post('/api/account/profile', (req: Request, res: Response) => {
-  const b = (req.body ?? {}) as { action?: string; fields?: { brandKit?: Partial<BrandKitUi> } };
-  if (b.action === 'save') {
-    const kit = b.fields?.brandKit;
-    if (!kit) {
-      res.status(400).json({ error: 'fields.brandKit requerido' });
-      return;
-    }
-    const updated = updateActiveBrand(brandKitToProfilePatch(kit));
-    res.json({ profile: { brandKit: brandKitFromProfile(updated) } });
-    return;
-  }
-  res.json({ profile: { brandKit: brandKitFromProfile(brand) } });
+  const { status, payload } = handleAccountProfileRequest(brand, req.body);
+  res.status(status).json(payload);
 });
 
 // Manos Libres (/api/handsfree/run) + Piloto automático

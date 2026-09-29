@@ -64,7 +64,7 @@ import {
   getActiveBrandFile,
   updateActiveBrand,
 } from '../config/brandRegistry.js';
-import { brandKitFromProfile, brandKitToProfilePatch, type BrandKitUi } from '../config/brandKitMapping.js';
+import { handleAccountProfileRequest } from '../config/brandKitMapping.js';
 import { subscribe, publishOp, presenceCount, roomKey, type CollabOp } from './collabHub.js';
 import {
   HOOK_PATTERNS,
@@ -3310,18 +3310,12 @@ Generá exactamente 7 entradas, una por día (dayOffset 0=lunes ... 6=domingo).`
   {
     method: 'POST',
     pattern: '/api/account/profile',
+    // handleAccountProfileRequest vive en brandKitMapping.ts: es la MISMA
+    // lógica que src/server.ts monta en el server Express de producción,
+    // para que las dos implementaciones no puedan divergir.
     handler: ({ res, body }) => {
-      const b = (body ?? {}) as { action?: string; fields?: { brandKit?: Partial<BrandKitUi> } };
-      if (b.action === 'save') {
-        const kit = b.fields?.brandKit;
-        if (!kit) return json(res, 400, { error: 'fields.brandKit requerido' });
-        const patch = brandKitToProfilePatch(kit);
-        const updated = updateActiveBrand(patch);
-        return json(res, 200, { profile: { brandKit: brandKitFromProfile(updated) } });
-      }
-      // action === 'get' (default): siempre devuelve la marca activa —
-      // este server sirve una cuenta a la vez (ver brandRegistry.ts).
-      json(res, 200, { profile: { brandKit: brandKitFromProfile(brand) } });
+      const { status, payload } = handleAccountProfileRequest(brand, body);
+      json(res, status, payload);
     },
   },
   {
