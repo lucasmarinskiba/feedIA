@@ -56,8 +56,8 @@ import { startPollingScheduler } from './workers/metricsPollingOrchestrator.js';
 import createStudioRoutes from './server/studioRoutes.js';
 import createCmRoutes from './server/cmRoutes.js';
 import { buildStudioRoutes } from './server/studioApi.js';
-import { initBrandRegistry, updateActiveBrand } from './config/brandRegistry.js';
-import { brandKitFromProfile, brandKitToProfilePatch, type BrandKitUi } from './config/brandKitMapping.js';
+import { initBrandRegistry } from './config/brandRegistry.js';
+import { handleAccountProfileRequest } from './config/brandKitMapping.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
@@ -521,19 +521,12 @@ app.use(createCmRoutes(brand));
 // elementos visuales), leída automáticamente por todo lo que ya usa `brand`
 // más arriba (Carruseles/Reels/Historias vía /api/studio/*, y todo lo que
 // llama a brandContext()). Guarda sobre el mismo BrandProfile activo.
+// handleAccountProfileRequest vive en brandKitMapping.ts: es la MISMA lógica
+// que dashboardApi.ts monta en el server plano de dev, para que las dos
+// implementaciones no puedan divergir.
 app.post('/api/account/profile', (req: Request, res: Response) => {
-  const b = (req.body ?? {}) as { action?: string; fields?: { brandKit?: Partial<BrandKitUi> } };
-  if (b.action === 'save') {
-    const kit = b.fields?.brandKit;
-    if (!kit) {
-      res.status(400).json({ error: 'fields.brandKit requerido' });
-      return;
-    }
-    const updated = updateActiveBrand(brandKitToProfilePatch(kit));
-    res.json({ profile: { brandKit: brandKitFromProfile(updated) } });
-    return;
-  }
-  res.json({ profile: { brandKit: brandKitFromProfile(brand) } });
+  const { status, payload } = handleAccountProfileRequest(brand, req.body);
+  res.status(status).json(payload);
 });
 
 // Manos Libres (/api/handsfree/run) + Piloto automático

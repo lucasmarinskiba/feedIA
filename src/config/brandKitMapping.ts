@@ -9,6 +9,7 @@
  * free — no per-tool wiring needed.
  */
 import type { BrandProfile } from './types.js';
+import { updateActiveBrand } from './brandRegistry.js';
 
 export interface BrandKitUi {
   handle: string;
@@ -88,4 +89,31 @@ export const brandKitToProfilePatch = (kit: Partial<BrandKitUi>): Record<string,
   if (kit.tagline !== undefined) patch.brandStrategy = { promise: kit.tagline };
 
   return patch;
+};
+
+export interface AccountProfileRequestBody {
+  action?: string;
+  fields?: { brandKit?: Partial<BrandKitUi> };
+}
+
+/**
+ * Shared GET/SAVE logic for /api/account/profile — mounted on both the
+ * production Express server (src/server.ts) and the dev-only plain http.js
+ * server (dashboardApi.ts via src/server/index.ts). One place so the two
+ * mounts can't drift apart.
+ */
+export const handleAccountProfileRequest = (
+  brand: BrandProfile,
+  body: unknown,
+): { status: number; payload: unknown } => {
+  const b = (body ?? {}) as AccountProfileRequestBody;
+  if (b.action === 'save') {
+    const kit = b.fields?.brandKit;
+    if (!kit) return { status: 400, payload: { error: 'fields.brandKit requerido' } };
+    const updated = updateActiveBrand(brandKitToProfilePatch(kit));
+    return { status: 200, payload: { profile: { brandKit: brandKitFromProfile(updated) } } };
+  }
+  // action === 'get' (default): siempre devuelve la marca activa — este
+  // server sirve una cuenta a la vez (ver brandRegistry.ts).
+  return { status: 200, payload: { profile: { brandKit: brandKitFromProfile(brand) } } };
 };
