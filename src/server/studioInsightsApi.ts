@@ -69,6 +69,7 @@ export const studioInsightsHandler: RouteHandler = async ({ req, res }) => {
       accentColor: '',
       typography: [],
       fontStyle: '',
+      typeScale: 'medium',
       style: 'minimalista',
       mood: 'profesional',
       photographyStyle: 'natural',

@@ -47,7 +47,7 @@ export const buildStyleGuide = (brand: BrandProfile): StyleGuide => {
     typography: {
       headings: visual.typography.slice(0, 1),
       body: visual.typography.slice(1, 2),
-      scale: 'medium',
+      scale: visual.typeScale,
     },
     photography: {
       style: visual.photographyStyle ?? 'natural',

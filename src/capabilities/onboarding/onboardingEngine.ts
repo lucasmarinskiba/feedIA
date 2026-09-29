@@ -134,6 +134,7 @@ export const buildBrandProfileFromState = (state: OnboardingState): { profile?: 
       accentColor: '',
       typography: [],
       fontStyle: '',
+      typeScale: 'medium',
       style: 'minimalista',
       mood: 'profesional',
       photographyStyle: 'natural',

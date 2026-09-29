@@ -63,10 +63,14 @@ const brandVisualBlock = (brand: BrandProfile): string => {
   const v = brand.visual;
   const lines = [
     `- Paleta: ${v.palette.join(', ') || 'libre, coherente con el mood'}`,
-    `- Tipografía: ${v.typography.join(', ') || 'sans serif legible'}`,
+    `- Tipografía: ${v.typography.join(', ') || 'sans serif legible'} (escala ${v.typeScale})`,
     `- Mood / estilo: ${v.mood} · ${v.style}`,
+    `- Estilo fotográfico: ${v.photographyStyle}`,
     `- Elementos visuales del nicho a reutilizar: ${v.visualElements.join(', ') || 'ninguno definido'}`,
   ];
+  if (v.allowedIconography.length) lines.push(`- Iconografía permitida: ${v.allowedIconography.join(', ')}`);
+  if (v.forbiddenIconography.length)
+    lines.push(`- Iconografía / temas PROHIBIDOS (nunca incluir): ${v.forbiddenIconography.join(', ')}`);
   if (v.heroImageUrl) {
     lines.push(
       '- Hay una foto protagonista de marca cargada: priorizar composiciones que la integren o referencien (la persona/producto real de la marca), en vez de gente o escenas genéricas.',
@@ -76,19 +80,31 @@ const brandVisualBlock = (brand: BrandProfile): string => {
   return lines.join('\n');
 };
 
+const brandPersonalityLine = (brand: BrandProfile): string => {
+  const bs = brand.brandStrategy;
+  const parts: string[] = [];
+  if (bs?.archetype) parts.push(`arquetipo "${bs.archetype}"`);
+  if (bs?.personality?.length) parts.push(bs.personality.join(', '));
+  return parts.length ? `PERSONALIDAD DE MARCA: ${parts.join(' — ')}` : '';
+};
+
 export const brandContext = (brand: BrandProfile): string =>
   `MARCA: ${brand.name} (${brand.type})
+${brand.accountCategory ? `CATEGORÍA DE CUENTA: ${brand.accountCategory}` : ''}
+${brand.industryCategory ? `RUBRO: ${brand.industryCategory}` : ''}
 NICHO: ${brand.niche}
 AUDIENCIA: ${brand.audience.description}
 DOLORES: ${brand.audience.pains.join(' · ')}
 DESEOS: ${brand.audience.desires.join(' · ')}
 TONO: ${brand.voice.tone.join(', ')}
 PROHIBIDO DECIR: ${brand.voice.forbidden.join(', ') || 'nada en particular'}
+${brandPersonalityLine(brand)}
 IDENTIDAD VISUAL (Brand Kit):
 ${brandVisualBlock(brand)}
 ${brand.brandStrategy?.promise ? `CLAIM DE MARCA: "${brand.brandStrategy.promise}"` : ''}
 OBJETIVO PRIMARIO: ${brand.goals.primary}
 MÉTRICAS A VIGILAR: ${brand.goals.metricsToWatch.join(', ')}
+${brand.competitors.length ? `COMPETENCIA A DIFERENCIARSE: ${brand.competitors.join(', ')}` : ''}
 ${brand.voice.referenceQuotes.length ? `FRASES DE REFERENCIA:\n- ${brand.voice.referenceQuotes.join('\n- ')}` : ''}`;
 
 /**
