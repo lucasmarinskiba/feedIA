@@ -57,6 +57,14 @@ import createStudioRoutes from './server/studioRoutes.js';
 import { buildStudioRoutes } from './server/studioApi.js';
 import { buildExtendedRoutes } from './server/extendedRoutes.js';
 import { createRequestHandler } from './server/http.js';
+import createExperienceRoutes from './server/experienceRoutes.js';
+import createCuRoutes from './server/cuRoutes.js';
+import createBrandSetupRoutes from './server/brandSetupRoutes.js';
+import createConsumptionRoutes from './server/consumptionRoutes.js';
+import createStudioToolsRoutes from './server/studioToolsRoutes.js';
+import createTasksApprovalsRoutes from './server/tasksApprovalsRoutes.js';
+import createExecutiveRoutes from './server/executiveRoutes.js';
+import createSettingsExtendedRoutes from './server/settingsExtendedRoutes.js';
 import { initBrandRegistry, updateActiveBrand } from './config/brandRegistry.js';
 import { brandKitFromProfile, brandKitToProfilePatch, type BrandKitUi } from './config/brandKitMapping.js';
 import helmet from 'helmet';
@@ -505,6 +513,24 @@ app.get('/api/debug/memorydb', async (_req: Request, res: Response): Promise<voi
     res.status(500).json({ error: String(err) });
   }
 });
+
+// extendedRoutes.ts prefixes that were defined but never mounted on Express
+// (requests fell through to the SPA catch-all and got index.html back
+// instead of JSON). Same createRequestHandler-vs-Express body-stream issue
+// as the /api/cm/* block below, so these use adaptRoutesToExpress (reuses
+// req.body already parsed by express.json()) instead. Audited against what
+// public/views/*.js and public/lib/*.js actually call; each file's own
+// comment lists which prefix(es) it covers. /api/achievements* and
+// /api/stream/achievements are intentionally excluded — that fix is being
+// handled separately.
+app.use(createExperienceRoutes(brand));
+app.use(createCuRoutes(brand));
+app.use(createBrandSetupRoutes(brand));
+app.use(createConsumptionRoutes(brand));
+app.use(createStudioToolsRoutes(brand));
+app.use(createTasksApprovalsRoutes(brand));
+app.use(createExecutiveRoutes(brand));
+app.use(createSettingsExtendedRoutes(brand));
 
 // Community Manager backend (inbox/support/FAQ/leads/UGC/etc — /api/cm/*).
 // These routes live in extendedRoutes.ts, written for the separate home-grown
