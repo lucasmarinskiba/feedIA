@@ -97,7 +97,7 @@ const showUnlockNotification = (achievement) => {
   toast(
     `🎉 ${escape(achievement.name)}\n${escape(achievement.description)}`,
     rarity === 'mítica' ? 'success' : rarity === 'legendaria' ? 'info' : 'default',
-    5000
+    5000,
   );
 
   // Play sound
@@ -125,9 +125,11 @@ const renderBadge = (a, unlocked) => {
       </div>
       <div style="display:flex;align-items:center;gap:12px;margin:10px 0;">
         <div style="width:48px;height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center;${unlocked ? '' : 'filter:grayscale(1);opacity:0.35;'}">
-          ${hidden
-            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
-            : getIconForAchievement(a.id, getPlatform(a.category))}
+          ${
+            hidden
+              ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
+              : getIconForAchievement(a.id, getPlatform(a.category))
+          }
         </div>
         <div>
           <h3 style="margin:0;">${hidden ? '???' : escape(a.name)}</h3>
@@ -196,11 +198,12 @@ export const renderAchievements = async (containerEl) => {
 
   // Stats
   const statEl = container?.querySelector('#achievements-stats');
-  if (statEl) statEl.innerHTML = `
+  if (statEl)
+    statEl.innerHTML = `
     <div class="card stat-card">
       <div class="stat-label">Desbloqueados</div>
       <div class="stat-value">${snapshot.totalUnlocked}/${snapshot.totalAvailable}</div>
-      <div class="small muted">${((snapshot?.completionPct) ?? 0).toFixed(1)}%</div>
+      <div class="small muted">${(snapshot?.completionPct ?? 0).toFixed(1)}%</div>
     </div>
     <div class="card stat-card">
       <div class="stat-label">Puntos</div>
@@ -226,32 +229,12 @@ export const renderAchievements = async (containerEl) => {
     mítica: { border: '#EF4444', bg: 'linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.08))' },
   };
 
-  const shelfEl = container?.querySelector('#medal-shelf');
-  if (shelfEl) shelfEl.innerHTML = `
-    <div style="background:linear-gradient(135deg,rgba(88,28,135,0.1),rgba(200,124,124,0.05));border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:16px;margin-bottom:20px;backdrop-filter:blur(8px);">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <h2 style="margin:0;font-size:18px;font-weight:600;">🏅 Repisa de Medallas</h2>
-        <span class="badge" style="background:rgba(139,92,246,0.3);color:#a78bfa;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;">${unlocked.length}/${all.length}</span>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;">
-        ${all
-          .map((m, idx) => {
-            const isUnlocked = unlockedMap.has(m.id);
-            const unlockedData = unlockedMap.get(m.id);
-            const style = rarityStyles[m.rarity];
-            const iconColor = isUnlocked
-              ? m.rarity === 'legendaria'
-                ? '#FCD34D'
-                : m.rarity === 'épica'
-                  ? '#D8B4FE'
-                  : m.rarity === 'mítica'
-                    ? '#FCA5A5'
-                    : m.rarity === 'rara'
-                      ? '#93C5FD'
-                      : '#D1D5DB'
-              : '#6B7280';
+  const renderMedalItem = (m, idx) => {
+    const isUnlocked = unlockedMap.has(m.id);
+    const unlockedData = unlockedMap.get(m.id);
+    const style = rarityStyles[m.rarity];
 
-            return `
+    return `
         <div class="medal-item medal-${m.rarity}" style="padding:12px 8px;text-align:center;border:2px solid ${isUnlocked ? style.border : '#D1D5DB'};border-radius:8px;cursor:pointer;background:${isUnlocked ? style.bg : 'rgba(107,114,128,0.05)'};transition:all 0.3s ease;animation:slideInUp 0.5s ease-out ${idx * 30}ms;transform:translateY(0);opacity:${isUnlocked ? 1 : 0.5};"
           onmouseover="this.style.transform='translateY(-4px)';this.classList.add('medal-hover');"
           onmouseout="this.style.transform='translateY(0)';this.classList.remove('medal-hover');"
@@ -261,10 +244,35 @@ export const renderAchievements = async (containerEl) => {
           <div class="tiny muted" style="margin-top:4px;font-size:11px;">${isUnlocked ? new Date(unlockedData.unlockedAt).toLocaleDateString('es-AR') : '🔒'}</div>
         </div>
         `;
-          })
-          .join('')}
+  };
+
+  // 3 repisas separadas — TikTok / Instagram / FeedIA (resto de categorías:
+  // crecimiento genérico, engagement genérico, contenido, comunidad, ventas,
+  // rituales, maestría, especiales). getPlatform() ya bucketiza por categoría.
+  const PLATFORM_SHELVES = [
+    { key: 'tiktok', label: 'TikTok', emoji: '🎵', accent: '#25F4EE' },
+    { key: 'instagram', label: 'Instagram', emoji: '📸', accent: '#E1306C' },
+    { key: 'general', label: 'FeedIA', emoji: '⭐', accent: '#a78bfa' },
+  ];
+
+  const shelfEl = container?.querySelector('#medal-shelf');
+  if (shelfEl)
+    shelfEl.innerHTML = `
+      ${PLATFORM_SHELVES.map(({ key, label, emoji, accent }) => {
+        const items = all.filter((m) => getPlatform(m.category) === key);
+        if (items.length === 0) return '';
+        const unlockedCount = items.filter((m) => unlockedMap.has(m.id)).length;
+        return `
+    <div style="background:linear-gradient(135deg,rgba(88,28,135,0.1),rgba(200,124,124,0.05));border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:16px;margin-bottom:20px;backdrop-filter:blur(8px);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h2 style="margin:0;font-size:18px;font-weight:600;">${emoji} Repisa ${escape(label)}</h2>
+        <span class="badge" style="background:${accent}33;color:${accent};padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;">${unlockedCount}/${items.length}</span>
       </div>
-    </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;">
+        ${items.map((m, idx) => renderMedalItem(m, idx)).join('')}
+      </div>
+    </div>`;
+      }).join('')}
       <style>
         @keyframes slideInUp {
           from { opacity: 0; transform: translateY(20px); }
@@ -305,16 +313,18 @@ export const renderAchievements = async (containerEl) => {
         .medal-mítica.medal-hover { box-shadow: 0 8px 28px rgba(239,68,68,0.7); }
       </style>
     `;
-  }
+};
 
-  // Platform filter (tabs: Instagram | TikTok | General)
-  const platforms = ['instagram', 'tiktok', 'general'];
-  const platformCounts = {};
-  platforms.forEach((p) => {
-    platformCounts[p] = all.filter((a) => getPlatform(a.category) === p).length;
-  });
+// Platform filter (tabs: Instagram | TikTok | General)
+const platforms = ['instagram', 'tiktok', 'general'];
+const platformCounts = {};
+platforms.forEach((p) => {
+  platformCounts[p] = all.filter((a) => getPlatform(a.category) === p).length;
+});
 
-  const catEl = container?.querySelector('#cat-filter'); if (catEl) catEl.innerHTML = `
+const catEl = container?.querySelector('#cat-filter');
+if (catEl)
+  catEl.innerHTML = `
     <div style="margin-bottom:12px;">
       <div class="small" style="color:#9CA3AF;margin-bottom:6px;font-weight:600;">PLATAFORMAS</div>
       <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
@@ -333,20 +343,22 @@ export const renderAchievements = async (containerEl) => {
     </div>
   `;
 
-  // Grid
-  // unlockedMap already defined above
-  let visible = all;
-  if (activePlatform) visible = visible.filter((a) => getPlatform(a.category) === activePlatform);
-  if (activeCategory) visible = visible.filter((a) => a.category === activeCategory);
-  if (showOnlyUnlocked) visible = visible.filter((a) => unlockedMap.has(a.id));
+// Grid
+// unlockedMap already defined above
+let visible = all;
+if (activePlatform) visible = visible.filter((a) => getPlatform(a.category) === activePlatform);
+if (activeCategory) visible = visible.filter((a) => a.category === activeCategory);
+if (showOnlyUnlocked) visible = visible.filter((a) => unlockedMap.has(a.id));
 
-  const gridEl = container?.querySelector('#achievements-grid'); if (gridEl) gridEl.innerHTML = visible
-    .map((a) => renderBadge(unlockedMap.get(a.id) ?? a, unlockedMap.has(a.id)))
-    .join('');
+const gridEl = container?.querySelector('#achievements-grid');
+if (gridEl)
+  gridEl.innerHTML = visible.map((a) => renderBadge(unlockedMap.get(a.id) ?? a, unlockedMap.has(a.id))).join('');
 
-  // Next achievements
-  if (next.length > 0) {
-    const nextEl = container?.querySelector('#next-section'); if (nextEl) nextEl.innerHTML = `
+// Next achievements
+if (next.length > 0) {
+  const nextEl = container?.querySelector('#next-section');
+  if (nextEl)
+    nextEl.innerHTML = `
       <h2 style="margin-bottom:10px;">🎯 Próximos a desbloquear</h2>
       <div class="page-grid">${next
         .map(
@@ -360,140 +372,140 @@ export const renderAchievements = async (containerEl) => {
         )
         .join('')}</div>
     `;
+}
+
+// Listeners — platform & category filters
+container?.querySelector('#cat-filter')?.addEventListener('click', (e) => {
+  const platformBtn = e.target.closest('[data-platform]');
+  const catBtn = e.target.closest('[data-cat]');
+
+  if (platformBtn) {
+    activePlatform = platformBtn.dataset.platform || null;
+    renderAchievements(container);
+  } else if (catBtn) {
+    activeCategory = catBtn.dataset.cat || null;
+    renderAchievements(container);
   }
+});
 
-  // Listeners — platform & category filters
-  container?.querySelector('#cat-filter')?.addEventListener('click', (e) => {
-    const platformBtn = e.target.closest('[data-platform]');
-    const catBtn = e.target.closest('[data-cat]');
+container?.querySelector('#only-unlocked')?.addEventListener('change', (e) => {
+  showOnlyUnlocked = e.target.checked;
+  renderAchievements(container);
+});
 
-    if (platformBtn) {
-      activePlatform = platformBtn.dataset.platform || null;
-      renderAchievements(container);
-    } else if (catBtn) {
-      activeCategory = catBtn.dataset.cat || null;
-      renderAchievements(container);
-    }
-  });
-
-  container?.querySelector('#only-unlocked')?.addEventListener('change', (e) => {
-    showOnlyUnlocked = e.target.checked;
-    renderAchievements(container);
-  });
-
-  container?.querySelector('#evaluate-btn')?.addEventListener('click', async () => {
-    toast('Evaluando achievements...', 'info');
-    apiBust('/api/achievements');
-    const { data: newUnlocks } = await apiSafe('/api/achievements/evaluate', [], { method: 'POST', body: {} });
-    const count = (newUnlocks ?? []).length;
-    if (count > 0) {
-      // Show unlock notifications for each new achievement
-      newUnlocks.forEach((unlock) => {
-        const def = all.find((a) => a.id === unlock.achievementId);
-        if (def) {
-          showUnlockNotification(def);
-        }
-      });
-      toast(
-        `🎉 ${count} nuevo${count > 1 ? 's' : ''} achievement${count > 1 ? 's' : ''} desbloqueado${count > 1 ? 's' : ''}`,
-        'success',
-      );
-    } else {
-      toast('Sin nuevos achievements esta vez', 'info');
-    }
-    renderAchievements(container);
-  });
-
-  // Real-time SSE (Server-Sent Events) for achievements
-  // Close previous connection if exists (prevent duplicates)
-  if (eventSource) {
-    eventSource.close();
-    eventSource = null;
-  }
-  eventSource = new EventSource('/api/stream/achievements');
-
-  eventSource.addEventListener('achievement-unlock', (event) => {
-    const data = JSON.parse(event.data);
-    const def = all.find((a) => a.id === data.id);
-    if (def) {
-      showUnlockNotification(def);
-      lastUnlockedCount += 1;
-      renderAchievements(container);
-    }
-  });
-
-  eventSource.addEventListener('metrics-update', (event) => {
-    const data = JSON.parse(event.data);
-    renderAchievements(container);
-  });
-
-  eventSource.onerror = () => {
-    console.warn('[SSE] Connection lost, falling back to polling');
-    eventSource.close();
-    // Cleanup old intervals
-    if (pollInterval) clearInterval(pollInterval);
-    if (reconnectInterval) clearInterval(reconnectInterval);
-
-    // Fallback: poll every 30s — check unacknowledged to show toasts
-    pollInterval = setInterval(async () => {
-      const { data: unacked } = await apiSafe('/api/achievements/unacknowledged', []);
-      if (Array.isArray(unacked) && unacked.length > 0) {
-        for (const u of unacked) {
-          showUnlockNotification(u);
-          apiSafe(`/api/achievements/${u.id}/ack`, null, { method: 'POST', body: {} });
-        }
-        apiBust('/api/achievements');
-        renderAchievements(container);
+container?.querySelector('#evaluate-btn')?.addEventListener('click', async () => {
+  toast('Evaluando achievements...', 'info');
+  apiBust('/api/achievements');
+  const { data: newUnlocks } = await apiSafe('/api/achievements/evaluate', [], { method: 'POST', body: {} });
+  const count = (newUnlocks ?? []).length;
+  if (count > 0) {
+    // Show unlock notifications for each new achievement
+    newUnlocks.forEach((unlock) => {
+      const def = all.find((a) => a.id === unlock.achievementId);
+      if (def) {
+        showUnlockNotification(def);
       }
-    }, 30000);
+    });
+    toast(
+      `🎉 ${count} nuevo${count > 1 ? 's' : ''} achievement${count > 1 ? 's' : ''} desbloqueado${count > 1 ? 's' : ''}`,
+      'success',
+    );
+  } else {
+    toast('Sin nuevos achievements esta vez', 'info');
+  }
+  renderAchievements(container);
+});
 
-    // Attempt SSE reconnection every 5 minutes
-    reconnectInterval = setInterval(() => {
-      console.log('[SSE] Attempting reconnection...');
-      const newEventSource = new EventSource('/api/stream/achievements');
-      newEventSource.onopen = () => {
-        console.log('[SSE] Reconnected!');
-        clearInterval(pollInterval);
-        clearInterval(reconnectInterval);
-        eventSource.close();
-        eventSource = newEventSource;
-        // Re-attach listeners
-        newEventSource.addEventListener('achievement-unlock', (event) => {
-          const data = JSON.parse(event.data);
-          const def = all.find((a) => a.id === data.id);
-          if (def) {
-            showUnlockNotification(def);
-            lastUnlockedCount += 1;
-            renderAchievements(container);
-          }
-        });
-        newEventSource.addEventListener('metrics-update', () => {
-          renderAchievements(container);
-        });
-        newEventSource.onerror = eventSource.onerror;
-      };
-    }, 300000); // 5 minutes
+// Real-time SSE (Server-Sent Events) for achievements
+// Close previous connection if exists (prevent duplicates)
+if (eventSource) {
+  eventSource.close();
+  eventSource = null;
+}
+eventSource = new EventSource('/api/stream/achievements');
 
-    window.addEventListener('beforeunload', () => {
+eventSource.addEventListener('achievement-unlock', (event) => {
+  const data = JSON.parse(event.data);
+  const def = all.find((a) => a.id === data.id);
+  if (def) {
+    showUnlockNotification(def);
+    lastUnlockedCount += 1;
+    renderAchievements(container);
+  }
+});
+
+eventSource.addEventListener('metrics-update', (event) => {
+  const data = JSON.parse(event.data);
+  renderAchievements(container);
+});
+
+eventSource.onerror = () => {
+  console.warn('[SSE] Connection lost, falling back to polling');
+  eventSource.close();
+  // Cleanup old intervals
+  if (pollInterval) clearInterval(pollInterval);
+  if (reconnectInterval) clearInterval(reconnectInterval);
+
+  // Fallback: poll every 30s — check unacknowledged to show toasts
+  pollInterval = setInterval(async () => {
+    const { data: unacked } = await apiSafe('/api/achievements/unacknowledged', []);
+    if (Array.isArray(unacked) && unacked.length > 0) {
+      for (const u of unacked) {
+        showUnlockNotification(u);
+        apiSafe(`/api/achievements/${u.id}/ack`, null, { method: 'POST', body: {} });
+      }
+      apiBust('/api/achievements');
+      renderAchievements(container);
+    }
+  }, 30000);
+
+  // Attempt SSE reconnection every 5 minutes
+  reconnectInterval = setInterval(() => {
+    console.log('[SSE] Attempting reconnection...');
+    const newEventSource = new EventSource('/api/stream/achievements');
+    newEventSource.onopen = () => {
+      console.log('[SSE] Reconnected!');
       clearInterval(pollInterval);
       clearInterval(reconnectInterval);
-    });
-  };
+      eventSource.close();
+      eventSource = newEventSource;
+      // Re-attach listeners
+      newEventSource.addEventListener('achievement-unlock', (event) => {
+        const data = JSON.parse(event.data);
+        const def = all.find((a) => a.id === data.id);
+        if (def) {
+          showUnlockNotification(def);
+          lastUnlockedCount += 1;
+          renderAchievements(container);
+        }
+      });
+      newEventSource.addEventListener('metrics-update', () => {
+        renderAchievements(container);
+      });
+      newEventSource.onerror = eventSource.onerror;
+    };
+  }, 300000); // 5 minutes
 
-  // Cleanup on page unload
-  window.addEventListener('beforeunload', () => eventSource?.close());
-
-  container?.addEventListener('click', async (e) => {
-    const btn = e.target.closest('[data-share]');
-    if (btn) {
-      const id = btn.dataset.share;
-      await apiSafe(`/api/achievements/${id}/share`, null, { method: 'POST', body: {} });
-      const a = unlocked.find((x) => x.id === id);
-      if (a && navigator.clipboard) {
-        navigator.clipboard.writeText(a.shareableText);
-        toast('Copiado al portapapeles', 'success');
-      }
-    }
+  window.addEventListener('beforeunload', () => {
+    clearInterval(pollInterval);
+    clearInterval(reconnectInterval);
   });
+};
 
-  _sseWired = true;
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => eventSource?.close());
+
+container?.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-share]');
+  if (btn) {
+    const id = btn.dataset.share;
+    await apiSafe(`/api/achievements/${id}/share`, null, { method: 'POST', body: {} });
+    const a = unlocked.find((x) => x.id === id);
+    if (a && navigator.clipboard) {
+      navigator.clipboard.writeText(a.shareableText);
+      toast('Copiado al portapapeles', 'success');
+    }
+  }
+});
+
+_sseWired = true;

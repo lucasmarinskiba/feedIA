@@ -4,18 +4,15 @@
  * No external deps, works in all browsers
  */
 
-import { EventEmitter } from 'node:events';
+import type { ServerResponse } from 'node:http';
 
-const emitter = new EventEmitter();
-emitter.setMaxListeners(100);
+const clients = new Set<ServerResponse>();
 
-const clients = new Set();
-
-export const subscribeToAchievementUpdates = (res) => {
+export const subscribeToAchievementUpdates = (res: ServerResponse): void => {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
+    Connection: 'keep-alive',
     'Access-Control-Allow-Origin': '*',
   });
 
@@ -37,20 +34,27 @@ export const subscribeToAchievementUpdates = (res) => {
   });
 };
 
-export const broadcastToAll = (eventType, data) => {
+export const broadcastToAll = (eventType: string, data: unknown): void => {
   const payload = JSON.stringify(data);
   const sseMessage = `event: ${eventType}\ndata: ${payload}\n\n`;
 
   clients.forEach((client) => {
     try {
       client.write(sseMessage);
-    } catch (err) {
+    } catch {
       clients.delete(client);
     }
   });
 };
 
-export const notifyAchievementUnlock = (achievement) => {
+interface AchievementNotification {
+  id: string;
+  name: string;
+  rarity: string;
+  points: number;
+}
+
+export const notifyAchievementUnlock = (achievement: AchievementNotification): void => {
   broadcastToAll('achievement-unlock', {
     id: achievement.id,
     name: achievement.name,
@@ -60,11 +64,11 @@ export const notifyAchievementUnlock = (achievement) => {
   });
 };
 
-export const notifyMetricsUpdate = (metrics) => {
+export const notifyMetricsUpdate = (metrics: unknown): void => {
   broadcastToAll('metrics-update', metrics);
 };
 
-export const notifyConnectionStatus = (platform, status) => {
+export const notifyConnectionStatus = (platform: string, status: string): void => {
   broadcastToAll('connection-status', {
     platform,
     status,
@@ -72,4 +76,4 @@ export const notifyConnectionStatus = (platform, status) => {
   });
 };
 
-export const getClientCount = () => clients.size;
+export const getClientCount = (): number => clients.size;
