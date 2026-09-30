@@ -11259,6 +11259,12 @@ details[open] > summary::after {
   margin-bottom: 32px;
 }
 
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
 .stat-card {
   background: var(--bg-card);
   border: 1px solid var(--border);

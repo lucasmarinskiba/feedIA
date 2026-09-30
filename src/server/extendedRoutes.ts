@@ -844,7 +844,10 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'POST',
     pattern: '/api/memorabilia/auto-detect',
-    handler: async ({ res }) => json(res, 200, await autoDetectAndCapture(brand)),
+    handler: async ({ res, body }) => {
+      const b = (body ?? {}) as { force?: boolean };
+      json(res, 200, await autoDetectAndCapture(brand, { force: b.force ?? true }));
+    },
   },
   {
     method: 'POST',
@@ -911,13 +914,15 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
   },
   {
     method: 'GET',
-    pattern: '/api/memorabilia/:id',
-    handler: ({ res, params }) => json(res, 200, getMemory(params['id']!)),
-  },
-  {
-    method: 'GET',
     pattern: '/api/memorabilia/snapshot',
     handler: ({ res }) => json(res, 200, getMemorabiliaSnapshot()),
+  },
+  {
+    // Nota: debe ir DESPUÉS de cualquier ruta GET /api/memorabilia/<literal> (ej. /snapshot) —
+    // Express matchea por orden de registro y ':id' capturaría esos literales primero.
+    method: 'GET',
+    pattern: '/api/memorabilia/:id',
+    handler: ({ res, params }) => json(res, 200, getMemory(params['id']!)),
   },
 
   // ════════════════════════════════════════════════════════════════════════
