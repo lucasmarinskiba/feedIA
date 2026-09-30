@@ -302,6 +302,54 @@ const ARCHETYPES = [
   ['sabio', 'Sabio — conocimiento, expertise'],
 ];
 
+// Estilo fotográfico (BrandProfile.visual.photographyStyle — texto libre en el
+// schema, pero se ofrece como preset acá para no forzar a escribir a mano).
+const PHOTO_STYLES = [
+  ['natural', 'Fotografía: Natural'],
+  ['staged', 'Fotografía: Producida / staged'],
+  ['product-macro', 'Fotografía: Producto macro'],
+  ['lifestyle', 'Fotografía: Lifestyle'],
+  ['editorial', 'Fotografía: Editorial'],
+  ['street', 'Fotografía: Street / documental'],
+  ['flat-lay', 'Fotografía: Flat lay (cenital)'],
+  ['studio-fondo-liso', 'Fotografía: Estudio, fondo liso'],
+  ['retrato-close-up', 'Fotografía: Retrato / close-up'],
+  ['arquitectonico', 'Fotografía: Arquitectónico / interiores'],
+  ['moody-cinematico', 'Fotografía: Moody / cinemático'],
+  ['alto-contraste-bn', 'Fotografía: Alto contraste B&N'],
+  ['aereo-dron', 'Fotografía: Aéreo / dron'],
+  ['ilustrado-3d', 'Fotografía: Ilustrado / 3D render'],
+  ['ugc-casual', 'Fotografía: UGC casual (celular, sin pulir)'],
+];
+
+// Densidad visual (BrandProfile.visual.density — src/config/types.ts).
+const DENSITIES = [
+  ['minimal', 'Densidad: Mínima (casi vacío, máximo aire)'],
+  ['low', 'Densidad: Baja (mucho espacio)'],
+  ['medium', 'Densidad: Media'],
+  ['high', 'Densidad: Alta'],
+  ['maximal', 'Densidad: Máxima (saturado, maximalista)'],
+];
+
+// Ratio imagen/texto (BrandProfile.visual.imageTextRatio — src/config/types.ts).
+const RATIOS = [
+  ['full-image', 'Ratio: Full image (casi sin texto)'],
+  ['image-heavy', 'Ratio: Imagen-heavy'],
+  ['balanced', 'Ratio: Balanceado'],
+  ['text-heavy', 'Ratio: Texto-heavy'],
+  ['text-driven', 'Ratio: Texto-driven (tipográfico, tipo quote-card)'],
+];
+
+// Fuente de imagen (BrandProfile.visual.imageSource — src/config/types.ts).
+const IMAGE_SOURCES = [
+  ['ai-generated', 'Imágenes: Generadas con IA'],
+  ['stock-internet', 'Imágenes: Stock / internet'],
+  ['hero-photo-first', 'Imágenes: Priorizar foto protagonista'],
+  ['mixed-ai-stock', 'Imágenes: Mezcla IA + stock'],
+  ['brand-library', 'Imágenes: Banco propio de marca (uploads)'],
+  ['user-generated', 'Imágenes: UGC (clientes / comunidad)'],
+];
+
 const opts = (list, selected) =>
   list
     .map(([v, l]) => `<option value="${escape(v)}" ${v === (selected || '') ? 'selected' : ''}>${escape(l)}</option>`)
@@ -414,29 +462,12 @@ const renderShell = (kit = {}) => `
       <div class="bk-card bk-full">
         <div class="bk-card-label">⚙️ Estilo visual avanzado</div>
         <div class="bk-adv-grid">
-          <select id="bk-photo-style" class="bk-input">
-            <option value="natural" ${kit.photographyStyle === 'natural' || !kit.photographyStyle ? 'selected' : ''}>Fotografía: Natural</option>
-            <option value="staged" ${kit.photographyStyle === 'staged' ? 'selected' : ''}>Fotografía: Producida / staged</option>
-            <option value="product-macro" ${kit.photographyStyle === 'product-macro' ? 'selected' : ''}>Fotografía: Producto macro</option>
-            <option value="lifestyle" ${kit.photographyStyle === 'lifestyle' ? 'selected' : ''}>Fotografía: Lifestyle</option>
-            <option value="editorial" ${kit.photographyStyle === 'editorial' ? 'selected' : ''}>Fotografía: Editorial</option>
-          </select>
-          <select id="bk-density" class="bk-input">
-            <option value="low" ${kit.density === 'low' ? 'selected' : ''}>Densidad: Baja (mucho espacio)</option>
-            <option value="medium" ${kit.density === 'medium' || !kit.density ? 'selected' : ''}>Densidad: Media</option>
-            <option value="high" ${kit.density === 'high' ? 'selected' : ''}>Densidad: Alta</option>
-          </select>
-          <select id="bk-image-text-ratio" class="bk-input">
-            <option value="image-heavy" ${kit.imageTextRatio === 'image-heavy' ? 'selected' : ''}>Ratio: Imagen-heavy</option>
-            <option value="balanced" ${kit.imageTextRatio === 'balanced' || !kit.imageTextRatio ? 'selected' : ''}>Ratio: Balanceado</option>
-            <option value="text-heavy" ${kit.imageTextRatio === 'text-heavy' ? 'selected' : ''}>Ratio: Texto-heavy</option>
-          </select>
-          <select id="bk-image-source" class="bk-input">
-            <option value="ai-generated" ${kit.imageSource === 'ai-generated' || !kit.imageSource ? 'selected' : ''}>Imágenes: Generadas con IA</option>
-            <option value="stock-internet" ${kit.imageSource === 'stock-internet' ? 'selected' : ''}>Imágenes: Stock / internet</option>
-            <option value="hero-photo-first" ${kit.imageSource === 'hero-photo-first' ? 'selected' : ''}>Imágenes: Priorizar foto protagonista</option>
-          </select>
+          <select id="bk-photo-style" class="bk-input">${opts(PHOTO_STYLES, kit.photographyStyle || 'natural')}</select>
+          <select id="bk-density" class="bk-input">${opts(DENSITIES, kit.density || 'medium')}</select>
+          <select id="bk-image-text-ratio" class="bk-input">${opts(RATIOS, kit.imageTextRatio || 'balanced')}</select>
+          <select id="bk-image-source" class="bk-input">${opts(IMAGE_SOURCES, kit.imageSource || 'ai-generated')}</select>
         </div>
+        <div class="bk-hint">La fuente de imagen se lee en todas las herramientas que generan piezas — decide si arrancan generando con IA, buscando stock, priorizando tu foto protagonista, o combinando.</div>
         <input id="bk-icons-allowed" type="text" class="bk-input" placeholder="Iconografía permitida (ej: line-icons, minimal)" value="${escape(fromTags(kit.allowedIconography))}" />
         <input id="bk-icons-forbidden" type="text" class="bk-input" placeholder="Iconografía / temas prohibidos" value="${escape(fromTags(kit.forbiddenIconography))}" />
       </div>

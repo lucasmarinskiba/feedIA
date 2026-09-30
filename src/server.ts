@@ -67,6 +67,7 @@ import createExecutiveRoutes from './server/executiveRoutes.js';
 import createSettingsExtendedRoutes from './server/settingsExtendedRoutes.js';
 import { initBrandRegistry } from './config/brandRegistry.js';
 import { handleAccountProfileRequest } from './config/brandKitMapping.js';
+import { buildSellIaBrandContext } from './capabilities/branding/sellIaBrandContext.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
@@ -560,6 +561,15 @@ app.use(createAchievementsRoutes(brand));
 app.post('/api/account/profile', (req: Request, res: Response) => {
   const { status, payload } = handleAccountProfileRequest(brand, req.body);
   res.status(status).json(payload);
+});
+
+// Brand Kit → SellIA: mismo objeto `brand` de arriba, adaptado para que la
+// automatización de venta (listings, emails, DMs de outreach) sepa el tono,
+// lo prohibido y la promesa de marca en vez de generar copy genérico.
+// Antes SellIA sólo recibía nombre/precio/plataformas de producto (ver
+// src/api/FEEDIA_SELLIA_INTEGRATION.md) — nunca leía el Brand Kit real.
+app.get('/api/sellia/brand-context', (_req: Request, res: Response) => {
+  res.json(buildSellIaBrandContext(brand));
 });
 
 // Manos Libres (/api/handsfree/run) + Piloto automático

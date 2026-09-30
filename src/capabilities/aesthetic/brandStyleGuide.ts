@@ -19,8 +19,9 @@ export interface StyleGuide {
     subjects: string[];
   };
   composition: {
-    density: 'low' | 'medium' | 'high';
-    imageTextRatio: 'image-heavy' | 'balanced' | 'text-heavy';
+    density: BrandProfile['visual']['density'];
+    imageTextRatio: BrandProfile['visual']['imageTextRatio'];
+    imageSource: BrandProfile['visual']['imageSource'];
     rules: string[];
   };
   iconography: {
@@ -58,6 +59,7 @@ export const buildStyleGuide = (brand: BrandProfile): StyleGuide => {
     composition: {
       density: visual.density ?? 'medium',
       imageTextRatio: visual.imageTextRatio ?? 'balanced',
+      imageSource: visual.imageSource ?? 'ai-generated',
       rules: visual.compositionRules ?? [],
     },
     iconography: {
@@ -67,6 +69,18 @@ export const buildStyleGuide = (brand: BrandProfile): StyleGuide => {
     },
     moodboard: visual.moodboardUrls ?? [],
   };
+};
+
+// Instrucción de dónde debe salir cada imagen, según Brand Kit > Estilo visual
+// avanzado > Imágenes. Único lugar donde se define — visualDirector.ts la reusa
+// para no duplicar el mapeo cuando SellIA o un agente de imagen la necesite.
+export const IMAGE_SOURCE_INSTRUCTIONS: Record<BrandProfile['visual']['imageSource'], string> = {
+  'ai-generated': 'Generar con IA desde cero, sin stock.',
+  'stock-internet': 'Buscar foto de stock/internet libre de derechos acorde al mood; evitar que se note genérica.',
+  'hero-photo-first': 'Priorizar siempre la foto protagonista de marca cargada antes que generar o buscar otra.',
+  'mixed-ai-stock': 'Combinar: fondo/textura generado con IA + foto real de stock para el sujeto principal.',
+  'brand-library': 'Usar sólo imágenes del banco propio de la marca ya subido, no generar ni buscar nuevas.',
+  'user-generated': 'Priorizar estética UGC — fotos/videos reales de clientes o comunidad, sin pulir de más.',
 };
 
 export const generateStyleGuidePrompt = (brand: BrandProfile): string => {
@@ -90,6 +104,7 @@ FOTOGRAFÍA:
 COMPOSICIÓN:
 - Densidad: ${sg.composition.density}
 - Ratio imagen/texto: ${sg.composition.imageTextRatio}
+- Fuente de imagen: ${IMAGE_SOURCE_INSTRUCTIONS[sg.composition.imageSource]}
 - Reglas: ${sg.composition.rules.join('; ') || 'ninguna específica'}
 
 ICONOGRAFÍA PERMITIDA: ${sg.iconography.allowed.join(', ') || 'no restringida'}

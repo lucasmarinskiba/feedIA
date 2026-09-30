@@ -30,7 +30,7 @@ export const runBrandConsistencyCheck = (
     iconography?: string[];
     textBlocks?: number;
     imageBlocks?: number;
-    density?: 'low' | 'medium' | 'high';
+    density?: BrandProfile['visual']['density'];
   },
   brand: BrandProfile,
   kit: BrandKit,

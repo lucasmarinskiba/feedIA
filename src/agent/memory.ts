@@ -2,6 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import type { BrandProfile } from '../config/types.js';
 import { getLatestAnalytics, listInbound, listPostsByAccount } from '../database/index.js';
+import { IMAGE_SOURCE_INSTRUCTIONS } from '../capabilities/aesthetic/brandStyleGuide.js';
 
 interface PerformanceRecord {
   postId: string;
@@ -66,6 +67,8 @@ const brandVisualBlock = (brand: BrandProfile): string => {
     `- Tipografía: ${v.typography.join(', ') || 'sans serif legible'} (escala ${v.typeScale})`,
     `- Mood / estilo: ${v.mood} · ${v.style}`,
     `- Estilo fotográfico: ${v.photographyStyle}`,
+    `- Densidad visual: ${v.density} · Ratio imagen/texto: ${v.imageTextRatio}`,
+    `- Fuente de imagen: ${IMAGE_SOURCE_INSTRUCTIONS[v.imageSource]}`,
     `- Elementos visuales del nicho a reutilizar: ${v.visualElements.join(', ') || 'ninguno definido'}`,
   ];
   if (v.allowedIconography.length) lines.push(`- Iconografía permitida: ${v.allowedIconography.join(', ')}`);

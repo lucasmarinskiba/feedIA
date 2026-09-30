@@ -2,6 +2,8 @@
 
 **Content generation (FeedIA) feeds sales automation (SellIA) with product-driven campaigns.**
 
+> **Estado real:** todo lo de abajo (product metadata bridge, computer-use workflow) sigue siendo el diseño objetivo, no código existente. Lo único implementado hoy es el lado de **Brand Kit → SellIA**: `GET /api/sellia/brand-context` (`src/server.ts`, lógica en `src/capabilities/branding/sellIaBrandContext.ts`) expone el mismo `BrandProfile` que edita el Brand Kit — tono de voz, prohibido, audiencia, promesa de marca, paleta, arquetipo, competidores — para que SellIA pueda alinear su copy de venta (listings, emails, DMs) antes de que exista el resto del bridge de producto.
+
 ---
 
 ## ARCHITECTURE
@@ -23,6 +25,7 @@ Sales Conversion
 ## INTEGRATION POINTS
 
 ### 1. Content Metadata Injection
+
 **FeedIA generates carousel/video → includes SellIA metadata:**
 
 ```json
@@ -41,12 +44,12 @@ Sales Conversion
 
 ### 2. Content → SellIA Workflow Mapping
 
-| FeedIA Content | SellIA Automation | Result |
-|---|---|---|
-| Product carousel (5-slide) | List on 3 marketplaces + email customers | 3 listings + outreach |
-| Viral humor (reel) | Contact engaged audience | DM/email to 100+ viewers |
-| Educational video (YouTube) | Segment audience by product interest | Targeted follow-up |
-| Brand ecosystem (12-image) | Launch complete product collection | Bundle listing + promotion |
+| FeedIA Content              | SellIA Automation                        | Result                     |
+| --------------------------- | ---------------------------------------- | -------------------------- |
+| Product carousel (5-slide)  | List on 3 marketplaces + email customers | 3 listings + outreach      |
+| Viral humor (reel)          | Contact engaged audience                 | DM/email to 100+ viewers   |
+| Educational video (YouTube) | Segment audience by product interest     | Targeted follow-up         |
+| Brand ecosystem (12-image)  | Launch complete product collection       | Bundle listing + promotion |
 
 ### 3. Workflow Execution
 
@@ -57,7 +60,7 @@ Sales Conversion
   content_id: "carousel_123",
   product_id: "prod_456",
   automation_type: "list_and_promote",
-  
+
   // FeedIA → SellIA
   parameters: {
     product_name: "extracted_from_carousel_copy",
@@ -70,6 +73,7 @@ Sales Conversion
 ```
 
 **Execution Pipeline:**
+
 1. FeedIA carousel published
 2. Extract product metadata
 3. Call SellIA ComputerUseWorkflow.list_and_promote_product()
@@ -82,24 +86,30 @@ Sales Conversion
 ## COPY TEMPLATES (FeedIA → SellIA)
 
 **Carousel Slide 3 (CTA):**
+
 ```
 "Ready to [BENEFIT]?
 Get [PRODUCT] at [PRICE].
 Link in bio 👇"
 ```
+
 → SellIA uses this exact copy for email subject + product listing description.
 
 **Reel Hook:**
+
 ```
 "POV: You finally found [PRODUCT]"
 ```
+
 → SellIA uses as marketplace listing title + outreach subject line.
 
 **Video Conclusion:**
+
 ```
 "[PRODUCT] changed my [OUTCOME].
 Yours for just [PRICE]. Limited stock."
 ```
+
 → SellIA sends to audiences as urgency-driven message.
 
 ---
@@ -148,10 +158,10 @@ import axios from 'axios';
 async function publishCarouselWithSales(brief: Record<string, unknown>) {
   // Step 1: FeedIA generates carousel
   const { plan, content } = await generateCarouselWithAgents(brief);
-  
+
   // Step 2: Extract product metadata
   const metadata = extractProductMetadata(content);
-  
+
   // Step 3: Trigger SellIA automation
   await axios.post('http://sellia-backend/api/computer-use/activate', {
     content_id: brief.id,
@@ -160,7 +170,7 @@ async function publishCarouselWithSales(brief: Record<string, unknown>) {
     target_emails: metadata.audience_emails,
     platforms: ['amazon', 'shopify'],
   });
-  
+
   return { carousel: content, sellia_triggered: true };
 }
 ```
@@ -172,18 +182,18 @@ from computer_use_intelligence import ComputerUseWorkflow
 
 async def activate_sales_automation(request: dict):
     """Receives FeedIA content metadata → triggers automation"""
-    
+
     workflow = ComputerUseWorkflow()
-    
+
     product = {
         'name': request['product_name'],
         'price': request['product_price'],
         'target_emails': request['target_emails'],
         'platforms': request['platforms']
     }
-    
+
     result = await workflow.list_and_promote_product(product)
-    
+
     # Log: FeedIA content ID → SellIA automation result
     return {
         'feedia_content_id': request['content_id'],

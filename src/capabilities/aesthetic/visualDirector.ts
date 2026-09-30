@@ -1,5 +1,5 @@
 import type { BrandProfile } from '../../config/types.js';
-import { generateStyleGuidePrompt } from './brandStyleGuide.js';
+import { IMAGE_SOURCE_INSTRUCTIONS } from './brandStyleGuide.js';
 import { scoreAesthetic, type DesignProposal } from './aestheticScorer.js';
 import type { StudioEngine } from '../../studio/engines/base.js';
 
@@ -50,17 +50,17 @@ export const decideVisualDirection = (
       ? req.preferredEngine
       : (preferences.find((p) => engines.includes(p)) ?? 'canva');
 
-  const _styleGuide = generateStyleGuidePrompt(brand);
-  void _styleGuide;
   const notes: string[] = [
     `Engine seleccionado: ${chosenEngine}`,
     `Formato: ${req.format}`,
     `Ratio: ${ASPECT_RATIOS[req.format] ?? '1:1'}`,
+    `Densidad: ${brand.visual.density ?? 'medium'} · Ratio imagen/texto: ${brand.visual.imageTextRatio ?? 'balanced'}`,
   ];
 
   // Generate asset prompts based on idea + brand style
   const assetPrompts: string[] = [
     `Fondo ${brand.visual.style}, paleta ${brand.visual.palette.slice(0, 3).join('/')}, mood ${brand.visual.mood ?? 'profesional'} para: ${req.idea}`,
+    `Fuente de imagen: ${IMAGE_SOURCE_INSTRUCTIONS[brand.visual.imageSource ?? 'ai-generated']}`,
   ];
 
   if (req.format === 'reel' || req.format === 'reel-faceless') {

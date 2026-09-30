@@ -18,7 +18,7 @@ export interface DesignProposal {
   fontsUsed: string[];
   textBlocks: number;
   imageBlocks: number;
-  densityEstimate: 'low' | 'medium' | 'high';
+  densityEstimate: BrandProfile['visual']['density'];
   description: string;
 }
 
@@ -107,9 +107,14 @@ export const scoreAesthetic = (brand: BrandProfile, proposal: DesignProposal): A
   }
 
   const totalBlocks = proposal.textBlocks + proposal.imageBlocks;
-  let expectedImageRatio = 0.5;
-  if (sg.composition.imageTextRatio === 'image-heavy') expectedImageRatio = 0.7;
-  if (sg.composition.imageTextRatio === 'text-heavy') expectedImageRatio = 0.3;
+  const EXPECTED_IMAGE_RATIO: Record<BrandProfile['visual']['imageTextRatio'], number> = {
+    'full-image': 0.9,
+    'image-heavy': 0.7,
+    balanced: 0.5,
+    'text-heavy': 0.3,
+    'text-driven': 0.1,
+  };
+  const expectedImageRatio = EXPECTED_IMAGE_RATIO[sg.composition.imageTextRatio];
 
   if (totalBlocks > 0) {
     const actualRatio = proposal.imageBlocks / totalBlocks;

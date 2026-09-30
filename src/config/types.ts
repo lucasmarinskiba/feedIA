@@ -119,9 +119,11 @@ export const BrandProfileSchema = z.object({
     heroImageUrl: z.string().default(''),
     logoUrl: z.string().default(''),
     moodboardUrls: z.array(z.string()).default([]),
-    density: z.enum(['low', 'medium', 'high']).default('medium'),
-    imageTextRatio: z.enum(['image-heavy', 'balanced', 'text-heavy']).default('balanced'),
-    imageSource: z.enum(['ai-generated', 'stock-internet', 'hero-photo-first']).default('ai-generated'),
+    density: z.enum(['minimal', 'low', 'medium', 'high', 'maximal']).default('medium'),
+    imageTextRatio: z.enum(['full-image', 'image-heavy', 'balanced', 'text-heavy', 'text-driven']).default('balanced'),
+    imageSource: z
+      .enum(['ai-generated', 'stock-internet', 'hero-photo-first', 'mixed-ai-stock', 'brand-library', 'user-generated'])
+      .default('ai-generated'),
   }),
   goals: z.object({
     primary: z.enum(['awareness', 'engagement', 'leads', 'ventas', 'autoridad', 'trafico', 'comunidad', 'retencion']),
