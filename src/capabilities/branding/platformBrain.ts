@@ -16,6 +16,7 @@
 import { log } from '../../agent/logger.js';
 import type { BrandProfile } from '../../config/types.js';
 import { callCanvaAgent, type CanvaAgentTier } from '../computerUse/canvaClaudeClient.js';
+import { frameworkBlock, ASSERTIVENESS_RULE } from './knowledgeFrameworks.js';
 
 export type Platform = 'instagram' | 'tiktok';
 
@@ -46,12 +47,14 @@ export interface AlgorithmStrategy {
   postingCadence: string;
   keyMetric: string;
   avoid: string[];
+  frameworksCited: string[];
 }
 
 export interface GrowthPlaybook {
   tactics: string[];
   quickWins: string[];
   ninetyDayPlan: string[];
+  frameworksCited: string[];
 }
 
 /** IG: hashtags (mega/micro). TikTok: tipos de sonido/challenge. Mismo shape, distinto contenido. */
@@ -60,6 +63,7 @@ export interface DiscoveryStrategy {
   secondary: string[];
   rule: string;
   riskNotes: string[];
+  frameworksCited: string[];
 }
 
 export interface NativeFormatRules {
@@ -67,6 +71,7 @@ export interface NativeFormatRules {
   editingRules: string[];
   lengthGuidance: string;
   antiPatterns: string[];
+  frameworksCited: string[];
 }
 
 export interface PlatformBrainResult {
@@ -217,11 +222,13 @@ export const runPlatformBrain = async (
   };
 
   const platformLabel = PLATFORM_LABEL[platform];
-  const commonHeader = (agentName: string, role: string, specialty: string): string =>
+  const commonHeader = (agentId: string, agentName: string, role: string, specialty: string): string =>
     `Sos ${agentName}, ${role} — especialista EXCLUSIVAMENTE en ${platformLabel}, no en redes sociales en general.
 Tu especialidad: ${specialty}.
 
 Ya conocés la identidad completa de la marca desde el contexto de sistema.
+
+${frameworkBlock(agentId)}
 
 ENCARGO ESPECÍFICO:
 Objetivo del usuario: ${request.goal}
@@ -230,12 +237,14 @@ ${request.constraints ? `Restricciones: ${request.constraints}` : ''}
 
 Reglas:
 - Hablá de ${platformLabel} específicamente. Si algo aplicaría igual en la otra plataforma, no lo menciones — sólo lo que es distinto/específico de ${platformLabel}.
-- Nada de "publicá contenido de calidad" ni consejos que cualquier cuenta del nicho ya sabe. Específico y accionable.`;
+- Nada de "publicá contenido de calidad" ni consejos que cualquier cuenta del nicho ya sabe. Específico y accionable.
+- ${ASSERTIVENESS_RULE}
+- Citá en "frameworksCited" qué marco conceptual sustenta tu recomendación principal, y cómo lo aplicaste — no lo nombres sin conectarlo a la decisión concreta.`;
 
   // ── 1. Estrategia de algoritmo ────────────────────────────────────────────
   const algoPrompt =
     platform === 'instagram'
-      ? `${commonHeader(agents[0]!.name, agents[0]!.role, agents[0]!.specialty)}
+      ? `${commonHeader(agents[0]!.id, agents[0]!.name, agents[0]!.role, agents[0]!.specialty)}
 
 Definí cómo jugarle al algoritmo de Instagram para este objetivo: qué señales de ranking priorizar (guardados, compartidos, tiempo de permanencia, comentarios tempranos), qué mezcla de formatos (Reel/Carrusel/Historia/Post) conviene y por qué, cadencia de publicación, LA métrica que más importa para este objetivo, y qué evitar (riesgo de reducción de alcance).
 
@@ -245,9 +254,10 @@ Respondé con JSON:
   "formatMix": [{"format": "Reel", "weight": 50, "why": "..."}, {"format": "Carrusel", "weight": 30, "why": "..."}, {"format": "Historia", "weight": 20, "why": "..."}],
   "postingCadence": "ej: 4 Reels + 2 Carruseles por semana, Historias diarias",
   "keyMetric": "la métrica que más correlaciona con este objetivo en IG",
-  "avoid": ["qué evitar 1", "qué evitar 2"]
+  "avoid": ["qué evitar 1", "qué evitar 2"],
+  "frameworksCited": ["framework aplicado y cómo (ej: Kahneman — fluencia: hook simple y directo)"]
 }`
-      : `${commonHeader(agents[0]!.name, agents[0]!.role, agents[0]!.specialty)}
+      : `${commonHeader(agents[0]!.id, agents[0]!.name, agents[0]!.role, agents[0]!.specialty)}
 
 Definí cómo jugarle al algoritmo del For You Page para este objetivo: qué señales de ranking priorizar (completion rate, watch time, re-loops, shares fuera de la app), qué tipo de video conviene (duración, ritmo), cadencia de publicación, LA métrica que más importa para este objetivo, y qué evitar (contenido que el algoritmo penaliza: baja retención en los primeros 2s, video pulido tipo ad).
 
@@ -257,7 +267,8 @@ Respondé con JSON:
   "formatMix": [{"format": "Video nativo corto (<15s)", "weight": 50, "why": "..."}, {"format": "Video medio (15-60s)", "weight": 35, "why": "..."}, {"format": "LIVE", "weight": 15, "why": "..."}],
   "postingCadence": "ej: 1-3 videos por día en fases de crecimiento",
   "keyMetric": "la métrica que más correlaciona con este objetivo en TikTok",
-  "avoid": ["qué evitar 1", "qué evitar 2"]
+  "avoid": ["qué evitar 1", "qué evitar 2"],
+  "frameworksCited": ["framework aplicado y cómo (ej: Kahneman — fluencia: hook simple y directo)"]
 }`;
 
   const algorithmStrategy = await runStep<AlgorithmStrategy>(
@@ -285,6 +296,10 @@ Respondé con JSON:
         platform === 'instagram'
           ? ['hashtags baneados', 'links externos en caption']
           : ['video pulido tipo ad', 'hook lento'],
+      frameworksCited:
+        platform === 'instagram'
+          ? ['Kahneman — fluencia cognitiva: contenido claro y legible retiene más']
+          : ['Kahneman — Sistema 1: la decisión de seguir viendo es automática, no razonada'],
     },
     (r) => `Métrica clave: ${r.keyMetric} · Cadencia: ${r.postingCadence}`,
   );
@@ -294,7 +309,7 @@ Respondé con JSON:
     1,
     'Plan de crecimiento',
     `Diseñando tácticas de crecimiento específicas de ${platformLabel}...`,
-    `${commonHeader(agents[1]!.name, agents[1]!.role, agents[1]!.specialty)}
+    `${commonHeader(agents[1]!.id, agents[1]!.name, agents[1]!.role, agents[1]!.specialty)}
 
 ALGORITMO YA DEFINIDO: ${algorithmStrategy.rankingFactors.join('; ')}
 
@@ -304,7 +319,8 @@ Respondé con JSON:
 {
   "tactics": ["táctica específica de ${platformLabel} 1", "táctica 2", "táctica 3", "táctica 4"],
   "quickWins": ["algo accionable esta semana 1", "quick win 2", "quick win 3"],
-  "ninetyDayPlan": ["fase 1 (días 1-30)", "fase 2 (días 31-60)", "fase 3 (días 61-90)"]
+  "ninetyDayPlan": ["fase 1 (días 1-30)", "fase 2 (días 31-60)", "fase 3 (días 61-90)"],
+  "frameworksCited": ["framework aplicado y cómo (ej: Weinberg — Bullseye: probar 3 tácticas en paralelo antes de escalar una)"]
 }`,
     {
       tactics:
@@ -321,6 +337,7 @@ Respondé con JSON:
         'Doblar apuesta en lo que funcionó',
         'Escalar con colaboraciones',
       ],
+      frameworksCited: ['Weinberg — Bullseye: testear varias tácticas en paralelo antes de escalar una sola'],
     },
     (r) => `Tácticas: ${r.tactics.length} · Quick wins: ${r.quickWins.length}`,
   );
@@ -328,7 +345,7 @@ Respondé con JSON:
   // ── 3. Descubrimiento — hashtags (IG) / sonido-trends (TikTok) ───────────
   const discoveryPrompt =
     platform === 'instagram'
-      ? `${commonHeader(agents[2]!.name, agents[2]!.role, agents[2]!.specialty)}
+      ? `${commonHeader(agents[2]!.id, agents[2]!.name, agents[2]!.role, agents[2]!.specialty)}
 
 Armá la estrategia de hashtags: mezcla de mega (>500K posts), macro, medio, micro y nicho — nada de hashtags genéricos saturados sin segmentación. Incluí términos de búsqueda (lo que la gente tipea en la lupa) y regla de rotación para evitar shadowban.
 
@@ -337,9 +354,10 @@ Respondé con JSON:
   "primary": ["hashtag grande/macro 1", "hashtag 2", "hashtag 3"],
   "secondary": ["hashtag nicho/micro específico 1", "hashtag 2", "hashtag 3", "hashtag 4", "hashtag 5"],
   "rule": "regla de rotación y cuántos usar por post",
-  "riskNotes": ["riesgo de shadowban a evitar 1", "riesgo 2"]
+  "riskNotes": ["riesgo de shadowban a evitar 1", "riesgo 2"],
+  "frameworksCited": ["framework aplicado y cómo (ej: Hopkins — testear y medir antes de asumir)"]
 }`
-      : `${commonHeader(agents[2]!.name, agents[2]!.role, agents[2]!.specialty)}
+      : `${commonHeader(agents[2]!.id, agents[2]!.name, agents[2]!.role, agents[2]!.specialty)}
 
 Armá la estrategia de sonido y tendencias: qué TIPOS de sonido conviene usar (no un sonido específico que caduca, sino el criterio: trending audio propio vs sonido viral prestado vs voz original), formatos de challenge que le quedan bien al nicho, y regla de timing (cuándo subirse a una tendencia antes de que esté saturada).
 
@@ -348,7 +366,8 @@ Respondé con JSON:
   "primary": ["tipo de sonido/criterio 1", "tipo 2", "tipo 3"],
   "secondary": ["formato de challenge/trend adaptable al nicho 1", "formato 2", "formato 3", "formato 4"],
   "rule": "regla de timing — cuándo subirse a un trend y cuándo ya es tarde",
-  "riskNotes": ["riesgo a evitar 1 (ej: sonido sobre-saturado)", "riesgo 2"]
+  "riskNotes": ["riesgo a evitar 1 (ej: sonido sobre-saturado)", "riesgo 2"],
+  "frameworksCited": ["framework aplicado y cómo (ej: Berger — Public: residuo conductual visible)"]
 }`;
 
   const discoveryStrategy = await runStep<DiscoveryStrategy>(
@@ -364,6 +383,7 @@ Respondé con JSON:
           secondary: [`#${brand.niche.replace(/\s+/g, '')}argentina`, '#pymes', '#contenidodigital'],
           rule: '5-8 hashtags mezclando mega/micro/nicho, rotar cada 3-4 posts',
           riskNotes: ['evitar hashtags marcados como spam', 'no repetir el mismo set siempre'],
+          frameworksCited: ['Hopkins — testear y medir performance real antes de asumir qué hashtag funciona'],
         }
       : {
           primary: [
@@ -379,6 +399,7 @@ Respondé con JSON:
           ],
           rule: 'subirse a un trend en las primeras 48-72h de despegue, no cuando ya es mainstream',
           riskNotes: ['sonido sobre-usado pierde alcance', 'trend forzado sin conexión al nicho se nota'],
+          frameworksCited: ['Poundstone — adaptación perceptual: un sonido sobre-usado pierde impacto por habituación'],
         },
     (r) => `Primarios: ${r.primary.length} · Secundarios: ${r.secondary.length}`,
   );
@@ -388,7 +409,7 @@ Respondé con JSON:
     3,
     'Formato nativo',
     `Definiendo reglas de hook, edición y duración específicas de ${platformLabel}...`,
-    `${commonHeader(agents[3]!.name, agents[3]!.role, agents[3]!.specialty)}
+    `${commonHeader(agents[3]!.id, agents[3]!.name, agents[3]!.role, agents[3]!.specialty)}
 
 Definí las reglas de formato NATIVO de ${platformLabel} — cómo tiene que verse y sentirse una pieza para no parecer ajena a la plataforma.
 
@@ -397,7 +418,8 @@ Respondé con JSON:
   "hookRule": "regla exacta de los primeros segundos",
   "editingRules": ["regla de edición 1", "regla 2", "regla 3"],
   "lengthGuidance": "duración/longitud ideal según objetivo",
-  "antiPatterns": ["qué NO hacer 1 (se nota como ajeno a la plataforma)", "anti-patrón 2"]
+  "antiPatterns": ["qué NO hacer 1 (se nota como ajeno a la plataforma)", "anti-patrón 2"],
+  "frameworksCited": ["framework aplicado y cómo (ej: Heath — lo inesperado rompe el patrón de expectativa)"]
 }`,
     platform === 'instagram'
       ? {
@@ -405,6 +427,7 @@ Respondé con JSON:
           editingRules: ['cortes cada 2-3s en Reels', 'subtítulos siempre', 'paleta de marca consistente'],
           lengthGuidance: 'Reels 15-30s para alcance, hasta 60s para autoridad',
           antiPatterns: ['intro de marca larga', 'logo tapando el hook'],
+          frameworksCited: ['Heath — concreto vence abstracto: promesa clara en pantalla desde el segundo 1'],
         }
       : {
           hookRule: 'Primer 1 segundo sin intro — arrancar en la acción o la frase fuerte',
@@ -415,6 +438,9 @@ Respondé con JSON:
           ],
           lengthGuidance: '7-21s para alcance masivo, hasta 60s si la retención aguanta',
           antiPatterns: ['se ve como anuncio', 'logo o branding pesado al inicio', 'música corporativa de stock'],
+          frameworksCited: [
+            'Ariely — las expectativas determinan la experiencia: lo pulido se procesa como ad y se descarta',
+          ],
         },
     (r) => `Hook: ${r.hookRule.slice(0, 60)}`,
   );

@@ -17,6 +17,7 @@
 import { log } from '../../agent/logger.js';
 import type { BrandProfile } from '../../config/types.js';
 import { callCanvaAgent, type CanvaAgentTier } from '../computerUse/canvaClaudeClient.js';
+import { frameworkBlock, ASSERTIVENESS_RULE } from './knowledgeFrameworks.js';
 
 export type BrandingBrainMode = 'discovery' | 'refinement' | 'evolution' | 'autopilot';
 
@@ -46,6 +47,7 @@ export interface BrandStrategy {
   values: string[];
   positioning: string;
   differentiator: string;
+  frameworksCited: string[];
 }
 
 export interface AudienceAvatar {
@@ -54,6 +56,7 @@ export interface AudienceAvatar {
   pains: string[];
   desires: string[];
   aspirationalIdentity: string;
+  frameworksCited: string[];
 }
 
 export interface BrandVoice {
@@ -61,6 +64,7 @@ export interface BrandVoice {
   vocabulary: string[];
   forbidden: string[];
   sampleHooks: string[];
+  frameworksCited: string[];
 }
 
 export interface VisualIdentity {
@@ -69,18 +73,21 @@ export interface VisualIdentity {
   mood: string;
   iconography: string;
   sampleCompositions: string[];
+  frameworksCited: string[];
 }
 
 export interface BrandNarrative {
   originStory: string;
   coreMessages: string[];
   brandArcs: string[];
+  frameworksCited: string[];
 }
 
 export interface DifferentialAngles {
   contraTakes: string[];
   uniqueAngles: string[];
   innovationOpportunities: string[];
+  frameworksCited: string[];
 }
 
 export interface InfluencerPlan {
@@ -88,12 +95,14 @@ export interface InfluencerPlan {
   signaturePieces: string[];
   visibilityTactics: string[];
   thoughtLeadershipTopics: string[];
+  frameworksCited: string[];
 }
 
 export interface CoherenceReport {
   score: number;
   conflicts: string[];
   recommendations: string[];
+  frameworksCited: string[];
 }
 
 export interface BrandingBrainResult {
@@ -268,13 +277,15 @@ Tu especialidad: Visión, misión, valores, posicionamiento competitivo.
 
 Ya conocés la identidad completa de la marca desde el contexto de sistema.
 
+${frameworkBlock('brand-strategist-senior')}
+
 ENCARGO ESPECÍFICO:
 Goal del usuario: ${request.goal}
 ${request.userIdeas ? `Ideas del usuario: ${request.userIdeas}` : ''}
 ${request.constraints ? `Restricciones: ${request.constraints}` : ''}
 
 Definí la estrategia de marca con definiciones accionables y específicas para el nicho.
-Sé brutalmente específico y diferenciador — nada genérico.
+Sé brutalmente específico y diferenciador — nada genérico. ${ASSERTIVENESS_RULE}
 
 Respondé con JSON:
 {
@@ -282,7 +293,8 @@ Respondé con JSON:
   "mission": "...",
   "values": ["valor 1", "valor 2", "valor 3", "valor 4"],
   "positioning": "...",
-  "differentiator": "..."
+  "differentiator": "...",
+  "frameworksCited": ["framework aplicado y cómo (ej: Ries & Trout — creneau: nicho vacío que ocupamos)", "framework 2"]
 }`,
     {
       vision: `Ser referente en ${brand.niche}`,
@@ -290,6 +302,7 @@ Respondé con JSON:
       values: ['autonomía', 'transparencia', 'sin clickbait', 'resultados verificables'],
       positioning: `No somos una herramienta — somos tu equipo operando solo`,
       differentiator: `El único sistema autónomo en ${brand.niche}`,
+      frameworksCited: ['Ries & Trout — Positioning: creneau propio en vez de competir de frente'],
     },
     (r) => `Visión: ${r.vision.slice(0, 80)}... · Posicionamiento: ${r.positioning.slice(0, 80)}`,
   );
@@ -306,11 +319,13 @@ Usás Jobs-to-be-Done framework y mapeo emocional profundo.
 Ya conocés la audiencia base de la marca desde el contexto de sistema.
 Profundizá y precisá en base al posicionamiento estratégico definido.
 
+${frameworkBlock('audience-researcher')}
+
 POSICIONAMIENTO DE LA MARCA: ${brandStrategy.positioning}
 GOAL DEL USUARIO: ${request.goal}
 
 Definí el avatar hiper-específico — nada de "todos los emprendedores".
-Incluí detalles psicográficos concretos.
+Incluí detalles psicográficos concretos. Distinguí explícitamente el dolor EXTERNO del INTERNO (StoryBrand) en al menos un ítem. ${ASSERTIVENESS_RULE}
 
 Respondé con JSON:
 {
@@ -318,7 +333,8 @@ Respondé con JSON:
   "jobsToBeDone": ["JTBD 1", "JTBD 2", "JTBD 3"],
   "pains": ["dolor 1", "dolor 2", "dolor 3", "dolor 4"],
   "desires": ["deseo 1", "deseo 2", "deseo 3"],
-  "aspirationalIdentity": "quién quiere ser / cómo quiere verse"
+  "aspirationalIdentity": "quién quiere ser / cómo quiere verse",
+  "frameworksCited": ["framework aplicado y cómo (ej: StoryBrand — dolor interno detectado: X)", "framework 2"]
 }`,
     {
       description: `Perfil real del nicho ${brand.niche}, edad 25-40, hace todo solo, quiere escalar`,
@@ -330,6 +346,7 @@ Respondé con JSON:
       pains: ['ahogarse en tareas operativas', 'no poder permitirse equipo', 'inconsistencia cuando se va de viaje'],
       desires: ['libertad de tiempo', 'crecer mientras duerme', 'verse profesional'],
       aspirationalIdentity: `El profesional de ${brand.niche} que tiene un sistema y se ve como marca-empresa`,
+      frameworksCited: ['StoryBrand — dolor interno: miedo a no poder sostener el crecimiento solo'],
     },
     (r) => `Avatar: ${r.description.slice(0, 80)}... · Dolor principal: ${r.pains[0] ?? '?'}`,
   );
@@ -346,17 +363,20 @@ Detectás palabras genéricas y las prohibís. Creás vocabulario de marca disti
 Ya conocés el tono actual de la marca desde el contexto de sistema.
 Refiná y ampliá con base en el avatar y el posicionamiento.
 
+${frameworkBlock('naming-voice')}
+
 AVATAR: ${audienceAvatar.description}
 ASPIRATIONAL IDENTITY: ${audienceAvatar.aspirationalIdentity}
 
-Definí la voz con precisión. Los sampleHooks deben sonar EXACTAMENTE como la marca — no como cualquier cuenta del nicho.
+Definí la voz con precisión. Los sampleHooks deben sonar EXACTAMENTE como la marca — no como cualquier cuenta del nicho. Cada hook necesita un dato/número/nombre propio concreto (Schwartz: especificidad = credibilidad), no vaguedad. ${ASSERTIVENESS_RULE}
 
 Respondé con JSON:
 {
   "tone": ["tono 1", "tono 2", "tono 3"],
   "vocabulary": ["palabra de marca 1", "palabra de marca 2", "palabra de marca 3", "palabra de marca 4", "palabra de marca 5"],
   "forbidden": ["prohibida 1", "prohibida 2", "prohibida 3", "prohibida 4"],
-  "sampleHooks": ["hook 1 que suena exactamente a la marca", "hook 2", "hook 3"]
+  "sampleHooks": ["hook 1 que suena exactamente a la marca", "hook 2", "hook 3"],
+  "frameworksCited": ["framework aplicado y cómo (ej: Schwartz — especificidad: número real X en vez de 'muchos')", "framework 2"]
 }`,
     {
       tone: brand.voice.tone.length > 0 ? brand.voice.tone : ['cercano', 'directo', 'sin clickbait'],
@@ -367,6 +387,7 @@ Respondé con JSON:
         `Tu agencia te cobra USD 4k al mes. Esto cuesta cero.`,
         `El algoritmo no es magia — tiene reglas.`,
       ],
+      frameworksCited: ['Schwartz — especificidad: cifras reales (USD 4k) en vez de "caro"'],
     },
     (r) => `Tono: ${r.tone.join(', ')} · Prohibidas: ${r.forbidden.slice(0, 3).join(', ')}...`,
   );
@@ -382,12 +403,14 @@ Respondé con JSON:
 Ya conocés la identidad visual actual de la marca desde el contexto de sistema (paleta, tipografías, style, mood, etc.).
 Tu tarea: validar, refinar o proponer mejoras fundamentadas.
 
+${frameworkBlock('visual-identity')}
+
 AVATAR: ${audienceAvatar.description}
 VOZ: ${voice.tone.join(', ')}
 POSICIONAMIENTO: ${brandStrategy.positioning}
 
 Mantené coherencia con la identidad visual existente si es sólida.
-Mejorá solo lo que necesite ajuste para el posicionamiento objetivo.
+Mejorá solo lo que necesite ajuste para el posicionamiento objetivo. Máximo 4 colores primarios, nunca gris neutro puro. ${ASSERTIVENESS_RULE}
 
 Respondé con JSON:
 {
@@ -395,7 +418,8 @@ Respondé con JSON:
   "typography": ["tipografía principal", "tipografía secundaria"],
   "mood": "mood visual completo",
   "iconography": "descripción del sistema de iconografía",
-  "sampleCompositions": ["descripción composición 1", "composición 2", "composición 3"]
+  "sampleCompositions": ["descripción composición 1", "composición 2", "composición 3"],
+  "frameworksCited": ["framework aplicado y cómo (ej: Brand Kit Training — 4 colores marcarios máx)", "framework 2"]
 }`,
     {
       palette: brand.visual.palette,
@@ -407,6 +431,7 @@ Respondé con JSON:
         'Datos en columnas con números neón',
         'Número grande izquierda + idea derecha',
       ],
+      frameworksCited: ['Brand Kit Training — máximo 4 colores primarios, sin gris neutro puro'],
     },
     (r) => `Paleta: ${r.palette.slice(0, 3).join(', ')}... · Mood: ${r.mood.slice(0, 60)}`,
   );
@@ -423,17 +448,20 @@ Usás técnicas cinematográficas y storytelling estructurado.
 Ya conocés la historia y estrategia de la marca desde el contexto de sistema.
 Profundizá y construí arcos narrativos que conecten con el avatar definido.
 
+${frameworkBlock('narrative-architect')}
+
 POSICIONAMIENTO: ${brandStrategy.positioning}
 AVATAR ASPIRATIONAL: ${audienceAvatar.aspirationalIdentity}
 DOLORES DEL AVATAR: ${audienceAvatar.pains.slice(0, 3).join('; ')}
 
-Que la origin story sea creíble, emocional y conecte con la transformación que ofrece la marca.
+Que la origin story sea creíble, emocional y conecte con la transformación que ofrece la marca. La marca es el GUÍA de la historia del cliente, no la heroína de la suya propia (StoryBrand). ${ASSERTIVENESS_RULE}
 
 Respondé con JSON:
 {
   "originStory": "historia de origen creíble y emocional (máx 150 palabras)",
   "coreMessages": ["mensaje clave 1", "mensaje 2", "mensaje 3"],
-  "brandArcs": ["arco narrativo 1 (de X a Y)", "arco 2", "arco 3"]
+  "brandArcs": ["arco narrativo 1 (de X a Y)", "arco 2", "arco 3"],
+  "frameworksCited": ["framework aplicado y cómo (ej: StoryBrand — marca como guía, cliente como héroe)", "framework 2"]
 }`,
     {
       originStory: `Nació para que el profesional de ${brand.niche} no se ahogue en tareas. Lo construimos para nosotros y se volvió referente.`,
@@ -447,6 +475,7 @@ Respondé con JSON:
         'De freelancer a marca-empresa',
         'De publicar todos los días a publicar lo que importa',
       ],
+      frameworksCited: ['StoryBrand — el cliente transforma, la marca guía'],
     },
     (r) => `Origin: ${r.originStory.slice(0, 80)}... · Mensaje clave: ${r.coreMessages[0] ?? ''}`,
   );
@@ -462,18 +491,21 @@ Tu misión: sacar a la marca del contenido genérico del nicho. Pensás en contr
 
 Ya conocés el nicho y el posicionamiento desde el contexto de sistema.
 
+${frameworkBlock('differential-strategist')}
+
 VOZ DE MARCA: ${voice.tone.join(', ')}
 DOLORES DEL AVATAR: ${audienceAvatar.pains.join('; ')}
 ${request.userIdeas ? `IDEAS DEL USUARIO: ${request.userIdeas}` : ''}
 
 NADA genérico. NADA motivacional vacío. NADA que cualquier otra cuenta del nicho podría decir.
-Los contraTakes deben ser inteligentes y verificables, no provocadores vacíos.
+Los contraTakes deben ser inteligentes y verificables, no provocadores vacíos. Encuadrá cada ángulo como oportunidad nueva, nunca como "mejora" (Brunson). ${ASSERTIVENESS_RULE}
 
 Respondé con JSON:
 {
   "contraTakes": ["creencia del nicho que vamos a contradecir 1", "contraTake 2", "contraTake 3"],
   "uniqueAngles": ["ángulo único 1", "ángulo 2", "ángulo 3"],
-  "innovationOpportunities": ["oportunidad de innovación 1", "oportunidad 2", "oportunidad 3"]
+  "innovationOpportunities": ["oportunidad de innovación 1", "oportunidad 2", "oportunidad 3"],
+  "frameworksCited": ["framework aplicado y cómo (ej: Blue Ocean — eliminamos X que todos dan por sentado)", "framework 2"]
 }`,
     {
       contraTakes: [
@@ -491,6 +523,7 @@ Respondé con JSON:
         `Pizarra colaborativa con la audiencia`,
         `Carruseles "deconstruido"`,
       ],
+      frameworksCited: ['Blue Ocean — eliminamos el "publicar todos los días" que el nicho da por sentado'],
     },
     (r) =>
       `Contra-takes: ${r.contraTakes.length} · Ángulos únicos: ${r.uniqueAngles.length} · Innovación: ${r.innovationOpportunities.length}`,
@@ -507,18 +540,21 @@ Convertís cuentas en autoridad de nicho. Sabés exactamente qué formatos y tá
 
 Ya conocés los objetivos de Instagram y el nicho de la marca desde el contexto de sistema.
 
+${frameworkBlock('influencer-positioner')}
+
 POSICIONAMIENTO: ${brandStrategy.positioning}
 ÁNGULOS ÚNICOS: ${differentialAngles.uniqueAngles.join('; ')}
 TIER OBJETIVO: ${tier === 'influencer' ? 'mantener y consolidar como referente' : `llevar a tier influencer desde ${tier}`}
 
-Diseñá un plan concreto y ejecutable. Los signature pieces deben ser tan distintivos que se asocien automáticamente a la marca.
+Diseñá un plan concreto y ejecutable. Los signature pieces deben ser tan distintivos que se asocien automáticamente a la marca. ${ASSERTIVENESS_RULE}
 
 Respondé con JSON:
 {
   "authorityPillars": ["pilar 1", "pilar 2", "pilar 3", "pilar 4"],
   "signaturePieces": ["pieza signature 1", "pieza 2", "pieza 3"],
   "visibilityTactics": ["táctica 1", "táctica 2", "táctica 3"],
-  "thoughtLeadershipTopics": ["tema 1", "tema 2", "tema 3", "tema 4"]
+  "thoughtLeadershipTopics": ["tema 1", "tema 2", "tema 3", "tema 4"],
+  "frameworksCited": ["framework aplicado y cómo (ej: Expert Secrets — attractive character: backstory + estado actual)", "framework 2"]
 }`,
     {
       authorityPillars: [
@@ -541,6 +577,7 @@ Respondé con JSON:
         `Computer Use para ${brand.niche}`,
         `Apalancamiento real con IA`,
       ],
+      frameworksCited: ['Expert Secrets — attractive character: mostrar el "antes" operativo y el "ahora" autónomo'],
     },
     (r) =>
       `Pilares: ${r.authorityPillars.length} · Signature: ${r.signaturePieces.length} · Visibilidad: ${r.visibilityTactics.length}`,
@@ -556,16 +593,22 @@ Respondé con JSON:
 Detectás conflictos sutiles entre las decisiones de estrategia, voz e identidad visual.
 
 Ya conocés la identidad base de la marca desde el contexto de sistema.
-Auditá los outputs del equipo completo de este job:
+
+${frameworkBlock('coherence-guardian')}
+
+Auditá los outputs del equipo completo de este job, incluidos los frameworks que cada especialista dijo aplicar:
 
 ESTRATEGIA:
 - Posicionamiento: ${brandStrategy.positioning}
 - Diferenciador: ${brandStrategy.differentiator}
 - Valores: ${brandStrategy.values.join(', ')}
+- Frameworks citados: ${brandStrategy.frameworksCited?.join(' · ') ?? '(ninguno)'}
 
 VOZ: Tono: ${voice.tone.join(', ')} · Prohibidas: ${voice.forbidden.join(', ')}
+- Frameworks citados: ${voice.frameworksCited?.join(' · ') ?? '(ninguno)'}
 
 VISUAL: Mood: ${visualIdentity.mood}
+- Frameworks citados: ${visualIdentity.frameworksCited?.join(' · ') ?? '(ninguno)'}
 
 NARRATIVA: Mensaje central: ${narrative.coreMessages[0] ?? '(ninguno)'}
 
@@ -573,13 +616,14 @@ DIFERENCIAL: ${differentialAngles.uniqueAngles[0] ?? '(ninguno)'}
 
 PLAN INFLUENCER: Pilar principal: ${influencerPlan.authorityPillars[0] ?? '(ninguno)'}
 
-Devolvé un score de coherencia (0-100) y señalá cualquier conflicto o inconsistencia.
+Devolvé un score de coherencia (0-100) y señalá cualquier conflicto o inconsistencia — incluí explícitamente si algún framework citado por un especialista CONTRADICE la decisión de otro (ej: posicionamiento "premium/exclusivo" vs voz "accesible para todos" es contradicción real, no cosmética). ${ASSERTIVENESS_RULE}
 
 Respondé con JSON:
 {
   "score": 85,
   "conflicts": ["conflicto o inconsistencia detectada 1", "conflicto 2"],
-  "recommendations": ["recomendación de ajuste 1", "recomendación 2", "recomendación 3"]
+  "recommendations": ["recomendación de ajuste 1", "recomendación 2", "recomendación 3"],
+  "frameworksCited": ["framework aplicado y cómo (ej: Garrido Moreno — brecha proyectada/percibida en X)", "framework 2"]
 }`,
     {
       score: 90,
@@ -589,6 +633,7 @@ Respondé con JSON:
         `Re-validar paleta cada trimestre`,
         `Documentar 5 ejemplos de copy que SÍ aplican la voz`,
       ],
+      frameworksCited: ['Cialdini — consistencia: cada pieza debe sostener el mismo compromiso de identidad'],
     },
     (r) => `Score: ${r.score}/100 · Conflictos: ${r.conflicts.length} · Recomendaciones: ${r.recommendations.length}`,
   );

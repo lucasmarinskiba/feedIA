@@ -427,6 +427,26 @@ const ADVISOR_AGENTS_FALLBACK = [
 
 const HEALTH_COLOR = { sólida: '#10F2B0', estable: '#3B82F6', fatigada: '#F59E0B', crítica: '#EF4444' };
 
+// Cada especialista cita qué framework (de los 36 libros de CLAUDE.md) usó en
+// cada decisión — esto renderiza esa cita como chip compacto (headline antes
+// del primer " — ", cita completa en el title) para que "excelencia de
+// conocimiento" sea verificable en la UI, no una afirmación sin sustento.
+const citationChips = (result, fields) => {
+  const all = fields.flatMap((f) => result[f]?.frameworksCited ?? []);
+  const unique = [...new Set(all)];
+  if (!unique.length) return '';
+  return `
+    <div class="bk-citations">
+      <span class="bk-citations-label">📚 Frameworks aplicados:</span>
+      ${unique
+        .map((c) => {
+          const headline = c.split(' — ')[0] || c;
+          return `<span class="bk-citation-chip" title="${escape(c)}">${escape(headline)}</span>`;
+        })
+        .join('')}
+    </div>`;
+};
+
 const renderAdvisorSection = (agents) => `
   <div class="bk-advisor">
     <div class="bk-advisor-head">
@@ -570,7 +590,17 @@ const renderBrandingBrainResults = (container, renderSelf, result) => {
           .map((t) => `• ${escape(t)}`)
           .join('<br>')}</div>
       </div>
-    </div>`;
+    </div>
+    ${citationChips(result, [
+      'brandStrategy',
+      'audienceAvatar',
+      'voice',
+      'visualIdentity',
+      'narrative',
+      'differentialAngles',
+      'influencerPlan',
+      'coherenceReport',
+    ])}`;
 
   el.querySelector('#bk-adv-apply')?.addEventListener('click', async (e) => {
     e.target.disabled = true;
@@ -795,6 +825,7 @@ const renderPlatformResults = (container, renderSelf, platform, result) => {
         <div class="tiny muted" style="margin-top:3px;">${escape(result.nativeFormatRules.lengthGuidance)}</div>
       </div>
     </div>
+    ${citationChips(result, ['algorithmStrategy', 'growthPlaybook', 'discoveryStrategy', 'nativeFormatRules'])}
     <div style="display:flex;gap:6px;margin-top:10px;">
       <button id="bk-plat-apply" type="button" class="bk-btn bk-btn-primary bk-btn-tiny">💾 Aplicar a mi Brand Kit</button>
       <button id="bk-plat-rerun" type="button" class="bk-btn bk-btn-ghost bk-btn-tiny">🔄 Ajustar y reejecutar</button>
@@ -1084,6 +1115,9 @@ const renderShell = (
     .bk-plat-tabs{display:flex;gap:6px;margin-bottom:10px;}
     .bk-plat-tab{padding:7px 16px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text-secondary,var(--fg-2));font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;}
     .bk-plat-tab-active{border-color:#8B5CF6;color:var(--text-primary,var(--fg));background:rgba(139,92,246,.12);}
+    .bk-citations{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+    .bk-citations-label{font-size:10.5px;font-weight:700;color:var(--text-tertiary,var(--fg-3));letter-spacing:.3px;}
+    .bk-citation-chip{font-size:10.5px;padding:3px 9px;border-radius:12px;background:rgba(139,92,246,.1);color:#C4B5FD;border:1px solid rgba(139,92,246,.25);cursor:help;}
   </style>`;
 
 export const renderBrandKit = async (container) => {
