@@ -230,6 +230,7 @@ import {
   BRANDING_BRAIN_AGENTS,
   type BrandingBrainMode,
 } from '../capabilities/branding/brandingBrain.js';
+import { runPlatformBrain, PLATFORM_AGENTS, type Platform } from '../capabilities/branding/platformBrain.js';
 import { listInstalledApps, launchApp, openCanva } from '../capabilities/computerUse/appLauncher.js';
 import { runCanvaToInstagram, getDesktopWorkflowsStatus } from '../capabilities/computerUse/desktopWorkflows.js';
 import {
@@ -2988,6 +2989,86 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         (b.mode ?? 'refinement') as BrandingBrainMode,
       );
       json(res, 200, result);
+    },
+  },
+
+  // ════════════════════════════════════════════════════════════════════════
+  //  PLATFORM BRAIN — 4 especialistas por plataforma (Instagram / TikTok).
+  //  Algoritmo, growth, descubrimiento (hashtags/sonido) y formato nativo —
+  //  específico de cada plataforma, no consejos genéricos de redes sociales.
+  // ════════════════════════════════════════════════════════════════════════
+  {
+    method: 'GET',
+    pattern: '/api/platform-brain/:platform/agents',
+    handler: ({ res, params }) => {
+      const platform = params['platform'] as Platform;
+      const agents = PLATFORM_AGENTS[platform];
+      if (!agents) return json(res, 400, { error: `Plataforma inválida: ${params['platform']}` });
+      json(res, 200, { platform, agents });
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/platform-brain/:platform',
+    handler: async ({ res, params, body }) => {
+      const platform = params['platform'] as Platform;
+      if (!PLATFORM_AGENTS[platform]) return json(res, 400, { error: `Plataforma inválida: ${params['platform']}` });
+      const b = (body ?? {}) as { goal?: string; userIdeas?: string; constraints?: string };
+      const result = await runPlatformBrain(brand, platform, {
+        goal: b.goal ?? `crecer en ${platform} este trimestre`,
+        userIdeas: b.userIdeas,
+        constraints: b.constraints,
+      });
+      json(res, 200, result);
+    },
+  },
+  // POST /api/platform-brain/:platform/apply — aplica hashtags/sonido,
+  // métrica clave y reglas de formato nativo al BrandProfile activo. Suma a
+  // lo existente (no reemplaza) para no perder lo que el usuario ya cargó.
+  {
+    method: 'POST',
+    pattern: '/api/platform-brain/:platform/apply',
+    handler: async ({ res, params, body }) => {
+      try {
+        const platform = params['platform'] as Platform;
+        if (!PLATFORM_AGENTS[platform]) return json(res, 400, { error: `Plataforma inválida: ${params['platform']}` });
+        const b = body as {
+          discoveryStrategy?: { primary?: string[]; secondary?: string[] };
+          algorithmStrategy?: { keyMetric?: string };
+          nativeFormatRules?: { editingRules?: string[] };
+        };
+
+        const { getActiveBrand, updateActiveBrand } = await import('../config/brandRegistry.js');
+        const current = getActiveBrand();
+        const dedupe = (arr: string[]): string[] => [...new Set(arr)];
+
+        const hashtagKey = platform;
+        const discoveryTerms = [...(b.discoveryStrategy?.primary ?? []), ...(b.discoveryStrategy?.secondary ?? [])];
+
+        const updated: BrandProfile = {
+          ...current,
+          hashtagPools: discoveryTerms.length
+            ? { ...current.hashtagPools, [hashtagKey]: discoveryTerms }
+            : current.hashtagPools,
+          goals: {
+            ...current.goals,
+            metricsToWatch: b.algorithmStrategy?.keyMetric
+              ? dedupe([...current.goals.metricsToWatch, b.algorithmStrategy.keyMetric])
+              : current.goals.metricsToWatch,
+          },
+          visual: {
+            ...current.visual,
+            compositionRules: b.nativeFormatRules?.editingRules?.length
+              ? dedupe([...current.visual.compositionRules, ...b.nativeFormatRules.editingRules])
+              : current.visual.compositionRules,
+          },
+        };
+
+        updateActiveBrand(updated);
+        json(res, 200, { ok: true, platform, message: `Estrategia de ${platform} aplicada al Brand Kit` });
+      } catch (err) {
+        json(res, 500, { ok: false, error: (err as Error).message });
+      }
     },
   },
 

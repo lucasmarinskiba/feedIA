@@ -654,7 +654,240 @@ const wireAdvisor = (container, renderSelf) => {
   });
 };
 
-const renderShell = (kit = {}, agents = ADVISOR_AGENTS_FALLBACK) => `
+// ── Especialistas de Plataforma (Instagram / TikTok) ──────────────────────
+// Front door hacia src/capabilities/branding/platformBrain.ts — mismo motor
+// que la Branding Brain de arriba, pero 2 rosters de 4 especialistas cada
+// uno, específicos de cómo rankea/descubre cada plataforma (no consejos
+// genéricos). También es lo que le da uso real al selector Instagram/TikTok
+// de la barra lateral (src/server/static/lib/platform.js) — hasta ahora sólo
+// mostraba/ocultaba menú, nunca cambiaba qué IA se consulta.
+
+const PLATFORM_AGENTS_FALLBACK = {
+  instagram: [
+    {
+      id: 'ig-algorithm-strategist',
+      name: 'Valentina Roig',
+      emoji: '📊',
+      role: 'Estratega de Algoritmo de Instagram',
+      specialty: 'Ranking de Explore/Búsqueda, mix Reel/Carrusel/Historia',
+    },
+    {
+      id: 'ig-growth-hacker',
+      name: 'Nicolás Farina',
+      emoji: '🚀',
+      role: 'Growth Hacker de Instagram',
+      specialty: 'Crecimiento de seguidores, collabs, funnel de DMs',
+    },
+    {
+      id: 'ig-hashtag-scientist',
+      name: 'Delfina Otero',
+      emoji: '🔬',
+      role: 'Científica de Hashtags & Descubrimiento',
+      specialty: 'Pirámide de hashtags, SEO de búsqueda, shadowban',
+    },
+    {
+      id: 'ig-format-strategist',
+      name: 'Franco Miele',
+      emoji: '🗓️',
+      role: 'Estratega de Formato & Timing',
+      specialty: 'Mix de formatos, cadencia, horarios',
+    },
+  ],
+  tiktok: [
+    {
+      id: 'tt-fyp-strategist',
+      name: 'Camila Suárez',
+      emoji: '🎯',
+      role: 'Estratega de Algoritmo FYP',
+      specialty: 'Completion rate, watch time, ranking del For You',
+    },
+    {
+      id: 'tt-sound-curator',
+      name: 'Bruno Kessler',
+      emoji: '🎵',
+      role: 'Curador de Sonido & Tendencias',
+      specialty: 'Sonidos trending, challenges, timing',
+    },
+    {
+      id: 'tt-native-specialist',
+      name: 'Mía Boccardo',
+      emoji: '🎬',
+      role: 'Especialista en Contenido Nativo',
+      specialty: 'Hook en 0-1s, edición nativa cruda',
+    },
+    {
+      id: 'tt-growth-shop',
+      name: 'Ignacio Prados',
+      emoji: '🛍️',
+      role: 'Growth & TikTok Shop',
+      specialty: 'Duetos/stitches, TikTok Shop, comentarios',
+    },
+  ],
+};
+
+const PLATFORM_LABEL = { instagram: '📸 Instagram', tiktok: '🎵 TikTok' };
+const DISCOVERY_LABEL = {
+  instagram: { primary: 'Hashtags principales', rule: 'Regla de rotación' },
+  tiktok: { primary: 'Tipos de sonido', rule: 'Regla de timing' },
+};
+
+const renderPlatformAgentChips = (agents) =>
+  agents
+    .map(
+      (a) =>
+        `<div class="bk-agent-chip" title="${escape(a.specialty)}"><span>${a.emoji}</span>${escape(a.name)} <span class="bk-agent-role">· ${escape(a.role)}</span></div>`,
+    )
+    .join('');
+
+const renderPlatformSection = (agentsByPlatform, initialPlatform) => `
+  <div class="bk-advisor">
+    <div class="bk-advisor-head">
+      <div class="bk-advisor-emoji">📲</div>
+      <div>
+        <div class="bk-advisor-title">Especialistas de Plataforma</div>
+        <div class="bk-advisor-sub">Instagram y TikTok rankean distinto, se descubren distinto y premian formatos distintos — consultá al equipo de 4 especialistas de cada plataforma por separado y aplicá lo que sirva.</div>
+      </div>
+    </div>
+
+    <div class="bk-plat-tabs">
+      <button type="button" class="bk-plat-tab${initialPlatform === 'instagram' ? ' bk-plat-tab-active' : ''}" data-platform="instagram">📸 Instagram</button>
+      <button type="button" class="bk-plat-tab${initialPlatform === 'tiktok' ? ' bk-plat-tab-active' : ''}" data-platform="tiktok">🎵 TikTok</button>
+    </div>
+
+    <div class="bk-advisor-card bk-advisor-card-wide">
+      <div class="bk-agents-roster" id="bk-plat-agents">${renderPlatformAgentChips(agentsByPlatform[initialPlatform])}</div>
+      <input id="bk-plat-goal" type="text" class="bk-input" placeholder="Objetivo para el equipo (ej: crecer seguidores este trimestre)" />
+      <input id="bk-plat-ideas" type="text" class="bk-input" placeholder="Tus ideas (opcional)" />
+      <input id="bk-plat-constraints" type="text" class="bk-input" placeholder="Restricciones (opcional)" />
+      <button id="bk-plat-run" type="button" class="bk-btn bk-btn-primary" data-platform="${initialPlatform}">🧠 Consultar equipo de ${escape(PLATFORM_LABEL[initialPlatform])}</button>
+      <div class="bk-hint">Puede tardar 20–40s — 4 especialistas trabajando en secuencia.</div>
+      <div id="bk-plat-results"></div>
+    </div>
+  </div>`;
+
+const renderPlatformResults = (container, renderSelf, platform, result) => {
+  const el = container.querySelector('#bk-plat-results');
+  if (!el) return;
+  const dl = DISCOVERY_LABEL[platform];
+  el.innerHTML = `
+    <div class="bk-adv-tiles" style="margin-top:10px;">
+      <div class="bk-adv-tile">
+        <div class="bk-card-label">📊 Algoritmo</div>
+        <div class="tiny"><strong>Métrica clave:</strong> ${escape(result.algorithmStrategy.keyMetric)}</div>
+        <div class="tiny muted" style="margin-top:3px;">${escape(result.algorithmStrategy.postingCadence)}</div>
+        <div class="tiny" style="margin-top:4px;">${result.algorithmStrategy.formatMix.map((f) => `${escape(f.format)} ${f.weight}%`).join(' · ')}</div>
+      </div>
+      <div class="bk-adv-tile">
+        <div class="bk-card-label">🚀 Growth</div>
+        <div class="tiny">${result.growthPlaybook.quickWins
+          .slice(0, 3)
+          .map((t) => `• ${escape(t)}`)
+          .join('<br>')}</div>
+      </div>
+      <div class="bk-adv-tile">
+        <div class="bk-card-label">${platform === 'instagram' ? '🔬 Hashtags' : '🎵 Sonido & Trends'}</div>
+        <div class="tiny"><strong>${escape(dl.primary)}:</strong> ${result.discoveryStrategy.primary.map((t) => escape(t)).join(', ')}</div>
+        <div class="tiny muted" style="margin-top:3px;">${escape(dl.rule)}: ${escape(result.discoveryStrategy.rule)}</div>
+      </div>
+      <div class="bk-adv-tile">
+        <div class="bk-card-label">🎬 Formato nativo</div>
+        <div class="tiny"><strong>Hook:</strong> ${escape(result.nativeFormatRules.hookRule)}</div>
+        <div class="tiny muted" style="margin-top:3px;">${escape(result.nativeFormatRules.lengthGuidance)}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:10px;">
+      <button id="bk-plat-apply" type="button" class="bk-btn bk-btn-primary bk-btn-tiny">💾 Aplicar a mi Brand Kit</button>
+      <button id="bk-plat-rerun" type="button" class="bk-btn bk-btn-ghost bk-btn-tiny">🔄 Ajustar y reejecutar</button>
+    </div>`;
+
+  el.querySelector('#bk-plat-apply')?.addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    e.target.textContent = '⏳ Aplicando…';
+    const payload = {
+      discoveryStrategy: result.discoveryStrategy,
+      algorithmStrategy: { keyMetric: result.algorithmStrategy.keyMetric },
+      nativeFormatRules: { editingRules: result.nativeFormatRules.editingRules },
+    };
+    const { error } = await apiSafe(`/api/platform-brain/${platform}/apply`, null, { method: 'POST', body: payload });
+    if (error) {
+      toast('❌ No se pudo aplicar: ' + error.message, 'error');
+      e.target.disabled = false;
+      e.target.textContent = '💾 Aplicar a mi Brand Kit';
+      return;
+    }
+    toast(`✅ Estrategia de ${PLATFORM_LABEL[platform]} aplicada al Brand Kit`, 'ok');
+    await renderSelf(container);
+    container.querySelector('.bk-advisor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  el.querySelector('#bk-plat-rerun')?.addEventListener('click', () => {
+    el.innerHTML = '';
+    container.querySelector('#bk-plat-goal')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+};
+
+const wirePlatformSection = (container, renderSelf, agentsByPlatform) => {
+  container.querySelectorAll('.bk-plat-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const platform = tab.dataset.platform;
+      container.querySelectorAll('.bk-plat-tab').forEach((t) => t.classList.toggle('bk-plat-tab-active', t === tab));
+      const roster = container.querySelector('#bk-plat-agents');
+      if (roster) roster.innerHTML = renderPlatformAgentChips(agentsByPlatform[platform]);
+      const runBtn = container.querySelector('#bk-plat-run');
+      if (runBtn) {
+        runBtn.dataset.platform = platform;
+        runBtn.textContent = `🧠 Consultar equipo de ${PLATFORM_LABEL[platform]}`;
+      }
+      const results = container.querySelector('#bk-plat-results');
+      if (results) results.innerHTML = '';
+    });
+  });
+
+  const runBtn = container.querySelector('#bk-plat-run');
+  runBtn?.addEventListener('click', async () => {
+    const platform = runBtn.dataset.platform || 'instagram';
+    const goal = container.querySelector('#bk-plat-goal')?.value?.trim();
+    if (!goal) {
+      toast('⚠️ El objetivo es obligatorio', 'warn');
+      return;
+    }
+    const userIdeas = container.querySelector('#bk-plat-ideas')?.value?.trim() || undefined;
+    const constraints = container.querySelector('#bk-plat-constraints')?.value?.trim() || undefined;
+
+    runBtn.disabled = true;
+    runBtn.textContent = '⏳ Consultando…';
+    const chips = [...container.querySelectorAll('#bk-plat-agents .bk-agent-chip')];
+    let idx = 0;
+    const pulse = setInterval(() => {
+      chips.forEach((c, i) => c.classList.toggle('bk-agent-active', i === idx));
+      idx = (idx + 1) % chips.length;
+    }, 3000);
+
+    const { data, error } = await apiSafe(`/api/platform-brain/${platform}`, null, {
+      method: 'POST',
+      body: { goal, userIdeas, constraints },
+    });
+
+    clearInterval(pulse);
+    chips.forEach((c) => c.classList.remove('bk-agent-active'));
+    runBtn.disabled = false;
+    runBtn.textContent = `🧠 Consultar equipo de ${PLATFORM_LABEL[platform]}`;
+
+    if (error || !data) {
+      toast('❌ Error al consultar al equipo: ' + (error?.message || 'sin respuesta'), 'error');
+      return;
+    }
+    toast(`✅ Equipo de ${PLATFORM_LABEL[platform]} completo`, 'ok');
+    renderPlatformResults(container, renderSelf, platform, data);
+  });
+};
+
+const renderShell = (
+  kit = {},
+  agents = ADVISOR_AGENTS_FALLBACK,
+  platformAgents = PLATFORM_AGENTS_FALLBACK,
+  initialPlatform = 'instagram',
+) => `
   <div class="bk-shell">
     <div class="bk-hero">
       <div class="bk-emoji">🎨</div>
@@ -665,6 +898,8 @@ const renderShell = (kit = {}, agents = ADVISOR_AGENTS_FALLBACK) => `
     </div>
 
     ${renderAdvisorSection(agents)}
+
+    ${renderPlatformSection(platformAgents, initialPlatform)}
 
     <div class="bk-grid">
       <div class="bk-card">
@@ -846,6 +1081,9 @@ const renderShell = (kit = {}, agents = ADVISOR_AGENTS_FALLBACK) => `
     @media(max-width:900px){.bk-adv-tiles{grid-template-columns:1fr 1fr;}}
     @media(max-width:640px){.bk-adv-tiles{grid-template-columns:1fr;}}
     .bk-adv-tile{padding:9px;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.02);}
+    .bk-plat-tabs{display:flex;gap:6px;margin-bottom:10px;}
+    .bk-plat-tab{padding:7px 16px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text-secondary,var(--fg-2));font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;}
+    .bk-plat-tab-active{border-color:#8B5CF6;color:var(--text-primary,var(--fg));background:rgba(139,92,246,.12);}
   </style>`;
 
 export const renderBrandKit = async (container) => {
@@ -857,14 +1095,23 @@ export const renderBrandKit = async (container) => {
       return '';
     }
   })();
-  const [kit, agentsRes] = await Promise.all([
+  const [kit, agentsRes, igAgentsRes, ttAgentsRes, platformDefault] = await Promise.all([
     loadBrandKit(accountId).then((k) => k || {}),
     apiSafe('/api/branding/brain/agents', { agents: ADVISOR_AGENTS_FALLBACK }),
+    apiSafe('/api/platform-brain/instagram/agents', { agents: PLATFORM_AGENTS_FALLBACK.instagram }),
+    apiSafe('/api/platform-brain/tiktok/agents', { agents: PLATFORM_AGENTS_FALLBACK.tiktok }),
+    getPlatform(),
   ]);
   const agents = agentsRes.data?.agents?.length ? agentsRes.data.agents : ADVISOR_AGENTS_FALLBACK;
+  const platformAgents = {
+    instagram: igAgentsRes.data?.agents?.length ? igAgentsRes.data.agents : PLATFORM_AGENTS_FALLBACK.instagram,
+    tiktok: ttAgentsRes.data?.agents?.length ? ttAgentsRes.data.agents : PLATFORM_AGENTS_FALLBACK.tiktok,
+  };
+  const initialPlatform = platformDefault === 'tiktok' ? 'tiktok' : 'instagram';
 
-  container.innerHTML = renderShell(kit, agents);
+  container.innerHTML = renderShell(kit, agents, platformAgents, initialPlatform);
   wireAdvisor(container, renderBrandKit);
+  wirePlatformSection(container, renderBrandKit, platformAgents);
 
   // Sync color picker ↔ hex input
   ['text', 'bg', 'accent', 'sec1', 'sec2'].forEach((k) => {

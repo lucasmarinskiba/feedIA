@@ -4,11 +4,13 @@ import { adaptRoutesToExpress } from './expressRouteAdapter.js';
 
 /**
  * Brand setup routes from extendedRoutes.ts: interview/audit/renewal flow,
- * niche packs, "apply branding brain" (personalization.js), and the
- * branding-brain multi-agent endpoints. Never mounted on Express. Deliberately
- * excludes the unrelated, far-later "STAGE 6: BRAND MASTERY" block
- * (/api/brand/architecture, /color-system, etc.) — that block isn't called by
- * any frontend view, so it's left unmounted rather than swept in.
+ * niche packs, "apply branding brain" (personalization.js), the
+ * branding-brain multi-agent endpoints, and the per-platform (Instagram/
+ * TikTok) brain endpoints. Never mounted on Express by extendedRoutes.ts
+ * itself. Deliberately excludes the unrelated, far-later "STAGE 6: BRAND
+ * MASTERY" block (/api/brand/architecture, /color-system, etc.) — that block
+ * isn't called by any frontend view, so it's left unmounted rather than
+ * swept in.
  */
 const createBrandSetupRoutes = (brand: BrandProfile) =>
   adaptRoutesToExpress(
@@ -20,7 +22,8 @@ const createBrandSetupRoutes = (brand: BrandProfile) =>
         r.pattern.startsWith('/api/brand/renewal') ||
         r.pattern === '/api/brand/apply-branding-brain' ||
         r.pattern.startsWith('/api/niche-packs') ||
-        r.pattern.startsWith('/api/branding/brain'),
+        r.pattern.startsWith('/api/branding/brain') ||
+        r.pattern.startsWith('/api/platform-brain'),
     ),
   );
 
