@@ -168,31 +168,47 @@ const DEFAULT_TITLES: Record<MemoryType, string> = {
 
 // ── Generación de narrativa con AI ───────────────────────────────────────────
 
+/** Arma una frase 100% factual con los datos reales de la memoria, sin inventar nada. */
+const buildFactualFallback = (type: MemoryType, data: Memory['associatedData']): string => {
+  const facts: string[] = [];
+  if (data.metric) facts.push(`${data.metric.name}: ${data.metric.value.toLocaleString('es-AR')}`);
+  if (data.quote) facts.push(`"${data.quote}"`);
+  if (facts.length === 0) return DEFAULT_TITLES[type];
+  return facts.join(' — ');
+};
+
 const generateMemoryStory = async (
   type: MemoryType,
   data: Memory['associatedData'],
   brand: BrandProfile,
 ): Promise<{ title: string; story: string }> => {
-  const prompt = `Escribí una memoria emotiva pero breve sobre un momento del journey de @${brand.name}.
+  const prompt = `Escribí una memoria breve sobre un momento real del journey de @${brand.name}.
 
 Tipo de memoria: ${type}
-Datos asociados: ${JSON.stringify(data)}
+Datos asociados (ÚNICA fuente de verdad, no hay más información que esta): ${JSON.stringify(data)}
 
-La narrativa debe sentirse como una página de diario — íntima, simple, real. No épica ni corporativa.
+REGLAS ESTRICTAS — no son opcionales:
+- Usá SOLO los datos de "Datos asociados". Está PROHIBIDO inventar fechas, lugares, clima, emociones de terceros,
+  diálogos, citas o cifras que no estén ahí literalmente.
+- Si hay "quote", citalo tal cual (no lo parafrasees ni le agregues contexto inventado).
+- Si hay "metric", mencioná el número real, sin redondear ni embellecer.
+- Si un campo no está presente en los datos, no lo menciones ni lo sugieras.
+- Tono simple y cálido, pero la narrativa debe ser una descripción fiel de esos datos, no ficción ambientada en ellos.
 
 JSON:
 {
-  "title": "1 línea memorable (max 60 chars)",
-  "story": "3-5 líneas que cuentan el momento con calidez"
+  "title": "1 línea memorable basada solo en los datos reales (max 60 chars)",
+  "story": "2-4 líneas que describen el dato real, sin inventar contexto"
 }`;
 
   return routerAskJson<{ title: string; story: string }>(prompt, {
     taskType: 'response',
     maxTokens: 600,
-    systemPrompt: 'Sos un escritor de memorias. Tono íntimo, cálido, simple.',
+    systemPrompt:
+      'Sos un cronista de datos reales, no un narrador creativo. Nunca inventás hechos que no te dieron. Tono simple y cálido, pero estrictamente fiel a los datos provistos.',
   }).catch(() => ({
     title: DEFAULT_TITLES[type],
-    story: `Un momento que se guarda. ${data.quote ?? data.metric?.value ?? ''}`,
+    story: buildFactualFallback(type, data),
   }));
 };
 

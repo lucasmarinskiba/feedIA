@@ -113,13 +113,15 @@ export const renderMemorabilia = async (container) => {
       </div>`;
   }
 
-  // Throwback
+  // Throwback — siempre con los datos reales a la vista (quote/métrica), nunca solo la narrativa
   if (throwback) {
     document.getElementById('throwback-section').innerHTML = `
       <div class="card" style="background:linear-gradient(135deg, #FBE7C6 0%, #FFD6A5 100%);color:#1A1A1A;">
-        <div class="small" style="opacity:0.7;text-transform:uppercase;letter-spacing:1px;">Recuerdo aleatorio</div>
+        <div class="small" style="opacity:0.7;text-transform:uppercase;letter-spacing:1px;">Recuerdo aleatorio · ${escape(throwback.type)}</div>
         <h3 style="margin:6px 0;">${escape(throwback.title)}</h3>
         <p style="font-style:italic;">${escape(throwback.storyText || throwback.description)}</p>
+        ${throwback.associatedData?.quote ? `<div class="small" style="margin-top:6px;padding:6px 10px;border-left:2px solid #1A1A1A;background:rgba(0,0,0,0.08);">"${escape(throwback.associatedData.quote)}"</div>` : ''}
+        ${throwback.associatedData?.metric ? `<div class="small" style="margin-top:6px;"><strong>${escape(throwback.associatedData.metric.name)}:</strong> ${throwback.associatedData.metric.value.toLocaleString('es-AR')}</div>` : ''}
         <div class="small" style="margin-top:6px;opacity:0.8;">${new Date(throwback.happenedAt).toLocaleDateString('es-AR')}</div>
       </div>`;
   }
