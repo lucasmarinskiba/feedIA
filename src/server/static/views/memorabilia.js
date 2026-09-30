@@ -39,6 +39,7 @@ const renderMemoryCard = (m) => `
     <div style="margin-top:10px;display:flex;gap:6px;">
       <button class="btn small" data-act="pin" data-id="${escape(m.id)}">${m.pinned ? 'Despinear' : '📌 Pin'}</button>
       <button class="btn small" data-act="revisit" data-id="${escape(m.id)}">👁️ Revisitar (${m.revisitCount})</button>
+      <button class="btn small" data-act="delete" data-id="${escape(m.id)}" title="Eliminar memoria">🗑️</button>
     </div>
   </div>`;
 
@@ -224,6 +225,12 @@ export const renderMemorabilia = async (container) => {
     }
     if (act === 'revisit') {
       await apiSafe(`/api/memorabilia/${id}/revisit`, null, { method: 'POST', body: {} });
+      renderMemorabilia(container);
+    }
+    if (act === 'delete') {
+      if (!window.confirm('¿Eliminar esta memoria? No se puede deshacer.')) return;
+      await apiSafe(`/api/memorabilia/${id}`, null, { method: 'DELETE' });
+      toast('Memoria eliminada', 'info');
       renderMemorabilia(container);
     }
   });
