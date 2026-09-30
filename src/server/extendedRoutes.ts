@@ -12,7 +12,7 @@
 
 import type { BrandProfile } from '../config/types.js';
 import { json, type RouteDefinition } from './http.js';
-import { saveBrandProfile, getActiveBrandId } from '../config/accounts.js';
+import { getActiveBrandId } from '../config/accounts.js';
 import { withExpertGuidance } from './middleware/expertGuidanceMiddleware.js';
 
 // ── Experience ──────────────────────────────────────────────────────────────
@@ -1841,12 +1841,16 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
     handler: async ({ res, params }) => {
       try {
         const { getNichePackSeed } = await import('../config/nichePacks.js');
-        const { loadBrandProfileById } = await import('../config/accounts.js');
+        // Leer/escribir vía brandRegistry (no accounts.js): accounts.js persiste
+        // en data/brands/<id>.json, un archivo que brandRegistry nunca lee — el
+        // Brand Kit (y todo brandContext()) seguiría mostrando los valores
+        // viejos aunque este endpoint devolviera ok:true.
+        const { getActiveBrand, updateActiveBrand } = await import('../config/brandRegistry.js');
         const seed = getNichePackSeed(params['id']!);
         if (!seed) return json(res, 404, { error: 'Niche pack not found' });
 
         const brandId = getActiveBrandId();
-        const current = loadBrandProfileById(brandId);
+        const current = getActiveBrand();
 
         // Merge: pack values are defaults, existing user values take precedence
         // for non-empty fields (arrays are unioned, strings only overwrite if empty)
@@ -1895,7 +1899,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
           },
         };
 
-        saveBrandProfile(brandId, merged);
+        updateActiveBrand(merged);
         return json(res, 200, { ok: true, brandId, nichePackId: params['id'] });
       } catch (err) {
         return json(res, 500, { error: String(err) });
@@ -1932,9 +1936,11 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
         };
 
         const brandId = getActiveBrandId();
-        // Importamos dinámico para no crear dependencia circular en el módulo
-        const { loadBrandProfileById } = await import('../config/accounts.js');
-        const current = loadBrandProfileById(brandId);
+        // Importamos dinámico para no crear dependencia circular en el módulo.
+        // Vía brandRegistry (no accounts.js/saveBrandProfile) — ver comentario
+        // idéntico en /api/niche-packs/:id/apply más arriba.
+        const { getActiveBrand, updateActiveBrand } = await import('../config/brandRegistry.js');
+        const current = getActiveBrand();
 
         // Merge profundo — el Brain output enriquece sin destruir
         const updated: BrandProfile = {
@@ -1969,7 +1975,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
           },
         };
 
-        saveBrandProfile(brandId, updated);
+        updateActiveBrand(updated);
         json(res, 200, {
           ok: true,
           brandId,

@@ -6,6 +6,7 @@
    ══════════════════════════════════════════════════════════════════════════════ */
 import { escape } from '../lib/dom.js';
 import { toast } from '../lib/toast.js';
+import { apiSafe } from '../lib/api.js';
 
 /**
  * Otros componentes (home.js, handsfree.js) llaman a /api/account/profile
@@ -355,7 +356,305 @@ const opts = (list, selected) =>
     .map(([v, l]) => `<option value="${escape(v)}" ${v === (selected || '') ? 'selected' : ''}>${escape(l)}</option>`)
     .join('');
 
-const renderShell = (kit = {}) => `
+// ── Asesor de Marca IA ────────────────────────────────────────────────────
+// Front door hacia capacidades que YA existen y están montadas en producción
+// (src/server/brandSetupRoutes.ts) pero que hasta ahora vivían sólo en la
+// vista de Personalización: auditoría de marca con conocimiento profesional
+// de branding (src/capabilities/branding/brandRenewal.ts) y un equipo de 8
+// especialistas IA (src/capabilities/branding/brandingBrain.ts) que puede
+// aplicar sus resultados directo a este mismo Brand Kit.
+
+// Copia estática de BRANDING_BRAIN_AGENTS (brandingBrain.ts) — se usa sólo si
+// GET /api/branding/brain/agents falla, para que el roster nunca se vea roto.
+const ADVISOR_AGENTS_FALLBACK = [
+  {
+    id: 'brand-strategist-senior',
+    name: 'Lorenzo Vidal',
+    emoji: '🏛️',
+    role: 'Estratega de Marca Senior',
+    specialty: 'Visión, misión, valores, posicionamiento competitivo',
+  },
+  {
+    id: 'audience-researcher',
+    name: 'Renata Ibáñez',
+    emoji: '🔬',
+    role: 'Investigador de Audiencia',
+    specialty: 'Avatar del cliente ideal, jobs-to-be-done, dolores, deseos',
+  },
+  {
+    id: 'naming-voice',
+    name: 'Tomás Quiroga',
+    emoji: '📣',
+    role: 'Naming & Voz de Marca',
+    specialty: 'Tono de voz, vocabulario, palabras prohibidas, naming',
+  },
+  {
+    id: 'visual-identity',
+    name: 'Aurora Blanchet',
+    emoji: '🎨',
+    role: 'Identidad Visual',
+    specialty: 'Paleta, tipografía, mood visual, iconografía',
+  },
+  {
+    id: 'narrative-architect',
+    name: 'Joaquín Bressan',
+    emoji: '📖',
+    role: 'Arquitecto de Narrativa',
+    specialty: 'Historia de marca, arcos narrativos, mensajes clave',
+  },
+  {
+    id: 'differential-strategist',
+    name: 'Mariela Costa',
+    emoji: '⚡',
+    role: 'Estratega Diferencial',
+    specialty: 'Anti-genérico, takes contrarios, innovación, ángulos únicos',
+  },
+  {
+    id: 'influencer-positioner',
+    name: 'Bautista Roldán',
+    emoji: '🌟',
+    role: 'Posicionador Influencer',
+    specialty: 'Convertir cuenta en autoridad de nicho',
+  },
+  {
+    id: 'coherence-guardian',
+    name: 'Helena Saavedra',
+    emoji: '🛡️',
+    role: 'Guardian de Coherencia',
+    specialty: 'Validación de identidad y consistencia',
+  },
+];
+
+const HEALTH_COLOR = { sólida: '#10F2B0', estable: '#3B82F6', fatigada: '#F59E0B', crítica: '#EF4444' };
+
+const renderAdvisorSection = (agents) => `
+  <div class="bk-advisor">
+    <div class="bk-advisor-head">
+      <div class="bk-advisor-emoji">🧠</div>
+      <div>
+        <div class="bk-advisor-title">Asesor de Marca IA</div>
+        <div class="bk-advisor-sub">Conocimiento profesional de branding aplicado a TU marca — auditá lo que ya tenés o consultá a tu equipo de 8 especialistas IA. Lo que decidan se puede aplicar directo al Brand Kit de abajo.</div>
+      </div>
+    </div>
+
+    <div class="bk-advisor-row">
+      <div class="bk-advisor-card">
+        <div class="bk-card-label">🔍 Auditoría rápida</div>
+        <div class="bk-hint">Un brand strategist senior audita tu marca actual: salud, señales de fatiga, qué funciona y qué no — en base a tu Brand Kit y tu performance reciente.</div>
+        <button id="bk-audit-run" type="button" class="bk-btn bk-btn-ghost">🔍 Analizar mi marca</button>
+        <div id="bk-audit-result"></div>
+      </div>
+
+      <div class="bk-advisor-card bk-advisor-card-wide">
+        <div class="bk-card-label">🧠 Equipo de especialistas en Branding IA</div>
+        <div class="bk-agents-roster" id="bk-adv-agents">
+          ${agents
+            .map(
+              (a) =>
+                `<div class="bk-agent-chip" data-agent="${escape(a.id)}" title="${escape(a.specialty)}"><span>${a.emoji}</span>${escape(a.name)} <span class="bk-agent-role">· ${escape(a.role)}</span></div>`,
+            )
+            .join('')}
+        </div>
+        <input id="bk-adv-goal" type="text" class="bk-input" placeholder="Objetivo para el equipo (ej: definir posicionamiento para el próximo trimestre)" />
+        <input id="bk-adv-ideas" type="text" class="bk-input" placeholder="Tus ideas (opcional)" />
+        <input id="bk-adv-constraints" type="text" class="bk-input" placeholder="Restricciones (opcional)" />
+        <div class="bk-adv-grid">
+          <select id="bk-adv-tier" class="bk-input">
+            <option value="starting">Recién empezando</option>
+            <option value="growing" selected>Creciendo</option>
+            <option value="established">Establecida</option>
+            <option value="influencer">Referente / influencer</option>
+          </select>
+          <select id="bk-adv-mode" class="bk-input">
+            <option value="discovery">Descubrimiento (desde cero)</option>
+            <option value="refinement" selected>Refinamiento</option>
+            <option value="evolution">Evolución</option>
+            <option value="autopilot">Autopilot</option>
+          </select>
+        </div>
+        <button id="bk-adv-run" type="button" class="bk-btn bk-btn-primary">🧠 Consultar equipo</button>
+        <div class="bk-hint">Puede tardar 30–60s — 8 especialistas trabajando en secuencia.</div>
+        <div id="bk-adv-results"></div>
+      </div>
+    </div>
+  </div>`;
+
+const renderAuditResult = (container, audit) => {
+  const el = container.querySelector('#bk-audit-result');
+  if (!el) return;
+  const color = HEALTH_COLOR[audit.overallHealth] || '#8888aa';
+  el.innerHTML = `
+    <div class="bk-audit-box" style="border-color:${color};">
+      <div class="bk-audit-head">
+        <div class="bk-score-ring" style="border-color:${color};color:${color};">${audit.score}</div>
+        <div>
+          <div style="font-weight:800;font-size:13.5px;text-transform:capitalize;">${escape(audit.overallHealth)}</div>
+          <div class="tiny muted">Urgencia de evolución: ${escape(audit.evolutionUrgency)} · Recomendación: ${escape(audit.recommendation)}</div>
+        </div>
+      </div>
+      ${audit.whatWorks?.length ? `<div class="bk-audit-list"><strong>✅ Funciona:</strong> ${audit.whatWorks.map((t) => escape(t)).join(' · ')}</div>` : ''}
+      ${audit.whatDoesntWork?.length ? `<div class="bk-audit-list"><strong>⚠️ No funciona:</strong> ${audit.whatDoesntWork.map((t) => escape(t)).join(' · ')}</div>` : ''}
+      ${audit.detectedIssues?.length ? `<div class="bk-audit-list"><strong>🔎 Detectado:</strong> ${audit.detectedIssues.map((t) => escape(t)).join(' · ')}</div>` : ''}
+      <button id="bk-audit-to-goal" type="button" class="bk-btn bk-btn-ghost bk-btn-tiny">↓ Usar esto como objetivo del equipo</button>
+    </div>`;
+
+  el.querySelector('#bk-audit-to-goal')?.addEventListener('click', () => {
+    const goalEl = container.querySelector('#bk-adv-goal');
+    if (goalEl) {
+      goalEl.value = `${audit.recommendation === 'mantener' ? 'Reforzar' : 'Resolver'}: ${audit.detectedIssues?.[0] || audit.whatDoesntWork?.[0] || 'mejorar coherencia de marca'}`;
+    }
+    container.querySelector('.bk-advisor-card-wide')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+};
+
+const renderBrandingBrainResults = (container, renderSelf, result) => {
+  const el = container.querySelector('#bk-adv-results');
+  if (!el) return;
+  const score = result.coherenceReport?.score ?? 0;
+  const scoreColor = score >= 80 ? '#10F2B0' : score >= 60 ? '#F59E0B' : '#EF4444';
+
+  el.innerHTML = `
+    <div class="bk-audit-box" style="border-color:${scoreColor};">
+      <div class="bk-audit-head">
+        <div class="bk-score-ring" style="border-color:${scoreColor};color:${scoreColor};">${score}</div>
+        <div style="flex:1;">
+          <div style="font-weight:800;font-size:13.5px;">Coherencia de equipo: ${score}/100</div>
+          <div class="tiny muted">${result.coherenceReport?.conflicts?.length ? result.coherenceReport.conflicts.length + ' conflicto(s) detectado(s)' : '✅ Sin conflictos críticos'}</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button id="bk-adv-apply" type="button" class="bk-btn bk-btn-primary bk-btn-tiny">💾 Aplicar a mi Brand Kit</button>
+          <button id="bk-adv-rerun" type="button" class="bk-btn bk-btn-ghost bk-btn-tiny">🔄 Ajustar y reejecutar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bk-adv-tiles">
+      <div class="bk-adv-tile">
+        <div class="bk-card-label">🏛️ Posicionamiento</div>
+        <div class="small">${escape(result.brandStrategy?.positioning ?? '—')}</div>
+        <div class="tiny muted" style="margin-top:4px;">${escape(result.brandStrategy?.differentiator ?? '')}</div>
+      </div>
+      <div class="bk-adv-tile">
+        <div class="bk-card-label">🎙️ Voz</div>
+        <div class="small">${(result.voice?.tone ?? []).map((t) => `<span class="tag tiny">${escape(t)}</span>`).join(' ')}</div>
+        ${result.voice?.sampleHooks?.length ? `<div class="tiny muted" style="margin-top:4px;font-style:italic;">"${escape(result.voice.sampleHooks[0])}"</div>` : ''}
+      </div>
+      <div class="bk-adv-tile">
+        <div class="bk-card-label">🎨 Identidad visual</div>
+        <div style="display:flex;gap:5px;margin-bottom:4px;">
+          ${(result.visualIdentity?.palette ?? [])
+            .slice(0, 5)
+            .map(
+              (c) =>
+                `<div style="width:20px;height:20px;border-radius:5px;background:${escape(c)};border:1px solid var(--border);" title="${escape(c)}"></div>`,
+            )
+            .join('')}
+        </div>
+        <div class="tiny muted">${escape(result.visualIdentity?.mood ?? '')}</div>
+      </div>
+      <div class="bk-adv-tile">
+        <div class="bk-card-label">📖 Narrativa</div>
+        <div class="tiny">${escape((result.narrative?.coreMessages ?? [])[0] ?? '—')}</div>
+      </div>
+      <div class="bk-adv-tile">
+        <div class="bk-card-label">⚡ Diferencial</div>
+        <div class="tiny">${(result.differentialAngles?.contraTakes ?? [])
+          .slice(0, 2)
+          .map((t) => `↯ ${escape(t)}`)
+          .join('<br>')}</div>
+      </div>
+      <div class="bk-adv-tile">
+        <div class="bk-card-label">🛡️ Recomendaciones</div>
+        <div class="tiny">${(result.coherenceReport?.recommendations ?? [])
+          .slice(0, 2)
+          .map((t) => `• ${escape(t)}`)
+          .join('<br>')}</div>
+      </div>
+    </div>`;
+
+  el.querySelector('#bk-adv-apply')?.addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    e.target.textContent = '⏳ Aplicando…';
+    const payload = {
+      brandStrategy: result.brandStrategy,
+      audienceAvatar: result.audienceAvatar,
+      voice: result.voice,
+      visualIdentity: result.visualIdentity,
+      narrative: result.narrative,
+    };
+    const { error } = await apiSafe('/api/brand/apply-branding-brain', null, { method: 'POST', body: payload });
+    if (error) {
+      toast('❌ No se pudo aplicar: ' + error.message, 'error');
+      e.target.disabled = false;
+      e.target.textContent = '💾 Aplicar a mi Brand Kit';
+      return;
+    }
+    toast('✅ Tu equipo de branding actualizó el Brand Kit', 'ok');
+    await renderSelf(container);
+    container.querySelector('.bk-advisor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  el.querySelector('#bk-adv-rerun')?.addEventListener('click', () => {
+    el.innerHTML = '';
+    container.querySelector('#bk-adv-goal')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+};
+
+const wireAdvisor = (container, renderSelf) => {
+  container.querySelector('#bk-audit-run')?.addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    e.target.textContent = '⏳ Analizando…';
+    const { data, error } = await apiSafe('/api/brand/audit', null, { method: 'POST', body: {} });
+    e.target.disabled = false;
+    e.target.textContent = '🔍 Analizar mi marca';
+    if (error || !data) {
+      toast('❌ No se pudo auditar: ' + (error?.message || 'sin respuesta'), 'error');
+      return;
+    }
+    renderAuditResult(container, data);
+  });
+
+  const runBtn = container.querySelector('#bk-adv-run');
+  runBtn?.addEventListener('click', async () => {
+    const goal = container.querySelector('#bk-adv-goal')?.value?.trim();
+    if (!goal) {
+      toast('⚠️ El objetivo es obligatorio', 'warn');
+      return;
+    }
+    const userIdeas = container.querySelector('#bk-adv-ideas')?.value?.trim() || undefined;
+    const constraints = container.querySelector('#bk-adv-constraints')?.value?.trim() || undefined;
+    const targetTier = container.querySelector('#bk-adv-tier')?.value || 'growing';
+    const mode = container.querySelector('#bk-adv-mode')?.value || 'refinement';
+
+    runBtn.disabled = true;
+    runBtn.textContent = '⏳ Consultando…';
+    const chips = [...container.querySelectorAll('#bk-adv-agents .bk-agent-chip')];
+    let idx = 0;
+    const pulse = setInterval(() => {
+      chips.forEach((c, i) => c.classList.toggle('bk-agent-active', i === idx));
+      idx = (idx + 1) % chips.length;
+    }, 3500);
+
+    const { data, error } = await apiSafe('/api/branding/brain', null, {
+      method: 'POST',
+      body: { goal, userIdeas, constraints, targetTier, mode },
+    });
+
+    clearInterval(pulse);
+    chips.forEach((c) => c.classList.remove('bk-agent-active'));
+    runBtn.disabled = false;
+    runBtn.textContent = '🧠 Consultar equipo';
+
+    if (error || !data) {
+      toast('❌ Error al consultar al equipo: ' + (error?.message || 'sin respuesta'), 'error');
+      return;
+    }
+    toast(`✅ Equipo completo · coherencia ${data.coherenceReport?.score ?? '?'}/100`, 'ok');
+    renderBrandingBrainResults(container, renderSelf, data);
+  });
+};
+
+const renderShell = (kit = {}, agents = ADVISOR_AGENTS_FALLBACK) => `
   <div class="bk-shell">
     <div class="bk-hero">
       <div class="bk-emoji">🎨</div>
@@ -364,6 +663,8 @@ const renderShell = (kit = {}) => `
         <p class="bk-sub">Definí 1 sola vez toda tu identidad de marca. Todas las herramientas (Manos Libres, Piloto, Carruseles, Reels, Historias) lo leen automáticamente.</p>
       </div>
     </div>
+
+    ${renderAdvisorSection(agents)}
 
     <div class="bk-grid">
       <div class="bk-card">
@@ -522,6 +823,29 @@ const renderShell = (kit = {}) => `
     .bk-btn-primary{background:linear-gradient(135deg,#10F2B0,#3B82F6);color:#0A0A0F;}
     .bk-status{font-size:12px;color:var(--text-tertiary,var(--fg-3));}
     .bk-info{margin-top:16px;padding:12px;border-radius:10px;background:rgba(16,242,176,.06);border:1px solid rgba(16,242,176,.2);font-size:12px;color:var(--text-secondary,var(--fg-2));}
+
+    .bk-advisor{margin-bottom:14px;padding:14px;border-radius:12px;border:1px solid rgba(139,92,246,.3);background:linear-gradient(135deg,rgba(139,92,246,.08),rgba(16,242,176,.04));}
+    .bk-advisor-head{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;}
+    .bk-advisor-emoji{font-size:26px;line-height:1;}
+    .bk-advisor-title{font-weight:900;font-size:15px;color:var(--text-primary,var(--fg));}
+    .bk-advisor-sub{margin-top:2px;font-size:12px;color:var(--text-secondary,var(--fg-2));line-height:1.4;max-width:720px;}
+    .bk-advisor-row{display:grid;grid-template-columns:1fr 2fr;gap:12px;}
+    @media(max-width:900px){.bk-advisor-row{grid-template-columns:1fr;}}
+    .bk-advisor-card{padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--card,rgba(255,255,255,.02));display:flex;flex-direction:column;gap:8px;}
+    .bk-btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-primary,var(--fg));}
+    .bk-btn-tiny{padding:6px 12px;font-size:12px;border-radius:8px;}
+    .bk-agents-roster{display:flex;flex-wrap:wrap;gap:6px;}
+    .bk-agent-chip{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text-secondary,var(--fg-2));cursor:default;transition:border-color .2s,color .2s;}
+    .bk-agent-role{color:var(--text-tertiary,var(--fg-3));}
+    .bk-agent-chip.bk-agent-active{border-color:#8B5CF6;color:var(--text-primary,var(--fg));box-shadow:0 0 0 2px rgba(139,92,246,.15);}
+    .bk-score-ring{width:46px;height:46px;border-radius:50%;border:3px solid;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;flex-shrink:0;}
+    .bk-audit-box{padding:10px;border:1px solid var(--border);border-left-width:3px;border-radius:8px;display:flex;flex-direction:column;gap:8px;}
+    .bk-audit-head{display:flex;gap:10px;align-items:center;}
+    .bk-audit-list{font-size:11.5px;line-height:1.5;color:var(--text-secondary,var(--fg-2));}
+    .bk-adv-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+    @media(max-width:900px){.bk-adv-tiles{grid-template-columns:1fr 1fr;}}
+    @media(max-width:640px){.bk-adv-tiles{grid-template-columns:1fr;}}
+    .bk-adv-tile{padding:9px;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.02);}
   </style>`;
 
 export const renderBrandKit = async (container) => {
@@ -533,9 +857,14 @@ export const renderBrandKit = async (container) => {
       return '';
     }
   })();
-  const kit = (await loadBrandKit(accountId)) || {};
+  const [kit, agentsRes] = await Promise.all([
+    loadBrandKit(accountId).then((k) => k || {}),
+    apiSafe('/api/branding/brain/agents', { agents: ADVISOR_AGENTS_FALLBACK }),
+  ]);
+  const agents = agentsRes.data?.agents?.length ? agentsRes.data.agents : ADVISOR_AGENTS_FALLBACK;
 
-  container.innerHTML = renderShell(kit);
+  container.innerHTML = renderShell(kit, agents);
+  wireAdvisor(container, renderBrandKit);
 
   // Sync color picker ↔ hex input
   ['text', 'bg', 'accent', 'sec1', 'sec2'].forEach((k) => {
