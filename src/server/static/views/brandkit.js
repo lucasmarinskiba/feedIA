@@ -447,7 +447,23 @@ const citationChips = (result, fields) => {
     </div>`;
 };
 
-const renderAdvisorSection = (agents) => `
+// Traduce el objetivo ya guardado en Brand Kit (BrandProfile.goals.primary) a
+// una frase — así el campo "Objetivo" arranca lleno con algo específico de
+// ESTA marca en vez de una caja vacía que obliga a pensar desde cero.
+const GOAL_PRIMARY_PHRASES = {
+  awareness: 'aumentar el alcance y que más gente del nicho me descubra',
+  engagement: 'aumentar la interacción real (comentarios, guardados, compartidos)',
+  leads: 'generar más leads/contactos calificados',
+  ventas: 'aumentar las ventas directas',
+  autoridad: 'consolidarme como autoridad/referente del nicho',
+  trafico: 'llevar más tráfico a mi sitio/tienda',
+  comunidad: 'construir una comunidad más activa y conectada',
+  retencion: 'fidelizar a la audiencia que ya tengo',
+};
+const defaultGoalFromKit = (kit, suffix = '') =>
+  `${GOAL_PRIMARY_PHRASES[kit?.goalPrimary] || 'hacer crecer la cuenta'}${suffix}`;
+
+const renderAdvisorSection = (agents, kit) => `
   <div class="bk-advisor">
     <div class="bk-advisor-head">
       <div class="bk-advisor-emoji">🧠</div>
@@ -460,7 +476,7 @@ const renderAdvisorSection = (agents) => `
     <div class="bk-advisor-row">
       <div class="bk-advisor-card">
         <div class="bk-card-label">🔍 Auditoría rápida</div>
-        <div class="bk-hint">Un brand strategist senior audita tu marca actual: salud, señales de fatiga, qué funciona y qué no — en base a tu Brand Kit y tu performance reciente.</div>
+        <div class="bk-hint">Un brand strategist senior audita tu marca actual: salud, señales de fatiga, qué funciona y qué no — en base a tu Brand Kit y tu performance reciente. Después podés convertir esa auditoría en un plan de desarrollo con 1 click.</div>
         <button id="bk-audit-run" type="button" class="bk-btn bk-btn-ghost">🔍 Analizar mi marca</button>
         <div id="bk-audit-result"></div>
       </div>
@@ -475,9 +491,12 @@ const renderAdvisorSection = (agents) => `
             )
             .join('')}
         </div>
-        <input id="bk-adv-goal" type="text" class="bk-input" placeholder="Objetivo para el equipo (ej: definir posicionamiento para el próximo trimestre)" />
-        <input id="bk-adv-ideas" type="text" class="bk-input" placeholder="Tus ideas (opcional)" />
-        <input id="bk-adv-constraints" type="text" class="bk-input" placeholder="Restricciones (opcional)" />
+        <input id="bk-adv-goal" type="text" class="bk-input" placeholder="Objetivo para el equipo" value="${escape(defaultGoalFromKit(kit))}" />
+        <div class="bk-field-hint">Sé específico y medible — "duplicar guardados en 90 días" funciona mejor que "crecer".</div>
+        <input id="bk-adv-ideas" type="text" class="bk-input" placeholder="Tus ideas (opcional) — ej: quiero probar colabs con otras cuentas del nicho" />
+        <div class="bk-field-hint">Cosas que ya se te ocurrieron y querés que el equipo evalúe o incorpore — no hace falta que estén pulidas.</div>
+        <input id="bk-adv-constraints" type="text" class="bk-input" placeholder="Restricciones (opcional) — ej: sin mostrar cara, presupuesto $0, solo 3 posts/semana" />
+        <div class="bk-field-hint">Límites reales que el equipo tiene que respetar — tiempo, presupuesto, qué no estás dispuesto a mostrar o cambiar.</div>
         <div class="bk-adv-grid">
           <select id="bk-adv-tier" class="bk-input">
             <option value="starting">Recién empezando</option>
@@ -499,6 +518,23 @@ const renderAdvisorSection = (agents) => `
     </div>
   </div>`;
 
+// La auditoría alimenta directo a la Branding Brain: recomendación → modo,
+// score → tier de partida — así "a partir de la auditoría, un desarrollo de
+// marca" es 1 click real, no "copiá este texto a mano en el otro campo".
+const RECOMMENDATION_TO_MODE = {
+  mantener: 'refinement',
+  'refresh-sutil': 'refinement',
+  'rebrand-parcial': 'evolution',
+  'rebrand-total': 'discovery',
+};
+const RECOMMENDATION_TO_ACTION = {
+  mantener: 'Reforzar y consolidar',
+  'refresh-sutil': 'Refrescar sin perder identidad',
+  'rebrand-parcial': 'Evolucionar parcialmente',
+  'rebrand-total': 'Replantear de fondo',
+};
+const tierFromScore = (score) => (score < 40 ? 'starting' : score < 75 ? 'growing' : 'established');
+
 const renderAuditResult = (container, audit) => {
   const el = container.querySelector('#bk-audit-result');
   if (!el) return;
@@ -515,15 +551,33 @@ const renderAuditResult = (container, audit) => {
       ${audit.whatWorks?.length ? `<div class="bk-audit-list"><strong>✅ Funciona:</strong> ${audit.whatWorks.map((t) => escape(t)).join(' · ')}</div>` : ''}
       ${audit.whatDoesntWork?.length ? `<div class="bk-audit-list"><strong>⚠️ No funciona:</strong> ${audit.whatDoesntWork.map((t) => escape(t)).join(' · ')}</div>` : ''}
       ${audit.detectedIssues?.length ? `<div class="bk-audit-list"><strong>🔎 Detectado:</strong> ${audit.detectedIssues.map((t) => escape(t)).join(' · ')}</div>` : ''}
-      <button id="bk-audit-to-goal" type="button" class="bk-btn bk-btn-ghost bk-btn-tiny">↓ Usar esto como objetivo del equipo</button>
+      <button id="bk-audit-develop" type="button" class="bk-btn bk-btn-primary bk-btn-tiny">🚀 Generar plan de desarrollo de marca</button>
     </div>`;
 
-  el.querySelector('#bk-audit-to-goal')?.addEventListener('click', () => {
+  // citationChips espera sub-objetos (result[field].frameworksCited); el audit
+  // trae frameworksCited en la raíz — se resuelve sin forzar el helper.
+  if (audit.frameworksCited?.length) {
+    const citationsHtml = citationChips({ _audit: { frameworksCited: audit.frameworksCited } }, ['_audit']);
+    el.querySelector('.bk-audit-box')?.insertAdjacentHTML('beforeend', citationsHtml);
+  }
+
+  el.querySelector('#bk-audit-develop')?.addEventListener('click', () => {
     const goalEl = container.querySelector('#bk-adv-goal');
-    if (goalEl) {
-      goalEl.value = `${audit.recommendation === 'mantener' ? 'Reforzar' : 'Resolver'}: ${audit.detectedIssues?.[0] || audit.whatDoesntWork?.[0] || 'mejorar coherencia de marca'}`;
-    }
+    const ideasEl = container.querySelector('#bk-adv-ideas');
+    const constraintsEl = container.querySelector('#bk-adv-constraints');
+    const tierEl = container.querySelector('#bk-adv-tier');
+    const modeEl = container.querySelector('#bk-adv-mode');
+    const action = RECOMMENDATION_TO_ACTION[audit.recommendation] || 'Desarrollar';
+    if (goalEl) goalEl.value = `${action}: ${audit.detectedIssues?.[0] || 'la marca según la auditoría'}`;
+    if (ideasEl && audit.whatWorks?.length)
+      ideasEl.value = `Preservar lo que ya funciona: ${audit.whatWorks.join('; ')}`;
+    if (constraintsEl && audit.whatDoesntWork?.length)
+      constraintsEl.value = `No repetir: ${audit.whatDoesntWork.join('; ')}`;
+    if (tierEl) tierEl.value = tierFromScore(audit.score);
+    if (modeEl) modeEl.value = RECOMMENDATION_TO_MODE[audit.recommendation] || 'refinement';
     container.querySelector('.bk-advisor-card-wide')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    toast('🚀 Armando el plan de desarrollo a partir de la auditoría…', 'ok');
+    container.querySelector('#bk-adv-run')?.click();
   });
 };
 
@@ -769,7 +823,7 @@ const renderPlatformAgentChips = (agents) =>
     )
     .join('');
 
-const renderPlatformSection = (agentsByPlatform, initialPlatform) => `
+const renderPlatformSection = (agentsByPlatform, initialPlatform, kit) => `
   <div class="bk-advisor">
     <div class="bk-advisor-head">
       <div class="bk-advisor-emoji">📲</div>
@@ -786,9 +840,10 @@ const renderPlatformSection = (agentsByPlatform, initialPlatform) => `
 
     <div class="bk-advisor-card bk-advisor-card-wide">
       <div class="bk-agents-roster" id="bk-plat-agents">${renderPlatformAgentChips(agentsByPlatform[initialPlatform])}</div>
-      <input id="bk-plat-goal" type="text" class="bk-input" placeholder="Objetivo para el equipo (ej: crecer seguidores este trimestre)" />
-      <input id="bk-plat-ideas" type="text" class="bk-input" placeholder="Tus ideas (opcional)" />
-      <input id="bk-plat-constraints" type="text" class="bk-input" placeholder="Restricciones (opcional)" />
+      <input id="bk-plat-goal" type="text" class="bk-input" placeholder="Objetivo para el equipo" value="${escape(defaultGoalFromKit(kit, ` en ${PLATFORM_LABEL[initialPlatform]}`))}" />
+      <div class="bk-field-hint">Específico a esta cuenta y esta plataforma — "pasar de 2% a 5% de engagement rate" rinde más que "crecer".</div>
+      <input id="bk-plat-ideas" type="text" class="bk-input" placeholder="Tus ideas (opcional) — ej: quiero probar series semanales" />
+      <input id="bk-plat-constraints" type="text" class="bk-input" placeholder="Restricciones (opcional) — ej: solo edito desde el celular, sin presupuesto de ads" />
       <button id="bk-plat-run" type="button" class="bk-btn bk-btn-primary" data-platform="${initialPlatform}">🧠 Consultar equipo de ${escape(PLATFORM_LABEL[initialPlatform])}</button>
       <div class="bk-hint">Puede tardar 20–40s — 4 especialistas trabajando en secuencia.</div>
       <div id="bk-plat-results"></div>
@@ -928,9 +983,9 @@ const renderShell = (
       </div>
     </div>
 
-    ${renderAdvisorSection(agents)}
+    ${renderAdvisorSection(agents, kit)}
 
-    ${renderPlatformSection(platformAgents, initialPlatform)}
+    ${renderPlatformSection(platformAgents, initialPlatform, kit)}
 
     <div class="bk-grid">
       <div class="bk-card">
@@ -1069,6 +1124,7 @@ const renderShell = (
     .bk-input-sm{padding:6px 10px;font-size:12px;}
     .bk-textarea{resize:vertical;font-family:inherit;line-height:1.4;}
     .bk-hint{font-size:11px;color:var(--text-tertiary,var(--fg-3));line-height:1.4;}
+    .bk-field-hint{font-size:10.5px;color:var(--text-tertiary,var(--fg-3));line-height:1.3;margin-top:-4px;}
     .bk-color-row{display:flex;flex-direction:column;gap:10px;}
     .bk-color-cell{display:flex;align-items:center;gap:12px;}
     .bk-color-cell span{font-size:12px;font-weight:600;width:50px;color:var(--text-secondary,var(--fg-2));}

@@ -14,6 +14,7 @@ import { sendAlert } from '../../integrations/notifications.js';
 import { generateImage } from '../../integrations/falAi.js';
 import { generateHighlightCoverSet, generateProfilePhoto } from '../design/graphicDesigner.js';
 import { getRecentPosts, getAccountSummary } from '../analytics/performanceDB.js';
+import { frameworkBlock, ASSERTIVENESS_RULE } from './knowledgeFrameworks.js';
 import type { BrandProfile } from '../../config/types.js';
 
 const RENEWAL_PATH = join(process.cwd(), 'data', 'branding', 'renewals.json');
@@ -39,6 +40,7 @@ export interface BrandAuditResult {
   whatDoesntWork: string[];
   evolutionUrgency: 'baja' | 'media' | 'alta';
   recommendation: 'mantener' | 'refresh-sutil' | 'rebrand-parcial' | 'rebrand-total';
+  frameworksCited: string[];
 }
 
 export interface BrandEvolutionProposal {
@@ -155,7 +157,9 @@ PERFORMANCE RECIENTE (últimos 90 días):
 HOOKS RECIENTES: ${recentHooks || '(sin posts)'}
 TEMAS RECURRENTES: ${recentTopics || '(sin temas detectados)'}
 
-Evaluá honestamente. NO seas complaciente: si hay fatiga, decilo.
+${frameworkBlock('brand-auditor')}
+
+Evaluá honestamente. NO seas complaciente: si hay fatiga, decilo. ${ASSERTIVENESS_RULE} Cada "detectedIssue" y cada "whatDoesntWork" tiene que poder rastrearse a una señal concreta de arriba (performance, tema repetido, o inconsistencia declarada) — nunca una crítica genérica de "podría mejorar".
 
 JSON:
 {
@@ -166,14 +170,15 @@ JSON:
   "whatWorks": ["fortaleza 1", "fortaleza 2"],
   "whatDoesntWork": ["debilidad 1", "debilidad 2"],
   "evolutionUrgency": "baja | media | alta",
-  "recommendation": "mantener | refresh-sutil | rebrand-parcial | rebrand-total"
+  "recommendation": "mantener | refresh-sutil | rebrand-parcial | rebrand-total",
+  "frameworksCited": ["framework aplicado y cómo (ej: Collins — Brutal Facts: el engagement bajando 3 meses seguidos no se suaviza)", "framework 2"]
 }`;
 
   const audit = await routerAskJson<Omit<BrandAuditResult, 'auditedAt'>>(prompt, {
     taskType: 'analysis',
     maxTokens: 2500,
     systemPrompt:
-      'Sos un brand strategist senior. Tu análisis es directo, no complaciente, basado en señales concretas.',
+      'Sos un brand strategist senior. Tu análisis es directo, no complaciente, basado en señales concretas y en frameworks de branding/marketing reales — nunca genérico.',
   });
 
   const fullAudit: BrandAuditResult = { ...audit, auditedAt: new Date().toISOString() };

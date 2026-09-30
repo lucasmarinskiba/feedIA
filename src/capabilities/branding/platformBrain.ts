@@ -16,7 +16,7 @@
 import { log } from '../../agent/logger.js';
 import type { BrandProfile } from '../../config/types.js';
 import { callCanvaAgent, type CanvaAgentTier } from '../computerUse/canvaClaudeClient.js';
-import { frameworkBlock, ASSERTIVENESS_RULE } from './knowledgeFrameworks.js';
+import { groundingBlock, ASSERTIVENESS_RULE } from './knowledgeFrameworks.js';
 
 export type Platform = 'instagram' | 'tiktok';
 
@@ -228,7 +228,7 @@ Tu especialidad: ${specialty}.
 
 Ya conocés la identidad completa de la marca desde el contexto de sistema.
 
-${frameworkBlock(agentId)}
+${groundingBlock(agentId, platform)}
 
 ENCARGO ESPECÍFICO:
 Objetivo del usuario: ${request.goal}

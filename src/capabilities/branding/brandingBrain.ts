@@ -17,7 +17,7 @@
 import { log } from '../../agent/logger.js';
 import type { BrandProfile } from '../../config/types.js';
 import { callCanvaAgent, type CanvaAgentTier } from '../computerUse/canvaClaudeClient.js';
-import { frameworkBlock, ASSERTIVENESS_RULE } from './knowledgeFrameworks.js';
+import { groundingBlock, ASSERTIVENESS_RULE } from './knowledgeFrameworks.js';
 
 export type BrandingBrainMode = 'discovery' | 'refinement' | 'evolution' | 'autopilot';
 
@@ -277,7 +277,7 @@ Tu especialidad: Visión, misión, valores, posicionamiento competitivo.
 
 Ya conocés la identidad completa de la marca desde el contexto de sistema.
 
-${frameworkBlock('brand-strategist-senior')}
+${groundingBlock('brand-strategist-senior')}
 
 ENCARGO ESPECÍFICO:
 Goal del usuario: ${request.goal}
@@ -319,7 +319,7 @@ Usás Jobs-to-be-Done framework y mapeo emocional profundo.
 Ya conocés la audiencia base de la marca desde el contexto de sistema.
 Profundizá y precisá en base al posicionamiento estratégico definido.
 
-${frameworkBlock('audience-researcher')}
+${groundingBlock('audience-researcher')}
 
 POSICIONAMIENTO DE LA MARCA: ${brandStrategy.positioning}
 GOAL DEL USUARIO: ${request.goal}
@@ -363,7 +363,7 @@ Detectás palabras genéricas y las prohibís. Creás vocabulario de marca disti
 Ya conocés el tono actual de la marca desde el contexto de sistema.
 Refiná y ampliá con base en el avatar y el posicionamiento.
 
-${frameworkBlock('naming-voice')}
+${groundingBlock('naming-voice')}
 
 AVATAR: ${audienceAvatar.description}
 ASPIRATIONAL IDENTITY: ${audienceAvatar.aspirationalIdentity}
@@ -403,7 +403,7 @@ Respondé con JSON:
 Ya conocés la identidad visual actual de la marca desde el contexto de sistema (paleta, tipografías, style, mood, etc.).
 Tu tarea: validar, refinar o proponer mejoras fundamentadas.
 
-${frameworkBlock('visual-identity')}
+${groundingBlock('visual-identity')}
 
 AVATAR: ${audienceAvatar.description}
 VOZ: ${voice.tone.join(', ')}
@@ -448,7 +448,7 @@ Usás técnicas cinematográficas y storytelling estructurado.
 Ya conocés la historia y estrategia de la marca desde el contexto de sistema.
 Profundizá y construí arcos narrativos que conecten con el avatar definido.
 
-${frameworkBlock('narrative-architect')}
+${groundingBlock('narrative-architect')}
 
 POSICIONAMIENTO: ${brandStrategy.positioning}
 AVATAR ASPIRATIONAL: ${audienceAvatar.aspirationalIdentity}
@@ -491,7 +491,7 @@ Tu misión: sacar a la marca del contenido genérico del nicho. Pensás en contr
 
 Ya conocés el nicho y el posicionamiento desde el contexto de sistema.
 
-${frameworkBlock('differential-strategist')}
+${groundingBlock('differential-strategist')}
 
 VOZ DE MARCA: ${voice.tone.join(', ')}
 DOLORES DEL AVATAR: ${audienceAvatar.pains.join('; ')}
@@ -540,7 +540,7 @@ Convertís cuentas en autoridad de nicho. Sabés exactamente qué formatos y tá
 
 Ya conocés los objetivos de Instagram y el nicho de la marca desde el contexto de sistema.
 
-${frameworkBlock('influencer-positioner')}
+${groundingBlock('influencer-positioner')}
 
 POSICIONAMIENTO: ${brandStrategy.positioning}
 ÁNGULOS ÚNICOS: ${differentialAngles.uniqueAngles.join('; ')}
@@ -594,7 +594,7 @@ Detectás conflictos sutiles entre las decisiones de estrategia, voz e identidad
 
 Ya conocés la identidad base de la marca desde el contexto de sistema.
 
-${frameworkBlock('coherence-guardian')}
+${groundingBlock('coherence-guardian')}
 
 Auditá los outputs del equipo completo de este job, incluidos los frameworks que cada especialista dijo aplicar:
 
