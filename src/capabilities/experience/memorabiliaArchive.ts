@@ -20,6 +20,7 @@ import { getRecentCelebrations } from './celebrationEngine.js';
 import { listGoals } from '../goals/goalManager.js';
 import { listLeads } from '../community/leadPipeline.js';
 import { listConversations } from '../community/dmInbox.js';
+import { fetchInstagramProfile, fetchTikTokProfile } from '../../integrations/platformProfiles.js';
 import type { BrandProfile } from '../../config/types.js';
 
 const MEMORABILIA_PATH = join(process.cwd(), 'data', 'experience', 'memorabilia.json');
@@ -217,6 +218,15 @@ JSON:
 const AUTO_DETECT_THROTTLE_MS = 6 * 60 * 60 * 1000; // 6h — evita re-correr en cada visita silenciosa sin novedades
 
 export const autoDetectAndCapture = async (brand: BrandProfile, opts: { force?: boolean } = {}): Promise<Memory[]> => {
+  // Sin cuenta de Instagram/TikTok realmente conectada, todo lo que haya en growth/performance/leads/DMs
+  // es forzosamente data de prueba o dejada de sesiones de desarrollo — nunca actividad real del usuario.
+  // No generamos memorias "de mentira": cortamos acá, antes de tocar cualquier store.
+  const [igProfile, ttProfile] = await Promise.all([fetchInstagramProfile(brand.id), fetchTikTokProfile(brand.id)]);
+  if (!igProfile.real && !ttProfile.real) {
+    log.info('[Memorabilia] Auto-detect omitido: no hay cuenta de Instagram/TikTok conectada todavía');
+    return [];
+  }
+
   const store = loadStore();
   if (!opts.force && store.lastAutoDetectAt) {
     const elapsed = Date.now() - new Date(store.lastAutoDetectAt).getTime();
@@ -457,6 +467,15 @@ export const autoDetectAndCapture = async (brand: BrandProfile, opts: { force?: 
 };
 
 // ── Pinear ────────────────────────────────────────────────────────────────────
+
+export const deleteMemory = (memoryId: string): boolean => {
+  const store = loadStore();
+  const before = store.memories.length;
+  store.memories = store.memories.filter((mem) => mem.id !== memoryId);
+  if (store.memories.length === before) return false;
+  saveStore(store);
+  return true;
+};
 
 export const pinMemory = (memoryId: string): Memory | null => {
   const store = loadStore();

@@ -87,6 +87,7 @@ import {
   pinMemory,
   unpinMemory,
   markRevisited,
+  deleteMemory,
   listMemories,
   getMemory,
   getThrowbackMemory,
@@ -863,6 +864,11 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
     method: 'POST',
     pattern: '/api/memorabilia/:id/revisit',
     handler: ({ res, params }) => json(res, 200, markRevisited(params['id']!)),
+  },
+  {
+    method: 'DELETE',
+    pattern: '/api/memorabilia/:id',
+    handler: ({ res, params }) => json(res, 200, { deleted: deleteMemory(params['id']!) }),
   },
   {
     method: 'GET',
