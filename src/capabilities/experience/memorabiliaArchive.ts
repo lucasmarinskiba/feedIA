@@ -18,6 +18,8 @@ import { getMilestones, getRecentDailyMetrics } from '../growth/growthEngine.js'
 import { getUnlockedAchievements } from './achievementSystem.js';
 import { getRecentCelebrations } from './celebrationEngine.js';
 import { listGoals } from '../goals/goalManager.js';
+import { listLeads } from '../community/leadPipeline.js';
+import { listConversations } from '../community/dmInbox.js';
 import type { BrandProfile } from '../../config/types.js';
 
 const MEMORABILIA_PATH = join(process.cwd(), 'data', 'experience', 'memorabilia.json');
@@ -66,6 +68,7 @@ interface MemorabiliaStore {
   memories: Memory[];
   yearbooks: Array<{ year: number; generatedAt: string; markdown: string; coverEmoji: string }>;
   lastUpdated: string;
+  lastAutoDetectAt?: string;
 }
 
 const DEFAULT_STORE: MemorabiliaStore = {
@@ -195,17 +198,26 @@ JSON:
 
 // ── Auto-detección de memorias para capturar ─────────────────────────────────
 
-export const autoDetectAndCapture = async (brand: BrandProfile): Promise<Memory[]> => {
-  const captured: Memory[] = [];
+const AUTO_DETECT_THROTTLE_MS = 6 * 60 * 60 * 1000; // 6h — evita re-correr en cada visita silenciosa sin novedades
+
+export const autoDetectAndCapture = async (brand: BrandProfile, opts: { force?: boolean } = {}): Promise<Memory[]> => {
   const store = loadStore();
+  if (!opts.force && store.lastAutoDetectAt) {
+    const elapsed = Date.now() - new Date(store.lastAutoDetectAt).getTime();
+    if (elapsed < AUTO_DETECT_THROTTLE_MS) return [];
+  }
+
+  const captured: Memory[] = [];
   const existingTypes = new Set(
     store.memories.map((m) => `${m.type}:${m.associatedData.postId ?? m.associatedData.metric?.name ?? ''}`),
   );
+  const existingRelated = new Set(store.memories.flatMap((m) => m.associatedData.relatedEntityIds ?? []));
 
   // First post
   const allPosts = getRecentPosts(365);
-  if (allPosts.length > 0 && !existingTypes.has('first-post:')) {
-    const firstPost = allPosts[allPosts.length - 1]!;
+  const firstPostCandidate = allPosts[allPosts.length - 1];
+  if (firstPostCandidate && !existingTypes.has(`first-post:${firstPostCandidate.id}`)) {
+    const firstPost = firstPostCandidate;
     captured.push(
       await captureMemory({
         type: 'first-post',
@@ -266,7 +278,7 @@ export const autoDetectAndCapture = async (brand: BrandProfile): Promise<Memory[
 
   // Best week
   const last90Days = getRecentDailyMetrics(90);
-  if (last90Days.length >= 7 && !existingTypes.has('best-week:')) {
+  if (last90Days.length >= 7 && !existingTypes.has('best-week:best-week-delta')) {
     // Encontrar la mejor semana
     let bestWeekStart = 0;
     let bestWeekTotal = -Infinity;
@@ -294,6 +306,135 @@ export const autoDetectAndCapture = async (brand: BrandProfile): Promise<Memory[
       );
     }
   }
+
+  // First sale
+  const wonLeads = listLeads({ stage: 'won' }).filter((l) => l.wonAt);
+  if (wonLeads.length > 0) {
+    const firstWon = [...wonLeads].sort((a, b) => a.wonAt!.localeCompare(b.wonAt!))[0]!;
+    if (!existingTypes.has(`first-sale:${firstWon.id}`)) {
+      captured.push(
+        await captureMemory({
+          type: 'first-sale',
+          brand,
+          generateStory: true,
+          happenedAt: firstWon.wonAt,
+          emotionalWeight: 5,
+          associatedData: {
+            postId: firstWon.id,
+            quote: firstWon.contactUsername,
+            metric: { name: 'revenue', value: firstWon.estimatedValue?.amount ?? 0 },
+          },
+        }),
+      );
+    }
+  }
+
+  // Community love (DM con sentiment muy alto)
+  const lovingConvos = listConversations()
+    .filter((c) => c.sentiment > 0.7 && !existingRelated.has(c.contact.username))
+    .sort((a, b) => b.sentiment - a.sentiment);
+  if (lovingConvos.length > 0) {
+    const top = lovingConvos[0]!;
+    const lastTheirMessage = [...top.messages].reverse().find((m) => m.sender === 'them');
+    captured.push(
+      await captureMemory({
+        type: 'community-love',
+        brand,
+        generateStory: true,
+        happenedAt: top.lastMessageAt,
+        emotionalWeight: 4,
+        associatedData: {
+          quote: lastTheirMessage?.text,
+          relatedEntityIds: [top.contact.username],
+        },
+      }),
+    );
+  }
+
+  // Breakthrough (engagement rate se duplica semana vs. semana anterior)
+  const recentPosts = getRecentPosts(60);
+  if (recentPosts.length >= 14) {
+    const recentWeek = recentPosts.slice(0, 7);
+    const priorWeek = recentPosts.slice(7, 14);
+    const avg = (posts: typeof recentPosts) => posts.reduce((s, p) => s + p.metrics.engagementRate, 0) / posts.length;
+    const recentAvg = avg(recentWeek);
+    const priorAvg = avg(priorWeek);
+    const bestPost = [...recentWeek].sort((a, b) => b.metrics.engagementRate - a.metrics.engagementRate)[0]!;
+    if (priorAvg > 0 && recentAvg / priorAvg >= 2 && !existingTypes.has(`breakthrough:${bestPost.id}`)) {
+      captured.push(
+        await captureMemory({
+          type: 'breakthrough',
+          brand,
+          generateStory: true,
+          happenedAt: bestPost.publishedAt,
+          emotionalWeight: 4,
+          associatedData: {
+            postId: bestPost.id,
+            quote: bestPost.hookText,
+            metric: { name: 'engagement-rate', value: recentAvg },
+          },
+        }),
+      );
+    }
+  }
+
+  // Comeback (racha negativa seguida de racha de recuperación)
+  if (last90Days.length >= 6 && !existingTypes.has('comeback:comeback-recovery')) {
+    for (let i = 0; i <= last90Days.length - 6; i++) {
+      const downRun = last90Days.slice(i, i + 3);
+      const upRun = last90Days.slice(i + 3, i + 6);
+      const downTotal = downRun.reduce((s, d) => s + d.followersDelta, 0);
+      const upTotal = upRun.reduce((s, d) => s + d.followersDelta, 0);
+      const isDownRun = downRun.every((d) => d.followersDelta < 0);
+      const isUpRun = upRun.every((d) => d.followersDelta > 0);
+      if (isDownRun && isUpRun && upTotal >= Math.abs(downTotal)) {
+        captured.push(
+          await captureMemory({
+            type: 'comeback',
+            brand,
+            generateStory: true,
+            happenedAt: upRun[0]!.date,
+            emotionalWeight: 4,
+            associatedData: {
+              metric: { name: 'comeback-recovery', value: upTotal },
+            },
+          }),
+        );
+        break;
+      }
+    }
+  }
+
+  // Anniversary (proxy: fecha del primer post — la memoria "first-post" es la única fuente
+  // durable de "inicio del journey"; el historial de dailyMetrics se recorta a 90 días)
+  const firstPostMemory =
+    captured.find((m) => m.type === 'first-post') ?? store.memories.find((m) => m.type === 'first-post');
+  const journeyStart = firstPostMemory?.happenedAt;
+  if (journeyStart) {
+    const startDate = new Date(journeyStart);
+    const today = new Date();
+    const yearsElapsed = today.getFullYear() - startDate.getFullYear();
+    const isAnniversaryDay = today.getMonth() === startDate.getMonth() && today.getDate() === startDate.getDate();
+    const anniversaryKey = `anniversary:anniversary-${today.getFullYear()}`;
+    if (yearsElapsed >= 1 && isAnniversaryDay && !existingTypes.has(anniversaryKey)) {
+      captured.push(
+        await captureMemory({
+          type: 'anniversary',
+          brand,
+          generateStory: true,
+          happenedAt: today.toISOString(),
+          emotionalWeight: 4,
+          associatedData: {
+            metric: { name: `anniversary-${today.getFullYear()}`, value: yearsElapsed },
+          },
+        }),
+      );
+    }
+  }
+
+  const finalStore = loadStore();
+  finalStore.lastAutoDetectAt = new Date().toISOString();
+  saveStore(finalStore);
 
   log.info(`[Memorabilia] Auto-capturadas ${captured.length} memorias nuevas`);
   return captured;

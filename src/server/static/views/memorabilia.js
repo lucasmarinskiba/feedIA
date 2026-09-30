@@ -21,6 +21,7 @@ const TYPE_EMOJI = {
 };
 
 let activeFilter = null;
+let autoRunTriedThisSession = false;
 
 const renderMemoryCard = (m) => `
   <div class="card memory-card" data-id="${escape(m.id)}" style="${m.pinned ? 'border-top:3px solid var(--accent);' : ''}">
@@ -133,10 +134,23 @@ export const renderMemorabilia = async (container) => {
   // Grid
   let visible = memories;
   if (activeFilter) visible = visible.filter((m) => m.type === activeFilter);
+  const shouldAutoRun = snapshot.totalMemories === 0 && !isOffline && !autoRunTriedThisSession;
   document.getElementById('memorabilia-grid').innerHTML =
     visible.length > 0
       ? visible.map(renderMemoryCard).join('')
-      : '<div class="empty-state">Aún no hay memorias capturadas. Hacé clic en "Auto-detectar" para que el sistema busque las importantes.</div>';
+      : shouldAutoRun
+        ? '<div class="empty-state">🔍 Analizando tu actividad para encontrar los primeros momentos importantes…</div>'
+        : '<div class="empty-state">Todavía no hay suficiente actividad para generar memorias. En cuanto publiques tu primer post, alcances un hito, cierres tu primera venta o tengas una semana fuerte, el sistema las va a capturar automáticamente. También podés forzar la búsqueda ahora con "Auto-detectar".</div>';
+
+  // Auto-run silencioso: la primera vez que la sección está vacía, buscamos solos sin
+  // esperar a que el usuario descubra el botón.
+  if (shouldAutoRun) {
+    autoRunTriedThisSession = true;
+    apiBust('/api/memorabilia');
+    apiSafe('/api/memorabilia/auto-detect', [], { method: 'POST', body: { force: false } }).then(() => {
+      renderMemorabilia(container);
+    });
+  }
 
   // Listeners
   document.getElementById('type-filter').addEventListener('click', (e) => {
@@ -149,7 +163,10 @@ export const renderMemorabilia = async (container) => {
   document.getElementById('auto-detect').addEventListener('click', async () => {
     toast('Buscando memorias del journey...', 'info');
     apiBust('/api/memorabilia');
-    const { data: detected = [] } = await apiSafe('/api/memorabilia/auto-detect', [], { method: 'POST', body: {} });
+    const { data: detected = [] } = await apiSafe('/api/memorabilia/auto-detect', [], {
+      method: 'POST',
+      body: { force: true },
+    });
     toast(`${detected.length} memorias nuevas capturadas`, 'success');
     renderMemorabilia(container);
   });
