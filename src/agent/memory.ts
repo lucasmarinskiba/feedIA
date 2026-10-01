@@ -3,6 +3,12 @@ import { resolve, dirname } from 'node:path';
 import type { BrandProfile } from '../config/types.js';
 import { getLatestAnalytics, listInbound, listPostsByAccount } from '../database/index.js';
 import { IMAGE_SOURCE_INSTRUCTIONS } from '../capabilities/aesthetic/brandStyleGuide.js';
+import { getThemeForUser } from '../capabilities/experience/personalizationEngine.js';
+
+// Single-tenant app: no per-request user id ever reaches here (ver
+// extendedRoutes.ts::userIdFrom — el frontend nunca manda x-feedia-user),
+// así que 'default' es el mismo usuario que guarda Personalización.
+const PERSONALIZATION_USER_ID = 'default';
 
 interface PerformanceRecord {
   postId: string;
@@ -62,8 +68,18 @@ export const topPerformers = (limit = 5): PerformanceRecord[] => {
  */
 const brandVisualBlock = (brand: BrandProfile): string => {
   const v = brand.visual;
+  // Brand Kit manda si está configurado (colores marcarios deliberados). Si
+  // todavía no se cargó Brand Kit, usamos la paleta elegida en Personalización
+  // → Tema visual como default razonable, en vez de dejar al modelo elegir
+  // colores libres sin ninguna dirección.
+  const fallbackTheme = v.palette.length === 0 ? getThemeForUser(PERSONALIZATION_USER_ID) : null;
+  const paletteLine = v.palette.length
+    ? v.palette.join(', ')
+    : fallbackTheme
+      ? `${fallbackTheme.palette.join(', ')} (tema "${fallbackTheme.name}" de Personalización — sin Brand Kit configurado todavía)`
+      : 'libre, coherente con el mood';
   const lines = [
-    `- Paleta: ${v.palette.join(', ') || 'libre, coherente con el mood'}`,
+    `- Paleta: ${paletteLine}`,
     `- Tipografía: ${v.typography.join(', ') || 'sans serif legible'} (escala ${v.typeScale})`,
     `- Mood / estilo: ${v.mood} · ${v.style}`,
     `- Estilo fotográfico: ${v.photographyStyle}`,
