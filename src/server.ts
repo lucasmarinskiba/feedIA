@@ -65,6 +65,7 @@ import createStudioToolsRoutes from './server/studioToolsRoutes.js';
 import createTasksApprovalsRoutes from './server/tasksApprovalsRoutes.js';
 import createExecutiveRoutes from './server/executiveRoutes.js';
 import createSettingsExtendedRoutes from './server/settingsExtendedRoutes.js';
+import createAssistantChatRoute from './server/assistantChatRoute.js';
 import { initBrandRegistry } from './config/brandRegistry.js';
 import { handleAccountProfileRequest } from './config/brandKitMapping.js';
 import { buildSellIaBrandContext } from './capabilities/branding/sellIaBrandContext.js';
@@ -525,6 +526,7 @@ app.get('/api/debug/memorydb', async (_req: Request, res: Response): Promise<voi
 // /api/stream/achievements are intentionally excluded — that fix is being
 // handled separately.
 app.use(createExperienceRoutes(brand));
+app.use(createAssistantChatRoute(brand));
 app.use(createCuRoutes(brand));
 app.use(createBrandSetupRoutes(brand));
 app.use(createConsumptionRoutes(brand));

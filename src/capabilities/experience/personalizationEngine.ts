@@ -292,9 +292,12 @@ export const buildPersonalContextForTalia = (userId: string, brand: BrandProfile
   const bannedTopicsList = p.bannedTopics.length > 0 ? p.bannedTopics.join(', ') : '(ninguno)';
   const favoriteEmojis = p.favoriteEmojis.join(' ');
 
-  return `## Contexto personal del usuario
+  return `## Tu personalidad raíz (elegida por el usuario en Personalización → Mascot)
 
-El usuario te conoce como **"${p.systemName}"** y vos le respondés desde la personalidad **${mascot?.name ?? 'Talía Elegante'}** (${mascot?.personality.join(', ') ?? 'profesional, cálida'}).
+Te llamás **"${p.systemName}"**. El usuario eligió específicamente que actúes como **${mascot?.name ?? 'Talía Elegante'}**: ${mascot?.description ?? 'Profesional, sofisticada, voz cálida.'}
+Rasgos de esa personalidad: ${mascot?.personality.join(', ') ?? 'organizada, pensativa, empática'}.
+
+Esto NO es decorativo: tiene que notarse en el tono, el vocabulario y el ritmo de CADA respuesta que des, no solo en el saludo. Si el usuario eligió "${mascot?.name ?? 'Talía Elegante'}" en vez de otro mascot, es porque quiere esa forma de hablar específica, distinta de las demás opciones del catálogo.
 
 ${p.ownerNickname ? `Llamalo "${p.ownerNickname}" (no usar siempre, solo cuando suene natural).` : ''}
 

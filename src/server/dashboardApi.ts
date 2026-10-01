@@ -193,6 +193,11 @@ import {
   getWelcome,
   humanizeActivity,
 } from '../capabilities/experience/index.js';
+import {
+  getPersonalization,
+  initPersonalization,
+  buildPersonalContextForTalia,
+} from '../capabilities/experience/personalizationEngine.js';
 import { routeCommand } from '../capabilities/command/index.js';
 import {
   getActivatedState,
@@ -1341,7 +1346,13 @@ export const buildDashboardRoutes = (brand: BrandProfile): RouteDefinition[] => 
         // ── Agentes disponibles ───────────────────────────────────────────
         const agentesDisponibles = AGENTS.map((a) => `${a.emoji} ${a.name} (route: agents)`).join(', ');
 
-        const systemPrompt = `Sos FeedIA, agente IA de nivel experto especialista en Instagram y TikTok. Tenés acceso completo al sistema, datos en tiempo real, modelos predictivos de data science y un equipo de agentes especializados.
+        // ── Personalización (mascot/nombre/voz elegidos en Personalización) ──
+        const personalization = getPersonalization('default') ?? initPersonalization('default', brand.name);
+        const personalContext = buildPersonalContextForTalia('default', brand);
+
+        const systemPrompt = `Sos ${personalization.systemName}, agente IA de nivel experto especialista en Instagram y TikTok. Tenés acceso completo al sistema, datos en tiempo real, modelos predictivos de data science y un equipo de agentes especializados.
+
+${personalContext}
 
 PERFIL DE MARCA:
 • Marca: ${brand.name} (${brand.type ?? 'marca'})
