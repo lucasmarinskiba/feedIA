@@ -638,6 +638,8 @@ import {
   addCustomCommand,
   removeCustomCommand,
   matchCustomCommand,
+  addPrivateNote,
+  removePrivateNote,
   buildPersonalContextForTalia,
   getCatalogPreview,
   getPersonalizationSnapshot,
@@ -8784,6 +8786,28 @@ tools.push(
       required: ['userId', 'trigger'],
     },
     async (input, _brand) => removeCustomCommand(String(input.userId), String(input.trigger)),
+  ),
+
+  tool(
+    'ux_personalization_add_note',
+    'Guarda una nota privada de contexto (NUNCA se publica, solo se usa para que Talía la tenga presente). Usar cuando el usuario diga algo tipo "anotá que..." o "tené presente que...".',
+    {
+      type: 'object',
+      properties: { userId: str(''), text: str('') },
+      required: ['userId', 'text'],
+    },
+    async (input, _brand) => addPrivateNote(String(input.userId), String(input.text)),
+  ),
+
+  tool(
+    'ux_personalization_remove_note',
+    'Elimina una nota privada por id.',
+    {
+      type: 'object',
+      properties: { userId: str(''), noteId: str('') },
+      required: ['userId', 'noteId'],
+    },
+    async (input, _brand) => removePrivateNote(String(input.userId), String(input.noteId)),
   ),
 
   tool(

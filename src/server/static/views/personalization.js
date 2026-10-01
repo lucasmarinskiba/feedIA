@@ -143,6 +143,14 @@ const DEFAULT_CATALOGS = {
     { id: 'playful', name: 'Playful', description: 'Lobster / Pacifico — creativo' },
     { id: 'tech', name: 'Tech', description: 'JetBrains Mono — geek aesthetic' },
   ],
+  notesIdeas: [
+    { emoji: '📅', label: 'Horarios de publicación', starter: 'Prefiero publicar los días/horarios ' },
+    { emoji: '🚫', label: 'Temas a evitar', starter: 'No quiero que se hable de ' },
+    { emoji: '👥', label: 'Gente / inside jokes', starter: 'Mi ' },
+    { emoji: '🎯', label: 'Contexto de negocio', starter: 'Algo que no está en el Brand Kit: ' },
+    { emoji: '🗣️', label: 'Preferencias de tono', starter: 'Cuando hables de X, preferís que ' },
+    { emoji: '📌', label: 'Recordatorio puntual', starter: 'Tené presente que ' },
+  ],
 };
 
 const DEFAULT_CONFIG = {
@@ -162,7 +170,7 @@ const DEFAULT_CONFIG = {
   curseWordsAllowed: false,
   morningTime: '08:30',
   eveningTime: '21:00',
-  privateNotes: '',
+  privateNotes: [],
 };
 
 // ── Render ───────────────────────────────────────────────────────────────────
@@ -345,9 +353,38 @@ const buildHTML = (config, catalogs, isOffline) => `
   <section class="pz-panel" data-panel="notes" hidden>
     <div class="pz-card">
       <h3 class="pz-card-title">Notas privadas</h3>
-      <p class="pz-card-sub">Cosas que querés que el sistema tenga presente. No se publican: solo se usan como contexto.</p>
-      <textarea id="privateNotes" class="pz-input pz-textarea" rows="6" placeholder="Ej: prefiero publicar martes y jueves, mi mejor amigo se llama Mati, no quiero hablar de política…">${escape(config.privateNotes ?? '')}</textarea>
-      <div class="pz-hint">Tip: cuanto más específico, mejor adapta las respuestas el asistente.</div>
+      <p class="pz-card-sub">Cosas que querés que el sistema tenga presente. Nunca se publican: solo se usan como contexto interno. Guardá las que quieras, una por una.</p>
+
+      <div class="pz-hint" style="margin-bottom:8px;">💡 Ideas — tocá una para arrancar:</div>
+      <div class="pz-notes-ideas" id="notes-ideas">
+        ${catalogs.notesIdeas
+          .map(
+            (idea) =>
+              `<button type="button" class="pz-idea-chip" data-starter="${escAttr(idea.starter)}">${idea.emoji} ${escape(idea.label)}</button>`,
+          )
+          .join('')}
+      </div>
+
+      <div class="pz-note-add-row" style="display:flex;gap:8px;margin-top:14px;">
+        <input id="new-note-input" class="pz-input" placeholder="Escribí una nota y agregala…" style="flex:1;">
+        <button type="button" class="btn ghost" id="add-note-btn" style="flex-shrink:0;">+ Agregar</button>
+      </div>
+
+      <div class="pz-notes-list" id="notes-list" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
+        ${
+          config.privateNotes.length
+            ? config.privateNotes
+                .map(
+                  (n) => `
+          <div class="pz-note-item" data-id="${escAttr(n.id)}" style="display:flex;align-items:flex-start;gap:10px;background:var(--bg-card,#15151b);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
+            <span class="pz-note-text" style="flex:1;font-size:13px;line-height:1.4;">${escape(n.text)}</span>
+            <button type="button" class="pz-note-remove" data-id="${escAttr(n.id)}" title="Eliminar" style="flex-shrink:0;background:none;border:0;color:var(--text-tertiary,#888);cursor:pointer;font-size:14px;">✕</button>
+          </div>`,
+                )
+                .join('')
+            : '<div class="tiny muted" id="notes-empty-hint">Todavía no agregaste ninguna nota.</div>'
+        }
+      </div>
     </div>
   </section>
 
@@ -398,6 +435,61 @@ const wireEvents = (container) => {
   wireSelect('.pz-theme');
   wireSelect('.pz-sound');
 
+  // Notas privadas — lista local (varias a la vez), persiste junto con el resto al Guardar
+  let currentNotes = Array.from(container.querySelectorAll('.pz-note-item')).map((el) => ({
+    id: el.dataset.id,
+    text: el.querySelector('.pz-note-text')?.textContent ?? '',
+  }));
+
+  const renderNotesList = () => {
+    const listEl = container.querySelector('#notes-list');
+    if (!listEl) return;
+    listEl.innerHTML = currentNotes.length
+      ? currentNotes
+          .map(
+            (n) => `
+      <div class="pz-note-item" data-id="${n.id}" style="display:flex;align-items:flex-start;gap:10px;background:var(--bg-card,#15151b);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
+        <span class="pz-note-text" style="flex:1;font-size:13px;line-height:1.4;">${escape(n.text)}</span>
+        <button type="button" class="pz-note-remove" data-id="${n.id}" title="Eliminar" style="flex-shrink:0;background:none;border:0;color:var(--text-tertiary,#888);cursor:pointer;font-size:14px;">✕</button>
+      </div>`,
+          )
+          .join('')
+      : '<div class="tiny muted" id="notes-empty-hint">Todavía no agregaste ninguna nota.</div>';
+    listEl.querySelectorAll('.pz-note-remove').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        currentNotes = currentNotes.filter((n) => n.id !== btn.dataset.id);
+        renderNotesList();
+      });
+    });
+  };
+  renderNotesList();
+
+  container.querySelectorAll('.pz-idea-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const input = container.querySelector('#new-note-input');
+      if (!input) return;
+      input.value = chip.dataset.starter ?? '';
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    });
+  });
+
+  const addNoteFromInput = () => {
+    const input = container.querySelector('#new-note-input');
+    const text = input?.value?.trim();
+    if (!text) return;
+    currentNotes.push({ id: `note-${Date.now()}-${Math.floor(Math.random() * 999)}`, text });
+    input.value = '';
+    renderNotesList();
+  };
+  container.querySelector('#add-note-btn')?.addEventListener('click', addNoteFromInput);
+  container.querySelector('#new-note-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addNoteFromInput();
+    }
+  });
+
   // Save
   document.getElementById('save-btn')?.addEventListener('click', async () => {
     const updates = {
@@ -417,7 +509,7 @@ const wireEvents = (container) => {
       curseWordsAllowed: document.getElementById('curseWordsAllowed').checked,
       morningTime: document.getElementById('morningTime').value,
       eveningTime: document.getElementById('eveningTime').value,
-      privateNotes: document.getElementById('privateNotes').value,
+      privateNotes: currentNotes,
     };
     // Guardar localmente siempre (sobrevive a backend caído)
     try {
@@ -459,6 +551,17 @@ const loadLocalConfig = () => {
     /* noop */
   }
   return null;
+};
+
+/** privateNotes era un string suelto antes; normaliza localStorage viejo a la lista nueva. */
+const normalizePrivateNotes = (config) => {
+  if (!config || Array.isArray(config.privateNotes)) return config;
+  if (typeof config.privateNotes === 'string') {
+    config.privateNotes = config.privateNotes.trim() ? [{ id: `legacy-${Date.now()}`, text: config.privateNotes }] : [];
+  } else {
+    config.privateNotes = [];
+  }
+  return config;
 };
 
 /* ── Brand Board (ex-moodboard) integrado a Personalización ─────────────── */
@@ -1162,7 +1265,7 @@ const renderBrandingBrainPanel = async (container) => {
 
 export const renderPersonalization = async (container) => {
   // PASO 1: render inmediato con catálogos seed + config local o defaults
-  const localConfig = loadLocalConfig();
+  const localConfig = normalizePrivateNotes(loadLocalConfig());
   const initialConfig = { ...DEFAULT_CONFIG, ...(localConfig ?? {}) };
   container.innerHTML = buildHTML(initialConfig, DEFAULT_CATALOGS, false);
   wireEvents(container);
