@@ -3,12 +3,27 @@ import { resolve, dirname } from 'node:path';
 import type { BrandProfile } from '../config/types.js';
 import { getLatestAnalytics, listInbound, listPostsByAccount } from '../database/index.js';
 import { IMAGE_SOURCE_INSTRUCTIONS } from '../capabilities/aesthetic/brandStyleGuide.js';
-import { getThemeForUser } from '../capabilities/experience/personalizationEngine.js';
+import { getThemeForUser, getPersonalization } from '../capabilities/experience/personalizationEngine.js';
 
 // Single-tenant app: no per-request user id ever reaches here (ver
 // extendedRoutes.ts::userIdFrom — el frontend nunca manda x-feedia-user),
 // así que 'default' es el mismo usuario que guarda Personalización.
 const PERSONALIZATION_USER_ID = 'default';
+
+// Personalización → Apariencia: fontStyle/density son conceptos de UI, pero
+// Brand Kit tiene sus propios campos equivalentes para CONTENIDO (typography,
+// density de layout). Mapeo de "vibe" a términos de diseño reales.
+const FONT_STYLE_TO_TYPOGRAPHY: Record<string, string[]> = {
+  modern: ['Inter', 'SF Pro'],
+  classic: ['Garamond', 'Merriweather'],
+  playful: ['Lobster', 'Pacifico'],
+  tech: ['JetBrains Mono'],
+};
+const UI_DENSITY_TO_CONTENT_DENSITY: Record<string, BrandProfile['visual']['density']> = {
+  compact: 'high',
+  cozy: 'medium',
+  spacious: 'low',
+};
 
 interface PerformanceRecord {
   postId: string;
@@ -78,12 +93,32 @@ const brandVisualBlock = (brand: BrandProfile): string => {
     : fallbackTheme
       ? `${fallbackTheme.palette.join(', ')} (tema "${fallbackTheme.name}" de Personalización — sin Brand Kit configurado todavía)`
       : 'libre, coherente con el mood';
+
+  // Mismo criterio que la paleta: Brand Kit manda si tiene tipografía propia
+  // cargada. Si no, la familia elegida en Personalización → Apariencia pasa
+  // a ser la tipografía real de carruseles/reels/historias.
+  const personalization = getPersonalization(PERSONALIZATION_USER_ID);
+  const fallbackTypography =
+    v.typography.length === 0 && personalization ? FONT_STYLE_TO_TYPOGRAPHY[personalization.fontStyle] : null;
+  const typographyLine = v.typography.length
+    ? v.typography.join(', ')
+    : fallbackTypography
+      ? `${fallbackTypography.join(', ')} (familia "${personalization!.fontStyle}" de Personalización)`
+      : 'sans serif legible';
+
+  // density tiene default de schema ('medium'), no hay forma de distinguir
+  // "nunca tocado" de "elegido a propósito" — solo pisamos cuando Brand Kit
+  // sigue en ese default Y Personalización pide explícitamente otra cosa.
+  const fallbackDensity =
+    v.density === 'medium' && personalization ? UI_DENSITY_TO_CONTENT_DENSITY[personalization.density] : null;
+  const densityValue = fallbackDensity ?? v.density;
+
   const lines = [
     `- Paleta: ${paletteLine}`,
-    `- Tipografía: ${v.typography.join(', ') || 'sans serif legible'} (escala ${v.typeScale})`,
+    `- Tipografía: ${typographyLine} (escala ${v.typeScale})`,
     `- Mood / estilo: ${v.mood} · ${v.style}`,
     `- Estilo fotográfico: ${v.photographyStyle}`,
-    `- Densidad visual: ${v.density} · Ratio imagen/texto: ${v.imageTextRatio}`,
+    `- Densidad visual: ${densityValue} · Ratio imagen/texto: ${v.imageTextRatio}`,
     `- Fuente de imagen: ${IMAGE_SOURCE_INSTRUCTIONS[v.imageSource]}`,
     `- Elementos visuales del nicho a reutilizar: ${v.visualElements.join(', ') || 'ninguno definido'}`,
   ];

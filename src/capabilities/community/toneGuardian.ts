@@ -10,6 +10,14 @@ import { log } from '../../agent/logger.js';
 import { askJson as routerAskJson, ask as routerAsk } from '../../agent/tokenRouter.js';
 import { loadBrandProfile } from '../../config/index.js';
 import type { BrandProfile } from '../../config/types.js';
+import { getPersonalization } from '../experience/personalizationEngine.js';
+
+// Single-tenant app: ver memory.ts::PERSONALIZATION_USER_ID para la misma
+// justificación — no hay per-request user id, 'default' es el único usuario.
+const PERSONALIZATION_USER_ID = 'default';
+
+/** ¿El dueño de la cuenta habilitó "Lenguaje fuerte" en Personalización → Comportamiento? */
+const isCurseWordsAllowed = (): boolean => getPersonalization(PERSONALIZATION_USER_ID)?.curseWordsAllowed ?? false;
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -49,6 +57,51 @@ export interface ToneCheckResult {
 }
 
 // ── Detección rápida (sin AI) ─────────────────────────────────────────────────
+
+// Groserías comunes en español rioplatense/neutro. Es un filtro heurístico
+// rápido (igual que CLICHE_PATTERNS/CORPORATE_SPEAK_PATTERNS abajo), no
+// exhaustivo — el check profundo con IA respeta la misma política vía el
+// flag "Lenguaje fuerte permitido" del prompt y atrapa lo que el regex no ve.
+const PROFANITY_WORDS = [
+  'puta',
+  'puto',
+  'putos',
+  'putas',
+  'mierda',
+  'carajo',
+  'pelotudo',
+  'pelotuda',
+  'forro',
+  'forra',
+  'pija',
+  'choto',
+  'chota',
+  'garcha',
+  'joder',
+  'coño',
+  'concha',
+  'verga',
+  'culiado',
+  'culiada',
+];
+
+const detectProfanity = (text: string): ToneCheckIssue[] => {
+  const issues: ToneCheckIssue[] = [];
+  for (const word of PROFANITY_WORDS) {
+    const regex = new RegExp(`\\b${word}\\w*\\b`, 'i');
+    const match = regex.exec(text);
+    if (match) {
+      issues.push({
+        type: 'forbidden-word',
+        severity: 'critical',
+        problem: `Lenguaje fuerte no habilitado ("${match[0]}") — activalo en Personalización → Comportamiento si querés permitirlo`,
+        evidence: match[0],
+        suggestion: `Reescribir sin "${match[0]}"`,
+      });
+    }
+  }
+  return issues;
+};
 
 const detectForbiddenWords = (text: string, forbidden: string[]): ToneCheckIssue[] => {
   const issues: ToneCheckIssue[] = [];
@@ -155,10 +208,12 @@ export const checkTone = async (
 ): Promise<ToneCheckResult> => {
   const brand = options.brand ?? loadBrandProfile();
   const strictMode = options.strictMode ?? false;
+  const curseWordsAllowed = isCurseWordsAllowed();
 
   // Detecciones rápidas (sin AI)
   const fastIssues: ToneCheckIssue[] = [
     ...detectForbiddenWords(text, brand.voice.forbidden),
+    ...(curseWordsAllowed ? [] : detectProfanity(text)),
     ...detectCorporateSpeak(text),
     ...detectCliches(text),
     ...detectOverPromise(text),
@@ -186,6 +241,7 @@ export const checkTone = async (
 VOZ DE MARCA:
 - Tono: ${brand.voice.tone.join(', ')}
 - Palabras prohibidas: ${brand.voice.forbidden.join(', ') || '(ninguna)'}
+- Lenguaje fuerte / groserías: ${curseWordsAllowed ? 'permitido, no lo marques como problema' : 'NO permitido — marcalo como forbidden-word si aparece'}
 - Frases de referencia: ${brand.voice.referenceQuotes.join(' | ') || '(ninguna)'}
 - Audiencia: ${brand.audience.description}
 - Arquetipo: ${brand.brandStrategy.archetype || '(no definido)'}
@@ -262,6 +318,7 @@ const rewriteText = async (originalText: string, issues: ToneCheckIssue[], brand
   const correctionList = issues
     .map((i, idx) => `${idx + 1}. [${i.severity}] ${i.problem} → ${i.suggestion}`)
     .join('\n');
+  const curseWordsAllowed = isCurseWordsAllowed();
 
   const prompt = `Reescribí este texto aplicando estas correcciones, manteniendo el mensaje original.
 
@@ -276,6 +333,7 @@ ${correctionList}
 VOZ DE MARCA:
 - Tono: ${brand.voice.tone.join(', ')}
 - NO usar: ${brand.voice.forbidden.join(', ')}
+- Lenguaje fuerte / groserías: ${curseWordsAllowed ? 'permitido' : 'NO permitido, sacar cualquier grosería'}
 
 Devolvé SOLO el texto reescrito, sin explicaciones ni prefijos. Mantené aproximadamente la misma longitud.`;
 
