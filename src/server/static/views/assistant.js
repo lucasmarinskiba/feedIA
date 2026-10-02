@@ -1,9 +1,11 @@
-import { api } from '../lib/api.js';
+import { api, apiSafe } from '../lib/api.js';
 import { escape } from '../lib/dom.js';
 import { toast } from '../lib/toast.js';
 
 let messages = [];
 let isThinking = false;
+let mascotEmoji = null; // seteado por loadIdentity() si hay un mascot elegido en Personalización
+let systemName = 'FeedIA';
 
 const SUGGESTIONS = [
   '¿Cuál es la mejor hora para publicar en mi nicho?',
@@ -59,11 +61,17 @@ const logoSvg = (w, h, rx = 8) => {
   </svg>`;
 };
 
+/* Avatar del sistema: usa el mascot elegido en Personalización si hay uno, si no cae al logo */
+const avatarHTML = (size) =>
+  mascotEmoji
+    ? `<div class="chat-avatar" style="display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.6)}px;background:var(--grad-1,linear-gradient(135deg,#6366f1,#a855f7));">${mascotEmoji}</div>`
+    : `<div class="chat-avatar">${logoSvg(size, size)}</div>`;
+
 const renderMessage = (msg) => {
   const isUser = msg.role === 'user';
   return `
     <div class="chat-message ${isUser ? 'user' : 'assistant'}">
-      ${!isUser ? `<div class="chat-avatar">${logoSvg(32, 32)}</div>` : ''}
+      ${!isUser ? avatarHTML(32) : ''}
       <div class="chat-bubble ${isUser ? 'user' : 'assistant'}">
         <div class="chat-text">${msg.html ?? escape(msg.content ?? '')}</div>
         ${
@@ -82,7 +90,7 @@ const renderMessage = (msg) => {
 
 const renderThinking = () => `
   <div class="chat-message assistant" id="thinking-bubble">
-    <div class="chat-avatar">${logoSvg(32, 32)}</div>
+    ${avatarHTML(32)}
     <div class="chat-bubble assistant">
       <div class="chat-dots"><span></span><span></span><span></span></div>
     </div>
@@ -96,8 +104,8 @@ const renderMessages = (chatEl) => {
   if (!messages.length) {
     chatEl.innerHTML = `
       <div class="chat-welcome">
-        <div class="chat-welcome-icon">${logoSvg(64, 64, 16)}</div>
-        <div class="chat-welcome-title">Hola, soy <span class="gradient-text">FeedIA</span> 👋</div>
+        <div class="chat-welcome-icon">${mascotEmoji ? `<div style="font-size:48px;line-height:64px;">${mascotEmoji}</div>` : logoSvg(64, 64, 16)}</div>
+        <div class="chat-welcome-title">Hola, soy <span class="gradient-text">${escape(systemName)}</span> 👋</div>
         <div class="chat-welcome-sub">Tu agente IA especialista en Instagram.<br>Preguntame lo que quieras sobre tu marca, estrategia y contenido.</div>
       </div>`;
     return;
@@ -152,6 +160,21 @@ const sendMessage = async (root, text) => {
       });
     });
   }
+};
+
+/* Trae el mascot/nombre elegidos en Personalización para que el avatar y el
+   saludo del asistente reflejen lo que el usuario configuró (en vez de
+   quedar fijos en el logo genérico). Tolerante a backend offline. */
+const loadIdentity = async (chatEl) => {
+  const [{ data: config }, { data: catalogs }] = await Promise.all([
+    apiSafe('/api/personalization', null),
+    apiSafe('/api/personalization/catalogs', null),
+  ]);
+  if (!config) return;
+  systemName = config.systemName || 'FeedIA';
+  const mascot = catalogs?.mascots?.find((m) => m.id === config.mascot);
+  mascotEmoji = mascot?.emoji ?? null;
+  if (!messages.length && chatEl) renderMessages(chatEl);
 };
 
 export const renderAssistant = async (root) => {
@@ -211,6 +234,7 @@ export const renderAssistant = async (root) => {
   const input = root.querySelector('#chat-input');
   const sendBtn = root.querySelector('#chat-send-btn');
   renderMessages(chatEl);
+  void loadIdentity(chatEl);
 
   /* Send on button click */
   sendBtn?.addEventListener('click', () => sendMessage(root, input?.value ?? ''));

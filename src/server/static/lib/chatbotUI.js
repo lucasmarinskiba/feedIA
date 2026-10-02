@@ -70,6 +70,26 @@ let messages = []; // { role, content, html?, tools?, ts }
 let opened = false;
 let thinking = false;
 let navigateFn = () => {};
+let mascotEmoji = null; // mascot elegido en Personalización, si hay uno
+let systemName = 'FeedIA';
+
+/* Avatar del sistema: mascot elegido en Personalización, o el logo por defecto */
+const avatarHTML = (size, rx = 6) =>
+  mascotEmoji
+    ? `<div style="width:${size}px;height:${size}px;border-radius:${rx}px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.65)}px;background:linear-gradient(135deg,#6366f1,#a855f7);">${mascotEmoji}</div>`
+    : logoSvg(size, size, rx);
+
+const loadIdentity = async () => {
+  const [{ data: config }, { data: catalogs }] = await Promise.all([
+    apiSafe('/api/personalization', null),
+    apiSafe('/api/personalization/catalogs', null),
+  ]);
+  if (!config) return;
+  systemName = config.systemName || 'FeedIA';
+  const mascot = catalogs?.mascots?.find((m) => m.id === config.mascot);
+  mascotEmoji = mascot?.emoji ?? null;
+  if (!messages.length) repaintLog();
+};
 
 // ── Render ────────────────────────────────────────────────────────────────────
 const renderWelcome = () => {
@@ -80,10 +100,10 @@ const renderWelcome = () => {
     <div class="chatbot-hero-card">
       <button class="chatbot-welcome-close" id="chatbot-welcome-close" aria-label="Cerrar" title="Cerrar tutorial">✕</button>
       <div class="chatbot-hero-logo-wrap" style="margin-bottom:12px;">
-        <div class="chatbot-hero-logo">${logoSvg(40, 40, 10)}</div>
+        <div class="chatbot-hero-logo">${avatarHTML(40, 10)}</div>
       </div>
       <h2 style="margin:0;font-size:14px;font-weight:700;margin-bottom:6px;">
-        Hola, soy <span class="chatbot-grad">FeedIA</span> ✦
+        Hola, soy <span class="chatbot-grad">${escapeHtml(systemName)}</span> ✦
       </h2>
       <p style="margin:0;font-size:12px;color:#a5b4fc;line-height:1.4;margin-bottom:8px;">
         Tu especialista en Instagram. Conozco tu marca, tus métricas y manejo tu equipo IA.
@@ -92,7 +112,8 @@ const renderWelcome = () => {
         <span>💡</span> Probá una sugerencia o escribime libre.
       </div>
     </div>
-  </div>`;};
+  </div>`;
+};
 
 const renderMessage = (msg) => {
   const isUser = msg.role === 'user';
@@ -106,7 +127,7 @@ const renderMessage = (msg) => {
   const ts = new Date(msg.ts ?? Date.now()).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
   return `
     <div class="chatbot-msg-row ${isUser ? 'user' : 'bot'}">
-      ${!isUser ? `<div class="chatbot-msg-avatar">${logoSvg(26, 26, 6)}</div>` : ''}
+      ${!isUser ? `<div class="chatbot-msg-avatar">${avatarHTML(26, 6)}</div>` : ''}
       <div class="chatbot-msg-bubble ${isUser ? 'user' : 'bot'}">
         <div class="chatbot-msg-text">${body}</div>
         ${toolsHtml}
@@ -117,7 +138,7 @@ const renderMessage = (msg) => {
 
 const renderThinking = () => `
   <div class="chatbot-msg-row bot">
-    <div class="chatbot-msg-avatar">${logoSvg(26, 26, 6)}</div>
+    <div class="chatbot-msg-avatar">${avatarHTML(26, 6)}</div>
     <div class="chatbot-msg-bubble bot">
       <div class="chatbot-typing-row"><span></span><span></span><span></span></div>
     </div>
@@ -255,6 +276,8 @@ export const initChatbotUI = ({ navigate }) => {
     ((route) => {
       window.location.hash = `#${route}`;
     });
+
+  void loadIdentity();
 
   $('chatbot-fab')?.addEventListener('click', () => {
     opened ? closePanel() : openPanel();

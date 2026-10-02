@@ -23,6 +23,28 @@ export type ThemeId = keyof typeof THEME_CATALOG;
 export type MascotId = keyof typeof MASCOT_CATALOG;
 export type SoundPackId = keyof typeof SOUND_PACKS;
 
+export interface PrivateNote {
+  id: string;
+  text: string;
+  addedAt: string;
+}
+
+/** Categorías sugeridas para ayudar a pensar qué anotar — ver NOTES_IDEAS más abajo. */
+export interface PrivateNoteIdea {
+  emoji: string;
+  label: string;
+  starter: string;
+}
+
+export const NOTES_IDEAS: PrivateNoteIdea[] = [
+  { emoji: '📅', label: 'Horarios de publicación', starter: 'Prefiero publicar los días/horarios ' },
+  { emoji: '🚫', label: 'Temas a evitar', starter: 'No quiero que se hable de ' },
+  { emoji: '👥', label: 'Gente / inside jokes', starter: 'Mi ' },
+  { emoji: '🎯', label: 'Contexto de negocio', starter: 'Algo que no está en el Brand Kit: ' },
+  { emoji: '🗣️', label: 'Preferencias de tono', starter: 'Cuando hables de X, preferís que ' },
+  { emoji: '📌', label: 'Recordatorio puntual', starter: 'Tené presente que ' },
+];
+
 export interface UserPersonalization {
   userId: string;
   brandName: string;
@@ -69,7 +91,7 @@ export interface UserPersonalization {
   bannedTopics: string[]; // de qué NO hablar
   insideJokes: Array<{ context: string; jokeText: string; addedAt: string }>;
   customCommands: Array<{ trigger: string; response: string }>;
-  privateNotes: string; // notas que el sistema lee pero el usuario edita
+  privateNotes: PrivateNote[]; // varias notas de contexto — el sistema las lee, nunca las publica
 
   // Metadata
   createdAt: string;
@@ -96,11 +118,25 @@ const ensureDir = (): void => {
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 };
 
+/** Migra privateNotes de string suelto (formato viejo) a lista de notas. */
+const migratePrivateNotes = (store: PersonalizationStore): PersonalizationStore => {
+  for (const user of store.users) {
+    const raw = user.privateNotes as unknown;
+    if (typeof raw === 'string') {
+      user.privateNotes = raw.trim() ? [{ id: `legacy-${Date.now()}`, text: raw, addedAt: user.updatedAt }] : [];
+    } else if (!Array.isArray(raw)) {
+      user.privateNotes = [];
+    }
+  }
+  return store;
+};
+
 const loadStore = (): PersonalizationStore => {
   try {
     ensureDir();
     if (!existsSync(PERSONALIZATION_PATH)) return structuredClone(DEFAULT_STORE);
-    return JSON.parse(readFileSync(PERSONALIZATION_PATH, 'utf8')) as PersonalizationStore;
+    const store = JSON.parse(readFileSync(PERSONALIZATION_PATH, 'utf8')) as PersonalizationStore;
+    return migratePrivateNotes(store);
   } catch {
     return structuredClone(DEFAULT_STORE);
   }
@@ -144,7 +180,7 @@ const buildDefaultPersonalization = (userId: string, brandName: string): UserPer
   bannedTopics: [],
   insideJokes: [],
   customCommands: [],
-  privateNotes: '',
+  privateNotes: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   customizationVersion: 1,
@@ -275,6 +311,34 @@ export const matchCustomCommand = (userId: string, input: string): string | null
   return cmd?.response ?? null;
 };
 
+// ── Notas privadas (varias a la vez, nunca se publican — solo contexto) ──────
+
+export const addPrivateNote = (userId: string, text: string): UserPersonalization | null => {
+  const trimmed = text.trim();
+  if (!trimmed) return getPersonalization(userId);
+  const store = loadStore();
+  const user = store.users.find((u) => u.userId === userId);
+  if (!user) return null;
+  user.privateNotes.push({
+    id: `note-${Date.now()}-${Math.floor(Math.random() * 999)}`,
+    text: trimmed,
+    addedAt: new Date().toISOString(),
+  });
+  user.updatedAt = new Date().toISOString();
+  saveStore(store);
+  return user;
+};
+
+export const removePrivateNote = (userId: string, noteId: string): UserPersonalization | null => {
+  const store = loadStore();
+  const user = store.users.find((u) => u.userId === userId);
+  if (!user) return null;
+  user.privateNotes = user.privateNotes.filter((n) => n.id !== noteId);
+  user.updatedAt = new Date().toISOString();
+  saveStore(store);
+  return user;
+};
+
 // ── Construir contexto personalizado para Talía ──────────────────────────────
 
 export const buildPersonalContextForTalia = (userId: string, brand: BrandProfile): string => {
@@ -292,9 +356,12 @@ export const buildPersonalContextForTalia = (userId: string, brand: BrandProfile
   const bannedTopicsList = p.bannedTopics.length > 0 ? p.bannedTopics.join(', ') : '(ninguno)';
   const favoriteEmojis = p.favoriteEmojis.join(' ');
 
-  return `## Contexto personal del usuario
+  return `## Tu personalidad raíz (elegida por el usuario en Personalización → Mascot)
 
-El usuario te conoce como **"${p.systemName}"** y vos le respondés desde la personalidad **${mascot?.name ?? 'Talía Elegante'}** (${mascot?.personality.join(', ') ?? 'profesional, cálida'}).
+Te llamás **"${p.systemName}"**. El usuario eligió específicamente que actúes como **${mascot?.name ?? 'Talía Elegante'}**: ${mascot?.description ?? 'Profesional, sofisticada, voz cálida.'}
+Rasgos de esa personalidad: ${mascot?.personality.join(', ') ?? 'organizada, pensativa, empática'}.
+
+Esto NO es decorativo: tiene que notarse en el tono, el vocabulario y el ritmo de CADA respuesta que des, no solo en el saludo. Si el usuario eligió "${mascot?.name ?? 'Talía Elegante'}" en vez de otro mascot, es porque quiere esa forma de hablar específica, distinta de las demás opciones del catálogo.
 
 ${p.ownerNickname ? `Llamalo "${p.ownerNickname}" (no usar siempre, solo cuando suene natural).` : ''}
 
@@ -314,8 +381,8 @@ ${bannedTopicsList}
 ### Comandos personalizados que el usuario configuró:
 ${p.customCommands.map((c) => `- "${c.trigger}" → ${c.response.slice(0, 80)}`).join('\n') || '(ninguno)'}
 
-### Notas privadas del usuario (info que él dejó para que la tengas presente):
-${p.privateNotes || '(vacío)'}
+### Notas privadas del usuario (info que él dejó para que la tengas presente — NUNCA se publican, solo son contexto):
+${p.privateNotes.map((n) => `- ${n.text}`).join('\n') || '(vacío)'}
 
 Marca: ${brand.name} | nicho: ${brand.niche}`;
 };
@@ -329,6 +396,7 @@ export interface CatalogPreview {
   densities: Array<{ id: string; name: string; description: string }>;
   fonts: Array<{ id: string; name: string; description: string }>;
   iconStyles: Array<{ id: string; name: string }>;
+  notesIdeas: PrivateNoteIdea[];
 }
 
 export const getCatalogPreview = (): CatalogPreview => ({
@@ -369,6 +437,7 @@ export const getCatalogPreview = (): CatalogPreview => ({
     { id: 'duotone', name: 'Duotone' },
     { id: 'rounded', name: 'Rounded' },
   ],
+  notesIdeas: NOTES_IDEAS,
 });
 
 // ── Statistics ───────────────────────────────────────────────────────────────

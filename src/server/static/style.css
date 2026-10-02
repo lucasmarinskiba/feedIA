@@ -8319,14 +8319,25 @@ html[data-theme='light'] .exec-tabs {
   background: #ffffff !important;
   border-color: rgba(17, 18, 22, 0.1) !important;
 }
-html[data-theme='light'] .v2-tab,
 html[data-theme='light'] .exec-tab {
   color: #474a54;
 }
-html[data-theme='light'] .v2-tab:hover,
 html[data-theme='light'] .exec-tab:hover {
   background: rgba(17, 18, 22, 0.04);
   color: #16171c;
+}
+html[data-theme='light'] .v2-tab {
+  color: #000;
+}
+html[data-theme='light'] .v2-tab:hover {
+  background: #ffb75e;
+  border-color: #f59e0b;
+  color: #000;
+}
+html[data-theme='light'] .v2-tab.is-active {
+  background: #ff9f33;
+  border-color: #c2680a;
+  color: #000;
 }
 html[data-theme='light'] .topbar {
   background: #ffffff;
