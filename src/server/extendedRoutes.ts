@@ -4718,7 +4718,9 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
     pattern: '/api/executive/decisions/pending',
     handler: async ({ res }) => {
       const { listPending } = await import('../capabilities/executive/executiveDecisionQueue.js');
+      const { refreshSugerencias } = await import('../capabilities/executive/sugerenciasAgentes.js');
       const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
+      await refreshSugerencias(brandId, brand.name);
       json(res, 200, await listPending(brandId));
     },
   },

@@ -76,7 +76,7 @@ const ESTADO_MISION: Record<'completed' | 'partial' | 'failed', string> = {
 
 const HORA_MS = 3_600_000;
 
-const readJsonl = <T>(file: string): T[] => {
+export const readJsonl = <T>(file: string): T[] => {
   const path = resolve(file);
   if (!existsSync(path)) return [];
   return readFileSync(path, 'utf-8')

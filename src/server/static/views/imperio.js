@@ -645,51 +645,76 @@ const renderCommandCenter = async () => {
     </style>`;
 };
 
+const DEC_ORIGEN = {
+  'carousel-factory': 'Carousel Factory',
+  'comment-brain': 'Comment Brain',
+  'swarm-conductor': 'Swarm Conductor',
+  'social-connector': 'Conector de redes',
+  'budget-guardian': 'Guardián de presupuesto',
+  'okr-tracker': 'Seguimiento OKR',
+  'proactive-agent': 'Agente proactivo',
+  'anomaly-detector': 'Detector de anomalías',
+  council: 'Consejo de agentes',
+  'goal-replan': 'Replanificación de metas',
+  'ad-spend': 'Inversión publicitaria',
+  'content-safety': 'Seguridad de contenido',
+  'community-crisis': 'Crisis en comunidad',
+  'opportunity-window': 'Ventana de oportunidad',
+  'experiment-result': 'Resultado de experimento',
+};
+
+const DEC_URGENCIA = {
+  critical: { label: 'Crítica', color: '#f87171' },
+  high: { label: 'Alta', color: '#fbbf24' },
+  medium: { label: 'Media', color: '#60a5fa' },
+  low: { label: 'Baja', color: '#a1a1aa' },
+};
+
 const renderDecisions = async () => {
   const { data } = await apiSafe('/api/executive/decisions/pending', []);
   const decisions = Array.isArray(data) ? data : [];
-  if (decisions.length === 0)
-    return `<div class="tiny muted" style="text-align:center;padding:40px;">Sin decisiones pendientes ✨</div>`;
+  const intro = `<p class="v2-section-desc">Los agentes y automatizaciones de FeedIA proponen acá lo que necesita tu aprobación. Aceptar registra la decisión; ejecuta solo lo que es conectar una red o abrir una vista.</p>`;
+  if (decisions.length === 0) {
+    return `
+      <div class="v2-section-head"><div class="v2-eyebrow">Decisiones</div><h2 class="v2-h2">Sin decisiones pendientes ✨</h2>${intro}</div>
+      <div class="v2-card v2-card-pad"><div class="v2-hint">Cuando un agente detecte algo que requiera tu aprobación (una misión fallida, un carrusel retenido, una cuenta sin conectar, un borrador de respuesta, el gasto de IA cerca del tope o un OKR atrasado), aparece acá.</div></div>`;
+  }
   return `
-    <div class="exec-section-head"><h3>⚖️ Decisiones esperando tu aprobación (${decisions.length})</h3></div>
+    <div class="v2-section-head"><div class="v2-eyebrow">Decisiones</div><h2 class="v2-h2">${decisions.length} sugerencia(s) esperando tu aprobación</h2>${intro}</div>
     <div class="dec-list">
       ${decisions
-        .map(
-          (d) => `
-        <div class="dec-card" data-urgency="${escape(d.urgency)}">
+        .map((d) => {
+          const urg = DEC_URGENCIA[d.urgency] || DEC_URGENCIA.medium;
+          const payload = d.recommendedAction?.payload || {};
+          return `
+        <div class="v2-card dec-card" data-urgency="${escape(d.urgency)}">
           <div class="dec-head">
-            <span class="dec-source">${escape(d.source)}</span>
-            <span class="dec-urgency prio-${escape(d.urgency === 'critical' ? 'crítica' : d.urgency === 'high' ? 'alta' : 'media')}">${escape(d.urgency)}</span>
+            <span class="dec-source">${escape(DEC_ORIGEN[d.source] || d.source)}</span>
+            <span class="dec-urgency" style="color:${urg.color};">${escape(urg.label)}</span>
           </div>
           <h4>${escape(d.title)}</h4>
           <p class="small muted">${escape(d.context)}</p>
-          <div class="dec-reasoning"><strong>Razonamiento:</strong> ${escape(d.reasoning)}</div>
-          <div class="dec-outcome"><strong>Esperado:</strong> ${escape(d.expectedOutcome)}</div>
+          <div class="dec-reasoning"><strong>Por qué:</strong> ${escape(d.reasoning)}</div>
+          <div class="dec-outcome"><strong>Si aceptás:</strong> ${escape(d.expectedOutcome)}</div>
           ${d.risks?.length ? `<div class="dec-risks"><strong>Riesgos:</strong> ${d.risks.map((r) => escape(r)).join(' · ')}</div>` : ''}
           <div class="btn-row" style="margin-top:10px;gap:6px;">
-            <button class="v2-btn v2-btn-primary v2-btn-sm" data-resolve="approved" data-id="${escape(d.id)}">✅ Aprobar</button>
+            <button class="v2-btn v2-btn-primary v2-btn-sm" data-resolve="approved" data-id="${escape(d.id)}"
+              data-accion-tipo="${escape(payload.tipo || '')}" data-accion-valor="${escape(payload.plataforma || payload.tab || '')}">${escape(d.recommendedAction?.label || 'Aceptar')}</button>
             <button class="v2-btn v2-btn-ghost v2-btn-sm" data-resolve="rejected" data-id="${escape(d.id)}">Rechazar</button>
           </div>
-        </div>`,
-        )
+        </div>`;
+        })
         .join('')}
     </div>
     <style>
-      .dec-list{display:flex;flex-direction:column;gap:10px;}
-      .dec-card{background:var(--surface,#141418);border:1px solid var(--border);border-radius:12px;padding:14px;}
-      .dec-card[data-urgency="critical"]{border-color:rgba(239,68,68,.5);}
-      .dec-card[data-urgency="high"]{border-color:rgba(245,158,11,.4);}
-      .dec-head{display:flex;justify-content:space-between;margin-bottom:6px;}
-      .dec-source{font-size:11px;text-transform:uppercase;letter-spacing:.05em;opacity:.6;}
-      .dec-urgency{font-size:10px;padding:2px 8px;border-radius:999px;text-transform:uppercase;font-weight:800;}
-      .dec-card h4{margin:4px 0 6px;font-size:14px;}
-      .dec-reasoning,.dec-outcome,.dec-risks{font-size:12px;margin-top:6px;line-height:1.5;}
-      .dec-reasoning{background:rgba(99,102,241,.06);padding:8px 10px;border-radius:8px;}
-      .dec-outcome{background:rgba(16,185,129,.06);padding:8px 10px;border-radius:8px;}
-      .dec-risks{background:rgba(239,68,68,.06);padding:8px 10px;border-radius:8px;}
+      .dec-list{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+      .dec-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;}
+      .dec-source{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--v2-fg-3);}
+      .dec-urgency{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
+      .dec-card h4{margin:0 0 4px;font-size:15px;color:var(--v2-fg);}
+      .dec-reasoning,.dec-outcome,.dec-risks{font-size:12px;color:var(--v2-fg-2);margin-top:4px;}
     </style>`;
 };
-
 const renderOKRs = async () => {
   const { data } = await apiSafe('/api/executive/okr/active', {
     objectives: [],
@@ -1132,6 +1157,11 @@ export const renderImperio = async (root) => {
           if (r.ok) {
             bt.closest('.dec-card').style.opacity = '.35';
             toast(status === 'approved' ? '✅ Aprobada' : 'Rechazada', status === 'approved' ? 'ok' : 'info');
+            if (status === 'approved' && bt.dataset.accionTipo === 'conectar' && bt.dataset.accionValor) {
+              window.location.href = ccLoginUrl(bt.dataset.accionValor);
+            } else if (status === 'approved' && bt.dataset.accionTipo === 'tab' && bt.dataset.accionValor) {
+              root.querySelector(`.v2-tab[data-tab="${bt.dataset.accionValor}"]`)?.click();
+            }
           } else {
             toast('Error al resolver', 'err');
           }

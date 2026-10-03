@@ -22,7 +22,13 @@ export type DecisionSource =
   | 'content-safety'
   | 'community-crisis'
   | 'opportunity-window'
-  | 'experiment-result';
+  | 'experiment-result'
+  | 'carousel-factory'
+  | 'comment-brain'
+  | 'swarm-conductor'
+  | 'social-connector'
+  | 'budget-guardian'
+  | 'okr-tracker';
 export type DecisionStatus = 'pending' | 'approved' | 'rejected' | 'auto-executed' | 'expired' | 'snoozed';
 export type DecisionUrgency = 'critical' | 'high' | 'medium' | 'low';
 
@@ -39,6 +45,7 @@ export interface ExecutiveDecision {
   id: string;
   brandId: string;
   source: DecisionSource;
+  signalKey?: string;
   urgency: DecisionUrgency;
   status: DecisionStatus;
   title: string;
@@ -79,6 +86,7 @@ const saveQueue = async (brandId: string, queue: ExecutiveDecision[]): Promise<v
 export const enqueueDecision = async (params: {
   brandId: string;
   source: DecisionSource;
+  signalKey?: string;
   urgency: DecisionUrgency;
   title: string;
   context: string;
@@ -96,6 +104,7 @@ export const enqueueDecision = async (params: {
     id: `dec-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     brandId: params.brandId,
     source: params.source,
+    signalKey: params.signalKey,
     urgency: params.urgency,
     status: 'pending',
     title: params.title,
@@ -138,6 +147,27 @@ export const resolveDecision = async (
   decision.outcomeNote = resolution.outcomeNote;
   await saveQueue(brandId, queue);
   return decision;
+};
+
+export const hasDecisionForSignal = async (brandId: string, signalKey: string): Promise<boolean> => {
+  const queue = await loadQueue(brandId);
+  return queue.some((d) => d.signalKey === signalKey && d.status !== 'expired');
+};
+
+export const expireStaleSignals = async (brandId: string, activeKeys: Set<string>): Promise<number> => {
+  const queue = await loadQueue(brandId);
+  let expired = 0;
+  for (const d of queue) {
+    if (d.status === 'pending' && d.signalKey && !activeKeys.has(d.signalKey)) {
+      d.status = 'expired';
+      d.resolvedAt = new Date().toISOString();
+      d.resolvedBy = 'expiry';
+      d.outcomeNote = 'La señal que la originó ya no existe.';
+      expired++;
+    }
+  }
+  if (expired > 0) await saveQueue(brandId, queue);
+  return expired;
 };
 
 export const snoozeDecision = async (

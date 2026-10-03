@@ -12,6 +12,7 @@ import { getConnection, isExpired, type ConnectionPlatform } from '../../integra
 import { buildActividadReal } from '../experience/staffActivity.js';
 import { listPending, expireOldDecisions, type ExecutiveDecision } from './executiveDecisionQueue.js';
 import { getOKRSummary } from './executiveOKR.js';
+import { refreshSugerencias } from './sugerenciasAgentes.js';
 
 export type SaludNivel = 'sin-datos' | 'estable' | 'atencion' | 'critica';
 
@@ -68,6 +69,7 @@ const NOMBRE_RED: Record<ConnectionPlatform, string> = { instagram: 'Instagram',
 
 export const buildCommandCenterBundle = async (brandId: string, brandName: string): Promise<CommandCenterBundle> => {
   await expireOldDecisions(brandId);
+  await refreshSugerencias(brandId, brandName);
 
   const [pendientes, okr, act, ig, tt] = await Promise.all([
     listPending(brandId),
