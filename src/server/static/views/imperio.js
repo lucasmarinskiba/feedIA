@@ -73,64 +73,69 @@ const sparklineSvg = (data, color) => {
   </svg>`;
 };
 
-/* ──── Growth Metrics Card (IG / TT) — premium minimal Vercel-style ──── */
-const growthCard = ({ platform, handle, followers, deltaPct, deltaPositive = true, spark, tier, metrics }) => {
-  const theme =
-    platform === 'instagram'
-      ? {
-          name: 'Instagram',
-          accent: '#E1306C',
-          accent2: '#F77737',
-          glyph: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>`,
-        }
-      : {
-          name: 'TikTok',
-          accent: '#25F4EE',
-          accent2: '#FE2C55',
-          glyph: `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19.6 6.7c-1.5-.4-2.7-1.5-3.1-3l-.1-.5h-3.6v13.3a2.6 2.6 0 1 1-2.6-2.6c.3 0 .6 0 .8.1V10.4a6.2 6.2 0 0 0-6 6.2 6.2 6.2 0 0 0 12.4 0V9.5c1.1.7 2.4 1.1 3.8 1.1V7c-.6 0-1.2-.1-1.6-.3Z"/></svg>`,
-        };
-  const deltaCol = deltaPositive ? '#34d399' : '#f87171';
-  const deltaIco = deltaPositive ? '↑' : '↓';
-  return `<div class="v2-card v2-grow-card">
-    <div class="v2-grow-accent" style="background:linear-gradient(90deg,transparent,${theme.accent},transparent);"></div>
-    <div class="v2-grow-head">
-      <div class="v2-grow-brand">
-        <div class="v2-grow-glyph" style="background:${theme.accent}1f;color:${theme.accent};">${theme.glyph}</div>
-        <div>
-          <div class="v2-eyebrow">${theme.name}</div>
-          <div class="v2-grow-handle">${escape(handle)}</div>
-        </div>
+/* ──── Growth Metrics Card (IG / TT) — datos reales vía /api/growth/summary ──── */
+const PLATFORM_THEME = {
+  instagram: {
+    name: 'Instagram',
+    accent: '#E1306C',
+    accent2: '#F77737',
+    glyph: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>`,
+  },
+  tiktok: {
+    name: 'TikTok',
+    accent: '#25F4EE',
+    accent2: '#FE2C55',
+    glyph: `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19.6 6.7c-1.5-.4-2.7-1.5-3.1-3l-.1-.5h-3.6v13.3a2.6 2.6 0 1 1-2.6-2.6c.3 0 .6 0 .8.1V10.4a6.2 6.2 0 0 0-6 6.2 6.2 6.2 0 0 0 12.4 0V9.5c1.1.7 2.4 1.1 3.8 1.1V7c-.6 0-1.2-.1-1.6-.3Z"/></svg>`,
+  },
+};
+
+const GROWTH_PERIODS = [
+  { key: 'week', label: '7D' },
+  { key: 'month', label: '30D' },
+  { key: 'quarter', label: '90D' },
+  { key: 'halfYear', label: '6M' },
+  { key: 'year', label: '1A' },
+];
+const DEFAULT_GROWTH_PERIOD = 'month';
+
+const growthCardHead = (theme, handle, badgeLabel, badgeColor) => `
+  <div class="v2-grow-accent" style="background:linear-gradient(90deg,transparent,${theme.accent},transparent);"></div>
+  <div class="v2-grow-head">
+    <div class="v2-grow-brand">
+      <div class="v2-grow-glyph" style="background:${theme.accent}1f;color:${theme.accent};">${theme.glyph}</div>
+      <div>
+        <div class="v2-eyebrow">${theme.name}</div>
+        <div class="v2-grow-handle">${escape(handle || '—')}</div>
       </div>
-      <span class="v2-badge" style="background:${theme.accent}1a;color:${theme.accent};box-shadow:inset 0 0 0 1px ${theme.accent}3a;">live</span>
     </div>
+    <span class="v2-badge" style="background:${badgeColor}1a;color:${badgeColor};box-shadow:inset 0 0 0 1px ${badgeColor}3a;">${escape(badgeLabel)}</span>
+  </div>`;
+
+/** Card real: followers + tabs de período (deltas ya vienen todos calculados del backend, sin refetch) + métricas reales. */
+const growthCard = ({ platform, handle, followers, deltas, spark, metrics }) => {
+  const theme = PLATFORM_THEME[platform];
+  const deltasAttr = escape(JSON.stringify(deltas || {}));
+  return `<div class="v2-card v2-grow-card" data-growth-platform="${platform}" data-growth-deltas="${deltasAttr}">
+    ${growthCardHead(theme, handle, 'live', theme.accent)}
     <div class="v2-grow-primary">
       <div class="v2-eyebrow">Followers</div>
       <div class="v2-grow-followers-row">
         <span class="v2-num-xl">${fmtNum(followers)}</span>
-        <span class="v2-delta" style="color:${deltaCol};">${deltaIco} ${escape(deltaPct)}</span>
+        <span class="v2-delta v2-grow-delta-out">—</span>
       </div>
-      <div class="v2-hint">vs últimos 30 días</div>
+      <div class="v2-hint v2-grow-hint-out">Historial acumulándose desde hoy.</div>
+    </div>
+    <div class="v2-grow-period-tabs">
+      ${GROWTH_PERIODS.map((p) => `<button type="button" class="v2-grow-period-tab ${p.key === DEFAULT_GROWTH_PERIOD ? 'is-active' : ''}" data-growth-period="${p.key}">${p.label}</button>`).join('')}
     </div>
     <div class="v2-grow-spark">${sparklineSvg(spark, theme.accent)}</div>
-    ${
-      tier
-        ? `<div class="v2-grow-tier">
-      <div class="v2-grow-tier-head">
-        <span class="v2-eyebrow">${escape(tier.name)}</span>
-        <span class="v2-num-sm">${tier.pct}%</span>
-      </div>
-      <div class="v2-grow-tier-bar"><div style="width:${tier.pct}%;background:linear-gradient(90deg,${theme.accent},${theme.accent2});"></div></div>
-    </div>`
-        : ''
-    }
     <div class="v2-grow-metrics">
       ${metrics
         .map(
           (m) => `<div class="v2-grow-metric">
         <div class="v2-eyebrow">${escape(m.label)}</div>
         <div class="v2-grow-metric-val">
-          <span class="v2-num-md">${escape(String(m.value))}</span>
-          ${m.delta ? `<span class="v2-delta-sm" style="color:${m.delta.positive ? '#34d399' : '#f87171'};">${m.delta.positive ? '↑' : '↓'}${escape(m.delta.value)}</span>` : ''}
+          <span class="v2-num-md">${m.format === 'percent' ? escape(String(m.value)) + '%' : fmtNum(m.value)}</span>
         </div>
         ${m.hint ? `<div class="v2-hint">${escape(m.hint)}</div>` : ''}
       </div>`,
@@ -140,21 +145,54 @@ const growthCard = ({ platform, handle, followers, deltaPct, deltaPositive = tru
   </div>`;
 };
 
-/* ──── Sparkline mock data (sustituir por API real cuando esté) ──── */
-const IG_SPARK = [
-  10200, 10380, 10510, 10620, 10780, 10960, 11210, 11380, 11520, 11790, 11900, 12260, 12410, 12680, 12830, 13110, 13280,
-  13580, 13720, 14060,
-];
-const TT_SPARK = [
-  24300, 24700, 25010, 25320, 25950, 26380, 27110, 27530, 28310, 28780, 29710, 30260, 31520, 32890, 34380, 35980, 36810,
-  38510, 39420, 40380,
-];
+/** Cuenta no conectada — CTA real a /api/auth/{platform}/login, sin números inventados. */
+const growthConnectCard = (platform, loginUrl) => {
+  const theme = PLATFORM_THEME[platform];
+  return `<div class="v2-card v2-grow-card v2-grow-card--empty">
+    ${growthCardHead(theme, 'sin conectar', 'desconectado', '#a1a1aa')}
+    <div class="v2-grow-connect">
+      <p class="v2-hint">Conectá tu cuenta de ${theme.name} para ver followers, alcance y crecimiento reales acá.</p>
+      <a class="v2-btn v2-btn-primary" href="${escape(loginUrl)}">Conectar ${theme.name}</a>
+    </div>
+  </div>`;
+};
+
+/** Token vencido o la API no respondió — nunca mostramos un número mock para disimularlo. */
+const growthErrorCard = (platform, loginUrl, errorCode) => {
+  const theme = PLATFORM_THEME[platform];
+  const msg =
+    errorCode === 'token_expired'
+      ? `La conexión con ${theme.name} venció. Reconectá para seguir viendo datos reales.`
+      : `${theme.name} no respondió. Puede ser un límite de rate temporal — probá de nuevo en unos minutos.`;
+  return `<div class="v2-card v2-grow-card v2-grow-card--empty">
+    ${growthCardHead(theme, 'conexión con problemas', 'error', '#f87171')}
+    <div class="v2-grow-connect">
+      <p class="v2-hint">${escape(msg)}</p>
+      <a class="v2-btn v2-btn-outline" href="${escape(loginUrl)}">Reconectar ${theme.name}</a>
+    </div>
+  </div>`;
+};
+
+const renderGrowthCard = (platform, summary) => {
+  if (!summary || !summary.connected)
+    return growthConnectCard(platform, summary?.loginUrl || `/api/auth/${platform}/login`);
+  if (summary.error) return growthErrorCard(platform, summary.loginUrl || `/api/auth/${platform}/login`, summary.error);
+  return growthCard({
+    platform,
+    handle: summary.handle,
+    followers: summary.followers || 0,
+    deltas: summary.deltas,
+    spark: summary.sparkline || [],
+    metrics: summary.metrics || [],
+  });
+};
 
 /* ──── Resumen ejecutivo (Sala Ejecutiva) ──── */
-const renderSummary = (b) => {
+const renderSummary = async (b) => {
   const ascenso = b.ascenso
     ? `<div class="v2-ascenso">🎉 <strong>¡Ascendiste!</strong> Subiste de <strong>${escape(b.ascenso.de)}</strong> a <strong>${escape(b.ascenso.a)}</strong>.</div>`
     : '';
+  const { data: growth } = await apiSafe('/api/growth/summary', null);
   return `
     ${ascenso}
 
@@ -209,41 +247,8 @@ const renderSummary = (b) => {
         <p class="v2-section-desc">Audiencia, alcance y conversión por plataforma · sparkline 30d.</p>
       </div>
       <div class="v2-grow-grid">
-        ${growthCard({
-          platform: 'instagram',
-          handle: '@feedia.ai',
-          followers: 14060,
-          deltaPct: '+37.8%',
-          deltaPositive: true,
-          spark: IG_SPARK,
-          tier: { name: 'Authority', pct: 64 },
-          metrics: [
-            { label: 'Alcance 30d', value: '287.4k', delta: { value: '22%', positive: true } },
-            {
-              label: 'ER promedio',
-              value: '5.2%',
-              delta: { value: '0.8pp', positive: true },
-              hint: 'vs benchmark 4.5%',
-            },
-            { label: 'Saves + Sends', value: '8.9k', delta: { value: '31%', positive: true } },
-            { label: 'Profile visits', value: '12.6k', delta: { value: '18%', positive: true } },
-          ],
-        })}
-        ${growthCard({
-          platform: 'tiktok',
-          handle: '@feedia',
-          followers: 40380,
-          deltaPct: '+66.2%',
-          deltaPositive: true,
-          spark: TT_SPARK,
-          tier: { name: 'FYP Native', pct: 81 },
-          metrics: [
-            { label: 'Views 30d', value: '1.42M', delta: { value: '54%', positive: true } },
-            { label: 'Completion', value: '61%', delta: { value: '4.2pp', positive: true }, hint: 'vs benchmark 48%' },
-            { label: 'Shares', value: '14.2k', delta: { value: '47%', positive: true } },
-            { label: 'FYP entries', value: '62%', delta: { value: '9pp', positive: true } },
-          ],
-        })}
+        ${renderGrowthCard('instagram', growth?.instagram)}
+        ${renderGrowthCard('tiktok', growth?.tiktok)}
       </div>
     </section>
 
@@ -729,6 +734,29 @@ const renderTabContent = async (b) => {
 
 export const renderImperio = async (root) => {
   activeTab = 'summary';
+
+  // El callback de /api/auth/{instagram,tiktok}/callback redirige de vuelta
+  // acá con ?connected=... o ?oauth_error=... — avisamos y limpiamos la URL.
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const connected = params.get('connected');
+    const oauthError = params.get('oauth_error');
+    if (connected === 'instagram' || connected === 'tiktok') {
+      toast(`✅ ${connected === 'instagram' ? 'Instagram' : 'TikTok'} conectado`, 'ok');
+    } else if (oauthError) {
+      toast(`Error al conectar: ${oauthError}`, 'err');
+    }
+    if (connected || oauthError) {
+      params.delete('connected');
+      params.delete('brandId');
+      params.delete('oauth_error');
+      const qs = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
+    }
+  } catch {
+    /* noop */
+  }
+
   root.innerHTML = `
     <div class="v2-tabs">
       ${TABS.map((t) => `<button class="v2-tab ${t.id === 'summary' ? 'is-active' : ''}" data-tab="${t.id}">${escape(t.label)}</button>`).join('')}
@@ -838,9 +866,16 @@ export const renderImperio = async (root) => {
       .v2-grow-tier-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
       .v2-grow-tier-bar{height:3px;background:var(--v2-line);border-radius:99px;overflow:hidden;}
       .v2-grow-tier-bar > div{height:100%;border-radius:99px;}
+      .v2-grow-period-tabs{display:flex;gap:6px;margin-top:12px;}
+      .v2-grow-period-tab{flex:1;padding:6px 0;border-radius:7px;border:1px solid var(--v2-line);background:transparent;color:var(--v2-fg-3);font-size:11px;font-weight:600;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+      .v2-grow-period-tab:hover{background:var(--v2-hover);color:var(--v2-fg);}
+      .v2-grow-period-tab.is-active{background:var(--v2-fg);color:var(--v2-surface);border-color:var(--v2-fg);}
       .v2-grow-metrics{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--v2-line);border-radius:10px;overflow:hidden;}
       .v2-grow-metric{background:var(--v2-surface);padding:12px;}
       .v2-grow-metric-val{display:flex;align-items:baseline;gap:6px;margin-top:4px;}
+      .v2-grow-card--empty{display:flex;flex-direction:column;}
+      .v2-grow-connect{margin-top:20px;display:flex;flex-direction:column;gap:12px;align-items:flex-start;}
+      .v2-grow-connect .v2-btn{align-self:flex-start;}
 
       /* Staff + Hitos */
       .v2-2col{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-top:36px;}
@@ -958,6 +993,49 @@ export const renderImperio = async (root) => {
           toast('Backend offline', 'warn');
         }
       });
+    });
+
+    // Tabs de período (7D/30D/90D/6M/1A) de "Crecimiento por red" — los 5
+    // deltas ya vienen calculados del backend en data-growth-deltas, así que
+    // cambiar de período es instantáneo (sin refetch).
+    body.querySelectorAll('.v2-grow-card[data-growth-deltas]').forEach((card) => {
+      let deltas = {};
+      try {
+        deltas = JSON.parse(card.dataset.growthDeltas || '{}');
+      } catch {
+        deltas = {};
+      }
+      const deltaOut = card.querySelector('.v2-grow-delta-out');
+      const hintOut = card.querySelector('.v2-grow-hint-out');
+      const applyPeriod = (key) => {
+        const d = deltas[key];
+        if (!d || !d.available) {
+          if (deltaOut) {
+            deltaOut.textContent = '—';
+            deltaOut.style.color = 'var(--v2-fg-3)';
+          }
+          if (hintOut) hintOut.textContent = 'Todavía no hay suficiente historial para este período.';
+          return;
+        }
+        const positive = (d.value ?? 0) >= 0;
+        const pctText = typeof d.pct === 'number' ? `${Math.abs(d.pct).toFixed(1)}%` : `${Math.abs(d.value)}`;
+        if (deltaOut) {
+          deltaOut.textContent = `${positive ? '↑' : '↓'} ${pctText}`;
+          deltaOut.style.color = positive ? '#34d399' : '#f87171';
+        }
+        if (hintOut) {
+          const since = d.sinceIso ? new Date(d.sinceIso).toLocaleDateString('es-AR') : '';
+          hintOut.textContent = since ? `vs ${since}` : '';
+        }
+      };
+      card.querySelectorAll('[data-growth-period]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          card.querySelectorAll('[data-growth-period]').forEach((b) => b.classList.toggle('is-active', b === btn));
+          applyPeriod(btn.dataset.growthPeriod);
+        });
+      });
+      const initial = card.querySelector('[data-growth-period].is-active');
+      applyPeriod(initial ? initial.dataset.growthPeriod : 'month');
     });
   };
 

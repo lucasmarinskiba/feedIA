@@ -58,6 +58,10 @@ import createCmRoutes from './server/cmRoutes.js';
 import createAchievementsRoutes from './server/achievementsRoutes.js';
 import { buildStudioRoutes } from './server/studioApi.js';
 import createExperienceRoutes from './server/experienceRoutes.js';
+import { buildOAuthRoutes, resolveDefaultBrandId } from './server/oauthRoutes.js';
+import { adaptRoutesToExpress } from './server/expressRouteAdapter.js';
+import createGrowthRoutes from './server/growthRoutes.js';
+import { captureSnapshotOnly } from './capabilities/experience/growthMetrics.js';
 import createCuRoutes from './server/cuRoutes.js';
 import createBrandSetupRoutes from './server/brandSetupRoutes.js';
 import createConsumptionRoutes from './server/consumptionRoutes.js';
@@ -526,6 +530,13 @@ app.get('/api/debug/memorydb', async (_req: Request, res: Response): Promise<voi
 // /api/stream/achievements are intentionally excluded — that fix is being
 // handled separately.
 app.use(createExperienceRoutes(brand));
+// Real Instagram (Meta Graph) + TikTok OAuth — connect/callback/status/
+// disconnect, long-lived token + IG business account resolution. Written for
+// the same unmounted http.js dev server as the routes above; "Crecimiento por
+// red" in imperio.js depends on /api/auth/*/login + growthRoutes.ts reading
+// the connections this saves.
+app.use(adaptRoutesToExpress(buildOAuthRoutes(brand)));
+app.use(createGrowthRoutes(brand));
 app.use(createAssistantChatRoute(brand));
 app.use(createCuRoutes(brand));
 app.use(createBrandSetupRoutes(brand));
@@ -758,6 +769,21 @@ Promise.all([
     startPollingScheduler();
     startMonthlyUsageResetScheduler();
     startMetricsPolling(6);
+
+    // Growth history: snapshot diario de followers IG/TikTok (no-op si no hay
+    // cuenta conectada). Sin esto no hay forma de calcular crecimiento semanal/
+    // mensual/etc — ni Meta ni TikTok exponen ese historial vía API.
+    const growthBrandId = resolveDefaultBrandId(brand) ?? 'default';
+    const captureGrowthSnapshots = (): void => {
+      captureSnapshotOnly(growthBrandId, 'instagram').catch((err) =>
+        log.warn('[Server] IG growth snapshot failed', { err: String(err) }),
+      );
+      captureSnapshotOnly(growthBrandId, 'tiktok').catch((err) =>
+        log.warn('[Server] TikTok growth snapshot failed', { err: String(err) }),
+      );
+    };
+    captureGrowthSnapshots();
+    setInterval(captureGrowthSnapshots, 24 * 60 * 60 * 1000);
     const redisStatus = isRedisReady() ? '✅ Redis enabled' : '⚠️  Redis disabled';
     log.info(
       `[Server] initialized: metrics polling + carousel storage + billing/tiers + webhooks + quality feedback loop (${redisStatus})`,

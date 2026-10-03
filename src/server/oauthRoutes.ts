@@ -59,7 +59,7 @@ const parseCookie = (cookieHeader: string | string[] | undefined, name: string):
 const headerValue = (v: string | string[] | undefined): string | undefined =>
   Array.isArray(v) ? v[0] : (v ?? undefined);
 
-const resolveDefaultBrandId = (brand?: { id?: string; name: string }): string | undefined =>
+export const resolveDefaultBrandId = (brand?: { id?: string; name: string }): string | undefined =>
   brand?.id ?? brand?.name.toLowerCase().replace(/\s+/g, '-');
 
 const buildRedirectUri = (
