@@ -17,9 +17,18 @@ export type OKRPeriod = 'month' | 'quarter' | 'year';
 export type OKRStatus = 'on-track' | 'at-risk' | 'behind' | 'ahead' | 'completed' | 'abandoned';
 export type KRMetricType = 'count' | 'percent' | 'currency' | 'ratio' | 'time-minutes';
 
+export type KRSource =
+  | 'manual'
+  | 'seguidores-instagram'
+  | 'seguidores-tiktok'
+  | 'piezas-creadas'
+  | 'carruseles-publicados'
+  | 'comentarios-revisados';
+
 export interface KeyResult {
   id: string;
   description: string;
+  fuente: KRSource;
   metricType: KRMetricType;
   baseline: number;
   target: number;
@@ -156,7 +165,13 @@ export const createObjective = async (params: {
   title: string;
   description: string;
   category: Objective['category'];
-  keyResults: Array<{ description: string; metricType: KRMetricType; baseline: number; target: number }>;
+  keyResults: Array<{
+    description: string;
+    fuente?: KRSource;
+    metricType: KRMetricType;
+    baseline: number;
+    target: number;
+  }>;
 }): Promise<Objective> => {
   const now = new Date();
   const periodMs =
@@ -176,6 +191,7 @@ export const createObjective = async (params: {
     keyResults: params.keyResults.map((kr) => ({
       id: `kr-${Math.random().toString(36).slice(2, 8)}`,
       description: kr.description,
+      fuente: kr.fuente ?? 'manual',
       metricType: kr.metricType,
       baseline: kr.baseline,
       target: kr.target,
@@ -200,18 +216,7 @@ export const createObjective = async (params: {
   return objective;
 };
 
-export const updateKRProgress = async (
-  brandId: string,
-  objectiveId: string,
-  krId: string,
-  newValue: number,
-): Promise<Objective | null> => {
-  const objectives = await loadObjectives(brandId);
-  const objective = objectives.find((o) => o.id === objectiveId);
-  if (!objective) return null;
-  const kr = objective.keyResults.find((k) => k.id === krId);
-  if (!kr) return null;
-
+const aplicarValor = (objective: Objective, kr: KeyResult, newValue: number): void => {
   kr.current = newValue;
   kr.lastUpdated = new Date().toISOString();
   const weekKey = new Date().toISOString().slice(0, 10);
@@ -242,7 +247,60 @@ export const updateKRProgress = async (
   else objective.status = 'on-track';
   objective.lastReview = new Date().toISOString();
   objective.recommendations = generateRecommendations(objective);
+};
 
+export const updateKRProgress = async (
+  brandId: string,
+  objectiveId: string,
+  krId: string,
+  newValue: number,
+): Promise<Objective | null> => {
+  const objectives = await loadObjectives(brandId);
+  const objective = objectives.find((o) => o.id === objectiveId);
+  if (!objective) return null;
+  const kr = objective.keyResults.find((k) => k.id === krId);
+  if (!kr) return null;
+  aplicarValor(objective, kr, newValue);
+  await saveObjectives(brandId, objectives);
+  return objective;
+};
+
+export interface ValorFuenteReal {
+  valor: number;
+  absoluto: boolean;
+}
+
+/**
+ * Actualiza los KR con fuente real. `absoluto` = el valor ya es el total (seguidores);
+ * si no, es lo producido desde el inicio del período y se suma al baseline.
+ * Si la fuente no tiene dato, el KR queda como estaba: no se inventa progreso.
+ */
+export const sincronizarFuentesReales = async (
+  brandId: string,
+  leerFuente: (fuente: KRSource, desdeIso: string) => Promise<ValorFuenteReal | null>,
+): Promise<number> => {
+  const objectives = await loadObjectives(brandId);
+  let actualizados = 0;
+  for (const objective of objectives) {
+    if (objective.status === 'abandoned' || objective.status === 'completed') continue;
+    if (new Date(objective.periodEnd).getTime() < Date.now()) continue;
+    for (const kr of objective.keyResults) {
+      if (kr.fuente === 'manual') continue;
+      const lectura = await leerFuente(kr.fuente, objective.periodStart);
+      if (!lectura) continue;
+      aplicarValor(objective, kr, lectura.absoluto ? lectura.valor : kr.baseline + lectura.valor);
+      actualizados++;
+    }
+  }
+  if (actualizados > 0) await saveObjectives(brandId, objectives);
+  return actualizados;
+};
+
+export const archivarObjetivo = async (brandId: string, objectiveId: string): Promise<Objective | null> => {
+  const objectives = await loadObjectives(brandId);
+  const objective = objectives.find((o) => o.id === objectiveId);
+  if (!objective) return null;
+  objective.status = 'abandoned';
   await saveObjectives(brandId, objectives);
   return objective;
 };

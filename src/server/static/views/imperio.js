@@ -715,6 +715,133 @@ const renderDecisions = async () => {
       .dec-reasoning,.dec-outcome,.dec-risks{font-size:12px;color:var(--v2-fg-2);margin-top:4px;}
     </style>`;
 };
+const OKR_CATEGORIAS = {
+  growth: 'Crecimiento',
+  engagement: 'Engagement',
+  revenue: 'Ingresos',
+  brand: 'Marca',
+  efficiency: 'Eficiencia',
+  community: 'Comunidad',
+};
+const OKR_PERIODOS = { month: 'Mes · 30 días', quarter: 'Trimestre · 90 días', year: 'Año' };
+const OKR_FUENTES = {
+  manual: 'Manual · lo registrás vos',
+  'seguidores-instagram': 'Automático · seguidores de Instagram',
+  'seguidores-tiktok': 'Automático · seguidores de TikTok',
+  'piezas-creadas': 'Automático · piezas creadas',
+  'carruseles-publicados': 'Automático · carruseles publicados',
+  'comentarios-revisados': 'Automático · comentarios revisados',
+};
+const OKR_METRICAS = {
+  count: 'cantidad',
+  percent: '%',
+  currency: 'US$',
+  ratio: 'ratio',
+  'time-minutes': 'minutos',
+};
+const OKR_ESTADOS = {
+  'on-track': { label: 'En camino', color: '#34d399' },
+  ahead: { label: 'Adelantado', color: '#22d3ee' },
+  'at-risk': { label: 'En riesgo', color: '#fbbf24' },
+  behind: { label: 'Atrasado', color: '#f87171' },
+  completed: { label: 'Completado', color: '#a855f7' },
+};
+const OKR_TENDENCIAS = {
+  accelerating: 'acelera',
+  steady: 'estable',
+  decelerating: 'se frena',
+  stalled: 'estancada',
+};
+const OKR_PLANTILLAS = {
+  crecimiento: {
+    title: 'Crecer en redes sociales',
+    description: 'Más personas que nos siguen y se interesan por lo que publicamos.',
+    category: 'growth',
+    period: 'quarter',
+    krs: [
+      { desc: 'Seguidores en Instagram', fuente: 'seguidores-instagram', metrica: 'count' },
+      { desc: 'Seguidores en TikTok', fuente: 'seguidores-tiktok', metrica: 'count' },
+    ],
+  },
+  contenido: {
+    title: 'Producir contenido de forma constante',
+    description: 'Publicar piezas de calidad todas las semanas sin depender de la improvisación.',
+    category: 'efficiency',
+    period: 'month',
+    krs: [
+      { desc: 'Piezas creadas en el mes', fuente: 'piezas-creadas', metrica: 'count' },
+      { desc: 'Carruseles publicados', fuente: 'carruseles-publicados', metrica: 'count' },
+    ],
+  },
+  comunidad: {
+    title: 'Responder bien a la comunidad',
+    description: 'Que cada comentario importante reciba una respuesta cuidada y a tiempo.',
+    category: 'community',
+    period: 'month',
+    krs: [
+      { desc: 'Comentarios revisados', fuente: 'comentarios-revisados', metrica: 'count' },
+      { desc: 'Conversaciones atendidas a mano', fuente: 'manual', metrica: 'count' },
+    ],
+  },
+};
+
+const okrOpciones = (mapa, seleccionado) =>
+  Object.entries(mapa)
+    .map(
+      ([k, v]) =>
+        `<option value="${escape(k)}" ${k === seleccionado ? 'selected' : ''}>${escape(typeof v === 'string' ? v : v.label)}</option>`,
+    )
+    .join('');
+
+const okrFmt = (n) => (Number.isFinite(n) ? Number(n).toLocaleString('es-AR', { maximumFractionDigits: 2 }) : '—');
+
+const okrFormHtml = () => `
+  <form id="okr-form" class="v2-card v2-card-pad okr-form" hidden>
+    <div class="v2-eyebrow">Nuevo OKR</div>
+    <div class="okr-plantillas">
+      <span class="v2-hint">Empezar con una plantilla:</span>
+      <button type="button" class="v2-btn v2-btn-outline v2-btn-sm" data-okr-plantilla="crecimiento">Crecer en redes</button>
+      <button type="button" class="v2-btn v2-btn-outline v2-btn-sm" data-okr-plantilla="contenido">Producir contenido</button>
+      <button type="button" class="v2-btn v2-btn-outline v2-btn-sm" data-okr-plantilla="comunidad">Comunidad</button>
+    </div>
+    <label class="okr-campo">Objetivo
+      <input name="title" maxlength="120" required placeholder="Ej.: Ser la cuenta de referencia en IA para PyMEs">
+    </label>
+    <label class="okr-campo">Por qué importa
+      <textarea name="description" rows="2" maxlength="300" placeholder="Qué cambia si lo logramos"></textarea>
+    </label>
+    <div class="okr-fila">
+      <label class="okr-campo">Categoría
+        <select name="category">${okrOpciones(OKR_CATEGORIAS, 'growth')}</select>
+      </label>
+      <label class="okr-campo">Período
+        <select name="period">${okrOpciones(OKR_PERIODOS, 'quarter')}</select>
+      </label>
+    </div>
+    ${[1, 2, 3, 4]
+      .map(
+        (i) => `
+      <fieldset class="okr-kr-campo">
+        <legend>Resultado clave ${i}${i === 1 ? ' (al menos uno)' : ' (opcional)'}</legend>
+        <input name="kr${i}_desc" maxlength="140" placeholder="Ej.: 20.000 seguidores en Instagram">
+        <div class="okr-fila">
+          <select name="kr${i}_fuente" title="De dónde sale el número">${okrOpciones(OKR_FUENTES, 'manual')}</select>
+          <select name="kr${i}_metrica">${okrOpciones(OKR_METRICAS, 'count')}</select>
+        </div>
+        <div class="okr-fila">
+          <input name="kr${i}_baseline" type="number" step="any" placeholder="Valor inicial (vacío = actual)">
+          <input name="kr${i}_target" type="number" step="any" placeholder="Meta">
+        </div>
+      </fieldset>`,
+      )
+      .join('')}
+    <div class="okr-form-error v2-hint" hidden></div>
+    <div class="okr-form-acciones">
+      <button type="submit" class="v2-btn v2-btn-primary">Crear OKR</button>
+      <button type="button" class="v2-btn v2-btn-ghost" data-okr-toggle-form>Cancelar</button>
+    </div>
+  </form>`;
+
 const renderOKRs = async () => {
   const { data } = await apiSafe('/api/executive/okr/active', {
     objectives: [],
@@ -722,79 +849,119 @@ const renderOKRs = async () => {
   });
   const objectives = data?.objectives ?? [];
   const summary = data?.summary ?? {};
-  if (objectives.length === 0)
-    return `<div class="tiny muted" style="text-align:center;padding:40px;">Sin OKRs activos. Creá el primero desde la API o /api/executive/okr/create.</div>`;
-  return `
-    <div class="exec-section-head"><h3>🏁 OKRs activos (${objectives.length}) · Score global ${(summary.overallScore || 0).toFixed(0)}%</h3></div>
-    <div class="okr-summary-bar">
-      <span class="okr-pill okr-ahead">${summary.ahead || 0} adelantados</span>
-      <span class="okr-pill okr-ontrack">${summary.onTrack || 0} en track</span>
-      <span class="okr-pill okr-atrisk">${summary.atRisk || 0} riesgo</span>
-      <span class="okr-pill okr-behind">${summary.behind || 0} atrasados</span>
-    </div>
-    <div class="okr-list">
-      ${objectives
-        .map(
-          (o) => `
-        <div class="okr-card" data-status="${escape(o.status)}">
-          <div class="okr-head">
-            <h4>${escape(o.title)}</h4>
-            <span class="okr-status okr-${escape(o.status)}">${escape(o.status)}</span>
-          </div>
-          <div class="okr-progress-bar"><div class="okr-progress-fill" style="width:${(o.overallProgressPct || 0).toFixed(0)}%;"></div></div>
-          <div class="tiny muted" style="margin-top:4px;">${(o.overallProgressPct || 0).toFixed(0)}% · ${o.weeksRemaining} semana(s) restantes</div>
-          <ul class="okr-kr-list">
-            ${(o.keyResults || [])
-              .map(
-                (kr) => `
-              <li>
-                <div class="okr-kr-desc">${escape(kr.description)}</div>
-                <div class="okr-kr-meta">
-                  <span>${kr.current.toFixed(0)} / ${kr.target.toFixed(0)} (${(kr.progressPct || 0).toFixed(0)}%)</span>
-                  <span class="okr-trend okr-trend-${escape(kr.trend)}">${escape(kr.trend)}</span>
-                </div>
-              </li>`,
-              )
-              .join('')}
-          </ul>
-          ${o.recommendations?.length ? `<div class="okr-recs"><strong>Recomendaciones:</strong><ul>${o.recommendations.map((r) => `<li>${escape(r)}</li>`).join('')}</ul></div>` : ''}
-        </div>`,
-        )
-        .join('')}
-    </div>
-    <style>
-      .okr-summary-bar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
-      .okr-pill{font-size:11px;padding:3px 10px;border-radius:999px;font-weight:700;}
-      .okr-ahead{background:#10b98122;color:#34d399;}
-      .okr-ontrack{background:#3b82f622;color:#60a5fa;}
-      .okr-atrisk{background:#f59e0b22;color:#fbbf24;}
-      .okr-behind{background:#ef444422;color:#f87171;}
-      .okr-list{display:flex;flex-direction:column;gap:12px;}
-      .okr-card{background:var(--surface,#141418);border:1px solid var(--border);border-radius:12px;padding:14px;}
-      .okr-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-      .okr-head h4{margin:0;font-size:14px;}
-      .okr-status{font-size:10px;padding:2px 8px;border-radius:999px;text-transform:uppercase;font-weight:800;}
-      .okr-on-track{background:#3b82f622;color:#60a5fa;}
-      .okr-at-risk{background:#f59e0b22;color:#fbbf24;}
-      .okr-behind{background:#ef444422;color:#f87171;}
-      .okr-ahead{background:#10b98122;color:#34d399;}
-      .okr-completed{background:#a855f722;color:#d8b4fe;}
-      .okr-progress-bar{height:6px;background:var(--border);border-radius:99px;overflow:hidden;}
-      .okr-progress-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#a855f7);transition:width .6s;}
-      .okr-kr-list{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:6px;}
-      .okr-kr-list li{padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px;font-size:12px;}
-      .okr-kr-desc{margin-bottom:3px;}
-      .okr-kr-meta{display:flex;justify-content:space-between;font-size:11px;opacity:.7;}
-      .okr-trend{padding:1px 7px;border-radius:6px;font-weight:700;text-transform:uppercase;font-size:9px;}
-      .okr-trend-accelerating{background:#10b98122;color:#34d399;}
-      .okr-trend-steady{background:#6366f122;color:#a5b4fc;}
-      .okr-trend-decelerating{background:#f59e0b22;color:#fbbf24;}
-      .okr-trend-stalled{background:#ef444422;color:#f87171;}
-      .okr-recs{margin-top:10px;font-size:12px;background:rgba(168,85,247,.06);padding:8px 10px;border-radius:8px;}
-      .okr-recs ul{margin:4px 0 0;padding-left:18px;}
-    </style>`;
-};
+  const explicacion = `
+    <section class="v2-card v2-card-pad okr-explica">
+      <div class="v2-eyebrow">Marco de trabajo</div>
+      <h2 class="v2-h2">¿Qué son los OKR?</h2>
+      <p class="v2-lead">Objetivos y Resultados Clave: un método para fijar metas ambiciosas y medir, sin ambigüedad, si se cumplen. Lo usan equipos desde Intel y Google hasta startups, y sirve igual para una empresa, un equipo o una persona.</p>
+      <div class="okr-tres">
+        <div><strong>Objetivo</strong><span>A dónde querés llegar, en una frase inspiradora. Cualitativo.<em>Ej.: "Ser la cuenta de referencia en IA para PyMEs".</em></span></div>
+        <div><strong>Resultados clave</strong><span>De 2 a 4 números que prueban que lo lograste. Medibles, con fecha.<em>Ej.: "Llegar a 20.000 seguidores en Instagram".</em></span></div>
+        <div><strong>Iniciativas</strong><span>Las tareas que mueven los resultados. Las hace el equipo; no son el OKR.<em>Ej.: "Publicar 3 carruseles por semana".</em></span></div>
+      </div>
+      <ul class="okr-reglas">
+        <li><strong>Ciclo:</strong> definilos por trimestre y revisá el avance cada semana.</li>
+        <li><strong>Ambición:</strong> apuntá a cerrar cerca del 70%. Si siempre llegás al 100%, las metas eran chicas.</li>
+        <li><strong>OKR vs KPI:</strong> un KPI vigila la salud del negocio; un OKR mueve algo concreto en un período.</li>
+        <li><strong>Tarea ≠ resultado:</strong> "publicar 10 posts" es una tarea; "duplicar el alcance" es un resultado.</li>
+      </ul>
+    </section>`;
 
+  const barra = `
+    <div class="okr-barra">
+      <div class="okr-barra-botones">
+        <button class="v2-btn v2-btn-primary v2-btn-sm" data-okr-toggle-form>+ Nuevo OKR</button>
+        <button class="v2-btn v2-btn-outline v2-btn-sm" data-okr-sync>Sincronizar con datos reales</button>
+      </div>
+    </div>`;
+
+  if (objectives.length === 0) {
+    return `
+      <div class="okr-wrap">
+        ${explicacion}
+        ${barra}
+        <div class="v2-card v2-card-pad"><div class="v2-hint">Todavía no tenés OKR activos. Creá el primero: elegí una plantilla o escribí el tuyo. Los resultados de redes, piezas y comentarios se miden solos.</div></div>
+        ${okrFormHtml().replace('hidden>', '>')}
+      </div>`;
+  }
+
+  const progresoPromedio = Math.round(summary.overallScore || 0);
+  return `
+    <div class="okr-wrap">
+      ${explicacion}
+      ${barra}
+      <div class="v2-kpi-grid">
+        <div class="v2-card v2-kpi"><div class="v2-eyebrow">OKR activos</div><div class="v2-num-xl">${summary.totalActive || 0}</div><div class="v2-hint">este período</div></div>
+        <div class="v2-card v2-kpi"><div class="v2-eyebrow">En camino</div><div class="v2-num-xl" style="color:#34d399;">${(summary.onTrack || 0) + (summary.ahead || 0)}</div><div class="v2-hint">incluye adelantados</div></div>
+        <div class="v2-card v2-kpi"><div class="v2-eyebrow">En riesgo</div><div class="v2-num-xl" style="color:#fbbf24;">${summary.atRisk || 0}</div><div class="v2-hint">conviene revisar</div></div>
+        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Atrasados</div><div class="v2-num-xl" style="color:#f87171;">${summary.behind || 0}</div><div class="v2-hint">replanificar</div></div>
+        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Progreso promedio</div><div class="v2-num-xl">${progresoPromedio}%</div><div class="v2-hint">sobre el 70% de ambición</div></div>
+      </div>
+      ${okrFormHtml()}
+      <div class="okr-lista">
+        ${objectives
+          .map((obj) => {
+            const est = OKR_ESTADOS[obj.status] || { label: obj.status, color: 'var(--v2-fg-3)' };
+            const dias = Math.max(0, Math.ceil((Date.parse(obj.periodEnd) - Date.now()) / 86400000));
+            const pct = Math.max(0, Math.min(100, Math.round(obj.overallProgressPct || 0)));
+            return `
+          <article class="v2-card okr-card">
+            <header class="okr-card-head">
+              <div>
+                <div class="v2-eyebrow">${escape(OKR_CATEGORIAS[obj.category] || obj.category)} · ${escape(OKR_PERIODOS[obj.period] || obj.period)}</div>
+                <h3>${escape(obj.title)}</h3>
+                ${obj.description ? `<p class="v2-hint">${escape(obj.description)}</p>` : ''}
+              </div>
+              <span class="okr-estado" style="color:${est.color};box-shadow:inset 0 0 0 1px ${est.color}55;">${escape(est.label)}</span>
+            </header>
+            <div class="okr-progreso">
+              <div class="okr-barra-progreso"><div style="width:${pct}%;"></div></div>
+              <div class="v2-hint">${pct}% del objetivo · ${dias} días restantes</div>
+            </div>
+            <div class="okr-krs">
+              ${(obj.keyResults || [])
+                .map((kr) => {
+                  const kest = OKR_ESTADOS[kr.status] || { label: kr.status, color: 'var(--v2-fg-3)' };
+                  const kpct = Math.max(0, Math.min(100, Math.round(kr.progressPct || 0)));
+                  const esManual = (kr.fuente || 'manual') === 'manual';
+                  return `
+              <div class="okr-kr">
+                <div class="okr-kr-head">
+                  <span class="okr-kr-desc">${escape(kr.description)}</span>
+                  <span class="okr-kr-estado" style="color:${kest.color};">${escape(kest.label)}</span>
+                </div>
+                <div class="okr-kr-valores"><strong>${okrFmt(kr.current)}</strong> de ${okrFmt(kr.target)} ${escape(OKR_METRICAS[kr.metricType] || '')}</div>
+                <div class="okr-barra-progreso fina"><div style="width:${kpct}%;"></div></div>
+                <div class="okr-kr-pie">
+                  <span class="v2-hint">${escape(OKR_FUENTES[kr.fuente || 'manual'] || '')}</span>
+                  ${
+                    esManual
+                      ? `<form class="okr-avance" data-okr-avance-obj="${escape(obj.id)}" data-okr-avance-kr="${escape(kr.id)}">
+                          <input name="valor" type="number" step="any" placeholder="Valor actual" required>
+                          <button class="v2-btn v2-btn-outline v2-btn-sm" type="submit">Registrar</button>
+                        </form>`
+                      : '<span class="v2-hint">Se actualiza sola</span>'
+                  }
+                </div>
+                <div class="v2-hint">Tendencia: ${escape(OKR_TENDENCIAS[kr.trend] || kr.trend)} · al cierre llegaría a ${okrFmt(kr.projectedFinal)} ${kr.projectedHitsTarget ? '(llega a la meta)' : '(no llega a la meta)'}</div>
+              </div>`;
+                })
+                .join('')}
+            </div>
+            ${
+              (obj.recommendations || []).length
+                ? `<ul class="okr-recs">${obj.recommendations.map((r) => `<li>${escape(r)}</li>`).join('')}</ul>`
+                : ''
+            }
+            <footer class="okr-card-foot">
+              <button class="v2-btn v2-btn-ghost v2-btn-sm" data-okr-archivar="${escape(obj.id)}">Archivar</button>
+            </footer>
+          </article>`;
+          })
+          .join('')}
+      </div>
+    </div>`;
+};
 const renderAutopilotReport = async (platform) => {
   const { data, error } = await apiSafe(`/api/autopilot/${platform}/latest`, null);
   if (!data)
@@ -1041,6 +1208,46 @@ export const renderImperio = async (root) => {
       .v2-feed-tipo--mision{background:rgba(52,211,153,.12);color:#34d399;}
       .v2-feed-route{font-size:13px;color:var(--v2-fg);}
       @media (max-width: 720px){.v2-feed-row{grid-template-columns:1fr;gap:4px;}}
+      .okr-wrap{display:flex;flex-direction:column;gap:16px;}
+      .okr-explica .v2-lead{margin-top:10px;}
+      .okr-tres{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px;}
+      .okr-tres>div{padding:14px;border-radius:12px;background:var(--v2-hover);display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--v2-fg-2);}
+      .okr-tres strong{color:var(--v2-fg);font-size:14px;}
+      .okr-tres em{display:block;color:var(--v2-fg-3);font-size:12px;margin-top:4px;}
+      .okr-reglas{margin:16px 0 0;padding-left:18px;font-size:13px;color:var(--v2-fg-2);display:flex;flex-direction:column;gap:6px;}
+      .okr-barra{display:flex;justify-content:flex-end;}
+      .okr-barra-botones{display:flex;gap:8px;flex-wrap:wrap;}
+      .okr-form[hidden],[hidden].okr-form{display:none !important;}
+      .okr-form{display:flex;flex-direction:column;gap:12px;}
+      .okr-plantillas{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+      .okr-campo{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--v2-fg-2);flex:1;}
+      .okr-fila{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+      .okr-campo input,.okr-campo select,.okr-campo textarea,.okr-kr-campo input,.okr-kr-campo select,.okr-avance input{padding:8px 10px;border-radius:8px;border:1px solid var(--v2-line);background:var(--v2-surface-2);color:var(--v2-fg);font:inherit;font-size:13px;}
+      .okr-kr-campo{border:1px solid var(--v2-line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;}
+      .okr-kr-campo legend{font-size:11px;color:var(--v2-fg-3);padding:0 6px;text-transform:uppercase;letter-spacing:.06em;}
+      .okr-form-acciones{display:flex;gap:8px;}
+      .okr-form-error{color:#f87171;}
+      .okr-lista{display:flex;flex-direction:column;gap:14px;}
+      .okr-card{padding:18px;display:flex;flex-direction:column;gap:14px;}
+      .okr-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;}
+      .okr-card-head h3{margin:4px 0 0;font-size:17px;color:var(--v2-fg);}
+      .okr-estado{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:4px 10px;border-radius:999px;white-space:nowrap;}
+      .okr-progreso{display:flex;flex-direction:column;gap:6px;}
+      .okr-barra-progreso{height:6px;border-radius:99px;background:var(--v2-line);overflow:hidden;}
+      .okr-barra-progreso>div{height:100%;border-radius:99px;background:linear-gradient(90deg,#a855f7,#22d3ee);transition:width .6s;}
+      .okr-barra-progreso.fina{height:4px;}
+      .okr-krs{display:flex;flex-direction:column;gap:12px;}
+      .okr-kr{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:10px;background:var(--v2-hover);}
+      .okr-kr-head{display:flex;justify-content:space-between;gap:8px;align-items:center;}
+      .okr-kr-desc{font-size:13px;font-weight:600;color:var(--v2-fg);}
+      .okr-kr-estado{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+      .okr-kr-valores{font-size:13px;color:var(--v2-fg-2);}
+      .okr-kr-pie{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;}
+      .okr-avance{display:flex;gap:6px;align-items:center;}
+      .okr-avance input{width:120px;}
+      .okr-recs{margin:0;padding-left:18px;font-size:12px;color:var(--v2-fg-2);display:flex;flex-direction:column;gap:4px;}
+      .okr-card-foot{display:flex;justify-content:flex-end;}
+      @media (max-width:720px){.okr-fila,.okr-tres{grid-template-columns:1fr;}}
       .v2-grow-card--empty{display:flex;flex-direction:column;}
       .v2-grow-connect{margin-top:20px;display:flex;flex-direction:column;gap:12px;align-items:flex-start;}
       .v2-grow-connect .v2-btn{align-self:flex-start;}
@@ -1167,6 +1374,176 @@ export const renderImperio = async (root) => {
           }
         } catch {
           toast('Backend offline', 'warn');
+        }
+      });
+    });
+
+    const okrPlantillas = {
+      crecimiento: {
+        title: 'Crecer en redes sociales',
+        description: 'Más personas que nos siguen y se interesan por lo que publicamos.',
+        category: 'growth',
+        period: 'quarter',
+        krs: [
+          { desc: 'Seguidores en Instagram', fuente: 'seguidores-instagram', metrica: 'count' },
+          { desc: 'Seguidores en TikTok', fuente: 'seguidores-tiktok', metrica: 'count' },
+        ],
+      },
+      contenido: {
+        title: 'Producir contenido de forma constante',
+        description: 'Publicar piezas de calidad todas las semanas sin depender de la improvisación.',
+        category: 'efficiency',
+        period: 'month',
+        krs: [
+          { desc: 'Piezas creadas en el mes', fuente: 'piezas-creadas', metrica: 'count' },
+          { desc: 'Carruseles publicados', fuente: 'carruseles-publicados', metrica: 'count' },
+        ],
+      },
+      comunidad: {
+        title: 'Responder bien a la comunidad',
+        description: 'Que cada comentario importante reciba una respuesta cuidada y a tiempo.',
+        category: 'community',
+        period: 'month',
+        krs: [
+          { desc: 'Comentarios revisados', fuente: 'comentarios-revisados', metrica: 'count' },
+          { desc: 'Conversaciones atendidas a mano', fuente: 'manual', metrica: 'count' },
+        ],
+      },
+    };
+    body.querySelectorAll('[data-okr-toggle-form]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const form = body.querySelector('#okr-form');
+        if (form) form.hidden = !form.hidden;
+      });
+    });
+    body.querySelectorAll('[data-okr-plantilla]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const form = body.querySelector('#okr-form');
+        const p = okrPlantillas[btn.dataset.okrPlantilla];
+        if (!form || !p) return;
+        form.hidden = false;
+        form.elements.title.value = p.title;
+        form.elements.description.value = p.description;
+        form.category.value = p.category;
+        form.period.value = p.period;
+        p.krs.forEach((kr, idx) => {
+          const i = idx + 1;
+          form[`kr${i}_desc`].value = kr.desc;
+          form[`kr${i}_fuente`].value = kr.fuente;
+          form[`kr${i}_metrica`].value = kr.metrica;
+        });
+      });
+    });
+    body.querySelector('#okr-form')?.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const form = ev.currentTarget;
+      const errorBox = form.querySelector('.okr-form-error');
+      const showError = (msg) => {
+        errorBox.textContent = msg;
+        errorBox.hidden = false;
+      };
+      const keyResults = [];
+      for (const i of [1, 2, 3, 4]) {
+        const desc = form[`kr${i}_desc`].value.trim();
+        if (!desc) continue;
+        const target = form[`kr${i}_target`].value;
+        if (target === '' || !Number.isFinite(Number(target))) {
+          return showError(`Falta la meta del resultado clave ${i}.`);
+        }
+        const baselineRaw = form[`kr${i}_baseline`].value;
+        keyResults.push({
+          description: desc,
+          fuente: form[`kr${i}_fuente`].value,
+          metricType: form[`kr${i}_metrica`].value,
+          baseline: baselineRaw === '' ? null : Number(baselineRaw),
+          target: Number(target),
+        });
+      }
+      if (!form.elements.title.value.trim()) return showError('Ponele un objetivo.');
+      if (keyResults.length === 0) return showError('Agregá al menos un resultado clave con su meta.');
+      try {
+        const r = await fetch('/api/executive/okr/create', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            title: form.elements.title.value.trim(),
+            description: form.elements.description.value.trim(),
+            category: form.category.value,
+            period: form.period.value,
+            keyResults,
+          }),
+        });
+        if (!r.ok) {
+          const e = await r.json().catch(() => ({}));
+          throw new Error(e.error || `HTTP ${r.status}`);
+        }
+        toast('✅ OKR creado', 'ok');
+        void repaint();
+      } catch (err) {
+        showError(`No se pudo crear: ${err.message}`);
+      }
+    });
+    body.querySelectorAll('[data-okr-avance-obj]').forEach((form) => {
+      form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const valor = Number(form.valor.value);
+        if (!Number.isFinite(valor)) return;
+        try {
+          const r = await fetch('/api/executive/okr/update-kr', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              objectiveId: form.dataset.okrAvanceObj,
+              krId: form.dataset.okrAvanceKr,
+              newValue: valor,
+            }),
+          });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          toast('Avance registrado', 'ok');
+          void repaint();
+        } catch (err) {
+          toast(`No se pudo registrar: ${err.message}`, 'err');
+        }
+      });
+    });
+    body.querySelectorAll('[data-okr-sync]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        try {
+          const r = await fetch('/api/executive/okr/sync', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: '{}',
+          });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          const { actualizados } = await r.json();
+          toast(
+            actualizados
+              ? `✅ ${actualizados} resultado(s) actualizados con datos reales`
+              : 'No hubo datos nuevos para sincronizar',
+            'ok',
+          );
+          void repaint();
+        } catch (err) {
+          btn.disabled = false;
+          toast(`No se pudo sincronizar: ${err.message}`, 'err');
+        }
+      });
+    });
+    body.querySelectorAll('[data-okr-archivar]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!window.confirm('¿Archivar este OKR? Deja de contar en el resumen.')) return;
+        try {
+          const r = await fetch('/api/executive/okr/archive', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ objectiveId: btn.dataset.okrArchivar }),
+          });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          toast('OKR archivado', 'info');
+          void repaint();
+        } catch (err) {
+          toast(`No se pudo archivar: ${err.message}`, 'err');
         }
       });
     });

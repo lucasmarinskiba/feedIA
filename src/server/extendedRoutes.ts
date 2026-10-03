@@ -4791,9 +4791,43 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
     method: 'GET',
     pattern: '/api/executive/okr/active',
     handler: async ({ res }) => {
-      const { listActiveObjectives, getOKRSummary } = await import('../capabilities/executive/executiveOKR.js');
+      const { listActiveObjectives, getOKRSummary, sincronizarFuentesReales } =
+        await import('../capabilities/executive/executiveOKR.js');
+      const { crearLectorFuentesReales } = await import('../capabilities/executive/okrFuentesReales.js');
       const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
+      await sincronizarFuentesReales(brandId, crearLectorFuentesReales(brandId, brand.name));
       json(res, 200, { objectives: await listActiveObjectives(brandId), summary: await getOKRSummary(brandId) });
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/executive/okr/sync',
+    handler: async ({ res }) => {
+      const { sincronizarFuentesReales } = await import('../capabilities/executive/executiveOKR.js');
+      const { crearLectorFuentesReales } = await import('../capabilities/executive/okrFuentesReales.js');
+      const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
+      json(res, 200, {
+        actualizados: await sincronizarFuentesReales(brandId, crearLectorFuentesReales(brandId, brand.name)),
+      });
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/executive/okr/archive',
+    handler: async ({ res, body }) => {
+      const { archivarObjetivo } = await import('../capabilities/executive/executiveOKR.js');
+      const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
+      const b = (body ?? {}) as { objectiveId?: string };
+      if (!b.objectiveId) {
+        json(res, 400, { error: 'objectiveId required' });
+        return;
+      }
+      const result = await archivarObjetivo(brandId, b.objectiveId);
+      if (!result) {
+        json(res, 404, { error: 'objective not found' });
+        return;
+      }
+      json(res, 200, result);
     },
   },
   {
@@ -4801,9 +4835,31 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
     pattern: '/api/executive/okr/create',
     handler: async ({ res, body }) => {
       const { createObjective } = await import('../capabilities/executive/executiveOKR.js');
+      const { crearLectorFuentesReales } = await import('../capabilities/executive/okrFuentesReales.js');
       const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
-      const b = (body ?? {}) as Omit<Parameters<typeof createObjective>[0], 'brandId'>;
-      json(res, 200, await createObjective({ brandId, ...b }));
+      const b = (body ?? {}) as Omit<Parameters<typeof createObjective>[0], 'brandId' | 'keyResults'> & {
+        keyResults?: Array<Parameters<typeof createObjective>[0]['keyResults'][number]>;
+      };
+      const leer = crearLectorFuentesReales(brandId, brand.name);
+      const sinValorInicial: string[] = [];
+      const keyResults = await Promise.all(
+        (b.keyResults ?? []).map(async (kr) => {
+          const fuente = kr.fuente ?? 'manual';
+          if (fuente !== 'manual' && (kr.baseline === undefined || kr.baseline === null)) {
+            const lectura = await leer(fuente, new Date().toISOString());
+            if (!lectura) sinValorInicial.push(kr.description);
+            return { ...kr, fuente, baseline: lectura?.valor ?? 0 };
+          }
+          return { ...kr, fuente, baseline: kr.baseline ?? 0 };
+        }),
+      );
+      if (sinValorInicial.length > 0) {
+        json(res, 400, {
+          error: `No hay dato real para "${sinValorInicial[0]}" (la cuenta no está conectada). Conectala o cargá el valor inicial a mano.`,
+        });
+        return;
+      }
+      json(res, 200, await createObjective({ ...b, brandId, keyResults }));
     },
   },
   {
