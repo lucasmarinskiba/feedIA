@@ -27,6 +27,7 @@ import { emit } from '../../agent/bus.js';
 import { PROFESSIONS_REPLACED, type ProfessionRole } from '../knowledge/professionalKnowledge.js';
 import { getBudgetStatus, getBudgetHistory } from '../../agent/budget.js';
 import { getVideoUsage } from '../videoEngine/usageTracker.js';
+import { buildActividadReal, type ActividadReal, type InteraccionReal, type StaffMember } from './staffActivity.js';
 import { listMissions } from '../../agent/swarm/index.js';
 import { listCarouselJobs } from '../content/index.js';
 import { listWatchSessions } from '../computerUse/index.js';
@@ -62,7 +63,8 @@ export interface ExecutiveBrief {
   tier: Tier;
   tierProgresoPct: number;
   leverage: Leverage;
-  staff: Array<{ rol: string; estado: string }>;
+  staff: StaffMember[];
+  interacciones: InteraccionReal[];
   hitos: Trophy[];
   narrativa: string;
   credencial: string; // string compartible de estatus
@@ -226,11 +228,11 @@ export const computeLeverage = (brandId: string): Leverage => {
   };
 };
 
-// Trofeos ganados con el modelo viejo de "sueldos no pagados" (salarios fijos
-// de mercado): se retiran porque ya no reflejan ningún dato real.
-const RETIRED_TROPHY_IDS = new Set(['six-figures']);
+// Trofeos de modelos anteriores (sueldos de mercado fijos, roles "reemplazados"
+// por catálogo): se retiran porque no reflejan actividad real.
+const RETIRED_TROPHY_IDS = new Set(['six-figures', 'team-replaced']);
 
-const evaluateTrophies = (lev: Leverage): Trophy[] => {
+const evaluateTrophies = (lev: Leverage, act: ActividadReal): Trophy[] => {
   const s = readTrophies();
   const kept = s.won.filter((t) => !RETIRED_TROPHY_IDS.has(t.id));
   if (kept.length !== s.won.length) {
@@ -246,6 +248,30 @@ const evaluateTrophies = (lev: Leverage): Trophy[] => {
       when: lev.accionesEjecutadas >= 1,
     },
     {
+      id: 'first-piece',
+      titulo: 'Primera pieza producida',
+      detalle: 'Tu equipo generó su primer carrusel o video.',
+      when: act.piezas >= 1,
+    },
+    {
+      id: 'ten-pieces',
+      titulo: 'Diez piezas',
+      detalle: `${act.piezas} piezas de contenido producidas por tu equipo.`,
+      when: act.piezas >= 10,
+    },
+    {
+      id: 'community-round',
+      titulo: 'Primera ronda de comunidad',
+      detalle: `${act.comentariosRevisados} comentarios clasificados por el comment-brain.`,
+      when: act.comentariosRevisados >= 10,
+    },
+    {
+      id: 'team-active',
+      titulo: 'Equipo en marcha',
+      detalle: `${act.rolesActivos} roles del staff con actividad real registrada.`,
+      when: act.rolesActivos >= 3,
+    },
+    {
       id: 'lev-50',
       titulo: 'Apalancamiento x50',
       detalle: 'Cada indicación tuya rinde como 50 acciones.',
@@ -256,12 +282,6 @@ const evaluateTrophies = (lev: Leverage): Trophy[] => {
       titulo: 'Efecto multiplicador',
       detalle: 'Ratio 1:100 — operás como un holding, no como una cuenta.',
       when: lev.ratio >= 100,
-    },
-    {
-      id: 'team-replaced',
-      titulo: 'Reemplazaste un equipo senior',
-      detalle: `${lev.equipoReemplazado} especialistas trabajando para vos sin nómina.`,
-      when: lev.equipoReemplazado >= 8,
     },
     {
       id: 'ahorro-mil',
@@ -287,9 +307,6 @@ const evaluateTrophies = (lev: Leverage): Trophy[] => {
   return s.won;
 };
 
-const staffRoster = (): ExecutiveBrief['staff'] =>
-  PROFESSIONS_REPLACED.map((p) => ({ rol: p.replaces, estado: 'operando para vos · 24/7' }));
-
 const deterministicNarrative = (brand: BrandProfile, lev: Leverage, tier: Tier): string =>
   `Mientras el resto contrata, vos comandás. Con ${lev.indicacionesDadas} indicación(es), ` +
   `tu equipo de IA ejecutó ${lev.accionesEjecutadas} acciones de branding, contenido y comunidad ` +
@@ -304,7 +321,8 @@ export const buildExecutiveBrief = async (
 ): Promise<ExecutiveBrief> => {
   const lev = computeLeverage(brand.name);
   const { tier, progresoPct } = tierFor(lev.accionesEjecutadas);
-  const hitos = evaluateTrophies(lev);
+  const actividad = buildActividadReal(brand.name);
+  const hitos = evaluateTrophies(lev, actividad);
   const fundador = opts.fundador?.trim() || brand.name;
 
   let narrativa = deterministicNarrative(brand, lev, tier);
@@ -336,7 +354,8 @@ export const buildExecutiveBrief = async (
     tier,
     tierProgresoPct: progresoPct,
     leverage: lev,
-    staff: staffRoster(),
+    staff: actividad.staff,
+    interacciones: actividad.interacciones,
     hitos: hitos.slice().reverse(),
     narrativa,
     credencial,
