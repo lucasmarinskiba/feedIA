@@ -24,7 +24,9 @@ import { ask } from '../../agent/claude.js';
 import { log } from '../../agent/logger.js';
 import { sendAlert } from '../../integrations/notifications.js';
 import { emit } from '../../agent/bus.js';
-import { getReplacementValue, PROFESSIONS_REPLACED } from '../knowledge/professionalKnowledge.js';
+import { PROFESSIONS_REPLACED, type ProfessionRole } from '../knowledge/professionalKnowledge.js';
+import { getBudgetStatus, getBudgetHistory } from '../../agent/budget.js';
+import { getVideoUsage } from '../videoEngine/usageTracker.js';
 import { listMissions } from '../../agent/swarm/index.js';
 import { listCarouselJobs } from '../content/index.js';
 import { listWatchSessions } from '../computerUse/index.js';
@@ -37,9 +39,11 @@ export interface Leverage {
   ratio: number; // acciones / indicaciones
   ratioLabel: string; // "1 : 84"
   equipoReemplazado: number; // nº de roles senior
-  costoEquipoUsdMes: number; // sueldos que NO paga
-  horasHumanasAhorradas: number; // estimación honesta
-  ahorroAnualUsd: number;
+  piezasCreadas: { carruseles: number; videos: number; total: number };
+  horasHumanasAhorradas: number; // horas que un humano habría invertido en esas piezas
+  costoHumanoEquivalenteUsd: number; // cuánto habría costado ese mismo trabajo con humanos
+  gastosUsd: number; // gasto real de IA acumulado (LLM + video)
+  ahorroUsd: number; // costoHumanoEquivalente − gastos (nunca negativo)
 }
 
 export type Tier = 'Bronce' | 'Plata' | 'Oro' | 'Platino' | 'Visionario';
@@ -135,12 +139,46 @@ const tierFor = (acciones: number): { tier: Tier; progresoPct: number } => {
   return { tier: cur.tier, progresoPct };
 };
 
+type TareaHumana = 'proyeccion' | 'creacion' | 'edicion' | 'organizacion' | 'gestion';
+
+// Horas humanas por pieza, desglosadas por tipo de tarea. Estimaciones
+// conservadoras de un profesional trabajando la pieza a mano.
+const HORAS_POR_PIEZA: Record<'carrusel' | 'video', Record<TareaHumana, number>> = {
+  carrusel: { proyeccion: 0.5, creacion: 1.5, edicion: 0.5, organizacion: 0.25, gestion: 0.25 },
+  video: { proyeccion: 0.5, creacion: 1.0, edicion: 2.5, organizacion: 0.25, gestion: 0.25 },
+};
+
+const ROL_POR_TAREA: Record<TareaHumana, ProfessionRole> = {
+  proyeccion: 'brand_strategist',
+  creacion: 'designer',
+  edicion: 'video_producer',
+  organizacion: 'cm',
+  gestion: 'cm',
+};
+
+const HORAS_MES_COMPLETO = 160;
+
+const tarifaHoraUsd = (role: ProfessionRole): number => {
+  const p = PROFESSIONS_REPLACED.find((x) => x.role === role);
+  if (!p) return 0;
+  const [min, max] = p.marketRate
+    .replace(/\$|USD\/mes/g, '')
+    .trim()
+    .split('-')
+    .map((s) => parseInt(s.replace(/,/g, ''), 10));
+  return min && max ? (min + max) / 2 / HORAS_MES_COMPLETO : 0;
+};
+
+const gastoLlmAcumuladoUsd = (): number =>
+  getBudgetHistory().reduce((s, d) => s + d.spentUsd, 0) + getBudgetStatus().spentUsd;
+
 export const computeLeverage = (brandId: string): Leverage => {
   const missions = listMissions(brandId);
   const carousels = listCarouselJobs(brandId);
   const watch = listWatchSessions();
   const traces = getTraceStats(brandId);
   const directives = listDirectives(brandId);
+  const videoExitosos = getVideoUsage({ brandName: brandId }).filter((r) => r.success);
 
   // Indicaciones = lo que el HUMANO pidió (directivas + misiones lanzadas).
   const indicaciones = Math.max(1, directives.length + missions.length);
@@ -154,10 +192,25 @@ export const computeLeverage = (brandId: string): Leverage => {
     traces.totalTraces +
     directives.reduce((n, d) => n + (d.runCount ?? 0), 0);
 
-  const rv = getReplacementValue();
+  const carruseles = carousels.filter((c) => c.status !== 'failed').length;
+  const videos = videoExitosos.length;
+
+  let horas = 0;
+  let costoHumano = 0;
+  const piezas: Array<{ tipo: 'carrusel' | 'video'; n: number }> = [
+    { tipo: 'carrusel', n: carruseles },
+    { tipo: 'video', n: videos },
+  ];
+  for (const { tipo, n } of piezas) {
+    for (const tarea of Object.keys(HORAS_POR_PIEZA[tipo]) as TareaHumana[]) {
+      const horasTarea = n * HORAS_POR_PIEZA[tipo][tarea];
+      horas += horasTarea;
+      costoHumano += horasTarea * tarifaHoraUsd(ROL_POR_TAREA[tarea]);
+    }
+  }
+
+  const gastos = gastoLlmAcumuladoUsd() + videoExitosos.reduce((s, r) => s + r.costEstimateUsd, 0);
   const ratio = Math.max(1, Math.round(acciones / indicaciones));
-  // Estimación honesta: ~7 min de trabajo humano calificado por acción.
-  const horas = Math.round((acciones * 7) / 60);
 
   return {
     indicacionesDadas: indicaciones,
@@ -165,14 +218,25 @@ export const computeLeverage = (brandId: string): Leverage => {
     ratio,
     ratioLabel: `1 : ${ratio}`,
     equipoReemplazado: PROFESSIONS_REPLACED.length,
-    costoEquipoUsdMes: rv.totalUsdPerMonth,
-    horasHumanasAhorradas: horas,
-    ahorroAnualUsd: rv.totalUsdPerMonth * 12,
+    piezasCreadas: { carruseles, videos, total: carruseles + videos },
+    horasHumanasAhorradas: Math.round(horas),
+    costoHumanoEquivalenteUsd: Math.round(costoHumano),
+    gastosUsd: Math.round(gastos * 100) / 100,
+    ahorroUsd: Math.max(0, Math.round(costoHumano - gastos)),
   };
 };
 
+// Trofeos ganados con el modelo viejo de "sueldos no pagados" (salarios fijos
+// de mercado): se retiran porque ya no reflejan ningún dato real.
+const RETIRED_TROPHY_IDS = new Set(['six-figures']);
+
 const evaluateTrophies = (lev: Leverage): Trophy[] => {
   const s = readTrophies();
+  const kept = s.won.filter((t) => !RETIRED_TROPHY_IDS.has(t.id));
+  if (kept.length !== s.won.length) {
+    s.won = kept;
+    writeTrophies(s);
+  }
   const have = new Set(s.won.map((t) => t.id));
   const candidates: Array<Omit<Trophy, 'logradoEn'> & { when: boolean }> = [
     {
@@ -200,10 +264,10 @@ const evaluateTrophies = (lev: Leverage): Trophy[] => {
       when: lev.equipoReemplazado >= 8,
     },
     {
-      id: 'six-figures',
-      titulo: 'Ahorro de 6 cifras',
-      detalle: `US$${lev.ahorroAnualUsd.toLocaleString('en-US')} al año que no pagás en sueldos.`,
-      when: lev.ahorroAnualUsd >= 100000,
+      id: 'ahorro-mil',
+      titulo: 'Mil dólares ahorrados',
+      detalle: `US$${lev.ahorroUsd.toLocaleString('en-US')} estimados vs. hacerlo con un equipo humano.`,
+      when: lev.ahorroUsd >= 1000,
     },
     {
       id: 'always-on',
@@ -229,8 +293,9 @@ const staffRoster = (): ExecutiveBrief['staff'] =>
 const deterministicNarrative = (brand: BrandProfile, lev: Leverage, tier: Tier): string =>
   `Mientras el resto contrata, vos comandás. Con ${lev.indicacionesDadas} indicación(es), ` +
   `tu equipo de IA ejecutó ${lev.accionesEjecutadas} acciones de branding, contenido y comunidad ` +
-  `para ${brand.name}: un apalancamiento de ${lev.ratioLabel}. Eso equivale a ${lev.equipoReemplazado} ` +
-  `especialistas senior (US$${lev.costoEquipoUsdMes.toLocaleString('en-US')}/mes) trabajando sin que muevas un dedo. ` +
+  `para ${brand.name}: un apalancamiento de ${lev.ratioLabel}. Produjiste ${lev.piezasCreadas.total} piezas que a un equipo humano ` +
+  `le habrían tomado ${lev.horasHumanasAhorradas} horas (US$${lev.costoHumanoEquivalenteUsd.toLocaleString('en-US')}), ` +
+  `y te costaron US$${lev.gastosUsd.toLocaleString('en-US')} en IA. ` +
   `Nivel actual: ${tier}. No tenés una herramienta: tenés un equipo de élite que te reporta.`;
 
 export const buildExecutiveBrief = async (
@@ -248,7 +313,7 @@ export const buildExecutiveBrief = async (
       const txt = await ask(
         `Escribí 3-4 frases que hagan sentir al dueño de "${brand.name}" un visionario de élite que comanda un equipo de IA. ` +
           `Datos reales: ${lev.indicacionesDadas} indicaciones → ${lev.accionesEjecutadas} acciones (apalancamiento ${lev.ratioLabel}), ` +
-          `reemplaza ${lev.equipoReemplazado} roles senior (US$${lev.costoEquipoUsdMes}/mes), tier ${tier}. ` +
+          `${lev.piezasCreadas.total} piezas (${lev.horasHumanasAhorradas}h humanas ahorradas, ahorro estimado US$${lev.ahorroUsd}), gasto IA US$${lev.gastosUsd}, tier ${tier}. ` +
           `Tono: prestigio, no soberbia. Español rioplatense. Sin emojis. Sin comillas.`,
         { fast: true, maxTokens: 280, temperature: 0.7 },
       );

@@ -20,8 +20,10 @@ export interface OnePagerData {
   acciones: number;
   indicaciones: number;
   equipoReemplazado: number;
-  costoEvitadoMesUsd: number;
-  costoEvitadoAnioUsd: number;
+  piezasCreadas: number;
+  costoHumanoEquivalenteUsd: number;
+  gastosIaUsd: number;
+  ahorroUsd: number;
   horasAhorradas: number;
   highlights: string[];
 }
@@ -35,13 +37,15 @@ export const buildOnePagerData = (brand: BrandProfile): OnePagerData => {
     acciones: l.accionesEjecutadas,
     indicaciones: l.indicacionesDadas,
     equipoReemplazado: l.equipoReemplazado,
-    costoEvitadoMesUsd: l.costoEquipoUsdMes,
-    costoEvitadoAnioUsd: l.ahorroAnualUsd,
+    piezasCreadas: l.piezasCreadas.total,
+    costoHumanoEquivalenteUsd: l.costoHumanoEquivalenteUsd,
+    gastosIaUsd: l.gastosUsd,
+    ahorroUsd: l.ahorroUsd,
     horasAhorradas: l.horasHumanasAhorradas,
     highlights: [
       `Cada indicación humana se convierte en ~${l.ratio} acciones ejecutadas (apalancamiento operativo ${l.ratioLabel}).`,
-      `Reemplaza un equipo senior de ${l.equipoReemplazado} roles especializados sin nómina, cargas ni rotación.`,
-      `Costo de equipo evitado: US$${l.costoEquipoUsdMes.toLocaleString('en-US')}/mes (US$${l.ahorroAnualUsd.toLocaleString('en-US')}/año).`,
+      `Produjo ${l.piezasCreadas.total} piezas de contenido que equivalen a ${l.horasHumanasAhorradas} horas de trabajo humano.`,
+      `Costo humano equivalente: US$${l.costoHumanoEquivalenteUsd.toLocaleString('en-US')} vs. gasto real en IA de US$${l.gastosUsd.toLocaleString('en-US')} → ahorro estimado US$${l.ahorroUsd.toLocaleString('en-US')}.`,
       `Opera 24/7 de forma autónoma con gobierno de costos y trazabilidad de cada decisión.`,
       `Estructura escalable: el costo marginal por acción adicional tiende a cero.`,
     ],
@@ -84,9 +88,10 @@ export const investorOnePagerHtml = (brand: BrandProfile): string => {
     ${metric(d.apalancamiento, 'Apalancamiento operativo (indicaciones → acciones)')}
     ${metric(d.acciones.toLocaleString('es-AR'), 'Acciones autónomas ejecutadas')}
     ${metric(String(d.equipoReemplazado) + ' roles', 'Equipo senior reemplazado')}
-    ${metric(usd(d.costoEvitadoMesUsd) + '/mes', 'Costo de nómina evitado')}
-    ${metric(usd(d.costoEvitadoAnioUsd), 'Ahorro anualizado')}
+    ${metric(usd(d.gastosIaUsd), 'Gasto real en IA')}
+    ${metric(usd(d.ahorroUsd), 'Ahorro estimado vs. equipo humano')}
     ${metric(d.horasAhorradas.toLocaleString('es-AR') + ' h', 'Horas humanas no invertidas')}
+    ${metric(d.piezasCreadas.toLocaleString('es-AR'), 'Piezas producidas')}
   </div>
   <h2>Tesis operativa</h2>
   <ul>${d.highlights.map((h) => `<li>${esc(h)}</li>`).join('')}</ul>

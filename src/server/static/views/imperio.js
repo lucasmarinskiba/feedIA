@@ -234,8 +234,9 @@ const renderSummary = async (b) => {
       <div class="v2-kpi-grid">
         <div class="v2-card v2-kpi"><div class="v2-eyebrow">Apalancamiento</div><div class="v2-num-xl">${escape(b.leverage.ratioLabel || '0×')}</div><div class="v2-hint">acciones IA por indicación tuya</div></div>
         <div class="v2-card v2-kpi"><div class="v2-eyebrow">Acciones ejecutadas</div><div class="v2-num-xl">${(b.leverage.accionesEjecutadas || 0).toLocaleString('en-US')}</div><div class="v2-hint">por tu equipo IA</div></div>
-        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Sueldos no pagás</div><div class="v2-num-xl">${fmtUsd(b.leverage.costoEquipoUsdMes)}</div><div class="v2-hint">USD por mes</div></div>
-        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Horas humanas ahorradas</div><div class="v2-num-xl">${(b.leverage.horasHumanasAhorradas || 0).toLocaleString('en-US')}h</div><div class="v2-hint">por mes</div></div>
+        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Gastos en dólares</div><div class="v2-num-xl">${fmtUsd(b.leverage.gastosUsd)}</div><div class="v2-hint">gasto real en IA (texto + video)</div></div>
+        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Ahorros estimados</div><div class="v2-num-xl">${fmtUsd(b.leverage.ahorroUsd)}</div><div class="v2-hint">vs. ${fmtUsd(b.leverage.costoHumanoEquivalenteUsd)} de equipo humano</div></div>
+        <div class="v2-card v2-kpi"><div class="v2-eyebrow">Horas humanas ahorradas</div><div class="v2-num-xl">${(b.leverage.horasHumanasAhorradas || 0).toLocaleString('en-US')}h</div><div class="v2-hint">${(b.leverage.piezasCreadas?.carruseles || 0).toLocaleString('en-US')} carruseles · ${(b.leverage.piezasCreadas?.videos || 0).toLocaleString('en-US')} videos (edición, guion, calendario, gestión)</div></div>
       </div>
     </section>
 
@@ -929,8 +930,10 @@ export const renderImperio = async (root) => {
       ratioLabel: '0×',
       accionesEjecutadas: 0,
       indicacionesDadas: 0,
-      costoEquipoUsdMes: 0,
-      ahorroAnualUsd: 0,
+      piezasCreadas: { carruseles: 0, videos: 0, total: 0 },
+      gastosUsd: 0,
+      costoHumanoEquivalenteUsd: 0,
+      ahorroUsd: 0,
       horasHumanasAhorradas: 0,
     },
     staff: [{ rol: 'Equipo en pausa', estado: 'esperando conexión' }],

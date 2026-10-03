@@ -33,7 +33,7 @@ export interface RecapData {
   acciones: number;
   indicaciones: number;
   equipo: number;
-  ahorroAnualUsd: number;
+  ahorroUsd: number;
   horas: number;
   tier: string;
 }
@@ -47,7 +47,7 @@ export const buildRecapData = (brand: BrandProfile): RecapData => {
     acciones: l.accionesEjecutadas,
     indicaciones: l.indicacionesDadas,
     equipo: l.equipoReemplazado,
-    ahorroAnualUsd: l.ahorroAnualUsd,
+    ahorroUsd: l.ahorroUsd,
     horas: l.horasHumanasAhorradas,
     tier: tierOf(l.accionesEjecutadas),
   };
@@ -90,7 +90,7 @@ export const recapSvg = (brand: BrandProfile): string => {
   ${row(0.5, 330, d.apalancamiento, 'apalancamiento · mis órdenes → acciones del sistema')}
   ${row(1.1, 470, d.acciones.toLocaleString('es-AR'), 'acciones ejecutadas para mí')}
   ${row(1.7, 610, String(d.equipo) + ' roles', 'equipo senior reemplazado sin nómina')}
-  ${row(2.3, 750, usd(d.ahorroAnualUsd), 'ahorrados este año en sueldos')}
+  ${row(2.3, 750, usd(d.ahorroUsd), 'ahorrados estimados vs. equipo humano')}
   <g opacity="0">
     <animate attributeName="opacity" from="0" to="1" begin="2.9s" dur="0.7s" fill="freeze"/>
     <rect x="380" y="840" width="320" height="74" rx="37" fill="url(#acv)"/>
@@ -108,7 +108,7 @@ export const recapPng = (brand: BrandProfile): { buffer: Uint8Array; dataUri: st
     titulo: `MI AÑO CON FEEDIA · ${d.anio}`,
     cuerpo:
       `Apalancamiento ${d.apalancamiento}  |  ${d.acciones} acciones ejecutadas  |  ` +
-      `${d.equipo} roles senior reemplazados  |  ${usd(d.ahorroAnualUsd)} ahorrados  |  ` +
+      `${d.equipo} roles senior reemplazados  |  ${usd(d.ahorroUsd)} ahorrados (estimado)  |  ` +
       `${d.horas} h que no invertí  |  Nivel ${d.tier}`,
     rolEnNarrativa: 'climax',
     direccionVisual: '',

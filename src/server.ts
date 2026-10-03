@@ -61,6 +61,7 @@ import createExperienceRoutes from './server/experienceRoutes.js';
 import { buildOAuthRoutes, resolveDefaultBrandId } from './server/oauthRoutes.js';
 import { adaptRoutesToExpress } from './server/expressRouteAdapter.js';
 import createGrowthRoutes from './server/growthRoutes.js';
+import createExecutiveBriefRoutes from './server/executiveBriefRoutes.js';
 import { captureSnapshotOnly } from './capabilities/experience/growthMetrics.js';
 import createCuRoutes from './server/cuRoutes.js';
 import createBrandSetupRoutes from './server/brandSetupRoutes.js';
@@ -537,6 +538,7 @@ app.use(createExperienceRoutes(brand));
 // the connections this saves.
 app.use(adaptRoutesToExpress(buildOAuthRoutes(brand)));
 app.use(createGrowthRoutes(brand));
+app.use(createExecutiveBriefRoutes(brand));
 app.use(createAssistantChatRoute(brand));
 app.use(createCuRoutes(brand));
 app.use(createBrandSetupRoutes(brand));
