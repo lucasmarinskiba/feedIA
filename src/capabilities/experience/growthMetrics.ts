@@ -137,7 +137,7 @@ const fetchInstagramLive = async (conn: OAuthConnection): Promise<IgLive | null>
   if (!igId || !conn.accessToken) return null;
   try {
     const profileRes = await metaFetch(
-      `https://graph.facebook.com/v19.0/${igId}?fields=followers_count,media_count,username&access_token=${conn.accessToken}`,
+      `https://graph.instagram.com/v18.0/${igId}?fields=followers_count,media_count,username&access_token=${conn.accessToken}`,
       {},
       { description: 'IG profile', maxAttempts: 2 },
     );
@@ -150,7 +150,7 @@ const fetchInstagramLive = async (conn: OAuthConnection): Promise<IgLive | null>
     const since = Math.floor((Date.now() - 30 * 86_400_000) / 1000);
     const until = Math.floor(Date.now() / 1000);
     const insightsRes = await metaFetch(
-      `https://graph.facebook.com/v19.0/${igId}/insights?metric=reach,profile_views&period=day&metric_type=total_value&since=${since}&until=${until}&access_token=${conn.accessToken}`,
+      `https://graph.instagram.com/v18.0/${igId}/insights?metric=reach,profile_views&period=day&metric_type=total_value&since=${since}&until=${until}&access_token=${conn.accessToken}`,
       {},
       { description: 'IG insights', maxAttempts: 2 },
     );
@@ -165,7 +165,7 @@ const fetchInstagramLive = async (conn: OAuthConnection): Promise<IgLive | null>
     }
 
     const mediaRes = await metaFetch(
-      `https://graph.facebook.com/v19.0/${igId}/media?fields=like_count,comments_count,timestamp&limit=50&access_token=${conn.accessToken}`,
+      `https://graph.instagram.com/v18.0/${igId}/media?fields=like_count,comments_count,timestamp&limit=50&access_token=${conn.accessToken}`,
       {},
       { description: 'IG media list', maxAttempts: 2 },
     );
@@ -346,7 +346,7 @@ export const captureSnapshotOnly = async (brandId: string, platform: ConnectionP
     if (!igId) return;
     try {
       const res = await metaFetch(
-        `https://graph.facebook.com/v19.0/${igId}?fields=followers_count&access_token=${conn.accessToken}`,
+        `https://graph.instagram.com/v18.0/${igId}?fields=followers_count&access_token=${conn.accessToken}`,
         {},
         { description: 'IG daily snapshot', maxAttempts: 2 },
       );

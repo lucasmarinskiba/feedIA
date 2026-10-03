@@ -1,15 +1,24 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /**
- * OAuth Routes — Instagram (Meta Graph) + TikTok Display API.
+ * OAuth Routes — Instagram (Business Login directo) + TikTok Display API.
+ *
+ * Instagram usa el producto "API de Instagram con inicio de sesión de
+ * Instagram" (api.instagram.com / graph.instagram.com) — NO Facebook Login +
+ * Página vinculada (facebook.com / graph.facebook.com). El App ID que existe
+ * en este proyecto (INSTAGRAM_APP_ID en Vercel/Meta) está dado de alta para
+ * ese producto; usar el dialog de facebook.com con él devuelve
+ * PLATFORM__INVALID_APP_ID. Esta vía además es más simple: el user_id que
+ * devuelve el intercambio de token YA ES el id de la cuenta profesional de
+ * Instagram, sin pasar por Páginas de Facebook.
  *
  * Ahora el flujo está atado a la sesión de usuario cuando existe, y permite
  * especificar la marca (brandId) a conectar. Si no hay sesión, fallback a la
  * marca default del servidor (modo legacy single-tenant).
  *
- *   GET /api/auth/instagram/login          → redirect to Meta OAuth
- *   GET /api/auth/instagram/callback       → exchange code, persist token cifrado
+ *   GET /api/auth/instagram/login          → redirect to Instagram Business Login
+ *   GET /api/auth/instagram/callback       → exchange code, persist long-lived token
  *   GET /api/auth/instagram/status         → estado de la conexión
- *   POST /api/auth/instagram/refresh       → refrescar long-lived token
+ *   POST /api/auth/instagram/refresh       → refrescar long-lived token (ig_refresh_token)
  *   GET /api/auth/tiktok/login             → redirect to TikTok OAuth
  *   GET /api/auth/tiktok/callback          → exchange code, persist token
  *   POST /api/auth/disconnect              → revoke connection
@@ -32,14 +41,21 @@ import {
 } from '../integrations/oauthConnections.js';
 import { log } from '../agent/logger.js';
 
-const META_OAUTH_AUTHORIZE = 'https://www.facebook.com/v18.0/dialog/oauth';
-const META_OAUTH_TOKEN = 'https://graph.facebook.com/v18.0/oauth/access_token';
-const META_SCOPES = [
-  'instagram_basic',
-  'instagram_content_publish',
-  'pages_show_list',
-  'pages_read_engagement',
-  'business_management',
+// Alias: a algunos les llaman "Meta App ID", a otros "Instagram App ID" — es
+// el mismo client_id. Acepta cualquiera de los dos nombres de env var para no
+// repetir el bug ya documentado en credential-sources-map (ELEVEN_LABS vs
+// ELEVENLABS, FAL_API_KEY vs FAL_KEY: nombres distintos silenciosamente
+// deshabilitan una credencial válida).
+const IG_APP_ID = process.env.INSTAGRAM_APP_ID || process.env.META_APP_ID;
+const IG_APP_SECRET = process.env.INSTAGRAM_APP_SECRET || process.env.META_APP_SECRET;
+
+const IG_OAUTH_AUTHORIZE = 'https://api.instagram.com/oauth/authorize';
+const IG_OAUTH_TOKEN = 'https://api.instagram.com/oauth/access_token';
+const IG_GRAPH_EXCHANGE = 'https://graph.instagram.com/access_token';
+const IG_SCOPES = [
+  'instagram_business_basic',
+  'instagram_business_manage_insights',
+  'instagram_business_manage_comments',
 ].join(',');
 
 const TT_OAUTH_AUTHORIZE = 'https://www.tiktok.com/v2/auth/authorize/';
@@ -111,14 +127,13 @@ const sourceFromBody = (body: unknown): Record<string, string | undefined> => {
 };
 
 export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): RouteDefinition[] => [
-  // ── Instagram (Meta Graph) ──────────────────────────────────────────────
+  // ── Instagram (Business Login directo) ──────────────────────────────────
   {
     method: 'GET',
     pattern: '/api/auth/instagram/login',
     handler: async ({ req, res, query }) => {
-      const clientId = process.env.META_APP_ID;
-      if (!clientId) {
-        json(res, 500, { error: 'META_APP_ID no configurado' });
+      if (!IG_APP_ID) {
+        json(res, 500, { error: 'INSTAGRAM_APP_ID no configurado' });
         return;
       }
       const requested = await getRequestedBrandId({ req, source: sourceFromQuery(query) }, defaultBrand);
@@ -134,7 +149,7 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
         userId: requested.userId,
       });
       const redirectUri = buildRedirectUri(req, 'instagram');
-      const url = `${META_OAUTH_AUTHORIZE}?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(META_SCOPES)}&state=${state}&response_type=code`;
+      const url = `${IG_OAUTH_AUTHORIZE}?client_id=${IG_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(IG_SCOPES)}&state=${state}&response_type=code`;
       redirect(res, url);
     },
   },
@@ -158,58 +173,58 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
         return;
       }
 
-      const clientId = process.env.META_APP_ID;
-      const clientSecret = process.env.META_APP_SECRET;
-      if (!clientId || !clientSecret) {
-        json(res, 500, { error: 'META_APP_ID/SECRET no configurados' });
+      if (!IG_APP_ID || !IG_APP_SECRET) {
+        json(res, 500, { error: 'INSTAGRAM_APP_ID/SECRET no configurados' });
         return;
       }
 
       const redirectUri = buildRedirectUri(req, 'instagram');
       try {
-        const tokenUrl =
-          `${META_OAUTH_TOKEN}?client_id=${clientId}&client_secret=${clientSecret}` +
-          `&redirect_uri=${encodeURIComponent(redirectUri)}&code=${code}`;
-        const tokenRes = await metaFetch(tokenUrl, {}, { description: 'Meta OAuth token exchange', maxAttempts: 3 });
+        // Paso 1: code → access_token de corta duración (1h) + user_id. Este
+        // user_id YA ES la cuenta profesional de Instagram — no hace falta
+        // pasar por Páginas de Facebook.
+        const tokenRes = await metaFetch(
+          IG_OAUTH_TOKEN,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              client_id: IG_APP_ID,
+              client_secret: IG_APP_SECRET,
+              grant_type: 'authorization_code',
+              redirect_uri: redirectUri,
+              code,
+            }).toString(),
+          },
+          { description: 'Instagram OAuth token exchange', maxAttempts: 3 },
+        );
         const tokenData = (await tokenRes.json()) as {
           access_token?: string;
-          expires_in?: number;
-          token_type?: string;
+          user_id?: string | number;
         };
         const shortToken = tokenData.access_token;
-        if (!shortToken) {
-          json(res, 502, { error: 'No access_token recibido' });
+        const igUserId = tokenData.user_id ? String(tokenData.user_id) : '';
+        if (!shortToken || !igUserId) {
+          json(res, 502, { error: 'No access_token/user_id recibido' });
           return;
         }
 
-        const longLivedUrl =
-          `https://graph.facebook.com/v18.0/oauth/access_token?grant_type=fb_exchange_token` +
-          `&client_id=${clientId}&client_secret=${clientSecret}&fb_exchange_token=${shortToken}`;
+        // Paso 2: corta duración → larga duración (~60 días).
         const longRes = await metaFetch(
-          longLivedUrl,
+          `${IG_GRAPH_EXCHANGE}?grant_type=ig_exchange_token&client_secret=${IG_APP_SECRET}&access_token=${shortToken}`,
           {},
-          { description: 'Meta OAuth long-lived token', maxAttempts: 3 },
+          { description: 'Instagram long-lived token exchange', maxAttempts: 3 },
         );
         const longData = (await longRes.json()) as { access_token?: string; expires_in?: number };
         const longLivedToken = longData.access_token ?? shortToken;
-        const expiresIn = longData.expires_in ?? tokenData.expires_in ?? 5_184_000;
-
-        const pageMapping = await resolveInstagramBusinessAccount(longLivedToken);
-        if (!pageMapping.igBusinessId) {
-          log.warn('[oauthRoutes] No se encontró cuenta de Instagram Business', { brandId: stateData.brandId });
-          redirect(
-            res,
-            `${stateData.redirectAfter ?? '/'}?oauth_error=no_ig_business_account&pages=${encodeURIComponent(JSON.stringify(pageMapping.availablePages))}`,
-          );
-          return;
-        }
+        const expiresIn = longData.expires_in ?? 5_184_000;
 
         await saveConnection({
           platform: 'instagram',
           brandId: stateData.brandId,
           accessToken: longLivedToken,
           expiresAtIso: new Date(Date.now() + expiresIn * 1000).toISOString(),
-          metadata: { igBusinessId: pageMapping.igBusinessId ?? '', pageId: pageMapping.pageId ?? '' },
+          metadata: { igBusinessId: igUserId },
           connectedAt: new Date().toISOString(),
         });
         redirect(res, `${stateData.redirectAfter ?? '/'}?connected=instagram&brandId=${stateData.brandId}`);
@@ -238,7 +253,6 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
         expired: isExpired(conn),
         brandId: requested.brandId,
         igBusinessId: conn.metadata?.igBusinessId,
-        pageId: conn.metadata?.pageId,
         expiresAt: conn.expiresAtIso,
         scope: conn.scope,
       });
@@ -258,17 +272,14 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
         json(res, 404, { error: 'No hay conexión de Instagram para refrescar' });
         return;
       }
-      const clientId = process.env.META_APP_ID;
-      const clientSecret = process.env.META_APP_SECRET;
-      if (!clientId || !clientSecret) {
-        json(res, 500, { error: 'META_APP_ID/SECRET no configurados' });
-        return;
-      }
       try {
-        const refreshUrl =
-          `https://graph.facebook.com/v18.0/oauth/access_token?grant_type=fb_exchange_token` +
-          `&client_id=${clientId}&client_secret=${clientSecret}&fb_exchange_token=${conn.accessToken}`;
-        const refreshRes = await metaFetch(refreshUrl, {}, { description: 'Meta OAuth refresh', maxAttempts: 3 });
+        // ig_refresh_token solo necesita el token actual (ya de larga
+        // duración) — nada de client_id/secret, a diferencia del exchange inicial.
+        const refreshRes = await metaFetch(
+          `https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${conn.accessToken}`,
+          {},
+          { description: 'Instagram OAuth refresh', maxAttempts: 3 },
+        );
         const data = (await refreshRes.json()) as { access_token?: string; expires_in?: number };
         if (!data.access_token) {
           json(res, 502, { error: 'No access_token en refresh' });
@@ -435,44 +446,3 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
     },
   },
 ];
-
-interface PageMapping {
-  igBusinessId?: string;
-  pageId?: string;
-  availablePages: Array<{ pageId: string; pageName?: string; igBusinessId?: string }>;
-}
-
-const resolveInstagramBusinessAccount = async (accessToken: string): Promise<PageMapping> => {
-  const result: PageMapping = { availablePages: [] };
-  try {
-    const pagesRes = await metaFetch(
-      `https://graph.facebook.com/v18.0/me/accounts?access_token=${accessToken}`,
-      {},
-      { description: 'Meta pages list', maxAttempts: 2 },
-    );
-    const pagesData = (await pagesRes.json()) as {
-      data?: Array<{ id: string; name?: string; access_token: string }>;
-    };
-    for (const page of pagesData.data ?? []) {
-      const igRes = await metaFetch(
-        `https://graph.facebook.com/v18.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`,
-        {},
-        { description: 'Meta IG business account lookup', maxAttempts: 2 },
-      );
-      const igData = (await igRes.json()) as { instagram_business_account?: { id: string } };
-      const entry: PageMapping['availablePages'][number] = {
-        pageId: page.id,
-        pageName: page.name,
-        igBusinessId: igData.instagram_business_account?.id,
-      };
-      result.availablePages.push(entry);
-      if (igData.instagram_business_account?.id && !result.igBusinessId) {
-        result.pageId = page.id;
-        result.igBusinessId = igData.instagram_business_account.id;
-      }
-    }
-  } catch (err) {
-    log.warn('[oauthRoutes] IG business id resolve failed', { err: String(err) });
-  }
-  return result;
-};
