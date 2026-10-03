@@ -10,7 +10,33 @@ import { getPlatformGrowth } from '../experience/growthMetrics.js';
 import { readJsonl } from '../experience/staffActivity.js';
 import { listCarouselJobs } from '../content/index.js';
 import { getVideoUsage } from '../videoEngine/usageTracker.js';
-import type { KRSource, ValorFuenteReal } from './executiveOKR.js';
+import type { EntradaKR, KRSource, ValorFuenteReal } from './executiveOKR.js';
+
+export type LectorFuente = (fuente: KRSource, desdeIso: string) => Promise<ValorFuenteReal | null>;
+
+/**
+ * Rellena la línea base de los resultados nuevos con fuente real (seguidores) tomando
+ * el valor actual. Si la cuenta no está conectada, el resultado queda sin valor inicial.
+ */
+export const completarBaselines = async (
+  entradas: EntradaKR[],
+  leer: LectorFuente,
+): Promise<{ keyResults: EntradaKR[]; sinValor: string[] }> => {
+  const sinValor: string[] = [];
+  const keyResults = await Promise.all(
+    entradas.map(async (kr): Promise<EntradaKR> => {
+      const fuente = kr.fuente ?? 'manual';
+      if (kr.id) return { ...kr, fuente };
+      if (fuente !== 'manual' && (kr.baseline === undefined || kr.baseline === null)) {
+        const lectura = await leer(fuente, new Date().toISOString());
+        if (!lectura) sinValor.push(kr.description);
+        return { ...kr, fuente, baseline: lectura?.valor ?? 0 };
+      }
+      return { ...kr, fuente, baseline: kr.baseline ?? 0 };
+    }),
+  );
+  return { keyResults, sinValor };
+};
 
 export const crearLectorFuentesReales = (
   brandId: string,

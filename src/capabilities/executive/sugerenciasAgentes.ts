@@ -164,8 +164,8 @@ export const sugerenciasDeSenales = async (brandId: string, brandName: string): 
       source: 'okr-tracker',
       urgency: 'medium',
       title: `Replanificar «${recortar(obj.title, 80)}»`,
-      context: `Atrasado · progreso ${obj.overallProgressPct}%.`,
-      reasoning: 'El ritmo actual no alcanza para cerrar los key results del período.',
+      context: `Atrasado · progreso ${Math.round(obj.overallProgressPct)}%.`,
+      reasoning: `Este OKR existe para: ${recortar(obj.porque, 180)}. El ritmo actual no alcanza para cerrar sus resultados clave.`,
       expectedOutcome: 'Metas ajustadas al ritmo real.',
       action: accion('Ver OKR', 6, { tipo: 'tab', tab: 'okrs' }),
     });

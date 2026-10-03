@@ -4830,54 +4830,6 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       json(res, 200, result);
     },
   },
-  {
-    method: 'POST',
-    pattern: '/api/executive/okr/create',
-    handler: async ({ res, body }) => {
-      const { createObjective } = await import('../capabilities/executive/executiveOKR.js');
-      const { crearLectorFuentesReales } = await import('../capabilities/executive/okrFuentesReales.js');
-      const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
-      const b = (body ?? {}) as Omit<Parameters<typeof createObjective>[0], 'brandId' | 'keyResults'> & {
-        keyResults?: Array<Parameters<typeof createObjective>[0]['keyResults'][number]>;
-      };
-      const leer = crearLectorFuentesReales(brandId, brand.name);
-      const sinValorInicial: string[] = [];
-      const keyResults = await Promise.all(
-        (b.keyResults ?? []).map(async (kr) => {
-          const fuente = kr.fuente ?? 'manual';
-          if (fuente !== 'manual' && (kr.baseline === undefined || kr.baseline === null)) {
-            const lectura = await leer(fuente, new Date().toISOString());
-            if (!lectura) sinValorInicial.push(kr.description);
-            return { ...kr, fuente, baseline: lectura?.valor ?? 0 };
-          }
-          return { ...kr, fuente, baseline: kr.baseline ?? 0 };
-        }),
-      );
-      if (sinValorInicial.length > 0) {
-        json(res, 400, {
-          error: `No hay dato real para "${sinValorInicial[0]}" (la cuenta no está conectada). Conectala o cargá el valor inicial a mano.`,
-        });
-        return;
-      }
-      json(res, 200, await createObjective({ ...b, brandId, keyResults }));
-    },
-  },
-  {
-    method: 'POST',
-    pattern: '/api/executive/okr/update-kr',
-    handler: async ({ res, body }) => {
-      const { updateKRProgress } = await import('../capabilities/executive/executiveOKR.js');
-      const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
-      const b = (body ?? {}) as { objectiveId: string; krId: string; newValue: number };
-      const result = await updateKRProgress(brandId, b.objectiveId, b.krId, b.newValue);
-      if (!result) {
-        json(res, 404, { error: 'objective or KR not found' });
-        return;
-      }
-      json(res, 200, result);
-    },
-  },
-
   // ─── Instagram + TikTok Autopilot ───────────────────────────────────────────
   {
     method: 'POST',
