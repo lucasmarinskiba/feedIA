@@ -4709,7 +4709,7 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
     handler: async ({ res }) => {
       const { buildCommandCenterBundle } = await import('../capabilities/executive/executiveCommandCenter.js');
       const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
-      const bundle = await buildCommandCenterBundle(brandId);
+      const bundle = await buildCommandCenterBundle(brandId, brand.name);
       json(res, 200, bundle);
     },
   },

@@ -9,6 +9,15 @@ import { escape } from '../lib/dom.js';
 import { toast } from '../lib/toast.js';
 
 const fmtUsd = (n) => '$' + (n || 0).toLocaleString('en-US');
+const hace = (iso) => {
+  const t = iso ? new Date(iso).getTime() : NaN;
+  if (!Number.isFinite(t)) return '';
+  const m = Math.max(0, Math.floor((Date.now() - t) / 60000));
+  if (m < 60) return `hace ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `hace ${h} h`;
+  return `hace ${Math.floor(h / 24)} d`;
+};
 const fmtNum = (n) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'M';
   if (n >= 10_000) return (n / 1_000).toFixed(1) + 'k';
@@ -174,9 +183,8 @@ const growthErrorCard = (platform, loginUrl, errorCode) => {
 };
 
 const renderGrowthCard = (platform, summary) => {
-  if (!summary || !summary.connected)
-    return growthConnectCard(platform, summary?.loginUrl || `/api/auth/${platform}/login`);
-  if (summary.error) return growthErrorCard(platform, summary.loginUrl || `/api/auth/${platform}/login`, summary.error);
+  if (!summary || !summary.connected) return growthConnectCard(platform, ccLoginUrl(platform));
+  if (summary.error) return growthErrorCard(platform, ccLoginUrl(platform), summary.error);
   return growthCard({
     platform,
     handle: summary.handle,
@@ -189,6 +197,7 @@ const renderGrowthCard = (platform, summary) => {
 
 /* ──── Resumen ejecutivo (Sala Ejecutiva) ──── */
 const renderSummary = async (b) => {
+  const staffActivos = (b.staff || []).filter((s) => s.estado === 'operando').length;
   const ascenso = b.ascenso
     ? `<div class="v2-ascenso">🎉 <strong>¡Ascendiste!</strong> Subiste de <strong>${escape(b.ascenso.de)}</strong> a <strong>${escape(b.ascenso.a)}</strong>.</div>`
     : '';
@@ -258,20 +267,25 @@ const renderSummary = async (b) => {
       <div class="v2-card v2-card-pad">
         <div class="v2-card-head">
           <strong>Staff IA reportándote</strong>
-          <span class="v2-badge v2-badge-ok">activo 24/7</span>
+          <span class="v2-badge v2-badge-ok">${staffActivos} de ${(b.staff || []).length} con actividad</span>
         </div>
         <div class="v2-staff">
           ${(b.staff || [])
-            .map(
-              (s) => `
+            .map((s) => {
+              const activo = s.estado === 'operando';
+              const reporte = s.ultimoReporte
+                ? `<div class="v2-hint">“${escape(s.ultimoReporte.texto)}” · ${hace(s.ultimoReporte.cuando)}</div>`
+                : '';
+              return `
             <div class="v2-staff-row">
-              <span class="v2-dot"></span>
+              <span class="v2-dot" style="background:${activo ? '#34d399' : '#52525b'};"></span>
               <div class="v2-staff-main">
                 <div class="v2-staff-rol">${escape(s.rol)}</div>
-                <div class="v2-hint" style="color:#34d399;">${escape(s.estado)}</div>
+                <div class="v2-hint" style="color:${activo ? '#34d399' : 'var(--v2-fg-3)'};">${escape(s.estado)}${activo ? ` · ${s.acciones} acciones reales` : ''}</div>
+                ${reporte}
               </div>
-            </div>`,
-            )
+            </div>`;
+            })
             .join('')}
         </div>
       </div>
@@ -289,12 +303,36 @@ const renderSummary = async (b) => {
                 <div class="v2-staff-rol">${escape(t.titulo)}</div>
                 <div class="v2-hint">${escape(t.detalle)}</div>
               </div>
-              <span class="v2-badge v2-badge-warn">nuevo</span>
+              <span class="v2-badge v2-badge-warn">${hace(t.logradoEn)}</span>
             </div>`,
             )
             .join('')}
         </div>`
-            : '<div class="v2-hint">Tus primeros logros aparecerán acá.</div>'
+            : '<div class="v2-hint">Tus primeros logros aparecerán acá cuando el equipo haga algo real.</div>'
+        }
+      </div>
+    </section>
+
+    <!-- INTERACCIONES REALES -->
+    <section class="v2-section">
+      <div class="v2-card v2-card-pad">
+        <div class="v2-card-head"><strong>Interacciones recientes</strong><span class="v2-hint">agentes · automatizaciones · redes · piezas</span></div>
+        ${
+          (b.interacciones || []).length
+            ? `<div class="v2-feed">${(b.interacciones || [])
+                .map(
+                  (i) => `
+            <div class="v2-feed-row">
+              <span class="v2-feed-when">${hace(i.cuando)}</span>
+              <span class="v2-feed-tipo v2-feed-tipo--${escape(i.tipo)}">${escape(i.tipo)}</span>
+              <div class="v2-feed-body">
+                <div class="v2-feed-route"><strong>${escape(i.de)}</strong> → ${escape(i.a)}</div>
+                <div class="v2-hint">${escape(i.texto)}</div>
+              </div>
+            </div>`,
+                )
+                .join('')}</div>`
+            : '<div class="v2-hint">Todavía no hay interacciones registradas. Aparecen cuando tus agentes, automatizaciones o publicaciones se ejecutan.</div>'
         }
       </div>
     </section>
@@ -450,67 +488,160 @@ const renderTabLink = (route, title, desc) => `
     <button class="v2-btn v2-btn-primary" data-go-route="${escape(route)}">Abrir vista completa →</button>
   </div>`;
 
+const CC_SALUD = {
+  'sin-datos': { label: 'Sin datos', color: '#a1a1aa' },
+  estable: { label: 'Estable', color: '#34d399' },
+  atencion: { label: 'Atención', color: '#fbbf24' },
+  critica: { label: 'Crítica', color: '#f87171' },
+};
+const CC_NIVEL = {
+  critica: { color: '#f87171', label: 'Crítica' },
+  alta: { color: '#fbbf24', label: 'Alta' },
+  info: { color: '#60a5fa', label: 'Info' },
+};
+
+const ccLoginUrl = (plataforma) =>
+  `/api/auth/${plataforma}/login?redirectAfter=${encodeURIComponent(window.location.origin + '/')}`;
+
+const ccAccionHtml = (accion, extraClass = 'v2-btn v2-btn-outline') => {
+  if (!accion) return '';
+  if (accion.tipo === 'tab')
+    return `<button class="${extraClass}" data-cc-tab="${escape(accion.tab)}">${escape(accion.label)}</button>`;
+  if (accion.tipo === 'ruta')
+    return `<button class="${extraClass}" data-cc-ruta="${escape(accion.ruta)}">${escape(accion.label)}</button>`;
+  return `<a class="${extraClass}" href="${escape(ccLoginUrl(accion.plataforma))}">${escape(accion.label)}</a>`;
+};
+
 const renderCommandCenter = async () => {
   const { data, error } = await apiSafe('/api/executive/command-center', null);
-  if (!data) return `<div class="alert warn">Command Center sin datos. ${error || 'Conectá backend.'}</div>`;
+  if (!data)
+    return `<div class="alert warn">Centro de comandos sin datos. ${escape(error?.message || 'Conectá el backend.')}</div>`;
   const d = data;
-  const pulse = d.systemPulse || {};
-  const insights = d.topInsights || [];
-  const qa = d.quickActions || [];
+  const salud = CC_SALUD[d.salud?.nivel] || CC_SALUD['sin-datos'];
+  const p = d.pulso || {};
+  const alertas = d.alertas || [];
+  const pendientes = d.decisionesPendientes || [];
+  const okr = d.okr || { totalActive: 0, onTrack: 0, atRisk: 0, behind: 0 };
+  const insights = d.insights || [];
+
   return `
-    <div class="cc-header">
+    <div class="cc-head">
       <div>
-        <h2 style="margin:0;font-size:22px;">${escape(d.digest?.headline || 'Centro de mando')}</h2>
-        <p class="small muted">${escape(d.digest?.oneLineStatus || '')}</p>
+        <div class="v2-eyebrow">Centro de comandos</div>
+        <h2 class="v2-h2">${escape(d.salud?.titulo || '')}</h2>
+        <p class="v2-section-desc">${escape(d.salud?.detalle || '')}</p>
       </div>
-      <div class="cc-health-badge cc-health-${escape(d.digest?.health || 'steady')}">${escape(d.digest?.health || '')}</div>
+      <span class="cc-salud" style="color:${salud.color};box-shadow:inset 0 0 0 1px ${salud.color}55;background:${salud.color}1a;">${escape(salud.label)}</span>
     </div>
-    <div class="cc-pulse-grid">
-      <div class="cc-pulse-card"><div class="cc-pulse-val">${pulse.brainModulesOnline ?? 35}</div><div class="cc-pulse-lbl">módulos cerebro online</div></div>
-      <div class="cc-pulse-card"><div class="cc-pulse-val">${pulse.last24hActions ?? 0}</div><div class="cc-pulse-lbl">acciones autónomas 24h</div></div>
-      <div class="cc-pulse-card"><div class="cc-pulse-val">${pulse.backlogSize ?? 0}</div><div class="cc-pulse-lbl">decisiones backlog</div></div>
-      <div class="cc-pulse-card"><div class="cc-pulse-val">${pulse.healthScore ?? 0}%</div><div class="cc-pulse-lbl">health score</div></div>
+
+    <div class="v2-kpi-grid cc-pulso">
+      <div class="v2-card v2-kpi"><div class="v2-eyebrow">Agentes activos · 7 días</div><div class="v2-num-xl">${p.agentesActivos7d ?? 0}</div><div class="v2-hint">con actividad registrada</div></div>
+      <div class="v2-card v2-kpi"><div class="v2-eyebrow">Acciones hoy</div><div class="v2-num-xl">${p.accionesUltimas24h ?? 0}</div><div class="v2-hint">${p.acciones7d ?? 0} en los últimos 7 días</div></div>
+      <div class="v2-card v2-kpi"><div class="v2-eyebrow">Decisiones pendientes</div><div class="v2-num-xl">${p.decisionesPendientes ?? 0}</div><div class="v2-hint">${p.decisionesCriticas ? `${p.decisionesCriticas} crítica(s)` : 'ninguna crítica'}</div></div>
+      <div class="v2-card v2-kpi"><div class="v2-eyebrow">Redes conectadas</div><div class="v2-num-xl">${p.redesConectadas ?? 0}/${p.redesTotal ?? 2}</div><div class="v2-hint">Instagram · TikTok</div></div>
     </div>
-    <div class="cc-section">
-      <h3>🔍 Top insights</h3>
-      ${insights.length ? `<ul class="cc-insights">${insights.map((i) => `<li>${escape(i.icon)} ${escape(i.text)}</li>`).join('')}</ul>` : '<div class="tiny muted">Sin insights por ahora.</div>'}
-    </div>
-    <div class="cc-section">
-      <h3>⚡ Acciones rápidas</h3>
-      <div class="cc-qa-grid">
-        ${qa
+
+    <section class="v2-section">
+      <div class="v2-section-head"><div class="v2-eyebrow">Requiere tu atención</div><h2 class="v2-h2">${alertas.length ? `${alertas.length} alerta(s)` : 'Sin alertas'}</h2></div>
+      ${
+        alertas.length
+          ? `<div class="cc-alertas">${alertas
+              .map(
+                (a) => `
+            <div class="v2-card cc-alerta">
+              <span class="cc-alerta-dot" style="background:${CC_NIVEL[a.nivel]?.color || '#60a5fa'};"></span>
+              <div class="cc-alerta-body">
+                <div class="cc-alerta-titulo"><span class="cc-alerta-nivel" style="color:${CC_NIVEL[a.nivel]?.color || '#60a5fa'};">${escape(CC_NIVEL[a.nivel]?.label || '')}</span> ${escape(a.titulo)}</div>
+                <div class="v2-hint">${escape(a.detalle)}</div>
+              </div>
+              ${ccAccionHtml(a.accion)}
+            </div>`,
+              )
+              .join('')}</div>`
+          : '<div class="v2-card v2-card-pad"><div class="v2-hint">Nada que revisar. Cuando el equipo necesite una decisión o algo falle, aparece acá.</div></div>'
+      }
+    </section>
+
+    <section class="v2-section">
+      <div class="v2-section-head"><div class="v2-eyebrow">Decisiones</div><h2 class="v2-h2">Esperando tu aprobación (${pendientes.length})</h2></div>
+      ${
+        pendientes.length
+          ? `<div class="cc-decisiones">${pendientes
+              .map(
+                (dec) => `
+            <div class="v2-card cc-decision" data-cc-decision="${escape(dec.id)}">
+              <div class="cc-decision-body">
+                <div class="cc-decision-titulo">${escape(dec.title)}</div>
+                <div class="v2-hint">${escape((dec.context || '').slice(0, 180))}</div>
+              </div>
+              <div class="cc-decision-acciones">
+                <button class="v2-btn v2-btn-primary" data-cc-resolve="approved" data-cc-id="${escape(dec.id)}">Aprobar</button>
+                <button class="v2-btn v2-btn-outline" data-cc-resolve="rejected" data-cc-id="${escape(dec.id)}">Rechazar</button>
+              </div>
+            </div>`,
+              )
+              .join('')}</div>`
+          : '<div class="v2-card v2-card-pad"><div class="v2-hint">Sin decisiones pendientes.</div></div>'
+      }
+    </section>
+
+    <section class="v2-section">
+      <div class="v2-section-head"><div class="v2-eyebrow">Acciones rápidas</div><h2 class="v2-h2">Operá desde acá</h2></div>
+      <div class="cc-acciones">
+        ${(d.accionesRapidas || [])
           .map(
             (a) => `
-          <button class="cc-qa-card" data-go-route="${escape(a.route || '')}" data-skill="${escape(a.skill || '')}">
-            <div class="cc-qa-emoji">${escape(a.emoji)}</div>
-            <div class="cc-qa-text"><div class="cc-qa-lbl">${escape(a.label)}</div><div class="cc-qa-desc">${escape(a.description)}</div></div>
-          </button>`,
+          <div class="v2-card cc-accion">
+            <div class="cc-accion-emoji">${escape(a.emoji)}</div>
+            <div class="cc-accion-body">
+              <div class="cc-accion-label">${escape(a.label)}</div>
+              <div class="v2-hint">${escape(a.descripcion)}</div>
+            </div>
+            ${ccAccionHtml(a.accion, 'v2-btn v2-btn-outline cc-accion-btn')}
+          </div>`,
           )
           .join('')}
       </div>
-    </div>
+    </section>
+
+    <section class="v2-2col">
+      <div class="v2-card v2-card-pad">
+        <div class="v2-card-head"><strong>Metas (OKR)</strong><span class="v2-badge">${okr.totalActive} activos</span></div>
+        <div class="cc-okr-row"><span>En camino</span><strong>${okr.onTrack}</strong></div>
+        <div class="cc-okr-row"><span>En riesgo</span><strong>${okr.atRisk}</strong></div>
+        <div class="cc-okr-row"><span>Atrasados</span><strong>${okr.behind}</strong></div>
+        ${okr.topConcern ? `<div class="v2-hint" style="margin-top:10px;">Más atrasado: ${escape(okr.topConcern.objectiveTitle)} — ${escape(okr.topConcern.krDescription)}</div>` : ''}
+      </div>
+      <div class="v2-card v2-card-pad">
+        <div class="v2-card-head"><strong>Lo que dicen los datos</strong></div>
+        ${
+          insights.length
+            ? `<ul class="cc-insights">${insights.map((i) => `<li>${escape(i.icon)} ${escape(i.texto)}</li>`).join('')}</ul>`
+            : '<div class="v2-hint">Sin señales destacadas por ahora.</div>'
+        }
+      </div>
+    </section>
+
     <style>
-      .cc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:14px;flex-wrap:wrap;}
-      .cc-health-badge{padding:5px 12px;border-radius:999px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;}
-      .cc-health-thriving{background:#10b98122;color:#34d399;}
-      .cc-health-healthy{background:#3b82f622;color:#60a5fa;}
-      .cc-health-steady{background:#6366f122;color:#a5b4fc;}
-      .cc-health-concerning{background:#f59e0b22;color:#fbbf24;}
-      .cc-health-critical{background:#ef444422;color:#f87171;}
-      .cc-pulse-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:18px;}
-      .cc-pulse-card{background:var(--surface,#141418);border:1px solid var(--border);border-radius:12px;padding:14px;}
-      .cc-pulse-val{font-size:28px;font-weight:800;line-height:1;}
-      .cc-pulse-lbl{font-size:11px;opacity:.7;margin-top:6px;}
-      .cc-section{margin-top:18px;}
-      .cc-section h3{margin:0 0 10px;font-size:15px;opacity:.85;}
-      .cc-insights{list-style:none;padding:0;margin:0;}
-      .cc-insights li{padding:9px 12px;border-radius:9px;background:rgba(168,85,247,.06);border-left:3px solid #a855f7;margin-bottom:6px;font-size:13px;}
-      .cc-qa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;}
-      .cc-qa-card{display:flex;gap:12px;align-items:center;background:var(--surface,#141418);border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;text-align:left;transition:border-color .15s,background .15s;}
-      .cc-qa-card:hover{border-color:#a855f7;background:rgba(168,85,247,.05);}
-      .cc-qa-emoji{font-size:24px;flex-shrink:0;}
-      .cc-qa-lbl{font-weight:700;font-size:13px;}
-      .cc-qa-desc{font-size:11px;opacity:.65;margin-top:2px;}
+      .cc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
+      .cc-salud{padding:6px 14px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;}
+      .cc-pulso{margin-bottom:8px;}
+      .cc-alertas,.cc-decisiones{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+      .cc-alerta,.cc-decision{display:flex;align-items:center;gap:14px;padding:14px 16px;flex-wrap:wrap;}
+      .cc-alerta-dot{width:8px;height:8px;border-radius:999px;flex-shrink:0;}
+      .cc-alerta-body,.cc-decision-body{flex:1;min-width:200px;}
+      .cc-alerta-titulo,.cc-decision-titulo{font-size:14px;font-weight:600;color:var(--v2-fg);}
+      .cc-alerta-nivel{font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-right:6px;}
+      .cc-decision-acciones{display:flex;gap:8px;}
+      .cc-acciones{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px;}
+      .cc-accion{display:flex;flex-direction:column;gap:10px;padding:16px;}
+      .cc-accion-emoji{font-size:22px;}
+      .cc-accion-label{font-size:14px;font-weight:600;color:var(--v2-fg);}
+      .cc-accion-btn{margin-top:auto;align-self:flex-start;text-decoration:none;}
+      .cc-okr-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--v2-line);font-size:13px;color:var(--v2-fg-2);}
+      .cc-insights{list-style:none;padding:0;margin:12px 0 0;}
+      .cc-insights li{padding:9px 12px;border-radius:9px;background:var(--v2-hover);margin-bottom:6px;font-size:13px;color:var(--v2-fg-2);}
+      .cc-decision-acciones .v2-btn,.cc-alerta .v2-btn{text-decoration:none;}
     </style>`;
 };
 
@@ -874,6 +1005,17 @@ export const renderImperio = async (root) => {
       .v2-grow-metrics{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--v2-line);border-radius:10px;overflow:hidden;}
       .v2-grow-metric{background:var(--v2-surface);padding:12px;}
       .v2-grow-metric-val{display:flex;align-items:baseline;gap:6px;margin-top:4px;}
+      .v2-feed{display:flex;flex-direction:column;gap:2px;margin-top:12px;max-height:420px;overflow:auto;}
+      .v2-feed-row{display:grid;grid-template-columns:72px 96px 1fr;gap:12px;align-items:start;padding:10px 6px;border-top:1px solid var(--v2-line);}
+      .v2-feed-when{font-size:11px;color:var(--v2-fg-3);padding-top:2px;}
+      .v2-feed-tipo{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;padding:3px 8px;border-radius:999px;justify-self:start;background:var(--v2-hover);color:var(--v2-fg-2);}
+      .v2-feed-tipo--red-social{background:rgba(225,48,108,.12);color:#e1306c;}
+      .v2-feed-tipo--agente{background:rgba(168,85,247,.12);color:#a855f7;}
+      .v2-feed-tipo--automatizacion{background:rgba(34,211,238,.12);color:#22d3ee;}
+      .v2-feed-tipo--pieza{background:rgba(245,158,11,.12);color:#f59e0b;}
+      .v2-feed-tipo--mision{background:rgba(52,211,153,.12);color:#34d399;}
+      .v2-feed-route{font-size:13px;color:var(--v2-fg);}
+      @media (max-width: 720px){.v2-feed-row{grid-template-columns:1fr;gap:4px;}}
       .v2-grow-card--empty{display:flex;flex-direction:column;}
       .v2-grow-connect{margin-top:20px;display:flex;flex-direction:column;gap:12px;align-items:flex-start;}
       .v2-grow-connect .v2-btn{align-self:flex-start;}
@@ -936,8 +1078,9 @@ export const renderImperio = async (root) => {
       ahorroUsd: 0,
       horasHumanasAhorradas: 0,
     },
-    staff: [{ rol: 'Equipo en pausa', estado: 'esperando conexión' }],
+    staff: [{ rol: 'Equipo en pausa', estado: 'esperando conexión', acciones: 0, ultimoReporte: null }],
     hitos: [],
+    interacciones: [],
     credencial: 'FeedIA · founder mode',
   };
 
@@ -994,6 +1137,37 @@ export const renderImperio = async (root) => {
           }
         } catch {
           toast('Backend offline', 'warn');
+        }
+      });
+    });
+
+    body.querySelectorAll('[data-cc-tab]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        root.querySelector(`.v2-tab[data-tab="${btn.dataset.ccTab}"]`)?.click();
+      });
+    });
+    body.querySelectorAll('[data-cc-ruta]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        window.location.hash = `#${btn.dataset.ccRuta}`;
+      });
+    });
+    body.querySelectorAll('[data-cc-resolve]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const row = btn.closest('[data-cc-decision]');
+        const botones = row ? row.querySelectorAll('button') : [];
+        botones.forEach((b) => (b.disabled = true));
+        try {
+          const r = await fetch('/api/executive/decisions/resolve', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ decisionId: btn.dataset.ccId, status: btn.dataset.ccResolve }),
+          });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          toast(btn.dataset.ccResolve === 'approved' ? '✅ Decisión aprobada' : 'Decisión rechazada', 'ok');
+          void repaint();
+        } catch (err) {
+          botones.forEach((b) => (b.disabled = false));
+          toast(`No se pudo resolver: ${err.message}`, 'err');
         }
       });
     });
