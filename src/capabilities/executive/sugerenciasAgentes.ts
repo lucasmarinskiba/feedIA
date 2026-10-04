@@ -25,6 +25,14 @@ import {
 } from './executiveDecisionQueue.js';
 
 const DIA_MS = 86_400_000;
+const FUENTES_SUGERENCIAS: DecisionSource[] = [
+  'carousel-factory',
+  'comment-brain',
+  'swarm-conductor',
+  'social-connector',
+  'budget-guardian',
+  'okr-tracker',
+];
 const NOMBRE_RED: Record<ConnectionPlatform, string> = { instagram: 'Instagram', tiktok: 'TikTok' };
 
 interface Sugerencia {
@@ -183,7 +191,7 @@ export const refreshSugerencias = async (
   brandName: string,
 ): Promise<{ creadas: number; expiradas: number }> => {
   const actuales = await sugerenciasDeSenales(brandId, brandName);
-  const expiradas = await expireStaleSignals(brandId, new Set(actuales.map((s) => s.signalKey)));
+  const expiradas = await expireStaleSignals(brandId, new Set(actuales.map((s) => s.signalKey)), FUENTES_SUGERENCIAS);
   let creadas = 0;
   for (const s of actuales) {
     if (await hasDecisionForSignal(brandId, s.signalKey)) continue;

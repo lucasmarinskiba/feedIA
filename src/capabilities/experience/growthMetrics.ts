@@ -372,3 +372,124 @@ export const captureSnapshotOnly = async (brandId: string, platform: ConnectionP
     log.warn('[GrowthMetrics] TikTok daily snapshot failed', { error: String(err) });
   }
 };
+
+export interface VentanaInstagram {
+  reach7d: number | null;
+  reachPrev7d: number | null;
+  engagement7d: number | null;
+  engagementPrev7d: number | null;
+  followerDelta7d: number | null;
+  posts7d: number;
+  reels7d: number;
+  horaUltimoPost: number | null;
+  horaMejor30d: number | null;
+  formatos: {
+    reels: { posts: number; interaccionesPromedio: number } | null;
+    carruseles: { posts: number; interaccionesPromedio: number } | null;
+  };
+}
+
+const DIA_MS = 86_400_000;
+const ZONA_HORARIA = 'America/Argentina/Buenos_Aires';
+
+const horaLocal = (ms: number): number =>
+  Number(new Intl.DateTimeFormat('en-US', { timeZone: ZONA_HORARIA, hour: 'numeric', hour12: false }).format(ms)) % 24;
+
+const insightsReach = async (igId: string, token: string, desde: number, hasta: number): Promise<number | null> => {
+  const res = await metaFetch(
+    `https://graph.instagram.com/v18.0/${igId}/insights?metric=reach&period=day&metric_type=total_value&since=${Math.floor(desde / 1000)}&until=${Math.floor(hasta / 1000)}&access_token=${token}`,
+    {},
+    { description: 'IG reach ventana', maxAttempts: 2 },
+  );
+  const data = (await res.json()) as { data?: Array<{ name: string; total_value?: { value: number } }> };
+  return data.data?.find((d) => d.name === 'reach')?.total_value?.value ?? null;
+};
+
+const deltaSeguidoresSemana = async (brandId: string, platform: ConnectionPlatform): Promise<number | null> => {
+  const history = await readHistory(brandId, platform);
+  if (history.length === 0) return null;
+  const actual = history[history.length - 1]!.followers;
+  const delta = computeDeltas(history, actual).week;
+  return delta.available && typeof delta.value === 'number' ? delta.value : null;
+};
+
+/** Métricas de Instagram por ventana de 7 días, leídas de la API. null si no está conectado o la API falla. */
+export const ventanaInstagram = async (brandId: string): Promise<VentanaInstagram | null> => {
+  const conn = await getConnection(brandId, 'instagram');
+  const igId = String(conn?.metadata?.igBusinessId ?? '');
+  if (!conn || !conn.accessToken || !igId || isExpired(conn)) return null;
+  try {
+    const ahora = Date.now();
+    const [reach7d, reachPrev7d] = await Promise.all([
+      insightsReach(igId, conn.accessToken, ahora - 7 * DIA_MS, ahora),
+      insightsReach(igId, conn.accessToken, ahora - 14 * DIA_MS, ahora - 7 * DIA_MS),
+    ]);
+    const mediaRes = await metaFetch(
+      `https://graph.instagram.com/v18.0/${igId}/media?fields=timestamp,like_count,comments_count,media_product_type&limit=100&access_token=${conn.accessToken}`,
+      {},
+      { description: 'IG media ventana', maxAttempts: 2 },
+    );
+    const media =
+      (
+        (await mediaRes.json()) as {
+          data?: Array<{
+            timestamp?: string;
+            like_count?: number;
+            comments_count?: number;
+            media_product_type?: string;
+          }>;
+        }
+      ).data ?? [];
+    const conMomento = media
+      .map((m) => ({ ...m, ms: Date.parse(m.timestamp ?? '') }))
+      .filter((m) => Number.isFinite(m.ms));
+    const enVentana = (desde: number, hasta: number): typeof conMomento =>
+      conMomento.filter((m) => m.ms >= desde && m.ms < hasta);
+    const interacciones = (arr: typeof conMomento): number =>
+      arr.reduce((s, m) => s + (m.like_count ?? 0) + (m.comments_count ?? 0), 0);
+
+    const semana = enVentana(ahora - 7 * DIA_MS, ahora + 1);
+    const semanaPrev = enVentana(ahora - 14 * DIA_MS, ahora - 7 * DIA_MS);
+    const mes = enVentana(ahora - 30 * DIA_MS, ahora + 1);
+
+    const formatoDe = (arr: typeof conMomento): { posts: number; interaccionesPromedio: number } | null =>
+      arr.length === 0 ? null : { posts: arr.length, interaccionesPromedio: interacciones(arr) / arr.length };
+
+    const porHora = new Map<number, { total: number; n: number }>();
+    for (const m of mes) {
+      const h = horaLocal(m.ms);
+      const acum = porHora.get(h) ?? { total: 0, n: 0 };
+      acum.total += (m.like_count ?? 0) + (m.comments_count ?? 0);
+      acum.n += 1;
+      porHora.set(h, acum);
+    }
+    let horaMejor30d: number | null = null;
+    let mejorPromedio = -1;
+    for (const [h, v] of porHora) {
+      if (v.n >= 2 && v.total / v.n > mejorPromedio) {
+        mejorPromedio = v.total / v.n;
+        horaMejor30d = h;
+      }
+    }
+    const ultimo = conMomento.slice().sort((a, b) => b.ms - a.ms)[0];
+
+    return {
+      reach7d,
+      reachPrev7d,
+      engagement7d: reach7d && reach7d > 0 ? (interacciones(semana) / reach7d) * 100 : null,
+      engagementPrev7d: reachPrev7d && reachPrev7d > 0 ? (interacciones(semanaPrev) / reachPrev7d) * 100 : null,
+      followerDelta7d: await deltaSeguidoresSemana(brandId, 'instagram'),
+      posts7d: semana.length,
+      reels7d: semana.filter((m) => m.media_product_type === 'REELS').length,
+      horaUltimoPost: ultimo ? horaLocal(ultimo.ms) : null,
+      horaMejor30d,
+      formatos: {
+        reels: formatoDe(mes.filter((m) => m.media_product_type === 'REELS')),
+        carruseles: formatoDe(mes.filter((m) => m.media_product_type === 'CAROUSEL_ALBUM')),
+      },
+    };
+  } catch (err) {
+    log.warn('[GrowthMetrics] IG ventana falló', { error: String(err) });
+    return null;
+  }
+};

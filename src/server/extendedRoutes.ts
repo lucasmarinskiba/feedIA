@@ -4830,56 +4830,6 @@ export const buildExtendedRoutes = (brand: BrandProfile): RouteDefinition[] => [
       json(res, 200, result);
     },
   },
-  // ─── Instagram + TikTok Autopilot ───────────────────────────────────────────
-  {
-    method: 'POST',
-    pattern: '/api/autopilot/instagram/run',
-    handler: async ({ res, body }) => {
-      const { runIGAutopilot } = await import('../capabilities/executive/instagramAutopilot.js');
-      const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
-      const obs = (body ?? {}) as Omit<Parameters<typeof runIGAutopilot>[0], 'brandId' | 'timestamp'>;
-      json(res, 200, await runIGAutopilot({ brandId, timestamp: new Date().toISOString(), ...obs }));
-    },
-  },
-  {
-    method: 'GET',
-    pattern: '/api/autopilot/instagram/latest',
-    handler: async ({ res }) => {
-      const { getLatestReport } = await import('../capabilities/executive/instagramAutopilot.js');
-      const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
-      const report = await getLatestReport(brandId);
-      if (!report) {
-        json(res, 404, { error: 'no report yet' });
-        return;
-      }
-      json(res, 200, report);
-    },
-  },
-  {
-    method: 'POST',
-    pattern: '/api/autopilot/tiktok/run',
-    handler: async ({ res, body }) => {
-      const { runTTAutopilot } = await import('../capabilities/executive/tiktokAutopilot.js');
-      const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
-      const obs = (body ?? {}) as Omit<Parameters<typeof runTTAutopilot>[0], 'brandId' | 'timestamp'>;
-      json(res, 200, await runTTAutopilot({ brandId, timestamp: new Date().toISOString(), ...obs }));
-    },
-  },
-  {
-    method: 'GET',
-    pattern: '/api/autopilot/tiktok/latest',
-    handler: async ({ res }) => {
-      const { getLatestReport } = await import('../capabilities/executive/tiktokAutopilot.js');
-      const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
-      const report = await getLatestReport(brandId);
-      if (!report) {
-        json(res, 404, { error: 'no report yet' });
-        return;
-      }
-      json(res, 200, report);
-    },
-  },
-
   // ─── Real profile data: Instagram + TikTok ──────────────────────────────────
   {
     method: 'GET',

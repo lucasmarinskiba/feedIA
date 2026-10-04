@@ -1267,7 +1267,250 @@ const wireOKRs = (body, root, repaint) => {
     });
   });
 };
+const AP_SENAL_NOMBRE = {
+  'reach-drop': 'El alcance está cayendo',
+  'engagement-drop': 'El engagement bajó',
+  'follower-stall': 'Poca cadencia de publicación',
+  'follower-decline': 'Estás perdiendo seguidores',
+  'hashtag-burnt': 'Hashtags quemados',
+  'story-cadence-low': 'Pocas stories',
+  'dm-backlog': 'DMs sin responder',
+  'comment-backlog': 'Comentarios pendientes',
+  'best-time-shift': 'Cambió tu mejor horario',
+  'algorithm-favor': 'Un formato rinde más',
+};
+const AP_ACCION = {
+  'post-now': 'Publicar ahora',
+  'rotate-hashtag': 'Rotar hashtags',
+  'reply-comments-batch': 'Responder comentarios',
+  'reply-dms-batch': 'Responder DMs',
+  'cross-post-to-stories': 'Publicar en stories',
+  'change-format': 'Cambiar de formato',
+  'reactivate-cold-followers': 'Reactivar seguidores fríos',
+};
+const AP_SEVERIDAD = {
+  critical: { label: 'Crítica', color: '#f87171' },
+  high: { label: 'Alta', color: '#fbbf24' },
+  medium: { label: 'Media', color: '#60a5fa' },
+  low: { label: 'Baja', color: '#a1a1aa' },
+};
+const AP_FUENTES = {
+  alcance: 'Alcance',
+  engagement: 'Engagement',
+  seguidores: 'Seguidores',
+  publicaciones: 'Publicaciones',
+  formatos: 'Formatos',
+  horarios: 'Horarios',
+  dms: 'DMs',
+  comentarios: 'Comentarios',
+  stories: 'Stories',
+  hashtags: 'Hashtags',
+};
+
+const apNum = (n, sufijo = '') => (n === null || n === undefined ? '—' : `${okrFmt(n)}${sufijo}`);
+const apSigno = (n) => (n === null || n === undefined ? '—' : `${n > 0 ? '+' : ''}${okrFmt(n)}`);
+
+const renderIGAutopilot = async () => {
+  const { data } = await apiSafe('/api/autopilot/instagram/latest', null);
+  const { data: historial } = await apiSafe('/api/autopilot/instagram/history', []);
+  const barra = `
+    <div class="okr-barra">
+      <div class="okr-barra-botones">
+        <button class="v2-btn v2-btn-primary v2-btn-sm" data-ap-run="instagram">Generar reporte ahora</button>
+      </div>
+    </div>`;
+
+  if (!data) {
+    return `
+      <div class="apig-wrap">
+        ${barra}
+        <div class="v2-card v2-card-pad">
+          <div class="v2-eyebrow">Instagram Autopilot</div>
+          <h2 class="v2-h2">Todavía no hay reportes</h2>
+          <p class="v2-section-desc">El autopilot lee tu cuenta conectada: alcance y engagement de los últimos 7 días contra los 7 anteriores, seguidores, publicaciones por formato, horarios, DMs y comentarios sin responder. Con eso detecta señales y propone acciones en Decisiones.</p>
+        </div>
+      </div>`;
+  }
+
+  const m = data.observation?.metrics || {};
+  const fuentes = data.observation?.fuentes || {};
+  const formatos = data.observation?.formatos || {};
+  const score = Number(data.autopilotScore || 0);
+  const scoreClase = score >= 70 ? 'ok' : score >= 40 ? 'warn' : 'crit';
+  const senales = data.signals || [];
+  const reales = Object.values(fuentes).filter((v) => v === 'real').length;
+
+  const datos = [
+    {
+      k: 'alcance',
+      titulo: 'Alcance 7 días',
+      valor: apNum(m.reachLast7d),
+      sub: m.reachPrev7d !== null && m.reachPrev7d !== undefined ? `vs ${apNum(m.reachPrev7d)} la semana anterior` : '',
+    },
+    {
+      k: 'engagement',
+      titulo: 'Engagement 7 días',
+      valor: apNum(m.engagementRateLast7d, '%'),
+      sub:
+        m.engagementRatePrev7d !== null && m.engagementRatePrev7d !== undefined
+          ? `vs ${okrFmt(m.engagementRatePrev7d)}% antes`
+          : '',
+    },
+    {
+      k: 'seguidores',
+      titulo: 'Seguidores · semana',
+      valor: apSigno(m.followerDeltaLast7d),
+      sub: 'Neto desde el historial propio',
+    },
+    {
+      k: 'publicaciones',
+      titulo: 'Publicaciones 7 días',
+      valor: apNum(m.postsLast7d),
+      sub: m.reelsLast7d !== null && m.reelsLast7d !== undefined ? `${m.reelsLast7d} reels` : '',
+    },
+    {
+      k: 'dms',
+      titulo: 'DMs sin responder',
+      valor: apNum(m.dmBacklog),
+      sub:
+        m.avgDmResponseMinutes !== null && m.avgDmResponseMinutes !== undefined
+          ? `espera promedio ${Math.round(m.avgDmResponseMinutes)} min`
+          : '',
+    },
+    {
+      k: 'comentarios',
+      titulo: 'Comentarios pendientes',
+      valor: apNum(m.commentBacklog),
+      sub: 'Sin decisión del comment-brain',
+    },
+    {
+      k: 'horarios',
+      titulo: 'Horario',
+      valor:
+        data.observation?.postingHourLast7d !== null && data.observation?.postingHourLast7d !== undefined
+          ? `${data.observation.postingHourLast7d}h`
+          : '—',
+      sub:
+        data.observation?.bestPostingHourLast30d !== null && data.observation?.bestPostingHourLast30d !== undefined
+          ? `Tu mejor hora (30 días): ${data.observation.bestPostingHourLast30d}h`
+          : '',
+    },
+    {
+      k: 'formatos',
+      titulo: 'Interacciones por post',
+      valor:
+        formatos.reels || formatos.carruseles
+          ? `Reels ${apNum(formatos.reels?.interaccionesPromedio)} · Carruseles ${apNum(formatos.carruseles?.interaccionesPromedio)}`
+          : '—',
+      sub: 'Promedio de los últimos 30 días',
+    },
+  ];
+
+  return `
+    <div class="apig-wrap">
+      ${barra}
+      <div class="apig-hero">
+        <div class="apig-score apig-score-${scoreClase}">${score}</div>
+        <div class="apig-hero-texto">
+          <div class="v2-eyebrow">Instagram Autopilot · ${escape(okrFecha(data.generatedAt))}</div>
+          <h2 class="v2-h2">${senales.length ? `${senales.length} señal(es) detectada(s)` : 'Sin señales de alerta'}</h2>
+          <p class="v2-section-desc">${escape(data.didacticInsight || '')}</p>
+        </div>
+      </div>
+
+      <section class="v2-card v2-card-pad">
+        <div class="v2-card-head"><strong>Datos reales usados</strong><span class="v2-badge">${reales} de ${Object.keys(fuentes).length} fuentes</span></div>
+        <div class="apig-datos">
+          ${datos
+            .map(
+              (d) => `
+            <div class="apig-dato">
+              <div class="v2-eyebrow">${escape(d.titulo)}</div>
+              <div class="apig-dato-valor">${escape(String(d.valor))}</div>
+              ${d.sub ? `<div class="v2-hint">${escape(d.sub)}</div>` : ''}
+              <span class="apig-fuente apig-fuente-${fuentes[d.k] === 'real' ? 'real' : 'no'}">${escape(fuentes[d.k] || 'no disponible')}</span>
+            </div>`,
+            )
+            .join('')}
+        </div>
+        ${
+          fuentes.stories === 'no disponible' || fuentes.hashtags === 'no disponible'
+            ? `<p class="v2-hint" style="margin-top:12px;">No medido: ${[fuentes.stories === 'no disponible' ? 'stories (la API solo las da de las últimas 24 h)' : null, fuentes.hashtags === 'no disponible' ? 'salud de hashtags (requiere histórico propio)' : null].filter(Boolean).map(escape).join(' · ')}. Esas reglas no se evalúan.</p>`
+            : ''
+        }
+      </section>
+
+      <section class="v2-section">
+        <div class="v2-section-head"><div class="v2-eyebrow">Señales y acciones</div><h2 class="v2-h2">Lo que el autopilot propone</h2></div>
+        ${
+          senales.length
+            ? `<div class="apig-senales">${senales
+                .map((s) => {
+                  const sev = AP_SEVERIDAD[s.severity] || AP_SEVERIDAD.low;
+                  return `
+              <div class="v2-card apig-senal" style="box-shadow:inset 3px 0 0 ${sev.color};">
+                <div class="apig-senal-head">
+                  <span class="apig-senal-titulo">${escape(AP_SENAL_NOMBRE[s.signal] || s.signal)}</span>
+                  <span class="apig-senal-sev" style="color:${sev.color};">${escape(sev.label)}</span>
+                </div>
+                <div class="v2-hint">${escape(s.evidence)}</div>
+                <p class="apig-senal-razon">${escape(s.reasoning)}</p>
+                <div class="apig-senal-accion"><strong>Acción:</strong> ${escape(AP_ACCION[s.recommendedAction] || s.recommendedAction)}</div>
+                <div class="v2-hint">Impacto esperado: ${escape(s.expectedImpact)}</div>
+                <div class="v2-hint">Propuesta en <strong>Decisiones</strong>: aceptás o rechazás ahí.</div>
+              </div>`;
+                })
+                .join('')}</div>`
+            : '<div class="v2-card v2-card-pad"><div class="v2-hint">Ninguna regla se disparó con los datos de esta semana.</div></div>'
+        }
+      </section>
+
+      ${
+        (historial || []).length
+          ? `<section class="v2-card v2-card-pad">
+              <div class="v2-card-head"><strong>Historial de reportes</strong></div>
+              <ul class="apig-historial">${historial
+                .map(
+                  (h) =>
+                    `<li><span>${escape(okrFecha(h.generatedAt))}</span> Score ${h.autopilotScore} · ${h.signals.length} señal(es)${h.criticalCount ? ` · ${h.criticalCount} crítica(s)` : ''}</li>`,
+                )
+                .join('')}</ul>
+            </section>`
+          : ''
+      }
+    </div>`;
+};
+
+const wireAutopilot = (body, repaint) => {
+  body.querySelectorAll('[data-ap-run]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      try {
+        const r = await fetch(`/api/autopilot/${btn.dataset.apRun}/run`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: '{}',
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const reporte = await r.json();
+        const n = reporte.propuestasEncoladas ?? 0;
+        toast(
+          n
+            ? `✅ Reporte listo · ${n} propuesta(s) nueva(s) en Decisiones`
+            : '✅ Reporte listo · sin propuestas nuevas',
+          'ok',
+        );
+        void repaint();
+      } catch (err) {
+        btn.disabled = false;
+        toast(`No se pudo generar el reporte: ${err.message}`, 'err');
+      }
+    });
+  });
+};
+
 const renderAutopilotReport = async (platform) => {
+  if (platform === 'instagram') return renderIGAutopilot();
   const { data, error } = await apiSafe(`/api/autopilot/${platform}/latest`, null);
   if (!data)
     return `<div class="tiny muted" style="text-align:center;padding:40px;">Sin reporte de ${platform} todavía. ${error || ''}<br><br>Disparar manual: POST /api/autopilot/${platform}/run con métricas.</div>`;
@@ -1513,6 +1756,28 @@ export const renderImperio = async (root) => {
       .v2-feed-tipo--mision{background:rgba(52,211,153,.12);color:#34d399;}
       .v2-feed-route{font-size:13px;color:var(--v2-fg);}
       @media (max-width: 720px){.v2-feed-row{grid-template-columns:1fr;gap:4px;}}
+      .apig-wrap{display:flex;flex-direction:column;gap:16px;}
+      .apig-hero{display:flex;gap:18px;align-items:center;}
+      .apig-score{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;flex-shrink:0;}
+      .apig-score-ok{background:linear-gradient(135deg,#10b981,#3b82f6);}
+      .apig-score-warn{background:linear-gradient(135deg,#f59e0b,#ef4444);}
+      .apig-score-crit{background:linear-gradient(135deg,#ef4444,#7f1d1d);}
+      .apig-datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:14px;}
+      .apig-dato{padding:14px;border-radius:12px;background:var(--v2-hover);display:flex;flex-direction:column;gap:4px;}
+      .apig-dato-valor{font-size:20px;font-weight:600;color:var(--v2-fg);letter-spacing:-0.02em;}
+      .apig-fuente{align-self:flex-start;font-size:10px;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:999px;margin-top:4px;}
+      .apig-fuente-real{background:rgba(52,211,153,.12);color:#34d399;}
+      .apig-fuente-no{background:rgba(161,161,170,.15);color:var(--v2-fg-3);}
+      .apig-senales{display:flex;flex-direction:column;gap:12px;margin-top:12px;}
+      .apig-senal{padding:16px;display:flex;flex-direction:column;gap:6px;}
+      .apig-senal-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+      .apig-senal-titulo{font-size:15px;font-weight:600;color:var(--v2-fg);}
+      .apig-senal-sev{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
+      .apig-senal-razon{margin:4px 0;font-size:13px;color:var(--v2-fg-2);}
+      .apig-senal-accion{font-size:13px;padding:8px 10px;border-radius:8px;background:var(--v2-hover);color:var(--v2-fg-2);}
+      .apig-historial{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--v2-fg-2);}
+      .apig-historial span{color:var(--v2-fg-3);margin-right:6px;}
+      @media (max-width:720px){.apig-hero{flex-direction:column;align-items:flex-start;}}
       .okr-wrap{display:flex;flex-direction:column;gap:16px;}
       .okr-explica .v2-lead{margin-top:10px;}
       .okr-tres{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px;}
@@ -1699,6 +1964,7 @@ export const renderImperio = async (root) => {
     });
 
     wireOKRs(body, root, repaint);
+    wireAutopilot(body, repaint);
 
     body.querySelectorAll('[data-cc-tab]').forEach((btn) => {
       btn.addEventListener('click', () => {

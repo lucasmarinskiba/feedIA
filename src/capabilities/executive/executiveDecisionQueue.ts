@@ -28,7 +28,8 @@ export type DecisionSource =
   | 'swarm-conductor'
   | 'social-connector'
   | 'budget-guardian'
-  | 'okr-tracker';
+  | 'okr-tracker'
+  | 'ig-autopilot';
 export type DecisionStatus = 'pending' | 'approved' | 'rejected' | 'auto-executed' | 'expired' | 'snoozed';
 export type DecisionUrgency = 'critical' | 'high' | 'medium' | 'low';
 
@@ -154,11 +155,15 @@ export const hasDecisionForSignal = async (brandId: string, signalKey: string): 
   return queue.some((d) => d.signalKey === signalKey && d.status !== 'expired');
 };
 
-export const expireStaleSignals = async (brandId: string, activeKeys: Set<string>): Promise<number> => {
+export const expireStaleSignals = async (
+  brandId: string,
+  activeKeys: Set<string>,
+  fuentes: DecisionSource[],
+): Promise<number> => {
   const queue = await loadQueue(brandId);
   let expired = 0;
   for (const d of queue) {
-    if (d.status === 'pending' && d.signalKey && !activeKeys.has(d.signalKey)) {
+    if (d.status === 'pending' && d.signalKey && fuentes.includes(d.source) && !activeKeys.has(d.signalKey)) {
       d.status = 'expired';
       d.resolvedAt = new Date().toISOString();
       d.resolvedBy = 'expiry';
