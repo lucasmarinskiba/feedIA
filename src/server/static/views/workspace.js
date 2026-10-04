@@ -178,66 +178,6 @@ export const renderBitacora = async (root) => {
 /* ── Centro de Alertas ───────────────────────────────────────────────────── */
 const ALV = { critica: 'crit', alta: 'warn', media: 'info', info: 'muted' };
 const ALERTAS_DEFAULT = { count: 0, critical: 0, alerts: [] };
-export const renderAlertas = async (root) => {
-  const host = shell(
-    root,
-    '🚨 Centro de Alertas',
-    'Crisis, límites de cumplimiento y oportunidades, todo consolidado.',
-    'al-body',
-  );
-  const { data, error } = await apiSafe('/api/alerts', ALERTAS_DEFAULT);
-  const d = data ?? ALERTAS_DEFAULT;
-  const isOffline = !!error;
-  try {
-    const speech =
-      d.count === 0
-        ? 'No hay alertas activas. Todo en orden.'
-        : `Tenés ${d.count} alertas, ${d.critical} críticas. ` +
-          d.alerts
-            .slice(0, 6)
-            .map((a) => `${a.source}: ${a.message}`)
-            .join('. ');
-    host.innerHTML = `
-      ${
-        isOffline
-          ? `<div class="alert" style="background:var(--bg-elev,#1c1c22);border:1px dashed var(--border);padding:10px 14px;border-radius:10px;margin-bottom:12px;">
-        <span class="small">📡 Backend offline · sin alertas que mostrar.</span>
-      </div>`
-          : ''
-      }
-      <div class="btn-row" style="margin-bottom:12px;"><button class="btn ghost" id="al-voice">🔊 Escuchar</button></div>
-      <div class="autopilot-stat-row" style="margin-bottom:14px;">
-        <div class="autopilot-stat"><div class="autopilot-stat-num">${d.count}</div><div class="autopilot-stat-label">alertas</div></div>
-        <div class="autopilot-stat"><div class="autopilot-stat-num" style="color:var(--crit)">${d.critical}</div><div class="autopilot-stat-label">críticas</div></div>
-      </div>
-      ${d.alerts
-        .map(
-          (a) => `
-        <div class="card ws-row" style="border-left:3px solid var(--${ALV[a.level] === 'crit' ? 'crit' : ALV[a.level] === 'warn' ? 'warn' : ALV[a.level] === 'info' ? 'info' : 'border'});">
-          <div style="flex:1;">
-            <div class="meta"><span class="tag ${ALV[a.level]} tiny">${escape(a.level)}</span><span class="tag tiny">${escape(a.source)}</span><span class="tiny muted">${fmt.rel(a.at)}</span></div>
-            <div class="small" style="margin-top:6px;">${escape(a.message)}</div>
-          </div>
-        </div>`,
-        )
-        .join('')}`;
-    host.querySelector('#al-voice')?.addEventListener('click', (ev) => narrate(ev.currentTarget, speech));
-  } catch (e) {
-    host.innerHTML = `<div class="alert crit">Error: ${escape(e.message)}</div>`;
-  }
-};
-
-/* ── Tablero Kanban ──────────────────────────────────────────────────────── */
-const KANBAN_DEFAULT = {
-  columns: [
-    { title: '💡 Idea', cards: [] },
-    { title: '✍️ Producción', cards: [] },
-    { title: '👀 Revisión', cards: [] },
-    { title: '⏰ Programado', cards: [] },
-    { title: '✅ Publicado', cards: [] },
-  ],
-};
-
 export const renderKanban = async (root) => {
   const host = shell(root, '🗂 Tablero de Contenido', 'El pipeline de tus piezas: de la idea al publicado.', 'kb-body');
   const { data, error } = await apiSafe('/api/kanban', KANBAN_DEFAULT);

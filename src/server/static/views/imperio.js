@@ -52,6 +52,7 @@ const TABS = [
 ];
 
 const EMBED_VIEWS = {
+  alerts: { path: './alertas.js', name: 'renderAlertas' },
   audit: { path: './audit.js', name: 'renderAudit' },
   predictor: { path: './predictor.js', name: 'renderPredictor' },
   tools: { path: './tools.js', name: 'renderTools' },
@@ -2054,8 +2055,6 @@ const renderTabContent = async (b) => {
     await panelReportes.cargar();
     return panelReportes.html();
   }
-  if (activeTab === 'alerts')
-    return renderTabLink('alertas', 'Alertas', 'Anomalías detectadas, riesgos de shadowban y oportunidades.');
   if (activeTab === 'logbook')
     return renderTabLink('bitacora', 'Bitácora', 'Cronología de todas las acciones del sistema en tu cuenta.');
   if (activeTab === 'experiments')
@@ -2070,7 +2069,8 @@ const renderTabContent = async (b) => {
 };
 
 export const renderImperio = async (root) => {
-  activeTab = 'summary';
+  activeTab = window.__fxTabPendiente ?? 'summary';
+  window.__fxTabPendiente = null;
 
   // El callback de /api/auth/{instagram,tiktok}/callback redirige de vuelta
   // acá con ?connected=... o ?oauth_error=... — avisamos y limpiamos la URL.

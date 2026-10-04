@@ -79,7 +79,7 @@ const ROUTES = {
   agenda: V('./views/agenda.js', 'renderAgenda'),
   approvals: V('./views/workspace.js', 'renderApprovals'),
   bitacora: V('./views/workspace.js', 'renderBitacora'),
-  alertas: V('./views/workspace.js', 'renderAlertas'),
+  alertas: V('./views/alertas.js', 'renderAlertas'),
   kanban: V('./views/workspace.js', 'renderKanban'),
   moodboard: V('./views/workspace.js', 'renderMoodboard'),
   reportes: V('./views/reportes.js', 'renderReportes'),
@@ -485,11 +485,12 @@ const refreshBadges = async () => {
     /* non-blocking */
   }
   try {
-    const al = await fetch('/api/alerts');
+    const al = await fetch('/api/executive/alerts');
     if (al.ok) {
       const d = await al.json();
+      const urgentes = (d.alertas || []).filter((a) => a.severidad === 'critica' || a.severidad === 'alta').length;
       const b = document.querySelector('#nb-alertas');
-      if (b) b.style.display = d.critical > 0 ? '' : 'none';
+      if (b) b.style.display = urgentes > 0 ? '' : 'none';
     }
   } catch {
     /* non-blocking */
@@ -1472,6 +1473,7 @@ const bootNotifications = () => {
       .fxn-cat-analysis{background:rgba(168,85,247,.18);color:#d8b4fe;}
       .fxn-cat-goal{background:rgba(34,211,238,.18);color:#67e8f9;}
       .fxn-cat-achievement{background:rgba(234,179,8,.18);color:#facc15;}
+      .fxn-cat-alert{background:rgba(248,113,113,.18);color:#fca5a5;}
       .fxn-cat-team{background:rgba(16,185,129,.18);color:#6ee7b7;}
       .fxn-filters{display:flex;gap:4px;padding:8px;border-bottom:1px solid #24242e;overflow-x:auto;}
       .fxn-filter{padding:5px 10px;border-radius:6px;border:0;background:transparent;color:#9aa;
@@ -1610,18 +1612,40 @@ const bootNotifications = () => {
       platform: r.platform || inferPlatform(`${r.tipo} ${r.resumen} ${r.titulo}`),
     }));
 
+  const mergeAlerts = (als) =>
+    (als || []).map((a) => ({
+      id: `alert:${a.id}`,
+      category: 'alert',
+      platform: a.plataforma || 'sala',
+      emoji: { critica: '🔴', alta: '🟠', media: '🟡', info: '🔵' }[a.severidad] || '🔔',
+      quien: a.titulo,
+      rol: 'alerta',
+      accion: a.detalle || '',
+      cuando: a.cuando,
+      route: 'alertas',
+    }));
+
   const load = async () => {
     try {
-      const [actR, appR, briefR] = await Promise.allSettled([
+      const [actR, appR, briefR, alR] = await Promise.allSettled([
         fetch('/api/experience/activity'),
         fetch('/api/cu/mode/pending-approvals'),
         fetch('/api/experience/brief'),
+        fetch('/api/executive/alerts'),
       ]);
-      const acts = actR.status === 'fulfilled' && actR.value.ok ? await actR.value.json() : [];
-      const apps = appR.status === 'fulfilled' && appR.value.ok ? await appR.value.json() : [];
-      const brief = briefR.status === 'fulfilled' && briefR.value.ok ? await briefR.value.json() : null;
+      const leer = async (r) => {
+        try {
+          return r.status === 'fulfilled' && r.value.ok ? await r.value.json() : null;
+        } catch {
+          return null;
+        }
+      };
+      const acts = (await leer(actR)) ?? [];
+      const apps = (await leer(appR)) ?? [];
+      const alertas = ((await leer(alR)) ?? {}).alertas ?? [];
+      const brief = await leer(briefR);
       const hitos = brief?.hitos ?? [];
-      items = [...mergeApprovals(apps), ...mergeAchievements(hitos), ...mergeActivity(acts)]
+      items = [...mergeApprovals(apps), ...mergeAchievements(hitos), ...mergeActivity(acts), ...mergeAlerts(alertas)]
         .sort((a, b) => (Date.parse(b.cuando) || 0) - (Date.parse(a.cuando) || 0))
         .slice(0, 80);
       refreshBadge();
@@ -1637,6 +1661,7 @@ const bootNotifications = () => {
     goal: 'meta',
     achievement: 'logro',
     team: 'equipo',
+    alert: 'alerta',
   };
   const FILTERS = [
     { id: 'all', label: 'Todo' },
@@ -1644,6 +1669,7 @@ const bootNotifications = () => {
     { id: 'achievement', label: '🏆 Logros' },
     { id: 'report', label: '📄 Reportes' },
     { id: 'team', label: '👥 Equipo' },
+    { id: 'alert', label: '🚨 Alertas' },
   ];
 
   let ov = null;
