@@ -29,7 +29,8 @@ export type DecisionSource =
   | 'social-connector'
   | 'budget-guardian'
   | 'okr-tracker'
-  | 'ig-autopilot';
+  | 'ig-autopilot'
+  | 'tt-autopilot';
 export type DecisionStatus = 'pending' | 'approved' | 'rejected' | 'auto-executed' | 'expired' | 'snoozed';
 export type DecisionUrgency = 'critical' | 'high' | 'medium' | 'low';
 

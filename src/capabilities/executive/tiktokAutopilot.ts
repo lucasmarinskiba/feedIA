@@ -1,64 +1,52 @@
 /**
- * TikTok Autopilot — backend inteligente + autónomo + didáctico para TikTok.
+ * TikTok Autopilot — lee los videos de la cuenta, detecta señales y propone acciones.
  *
- * Monitorea métricas FYP-críticas (watch time, completion, replays, FYP %),
- * detecta señales (sound saturation, hook fail, retention cliff, FYP cutoff),
- * recomienda acciones (re-hook, sound rotate, duet, batch upload).
+ * La API pública de TikTok da vistas, likes, comentarios, compartidos, seguidores y
+ * fecha por video. Completion, watch time, alcance FYP, retención y uso de sonidos no
+ * se exponen en esa API: quedan como "no disponible" y no se evalúan.
  *
- * Sin Anthropic call directo.
+ * Sin Anthropic call directo. Reglas + heurísticas determinísticas.
  */
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { log } from '../../agent/logger.js';
+import {
+  enqueueDecision,
+  expireStaleSignals,
+  hasDecisionForSignal,
+  type DecisionUrgency,
+} from './executiveDecisionQueue.js';
 
 const TT_AUTOPILOT_DIR = path.resolve('data/autopilot/tiktok');
 
 export type TTSignal =
-  | 'completion-low'
-  | 'hook-fail'
-  | 'retention-cliff'
-  | 'sound-saturated'
-  | 'fyp-cutoff'
-  | 'reposts-cold'
-  | 'comments-low'
+  | 'views-drop'
+  | 'follower-decline'
   | 'cadence-low'
-  | 'duet-opportunity'
-  | 'series-momentum'
-  | 'sound-trending-now';
-export type TTActionKind =
-  | 'reshoot-hook'
-  | 'edit-tighten'
-  | 'rotate-sound'
-  | 'duet-trending'
-  | 'post-series-next'
-  | 'upload-batch'
-  | 'reply-comments'
-  | 'experiment-format'
-  | 'go-live'
-  | 'pin-best-comment';
+  | 'comments-low'
+  | 'shares-low'
+  | 'series-momentum';
+
+export type TTActionKind = 'experiment-format' | 'upload-batch' | 'reply-comments' | 'post-series-next';
 
 export interface TTObservation {
   brandId: string;
   timestamp: string;
   metrics: {
-    avgCompletionRateLast7d: number;
-    avgWatchTimePctLast7d: number;
-    fypReachPctLast7d: number;
-    videosLast7d: number;
-    avgFirstHourViewsLast7d: number;
-    avgFinalViewsLast30d: number;
-    rewatchRate: number;
-    shareRate: number;
-    commentRate: number;
-    saveRate: number;
-    followsPerVideoAvg: number;
+    viewsLast7d: number | null;
+    viewsPrev7d: number | null;
+    engagementRateLast7d: number | null;
+    commentRateLast7d: number | null;
+    shareRateLast7d: number | null;
+    followerDeltaLast7d: number | null;
+    videosLast7d: number | null;
+    videosLast30d: number | null;
+    bestVideoViews30d: number | null;
+    worstVideoViews30d: number | null;
   };
-  topSoundUsesLast7d: number;
-  topSoundUsesPrev7d: number;
-  hookDropoffSec: number;
-  bestPerformerCompletion: number;
-  worstPerformerCompletion: number;
+  horaUltimoVideo: number | null;
+  fuentes: Record<string, 'real' | 'no disponible'>;
 }
 
 export interface TTSignalDetection {
@@ -69,120 +57,102 @@ export interface TTSignalDetection {
   recommendedAction: TTActionKind;
   reasoning: string;
   expectedImpact: string;
-  fypMechanicAffected: 'completion' | 'shares' | 'comments' | 'rewatch' | 'follow-through';
 }
 
-const COMPLETION_FLOOR = 0.45;
-const FYP_REACH_FLOOR = 0.3;
-const HOOK_DROPOFF_CEIL_SEC = 2.5;
+const VIEWS_DROP_THRESHOLD_PCT = 30;
+const VIEWS_DROP_CRITICAL_PCT = 60;
 const VIDEOS_WEEKLY_FLOOR = 5;
-const SOUND_SATURATION_MULTIPLIER = 3;
+const COMMENT_RATE_FLOOR = 0.005;
+const SHARE_RATE_FLOOR = 0.002;
+const SERIES_RATIO_THRESHOLD = 5;
+const SERIES_MIN_VIDEOS = 3;
+
+const pctDelta = (actual: number, previo: number): number => ((actual - previo) / previo) * 100;
 
 export const detectTTSignals = (obs: TTObservation): TTSignalDetection[] => {
+  const m = obs.metrics;
   const signals: TTSignalDetection[] = [];
 
-  if (obs.metrics.avgCompletionRateLast7d < COMPLETION_FLOOR) {
-    signals.push({
-      signal: 'completion-low',
-      confidence: 0.95,
-      evidence: `Completion ${(obs.metrics.avgCompletionRateLast7d * 100).toFixed(0)}% (floor ${COMPLETION_FLOOR * 100}%)`,
-      severity: 'critical',
-      recommendedAction: 'edit-tighten',
-      reasoning: 'Completion < 45% mata FYP. Recortar videos a <20s o agregar loop al final.',
-      expectedImpact: 'Subir completion a 60%+ → FYP push 3-5×',
-      fypMechanicAffected: 'completion',
-    });
+  if (m.viewsLast7d !== null && m.viewsPrev7d !== null && m.viewsPrev7d > 0) {
+    const cambio = pctDelta(m.viewsLast7d, m.viewsPrev7d);
+    if (cambio < -VIEWS_DROP_THRESHOLD_PCT) {
+      signals.push({
+        signal: 'views-drop',
+        confidence: 0.85,
+        evidence: `Vistas de los videos de la semana ${cambio.toFixed(0)}% vs la anterior (${m.viewsLast7d} vs ${m.viewsPrev7d})`,
+        severity: cambio < -VIEWS_DROP_CRITICAL_PCT ? 'critical' : 'high',
+        recommendedAction: 'experiment-format',
+        reasoning: 'Los videos están llegando a menos gente. Probá otro formato o gancho en los primeros segundos.',
+        expectedImpact: 'Recuperar el alcance de la semana anterior con un formato que resuene',
+      });
+    }
   }
 
-  if (obs.hookDropoffSec > HOOK_DROPOFF_CEIL_SEC) {
+  if (m.followerDeltaLast7d !== null && m.followerDeltaLast7d < 0) {
     signals.push({
-      signal: 'hook-fail',
-      confidence: 0.9,
-      evidence: `Audiencia abandona ${obs.hookDropoffSec.toFixed(1)}s (techo ${HOOK_DROPOFF_CEIL_SEC}s)`,
-      severity: 'critical',
-      recommendedAction: 'reshoot-hook',
-      reasoning: 'Hook >2.5s no engancha. Primer frame visual + audio + texto deben prometer payoff inmediato.',
-      expectedImpact: 'Cortar dropoff a 1.5s = +40% completion',
-      fypMechanicAffected: 'completion',
-    });
-  }
-
-  if (obs.metrics.fypReachPctLast7d < FYP_REACH_FLOOR) {
-    signals.push({
-      signal: 'fyp-cutoff',
+      signal: 'follower-decline',
       confidence: 0.85,
-      evidence: `${(obs.metrics.fypReachPctLast7d * 100).toFixed(0)}% reach vía FYP (floor ${FYP_REACH_FLOOR * 100}%)`,
-      severity: 'high',
-      recommendedAction: 'experiment-format',
-      reasoning: 'Algoritmo dejó de empujar. Cambiar nicho temático o formato (talking head ↔ b-roll).',
-      expectedImpact: 'Restaurar FYP push si formato resuena',
-      fypMechanicAffected: 'completion',
+      evidence: `Perdiste ${Math.abs(m.followerDeltaLast7d)} seguidores en 7 días`,
+      severity: m.followerDeltaLast7d <= -20 ? 'high' : 'medium',
+      recommendedAction: 'reply-comments',
+      reasoning: 'Te están dejando de seguir. Responder comentarios reactiva a la audiencia que ya te conoce.',
+      expectedImpact: 'Frenar la pérdida neta de seguidores',
     });
   }
 
-  const soundRatio = obs.topSoundUsesPrev7d > 0 ? obs.topSoundUsesLast7d / obs.topSoundUsesPrev7d : 1;
-  if (soundRatio > SOUND_SATURATION_MULTIPLIER) {
-    signals.push({
-      signal: 'sound-saturated',
-      confidence: 0.8,
-      evidence: `Sound usado ${soundRatio.toFixed(1)}× más que semana previa`,
-      severity: 'medium',
-      recommendedAction: 'rotate-sound',
-      reasoning: 'Sounds sobreusados pierden boost. Buscar sounds emerging (24-72h de vida).',
-      expectedImpact: '+20-30% reach con sound fresco',
-      fypMechanicAffected: 'completion',
-    });
-  }
-
-  if (obs.metrics.videosLast7d < VIDEOS_WEEKLY_FLOOR) {
+  if (m.videosLast7d !== null && m.videosLast7d < VIDEOS_WEEKLY_FLOOR) {
     signals.push({
       signal: 'cadence-low',
       confidence: 0.9,
-      evidence: `${obs.metrics.videosLast7d} videos en 7d (mín ${VIDEOS_WEEKLY_FLOOR})`,
+      evidence: `${m.videosLast7d} videos en 7 días (mínimo ${VIDEOS_WEEKLY_FLOOR})`,
       severity: 'high',
       recommendedAction: 'upload-batch',
-      reasoning: 'TikTok premia volumen. <5 videos/sem = algoritmo deja de testear.',
-      expectedImpact: 'Cadencia 7+/sem desbloquea FYP testing',
-      fypMechanicAffected: 'follow-through',
+      reasoning: 'Con pocos videos por semana el algoritmo deja de testear la cuenta.',
+      expectedImpact: 'Volver a una cadencia que sostenga el testeo del algoritmo',
     });
   }
 
-  if (obs.metrics.commentRate < 0.005) {
+  if (m.commentRateLast7d !== null && m.commentRateLast7d < COMMENT_RATE_FLOOR) {
     signals.push({
       signal: 'comments-low',
       confidence: 0.7,
-      evidence: `Comment rate ${(obs.metrics.commentRate * 100).toFixed(2)}%`,
+      evidence: `Comentarios sobre vistas: ${(m.commentRateLast7d * 100).toFixed(2)}% (mínimo ${(COMMENT_RATE_FLOOR * 100).toFixed(1)}%)`,
       severity: 'medium',
       recommendedAction: 'experiment-format',
-      reasoning: 'Comments < 0.5% = video no provoca opinión. Agregar pregunta cerrada o controversia ligera.',
-      expectedImpact: 'Subir comments → señal fuerte FYP',
-      fypMechanicAffected: 'comments',
+      reasoning: 'Los videos no generan opinión. Cerrá con una pregunta concreta o una postura clara.',
+      expectedImpact: 'Más comentarios, que son señal fuerte para el algoritmo',
     });
   }
 
-  if (obs.metrics.rewatchRate < 0.1) {
+  if (m.shareRateLast7d !== null && m.shareRateLast7d < SHARE_RATE_FLOOR) {
     signals.push({
-      signal: 'reposts-cold',
-      confidence: 0.75,
-      evidence: `Rewatch ${(obs.metrics.rewatchRate * 100).toFixed(0)}%`,
+      signal: 'shares-low',
+      confidence: 0.7,
+      evidence: `Compartidos sobre vistas: ${(m.shareRateLast7d * 100).toFixed(2)}% (mínimo ${(SHARE_RATE_FLOOR * 100).toFixed(1)}%)`,
       severity: 'medium',
       recommendedAction: 'experiment-format',
-      reasoning: 'Rewatch < 10% = video no tiene capa rewatchable. Agregar text overlay denso o detalle visual.',
-      expectedImpact: 'Subir rewatch duplica completion-equivalent',
-      fypMechanicAffected: 'rewatch',
+      reasoning: 'Nadie comparte los videos. Hacé contenido que la gente quiera mandarle a alguien.',
+      expectedImpact: 'Más alcance orgánico por compartidos',
     });
   }
 
-  if (obs.bestPerformerCompletion - obs.worstPerformerCompletion > 0.4) {
+  if (
+    m.bestVideoViews30d !== null &&
+    m.worstVideoViews30d !== null &&
+    m.worstVideoViews30d > 0 &&
+    m.videosLast30d !== null &&
+    m.videosLast30d >= SERIES_MIN_VIDEOS &&
+    m.bestVideoViews30d / m.worstVideoViews30d >= SERIES_RATIO_THRESHOLD
+  ) {
+    const ratio = m.bestVideoViews30d / m.worstVideoViews30d;
     signals.push({
       signal: 'series-momentum',
-      confidence: 0.85,
-      evidence: `Mejor video ${(obs.bestPerformerCompletion * 100).toFixed(0)}% vs peor ${(obs.worstPerformerCompletion * 100).toFixed(0)}%`,
+      confidence: 0.8,
+      evidence: `Tu mejor video tiene ${ratio.toFixed(0)}× las vistas del peor (${m.bestVideoViews30d} vs ${m.worstVideoViews30d})`,
       severity: 'low',
       recommendedAction: 'post-series-next',
-      reasoning: 'Brecha enorme: hay un formato ganador. Convertirlo en serie semanal.',
-      expectedImpact: 'Series boostan retention 30%+ por anclar audiencia',
-      fypMechanicAffected: 'follow-through',
+      reasoning: 'Hay un formato que la audiencia premia. Convertilo en una serie semanal.',
+      expectedImpact: 'Una serie ancla a la audiencia y sostiene las vistas',
     });
   }
 
@@ -197,19 +167,29 @@ export interface TTAutopilotReport {
   generatedAt: string;
   observation: TTObservation;
   signals: TTSignalDetection[];
-  fypHealthScore: number;
+  healthScore: number;
   recommendedNextAction?: TTSignalDetection;
   didacticInsight: string;
-  topMechanicToFix?: 'completion' | 'shares' | 'comments' | 'rewatch' | 'follow-through';
+}
+
+export interface TTReporteResumen {
+  generatedAt: string;
+  healthScore: number;
+  criticalCount: number;
+  signals: TTSignal[];
 }
 
 const composeDidacticInsight = (signals: TTSignalDetection[], obs: TTObservation): string => {
-  if (signals.length === 0)
-    return `FYP funcionando. Completion ${(obs.metrics.avgCompletionRateLast7d * 100).toFixed(0)}%. Próximo paso: testear duet con cuenta del nicho 2-3× más grande.`;
+  if (obs.metrics.videosLast7d === null)
+    return 'Todavía no hay datos de la cuenta de TikTok. Conectala para que el autopilot analice.';
+  if (signals.length === 0) {
+    return `Sin señales de alerta (${obs.metrics.videosLast7d} videos esta semana). Próximo paso: probar un formato nuevo y medir.`;
+  }
   const crit = signals.find((s) => s.severity === 'critical');
-  if (crit)
-    return `🔥 Bloqueador FYP: ${crit.signal}. ${crit.reasoning} Acción: ${crit.recommendedAction}. Impacto: ${crit.expectedImpact}.`;
-  return `${signals.length} fixes detectados. Empezar por: ${signals[0]!.signal} → ${signals[0]!.reasoning}`;
+  if (crit) return `Prioridad #1: ${crit.evidence}. ${crit.reasoning}`;
+  const high = signals.find((s) => s.severity === 'high');
+  if (high) return `Atendé primero: ${high.evidence}. ${high.reasoning}`;
+  return `${signals.length} señal(es) detectada(s). Empezá por: ${signals[0]!.evidence}.`;
 };
 
 const ensureDir = async (): Promise<void> => {
@@ -221,46 +201,121 @@ export const runTTAutopilot = async (obs: TTObservation): Promise<TTAutopilotRep
   const signals = detectTTSignals(obs);
   const critCount = signals.filter((s) => s.severity === 'critical').length;
   const highCount = signals.filter((s) => s.severity === 'high').length;
-  const fypHealthScore = Math.max(0, 100 - critCount * 30 - highCount * 15 - signals.length * 3);
-  const mechanicCounts = new Map<string, number>();
-  for (const s of signals) {
-    mechanicCounts.set(s.fypMechanicAffected, (mechanicCounts.get(s.fypMechanicAffected) ?? 0) + 1);
-  }
-  const topMechanic = [...mechanicCounts.entries()].sort(
-    (a, b) => b[1] - a[1],
-  )[0]?.[0] as TTAutopilotReport['topMechanicToFix'];
+  const healthScore = Math.max(0, 100 - critCount * 30 - highCount * 15 - signals.length * 3);
 
   const report: TTAutopilotReport = {
     brandId: obs.brandId,
     generatedAt: new Date().toISOString(),
     observation: obs,
     signals,
-    fypHealthScore,
+    healthScore,
     recommendedNextAction: signals[0],
     didacticInsight: composeDidacticInsight(signals, obs),
-    topMechanicToFix: topMechanic,
   };
   const filePath = path.join(TT_AUTOPILOT_DIR, `${obs.brandId}-${Date.now()}.json`);
   await fs.writeFile(filePath, JSON.stringify(report, null, 2), 'utf-8');
   log.info('[tiktokAutopilot] report generated', {
     brandId: obs.brandId,
     signals: signals.length,
-    fyp: fypHealthScore,
+    health: healthScore,
   });
   return report;
 };
 
-export const getLatestReport = async (brandId: string): Promise<TTAutopilotReport | null> => {
+const archivosDeMarca = async (brandId: string): Promise<string[]> => {
+  await ensureDir();
+  const patron = new RegExp(`^${brandId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-\\d+\\.json$`);
+  return (await fs.readdir(TT_AUTOPILOT_DIR))
+    .filter((f) => patron.test(f))
+    .sort()
+    .reverse();
+};
+
+const leerReporte = async (archivo: string): Promise<TTAutopilotReport | null> => {
   try {
-    await ensureDir();
-    const files = await fs.readdir(TT_AUTOPILOT_DIR);
-    const matching = files
-      .filter((f) => f.startsWith(`${brandId}-`))
-      .sort()
-      .reverse();
-    if (matching.length === 0) return null;
-    return JSON.parse(await fs.readFile(path.join(TT_AUTOPILOT_DIR, matching[0]!), 'utf-8')) as TTAutopilotReport;
+    return JSON.parse(await fs.readFile(path.join(TT_AUTOPILOT_DIR, archivo), 'utf-8')) as TTAutopilotReport;
   } catch {
     return null;
   }
+};
+
+export const getLatestReport = async (brandId: string): Promise<TTAutopilotReport | null> => {
+  try {
+    const [primero] = await archivosDeMarca(brandId);
+    return primero ? await leerReporte(primero) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const listReports = async (brandId: string, limite = 10): Promise<TTReporteResumen[]> => {
+  try {
+    const archivos = (await archivosDeMarca(brandId)).slice(0, limite);
+    const reportes = await Promise.all(archivos.map(leerReporte));
+    return reportes
+      .filter((r): r is TTAutopilotReport => r !== null)
+      .map((r) => ({
+        generatedAt: r.generatedAt,
+        healthScore: r.healthScore,
+        criticalCount: r.signals.filter((s) => s.severity === 'critical').length,
+        signals: r.signals.map((s) => s.signal),
+      }));
+  } catch {
+    return [];
+  }
+};
+
+const TITULO_SENAL: Record<TTSignal, string> = {
+  'views-drop': 'Las vistas están cayendo',
+  'follower-decline': 'Estás perdiendo seguidores',
+  'cadence-low': 'Pocos videos por semana',
+  'comments-low': 'Poca conversación en los videos',
+  'shares-low': 'Nadie comparte los videos',
+  'series-momentum': 'Un formato rinde muy por encima',
+};
+
+const URGENCIA: Record<TTSignalDetection['severity'], DecisionUrgency> = {
+  critical: 'critical',
+  high: 'high',
+  medium: 'medium',
+  low: 'low',
+};
+
+const FUENTE_DECISION = 'tt-autopilot';
+
+/**
+ * Propone en Decisiones las señales de severidad media o mayor del reporte.
+ * Una propuesta por señal y día; las señales que ya no aparecen se expiran.
+ */
+export const proponerDesdeReporteTT = async (brandId: string, reporte: TTAutopilotReport): Promise<number> => {
+  const dia = reporte.generatedAt.slice(0, 10);
+  const relevantes = reporte.signals.filter((s) => s.severity !== 'low');
+  await expireStaleSignals(brandId, new Set(relevantes.map((s) => `tt:${s.signal}:${dia}`)), [FUENTE_DECISION]);
+  let creadas = 0;
+  for (const s of relevantes) {
+    const signalKey = `tt:${s.signal}:${dia}`;
+    if (await hasDecisionForSignal(brandId, signalKey)) continue;
+    await enqueueDecision({
+      brandId,
+      source: FUENTE_DECISION,
+      signalKey,
+      urgency: URGENCIA[s.severity],
+      title: TITULO_SENAL[s.signal],
+      context: s.evidence,
+      reasoning: s.reasoning,
+      expectedOutcome: s.expectedImpact,
+      risks: [],
+      recommendedAction: {
+        label: s.recommendedAction,
+        payload: { accion: s.recommendedAction },
+        irreversible: false,
+        estimatedCostUsd: 0,
+        estimatedImpactScore: s.confidence * 10,
+      },
+      alternativeActions: [],
+      autoExecuteIfNoResponse: false,
+    });
+    creadas++;
+  }
+  return creadas;
 };

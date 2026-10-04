@@ -263,10 +263,10 @@ export interface IGReporteResumen {
 }
 
 const composeDidacticInsight = (signals: IGSignalDetection[], obs: IGObservation): string => {
+  if (obs.metrics.postsLast7d === null)
+    return 'Todavía no hay datos de la cuenta de Instagram. Conectala para que el autopilot analice.';
   if (signals.length === 0) {
-    const cadencia =
-      obs.metrics.postsLast7d === null ? 'sin datos de publicación' : `${obs.metrics.postsLast7d} posts en 7 días`;
-    return `Sin señales de alerta (${cadencia}). Próximo paso: probar un formato nuevo y medir.`;
+    return `Sin señales de alerta (${obs.metrics.postsLast7d} posts en 7 días). Próximo paso: probar un formato nuevo y medir.`;
   }
   const crit = signals.find((s) => s.severity === 'critical');
   if (crit) return `Prioridad #1: ${crit.evidence}. ${crit.reasoning}`;

@@ -11,9 +11,11 @@ import {
 import { observacionRealInstagram } from '../capabilities/executive/instagramObservacion.js';
 import {
   getLatestReport as getTTLatestReport,
+  listReports as listTTReports,
+  proponerDesdeReporteTT,
   runTTAutopilot,
-  type TTObservation,
 } from '../capabilities/executive/tiktokAutopilot.js';
+import { observacionRealTikTok } from '../capabilities/executive/ttObservacion.js';
 
 const buildAutopilotRoutes = (brand: BrandProfile): RouteDefinition[] => {
   const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
@@ -51,9 +53,11 @@ const buildAutopilotRoutes = (brand: BrandProfile): RouteDefinition[] => {
     {
       method: 'POST',
       pattern: '/api/autopilot/tiktok/run',
-      handler: async ({ res, body }) => {
-        const obs = (body ?? {}) as Omit<TTObservation, 'brandId' | 'timestamp'>;
-        json(res, 200, await runTTAutopilot({ brandId, timestamp: new Date().toISOString(), ...obs }));
+      handler: async ({ res }) => {
+        const observacion = await observacionRealTikTok(brandId);
+        const reporte = await runTTAutopilot(observacion);
+        const propuestas = await proponerDesdeReporteTT(brandId, reporte);
+        json(res, 200, { ...reporte, propuestasEncoladas: propuestas });
       },
     },
     {
@@ -62,10 +66,17 @@ const buildAutopilotRoutes = (brand: BrandProfile): RouteDefinition[] => {
       handler: async ({ res }) => {
         const reporte = await getTTLatestReport(brandId);
         if (!reporte) {
-          json(res, 404, { error: 'Todavía no hay reportes de TikTok.' });
+          json(res, 404, { error: 'Todavía no hay reportes de TikTok: generá el primero.' });
           return;
         }
         json(res, 200, reporte);
+      },
+    },
+    {
+      method: 'GET',
+      pattern: '/api/autopilot/tiktok/history',
+      handler: async ({ res }) => {
+        json(res, 200, await listTTReports(brandId, 10));
       },
     },
   ];

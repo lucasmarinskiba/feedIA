@@ -1336,6 +1336,8 @@ const renderIGAutopilot = async () => {
   const fuentes = data.observation?.fuentes || {};
   const formatos = data.observation?.formatos || {};
   const score = Number(data.autopilotScore || 0);
+  const sinCuenta =
+    data.observation?.metrics?.postsLast7d === null || data.observation?.metrics?.postsLast7d === undefined;
   const scoreClase = score >= 70 ? 'ok' : score >= 40 ? 'warn' : 'crit';
   const senales = data.signals || [];
   const reales = Object.values(fuentes).filter((v) => v === 'real').length;
@@ -1410,10 +1412,10 @@ const renderIGAutopilot = async () => {
     <div class="apig-wrap">
       ${barra}
       <div class="apig-hero">
-        <div class="apig-score apig-score-${scoreClase}">${score}</div>
+        <div class="apig-score apig-score-${sinCuenta ? 'neutral' : scoreClase}">${sinCuenta ? '—' : score}</div>
         <div class="apig-hero-texto">
           <div class="v2-eyebrow">Instagram Autopilot · ${escape(okrFecha(data.generatedAt))}</div>
-          <h2 class="v2-h2">${senales.length ? `${senales.length} señal(es) detectada(s)` : 'Sin señales de alerta'}</h2>
+          <h2 class="v2-h2">${sinCuenta ? 'Sin datos de la cuenta' : senales.length ? `${senales.length} señal(es) detectada(s)` : 'Sin señales de alerta'}</h2>
           <p class="v2-section-desc">${escape(data.didacticInsight || '')}</p>
         </div>
       </div>
@@ -1509,71 +1511,189 @@ const wireAutopilot = (body, repaint) => {
   });
 };
 
-const renderAutopilotReport = async (platform) => {
-  if (platform === 'instagram') return renderIGAutopilot();
-  const { data, error } = await apiSafe(`/api/autopilot/${platform}/latest`, null);
-  if (!data)
-    return `<div class="tiny muted" style="text-align:center;padding:40px;">Sin reporte de ${platform} todavía. ${error || ''}<br><br>Disparar manual: POST /api/autopilot/${platform}/run con métricas.</div>`;
-  const r = data;
-  const score = platform === 'instagram' ? r.autopilotScore : r.fypHealthScore;
-  const scoreLabel = platform === 'instagram' ? 'Autopilot Score' : 'FYP Health';
-  return `
-    <div class="ap-hero">
-      <div class="ap-score-circle ${score >= 70 ? 'ok' : score >= 40 ? 'warn' : 'crit'}">${score}</div>
-      <div>
-        <h3 style="margin:0;font-size:18px;">${scoreLabel}: ${score}/100</h3>
-        <p class="small" style="margin:4px 0 0;">${escape(r.didacticInsight)}</p>
+const AP_TT_SENAL = {
+  'views-drop': 'Las vistas están cayendo',
+  'follower-decline': 'Estás perdiendo seguidores',
+  'cadence-low': 'Pocos videos por semana',
+  'comments-low': 'Poca conversación en los videos',
+  'shares-low': 'Nadie comparte los videos',
+  'series-momentum': 'Un formato rinde muy por encima',
+};
+const AP_TT_ACCION = {
+  'experiment-format': 'Probar un formato nuevo',
+  'upload-batch': 'Subir un lote de videos',
+  'reply-comments': 'Responder comentarios',
+  'post-series-next': 'Publicar el siguiente de la serie',
+};
+const AP_TT_FUENTES = {
+  vistas: 'Vistas',
+  engagement: 'Engagement',
+  comentarios: 'Comentarios',
+  compartidos: 'Compartidos',
+  seguidores: 'Seguidores',
+  publicaciones: 'Publicaciones',
+  horarios: 'Horarios',
+  completion: 'Completion',
+  retencion: 'Retención',
+  alcance_fyp: 'Alcance FYP',
+  rewatch: 'Rewatch',
+  sonidos: 'Sonidos',
+};
+
+const renderTTAutopilot = async () => {
+  const { data } = await apiSafe('/api/autopilot/tiktok/latest', null);
+  const { data: historial } = await apiSafe('/api/autopilot/tiktok/history', []);
+  const barra = `
+    <div class="okr-barra">
+      <div class="okr-barra-botones">
+        <button class="v2-btn v2-btn-primary v2-btn-sm" data-ap-run="tiktok">Generar reporte ahora</button>
       </div>
-    </div>
-    <div class="cc-section">
-      <h3>📡 Señales detectadas (${r.signals?.length || 0})</h3>
-      ${
-        (r.signals || []).length === 0
-          ? '<div class="tiny muted">Sistema sin flags ✨</div>'
-          : `
-        <div class="ap-signals">
-          ${(r.signals || [])
+    </div>`;
+
+  if (!data) {
+    return `
+      <div class="apig-wrap">
+        ${barra}
+        <div class="v2-card v2-card-pad">
+          <div class="v2-eyebrow">TikTok Autopilot</div>
+          <h2 class="v2-h2">Todavía no hay reportes</h2>
+          <p class="v2-section-desc">El autopilot lee tus videos de TikTok: vistas, engagement, comentarios, compartidos, seguidores y cadencia. Con eso detecta señales y propone acciones en Decisiones. Completion, retención y alcance FYP no los expone la API de TikTok: se marcan como no disponibles.</p>
+        </div>
+      </div>`;
+  }
+
+  const m = data.observation?.metrics || {};
+  const fuentes = data.observation?.fuentes || {};
+  const score = Number(data.healthScore || 0);
+  const sinCuenta =
+    data.observation?.metrics?.videosLast7d === null || data.observation?.metrics?.videosLast7d === undefined;
+  const scoreClase = score >= 70 ? 'ok' : score >= 40 ? 'warn' : 'crit';
+  const senales = data.signals || [];
+  const reales = Object.keys(AP_TT_FUENTES).filter((k) => fuentes[k] === 'real').length;
+  const pct = (n, dec = 2) => (n === null || n === undefined ? '—' : `${(n * 100).toFixed(dec)}%`);
+
+  const datos = [
+    {
+      k: 'vistas',
+      titulo: 'Vistas de la semana',
+      valor: apNum(m.viewsLast7d),
+      sub: m.viewsPrev7d !== null && m.viewsPrev7d !== undefined ? `vs ${apNum(m.viewsPrev7d)} la semana anterior` : '',
+    },
+    {
+      k: 'engagement',
+      titulo: 'Engagement',
+      valor: apNum(m.engagementRateLast7d, '%'),
+      sub: 'Likes, comentarios y compartidos sobre vistas',
+    },
+    {
+      k: 'comentarios',
+      titulo: 'Comentarios sobre vistas',
+      valor: pct(m.commentRateLast7d),
+      sub: 'Mínimo recomendado 0,5%',
+    },
+    {
+      k: 'compartidos',
+      titulo: 'Compartidos sobre vistas',
+      valor: pct(m.shareRateLast7d),
+      sub: 'Mínimo recomendado 0,2%',
+    },
+    {
+      k: 'seguidores',
+      titulo: 'Seguidores · semana',
+      valor: apSigno(m.followerDeltaLast7d),
+      sub: 'Neto desde el historial propio',
+    },
+    {
+      k: 'publicaciones',
+      titulo: 'Videos esta semana',
+      valor: apNum(m.videosLast7d),
+      sub: m.videosLast30d !== null && m.videosLast30d !== undefined ? `${m.videosLast30d} en 30 días` : '',
+    },
+    {
+      k: 'horarios',
+      titulo: 'Último video',
+      valor:
+        data.observation?.horaUltimoVideo !== null && data.observation?.horaUltimoVideo !== undefined
+          ? `${data.observation.horaUltimoVideo}h`
+          : '—',
+      sub: 'Hora local de publicación',
+    },
+    { k: 'completion', titulo: 'Completion', valor: '—', sub: 'La API de TikTok no la expone' },
+  ];
+
+  return `
+    <div class="apig-wrap">
+      ${barra}
+      <div class="apig-hero">
+        <div class="apig-score apig-score-${sinCuenta ? 'neutral' : scoreClase}">${sinCuenta ? '—' : score}</div>
+        <div class="apig-hero-texto">
+          <div class="v2-eyebrow">TikTok Autopilot · ${escape(okrFecha(data.generatedAt))}</div>
+          <h2 class="v2-h2">${sinCuenta ? 'Sin datos de la cuenta' : senales.length ? `${senales.length} señal(es) detectada(s)` : 'Sin señales de alerta'}</h2>
+          <p class="v2-section-desc">${escape(data.didacticInsight || '')}</p>
+        </div>
+      </div>
+
+      <section class="v2-card v2-card-pad">
+        <div class="v2-card-head"><strong>Datos reales usados</strong><span class="v2-badge">${reales} de ${Object.keys(AP_TT_FUENTES).length} fuentes</span></div>
+        <div class="apig-datos">
+          ${datos
             .map(
-              (s) => `
-            <div class="ap-signal" data-severity="${escape(s.severity)}">
-              <div class="ap-sig-head">
-                <span class="ap-sig-name">${escape(s.signal)}</span>
-                <span class="ap-sig-sev sev-${escape(s.severity)}">${escape(s.severity)}</span>
-              </div>
-              <div class="ap-sig-evidence">${escape(s.evidence)}</div>
-              <div class="ap-sig-reason">${escape(s.reasoning)}</div>
-              <div class="ap-sig-action">→ <strong>${escape(s.recommendedAction)}</strong></div>
-              <div class="ap-sig-impact">📈 ${escape(s.expectedImpact)}</div>
+              (d) => `
+            <div class="apig-dato">
+              <div class="v2-eyebrow">${escape(d.titulo)}</div>
+              <div class="apig-dato-valor">${escape(String(d.valor))}</div>
+              ${d.sub ? `<div class="v2-hint">${escape(d.sub)}</div>` : ''}
+              <span class="apig-fuente ${fuentes[d.k] === 'real' ? 'apig-fuente-real' : 'apig-fuente-no'}">${escape(fuentes[d.k] || 'no disponible')}</span>
             </div>`,
             )
             .join('')}
-        </div>`
+        </div>
+        <p class="v2-hint" style="margin-top:12px;">No medido por la API de TikTok: completion, retención por segundo, alcance FYP, rewatch y tendencia de sonidos. Esas reglas no se evalúan.</p>
+      </section>
+
+      <section class="v2-section">
+        <div class="v2-section-head"><div class="v2-eyebrow">Señales y acciones</div><h2 class="v2-h2">Lo que el autopilot propone</h2></div>
+        ${
+          senales.length
+            ? `<div class="apig-senales">${senales
+                .map((s) => {
+                  const sev = AP_SEVERIDAD[s.severity] || AP_SEVERIDAD.low;
+                  return `
+              <div class="v2-card apig-senal" style="box-shadow:inset 3px 0 0 ${sev.color};">
+                <div class="apig-senal-head">
+                  <span class="apig-senal-titulo">${escape(AP_TT_SENAL[s.signal] || s.signal)}</span>
+                  <span class="apig-senal-sev" style="color:${sev.color};">${escape(sev.label)}</span>
+                </div>
+                <div class="v2-hint">${escape(s.evidence)}</div>
+                <p class="apig-senal-razon">${escape(s.reasoning)}</p>
+                <div class="apig-senal-accion"><strong>Acción:</strong> ${escape(AP_TT_ACCION[s.recommendedAction] || s.recommendedAction)}</div>
+                <div class="v2-hint">Impacto esperado: ${escape(s.expectedImpact)}</div>
+                <div class="v2-hint">Propuesta en <strong>Decisiones</strong>: aceptás o rechazás ahí.</div>
+              </div>`;
+                })
+                .join('')}</div>`
+            : '<div class="v2-card v2-card-pad"><div class="v2-hint">Ninguna regla se disparó con los datos de esta semana.</div></div>'
+        }
+      </section>
+
+      ${
+        (historial || []).length
+          ? `<section class="v2-card v2-card-pad">
+              <div class="v2-card-head"><strong>Historial de reportes</strong></div>
+              <ul class="apig-historial">${historial
+                .map(
+                  (h) =>
+                    `<li><span>${escape(okrFecha(h.generatedAt))}</span> Salud ${h.healthScore} · ${h.signals.length} señal(es)${h.criticalCount ? ` · ${h.criticalCount} crítica(s)` : ''}</li>`,
+                )
+                .join('')}</ul>
+            </section>`
+          : ''
       }
-    </div>
-    <style>
-      .ap-hero{display:flex;gap:18px;align-items:center;background:var(--surface,#141418);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:18px;}
-      .ap-score-circle{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff;flex-shrink:0;}
-      .ap-score-circle.ok{background:linear-gradient(135deg,#10b981,#3b82f6);}
-      .ap-score-circle.warn{background:linear-gradient(135deg,#f59e0b,#ef4444);}
-      .ap-score-circle.crit{background:linear-gradient(135deg,#ef4444,#7f1d1d);}
-      .ap-signals{display:flex;flex-direction:column;gap:10px;}
-      .ap-signal{background:var(--surface,#141418);border:1px solid var(--border);border-radius:12px;padding:12px;}
-      .ap-signal[data-severity="critical"]{border-color:rgba(239,68,68,.5);}
-      .ap-signal[data-severity="high"]{border-color:rgba(245,158,11,.4);}
-      .ap-sig-head{display:flex;justify-content:space-between;margin-bottom:6px;}
-      .ap-sig-name{font-weight:800;font-size:13px;}
-      .ap-sig-sev{font-size:10px;padding:2px 8px;border-radius:999px;text-transform:uppercase;font-weight:800;}
-      .sev-critical{background:#ef444422;color:#f87171;}
-      .sev-high{background:#f59e0b22;color:#fbbf24;}
-      .sev-medium{background:#6366f122;color:#a5b4fc;}
-      .sev-low{background:rgba(255,255,255,.08);color:#aab;}
-      .ap-sig-evidence{font-size:11px;opacity:.65;margin-bottom:4px;}
-      .ap-sig-reason{font-size:12px;line-height:1.5;margin-bottom:4px;}
-      .ap-sig-action{font-size:12px;background:rgba(99,102,241,.08);padding:6px 9px;border-radius:7px;margin:6px 0 4px;}
-      .ap-sig-impact{font-size:11px;opacity:.75;}
-    </style>`;
+    </div>`;
 };
 
+const renderAutopilotReport = async (platform) =>
+  platform === 'instagram' ? renderIGAutopilot() : renderTTAutopilot();
 const renderTabContent = async (b) => {
   if (activeTab === 'summary') return renderSummary(b);
   if (activeTab === 'commandCenter') return renderCommandCenter();
@@ -1762,6 +1882,7 @@ export const renderImperio = async (root) => {
       .apig-score-ok{background:linear-gradient(135deg,#10b981,#3b82f6);}
       .apig-score-warn{background:linear-gradient(135deg,#f59e0b,#ef4444);}
       .apig-score-crit{background:linear-gradient(135deg,#ef4444,#7f1d1d);}
+      .apig-score-neutral{background:#52525b;}
       .apig-datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:14px;}
       .apig-dato{padding:14px;border-radius:12px;background:var(--v2-hover);display:flex;flex-direction:column;gap:4px;}
       .apig-dato-valor{font-size:20px;font-weight:600;color:var(--v2-fg);letter-spacing:-0.02em;}

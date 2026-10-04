@@ -493,3 +493,77 @@ export const ventanaInstagram = async (brandId: string): Promise<VentanaInstagra
     return null;
   }
 };
+
+export interface VentanaTikTok {
+  views7d: number;
+  views7dPrev: number;
+  engagement7d: number | null;
+  commentRate7d: number | null;
+  shareRate7d: number | null;
+  followerDelta7d: number | null;
+  videos7d: number;
+  videos30d: number;
+  mejorVideoViews30d: number | null;
+  peorVideoViews30d: number | null;
+  horaUltimoVideo: number | null;
+}
+
+interface VideoTikTok {
+  create_time?: number;
+  view_count?: number;
+  like_count?: number;
+  comment_count?: number;
+  share_count?: number;
+}
+
+/**
+ * Videos recientes de TikTok con sus métricas por video. Las ventanas agrupan los videos
+ * publicados en cada período; las vistas son las acumuladas a la fecha de lectura.
+ */
+export const ventanaTikTok = async (brandId: string): Promise<VentanaTikTok | null> => {
+  const conn = await getConnection(brandId, 'tiktok');
+  if (!conn || !conn.accessToken || isExpired(conn)) return null;
+  try {
+    const res = await fetch(
+      'https://open.tiktokapis.com/v2/video/list/?fields=id,create_time,view_count,like_count,comment_count,share_count',
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${conn.accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ max_count: 20 }),
+      },
+    );
+    if (!res.ok) return null;
+    const json = (await res.json()) as { data?: { videos?: VideoTikTok[] } };
+    const videos = (json.data?.videos ?? []).filter((v) => typeof v.create_time === 'number');
+    const ahora = Date.now() / 1000;
+    const en = (desde: number, hasta: number): VideoTikTok[] =>
+      videos.filter((v) => v.create_time! >= desde && v.create_time! < hasta);
+    const suma = (arr: VideoTikTok[], k: keyof VideoTikTok): number => arr.reduce((s, v) => s + Number(v[k] ?? 0), 0);
+
+    const semana = en(ahora - 7 * 86400, ahora + 1);
+    const semanaPrev = en(ahora - 14 * 86400, ahora - 7 * 86400);
+    const mes = en(ahora - 30 * 86400, ahora + 1);
+    const vistasSemana = suma(semana, 'view_count');
+    const interaccionesSemana =
+      suma(semana, 'like_count') + suma(semana, 'comment_count') + suma(semana, 'share_count');
+    const vistasMes = mes.map((v) => v.view_count ?? 0);
+    const ultimo = videos.slice().sort((a, b) => b.create_time! - a.create_time!)[0];
+
+    return {
+      views7d: vistasSemana,
+      views7dPrev: suma(semanaPrev, 'view_count'),
+      engagement7d: vistasSemana > 0 ? (interaccionesSemana / vistasSemana) * 100 : null,
+      commentRate7d: vistasSemana > 0 ? suma(semana, 'comment_count') / vistasSemana : null,
+      shareRate7d: vistasSemana > 0 ? suma(semana, 'share_count') / vistasSemana : null,
+      followerDelta7d: await deltaSeguidoresSemana(brandId, 'tiktok'),
+      videos7d: semana.length,
+      videos30d: mes.length,
+      mejorVideoViews30d: vistasMes.length ? Math.max(...vistasMes) : null,
+      peorVideoViews30d: vistasMes.length ? Math.min(...vistasMes) : null,
+      horaUltimoVideo: ultimo ? horaLocal(ultimo.create_time! * 1000) : null,
+    };
+  } catch (err) {
+    log.warn('[GrowthMetrics] TikTok ventana falló', { error: String(err) });
+    return null;
+  }
+};
