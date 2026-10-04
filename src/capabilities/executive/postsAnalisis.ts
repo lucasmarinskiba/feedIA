@@ -6,6 +6,7 @@
 import { log } from '../../agent/logger.js';
 import { metaFetch } from '../../integrations/metaApiClient.js';
 import { getConnection, isExpired } from '../../integrations/oauthConnections.js';
+import { registrarPosts } from './postsStore.js';
 import {
   analizarPosts,
   type PostAnalizado,
@@ -72,20 +73,33 @@ const primeraLinea = (texto: string | undefined): string => {
   return linea.length > 90 ? `${linea.slice(0, 87)}...` : linea;
 };
 
-const insightsIG = async (mediaId: string, token: string, esReel: boolean): Promise<Record<string, number>> => {
-  const metricas = esReel ? 'reach,saved,shares,plays' : 'reach,saved,shares';
+const pedirInsights = async (mediaId: string, token: string, metricas: string): Promise<Record<string, number>> => {
   const res = await metaFetch(
     `https://graph.instagram.com/v18.0/${mediaId}/insights?metric=${metricas}&access_token=${token}`,
     {},
     { description: 'IG insights de post', maxAttempts: 2 },
   );
-  const data = (await res.json()) as { data?: Array<{ name: string; values?: Array<{ value?: number }> }> };
+  const data = (await res.json()) as {
+    data?: Array<{ name: string; values?: Array<{ value?: number }> }>;
+    error?: unknown;
+  };
+  if (data.error) throw new Error(`insights no disponibles: ${metricas}`);
   const out: Record<string, number> = {};
   for (const m of data.data ?? []) {
     const valor = m.values?.[0]?.value;
     if (typeof valor === 'number') out[m.name] = valor;
   }
   return out;
+};
+
+const insightsIG = async (mediaId: string, token: string, esReel: boolean): Promise<Record<string, number>> => {
+  const base = esReel ? 'reach,saved,shares,plays' : 'reach,saved,shares';
+  if (!esReel) return pedirInsights(mediaId, token, base);
+  try {
+    return await pedirInsights(mediaId, token, `${base},ig_reels_avg_watch_time`);
+  } catch {
+    return pedirInsights(mediaId, token, base);
+  }
 };
 
 const leerInstagram = async (brandId: string): Promise<LecturaPlataforma> => {
@@ -121,6 +135,9 @@ const leerInstagram = async (brandId: string): Promise<LecturaPlataforma> => {
           guardados: ins['saved'] ?? null,
           alcance: ins['reach'] ?? null,
           duracionSeg: null,
+          captionCompleto: m.caption ?? '',
+          tiempoVisualizacionSeg:
+            ins['ig_reels_avg_watch_time'] === undefined ? null : ins['ig_reels_avg_watch_time'] / 1000,
         };
       }),
     );
@@ -163,6 +180,8 @@ const leerTikTok = async (brandId: string): Promise<LecturaPlataforma> => {
               guardados: null,
               alcance: v.view_count ?? null,
               duracionSeg: v.duration ?? null,
+              captionCompleto: v.title ?? '',
+              tiempoVisualizacionSeg: null,
             },
           ]
         : [],
@@ -183,7 +202,10 @@ const leerConCache = async (
   const previo = cacheLectura.get(clave);
   if (!refrescar && previo && Date.now() - previo.at < TTL_LECTURA_MS) return previo.valor;
   const valor = plataforma === 'instagram' ? await leerInstagram(brandId) : await leerTikTok(brandId);
-  if (!valor.error) cacheLectura.set(clave, { at: Date.now(), valor });
+  if (!valor.error) {
+    cacheLectura.set(clave, { at: Date.now(), valor });
+    await registrarPosts(brandId, valor.posts);
+  }
   return valor;
 };
 

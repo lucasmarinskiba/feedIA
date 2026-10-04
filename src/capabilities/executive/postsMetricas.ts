@@ -23,6 +23,8 @@ export interface PostCrudo {
   guardados: number | null;
   alcance: number | null;
   duracionSeg: number | null;
+  captionCompleto?: string;
+  tiempoVisualizacionSeg?: number | null;
 }
 
 export interface PostAnalizado extends PostCrudo {

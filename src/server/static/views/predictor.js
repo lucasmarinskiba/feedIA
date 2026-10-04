@@ -1,398 +1,257 @@
-import { api, apiSafe } from '../lib/api.js';
+import { apiSafe } from '../lib/api.js';
 import { escape } from '../lib/dom.js';
 import { toast } from '../lib/toast.js';
 
-/* Predictor local con heurísticas reales — funciona sin backend.
-   Analiza: hook (primeras palabras), longitud, números, emojis, hashtags,
-   timing, formato. Devuelve score 0-100 + factores + recomendaciones
-   específicas para viralizar. */
-const localPredict = ({ formato, caption, hashtags, hora, dia }) => {
-  let score = 50;
-  const factores = [];
-  const recomendaciones = [];
-
-  // ── Análisis del hook (primeras 6 palabras) ──
-  const hook = caption.split(/\s+/).slice(0, 6).join(' ');
-  const hookLen = hook.length;
-
-  if (/^(cómo|como|por qué|porque|qué|que|cuál|cual|cuándo|cuando)/i.test(caption)) {
-    score += 8;
-    factores.push({ factor: 'Pregunta inicial (alto engagement)', impacto: 'positivo' });
-  }
-  if (/\b(nadie|secreto|error|nunca|verdad|honesto|deja de|pará)\b/i.test(hook)) {
-    score += 10;
-    factores.push({ factor: 'Hook con curiosidad / contradicción', impacto: 'positivo' });
-  }
-  if (/^\d+/.test(caption)) {
-    score += 6;
-    factores.push({ factor: 'Inicia con número (mayor retención)', impacto: 'positivo' });
-  }
-  if (hookLen < 20) {
-    score -= 4;
-    factores.push({ factor: 'Hook muy corto', impacto: 'negativo' });
-    recomendaciones.push('Hacé el hook más específico — entre 30-60 caracteres funciona mejor.');
-  } else if (hookLen > 80) {
-    score -= 6;
-    factores.push({ factor: 'Hook largo (lectores abandonan)', impacto: 'negativo' });
-    recomendaciones.push('Acortá el hook a 5-7 palabras de impacto en la primera línea.');
-  }
-
-  // Emojis en hook
-  const emojiCount = (caption.match(/\p{Emoji}/gu) ?? []).length;
-  if (emojiCount === 0) {
-    score -= 3;
-    factores.push({ factor: 'Sin emojis (reduce scroll-stop)', impacto: 'negativo' });
-    recomendaciones.push('Probá agregar 1-2 emojis específicos al hook para frenar el scroll.');
-  } else if (emojiCount > 6) {
-    score -= 4;
-    factores.push({ factor: 'Demasiados emojis (look spammy)', impacto: 'negativo' });
-    recomendaciones.push('Reducí emojis a máximo 3-4 — más se siente spam.');
-  } else {
-    factores.push({ factor: 'Uso balanceado de emojis', impacto: 'positivo' });
-  }
-
-  // ── Hashtags ──
-  const hCount = hashtags.length;
-  if (hCount === 0) {
-    score -= 8;
-    factores.push({ factor: 'Sin hashtags', impacto: 'negativo' });
-    recomendaciones.push('Agregá 5-12 hashtags relevantes — mix de nicho específico + medio.');
-  } else if (hCount < 5) {
-    score -= 4;
-    factores.push({ factor: 'Pocos hashtags', impacto: 'negativo' });
-    recomendaciones.push(`Tenés ${hCount} hashtags. Llevalos a 8-12 para mejor discoverability.`);
-  } else if (hCount > 20) {
-    score -= 5;
-    factores.push({ factor: 'Demasiados hashtags (penaliza el algoritmo)', impacto: 'negativo' });
-    recomendaciones.push('IG penaliza posts con >15 hashtags. Bajá a 10-12 highly relevantes.');
-  } else {
-    score += 5;
-    factores.push({ factor: `${hCount} hashtags (densidad óptima)`, impacto: 'positivo' });
-  }
-  // Detecta hashtags genéricos
-  const generics = ['#love', '#instagood', '#follow', '#like', '#photooftheday', '#picoftheday'];
-  const hasGeneric = hashtags.some((h) => generics.includes(h.toLowerCase()));
-  if (hasGeneric) {
-    score -= 5;
-    factores.push({ factor: 'Hashtags genéricos detectados', impacto: 'negativo' });
-    recomendaciones.push('Sacá hashtags genéricos (#love, #instagood, etc) — bajan la calidad percibida.');
-  }
-
-  // ── Timing ──
-  const goodHoursReel = [12, 13, 18, 19, 20, 21];
-  const goodHoursCar = [9, 10, 11, 19, 20, 21];
-  const goodHoursStory = [8, 9, 12, 13, 21, 22];
-  const goodHours = formato === 'reel' ? goodHoursReel : formato === 'historia' ? goodHoursStory : goodHoursCar;
-  if (goodHours.includes(hora)) {
-    score += 6;
-    factores.push({ factor: `Hora ${hora}:00 — ventana óptima para ${formato}`, impacto: 'positivo' });
-  } else if (hora >= 0 && hora <= 6) {
-    score -= 10;
-    factores.push({ factor: 'Madrugada — alcance muy bajo', impacto: 'negativo' });
-    recomendaciones.push(
-      `Movelo a ${goodHours[0]}-${goodHours[goodHours.length - 1]}h. Estás publicando cuando nadie ve.`,
-    );
-  } else {
-    score -= 3;
-    factores.push({ factor: 'Hora subóptima para este formato', impacto: 'negativo' });
-    recomendaciones.push(`Para ${formato}, los mejores horarios son: ${goodHours.map((h) => `${h}h`).join(', ')}.`);
-  }
-
-  const goodDays = ['martes', 'miercoles', 'jueves'];
-  const okDays = ['lunes', 'viernes'];
-  if (goodDays.includes(dia)) {
-    score += 4;
-    factores.push({ factor: `${dia} — día de alto engagement`, impacto: 'positivo' });
-  } else if (!okDays.includes(dia)) {
-    score -= 3;
-    factores.push({ factor: `${dia} — engagement típicamente bajo`, impacto: 'negativo' });
-    recomendaciones.push('Si podés, movelo a martes/miércoles/jueves — engagement promedio +18%.');
-  }
-
-  // ── Formato bonus ──
-  if (formato === 'reel') {
-    score += 4;
-    factores.push({ factor: 'Reel (formato favorecido por IG)', impacto: 'positivo' });
-  } else if (formato === 'carrusel') {
-    score += 2;
-    factores.push({ factor: 'Carrusel (alto save rate)', impacto: 'positivo' });
-  }
-
-  // Recomendaciones generales viralidad
-  if (!/\?$/.test(caption) && score < 75) {
-    recomendaciones.push('Cerrá el caption con una pregunta abierta → dispara comentarios.');
-  }
-  if (!/(guardá|guarda|comentá|comenta|compart|etiquet)/i.test(caption) && score < 80) {
-    recomendaciones.push('Agregá un CTA explícito ("guardá", "etiquetá a alguien", "comentá X").');
-  }
-  if (hCount < 12 && formato === 'reel') {
-    recomendaciones.push('Para reel virales: usá 10-15 hashtags mix nicho + tendencia actual.');
-  }
-
-  // Clamp
-  score = Math.max(0, Math.min(100, score));
-
-  // Métricas estimadas según score
-  const baseReach = formato === 'reel' ? 8000 : formato === 'carrusel' ? 3500 : 2200;
-  const metricas = {
-    alcance: Math.round(baseReach * (score / 50)),
-    impresiones: Math.round(baseReach * (score / 50) * 1.4),
-    engagementRate: +(2 + (score / 100) * 8).toFixed(1),
-    saves: Math.round(baseReach * (score / 50) * 0.04),
-    shares: Math.round(baseReach * (score / 50) * 0.02),
-  };
-
-  // Ventana óptima
-  const ventanaOptima = goodHours.slice(0, 3).map((h) => ({
-    dia: dia,
-    hora: `${h}:00`,
-    score: Math.min(95, score + (goodHours.includes(hora) ? 5 : 12)),
-  }));
-
-  return {
-    scoreGlobal: score,
-    scoreViralidad: Math.max(0, Math.min(100, score - 5 + (formato === 'reel' ? 10 : 0))),
-    resumen:
-      score >= 75
-        ? '🚀 Potencial viral alto. Publicalo ya.'
-        : score >= 50
-          ? '✅ Bueno, pero hay margen para mejorar antes de publicar.'
-          : '⚠️ Necesita trabajo antes de publicar. Aplicá las recomendaciones.',
-    metricas,
-    factores,
-    recomendaciones,
-    ventanaOptima,
-    simulated: true,
-  };
+const PLATAFORMAS = { instagram: 'Instagram', tiktok: 'TikTok' };
+const FORMATOS = { reel: 'Reel', carrusel: 'Carrusel', imagen: 'Imagen', video: 'Video' };
+const DIAS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+const CONFIANZA = {
+  alta: { label: 'Confianza alta', clase: 'ok' },
+  media: { label: 'Confianza media', clase: 'info' },
+  baja: { label: 'Confianza baja', clase: 'warn' },
+  'sin-datos': { label: 'Sin historial', clase: 'info' },
 };
 
-let state = { result: null };
+const ESTILOS = `<style>
+  .pr-cab{display:flex;flex-direction:column;gap:8px;margin-bottom:6px;}
+  .pr-cab-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .pr-titulo{font-size:15px;font-weight:700;margin:0;}
+  .pr-sub{font-size:12.5px;color:var(--text-tertiary,#a1a1aa);margin:0;}
+  .pr-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:12px 0;}
+  .pr-kpi{background:var(--bg-hover,rgba(255,255,255,.04));border:1px solid var(--border,rgba(255,255,255,.08));border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;}
+  .pr-kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--text-tertiary,#a1a1aa);}
+  .pr-kpi-valor{font-size:20px;font-weight:700;letter-spacing:-0.02em;}
+  .pr-kpi-nota{font-size:11.5px;color:var(--text-tertiary,#a1a1aa);}
+  .pr-seccion{margin:14px 0 6px;}
+  .pr-seccion h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-tertiary,#a1a1aa);}
+  .pr-lista{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;}
+  .pr-lista li{font-size:13px;line-height:1.5;padding:8px 10px;border-radius:10px;background:var(--bg-hover,rgba(255,255,255,.04));}
+  .pr-lista li b{font-weight:600;}
+  .pr-pos{color:#6ee7b7;}
+  .pr-neg{color:#fca5a5;}
+  .pr-ev{display:block;font-size:12px;color:var(--text-tertiary,#a1a1aa);margin-top:2px;}
+  .pr-nota{font-size:12.5px;color:var(--text-tertiary,#a1a1aa);line-height:1.5;margin:0;}
+  .pr-vacio{padding:28px 18px;text-align:center;color:var(--text-tertiary,#a1a1aa);font-size:13px;line-height:1.6;}
+  .pr-momentos{display:flex;gap:8px;flex-wrap:wrap;}
+  .pr-momento{font-size:12px;padding:6px 10px;border-radius:999px;background:var(--bg-hover,rgba(255,255,255,.04));border:1px solid var(--border,rgba(255,255,255,.08));}
+</style>`;
 
-const FORMATS = ['carrusel', 'reel', 'historia', 'foto', 'video'];
-const HOURS = Array.from({ length: 24 }, (_, i) => i);
+const num = (n) => (typeof n === 'number' ? Math.round(n).toLocaleString('es-AR') : 'sin dato');
+const pct = (n) => (typeof n === 'number' ? `${n.toFixed(1)}%` : 'sin dato');
+const entero = (n) => (typeof n === 'number' ? `${Math.round(n)}%` : 'sin dato');
+const segundos = (n) => (typeof n === 'number' ? `${n.toFixed(1)} s` : 'sin dato');
+const rango = (r, f) => (r ? `${f(r.p10)} a ${f(r.p90)}` : 'sin dato');
 
-const renderForm = () => `
+const formularioHtml = () => `
   <div class="studio-form">
-    <h3>Predictor de Performance</h3>
-    <p class="small muted" style="margin-bottom:16px;">Usá IA + tu historial para predecir el alcance y engagement antes de publicar.</p>
+    <h3>Predictor de performance</h3>
+    <p class="small muted" style="margin-bottom:14px;">Predicciones calibradas con el historial de tu cuenta: cuanto más publicás, más precisas.</p>
 
     <div class="field">
-      <label class="field-label">Tipo de contenido</label>
-      <select class="field-select" id="formato">
-        ${FORMATS.map((f) => `<option value="${f}">${f.charAt(0).toUpperCase() + f.slice(1)}</option>`).join('')}
+      <label class="field-label">Plataforma</label>
+      <select class="field-select" id="plataforma">
+        ${Object.entries(PLATAFORMAS)
+          .map(([v, l]) => `<option value="${v}">${l}</option>`)
+          .join('')}
       </select>
     </div>
 
     <div class="field">
-      <label class="field-label">Caption (primeras palabras)</label>
-      <textarea class="field-textarea" id="caption" rows="3" placeholder="ej: Lo que nadie te dice sobre crecer en Instagram…"></textarea>
+      <label class="field-label">Tipo de contenido</label>
+      <select class="field-select" id="formato">
+        ${Object.entries(FORMATOS)
+          .map(([v, l]) => `<option value="${v}">${l}</option>`)
+          .join('')}
+      </select>
     </div>
 
     <div class="field">
-      <label class="field-label">Hashtags (uno por línea)</label>
-      <textarea class="field-textarea" id="hashtags" rows="3" placeholder="#marketing\n#IA\n#instagram"></textarea>
+      <label class="field-label">Caption completo</label>
+      <textarea class="field-textarea" id="caption" rows="4" placeholder="Escribí el caption tal como lo vas a publicar"></textarea>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Hashtags (uno por línea o separados por espacio)</label>
+      <textarea class="field-textarea" id="hashtags" rows="2" placeholder="#marketing #IA"></textarea>
     </div>
 
     <div class="field">
       <label class="field-label">Hora de publicación</label>
       <select class="field-select" id="hora">
-        ${HOURS.map((h) => {
-          const label = `${String(h).padStart(2, '0')}:00`;
-          const sel = h === 19 ? ' selected' : '';
-          return `<option value="${h}"${sel}>${label}</option>`;
-        }).join('')}
+        <option value="">Sin definir</option>
+        ${Array.from({ length: 24 }, (_, h) => `<option value="${h}"${h === 19 ? ' selected' : ''}>${String(h).padStart(2, '0')}:00</option>`).join('')}
       </select>
     </div>
 
     <div class="field">
-      <label class="field-label">Día de la semana</label>
+      <label class="field-label">Día</label>
       <select class="field-select" id="dia">
-        <option value="lunes">Lunes</option>
-        <option value="martes">Martes</option>
-        <option value="miercoles">Miércoles</option>
-        <option value="jueves">Jueves</option>
-        <option value="viernes" selected>Viernes</option>
-        <option value="sabado">Sábado</option>
-        <option value="domingo">Domingo</option>
+        <option value="">Sin definir</option>
+        ${DIAS.map((d) => `<option value="${d}">${d.charAt(0).toUpperCase() + d.slice(1)}</option>`).join('')}
       </select>
     </div>
 
-    <div class="btn-row">
-      <button class="btn primary" id="predict-btn">🎯 Predecir</button>
+    <div class="field" id="campo-duracion">
+      <label class="field-label">Duración en segundos (reel o video)</label>
+      <input class="field-select" id="duracion" type="number" min="1" max="600" placeholder="ej: 25" />
     </div>
+
+    <button class="btn primary" id="predict-btn" style="width:100%;margin-top:6px;">🎯 Predecir</button>
   </div>`;
 
-const scoreColor = (score) => {
-  if (score >= 75) return 'var(--ok)';
-  if (score >= 50) return 'var(--warn)';
-  return 'var(--crit)';
-};
+const resultadoHtml = (r) => {
+  const conf = CONFIANZA[r.confianza] ?? CONFIANZA['sin-datos'];
+  const cabecera = `
+    <div class="pr-cab">
+      <div class="pr-cab-top">
+        <span class="tag ${conf.clase}">${escape(conf.label)}</span>
+        <span class="pr-sub">${escape(PLATAFORMAS[r.plataforma] ?? r.plataforma)} · basada en ${escape(num(r.postsUsados))} posts de tu cuenta</span>
+      </div>
+      <p class="pr-sub">${r.exactitud.tasaErrorTipicoPct === null ? 'Todavía no hay error histórico para medir la exactitud.' : `Error típico del modelo sobre tus posts pasados: ±${escape(num(r.exactitud.tasaErrorTipicoPct))}%.`}</p>
+    </div>`;
 
-const scoreLabel = (score) => {
-  if (score >= 75) return 'Alto potencial';
-  if (score >= 50) return 'Potencial medio';
-  return 'Bajo potencial';
-};
-
-const renderGauge = (label, value, max, unit = '') => `
-  <div class="gauge-row">
-    <span class="small muted" style="min-width:120px;">${label}</span>
-    <div class="gauge-bar">
-      <div class="gauge-fill" style="width:${Math.min(100, (value / max) * 100)}%;background:${scoreColor((value / max) * 100)};"></div>
-    </div>
-    <span class="small">${typeof value === 'number' ? value.toLocaleString() : value}${unit}</span>
-  </div>`;
-
-const renderResult = () => {
-  if (!state.result) {
-    return `
-      <div class="card" style="display:flex;align-items:center;justify-content:center;min-height:520px;flex-direction:column;gap:12px;">
-        <div style="font-size:56px;opacity:0.3;">🎯</div>
-        <div class="muted">Completá el formulario y dale "Predecir" para ver el análisis acá.</div>
+  if (r.postsUsados === 0) {
+    return `${cabecera}
+      <div class="pr-vacio">
+        Todavía no hay historial de ${escape(PLATAFORMAS[r.plataforma] ?? '')} para predecir.
+        <div style="margin-top:12px;">
+          <a class="btn" href="/api/auth/${escape(r.plataforma)}/login?redirectAfter=${encodeURIComponent(window.location.origin + '/')}">Conectar ${escape(PLATAFORMAS[r.plataforma] ?? '')}</a>
+        </div>
+      </div>
+      <div class="pr-seccion"><h4>Buenas prácticas (sin medir tu cuenta)</h4>
+        <ul class="pr-lista">${r.recomendaciones.map((x) => `<li>${escape(x)}</li>`).join('')}</ul>
       </div>`;
   }
-  const r = state.result;
-  const score = r.scoreGlobal ?? 0;
 
-  return `
-    <div>
-      <!-- Score principal -->
-      <div class="card predictor-score-card" style="margin-bottom:16px;text-align:center;">
-        <div class="score-ring" style="--score:${score};--color:${scoreColor(score)};">
-          <svg viewBox="0 0 120 120" class="score-svg">
-            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="10"/>
-            <circle cx="60" cy="60" r="52" fill="none" stroke="${scoreColor(score)}" stroke-width="10"
-              stroke-dasharray="${Math.round(score * 3.267)} 326.7"
-              stroke-linecap="round" transform="rotate(-90 60 60)"/>
-          </svg>
-          <div class="score-center">
-            <div class="score-num">${score}</div>
-            <div class="tiny muted">/ 100</div>
-          </div>
-        </div>
-        <div class="score-label" style="color:${scoreColor(score)};margin-top:8px;font-weight:600;">${scoreLabel(score)}</div>
-        <div class="small muted" style="margin-top:4px;">${escape(r.resumen ?? '')}</div>
+  const kpis = `
+    <div class="pr-kpis">
+      <div class="pr-kpi">
+        <span class="pr-kpi-label">Alcance esperado</span>
+        <span class="pr-kpi-valor">${escape(num(r.alcance?.p50))}</span>
+        <span class="pr-kpi-nota">rango ${escape(rango(r.alcance, num))}</span>
       </div>
-
-      <!-- Métricas estimadas -->
-      <div class="card" style="margin-bottom:14px;">
-        <h3>📊 Métricas estimadas</h3>
-        ${renderGauge('Alcance', r.metricas?.alcance ?? 0, (r.metricas?.alcance ?? 100) * 2)}
-        ${renderGauge('Impresiones', r.metricas?.impresiones ?? 0, (r.metricas?.impresiones ?? 100) * 2)}
-        ${renderGauge('Engagement', r.metricas?.engagementRate ?? 0, 10, '%')}
-        ${renderGauge('Saves', r.metricas?.saves ?? 0, (r.metricas?.saves ?? 10) * 2)}
-        ${renderGauge('Shares', r.metricas?.shares ?? 0, (r.metricas?.shares ?? 5) * 2)}
+      <div class="pr-kpi">
+        <span class="pr-kpi-label">Tasa de interacción</span>
+        <span class="pr-kpi-valor">${escape(pct(r.tasaInteraccion?.p50))}</span>
+        <span class="pr-kpi-nota">rango ${escape(rango(r.tasaInteraccion, pct))}</span>
       </div>
-
-      <!-- Ventanas de tiempo -->
-      ${
-        r.ventanaOptima
-          ? `
-        <div class="card" style="margin-bottom:14px;">
-          <h3>⏰ Ventana óptima</h3>
-          <div class="time-grid">
-            ${(r.ventanaOptima ?? [])
-              .map(
-                (v) => `
-              <div class="time-chip ${v.score >= 70 ? 'hot' : ''}">
-                <div class="small">${escape(v.dia)}</div>
-                <div class="body" style="font-weight:600;">${escape(v.hora)}</div>
-                <div class="tiny muted">${v.score}%</div>
-              </div>`,
-              )
-              .join('')}
-          </div>
-        </div>`
-          : ''
-      }
-
-      <!-- Factores -->
-      <div class="card" style="margin-bottom:14px;">
-        <h3>🔬 Factores analizados</h3>
-        ${(r.factores ?? [])
-          .map(
-            (f) => `
-          <div class="factor-row">
-            <span class="tag ${f.impacto === 'positivo' ? 'ok' : f.impacto === 'negativo' ? 'crit' : 'warn'}">${f.impacto === 'positivo' ? '↑' : f.impacto === 'negativo' ? '↓' : '→'}</span>
-            <span class="small">${escape(f.factor)}</span>
-          </div>`,
-          )
-          .join('')}
+      <div class="pr-kpi">
+        <span class="pr-kpi-label">Supera tu mediana</span>
+        <span class="pr-kpi-valor">${escape(entero(r.probabilidades.superarMediana))}</span>
+        <span class="pr-kpi-nota">mediana de tu cuenta: ${escape(pct(r.medianas.tasaInteraccion))}</span>
       </div>
-
-      <!-- Recomendaciones -->
-      ${
-        r.recomendaciones?.length
-          ? `
-        <div class="card">
-          <h3>💡 Recomendaciones</h3>
-          <ul class="reco-list">
-            ${r.recomendaciones.map((rec) => `<li class="small">${escape(rec)}</li>`).join('')}
-          </ul>
-        </div>`
-          : ''
-      }
+      <div class="pr-kpi">
+        <span class="pr-kpi-label">Entre tus mejores 25%</span>
+        <span class="pr-kpi-valor">${escape(entero(r.probabilidades.entreLosMejores25))}</span>
+        <span class="pr-kpi-nota">según tus posts pasados</span>
+      </div>
     </div>`;
+
+  const retencion = r.retencion.disponible
+    ? `<div class="pr-kpi"><span class="pr-kpi-label">Tiempo de visualización esperado</span>
+         <span class="pr-kpi-valor">${escape(segundos(r.retencion.tiempoVisualizacionSeg?.p50))}</span>
+         <span class="pr-kpi-nota">rango ${escape(rango(r.retencion.tiempoVisualizacionSeg, segundos))} · ${escape(r.retencion.motivo)}</span></div>`
+    : `<p class="pr-nota">Retención: ${escape(r.retencion.motivo)}</p>`;
+
+  const factores = r.factores.length
+    ? `<div class="pr-seccion"><h4>Qué suma y qué resta</h4><ul class="pr-lista">${r.factores
+        .map(
+          (
+            f,
+          ) => `<li><b class="${f.efecto === 'positivo' ? 'pr-pos' : 'pr-neg'}">${f.efecto === 'positivo' ? '▲' : '▼'} ${escape(f.factor)}</b>
+            <span class="pr-ev">${escape(f.evidencia)}</span></li>`,
+        )
+        .join('')}</ul></div>`
+    : '';
+
+  const momentos = r.mejoresMomentos.length
+    ? `<div class="pr-seccion"><h4>Tus mejores momentos</h4><div class="pr-momentos">${r.mejoresMomentos
+        .map(
+          (m) =>
+            `<span class="pr-momento">${escape(m.dia)} · ${escape(m.franja)}: ${escape(pct(m.tasaMediana))} (n=${escape(String(m.posts))})</span>`,
+        )
+        .join('')}</div></div>`
+    : '';
+
+  const recomendaciones = `<div class="pr-seccion"><h4>Para que suba mejor</h4><ul class="pr-lista">${r.recomendaciones
+    .map((x) => `<li>${escape(x)}</li>`)
+    .join('')}</ul></div>`;
+
+  return `${cabecera}${kpis}${retencion}${factores}${momentos}${recomendaciones}`;
 };
 
-const wireUp = (root) => {
-  const form = root.querySelector('.studio-form');
-  const preview = root.querySelector('.studio-preview');
+const leerFormulario = (root) => {
+  const valor = (id) => root.querySelector(`#${id}`)?.value ?? '';
+  const hora = valor('hora');
+  const duracion = valor('duracion');
+  return {
+    plataforma: valor('plataforma'),
+    formato: valor('formato'),
+    caption: valor('caption').trim(),
+    hashtags: valor('hashtags')
+      .split(/[\s\n]+/)
+      .map((h) => h.trim())
+      .filter(Boolean),
+    hora: hora === '' ? null : Number(hora),
+    dia: valor('dia') || null,
+    duracionSeg: duracion === '' ? null : Number(duracion),
+  };
+};
 
-  form.querySelector('#predict-btn').addEventListener('click', async () => {
-    const formato = form.querySelector('#formato').value;
-    const caption = form.querySelector('#caption').value.trim();
-    const hashtagsRaw = form.querySelector('#hashtags').value.trim();
-    const hashtags = hashtagsRaw
-      ? hashtagsRaw
-          .split('\n')
-          .map((h) => h.trim())
-          .filter(Boolean)
-      : [];
-    const hora = Number(form.querySelector('#hora').value);
-    const dia = form.querySelector('#dia').value;
-
-    if (!caption) {
-      toast('Escribí algo del caption', 'crit');
-      return;
-    }
-
-    const btn = form.querySelector('#predict-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> prediciendo…';
-    const { data, error } = await apiSafe('/api/studio/predictor', null, {
-      method: 'POST',
-      body: { formato, caption, hashtags, hora, dia },
-    });
-    if (error || !data) {
-      // Predicción local (sin backend) con heurísticas reales
-      state.result = localPredict({ formato, caption, hashtags, hora, dia });
-      preview.innerHTML = renderResult();
-      toast('🧠 Predicción local lista (backend offline)', 'info');
-    } else {
-      state.result = data;
-      preview.innerHTML = renderResult();
-      toast('Predicción lista', 'ok');
-    }
-    btn.disabled = false;
-    btn.innerHTML = '🎯 Predecir';
-  });
+const actualizarCamposFormato = (root) => {
+  const formato = root.querySelector('#formato')?.value;
+  const campo = root.querySelector('#campo-duracion');
+  if (campo) campo.style.display = formato === 'reel' || formato === 'video' ? '' : 'none';
 };
 
 export const renderPredictor = async (root) => {
-  state = { result: null };
   root.innerHTML = `
     <header class="view-header page-header">
       <div>
-        <h1 class="view-title page-title">Predictor de Performance</h1>
-        <p class="view-subtitle page-subtitle">Estimá el alcance y engagement de tu próximo post antes de publicarlo.</p>
+        <h1 class="view-title page-title">Predictor de performance</h1>
+        <p class="view-subtitle page-subtitle">Estimá el alcance, la interacción y el tiempo de visualización de tu próximo contenido antes de publicarlo.</p>
       </div>
     </header>
+    ${ESTILOS}
     <div class="page-body">
       <div class="studio-layout">
-        ${renderForm()}
-        <div class="studio-preview">${renderResult()}</div>
+        ${formularioHtml()}
+        <div class="studio-preview">
+          <div class="pr-vacio">Completá el contenido y tocá Predecir: vas a ver rangos, probabilidades y qué cambiar, calculados con el historial de tu cuenta.</div>
+        </div>
       </div>
     </div>`;
-  wireUp(root);
+
+  actualizarCamposFormato(root);
+  root.querySelector('#formato')?.addEventListener('change', () => actualizarCamposFormato(root));
+
+  const { data: estado } = await apiSafe('/api/executive/predictor/estado', null);
+  if (estado) {
+    const nota = root.querySelector('.studio-form .small.muted');
+    if (nota) {
+      nota.textContent = `Historial disponible: ${estado.instagram} posts de Instagram y ${estado.tiktok} de TikTok${estado.reelsConTiempoVisualizacion ? `, ${estado.reelsConTiempoVisualizacion} con tiempo de visualización` : ''}.`;
+    }
+  }
+
+  root.querySelector('#predict-btn')?.addEventListener('click', async (e) => {
+    const datos = leerFormulario(root);
+    if (!datos.caption) {
+      toast('Escribí el caption para predecir', 'crit');
+      return;
+    }
+    const btn = e.currentTarget;
+    const preview = root.querySelector('.studio-preview');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> prediciendo…';
+    const { data, error } = await apiSafe('/api/executive/predictor', null, { method: 'POST', body: datos });
+    btn.disabled = false;
+    btn.innerHTML = '🎯 Predecir';
+    if (error || !data) {
+      preview.innerHTML = '<div class="pr-vacio">No pudimos predecir ahora: revisá la conexión con el backend.</div>';
+      toast('No se pudo predecir', 'crit');
+      return;
+    }
+    preview.innerHTML = resultadoHtml(data);
+    toast('Predicción lista', 'ok');
+  });
 };
