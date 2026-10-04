@@ -339,86 +339,128 @@ const renderSummary = async (b) => {
   `;
 };
 
-/* ──── Propuestas / Análisis posts (reuso datos mock + clases v2) ──── */
-const FALLBACK_PROPOSALS = [
-  {
-    agent: 'Nova',
-    emoji: '🎨',
-    priority: 'alta',
-    title: 'Carrusel "el error #1 al automatizar"',
-    why: 'Predigo 2.3× engagement vs tu promedio.',
-    cta: 'Aprobar y agendar',
-  },
-  {
-    agent: 'Lía',
-    emoji: '✍️',
-    priority: 'media',
-    title: 'Reescribir últimas 5 captions',
-    why: 'Las últimas perdieron tono cómplice. Recupero en 2 min.',
-    cta: 'Revisar borradores',
-  },
-  {
-    agent: 'Mira',
-    emoji: '📈',
-    priority: 'alta',
-    title: 'Boost de $40 al reel del martes',
-    why: 'ROAS estimado 3.8×. Mejor performer del mes.',
-    cta: 'Aprobar boost',
-  },
-  {
-    agent: 'Gard',
-    emoji: '🛡️',
-    priority: 'crítica',
-    title: '#IAfacil entró en lista gris',
-    why: 'Reemplazar antes de los próximos 3 posts.',
-    cta: 'Reemplazar ya',
-  },
-  {
-    agent: 'Luca',
-    emoji: '🚀',
-    priority: 'media',
-    title: 'Serie story diaria 21h x 7 días',
-    why: 'Retention 14% mayor en ese horario.',
-    cta: 'Activar serie',
-  },
-];
-
-const PRIO_COLOR = {
-  crítica: { bg: 'rgba(239,68,68,.10)', col: '#fda4a4', ring: 'rgba(239,68,68,.28)' },
-  alta: { bg: 'rgba(245,158,11,.10)', col: '#fbcb6b', ring: 'rgba(245,158,11,.28)' },
-  media: { bg: 'rgba(124,58,237,.10)', col: '#c4b5fd', ring: 'rgba(124,58,237,.28)' },
+const PROP_PRIORIDAD = {
+  alta: { label: 'Alta', color: '#fbbf24', fondo: 'rgba(251,191,36,.14)' },
+  media: { label: 'Media', color: '#60a5fa', fondo: 'rgba(96,165,250,.14)' },
+  baja: { label: 'Baja', color: '#a1a1aa', fondo: 'rgba(161,161,170,.14)' },
 };
 
 const renderProposals = async () => {
-  const { data, error } = await apiSafe('/api/executive/proposals', FALLBACK_PROPOSALS);
-  const proposals = Array.isArray(data) ? data : FALLBACK_PROPOSALS;
-  return `
-    <div class="v2-section-head">
+  const { data, error } = await apiSafe('/api/executive/proposals', []);
+  const propuestas = Array.isArray(data) ? data : [];
+  const cabecera = `
+    <div class="prop-cabecera">
       <div class="v2-eyebrow">Propuestas del equipo</div>
-      <h2 class="v2-h2">${proposals.length} oportunidades detectadas</h2>
-      <p class="v2-section-desc">Tus agentes IA priorizan. Aprobá o descartá en segundos. ${error ? '<span class="v2-badge v2-badge-warn" style="margin-left:8px;">muestras · backend offline</span>' : ''}</p>
-    </div>
-    <div class="v2-prop-grid">
-      ${proposals
-        .map((p) => {
-          const c = PRIO_COLOR[p.priority] || PRIO_COLOR.media;
-          return `<div class="v2-card v2-prop">
-          <div class="v2-prop-head">
-            <span class="v2-prop-agent">${p.emoji} ${escape(p.agent)}</span>
-            <span class="v2-badge" style="background:${c.bg};color:${c.col};box-shadow:inset 0 0 0 1px ${c.ring};">${escape(p.priority)}</span>
-          </div>
-          <div class="v2-prop-title">${escape(p.title)}</div>
-          <p class="v2-hint">${escape(p.why)}</p>
-          <div class="v2-prop-actions">
-            <button class="v2-btn v2-btn-primary v2-btn-sm" data-prop-approve>${escape(p.cta)}</button>
-            <button class="v2-btn v2-btn-ghost v2-btn-sm" data-prop-reject>Descartar</button>
-          </div>
-        </div>`;
-        })
-        .join('')}
+      <h2 class="v2-h2">${propuestas.length ? `${propuestas.length} oportunidad(es) detectada(s)` : 'Sin oportunidades por ahora'}</h2>
+      <p class="v2-section-desc">Tus agentes proponen crecer a partir de tus datos reales: el formato que rinde, la hora de publicar, leads que esperan respuesta y metas atrasadas. Elegís cuáles hacer.${error ? ' <span class="prop-aviso">No se pudo cargar: revisá la conexión con el backend.</span>' : ''}</p>
+    </div>`;
+
+  if (propuestas.length === 0) {
+    return `
+      <div class="prop-wrap">
+        ${cabecera}
+        <div class="v2-card v2-card-pad prop-vacio">
+          <div class="v2-hint">Cuando tus datos muestren una oportunidad (un formato que rinde, un lead calificado sin responder o un OKR atrasado), aparece acá con el dato que la originó.</div>
+        </div>
+      </div>`;
+  }
+
+  return `
+    <div class="prop-wrap">
+      ${cabecera}
+      <div class="prop-grid">
+        ${propuestas
+          .map((p) => {
+            const pr = PROP_PRIORIDAD[p.prioridad] || PROP_PRIORIDAD.media;
+            return `
+          <article class="v2-card prop-card" data-prop-id="${escape(p.id)}">
+            <header class="prop-head">
+              <span class="prop-agente"><span class="prop-emoji">${escape(p.emoji)}</span>${escape(p.agente)}</span>
+              <span class="prop-prio" style="color:${pr.color};background:${pr.fondo};">${escape(pr.label)}</span>
+            </header>
+            <h3 class="prop-titulo">${escape(p.titulo)}</h3>
+            <p class="prop-detalle">${escape(p.detalle)}</p>
+            <div class="prop-dato"><span>Dato</span>${escape(p.dato)}</div>
+            <footer class="prop-acciones">
+              <button class="v2-btn v2-btn-ghost v2-btn-sm" data-prop-descartar="${escape(p.id)}">Descartar</button>
+              <button class="v2-btn v2-btn-primary v2-btn-sm" data-prop-aceptar="${escape(p.id)}"
+                data-accion-tipo="${escape(p.accion.tipo)}" data-accion-valor="${escape(p.accion.valor)}">${escape(p.accion.label)}</button>
+            </footer>
+          </article>`;
+          })
+          .join('')}
+      </div>
+      <style>
+        .prop-wrap{display:flex;flex-direction:column;gap:18px;}
+        .prop-cabecera{display:flex;flex-direction:column;gap:6px;}
+        .prop-aviso{color:#fbbf24;}
+        .prop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+        .prop-card{padding:20px;display:flex;flex-direction:column;gap:12px;}
+        .prop-head{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+        .prop-agente{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--v2-fg-2);}
+        .prop-emoji{font-size:16px;}
+        .prop-prio{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:4px 10px;border-radius:999px;}
+        .prop-titulo{margin:0;font-size:16px;font-weight:600;letter-spacing:-0.015em;color:var(--v2-fg);line-height:1.3;}
+        .prop-detalle{margin:0;font-size:13px;color:var(--v2-fg-2);line-height:1.5;}
+        .prop-dato{padding:10px 12px;border-radius:10px;background:var(--v2-hover);font-size:12.5px;color:var(--v2-fg-2);line-height:1.45;display:flex;flex-direction:column;gap:3px;}
+        .prop-dato span{font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--v2-fg-3);}
+        .prop-acciones{display:flex;justify-content:flex-end;gap:8px;padding-top:12px;border-top:1px solid var(--v2-line);margin-top:auto;}
+        .prop-vacio{text-align:center;padding:36px 24px;}
+        @media (max-width:720px){.prop-grid{grid-template-columns:1fr;}}
+      </style>
     </div>`;
 };
 
+const wireProposals = (body, root, repaint) => {
+  body.querySelectorAll('[data-prop-descartar]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      try {
+        const r = await fetch('/api/executive/proposals/resolver', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ id: btn.dataset.propDescartar, estado: 'descartada' }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const tarjeta = btn.closest('.prop-card');
+        toast('Propuesta descartada', 'info');
+        if (body.querySelectorAll('.prop-card').length <= 1) void repaint();
+        else tarjeta?.remove();
+      } catch (err) {
+        btn.disabled = false;
+        toast(`No se pudo descartar: ${err.message}`, 'err');
+      }
+    });
+  });
+
+  body.querySelectorAll('[data-prop-aceptar]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      try {
+        const r = await fetch('/api/executive/proposals/resolver', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ id: btn.dataset.propAceptar, estado: 'aceptada' }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const tipo = btn.dataset.accionTipo;
+        const valor = btn.dataset.accionValor;
+        if (tipo === 'conectar') {
+          window.location.href = ccLoginUrl(valor);
+          return;
+        }
+        if (tipo === 'tab') {
+          root.querySelector(`.v2-tab[data-tab="${valor}"]`)?.click();
+          return;
+        }
+        window.location.hash = `#${valor}`;
+      } catch (err) {
+        btn.disabled = false;
+        toast(`No se pudo aceptar: ${err.message}`, 'err');
+      }
+    });
+  });
+};
 const renderPostsAnalysis = async () => {
   const { data, error } = await apiSafe('/api/executive/posts-analysis', null);
   const fallback = [
@@ -2090,18 +2132,7 @@ export const renderImperio = async (root) => {
         window.location.hash = `#${btn.dataset.goRoute}`;
       });
     });
-    body.querySelectorAll('[data-prop-approve]').forEach((bt) => {
-      bt.addEventListener('click', () => {
-        bt.closest('.v2-prop').style.opacity = '.4';
-        toast('✅ Aprobado', 'ok');
-      });
-    });
-    body.querySelectorAll('[data-prop-reject]').forEach((bt) => {
-      bt.addEventListener('click', () => {
-        bt.closest('.v2-prop').remove();
-        toast('Descartado', 'info');
-      });
-    });
+    wireProposals(body, root, repaint);
     body.querySelectorAll('[data-resolve]').forEach((bt) => {
       bt.addEventListener('click', async () => {
         const status = bt.dataset.resolve;
