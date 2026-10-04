@@ -38,7 +38,7 @@ export const PERIOD_LABELS: Record<PeriodKey, string> = {
   year: 'Año',
 };
 
-interface DeltaInfo {
+export interface DeltaInfo {
   available: boolean;
   value?: number;
   pct?: number;
@@ -66,7 +66,7 @@ export interface PlatformGrowthSummary {
 
 /* ───────── Historial propio de followers (snapshot diario) ───────── */
 
-interface HistoryPoint {
+export interface HistoryPoint {
   capturedAt: string;
   followers: number;
 }
@@ -76,7 +76,7 @@ const HISTORY_DIR = path.resolve('data/runtime/growthHistory');
 const historyFile = (brandId: string, platform: ConnectionPlatform): string =>
   path.join(HISTORY_DIR, `${brandId}-${platform}.jsonl`);
 
-const readHistory = async (brandId: string, platform: ConnectionPlatform): Promise<HistoryPoint[]> => {
+export const readHistory = async (brandId: string, platform: ConnectionPlatform): Promise<HistoryPoint[]> => {
   try {
     const raw = await fs.readFile(historyFile(brandId, platform), 'utf-8');
     return raw

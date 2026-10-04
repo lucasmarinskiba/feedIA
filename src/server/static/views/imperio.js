@@ -7,6 +7,9 @@
 import { apiSafe } from '../lib/api.js';
 import { escape } from '../lib/dom.js';
 import { toast } from '../lib/toast.js';
+import { crearPanelAnalytics } from './analyticsPanel.js';
+
+const panelAnalytics = crearPanelAnalytics();
 
 const fmtUsd = (n) => '$' + (n || 0).toLocaleString('en-US');
 const hace = (iso) => {
@@ -2042,12 +2045,10 @@ const renderTabContent = async (b) => {
   if (activeTab === 'ttAutopilot') return renderAutopilotReport('tiktok');
   if (activeTab === 'proposals') return renderProposals();
   if (activeTab === 'posts') return renderPostsAnalysis();
-  if (activeTab === 'analytics')
-    return renderTabLink(
-      'analytics',
-      'Analytics',
-      'Métricas completas de cuenta, posts, audiencia y crecimiento histórico.',
-    );
+  if (activeTab === 'analytics') {
+    await panelAnalytics.cargar();
+    return panelAnalytics.html();
+  }
   if (activeTab === 'alerts')
     return renderTabLink('alertas', 'Alertas', 'Anomalías detectadas, riesgos de shadowban y oportunidades.');
   if (activeTab === 'logbook')
@@ -2386,6 +2387,7 @@ export const renderImperio = async (root) => {
     });
     wireProposals(body, root, repaint);
     wirePostsAnalysis(body);
+    panelAnalytics.wire(body);
     body.querySelectorAll('[data-resolve]').forEach((bt) => {
       bt.addEventListener('click', async () => {
         const status = bt.dataset.resolve;
