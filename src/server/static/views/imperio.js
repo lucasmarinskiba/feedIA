@@ -461,66 +461,318 @@ const wireProposals = (body, root, repaint) => {
     });
   });
 };
+const PA_FORMATO = { reel: 'Reel', carrusel: 'Carrusel', imagen: 'Imagen', video: 'Video' };
+const PA_VEREDICTO = {
+  destacado: { label: 'Destacado', color: '#6ee7b7', fondo: 'rgba(16,185,129,.12)' },
+  escondido: { label: 'Escondido', color: '#d8b4fe', fondo: 'rgba(168,85,247,.14)' },
+  normal: { label: 'Normal', color: '#e4e4e7', fondo: 'rgba(255,255,255,.07)' },
+  bajo: { label: 'Bajo', color: '#fca5a5', fondo: 'rgba(248,113,113,.12)' },
+  'sin-base': { label: 'Sin base', color: '#a1a1aa', fondo: 'rgba(161,161,170,.12)' },
+  'sin-datos': { label: 'Sin datos', color: '#a1a1aa', fondo: 'rgba(161,161,170,.12)' },
+};
+const PA_ORDEN = {
+  recientes: 'Más recientes',
+  interaccion: 'Mejor interacción',
+  peor: 'Peor interacción',
+  alcance: 'Mayor alcance',
+};
+const PA_PLATAFORMA = { instagram: 'Instagram', tiktok: 'TikTok' };
+const PA_FUENTE = { ia: 'Interpretado por IA', reglas: 'Reglas automáticas' };
+const PA_ESTILOS = `<style>
+  .pa-wrap{display:flex;flex-direction:column;gap:18px;}
+  .pa-cabecera{display:flex;flex-direction:column;gap:6px;}
+  .pa-aviso{color:#fbbf24;}
+  .pa-plataformas{display:flex;gap:8px;flex-wrap:wrap;}
+  .pa-plat{border:1px solid var(--v2-line);background:transparent;color:var(--v2-fg-2);padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;gap:8px;align-items:center;}
+  .pa-plat em{font-style:normal;font-size:11px;font-weight:500;color:var(--v2-fg-3);}
+  .pa-plat.is-on{background:var(--v2-hover);color:var(--v2-fg);border-color:var(--v2-fg-3);}
+  .pa-cuerpo{display:flex;flex-direction:column;gap:18px;}
+  .pa-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
+  .pa-kpi{background:var(--v2-hover);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:4px;}
+  .pa-kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--v2-fg-3);}
+  .pa-kpi-valor{font-size:20px;font-weight:700;color:var(--v2-fg);letter-spacing:-0.02em;}
+  .pa-kpi-nota{font-size:11.5px;color:var(--v2-fg-3);}
+  .pa-mira{border-radius:14px;padding:18px;background:rgba(168,85,247,.08);display:flex;flex-direction:column;gap:10px;}
+  .pa-mira-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;}
+  .pa-mira-agente{font-size:13px;font-weight:600;color:var(--v2-fg);}
+  .pa-mira-fuente{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--v2-fg-3);}
+  .pa-mira-texto{margin:0;font-size:14px;line-height:1.6;color:var(--v2-fg-2);}
+  .pa-bloque{display:flex;flex-direction:column;gap:12px;}
+  .pa-subtitulo{margin:0;font-size:14px;font-weight:600;color:var(--v2-fg);}
+  .pa-barras{display:flex;flex-direction:column;gap:8px;}
+  .pa-barra-fila{display:grid;grid-template-columns:140px 1fr 64px;gap:12px;align-items:center;font-size:13px;color:var(--v2-fg-2);}
+  .pa-barra-nombre em{font-style:normal;color:var(--v2-fg-3);}
+  .pa-barra-track{height:8px;border-radius:999px;background:var(--v2-hover);overflow:hidden;}
+  .pa-barra-fill{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#fdba74,#fb923c);}
+  .pa-barra-valor{text-align:right;font-weight:600;color:var(--v2-fg);}
+  .pa-filtros{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+  .pa-chips{display:flex;gap:6px;flex-wrap:wrap;}
+  .pa-chip{border:1px solid var(--v2-line);background:transparent;color:var(--v2-fg-2);padding:6px 12px;border-radius:999px;font-size:12px;cursor:pointer;}
+  .pa-chip.is-on{background:#fdba74;color:#111;border-color:#fdba74;}
+  .pa-orden{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--v2-fg-3);}
+  .pa-orden select{background:var(--v2-hover);color:var(--v2-fg);border:1px solid var(--v2-line);border-radius:8px;padding:6px 8px;font-size:12px;}
+  .pa-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+  .pa-post{padding:18px;display:flex;flex-direction:column;gap:10px;}
+  .pa-post-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .pa-post-formato{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--v2-fg-3);}
+  .pa-post-fecha{font-size:12px;color:var(--v2-fg-3);margin-right:auto;}
+  .pa-veredicto{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:4px 10px;border-radius:999px;}
+  .pa-post-titulo{margin:0;font-size:15px;font-weight:600;line-height:1.35;color:var(--v2-fg);}
+  .pa-metricas{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;}
+  .pa-metrica{background:var(--v2-hover);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--v2-fg-3);}
+  .pa-metrica strong{font-size:15px;color:var(--v2-fg);}
+  .pa-motivo{margin:0;font-size:12px;color:var(--v2-fg-3);line-height:1.45;}
+  .pa-consejo{padding:10px 12px;border-radius:10px;background:rgba(168,85,247,.08);font-size:13px;line-height:1.5;color:var(--v2-fg-2);display:flex;flex-direction:column;gap:3px;}
+  .pa-consejo span{font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--v2-fg-3);}
+  .pa-enlace{font-size:12px;color:#fdba74;text-decoration:none;margin-top:auto;}
+  .pa-vacio{text-align:center;padding:32px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  @media (max-width:720px){.pa-barra-fila{grid-template-columns:110px 1fr 56px;}.pa-lista{grid-template-columns:1fr;}}
+</style>`;
+
+const paEstado = { plataforma: 'instagram', formato: 'todos', orden: 'recientes' };
+let paDatos = null;
+
+const paPct = (n) => (typeof n === 'number' ? `${n.toFixed(1)}%` : '—');
+const paNum = (n) => (typeof n === 'number' ? Math.round(n).toLocaleString('es-AR') : '—');
+const paHora = (h) => (typeof h === 'number' ? `${h}h` : '—');
+const paFecha = (iso) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? ''
+    : d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+const paEtiquetaAlcance = (plataforma) => (plataforma === 'tiktok' ? 'Vistas' : 'Alcance');
+
+const paElegirPlataforma = () => {
+  if (!paDatos || paDatos[paEstado.plataforma]?.conectado) return;
+  const otra = ['instagram', 'tiktok'].find((p) => paDatos[p]?.conectado);
+  if (otra) paEstado.plataforma = otra;
+};
+
+const paOrdenar = (posts, orden) => {
+  const tasa = (p) => p.tasaInteraccion ?? -1;
+  const copia = [...posts];
+  if (orden === 'interaccion') return copia.sort((a, b) => tasa(b) - tasa(a));
+  if (orden === 'peor') return copia.sort((a, b) => tasa(a) - tasa(b));
+  if (orden === 'alcance') return copia.sort((a, b) => (b.alcance ?? -1) - (a.alcance ?? -1));
+  return copia;
+};
+
+const paKpi = (etiqueta, valor, nota = '') => `
+  <div class="pa-kpi">
+    <span class="pa-kpi-label">${escape(etiqueta)}</span>
+    <span class="pa-kpi-valor">${escape(valor)}</span>
+    ${nota ? `<span class="pa-kpi-nota">${escape(nota)}</span>` : ''}
+  </div>`;
+
+const paResumenHtml = (b) => {
+  const r = b.resumen;
+  const alcance = paEtiquetaAlcance(b.plataforma);
+  const tendencia =
+    r.tasaUltimos5 !== null && r.tasaAnteriores !== null
+      ? paKpi('Últimos 5 posts', paPct(r.tasaUltimos5), `Los anteriores: ${paPct(r.tasaAnteriores)}`)
+      : '';
+  return `<div class="pa-kpis">
+    ${paKpi('Posts analizados', String(r.analizados))}
+    ${paKpi('Tasa mediana', paPct(r.tasaMediana), `interacción sobre ${alcance.toLowerCase()}`)}
+    ${paKpi(`${alcance} mediano`, paNum(r.alcanceMediano))}
+    ${r.mejorFormato ? paKpi('Formato que más rinde', PA_FORMATO[r.mejorFormato] ?? r.mejorFormato) : ''}
+    ${typeof r.mejorHora === 'number' ? paKpi('Mejor hora', paHora(r.mejorHora), 'hora de Argentina') : ''}
+    ${tendencia}
+  </div>`;
+};
+
+const paDevolucionHtml = (b) => {
+  const d = b.devolucion;
+  if (!d) return '';
+  return `<section class="pa-mira">
+    <div class="pa-mira-head">
+      <span class="pa-mira-agente">${escape(d.agente)} · lectura de tus posts</span>
+      <span class="pa-mira-fuente">${escape(PA_FUENTE[d.fuente] ?? '')}</span>
+    </div>
+    <p class="pa-mira-texto">${escape(d.general)}</p>
+  </section>`;
+};
+
+const paFormatosHtml = (r) => {
+  const filas = r.porFormato.filter((f) => typeof f.tasaMediana === 'number');
+  if (filas.length === 0) return '';
+  const max = Math.max(...filas.map((f) => f.tasaMediana));
+  return `<section class="pa-bloque">
+    <h3 class="pa-subtitulo">Tasa de interacción por formato</h3>
+    <div class="pa-barras">${filas
+      .map((f) => {
+        const ancho = max > 0 ? Math.max(4, (f.tasaMediana / max) * 100) : 0;
+        return `<div class="pa-barra-fila">
+          <span class="pa-barra-nombre">${escape(PA_FORMATO[f.formato] ?? f.formato)} <em>(${f.posts})</em></span>
+          <span class="pa-barra-track"><span class="pa-barra-fill" style="width:${ancho.toFixed(1)}%"></span></span>
+          <span class="pa-barra-valor">${escape(paPct(f.tasaMediana))}</span>
+        </div>`;
+      })
+      .join('')}</div>
+  </section>`;
+};
+
+const paFiltrosHtml = (posts) => {
+  const formatos = [...new Set(posts.map((p) => p.formato))];
+  const chips = ['todos', ...formatos]
+    .map(
+      (f) =>
+        `<button class="pa-chip${paEstado.formato === f ? ' is-on' : ''}" data-pa-formato="${escape(f)}">${f === 'todos' ? 'Todos' : escape(PA_FORMATO[f] ?? f)}</button>`,
+    )
+    .join('');
+  const opciones = Object.entries(PA_ORDEN)
+    .map(([k, v]) => `<option value="${escape(k)}"${paEstado.orden === k ? ' selected' : ''}>${escape(v)}</option>`)
+    .join('');
+  return `<div class="pa-filtros">
+    <div class="pa-chips">${chips}</div>
+    <label class="pa-orden"><span>Ordenar por</span><select data-pa-orden>${opciones}</select></label>
+  </div>`;
+};
+
+const paPostHtml = (p, b) => {
+  const v = PA_VEREDICTO[p.veredicto] ?? PA_VEREDICTO.normal;
+  const metricas = [
+    [paEtiquetaAlcance(b.plataforma), paNum(p.alcance)],
+    ['Interacciones', paNum(p.interacciones)],
+    ['Tasa', paPct(p.tasaInteraccion)],
+    ['Likes', paNum(p.likes)],
+    ['Comentarios', paNum(p.comentarios)],
+  ];
+  if (typeof p.compartidos === 'number') metricas.push(['Compartidos', paNum(p.compartidos)]);
+  if (typeof p.guardados === 'number') metricas.push(['Guardados', paNum(p.guardados)]);
+  const duracion = typeof p.duracionSeg === 'number' ? ` · ${p.duracionSeg} s` : '';
+  const consejo = b.devolucion?.porPost?.[p.id];
+  return `<article class="v2-card pa-post">
+    <header class="pa-post-head">
+      <span class="pa-post-formato">${escape(PA_FORMATO[p.formato] ?? p.formato)}</span>
+      <span class="pa-post-fecha">${escape(paFecha(p.publicadoEn))} · ${escape(paHora(p.horaLocal))}${escape(duracion)}</span>
+      <span class="pa-veredicto" style="color:${v.color};background:${v.fondo};">${escape(v.label)}</span>
+    </header>
+    <h4 class="pa-post-titulo">${escape(p.texto)}</h4>
+    <div class="pa-metricas">${metricas
+      .map(
+        ([etiqueta, valor]) =>
+          `<div class="pa-metrica"><span>${escape(etiqueta)}</span><strong>${escape(valor)}</strong></div>`,
+      )
+      .join('')}</div>
+    <p class="pa-motivo">${escape(p.motivo)}</p>
+    ${consejo ? `<div class="pa-consejo"><span>${escape(b.devolucion.agente)}</span>${escape(consejo)}</div>` : ''}
+    ${p.url ? `<a class="pa-enlace" href="${escape(p.url)}" target="_blank" rel="noopener noreferrer">Ver publicación →</a>` : ''}
+  </article>`;
+};
+
+const paAviso = (texto, clase = 'v2-card v2-card-pad pa-vacio') =>
+  `<div class="${clase}"><div class="v2-hint">${texto}</div></div>`;
+
+const paCuerpo = () => {
+  const b = paDatos?.[paEstado.plataforma];
+  const nombre = PA_PLATAFORMA[paEstado.plataforma];
+  if (!b) return paAviso('No hay datos del análisis por ahora.');
+  if (!b.conectado) {
+    const mensaje =
+      b.error === 'token_expired'
+        ? `La conexión de ${escape(nombre)} venció. Volvé a conectarla para seguir analizando.`
+        : `Conectá ${escape(nombre)} para analizar tus posts con datos reales.`;
+    return `<div class="v2-card v2-card-pad pa-vacio">
+      <div class="v2-hint">${mensaje}</div>
+      <a class="v2-btn v2-btn-primary" href="${escape(ccLoginUrl(paEstado.plataforma))}" style="margin-top:10px;">Conectar ${escape(nombre)}</a>
+    </div>`;
+  }
+  if (b.error === 'lectura_fallida') {
+    return paAviso(`No pudimos leer tu cuenta de ${escape(nombre)} en este momento. Probá actualizar en un rato.`);
+  }
+  if (b.posts.length === 0) {
+    return paAviso(`Todavía no hay posts publicados en ${escape(nombre)} para analizar.`);
+  }
+  if (paEstado.formato !== 'todos' && !b.posts.some((p) => p.formato === paEstado.formato)) {
+    paEstado.formato = 'todos';
+  }
+  const visibles = paOrdenar(
+    b.posts.filter((p) => paEstado.formato === 'todos' || p.formato === paEstado.formato),
+    paEstado.orden,
+  );
+  const aviso = b.resumen.baseSuficiente
+    ? ''
+    : `<div class="v2-hint pa-aviso">Hacen falta al menos 3 posts con métricas para comparar. Mostramos los números sin veredicto de tendencia.</div>`;
+  return `${aviso}${paResumenHtml(b)}${paDevolucionHtml(b)}${paFormatosHtml(b.resumen)}
+    <section class="pa-bloque">
+      <h3 class="pa-subtitulo">Posts</h3>
+      ${paFiltrosHtml(b.posts)}
+      <div class="pa-lista">${
+        visibles.length
+          ? visibles.map((p) => paPostHtml(p, b)).join('')
+          : paAviso('No hay posts de ese formato en esta lista.', 'v2-card v2-card-pad pa-vacio')
+      }</div>
+    </section>`;
+};
+
+const paPestanasHtml = () =>
+  `<div class="pa-plataformas">${['instagram', 'tiktok']
+    .map((p) => {
+      const b = paDatos?.[p];
+      const estado = !b ? 'sin datos' : b.conectado ? `${b.posts.length} posts` : 'sin conectar';
+      return `<button class="pa-plat${paEstado.plataforma === p ? ' is-on' : ''}" data-pa-plat="${p}">${escape(PA_PLATAFORMA[p])} <em>${escape(estado)}</em></button>`;
+    })
+    .join('')}</div>`;
+
+const paCabecera = (error) => `
+  <div class="pa-cabecera">
+    <div class="v2-eyebrow">Análisis de tus posts</div>
+    <h2 class="v2-h2">Qué funciona en tu contenido</h2>
+    <p class="v2-section-desc">Cada post se compara con la mediana de tu propia cuenta. Tasa de interacción = (likes + comentarios + compartidos + guardados) ÷ alcance (Instagram) o vistas (TikTok). Los datos vienen de la API de cada red y se actualizan cada 30 minutos.${error ? ' <span class="pa-aviso">No se pudo cargar el análisis: revisá la conexión con el backend.</span>' : ''}</p>
+    <div><button class="v2-btn v2-btn-ghost v2-btn-sm" data-pa-refrescar>Actualizar datos</button></div>
+  </div>`;
+
 const renderPostsAnalysis = async () => {
   const { data, error } = await apiSafe('/api/executive/posts-analysis', null);
-  const fallback = [
-    {
-      type: 'reel',
-      title: 'Cómo automatizo mi marketing con IA',
-      reach: 12400,
-      eng: 8.7,
-      verdict: 'top performer',
-      recommend: 'Repetir formato facecam + texto grande. Probable Explore.',
-    },
-    {
-      type: 'carrusel',
-      title: '5 errores al elegir nicho',
-      reach: 4200,
-      eng: 6.2,
-      verdict: 'ok',
-      recommend: 'Hook del slide 1 mejorable: tensión o número alto.',
-    },
-    {
-      type: 'story',
-      title: 'Behind the scenes del setup',
-      reach: 1800,
-      eng: 12.4,
-      verdict: 'gem oculta',
-      recommend: 'Convertir a reel — ratio engagement/reach excepcional.',
-    },
-  ];
-  const posts = data?.posts ?? fallback;
-  const VERDICT_COL = {
-    'top performer': { bg: 'rgba(16,185,129,.10)', col: '#6ee7b7' },
-    ok: { bg: 'rgba(255,255,255,.06)', col: '#e4e4e7' },
-    'gem oculta': { bg: 'rgba(168,85,247,.12)', col: '#d8b4fe' },
+  paDatos = data && typeof data === 'object' ? data : null;
+  paElegirPlataforma();
+  return `<div class="pa-wrap">
+    ${paCabecera(Boolean(error))}
+    ${paPestanasHtml()}
+    <div class="pa-cuerpo">${paCuerpo()}</div>
+    ${PA_ESTILOS}
+  </div>`;
+};
+
+const wirePostsAnalysis = (body) => {
+  const wrap = body.querySelector('.pa-wrap');
+  if (!wrap) return;
+  const pintar = () => {
+    wrap.querySelector('.pa-plataformas').outerHTML = paPestanasHtml();
+    wrap.querySelector('.pa-cuerpo').innerHTML = paCuerpo();
   };
-  return `
-    <div class="v2-section-head">
-      <div class="v2-eyebrow">Análisis de tus posts</div>
-      <h2 class="v2-h2">Verdict y recomendación específica</h2>
-      <p class="v2-section-desc">${error ? '<span class="v2-badge v2-badge-warn">muestras locales</span>' : 'Lectura algoritmo + benchmarks del nicho.'}</p>
-    </div>
-    <div class="v2-posts">
-      ${posts
-        .map((p) => {
-          const v = VERDICT_COL[p.verdict] || VERDICT_COL.ok;
-          const tIco = p.type === 'reel' ? '▶' : p.type === 'carrusel' ? '⊙' : p.type === 'story' ? '◎' : '▣';
-          return `<div class="v2-card v2-post">
-          <div class="v2-post-ic">${tIco}</div>
-          <div class="v2-post-main">
-            <div class="v2-post-title">${escape(p.title)}</div>
-            <div class="v2-post-stats">
-              <span><span class="v2-num-sm">${(p.reach || 0).toLocaleString('en-US')}</span> reach</span>
-              <span><span class="v2-num-sm">${p.eng}%</span> engagement</span>
-              <span class="v2-badge" style="background:${v.bg};color:${v.col};box-shadow:inset 0 0 0 1px ${v.col}30;">${escape(p.verdict)}</span>
-            </div>
-            <div class="v2-post-recom">💡 ${escape(p.recommend)}</div>
-          </div>
-        </div>`;
-        })
-        .join('')}
-    </div>`;
+  wrap.addEventListener('click', async (e) => {
+    const t = e.target.closest('[data-pa-plat],[data-pa-formato],[data-pa-refrescar]');
+    if (!t || !wrap.contains(t)) return;
+    if (t.dataset.paPlat) {
+      paEstado.plataforma = t.dataset.paPlat;
+      pintar();
+      return;
+    }
+    if (t.dataset.paFormato) {
+      paEstado.formato = t.dataset.paFormato;
+      pintar();
+      return;
+    }
+    t.disabled = true;
+    const { data, error: err } = await apiSafe('/api/executive/posts-analysis?refrescar=1', null);
+    t.disabled = false;
+    if (err || !data) {
+      toast('No se pudieron actualizar los datos', 'err');
+      return;
+    }
+    paDatos = data;
+    paElegirPlataforma();
+    pintar();
+  });
+  wrap.addEventListener('change', (e) => {
+    const sel = e.target.closest('[data-pa-orden]');
+    if (!sel) return;
+    paEstado.orden = sel.value;
+    pintar();
+  });
 };
 
 const renderTabLink = (route, title, desc) => `
@@ -2133,6 +2385,7 @@ export const renderImperio = async (root) => {
       });
     });
     wireProposals(body, root, repaint);
+    wirePostsAnalysis(body);
     body.querySelectorAll('[data-resolve]').forEach((bt) => {
       bt.addEventListener('click', async () => {
         const status = bt.dataset.resolve;

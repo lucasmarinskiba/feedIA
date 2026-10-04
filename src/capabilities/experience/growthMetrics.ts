@@ -425,7 +425,7 @@ export const ventanaInstagram = async (brandId: string): Promise<VentanaInstagra
       insightsReach(igId, conn.accessToken, ahora - 14 * DIA_MS, ahora - 7 * DIA_MS),
     ]);
     const mediaRes = await metaFetch(
-      `https://graph.instagram.com/v18.0/${igId}/media?fields=timestamp,like_count,comments_count,media_product_type&limit=100&access_token=${conn.accessToken}`,
+      `https://graph.instagram.com/v18.0/${igId}/media?fields=timestamp,like_count,comments_count,media_type,media_product_type&limit=100&access_token=${conn.accessToken}`,
       {},
       { description: 'IG media ventana', maxAttempts: 2 },
     );
@@ -436,6 +436,7 @@ export const ventanaInstagram = async (brandId: string): Promise<VentanaInstagra
             timestamp?: string;
             like_count?: number;
             comments_count?: number;
+            media_type?: string;
             media_product_type?: string;
           }>;
         }
@@ -485,7 +486,7 @@ export const ventanaInstagram = async (brandId: string): Promise<VentanaInstagra
       horaMejor30d,
       formatos: {
         reels: formatoDe(mes.filter((m) => m.media_product_type === 'REELS')),
-        carruseles: formatoDe(mes.filter((m) => m.media_product_type === 'CAROUSEL_ALBUM')),
+        carruseles: formatoDe(mes.filter((m) => m.media_type === 'CAROUSEL_ALBUM')),
       },
     };
   } catch (err) {
