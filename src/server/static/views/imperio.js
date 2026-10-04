@@ -652,6 +652,8 @@ const DEC_ORIGEN = {
   'social-connector': 'Conector de redes',
   'budget-guardian': 'Guardián de presupuesto',
   'okr-tracker': 'Seguimiento OKR',
+  'ig-autopilot': 'Instagram Autopilot',
+  'tt-autopilot': 'TikTok Autopilot',
   'proactive-agent': 'Agente proactivo',
   'anomaly-detector': 'Detector de anomalías',
   council: 'Consejo de agentes',
@@ -664,56 +666,99 @@ const DEC_ORIGEN = {
 };
 
 const DEC_URGENCIA = {
-  critical: { label: 'Crítica', color: '#f87171' },
-  high: { label: 'Alta', color: '#fbbf24' },
-  medium: { label: 'Media', color: '#60a5fa' },
-  low: { label: 'Baja', color: '#a1a1aa' },
+  critical: { label: 'Crítica', color: '#f87171', fondo: 'rgba(248,113,113,.14)' },
+  high: { label: 'Alta', color: '#fbbf24', fondo: 'rgba(251,191,36,.14)' },
+  medium: { label: 'Media', color: '#60a5fa', fondo: 'rgba(96,165,250,.14)' },
+  low: { label: 'Baja', color: '#a1a1aa', fondo: 'rgba(161,161,170,.14)' },
 };
 
 const renderDecisions = async () => {
   const { data } = await apiSafe('/api/executive/decisions/pending', []);
   const decisions = Array.isArray(data) ? data : [];
-  const intro = `<p class="v2-section-desc">Los agentes y automatizaciones de FeedIA proponen acá lo que necesita tu aprobación. Aceptar registra la decisión; ejecuta solo lo que es conectar una red o abrir una vista.</p>`;
+  const cabecera = `
+    <div class="dec-cabecera">
+      <div class="v2-eyebrow">Decisiones</div>
+      <h2 class="v2-h2">${decisions.length ? `${decisions.length} sugerencia(s) esperando tu aprobación` : 'Sin decisiones pendientes'}</h2>
+      <p class="v2-section-desc">Los agentes y automatizaciones de FeedIA proponen acá lo que necesita tu aprobación. Aceptar registra la decisión; ejecuta solo lo que es conectar una red o abrir una vista.</p>
+    </div>`;
+
   if (decisions.length === 0) {
     return `
-      <div class="v2-section-head"><div class="v2-eyebrow">Decisiones</div><h2 class="v2-h2">Sin decisiones pendientes ✨</h2>${intro}</div>
-      <div class="v2-card v2-card-pad"><div class="v2-hint">Cuando un agente detecte algo que requiera tu aprobación (una misión fallida, un carrusel retenido, una cuenta sin conectar, un borrador de respuesta, el gasto de IA cerca del tope o un OKR atrasado), aparece acá.</div></div>`;
+      <div class="dec-wrap">
+        ${cabecera}
+        <div class="v2-card v2-card-pad dec-vacio">
+          <div class="dec-vacio-icono">✨</div>
+          <div class="v2-hint">Cuando un agente detecte algo que requiera tu aprobación (una misión fallida, un carrusel retenido, una cuenta sin conectar, un borrador de respuesta, el gasto de IA cerca del tope, un OKR atrasado o una señal de Instagram o TikTok), aparece acá.</div>
+        </div>
+      </div>`;
   }
+
   return `
-    <div class="v2-section-head"><div class="v2-eyebrow">Decisiones</div><h2 class="v2-h2">${decisions.length} sugerencia(s) esperando tu aprobación</h2>${intro}</div>
-    <div class="dec-list">
-      ${decisions
-        .map((d) => {
-          const urg = DEC_URGENCIA[d.urgency] || DEC_URGENCIA.medium;
-          const payload = d.recommendedAction?.payload || {};
-          return `
-        <div class="v2-card dec-card" data-urgency="${escape(d.urgency)}">
-          <div class="dec-head">
-            <span class="dec-source">${escape(DEC_ORIGEN[d.source] || d.source)}</span>
-            <span class="dec-urgency" style="color:${urg.color};">${escape(urg.label)}</span>
-          </div>
-          <h4>${escape(d.title)}</h4>
-          <p class="small muted">${escape(d.context)}</p>
-          <div class="dec-reasoning"><strong>Por qué:</strong> ${escape(d.reasoning)}</div>
-          <div class="dec-outcome"><strong>Si aceptás:</strong> ${escape(d.expectedOutcome)}</div>
-          ${d.risks?.length ? `<div class="dec-risks"><strong>Riesgos:</strong> ${d.risks.map((r) => escape(r)).join(' · ')}</div>` : ''}
-          <div class="btn-row" style="margin-top:10px;gap:6px;">
-            <button class="v2-btn v2-btn-primary v2-btn-sm" data-resolve="approved" data-id="${escape(d.id)}"
-              data-accion-tipo="${escape(payload.tipo || '')}" data-accion-valor="${escape(payload.plataforma || payload.tab || '')}">${escape(d.recommendedAction?.label || 'Aceptar')}</button>
-            <button class="v2-btn v2-btn-ghost v2-btn-sm" data-resolve="rejected" data-id="${escape(d.id)}">Rechazar</button>
-          </div>
-        </div>`;
-        })
-        .join('')}
-    </div>
-    <style>
-      .dec-list{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
-      .dec-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;}
-      .dec-source{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--v2-fg-3);}
-      .dec-urgency{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
-      .dec-card h4{margin:0 0 4px;font-size:15px;color:var(--v2-fg);}
-      .dec-reasoning,.dec-outcome,.dec-risks{font-size:12px;color:var(--v2-fg-2);margin-top:4px;}
-    </style>`;
+    <div class="dec-wrap">
+      ${cabecera}
+      <div class="dec-lista">
+        ${decisions
+          .map((d) => {
+            const urg = DEC_URGENCIA[d.urgency] || DEC_URGENCIA.medium;
+            const payload = d.recommendedAction?.payload || {};
+            return `
+          <article class="v2-card dec-card" data-urgency="${escape(d.urgency)}">
+            <header class="dec-head">
+              <span class="dec-origen">${escape(DEC_ORIGEN[d.source] || d.source)}</span>
+              <span class="dec-urg" style="color:${urg.color};background:${urg.fondo};">${escape(urg.label)}</span>
+            </header>
+            <h3 class="dec-titulo">${escape(d.title)}</h3>
+            ${d.context ? `<p class="dec-contexto">${escape(d.context)}</p>` : ''}
+            <div class="dec-bloques">
+              <div class="dec-bloque">
+                <span>Por qué</span>
+                <p>${escape(d.reasoning)}</p>
+              </div>
+              <div class="dec-bloque dec-bloque-ok">
+                <span>Si aceptás</span>
+                <p>${escape(d.expectedOutcome)}</p>
+              </div>
+              ${
+                d.risks?.length
+                  ? `<div class="dec-bloque dec-bloque-warn dec-bloque-ancho">
+                      <span>Riesgos</span>
+                      <p>${d.risks.map((r) => escape(r)).join(' · ')}</p>
+                    </div>`
+                  : ''
+              }
+            </div>
+            <footer class="dec-acciones">
+              <button class="v2-btn v2-btn-ghost v2-btn-sm" data-resolve="rejected" data-id="${escape(d.id)}">Rechazar</button>
+              <button class="v2-btn v2-btn-primary v2-btn-sm" data-resolve="approved" data-id="${escape(d.id)}"
+                data-accion-tipo="${escape(payload.tipo || '')}" data-accion-valor="${escape(payload.plataforma || payload.tab || '')}">${escape(d.recommendedAction?.label || 'Aceptar')}</button>
+            </footer>
+          </article>`;
+          })
+          .join('')}
+      </div>
+      <style>
+        .dec-wrap{display:flex;flex-direction:column;gap:18px;}
+        .dec-cabecera{display:flex;flex-direction:column;gap:6px;}
+        .dec-lista{display:flex;flex-direction:column;gap:14px;}
+        .dec-card{padding:20px;display:flex;flex-direction:column;gap:12px;}
+        .dec-head{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+        .dec-origen{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--v2-fg-3);}
+        .dec-urg{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap;}
+        .dec-titulo{margin:0;font-size:17px;font-weight:600;letter-spacing:-0.015em;color:var(--v2-fg);line-height:1.3;}
+        .dec-contexto{margin:0;font-size:13px;color:var(--v2-fg-2);line-height:1.5;}
+        .dec-bloques{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+        .dec-bloque{padding:12px 14px;border-radius:12px;background:var(--v2-hover);display:flex;flex-direction:column;gap:4px;}
+        .dec-bloque span{font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--v2-fg-3);}
+        .dec-bloque p{margin:0;font-size:13px;line-height:1.5;color:var(--v2-fg-2);}
+        .dec-bloque-ok{background:rgba(52,211,153,.08);}
+        .dec-bloque-warn{background:rgba(251,191,36,.08);}
+        .dec-bloque-ancho{grid-column:1 / -1;}
+        .dec-acciones{display:flex;justify-content:flex-end;gap:8px;padding-top:12px;border-top:1px solid var(--v2-line);}
+        .dec-vacio{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:36px 24px;}
+        .dec-vacio-icono{font-size:28px;}
+        @media (max-width:720px){.dec-bloques{grid-template-columns:1fr;}.dec-acciones{flex-direction:column-reverse;}.dec-acciones .v2-btn{width:100%;}}
+      </style>
+    </div>`;
 };
 const OKR_CATEGORIAS = {
   growth: 'Crecimiento',
