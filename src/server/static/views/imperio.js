@@ -8,8 +8,10 @@ import { apiSafe } from '../lib/api.js';
 import { escape } from '../lib/dom.js';
 import { toast } from '../lib/toast.js';
 import { crearPanelAnalytics } from './analyticsPanel.js';
+import { crearPanelReportes } from './reportesPanel.js';
 
 const panelAnalytics = crearPanelAnalytics();
+const panelReportes = crearPanelReportes();
 
 const fmtUsd = (n) => '$' + (n || 0).toLocaleString('en-US');
 const hace = (iso) => {
@@ -50,7 +52,6 @@ const TABS = [
 ];
 
 const EMBED_VIEWS = {
-  reports: { path: './workspace.js', name: 'renderReportes' },
   audit: { path: './audit.js', name: 'renderAudit' },
   predictor: { path: './predictor.js', name: 'renderPredictor' },
   tools: { path: './tools.js', name: 'renderTools' },
@@ -2049,6 +2050,10 @@ const renderTabContent = async (b) => {
     await panelAnalytics.cargar();
     return panelAnalytics.html();
   }
+  if (activeTab === 'reports') {
+    await panelReportes.cargar();
+    return panelReportes.html();
+  }
   if (activeTab === 'alerts')
     return renderTabLink('alertas', 'Alertas', 'Anomalías detectadas, riesgos de shadowban y oportunidades.');
   if (activeTab === 'logbook')
@@ -2388,6 +2393,7 @@ export const renderImperio = async (root) => {
     wireProposals(body, root, repaint);
     wirePostsAnalysis(body);
     panelAnalytics.wire(body);
+    panelReportes.wire(body);
     body.querySelectorAll('[data-resolve]').forEach((bt) => {
       bt.addEventListener('click', async () => {
         const status = bt.dataset.resolve;

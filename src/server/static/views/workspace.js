@@ -100,8 +100,8 @@ export const renderApprovals = async (root) => {
             }
           </div>`,
               )
-              .join('')
-          + `</div>`
+              .join('') +
+            `</div>`
       }`;
 
     host.querySelectorAll('[data-ap]').forEach((b) =>
@@ -607,31 +607,6 @@ export const renderMoodboard = async (root) => {
       btn.innerHTML = '✨ Sugerir mejora con IA';
     }
   });
-};
-
-/* ── Reportes (imprimible → PDF con el navegador) ────────────────────────── */
-export const renderReportes = async (root) => {
-  const host = shell(root, '📊 Reportes', 'Resumen ejecutivo del sistema. Imprimí o exportá a PDF.', 'rp-body');
-  try {
-    const r = await api('/api/report');
-    host.innerHTML = `
-      <div class="btn-row" style="margin-bottom:14px;"><button class="btn primary" id="rp-print">🖨 Imprimir / PDF</button></div>
-      <div class="card report-sheet" id="rp-sheet">
-        <h2 style="margin:0 0 4px;">${escape(r.brand)} — Reporte FeedIA</h2>
-        <div class="small muted" style="margin-bottom:18px;">Generado: ${new Date(r.generatedAt).toLocaleString('es-AR')}</div>
-        <h3>Directivas</h3>
-        <p class="small">Total: <strong>${r.directives.total}</strong> · Activas: <strong>${r.directives.active}</strong></p>
-        <h3>Ejecuciones</h3>
-        <p class="small">Total: <strong>${r.runs.total}</strong> · OK: <strong style="color:var(--ok)">${r.runs.ok}</strong> · En revisión: <strong style="color:var(--warn)">${r.runs.partial}</strong> · Fallidas: <strong style="color:var(--crit)">${r.runs.failed}</strong></p>
-        <h3>Decisiones autónomas</h3>
-        <p class="small">Total: <strong>${r.decisions.totalTraces}</strong> · Con resultado medido: <strong>${r.decisions.withOutcomes}</strong> · Tasa de acierto: <strong>${(r.decisions.successRate * 100).toFixed(0)}%</strong> · Score promedio: <strong>${r.decisions.avgChosenScore}</strong></p>
-        <h3>Estado operativo</h3>
-        <p class="small">Aprobaciones pendientes: <strong>${r.approvalsPending}</strong> · Crisis: <strong>${r.crisisActive ? '⚠️ activa' : '✅ ninguna'}</strong></p>
-      </div>`;
-    host.querySelector('#rp-print').addEventListener('click', () => window.print());
-  } catch (e) {
-    host.innerHTML = `<div class="alert crit">Error: ${escape(e.message)}</div>`;
-  }
 };
 
 /* ── Simulador "¿Qué pasaría si...?" ─────────────────────────────────────── */

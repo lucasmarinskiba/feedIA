@@ -82,7 +82,7 @@ const ROUTES = {
   alertas: V('./views/workspace.js', 'renderAlertas'),
   kanban: V('./views/workspace.js', 'renderKanban'),
   moodboard: V('./views/workspace.js', 'renderMoodboard'),
-  reportes: V('./views/workspace.js', 'renderReportes'),
+  reportes: V('./views/reportes.js', 'renderReportes'),
   simulador: V('./views/workspace.js', 'renderSimulador'),
   cliente: V('./views/workspace.js', 'renderCliente'),
   welcome: V('./views/welcome.js', 'renderWelcome'),
