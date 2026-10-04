@@ -45,9 +45,12 @@ import { log } from '../agent/logger.js';
 // el mismo client_id. Acepta cualquiera de los dos nombres de env var para no
 // repetir el bug ya documentado en credential-sources-map (ELEVEN_LABS vs
 // ELEVENLABS, FAL_API_KEY vs FAL_KEY: nombres distintos silenciosamente
-// deshabilitan una credencial válida).
-const IG_APP_ID = process.env.INSTAGRAM_APP_ID || process.env.META_APP_ID;
-const IG_APP_SECRET = process.env.INSTAGRAM_APP_SECRET || process.env.META_APP_SECRET;
+// deshabilitan una credencial válida). Se leen en cada request para que un
+// cambio de env (y los tests) no dependa del orden de carga del módulo.
+const igCredenciales = (): { appId: string | undefined; appSecret: string | undefined } => ({
+  appId: process.env.INSTAGRAM_APP_ID || process.env.META_APP_ID,
+  appSecret: process.env.INSTAGRAM_APP_SECRET || process.env.META_APP_SECRET,
+});
 
 const IG_OAUTH_AUTHORIZE = 'https://api.instagram.com/oauth/authorize';
 const IG_OAUTH_TOKEN = 'https://api.instagram.com/oauth/access_token';
@@ -132,7 +135,8 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
     method: 'GET',
     pattern: '/api/auth/instagram/login',
     handler: async ({ req, res, query }) => {
-      if (!IG_APP_ID) {
+      const { appId } = igCredenciales();
+      if (!appId) {
         json(res, 500, { error: 'INSTAGRAM_APP_ID no configurado' });
         return;
       }
@@ -149,7 +153,7 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
         userId: requested.userId,
       });
       const redirectUri = buildRedirectUri(req, 'instagram');
-      const url = `${IG_OAUTH_AUTHORIZE}?client_id=${IG_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(IG_SCOPES)}&state=${state}&response_type=code`;
+      const url = `${IG_OAUTH_AUTHORIZE}?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(IG_SCOPES)}&state=${state}&response_type=code`;
       redirect(res, url);
     },
   },
@@ -173,7 +177,8 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
         return;
       }
 
-      if (!IG_APP_ID || !IG_APP_SECRET) {
+      const { appId, appSecret } = igCredenciales();
+      if (!appId || !appSecret) {
         json(res, 500, { error: 'INSTAGRAM_APP_ID/SECRET no configurados' });
         return;
       }
@@ -189,8 +194,8 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({
-              client_id: IG_APP_ID,
-              client_secret: IG_APP_SECRET,
+              client_id: appId,
+              client_secret: appSecret,
               grant_type: 'authorization_code',
               redirect_uri: redirectUri,
               code,
@@ -211,7 +216,7 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
 
         // Paso 2: corta duración → larga duración (~60 días).
         const longRes = await metaFetch(
-          `${IG_GRAPH_EXCHANGE}?grant_type=ig_exchange_token&client_secret=${IG_APP_SECRET}&access_token=${shortToken}`,
+          `${IG_GRAPH_EXCHANGE}?grant_type=ig_exchange_token&client_secret=${appSecret}&access_token=${shortToken}`,
           {},
           { description: 'Instagram long-lived token exchange', maxAttempts: 3 },
         );

@@ -14,6 +14,8 @@ const mockedMetaFetch = vi.mocked(metaFetch);
 
 const brand = { id: 'test-brand-oauth', name: 'Test Brand' };
 
+const IG_TOKEN_URL = 'https://api.instagram.com/oauth/access_token';
+
 const createMockRes = (): ServerResponse & { statusCode: number; headers: Record<string, unknown>; body: string } => {
   const res: Record<string, unknown> = { statusCode: 0, headers: {}, body: '' };
   res.setHeader = (k: string, v: unknown): typeof res => {
@@ -81,33 +83,35 @@ const jsonResponse = (body: string): unknown => {
   }
 };
 
-const mockMetaResponses = (igBusinessId = 'IG123'): void => {
+const mockMetaResponses = (igUserId = 'IG123'): void => {
   mockedMetaFetch.mockImplementation(async (input: string | URL | Request) => {
     const url = typeof input === 'string' ? input : input.toString();
-    if (url.includes('grant_type=fb_exchange_token')) {
+    if (url === IG_TOKEN_URL) {
+      return new Response(JSON.stringify({ access_token: 'SHORT_LIVED_TOKEN', user_id: igUserId }));
+    }
+    if (url.includes('grant_type=ig_exchange_token')) {
       return new Response(JSON.stringify({ access_token: 'LONG_LIVED_TOKEN', expires_in: 5_184_000 }));
     }
-    if (url.includes('/me/accounts')) {
-      return new Response(
-        JSON.stringify({
-          data: [{ id: 'PAGE1', name: 'Test Page', access_token: 'PAGE_TOKEN' }],
-        }),
-      );
+    if (url.includes('grant_type=ig_refresh_token')) {
+      return new Response(JSON.stringify({ access_token: 'REFRESHED_TOKEN', expires_in: 5_184_000 }));
     }
-    if (url.includes('/PAGE1?fields=instagram_business_account')) {
-      return new Response(JSON.stringify({ instagram_business_account: { id: igBusinessId } }));
-    }
-    // Token exchange inicial.
-    return new Response(JSON.stringify({ access_token: 'SHORT_LIVED_TOKEN', expires_in: 3_600 }));
+    throw new Error(`URL de Meta no mockeada: ${url}`);
   });
+};
+
+const conectarInstagram = async (routes: ReturnType<typeof buildOAuthRoutes>): Promise<void> => {
+  const state = await issueOAuthState({ brandId: brand.id, platform: 'instagram', redirectAfter: '/ok' });
+  await runRoute(routes, 'GET', `/api/auth/instagram/callback?code=CODE&state=${state}`);
 };
 
 describe('oauthRoutes', () => {
   let routes: ReturnType<typeof buildOAuthRoutes>;
 
   beforeEach(() => {
-    vi.stubEnv('META_APP_ID', 'meta-app-id');
-    vi.stubEnv('META_APP_SECRET', 'meta-app-secret');
+    vi.stubEnv('INSTAGRAM_APP_ID', 'ig-app-id');
+    vi.stubEnv('INSTAGRAM_APP_SECRET', 'ig-app-secret');
+    vi.stubEnv('META_APP_ID', '');
+    vi.stubEnv('META_APP_SECRET', '');
     vi.stubEnv('OAUTH_TOKEN_SECRET', 'oauth-secret-32-bytes-long!!!');
     routes = buildOAuthRoutes(brand);
   });
@@ -121,27 +125,36 @@ describe('oauthRoutes', () => {
   });
 
   describe('Instagram login', () => {
-    it('devuelve 500 si META_APP_ID no está configurado', async () => {
-      vi.unstubAllEnvs();
-      const localRoutes = buildOAuthRoutes(brand);
-      const res = await runRoute(localRoutes, 'GET', '/api/auth/instagram/login');
+    it('devuelve 500 si no hay App ID de Instagram', async () => {
+      vi.stubEnv('INSTAGRAM_APP_ID', '');
+      const res = await runRoute(routes, 'GET', '/api/auth/instagram/login');
       expect(res.status).toBe(500);
-      expect(jsonResponse(res.body)).toEqual({ error: 'META_APP_ID no configurado' });
+      expect(jsonResponse(res.body)).toEqual({ error: 'INSTAGRAM_APP_ID no configurado' });
     });
 
-    it('redirige a Meta OAuth con un state válido', async () => {
+    it('redirige a Instagram Business Login con un state válido', async () => {
       const res = await runRoute(routes, 'GET', '/api/auth/instagram/login?redirectAfter=/dashboard');
       expect(res.status).toBe(302);
       const location = String(res.headers.Location ?? '');
-      expect(location).toContain('https://www.facebook.com/v18.0/dialog/oauth');
-      expect(location).toContain('client_id=meta-app-id');
+      expect(location.startsWith('https://api.instagram.com/oauth/authorize?')).toBe(true);
+      expect(location).toContain('client_id=ig-app-id');
+      expect(location).toContain('response_type=code');
+      expect(location).toContain('scope=instagram_business_basic');
       expect(location).toContain('state=');
       expect(location).toContain('redirect_uri=https%3A%2F%2Flocalhost%3A3000%2Fapi%2Fauth%2Finstagram%2Fcallback');
+    });
+
+    it('acepta META_APP_ID como alias del mismo client_id', async () => {
+      vi.stubEnv('INSTAGRAM_APP_ID', '');
+      vi.stubEnv('META_APP_ID', 'meta-app-id');
+      const res = await runRoute(routes, 'GET', '/api/auth/instagram/login');
+      expect(res.status).toBe(302);
+      expect(String(res.headers.Location ?? '')).toContain('client_id=meta-app-id');
     });
   });
 
   describe('Instagram callback', () => {
-    it('intercambia code, resuelve IG business account y persiste token cifrado', async () => {
+    it('intercambia code, obtiene token de larga duración y persiste la conexión', async () => {
       mockMetaResponses('IG123');
       const state = await issueOAuthState({ brandId: brand.id, platform: 'instagram', redirectAfter: '/ok' });
 
@@ -152,6 +165,7 @@ describe('oauthRoutes', () => {
       expect(location).toContain('/ok');
       expect(location).toContain('connected=instagram');
 
+      expect(mockedMetaFetch).toHaveBeenCalledTimes(2);
       const conn = await listConnectionsForBrand(brand.id);
       expect(conn).toHaveLength(1);
       expect(conn[0]!.platform).toBe('instagram');
@@ -159,32 +173,17 @@ describe('oauthRoutes', () => {
       expect(conn[0]!.metadata?.igBusinessId).toBe('IG123');
     });
 
-    it('redirige con error si no hay cuenta de Instagram Business vinculada', async () => {
-      // Sobrescribir lookup para no devolver IG business account.
-      mockedMetaFetch.mockImplementation(async (input: string | URL | Request) => {
-        const url = typeof input === 'string' ? input : input.toString();
-        if (url.includes('/PAGE1?fields=instagram_business_account')) {
-          return new Response(JSON.stringify({}));
-        }
-        if (url.includes('grant_type=fb_exchange_token')) {
-          return new Response(JSON.stringify({ access_token: 'LONG_LIVED_TOKEN', expires_in: 5_184_000 }));
-        }
-        if (url.includes('/me/accounts')) {
-          return new Response(
-            JSON.stringify({ data: [{ id: 'PAGE1', name: 'Test Page', access_token: 'PAGE_TOKEN' }] }),
-          );
-        }
-        return new Response(JSON.stringify({ access_token: 'SHORT_LIVED_TOKEN', expires_in: 3_600 }));
-      });
-
+    it('responde 502 si Instagram no devuelve user_id y no guarda conexión', async () => {
+      mockedMetaFetch.mockImplementation(
+        async () => new Response(JSON.stringify({ access_token: 'SHORT_LIVED_TOKEN' })),
+      );
       const state = await issueOAuthState({ brandId: brand.id, platform: 'instagram', redirectAfter: '/ok' });
+
       const res = await runRoute(routes, 'GET', `/api/auth/instagram/callback?code=CODE&state=${state}`);
 
-      expect(res.status).toBe(302);
-      const location = String(res.headers.Location ?? '');
-      expect(location).toContain('oauth_error=no_ig_business_account');
-      const conns = await listConnectionsForBrand(brand.id);
-      expect(conns).toHaveLength(0);
+      expect(res.status).toBe(502);
+      expect(jsonResponse(res.body)).toEqual({ error: 'No access_token/user_id recibido' });
+      expect(await listConnectionsForBrand(brand.id)).toHaveLength(0);
     });
 
     it('rechaza state inválido', async () => {
@@ -203,8 +202,7 @@ describe('oauthRoutes', () => {
 
     it('devuelve estado de conexión con metadatos', async () => {
       mockMetaResponses('IG123');
-      const state = await issueOAuthState({ brandId: brand.id, platform: 'instagram' });
-      await runRoute(routes, 'GET', `/api/auth/instagram/callback?code=CODE&state=${state}`);
+      await conectarInstagram(routes);
 
       const res = await runRoute(routes, 'GET', '/api/auth/instagram/status');
       expect(res.status).toBe(200);
@@ -213,20 +211,14 @@ describe('oauthRoutes', () => {
         expired: false,
         brandId: brand.id,
         igBusinessId: 'IG123',
-        pageId: 'PAGE1',
       });
     });
   });
 
   describe('Instagram refresh', () => {
-    it('refresca el token de larga duración', async () => {
+    it('refresca el token de larga duración con ig_refresh_token', async () => {
       mockMetaResponses('IG123');
-      const state = await issueOAuthState({ brandId: brand.id, platform: 'instagram' });
-      await runRoute(routes, 'GET', `/api/auth/instagram/callback?code=CODE&state=${state}`);
-
-      mockedMetaFetch.mockImplementation(
-        async () => new Response(JSON.stringify({ access_token: 'REFRESHED_TOKEN', expires_in: 5_184_000 })),
-      );
+      await conectarInstagram(routes);
 
       const res = await runRoute(routes, 'POST', '/api/auth/instagram/refresh', { brandId: brand.id });
       expect(res.status).toBe(200);
@@ -240,8 +232,7 @@ describe('oauthRoutes', () => {
   describe('connections management', () => {
     it('lista y desconecta cuentas', async () => {
       mockMetaResponses('IG123');
-      const state = await issueOAuthState({ brandId: brand.id, platform: 'instagram' });
-      await runRoute(routes, 'GET', `/api/auth/instagram/callback?code=CODE&state=${state}`);
+      await conectarInstagram(routes);
 
       const listRes = await runRoute(routes, 'GET', '/api/auth/connections');
       expect(listRes.status).toBe(200);
