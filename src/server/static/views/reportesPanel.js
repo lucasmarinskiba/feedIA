@@ -81,6 +81,10 @@ const ESTILOS_HOJA = `
   .rep-tabla{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;}
   .rep-tabla th,.rep-tabla td{text-align:left;border-top:1px solid #e5e7eb;padding:5px 6px;}
   .rep-tabla th{color:#6b7280;font-weight:600;font-size:11px;}
+  .rep-grafico{width:100%;height:auto;display:block;margin:6px 0 2px;}
+  .rep-dist h4{margin:10px 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;}
+  .rep-barra-fila{display:grid;grid-template-columns:110px 1fr 56px;gap:8px;align-items:center;font-size:12px;margin:4px 0;color:#374151;}
+  .rep-audiencia{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:6px;}
   .rep-mira{margin:0;padding:12px 14px;border-left:3px solid #111827;background:#f9fafb;}
   .rep-limitaciones{border-top:1px solid #e5e7eb;padding-top:12px;font-size:11.5px;color:#6b7280;}
   .rep-limitaciones ul{margin:6px 0 0;padding-left:18px;}
@@ -122,6 +126,53 @@ const kpis = (items) =>
     )
     .join('')}</div>`;
 
+const fechaCorta = (iso) => {
+  const [, mes = '', dia = ''] = iso.split('-');
+  return `${dia}/${mes}`;
+};
+
+const graficoSeguidoresHtml = (historial) => {
+  if (historial.length < 2) {
+    return '<p class="rep-nota">El gráfico de seguidores aparece cuando hay al menos dos días de registro.</p>';
+  }
+  const W = 600;
+  const H = 120;
+  const PAD = 12;
+  const valores = historial.map((p) => p.seguidores);
+  const min = Math.min(...valores);
+  const max = Math.max(...valores);
+  const rango = max - min || 1;
+  const xs = historial.map((_, i) => PAD + (i / (historial.length - 1)) * (W - PAD * 2));
+  const ys = valores.map((v) => PAD + (1 - (v - min) / rango) * (H - PAD * 2));
+  const linea = xs.map((x, i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
+  const area = `${linea} L${xs[xs.length - 1].toFixed(1)},${H - PAD} L${xs[0].toFixed(1)},${H - PAD} Z`;
+  const primero = historial[0];
+  const ultimo = historial[historial.length - 1];
+  return `<svg viewBox="0 0 ${W} ${H}" class="rep-grafico" role="img" aria-label="Seguidores en el tiempo">
+      <path d="${area}" fill="#e5e7eb"/>
+      <path d="${linea}" fill="none" stroke="#111827" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+    <p class="rep-nota">De ${escape(fechaCorta(primero.fecha))} a ${escape(fechaCorta(ultimo.fecha))}: ${escape(num(primero.seguidores))} → ${escape(num(ultimo.seguidores))} seguidores.</p>`;
+};
+
+const distribucionReporteHtml = (titulo, items) =>
+  items.length
+    ? `<div class="rep-dist"><h4>${escape(titulo)}</h4>${items
+        .map(
+          (i) => `<div class="rep-barra-fila">
+            <span>${escape(i.etiqueta)}</span>
+            <span class="rep-barra"><span style="width:${acotar(i.pct)}%"></span></span>
+            <span>${escape(pct(i.pct))}</span>
+          </div>`,
+        )
+        .join('')}</div>`
+    : '';
+
+const audienciaReporteHtml = (a) =>
+  a.disponible
+    ? `<div class="rep-audiencia">${distribucionReporteHtml('Edad', a.edad)}${distribucionReporteHtml('Género', a.genero)}${distribucionReporteHtml('Países', a.paises)}</div>`
+    : `<p class="rep-nota">${escape(a.motivo ?? 'Sin datos de audiencia por ahora.')}</p>`;
+
 const cuentaHtml = (c) => {
   const cabecera = `<div class="rep-cuenta-cab"><strong>${escape(RED[c.plataforma] ?? c.plataforma)}</strong><span>${escape(c.handle ?? '')}</span></div>`;
   if (!c.conectado) {
@@ -155,6 +206,10 @@ const cuentaHtml = (c) => {
       ['Mejor formato', c.mejorFormato ?? 'sin dato'],
       ['Mejor hora', typeof c.mejorHora === 'number' ? `${c.mejorHora}h` : 'sin dato'],
     ])}
+    <h4>Seguidores en el período</h4>
+    ${graficoSeguidoresHtml(c.historial ?? [])}
+    <h4>Audiencia</h4>
+    ${audienciaReporteHtml(c.audiencia)}
     ${top}
   </article>`;
 };

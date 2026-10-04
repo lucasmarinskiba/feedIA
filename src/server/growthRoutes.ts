@@ -1,7 +1,7 @@
 import type { BrandProfile } from '../config/types.js';
 import { json, type RouteDefinition } from './http.js';
 import { adaptRoutesToExpress } from './expressRouteAdapter.js';
-import { resolveDefaultBrandId } from './oauthRoutes.js';
+import { marcaDeCuentas } from './marcaDeCuentas.js';
 import { getPlatformGrowth } from '../capabilities/experience/growthMetrics.js';
 
 /**
@@ -12,8 +12,8 @@ const buildGrowthRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'GET',
     pattern: '/api/growth/summary',
-    handler: async ({ res }) => {
-      const brandId = resolveDefaultBrandId(brand) ?? 'default';
+    handler: async ({ req, res }) => {
+      const brandId = await marcaDeCuentas(req, brand);
       const [instagram, tiktok] = await Promise.all([
         getPlatformGrowth(brandId, 'instagram'),
         getPlatformGrowth(brandId, 'tiktok'),

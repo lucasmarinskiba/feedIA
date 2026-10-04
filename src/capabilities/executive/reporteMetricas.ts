@@ -41,6 +41,19 @@ export interface TopPostReporte {
   publicadoEn: string;
 }
 
+export interface DistribucionReporte {
+  etiqueta: string;
+  pct: number;
+}
+
+export interface AudienciaReporte {
+  disponible: boolean;
+  motivo: string | null;
+  edad: DistribucionReporte[];
+  genero: DistribucionReporte[];
+  paises: DistribucionReporte[];
+}
+
 export interface CuentaReporte {
   plataforma: keyof typeof NOMBRE_RED;
   conectado: boolean;
@@ -48,6 +61,7 @@ export interface CuentaReporte {
   handle: string | null;
   seguidores: number | null;
   crecimiento: { disponible: boolean; valor: number | null; pct: number | null };
+  historial: Array<{ fecha: string; seguidores: number }>;
   alcanceEtiqueta: 'Alcance' | 'Vistas';
   alcance30d: number | null;
   tasaMediana: number | null;
@@ -56,6 +70,7 @@ export interface CuentaReporte {
   mejorFormato: string | null;
   mejorHora: number | null;
   topPosts: TopPostReporte[];
+  audiencia: AudienciaReporte;
 }
 
 export interface ResultadoReporte {
@@ -168,6 +183,7 @@ export const mapearCuenta = (bloque: BloqueAnalytics, periodo: PeriodoReporte): 
       valor: delta?.available && typeof delta.value === 'number' ? delta.value : null,
       pct: delta?.available && typeof delta.pct === 'number' ? redondear(delta.pct) : null,
     },
+    historial: bloque.historial.map((p) => ({ fecha: p.fecha, seguidores: p.seguidores })),
     alcanceEtiqueta: bloque.plataforma === 'tiktok' ? 'Vistas' : 'Alcance',
     alcance30d: alcance ? alcance.value : null,
     tasaMediana: bloque.posts.tasaMediana === null ? null : redondear(bloque.posts.tasaMediana),
@@ -185,6 +201,13 @@ export const mapearCuenta = (bloque: BloqueAnalytics, periodo: PeriodoReporte): 
       url: t.url,
       publicadoEn: t.publicadoEn,
     })),
+    audiencia: {
+      disponible: bloque.audiencia.disponible,
+      motivo: bloque.audiencia.motivo,
+      edad: bloque.audiencia.edad.slice(0, 6).map((i) => ({ etiqueta: i.etiqueta, pct: i.pct })),
+      genero: bloque.audiencia.genero.map((i) => ({ etiqueta: i.etiqueta, pct: i.pct })),
+      paises: bloque.audiencia.paises.slice(0, 5).map((i) => ({ etiqueta: i.etiqueta, pct: i.pct })),
+    },
   };
 };
 

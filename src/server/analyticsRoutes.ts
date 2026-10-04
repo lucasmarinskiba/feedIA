@@ -2,21 +2,18 @@
 import type { BrandProfile } from '../config/types.js';
 import { json, type RouteDefinition } from './http.js';
 import { adaptRoutesToExpress } from './expressRouteAdapter.js';
+import { marcaDeCuentas } from './marcaDeCuentas.js';
 import { construirAnalytics } from '../capabilities/experience/analyticsResumen.js';
 
-const buildAnalyticsRoutes = (brand: BrandProfile): RouteDefinition[] => {
-  const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
-
-  return [
-    {
-      method: 'GET',
-      pattern: '/api/executive/analytics',
-      handler: async ({ res }) => {
-        json(res, 200, await construirAnalytics(brandId));
-      },
+const buildAnalyticsRoutes = (brand: BrandProfile): RouteDefinition[] => [
+  {
+    method: 'GET',
+    pattern: '/api/executive/analytics',
+    handler: async ({ req, res }) => {
+      json(res, 200, await construirAnalytics(await marcaDeCuentas(req, brand)));
     },
-  ];
-};
+  },
+];
 
 const createAnalyticsRoutes = (brand: BrandProfile): ReturnType<typeof adaptRoutesToExpress> =>
   adaptRoutesToExpress(buildAnalyticsRoutes(brand));

@@ -1,7 +1,10 @@
 /**
  * Reporte ejecutivo: junta en una sola lectura las cuentas, los posts, los objetivos, las
- * decisiones, las propuestas, la economía y la actividad del equipo. Solo lee; no decide ni
- * cambia estado. Lo que una red no entrega queda explicado en `limitaciones`.
+ * decisiones, las propuestas, la economía y la actividad. Solo lee; no decide ni cambia estado.
+ *
+ * Dos marcas: las cuentas de Instagram y TikTok se leen de la marca de la sesión (donde se
+ * conectan); OKRs, decisiones, economía y actividad se leen de la marca de plataforma (donde
+ * se generan). Lo que una red no entrega queda explicado en `limitaciones`.
  */
 
 import { analizarPostsDeMarca } from './postsAnalisis.js';
@@ -39,19 +42,25 @@ export interface ReporteEjecutivo extends SeccionesReporte {
   limitaciones: string[];
 }
 
-export const construirReporte = async (
-  brandId: string,
-  brandName: string,
-  periodo: PeriodoReporte,
-): Promise<ReporteEjecutivo> => {
+export interface OpcionesReporte {
+  marcaPlataforma: { id: string; nombre: string };
+  marcaCuentas: string;
+  periodo: PeriodoReporte;
+}
+
+export const construirReporte = async ({
+  marcaPlataforma,
+  marcaCuentas,
+  periodo,
+}: OpcionesReporte): Promise<ReporteEjecutivo> => {
   const cfg = PERIODOS_REPORTE[periodo];
   const [analytics, bloquesPosts, objetivos, propuestas, pendientes, stats] = await Promise.all([
-    construirAnalytics(brandId),
-    analizarPostsDeMarca(brandId),
-    listActiveObjectives(brandId),
-    construirPropuestas(brandId, brandName),
-    listPending(brandId),
-    getDecisionStats(brandId, cfg.dias),
+    construirAnalytics(marcaCuentas),
+    analizarPostsDeMarca(marcaCuentas),
+    listActiveObjectives(marcaPlataforma.id),
+    construirPropuestas(marcaPlataforma.id, marcaPlataforma.nombre),
+    listPending(marcaPlataforma.id),
+    getDecisionStats(marcaPlataforma.id, cfg.dias),
   ]);
   const [miraIg, miraTt] = await Promise.all([
     devolverAnalisis(bloquesPosts.instagram),
@@ -63,14 +72,14 @@ export const construirReporte = async (
     objetivos: mapearObjetivos(objetivos),
     decisiones: mapearDecisiones(stats, pendientes),
     propuestas: mapearPropuestas(propuestas),
-    economia: mapearEconomia(computeLeverage(brandId)),
-    actividad: mapearActividad(buildActividadReal(brandName)),
+    economia: mapearEconomia(computeLeverage(marcaPlataforma.id)),
+    actividad: mapearActividad(buildActividadReal(marcaPlataforma.nombre)),
     mira: elegirMira(miraIg, miraTt),
   };
 
   return {
     ...secciones,
-    marca: brandName,
+    marca: marcaPlataforma.nombre,
     generadoEn: new Date().toISOString(),
     periodo,
     periodoEtiqueta: cfg.etiqueta,

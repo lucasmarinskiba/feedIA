@@ -69,6 +69,7 @@ import createPostsAnalysisRoutes from './server/postsAnalysisRoutes.js';
 import createAnalyticsRoutes from './server/analyticsRoutes.js';
 import createReportesRoutes from './server/reportesRoutes.js';
 import { captureSnapshotOnly } from './capabilities/experience/growthMetrics.js';
+import { listBrandIds } from './config/accounts.js';
 import createCuRoutes from './server/cuRoutes.js';
 import createBrandSetupRoutes from './server/brandSetupRoutes.js';
 import createConsumptionRoutes from './server/consumptionRoutes.js';
@@ -787,14 +788,16 @@ Promise.all([
     // Growth history: snapshot diario de followers IG/TikTok (no-op si no hay
     // cuenta conectada). Sin esto no hay forma de calcular crecimiento semanal/
     // mensual/etc — ni Meta ni TikTok exponen ese historial vía API.
-    const growthBrandId = resolveDefaultBrandId(brand) ?? 'default';
     const captureGrowthSnapshots = (): void => {
-      captureSnapshotOnly(growthBrandId, 'instagram').catch((err) =>
-        log.warn('[Server] IG growth snapshot failed', { err: String(err) }),
-      );
-      captureSnapshotOnly(growthBrandId, 'tiktok').catch((err) =>
-        log.warn('[Server] TikTok growth snapshot failed', { err: String(err) }),
-      );
+      const marcas = new Set([resolveDefaultBrandId(brand) ?? 'default', ...listBrandIds()]);
+      for (const marcaId of marcas) {
+        captureSnapshotOnly(marcaId, 'instagram').catch((err) =>
+          log.warn('[Server] IG growth snapshot failed', { marcaId, err: String(err) }),
+        );
+        captureSnapshotOnly(marcaId, 'tiktok').catch((err) =>
+          log.warn('[Server] TikTok growth snapshot failed', { marcaId, err: String(err) }),
+        );
+      }
     };
     captureGrowthSnapshots();
     setInterval(captureGrowthSnapshots, 24 * 60 * 60 * 1000);

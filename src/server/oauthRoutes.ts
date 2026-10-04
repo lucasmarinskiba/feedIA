@@ -98,12 +98,12 @@ const redirect = (
   res.end();
 };
 
-interface RequestContext {
+export interface RequestContext {
   req: { headers: Record<string, string | string[] | undefined> };
   source: Record<string, string | undefined>;
 }
 
-const getRequestedBrandId = async (
+export const getRequestedBrandId = async (
   ctx: RequestContext,
   defaultBrand?: { id?: string; name: string },
 ): Promise<{ brandId: string; userId?: string } | null> => {
