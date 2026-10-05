@@ -703,7 +703,7 @@ const wireCanvaConnect = async (container) => {
   // Fallback: servidor viejo sin /health → usar /users.
   const { data, error } = await apiSafe('/api/canva/users', { users: [] });
   if (error) {
-    statusEl.textContent = '📡 endpoint no disponible (servidor desactualizado)';
+    statusEl.textContent = '📡 función no disponible en esta versión: recargá la página';
     actionsEl.innerHTML = '';
     return;
   }

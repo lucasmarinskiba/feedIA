@@ -302,7 +302,7 @@ export const initTopbar = () => {
       if (error) {
         const msg =
           error.code === 'API_NOT_FOUND'
-            ? '⚙️ Servidor desactualizado: corré `npm run build && npm start` y volvé a probar.'
+            ? '⚙️ Esta función no está disponible en esta versión: recargá la página y volvé a probar.'
             : error.code === 'API_NETWORK_ERROR'
               ? 'Backend caído. Revisá que el servidor esté corriendo.'
               : `No se pudo cambiar el modo: ${error.message}`;
@@ -347,7 +347,7 @@ export const initTopbar = () => {
       if (error) {
         const msg =
           error.code === 'API_NOT_FOUND'
-            ? '⚙️ Servidor desactualizado: `npm run build && npm start` y reintentá.'
+            ? '⚙️ No se pudo confirmar la parada: recargá la página y reintentá.'
             : error.code === 'API_NETWORK_ERROR'
               ? 'Backend caído. Recargá la app cuando vuelva.'
               : `No se pudo frenar: ${error.message}`;

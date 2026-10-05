@@ -33,12 +33,11 @@ const safeParseResponse = async (res, path) => {
   if (looksLikeHTML && !looksLikeJSON) {
     // Endpoint no existe o servidor desactualizado — error claro, no críptico
     const err = new Error(
-      `API_NOT_FOUND: ${path} no respondió JSON (recibió HTML). El servidor probablemente está desactualizado.`,
+      `API_NOT_FOUND: ${path} no está disponible en esta versión. Recargá la página y volvé a probar.`,
     );
     err.code = 'API_NOT_FOUND';
     err.path = path;
     err.status = res.status;
-    err.hint = 'Reiniciá el servidor con `npm run build && npm start`.';
     throw err;
   }
 

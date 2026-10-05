@@ -289,14 +289,13 @@ const navigate = async (route) => {
     sessionStorage.removeItem(`__retry_${route}`);
 
     const isHtmlError = looksLikeHtmlImport;
-    const title = isHtmlError ? 'Servidor desactualizado' : 'Error al cargar la vista';
+    const title = isHtmlError ? 'Recargá la página' : 'Error al cargar la vista';
     const explanation = isHtmlError
-      ? `La vista "${route}" no está disponible en el servidor (te devolvió HTML donde esperaba JavaScript).<br>Probable causa: el código del backend cambió pero el servidor no se reinició.`
+      ? 'No pudimos cargar esta sección. Suele pasar después de una actualización de FeedIA: recargá la página para tener la versión actual.'
       : rawMsg;
     const action = isHtmlError
-      ? `<div class="small muted" style="margin-top:14px;">Solución: <code style="background:var(--bg-card-2,#1a1f25);padding:2px 6px;border-radius:4px;">npm run build &amp;&amp; npm start</code></div>
-         <div style="display:flex;gap:8px;justify-content:center;margin-top:18px;">
-           <button class="btn" onclick="location.reload(true)">↻ Recargar (hard)</button>
+      ? `<div style="display:flex;gap:8px;justify-content:center;margin-top:18px;">
+           <button class="btn" onclick="location.reload()">↻ Recargar página</button>
            <button class="btn ghost" onclick="location.hash='feed'">← Volver al Feed</button>
          </div>`
       : `<button class="btn ghost" style="margin-top:20px;" onclick="navigate('${route}')">↻ Reintentar</button>`;
