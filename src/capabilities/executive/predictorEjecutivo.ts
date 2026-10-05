@@ -7,8 +7,10 @@ import { leerPostsHistorial } from './postsStore.js';
 import {
   historialDesdePosts,
   predecirContenido,
+  resumenHistorial,
   type EntradaContenido,
   type PrediccionContenido,
+  type ResumenHistorial,
 } from './predictorModelo.js';
 
 export const predecirParaMarca = async (
@@ -21,11 +23,17 @@ export const predecirParaMarca = async (
 
 export const estadoPredictor = async (
   marcaCuentas: string,
-): Promise<{ instagram: number; tiktok: number; reelsConTiempoVisualizacion: number }> => {
+): Promise<{
+  instagram: number;
+  tiktok: number;
+  reelsConTiempoVisualizacion: number;
+  resumen: ResumenHistorial;
+}> => {
   const posts = await leerPostsHistorial(marcaCuentas);
   return {
     instagram: posts.filter((p) => p.plataforma === 'instagram').length,
     tiktok: posts.filter((p) => p.plataforma === 'tiktok').length,
     reelsConTiempoVisualizacion: posts.filter((p) => (p.tiempoVisualizacionSeg ?? null) !== null).length,
+    resumen: resumenHistorial(historialDesdePosts(posts)),
   };
 };

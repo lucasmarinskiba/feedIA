@@ -3,11 +3,14 @@
  * contenido nuevo a partir del historial real de la cuenta.
  *
  * Regresión ridge en escala logarítmica sobre todas las características a la vez (formato,
- * franja, día, hook, CTA, largo, hashtags, emojis, duración). Ajustar una característica por
- * vez contaría dos veces señales correlacionadas (un hook con pregunta suele venir con CTA y
- * hashtags), y ridge reparte el efecto entre ellas y encoge los grupos con pocos posts.
- * Rangos y probabilidades salen de los errores leave-one-out sobre los propios posts de la
- * cuenta, así que reflejan qué tan bien predice el modelo en esta cuenta.
+ * franja, día, hook, CTA, largo, hashtags, emojis, duración, números y recencia). Ajustar una
+ * característica por vez contaría dos veces señales correlacionadas; ridge reparte el efecto entre
+ * ellas y encoge los grupos con pocos posts. La fuerza de la regularización se elige por validación
+ * cruzada (5 pliegues), no a mano.
+ *
+ * La calidad se mide contra un baseline honesto: el promedio de los posts anteriores. Q² y la
+ * mejora porcentual en error absoluto dicen cuánto mejor que "adivinar la media" es el modelo en
+ * esta cuenta (leave-one-out). Rangos y probabilidades salen de esos mismos errores.
  * Función pura: no toca red ni disco.
  */
 
@@ -48,7 +51,34 @@ export interface RangoPrediccion {
 export interface FactorPrediccion {
   factor: string;
   efecto: 'positivo' | 'negativo';
+  impactoPct: number;
   evidencia: string;
+}
+
+export interface EstadisticasModelo {
+  n: number;
+  lambda: number;
+  medianaTasa: number | null;
+  p25Tasa: number | null;
+  p75Tasa: number | null;
+  q2: number | null;
+  mejoraVsPromedioPct: number | null;
+  errorTipicoPct: number | null;
+  intervalo: string;
+}
+
+export interface Distribucion {
+  bins: Array<{ desde: number; hasta: number; n: number }>;
+  prediccionTasa: number | null;
+  medianaTasa: number | null;
+}
+
+export interface GrupoResumen {
+  clave: string;
+  etiqueta: string;
+  posts: number;
+  tasaMediana: number;
+  vsMediana: number | null;
 }
 
 export interface PrediccionContenido {
@@ -56,6 +86,7 @@ export interface PrediccionContenido {
   postsUsados: number;
   confianza: Confianza;
   exactitud: { tasaErrorTipicoPct: number | null; alcanceErrorTipicoPct: number | null };
+  estadisticas: EstadisticasModelo;
   tasaInteraccion: RangoPrediccion | null;
   alcance: RangoPrediccion | null;
   probabilidades: { superarMediana: number | null; entreLosMejores25: number | null };
@@ -69,22 +100,39 @@ export interface PrediccionContenido {
   factores: FactorPrediccion[];
   recomendaciones: string[];
   mejoresMomentos: Array<{ dia: string; franja: string; tasaMediana: number; posts: number }>;
+  distribucion: Distribucion;
+}
+
+export interface ResumenHistorial {
+  plataformas: Array<{
+    plataforma: PlataformaContenido;
+    posts: number;
+    medianaTasa: number | null;
+    porFormato: GrupoResumen[];
+    porFranja: GrupoResumen[];
+    porHook: GrupoResumen[];
+    porCta: GrupoResumen[];
+  }>;
 }
 
 type Caracteristicas = Record<string, string>;
 
 const ZONA_HORARIA = 'America/Argentina/Buenos_Aires';
+const DIA_MS = 86_400_000;
 const MIN_POSTS_PREDICCION = 8;
 const MIN_POSTS_ALTA = 21;
 const MIN_POSTS_RETENCION = 6;
 const MIN_GRUPO = 2;
 const MIN_GRUPO_RECOMENDACION = 3;
-const LAMBDA_RIDGE = 3;
+const LAMBDAS_CANDIDATAS = [0.5, 1, 3, 8, 20];
+const LAMBDA_POR_DEFECTO = 3;
+const PLIEGUES = 5;
 const UMBRAL_EFECTO = 0.05;
 const MEJORA_MINIMA = 1.15;
 const EPSILON_TASA = 0.01;
 const MAX_FACTORES = 6;
 const MAX_RECOMENDACIONES = 4;
+const BINS_DISTRIBUCION = 8;
 
 const ETIQUETAS: Record<string, Record<string, string>> = {
   formato: { reel: 'Formato reel', carrusel: 'Formato carrusel', imagen: 'Formato imagen', video: 'Formato video' },
@@ -120,9 +168,16 @@ const ETIQUETAS: Record<string, Record<string, string>> = {
     '31-60s': 'Duración de 31 a 60 s',
     '>60s': 'Duración de más de 60 s',
   },
+  numeros: { 'con-numeros': 'Caption con números', 'sin-numeros': 'Caption sin números' },
+  recencia: {
+    '≤1d': 'Publicar con 1 día o menos desde el anterior',
+    '2-3d': 'Publicar 2 o 3 días después del anterior',
+    '4-7d': 'Publicar entre 4 y 7 días después del anterior',
+    '8d+': 'Publicar 8 días o más después del anterior',
+  },
 };
 
-const CARACTERISTICAS_ACCIONABLES = ['hook', 'cta', 'largo', 'hashtags', 'emojis', 'franja', 'dia'] as const;
+const CARACTERISTICAS_ACCIONABLES = ['hook', 'cta', 'largo', 'hashtags', 'emojis', 'numeros', 'franja', 'dia'] as const;
 const CARACTERISTICAS_NO_APLICA = new Set(['sin-dato', 'no-aplica']);
 
 const redondear = (n: number, decimales = 1): number => {
@@ -188,6 +243,14 @@ const bucketDuracion = (formato: FormatoContenido, duracionSeg: number | null): 
   return '>60s';
 };
 
+const bucketRecencia = (dias: number | null | undefined): string => {
+  if (dias === null || dias === undefined || !Number.isFinite(dias)) return 'sin-dato';
+  if (dias <= 1) return '≤1d';
+  if (dias <= 3) return '2-3d';
+  if (dias <= 7) return '4-7d';
+  return '8d+';
+};
+
 interface ContenidoParaCaracteristicas {
   formato: FormatoContenido;
   caption: string;
@@ -195,6 +258,7 @@ interface ContenidoParaCaracteristicas {
   hora: number | null;
   dia: string | null;
   duracionSeg: number | null;
+  diasDesdeAnterior?: number | null;
 }
 
 export const caracteristicasDe = (p: ContenidoParaCaracteristicas): Caracteristicas => {
@@ -215,6 +279,8 @@ export const caracteristicasDe = (p: ContenidoParaCaracteristicas): Caracteristi
     hashtags: bucketHashtags(hashtags.size),
     emojis: bucketEmojis(emojis),
     duracion: bucketDuracion(p.formato, p.duracionSeg),
+    numeros: /\d/.test(p.caption) ? 'con-numeros' : 'sin-numeros',
+    recencia: bucketRecencia(p.diasDesdeAnterior),
   };
 };
 
@@ -260,7 +326,7 @@ const resolverSistema = (A: number[][], b: number[]): number[] => {
   return x;
 };
 
-const ajustar = (filas: Fila[]): Ajuste => {
+const ajustar = (filas: Fila[], lambda: number): Ajuste => {
   const mu = filas.reduce((s, f) => s + f.y, 0) / filas.length;
   const indice = new Map<string, number>();
   for (const f of filas) {
@@ -280,7 +346,7 @@ const ajustar = (filas: Fila[]): Ajuste => {
       for (const j of posiciones) A[i]![j] = (A[i]![j] ?? 0) + 1;
     }
   }
-  for (let i = 0; i < p; i++) A[i]![i] = (A[i]![i] ?? 0) + LAMBDA_RIDGE;
+  for (let i = 0; i < p; i++) A[i]![i] = (A[i]![i] ?? 0) + lambda;
   return { mu, indice, beta: resolverSistema(A, b) };
 };
 
@@ -295,8 +361,35 @@ const predecirLog = (aj: Ajuste, x: Caracteristicas): number => {
   return total;
 };
 
-const residuosLoo = (filas: Fila[]): number[] =>
-  filas.map((f, i) => f.y - predecirLog(ajustar(filas.filter((_, j) => j !== i)), f.x));
+const residuosLoo = (filas: Fila[], lambda: number): number[] =>
+  filas.map(
+    (f, i) =>
+      f.y -
+      predecirLog(
+        ajustar(
+          filas.filter((_, j) => j !== i),
+          lambda,
+        ),
+        f.x,
+      ),
+  );
+
+/** Elige la regularización que menor error absoluto da en validación cruzada de 5 pliegues. */
+const elegirLambda = (filas: Fila[]): number => {
+  if (filas.length < PLIEGUES * 2) return LAMBDA_POR_DEFECTO;
+  let mejor = { lambda: LAMBDA_POR_DEFECTO, error: Infinity };
+  for (const lambda of LAMBDAS_CANDIDATAS) {
+    let error = 0;
+    for (let k = 0; k < PLIEGUES; k++) {
+      const entrenamiento = filas.filter((_, i) => i % PLIEGUES !== k);
+      const prueba = filas.filter((_, i) => i % PLIEGUES === k);
+      const aj = ajustar(entrenamiento, lambda);
+      for (const f of prueba) error += Math.abs(f.y - predecirLog(aj, f.x));
+    }
+    if (error < mejor.error) mejor = { lambda, error };
+  }
+  return mejor.lambda;
+};
 
 const cuantil = (ordenados: number[], q: number): number => {
   if (ordenados.length === 1) return ordenados[0] ?? 0;
@@ -328,10 +421,30 @@ const errorTipico = (residuos: number[]): number => {
   return redondear(mediana(errores) ?? 0, 0);
 };
 
-const confianzaDe = (n: number, errorPct: number | null): Confianza => {
+/** Q² y mejora frente a predecir el promedio de los demás posts (leave-one-out, escala log). */
+const calidadFrenteAPromedio = (
+  filas: Fila[],
+  residuos: number[],
+): { q2: number | null; mejoraVsPromedioPct: number | null } => {
+  const n = filas.length;
+  if (n < 3) return { q2: null, mejoraVsPromedioPct: null };
+  const suma = filas.reduce((s, f) => s + f.y, 0);
+  const base = filas.map((f) => f.y - (suma - f.y) / (n - 1));
+  const sse = residuos.reduce((s, r) => s + r * r, 0);
+  const ssb = base.reduce((s, r) => s + r * r, 0);
+  const maeModelo = residuos.reduce((s, r) => s + Math.abs(r), 0) / n;
+  const maeBase = base.reduce((s, r) => s + Math.abs(r), 0) / n;
+  return {
+    q2: ssb > 0 ? redondear(1 - sse / ssb, 2) : null,
+    mejoraVsPromedioPct: maeBase > 0 ? redondear((1 - maeModelo / maeBase) * 100, 0) : null,
+  };
+};
+
+const confianzaDe = (n: number, errorPct: number | null, q2: number | null): Confianza => {
   if (n === 0) return 'sin-datos';
   if (n < MIN_POSTS_PREDICCION) return 'baja';
-  if (n >= MIN_POSTS_ALTA && errorPct !== null && errorPct <= 50) return 'alta';
+  if (n >= MIN_POSTS_ALTA && errorPct !== null && errorPct <= 50 && q2 !== null && q2 > 0.1) return 'alta';
+  if (q2 !== null && q2 <= 0) return 'baja';
   return 'media';
 };
 
@@ -396,6 +509,7 @@ const factoresDe = (filas: Fila[], aj: Ajuste, x: Caracteristicas, medianaGenera
     factores.push({
       factor: etiquetaDe(clave, valor),
       efecto: efecto > 0 ? 'positivo' : 'negativo',
+      impactoPct: redondear((Math.exp(efecto) - 1) * 100, 0),
       evidencia,
       peso: Math.abs(efecto),
     });
@@ -403,7 +517,7 @@ const factoresDe = (filas: Fila[], aj: Ajuste, x: Caracteristicas, medianaGenera
   return factores
     .sort((a, b) => b.peso - a.peso)
     .slice(0, MAX_FACTORES)
-    .map(({ factor, efecto, evidencia }) => ({ factor, efecto, evidencia }));
+    .map(({ factor, efecto, impactoPct, evidencia }) => ({ factor, efecto, impactoPct, evidencia }));
 };
 
 const mejoresMomentosDe = (filas: Fila[]): PrediccionContenido['mejoresMomentos'] => {
@@ -425,13 +539,43 @@ const mejoresMomentosDe = (filas: Fila[]): PrediccionContenido['mejoresMomentos'
     .slice(0, 3);
 };
 
-const recomendacionesSinHistorial = (): string[] => recomendacionesSinDatos();
+const distribucionDe = (tasas: number[], prediccion: number | null): Distribucion => {
+  if (tasas.length === 0) return { bins: [], prediccionTasa: prediccion, medianaTasa: null };
+  const min = Math.min(...tasas);
+  const max = Math.max(...tasas);
+  const ancho = max > min ? (max - min) / BINS_DISTRIBUCION : 1;
+  const bins = Array.from({ length: BINS_DISTRIBUCION }, (_, i) => ({
+    desde: redondear(min + i * ancho, 4),
+    hasta: redondear(min + (i + 1) * ancho, 4),
+    n: 0,
+  }));
+  for (const t of tasas) {
+    const idx = max > min ? Math.min(BINS_DISTRIBUCION - 1, Math.floor((t - min) / ancho)) : 0;
+    const bin = bins[idx];
+    if (bin) bin.n += 1;
+  }
+  return {
+    bins,
+    prediccionTasa: prediccion === null ? null : redondear(prediccion, 4),
+    medianaTasa: redondear(mediana(tasas) ?? 0, 4),
+  };
+};
 
 const filasDe = (historial: PostHistorial[]): { tasa: Fila[]; alcance: Fila[]; tiempo: Fila[] } => {
+  const orden = historial
+    .map((p, i) => ({ i, t: Date.parse(p.publicadoEn) }))
+    .filter((o) => Number.isFinite(o.t))
+    .sort((a, b) => a.t - b.t);
+  const diasPorIndice = new Array<number | null>(historial.length).fill(null);
+  let previo: number | null = null;
+  for (const { i, t } of orden) {
+    diasPorIndice[i] = previo === null ? null : (t - previo) / DIA_MS;
+    previo = t;
+  }
   const tasa: Fila[] = [];
   const alcance: Fila[] = [];
   const tiempo: Fila[] = [];
-  for (const p of historial) {
+  historial.forEach((p, i) => {
     const x = caracteristicasDe({
       formato: p.formato,
       caption: p.captionCompleto,
@@ -439,13 +583,14 @@ const filasDe = (historial: PostHistorial[]): { tasa: Fila[]; alcance: Fila[]; t
       hora: horaLocalDe(p.publicadoEn),
       dia: diaDeIso(p.publicadoEn),
       duracionSeg: p.duracionSeg,
+      diasDesdeAnterior: diasPorIndice[i] ?? null,
     });
     if (p.tasaInteraccion !== null) tasa.push({ x, y: Math.log(Math.max(p.tasaInteraccion, EPSILON_TASA)) });
     if (p.alcance !== null && p.alcance > 0) alcance.push({ x, y: Math.log(p.alcance) });
     if (p.tiempoVisualizacionSeg !== null && p.tiempoVisualizacionSeg > 0) {
       tiempo.push({ x, y: Math.log(p.tiempoVisualizacionSeg) });
     }
-  }
+  });
   return { tasa, alcance, tiempo };
 };
 
@@ -466,6 +611,7 @@ const retencionDe = (
   entrada: EntradaContenido,
   filas: Fila[],
   x: Caracteristicas,
+  lambda: number,
 ): PrediccionContenido['retencion'] => {
   if (entrada.formato !== 'reel' && entrada.formato !== 'video') {
     return {
@@ -499,21 +645,34 @@ const retencionDe = (
       postsConDato: filas.length,
     };
   }
-  const aj = ajustar(filas);
+  const aj = ajustar(filas, lambda);
   const logPred = predecirLog(aj, x);
   return {
     disponible: true,
     motivo: `Basado en ${filas.length} reels con tiempo de visualización.`,
-    tiempoVisualizacionSeg: rangoDe(logPred, residuosLoo(filas)),
+    tiempoVisualizacionSeg: rangoDe(logPred, residuosLoo(filas, lambda)),
     postsConDato: filas.length,
   };
 };
 
-const prediccionVacia = (plataforma: PlataformaContenido, entrada: EntradaContenido): PrediccionContenido => ({
+const estadisticasVacias = (): EstadisticasModelo => ({
+  n: 0,
+  lambda: LAMBDA_POR_DEFECTO,
+  medianaTasa: null,
+  p25Tasa: null,
+  p75Tasa: null,
+  q2: null,
+  mejoraVsPromedioPct: null,
+  errorTipicoPct: null,
+  intervalo: 'p10 a p90 (80 % de los casos)',
+});
+
+const prediccionVacia = (plataforma: PlataformaContenido): PrediccionContenido => ({
   plataforma,
   postsUsados: 0,
   confianza: 'sin-datos',
   exactitud: { tasaErrorTipicoPct: null, alcanceErrorTipicoPct: null },
+  estadisticas: estadisticasVacias(),
   tasaInteraccion: null,
   alcance: null,
   probabilidades: { superarMediana: null, entreLosMejores25: null },
@@ -525,14 +684,21 @@ const prediccionVacia = (plataforma: PlataformaContenido, entrada: EntradaConten
     postsConDato: 0,
   },
   factores: [],
-  recomendaciones: recomendacionesSinHistorial(),
+  recomendaciones: recomendacionesSinDatos(),
   mejoresMomentos: [],
+  distribucion: { bins: [], prediccionTasa: null, medianaTasa: null },
 });
+
+const diasDesdeUltimoPost = (historial: PostHistorial[], ahora: number): number | null => {
+  const tiempos = historial.map((p) => Date.parse(p.publicadoEn)).filter((t) => Number.isFinite(t));
+  if (tiempos.length === 0) return null;
+  return Math.max(0, (ahora - Math.max(...tiempos)) / DIA_MS);
+};
 
 export const predecirContenido = (historial: PostHistorial[], entrada: EntradaContenido): PrediccionContenido => {
   const delTipo = historial.filter((p) => p.plataforma === entrada.plataforma);
   const { tasa, alcance, tiempo } = filasDe(delTipo);
-  if (tasa.length === 0) return prediccionVacia(entrada.plataforma, entrada);
+  if (tasa.length === 0) return prediccionVacia(entrada.plataforma);
 
   const x = caracteristicasDe({
     formato: entrada.formato,
@@ -541,25 +707,26 @@ export const predecirContenido = (historial: PostHistorial[], entrada: EntradaCo
     hora: entrada.hora,
     dia: entrada.dia,
     duracionSeg: entrada.duracionSeg,
+    diasDesdeAnterior: diasDesdeUltimoPost(delTipo, Date.now()),
   });
 
-  const ajTasa = ajustar(tasa);
+  const lambda = elegirLambda(tasa);
+  const ajTasa = ajustar(tasa, lambda);
   const logTasa = predecirLog(ajTasa, x);
-  const residuosTasa = residuosLoo(tasa);
+  const residuosTasa = residuosLoo(tasa, lambda);
   const tasasHistoricas = tasa.map((f) => Math.exp(f.y));
+  const ordenadas = [...tasasHistoricas].sort((a, b) => a - b);
   const medianaTasa = mediana(tasasHistoricas) ?? 0;
-  const p75Tasa = cuantil(
-    [...tasasHistoricas].sort((a, b) => a - b),
-    0.75,
-  );
+  const p75Tasa = cuantil(ordenadas, 0.75);
   const errorTasaPct = errorTipico(residuosTasa);
+  const calidad = calidadFrenteAPromedio(tasa, residuosTasa);
 
   let alcanceRango: RangoPrediccion | null = null;
   let errorAlcancePct: number | null = null;
   let medianaAlcance: number | null = null;
   if (alcance.length >= MIN_POSTS_PREDICCION) {
-    const ajAlcance = ajustar(alcance);
-    const residuosAlcance = residuosLoo(alcance);
+    const ajAlcance = ajustar(alcance, lambda);
+    const residuosAlcance = residuosLoo(alcance, lambda);
     alcanceRango = rangoDe(predecirLog(ajAlcance, x), residuosAlcance);
     errorAlcancePct = errorTipico(residuosAlcance);
     medianaAlcance = mediana(alcance.map((f) => Math.exp(f.y)));
@@ -573,24 +740,94 @@ export const predecirContenido = (historial: PostHistorial[], entrada: EntradaCo
         }
       : { superarMediana: null, entreLosMejores25: null };
 
+  const enModelo = tasa.length >= MIN_POSTS_PREDICCION;
+
   return {
     plataforma: entrada.plataforma,
     postsUsados: tasa.length,
-    confianza: confianzaDe(tasa.length, errorTasaPct),
+    confianza: confianzaDe(tasa.length, errorTasaPct, calidad.q2),
     exactitud: { tasaErrorTipicoPct: errorTasaPct, alcanceErrorTipicoPct: errorAlcancePct },
-    tasaInteraccion: tasa.length >= MIN_POSTS_PREDICCION ? rangoDe(logTasa, residuosTasa) : null,
+    estadisticas: {
+      n: tasa.length,
+      lambda,
+      medianaTasa: redondear(medianaTasa, 4),
+      p25Tasa: redondear(cuantil(ordenadas, 0.25), 4),
+      p75Tasa: redondear(p75Tasa, 4),
+      q2: calidad.q2,
+      mejoraVsPromedioPct: calidad.mejoraVsPromedioPct,
+      errorTipicoPct: errorTasaPct,
+      intervalo: 'p10 a p90 (80 % de los casos)',
+    },
+    tasaInteraccion: enModelo ? rangoDe(logTasa, residuosTasa) : null,
     alcance: alcanceRango,
     probabilidades,
     medianas: {
-      tasaInteraccion: redondear(medianaTasa, 2),
+      tasaInteraccion: redondear(medianaTasa, 4),
       alcance: medianaAlcance === null ? null : Math.round(medianaAlcance),
     },
-    retencion: retencionDe(entrada, tiempo, x),
-    factores: tasa.length >= MIN_POSTS_PREDICCION ? factoresDe(tasa, ajTasa, x, medianaTasa) : [],
-    recomendaciones:
-      tasa.length >= MIN_POSTS_PREDICCION
-        ? recomendacionesConDatos(tasa, x, medianaTasa)
-        : ['Todavía hay pocos posts para medir efectos: publicá unas semanas más y la predicción se calibra sola.'],
+    retencion: retencionDe(entrada, tiempo, x, lambda),
+    factores: enModelo ? factoresDe(tasa, ajTasa, x, medianaTasa) : [],
+    recomendaciones: enModelo
+      ? recomendacionesConDatos(tasa, x, medianaTasa)
+      : ['Todavía hay pocos posts para medir efectos: publicá unas semanas más y la predicción se calibra sola.'],
     mejoresMomentos: mejoresMomentosDe(tasa),
+    distribucion: distribucionDe(tasasHistoricas, enModelo ? Math.exp(logTasa) : null),
   };
 };
+
+const resumenDeGrupos = (
+  posts: Array<{ x: Caracteristicas; tasa: number }>,
+  clave: string,
+  medianaGeneral: number,
+): GrupoResumen[] => {
+  const grupos = new Map<string, number[]>();
+  for (const p of posts) {
+    const valor = p.x[clave] ?? 'sin-dato';
+    if (CARACTERISTICAS_NO_APLICA.has(valor)) continue;
+    grupos.set(valor, [...(grupos.get(valor) ?? []), p.tasa]);
+  }
+  return [...grupos.entries()]
+    .filter(([, tasas]) => tasas.length >= MIN_GRUPO)
+    .map(([valor, tasas]) => {
+      const med = mediana(tasas) ?? 0;
+      return {
+        clave: valor,
+        etiqueta: etiquetaDe(clave, valor),
+        posts: tasas.length,
+        tasaMediana: redondear(med, 4),
+        vsMediana: medianaGeneral > 0 ? redondear(med / medianaGeneral, 2) : null,
+      };
+    })
+    .sort((a, b) => b.tasaMediana - a.tasaMediana);
+};
+
+/** Qué formato, franja, hook y CTA rindieron mejor en el historial, con su mediana y n. */
+export const resumenHistorial = (historial: PostHistorial[]): ResumenHistorial => ({
+  plataformas: (['instagram', 'tiktok'] as const)
+    .map((plataforma) => {
+      const posts = historial.filter((p) => p.plataforma === plataforma && p.tasaInteraccion !== null);
+      const conX = posts.map((p) => ({
+        x: caracteristicasDe({
+          formato: p.formato,
+          caption: p.captionCompleto,
+          hashtagsExtra: [],
+          hora: horaLocalDe(p.publicadoEn),
+          dia: diaDeIso(p.publicadoEn),
+          duracionSeg: p.duracionSeg,
+        }),
+        tasa: p.tasaInteraccion ?? 0,
+      }));
+      const medianaTasa = posts.length > 0 ? mediana(conX.map((p) => p.tasa)) : null;
+      const general = medianaTasa ?? 0;
+      return {
+        plataforma,
+        posts: posts.length,
+        medianaTasa: medianaTasa === null ? null : redondear(medianaTasa, 4),
+        porFormato: resumenDeGrupos(conX, 'formato', general),
+        porFranja: resumenDeGrupos(conX, 'franja', general),
+        porHook: resumenDeGrupos(conX, 'hook', general),
+        porCta: resumenDeGrupos(conX, 'cta', general),
+      };
+    })
+    .filter((p) => p.posts > 0),
+});

@@ -8,6 +8,7 @@ import type {
   EntradaContenido,
   FormatoContenido,
   PlataformaContenido,
+  PrediccionContenido,
 } from '../capabilities/executive/predictorModelo.js';
 
 const PLATAFORMAS: readonly PlataformaContenido[] = ['instagram', 'tiktok'];
@@ -17,6 +18,7 @@ const MAX_CAPTION = 2200;
 const MAX_HASHTAGS = 30;
 const MAX_HASHTAG = 60;
 const MAX_DURACION_SEG = 600;
+const MAX_VARIANTES = 3;
 
 const textoLimpio = (v: unknown, max: number): string =>
   typeof v === 'string'
@@ -75,6 +77,29 @@ const buildPredictorRoutes = (brand: BrandProfile): RouteDefinition[] => [
         return;
       }
       json(res, 200, await predecirParaMarca(await marcaDeCuentas(req, brand), entrada));
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/executive/predictor/comparar',
+    handler: async ({ req, res, body }) => {
+      const lista = (body as { variantes?: unknown } | null)?.variantes;
+      if (!Array.isArray(lista) || lista.length < 2 || lista.length > MAX_VARIANTES) {
+        json(res, 400, { error: `comparar necesita entre 2 y ${MAX_VARIANTES} variantes` });
+        return;
+      }
+      const marca = await marcaDeCuentas(req, brand);
+      const variantes: Array<{ nombre: string; entrada: EntradaContenido; prediccion: PrediccionContenido }> = [];
+      for (const [i, item] of lista.entries()) {
+        const entrada = entradaDesde(item);
+        if ('error' in entrada) {
+          json(res, 400, { error: `variante ${i + 1}: ${entrada.error}` });
+          return;
+        }
+        const nombre = textoLimpio((item as { nombre?: unknown }).nombre, 40) || `Variante ${i + 1}`;
+        variantes.push({ nombre, entrada, prediccion: await predecirParaMarca(marca, entrada) });
+      }
+      json(res, 200, { variantes });
     },
   },
   {
