@@ -13,13 +13,6 @@ const SECCIONES = [
   { id: 'numeros', label: '📊 Números' },
 ];
 
-const URGENCIA = {
-  critical: { label: 'Crítica', color: '#f87171' },
-  high: { label: 'Alta', color: '#fbbf24' },
-  medium: { label: 'Media', color: '#60a5fa' },
-  low: { label: 'Baja', color: '#a1a1aa' },
-};
-
 const TONO = {
   alerta: { color: '#fca5a5', fondo: 'rgba(248,113,113,.12)', icono: '🔴' },
   atencion: { color: '#fcd34d', fondo: 'rgba(251,191,36,.1)', icono: '🟡' },
@@ -120,12 +113,6 @@ const fecha = (iso) => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
 };
-const fechaHora = (iso) => {
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? '—'
-    : d.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-};
 
 const barra = (valor, max, color) => {
   const ancho = max > 0 ? Math.max(2, Math.min(100, Math.round((valor / max) * 100))) : 0;
@@ -165,31 +152,12 @@ const decisionesHtml = (d) => {
         ),
       ].join('')
     : '';
-  const pendientes = d.pendientes.length
-    ? d.pendientes
-        .map((x) => {
-          const u = URGENCIA[x.urgencia] ?? URGENCIA.medium;
-          const ocupado = state.ocupado === x.id;
-          return `<article class="jt-item">
-            <div class="jt-item-cab">
-              <strong>${escape(x.titulo)}</strong>
-              <span class="jt-tag" style="color:${u.color};">${escape(u.label)}</span>
-            </div>
-            <div class="jt-ayuda">Origen: ${escape(x.origen)} · ${escape(fechaHora(x.creadoEn))}${x.resultadoEsperado ? ` · Resultado esperado: ${escape(x.resultadoEsperado)}` : ''}</div>
-            <div class="jt-acciones">
-              <button class="jt-btn peligro" data-jt-accion="decidir" data-id="${escape(x.id)}" data-estado="rejected" ${ocupado ? 'disabled' : ''}>Rechazar</button>
-              <button class="jt-btn primario" data-jt-accion="decidir" data-id="${escape(x.id)}" data-estado="approved" ${ocupado ? 'disabled' : ''}>${x.accion ? escape(x.accion) : 'Aprobar'}</button>
-            </div>
-          </article>`;
-        })
-        .join('')
-    : '<div class="jt-vacio">No hay decisiones esperando tu respuesta.</div>';
+  const esperando = r?.pendientes ?? 0;
   return `
     <section class="jt-bloque" id="jt-decisiones">
       <h3>⚖️ Decisiones</h3>
-      <p class="jt-ayuda">Lo que los agentes proponen y necesita tu aprobación. Aprobar ejecuta la acción; rechazar la descarta.</p>
+      <p class="jt-ayuda">${esperando ? `${esperando} esperando tu respuesta: aceptá o rechazá arriba, en Resumen.` : 'No hay decisiones esperando tu respuesta.'}</p>
       ${cifras ? `<div class="jt-cifras">${cifras}</div>` : ''}
-      <div style="display:flex;flex-direction:column;gap:10px;">${pendientes}</div>
     </section>`;
 };
 
@@ -645,15 +613,6 @@ const enlazar = (root) => {
       state.mostrarFormProyecto = !state.mostrarFormProyecto;
       pintar(root);
       return;
-    }
-    if (accion === 'decidir') {
-      const ok = await mutar(
-        root,
-        '/api/executive/decisions/resolve',
-        { decisionId: el.dataset.id, status: el.dataset.estado },
-        el.dataset.estado === 'approved' ? 'Decisión aprobada' : 'Decisión rechazada',
-      );
-      if (!ok) return;
     }
   });
   root.addEventListener('change', async (e) => {

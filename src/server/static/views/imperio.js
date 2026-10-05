@@ -4,7 +4,7 @@
    Hub con tabs. Hero hairline, no rainbow gradients. Alto contraste letra/fondo.
    Incluye GrowthMetricsCard inline para Instagram + TikTok (sparkline SVG + KPIs).
    ══════════════════════════════════════════════════════════════════════════════ */
-import { apiSafe } from '../lib/api.js';
+import { api, apiSafe } from '../lib/api.js';
 import { escape } from '../lib/dom.js';
 import { toast } from '../lib/toast.js';
 import { crearPanelAnalytics } from './analyticsPanel.js';
@@ -206,13 +206,212 @@ const renderGrowthCard = (platform, summary) => {
   });
 };
 
+/* ──── Aprobaciones y funciones (Resumen) ──── */
+const APROBACIONES_LIMITE = 4;
+const PRIORIDAD_A_URGENCIA = { alta: 'high', media: 'medium', baja: 'low' };
+const TIER_LABEL = { free: 'Free', starter: 'Starter', pro: 'Pro', agency: 'Agency' };
+
+const aprobacionDecisionHtml = (d) => {
+  const urg = DEC_URGENCIA[d.urgency] ?? DEC_URGENCIA.medium;
+  const payload = d.recommendedAction?.payload || {};
+  return `<article class="v2-apr-item" data-sa-tipo="decision" data-sa-id="${escape(d.id)}">
+    <div class="v2-apr-cab">
+      <span class="v2-apr-origen">${escape(DEC_ORIGEN[d.source] || d.source)}</span>
+      <span class="v2-badge" style="color:${urg.color};background:${urg.fondo};">${escape(urg.label)}</span>
+    </div>
+    <div class="v2-apr-titulo">${escape(d.title)}</div>
+    ${d.expectedOutcome ? `<p class="v2-apr-texto">Si aceptás: ${escape(d.expectedOutcome)}</p>` : ''}
+    <div class="v2-apr-acciones">
+      <button class="v2-btn v2-btn-ghost v2-btn-sm" data-sa-accion="rechazar">Rechazar</button>
+      <button class="v2-btn v2-btn-primary v2-btn-sm" data-sa-accion="aceptar" data-accion-tipo="${escape(payload.tipo || '')}" data-accion-valor="${escape(payload.plataforma || payload.tab || '')}">Aceptar</button>
+    </div>
+  </article>`;
+};
+
+const aprobacionPropuestaHtml = (p) => {
+  const urg = DEC_URGENCIA[PRIORIDAD_A_URGENCIA[p.prioridad]] ?? DEC_URGENCIA.medium;
+  return `<article class="v2-apr-item" data-sa-tipo="propuesta" data-sa-id="${escape(p.id)}">
+    <div class="v2-apr-cab">
+      <span class="v2-apr-origen">${escape(p.emoji ?? '')} ${escape(p.agente)}</span>
+      <span class="v2-badge" style="color:${urg.color};background:${urg.fondo};">${escape(p.objetivo ?? 'Operativa')}</span>
+    </div>
+    <div class="v2-apr-titulo">${escape(p.titulo)}</div>
+    <p class="v2-apr-texto">${escape(p.detalle)}</p>
+    <div class="v2-apr-acciones">
+      <button class="v2-btn v2-btn-ghost v2-btn-sm" data-sa-accion="rechazar">Rechazar</button>
+      <button class="v2-btn v2-btn-primary v2-btn-sm" data-sa-accion="aceptar" data-accion-tipo="${escape(p.accion?.tipo ?? '')}" data-accion-valor="${escape(p.accion?.valor ?? '')}">Aceptar</button>
+    </div>
+  </article>`;
+};
+
+const columnaAprobaciones = (titulo, tab, lista, renderItem, vacio) => {
+  const visibles = lista.slice(0, APROBACIONES_LIMITE);
+  const ver =
+    lista.length > visibles.length
+      ? `<button class="v2-btn v2-btn-ghost v2-btn-sm" type="button" data-sa-ir="${tab}" style="margin-top:10px;width:100%;">Ver las ${lista.length} →</button>`
+      : '';
+  return `<div class="v2-card v2-card-pad">
+    <div class="v2-card-head"><strong>${titulo}</strong><span class="v2-badge v2-badge-brand">${lista.length}</span></div>
+    ${
+      visibles.length
+        ? `<div class="v2-apr-lista">${visibles.map(renderItem).join('')}</div>${ver}`
+        : `<div class="v2-apr-vacio">${vacio}</div>`
+    }
+  </div>`;
+};
+
+const aprobacionesInner = (decisiones, propuestas) => `
+  <div class="v2-section-head">
+    <div class="v2-eyebrow">Tu aprobación</div>
+    <h2 class="v2-h2">Decisiones y propuestas esperando tu respuesta</h2>
+    <p class="v2-section-desc">Aceptar registra la decisión y ejecuta la acción (conectar una red o abrir una sección). Rechazar la descarta.</p>
+  </div>
+  <div class="v2-apr-grid">
+    ${columnaAprobaciones(
+      'Decisiones',
+      'decisions',
+      decisiones,
+      aprobacionDecisionHtml,
+      'Ninguna decisión espera tu respuesta. Los agentes aparecen acá cuando necesiten una.',
+    )}
+    ${columnaAprobaciones(
+      'Propuestas',
+      'proposals',
+      propuestas,
+      aprobacionPropuestaHtml,
+      'Sin propuestas por ahora. Cuando tus especialistas tengan ideas, aparecen acá.',
+    )}
+  </div>`;
+
+const funcionFilaHtml = (bot) => {
+  const need = TIER_LABEL[bot.requiredTier] ?? bot.requiredTier;
+  const meta = [bot.jobs != null ? `${bot.jobs} tarea${bot.jobs === 1 ? '' : 's'}` : '', bot.costly ? 'gasta IA' : '']
+    .filter(Boolean)
+    .join(' · ');
+  const estado = bot.locked ? 'Bloqueada' : bot.enabled ? 'Encendida' : 'Apagada';
+  return `<li class="v2-fn-fila">
+    <div class="v2-fn-texto">
+      <span class="v2-fn-nombre">${escape(bot.label)}${bot.locked ? `<span class="v2-badge v2-badge-warn">Plan ${escape(need)}+</span>` : ''}</span>
+      <span class="v2-hint">${escape(bot.description)}</span>
+      ${meta ? `<span class="v2-hint">${escape(meta)}</span>` : ''}
+    </div>
+    <div class="v2-fn-control">
+      <span class="v2-fn-estado ${bot.enabled && !bot.locked ? 'is-on' : ''}">${escape(estado)}</span>
+      <button class="v2-fn-switch" type="button" role="switch" aria-checked="${bot.enabled ? 'true' : 'false'}" data-fn-id="${escape(bot.id)}" aria-label="${escape(bot.label)}" ${bot.locked ? `disabled title="Necesita el plan ${escape(need)} o superior"` : ''}></button>
+    </div>
+  </li>`;
+};
+
+const funcionesInner = (snap) => {
+  const head = `
+    <div class="v2-section-head">
+      <div class="v2-eyebrow">Equipo automático</div>
+      <h2 class="v2-h2">Funciones de tu sala: encendé o apagá</h2>
+      <p class="v2-section-desc">Agentes de IA, automatizaciones, chatbots de redes, copilotos y profesionales. Cada función gasta solo cuando está encendida.</p>
+    </div>`;
+  if (!snap || !Array.isArray(snap.bots)) {
+    return `${head}<div class="v2-apr-vacio">No se pudo leer el estado de las funciones. Revisá la conexión y recargá la página.</div>`;
+  }
+  const master = snap.master ?? { state: 'all-on', enabled: 0, total: snap.bots.length };
+  const todoApagado = master.state === 'all-off';
+  const infra = snap.infraJobs
+    ? `<p class="v2-hint" style="margin-top:12px;">${snap.infraJobs} tareas de infraestructura (publicar lo programado, salud, control de gasto) siguen activas siempre.</p>`
+    : '';
+  return `${head}
+    <div class="v2-card v2-card-pad">
+      <div class="v2-card-head">
+        <strong>${master.enabled} de ${master.total} encendidas</strong>
+        <button class="v2-btn v2-btn-outline v2-btn-sm" type="button" data-fn-master="${todoApagado ? 'on' : 'off'}">${todoApagado ? 'Encender las que el plan permite' : 'Apagar todas'}</button>
+      </div>
+      <ul class="v2-fn-lista">${snap.bots.map(funcionFilaHtml).join('')}</ul>
+      ${infra}
+    </div>`;
+};
+
+const ejecutarAccionAprobada = (tipo, valor, root) => {
+  if (!valor) return;
+  if (tipo === 'conectar') {
+    window.location.href = ccLoginUrl(valor);
+    return;
+  }
+  if (tipo === 'tab') {
+    root.querySelector(`.v2-tab[data-tab="${valor}"]`)?.click();
+    return;
+  }
+  window.location.hash = `#${valor}`;
+};
+
+const wireAprobaciones = (sec, root, repaint) => {
+  sec.addEventListener('click', async (e) => {
+    const ir = e.target.closest('[data-sa-ir]');
+    if (ir && sec.contains(ir)) {
+      root.querySelector(`.v2-tab[data-tab="${ir.dataset.saIr}"]`)?.click();
+      return;
+    }
+    const btn = e.target.closest('[data-sa-accion]');
+    if (!btn || !sec.contains(btn)) return;
+    const item = btn.closest('[data-sa-id]');
+    const aceptar = btn.dataset.saAccion === 'aceptar';
+    const propuesta = item.dataset.saTipo === 'propuesta';
+    const ruta = propuesta ? '/api/executive/proposals/resolver' : '/api/executive/decisions/resolve';
+    const cuerpo = propuesta
+      ? { id: item.dataset.saId, estado: aceptar ? 'aceptada' : 'descartada' }
+      : { decisionId: item.dataset.saId, status: aceptar ? 'approved' : 'rejected' };
+    sec.querySelectorAll('button').forEach((b) => (b.disabled = true));
+    try {
+      await api(ruta, { body: cuerpo });
+    } catch {
+      sec.querySelectorAll('button').forEach((b) => (b.disabled = false));
+      toast('No se pudo guardar. Probá de nuevo.', 'err');
+      return;
+    }
+    toast(aceptar ? 'Aceptada' : 'Descartada', aceptar ? 'ok' : 'info');
+    await repaint();
+    if (aceptar) ejecutarAccionAprobada(btn.dataset.accionTipo, btn.dataset.accionValor, root);
+  });
+};
+
+const wireFunciones = (sec) => {
+  sec.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-fn-id], [data-fn-master]');
+    if (!btn || !sec.contains(btn) || btn.disabled) return;
+    const esMaster = btn.hasAttribute('data-fn-master');
+    const ruta = esMaster ? '/api/bots/master' : `/api/bots/${encodeURIComponent(btn.dataset.fnId)}/state`;
+    const enabled = esMaster ? btn.dataset.fnMaster === 'on' : btn.getAttribute('aria-checked') !== 'true';
+    sec.querySelectorAll('button').forEach((b) => (b.disabled = true));
+    try {
+      const snap = await api(ruta, { method: 'POST', body: { enabled }, noCache: true });
+      sec.innerHTML = funcionesInner(snap);
+      window.dispatchEvent(new CustomEvent('feedia:bots-refresh'));
+      if (esMaster && snap.skippedLocked?.length) {
+        toast(`${snap.skippedLocked.length} función(es) necesitan un plan superior.`, 'warn');
+      }
+    } catch (err) {
+      sec.querySelectorAll('button').forEach((b) => (b.disabled = false));
+      if (err.code === 'tier-required') {
+        toast(
+          `Esta función necesita el plan ${TIER_LABEL[err.payload?.requiredTier] ?? 'superior'} o superior.`,
+          'warn',
+        );
+      } else {
+        toast('No se pudo cambiar. Probá de nuevo.', 'err');
+      }
+    }
+  });
+};
+
 /* ──── Resumen ejecutivo (Sala Ejecutiva) ──── */
 const renderSummary = async (b) => {
   const staffActivos = (b.staff || []).filter((s) => s.estado === 'operando').length;
   const ascenso = b.ascenso
     ? `<div class="v2-ascenso">🎉 <strong>¡Ascendiste!</strong> Subiste de <strong>${escape(b.ascenso.de)}</strong> a <strong>${escape(b.ascenso.a)}</strong>.</div>`
     : '';
-  const { data: growth } = await apiSafe('/api/growth/summary', null);
+  const [{ data: growth }, { data: decisiones }, { data: propuestas }, { data: bots }] = await Promise.all([
+    apiSafe('/api/growth/summary', null),
+    apiSafe('/api/executive/decisions/pending', [], { noCache: true }),
+    apiSafe('/api/executive/proposals', [], { noCache: true }),
+    apiSafe('/api/bots', null, { noCache: true }),
+  ]);
   return `
     ${ascenso}
 
@@ -243,6 +442,12 @@ const renderSummary = async (b) => {
         <div class="v2-tier-progress-bar"><div style="width:${b.tierProgresoPct || 0}%;"></div></div>
       </div>
     </header>
+
+    <!-- APROBACIONES -->
+    <section class="v2-section" id="sum-aprobaciones">${aprobacionesInner(Array.isArray(decisiones) ? decisiones : [], Array.isArray(propuestas) ? propuestas : [])}</section>
+
+    <!-- FUNCIONES ON/OFF -->
+    <section class="v2-section" id="sum-funciones">${funcionesInner(bots)}</section>
 
     <!-- KPI grid -->
     <section class="v2-section">
@@ -2213,6 +2418,32 @@ export const renderImperio = async (root) => {
 
       .v2-ascenso{margin-bottom:16px;padding:14px 18px;border-radius:12px;text-align:center;font-size:14px;color:#fff;background:linear-gradient(90deg,#e1306c,#a855f7,#22d3ee);}
 
+      /* Aprobaciones (Resumen) */
+      .v2-apr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;}
+      .v2-apr-lista{display:flex;flex-direction:column;gap:10px;}
+      .v2-apr-item{padding:14px;border-radius:12px;background:var(--v2-hover);display:flex;flex-direction:column;gap:8px;}
+      .v2-apr-cab{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+      .v2-apr-origen{font-size:11px;font-weight:600;color:var(--v2-fg-3);letter-spacing:-0.005em;}
+      .v2-apr-titulo{font-size:14px;font-weight:600;color:var(--v2-fg);line-height:1.35;letter-spacing:-0.015em;}
+      .v2-apr-texto{margin:0;font-size:12.5px;line-height:1.5;color:var(--v2-fg-2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+      .v2-apr-acciones{display:flex;justify-content:flex-end;gap:8px;margin-top:2px;}
+      .v2-apr-vacio{padding:18px;border-radius:12px;background:var(--v2-hover);font-size:13px;line-height:1.5;color:var(--v2-fg-3);}
+
+      /* Funciones ON/OFF (Resumen) */
+      .v2-fn-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+      .v2-fn-fila{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 14px;border-radius:10px;background:var(--v2-hover);}
+      .v2-fn-texto{display:flex;flex-direction:column;gap:3px;min-width:0;}
+      .v2-fn-nombre{font-size:13px;font-weight:600;color:var(--v2-fg);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+      .v2-fn-control{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+      .v2-fn-estado{font-size:11.5px;font-weight:600;color:var(--v2-fg-3);min-width:110px;text-align:right;}
+      .v2-fn-estado.is-on{color:#34d399;}
+      .v2-fn-switch{position:relative;width:44px;height:24px;border-radius:999px;border:0;padding:0;cursor:pointer;background:var(--v2-line-strong);transition:background .2s;flex-shrink:0;}
+      .v2-fn-switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .2s;}
+      .v2-fn-switch[aria-checked="true"]{background:#34d399;}
+      .v2-fn-switch[aria-checked="true"]::after{transform:translateX(20px);}
+      .v2-fn-switch:disabled{opacity:.4;cursor:not-allowed;}
+      @media (max-width:720px){.v2-fn-fila{flex-direction:column;align-items:flex-start;}.v2-fn-control{width:100%;justify-content:space-between;}.v2-fn-estado{min-width:0;text-align:left;}}
+
       @media (max-width: 720px){
         .v2-h1{font-size:30px;}
         .v2-hero{padding:22px;}
@@ -2299,6 +2530,11 @@ export const renderImperio = async (root) => {
 
     wireOKRs(body, root, repaint);
     wireAutopilot(body, repaint);
+
+    const secAprobaciones = body.querySelector('#sum-aprobaciones');
+    if (secAprobaciones) wireAprobaciones(secAprobaciones, root, repaint);
+    const secFunciones = body.querySelector('#sum-funciones');
+    if (secFunciones) wireFunciones(secFunciones);
 
     body.querySelectorAll('[data-cc-tab]').forEach((btn) => {
       btn.addEventListener('click', () => {
