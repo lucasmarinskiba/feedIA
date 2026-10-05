@@ -32,14 +32,27 @@ const ESTILOS = `<style>
   .sc-cifras{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;}
   .sc-cifra{padding:12px;border-radius:12px;border:1px solid var(--border,rgba(255,255,255,.08));background:var(--bg-card,#0f0f10);}
   .sc-cifra span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-tertiary,#a1a1aa);}
-  .sc-cifra strong{font-size:20px;letter-spacing:-0.02em;}
+  .sc-cifra strong{display:block;font-size:24px;line-height:1.1;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;margin-top:6px;}
+  .sc-cifra small{display:block;margin-top:6px;font-size:11.5px;color:var(--text-tertiary,#a1a1aa);}
+  .sc-cifra{border-top:3px solid transparent;}
+  .sc-acento-verde{border-top-color:#34d399 !important;}
+  .sc-acento-rojo{border-top-color:#f87171 !important;}
+  .sc-acento-gris{border-top-color:#a1a1aa !important;}
+  .sc-acento-naranja{border-top-color:#fdba74 !important;}
+  .sc-acento-neutro{border-top-color:#60a5fa !important;}
+  .sc-prox{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  .sc-prox li{display:grid;grid-template-columns:150px minmax(160px,auto) 1fr;gap:12px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--bg-hover,rgba(255,255,255,.03));font-size:12.5px;}
+  .sc-prox-hora{font-weight:700;font-variant-numeric:tabular-nums;color:#fdba74;}
+  .sc-prox code{font-size:12.5px;}
+  @media (max-width:820px){ .sc-prox li{grid-template-columns:1fr;gap:4px;} }
   .sc-barra{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
-  .sc-buscar{flex:1;min-width:200px;max-width:340px;background:var(--bg-hover,rgba(255,255,255,.04));border:1px solid var(--border,rgba(255,255,255,.1));border-radius:10px;padding:9px 12px;color:inherit;font:inherit;font-size:13.5px;}
+  .sc-barra .sc-chips{flex:1 1 auto;justify-content:flex-end;min-width:0;}
+  .sc-buscar{flex:1 1 220px;min-width:180px;max-width:340px;background:var(--bg-hover,rgba(255,255,255,.04));border:1px solid var(--border,rgba(255,255,255,.1));border-radius:10px;padding:9px 12px;color:inherit;font:inherit;font-size:13.5px;}
   .sc-chips{display:flex;gap:6px;flex-wrap:wrap;}
   .sc-chip{border:1px solid var(--border,rgba(255,255,255,.1));background:transparent;color:var(--text-secondary,#d4d4d8);padding:6px 11px;border-radius:999px;font-size:12px;cursor:pointer;}
   .sc-chip.on{background:#fdba74;color:#111;border-color:#fdba74;}
   .sc-lista{display:flex;flex-direction:column;gap:10px;}
-  .sc-job{border:1px solid var(--border,rgba(255,255,255,.08));border-radius:14px;padding:14px 16px;background:var(--bg-card,#0f0f10);display:grid;grid-template-columns:minmax(200px,1.4fr) minmax(180px,1fr) minmax(160px,1fr) auto;gap:14px;align-items:center;}
+  .sc-job{border:1px solid var(--border,rgba(255,255,255,.08));border-left:3px solid var(--sc-color,transparent);border-radius:14px;padding:14px 16px;background:var(--bg-card,#0f0f10);display:grid;grid-template-columns:minmax(200px,1.4fr) minmax(180px,1fr) minmax(160px,1fr) auto;gap:14px;align-items:center;}
   .sc-job.pausado{opacity:.7;}
   .sc-nombre{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;font-weight:700;word-break:break-all;}
   .sc-desc{font-size:12px;color:var(--text-tertiary,#a1a1aa);line-height:1.5;margin-top:3px;}
@@ -135,13 +148,42 @@ const avisoHtml = () => {
 const cifrasHtml = () => {
   const r = state.datos?.resumen;
   if (!r) return '';
-  return `
-    <div class="sc-cifra"><span>Jobs</span><strong>${r.total}</strong></div>
-    <div class="sc-cifra"><span>Activos</span><strong>${r.activos}</strong></div>
-    <div class="sc-cifra"><span>Pausados</span><strong>${r.pausados}</strong></div>
-    <div class="sc-cifra"><span>Con error</span><strong>${r.conError}</strong></div>
-    <div class="sc-cifra"><span>Ejecuciones 24 h</span><strong>${r.ejecuciones24h}</strong><small class="sc-ayuda">${r.errores24h} con error</small></div>
-    <div class="sc-cifra"><span>Próxima</span><strong style="font-size:15px;">${escape(fechaHora(r.proximaEjecucion))}</strong></div>`;
+  const tarjeta = (titulo, valor, detalle, acento) =>
+    `<div class="sc-cifra sc-acento-${acento}"><span>${titulo}</span><strong>${valor}</strong><small>${detalle}</small></div>`;
+  return [
+    tarjeta('Jobs', r.total, `${r.activos} activos`, 'neutro'),
+    tarjeta('Pausados', r.pausados, r.pausados ? 'no se ejecutan' : 'todos activos', r.pausados ? 'gris' : 'verde'),
+    tarjeta(
+      'Con error',
+      r.conError,
+      r.conError ? 'revisá el historial' : 'sin fallas recientes',
+      r.conError ? 'rojo' : 'verde',
+    ),
+    tarjeta(
+      'Ejecuciones 24 h',
+      r.ejecuciones24h,
+      r.ejecuciones24h === 0 ? 'sin ejecuciones' : r.errores24h ? `${r.errores24h} con error` : 'todas OK',
+      r.errores24h ? 'rojo' : 'verde',
+    ),
+    tarjeta('Próxima', escape(fechaHora(r.proximaEjecucion)), 'en la zona de la marca', 'naranja'),
+  ].join('');
+};
+
+const proximasHtml = () => {
+  const jobs = (state.datos?.jobs ?? [])
+    .filter((j) => j.habilitado && j.proximaEjecucion)
+    .sort((a, b) => Date.parse(a.proximaEjecucion) - Date.parse(b.proximaEjecucion))
+    .slice(0, 8);
+  if (jobs.length === 0) return '<div class="sc-vacio">No hay ejecuciones programadas.</div>';
+  return `<ol class="sc-prox">${jobs
+    .map(
+      (j) => `<li>
+        <span class="sc-prox-hora">${escape(fechaHora(j.proximaEjecucion))}</span>
+        <code>${escape(j.nombre)}</code>
+        <span class="sc-ayuda">${escape(j.cronLegible)}</span>
+      </li>`,
+    )
+    .join('')}</ol>`;
 };
 
 const editorHtml = (job) => `
@@ -164,7 +206,7 @@ const jobHtml = (job) => {
     : 'Sin ejecuciones registradas';
   const editando = state.editando === job.nombre;
   return `
-    <article class="sc-job ${job.habilitado ? '' : 'pausado'}" data-job="${escape(job.nombre)}">
+    <article class="sc-job ${job.habilitado ? '' : 'pausado'}" data-job="${escape(job.nombre)}" style="--sc-color:${estado.color}">
       <div>
         <div class="sc-nombre">${escape(job.nombre)}</div>
         <div class="sc-desc">${escape(job.descripcion)}</div>
@@ -233,6 +275,8 @@ const pintar = (root) => {
         `<button class="sc-chip ${state.filtro === f.id ? 'on' : ''}" data-sc-accion="filtro" data-filtro="${f.id}">${escape(f.label)}</button>`,
     ).join('');
   }
+  const proximas = root.querySelector('#sc-proximas');
+  if (proximas) proximas.innerHTML = proximasHtml();
   const lista = root.querySelector('#sc-lista');
   if (lista) lista.innerHTML = listaHtml();
   const historial = root.querySelector('#sc-historial');
@@ -308,6 +352,10 @@ const montarEstructura = (root) => {
         <input class="sc-buscar" id="sc-buscar" type="search" placeholder="Buscar job…" value="" aria-label="Buscar job" />
         <div class="sc-chips" id="sc-chips"></div>
       </div>
+      <section class="sc-bloque">
+        <h3>Próximas ejecuciones</h3>
+        <div id="sc-proximas"></div>
+      </section>
       <div class="sc-lista" id="sc-lista"></div>
       <section class="sc-bloque">
         <h3>Historial de ejecuciones</h3>
