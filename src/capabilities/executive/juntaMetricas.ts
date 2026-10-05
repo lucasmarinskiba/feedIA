@@ -410,6 +410,10 @@ export const resumenDecisiones = (
 /** Lecturas de la cola: qué esperar, qué tan rápido respondés y qué agentes aciertan o no. */
 export const lecturasDecisiones = (r: ResumenDecisiones): AccionJunta[] => {
   const out: AccionJunta[] = [];
+  if (r.criticas > 0)
+    out.push({ tono: 'alerta', texto: `${r.criticas} decisión(es) crítica(s) esperan tu respuesta.` });
+  else if (r.pendientes > 0)
+    out.push({ tono: 'atencion', texto: `${r.pendientes} decisión(es) pendiente(s) en la cola.` });
   if (r.esperandoMas24h > 0)
     out.push({ tono: 'alerta', texto: `${r.esperandoMas24h} decisión(es) llevan más de 24 h sin respuesta.` });
   if (r.tiempoRespuestaMin > 240)
@@ -893,48 +897,113 @@ export const resumenProgramacion = (datos: {
   return { tono, titular, acciones: acciones.slice(0, 4) };
 };
 
-export interface MensajeJunta {
-  tono: 'alerta' | 'atencion' | 'bien';
-  texto: string;
+export type AreaJunta = 'decisiones' | 'programacion' | 'proyectos' | 'estrategias' | 'numeros';
+
+const ETIQUETA_AREA: Record<AreaJunta, string> = {
+  decisiones: 'Decisiones',
+  programacion: 'Programación',
+  proyectos: 'Proyectos',
+  estrategias: 'Estrategias y objetivos',
+  numeros: 'Números comparativos',
+};
+
+const ORDEN_AREAS: readonly AreaJunta[] = ['decisiones', 'programacion', 'proyectos', 'estrategias', 'numeros'];
+const RANGO_TONO: Record<TonoJunta, number> = { alerta: 0, atencion: 1, bien: 2, neutral: 3 };
+const MENSAJES_POR_AREA = 4;
+
+export interface GrupoMensajesJunta {
+  area: AreaJunta;
+  etiqueta: string;
+  mensajes: AccionJunta[];
 }
 
-/** Mensajes de la junta: tres a cinco lecturas accionables, en orden de importancia. */
-export const mensajesJunta = (datos: {
-  decisiones: ResumenDecisiones;
-  diagnostico: DiagnosticoProgramacion | null;
-  arrastre: EfectoArrastre;
-  okrPeorBrecha: string | null;
-  seguidoresCrecimientoPct: number | null;
-}): MensajeJunta[] => {
-  const out: MensajeJunta[] = [];
-  const d = datos.decisiones;
-  if (d.criticas > 0)
-    out.push({ tono: 'alerta', texto: `${d.criticas} decisión(es) crítica(s) esperan tu respuesta.` });
-  else if (d.pendientes > 0)
-    out.push({ tono: 'atencion', texto: `${d.pendientes} decisión(es) pendiente(s) en la cola.` });
-  const g = datos.diagnostico;
-  if (g) {
-    if (g.vencidos > 0)
-      out.push({
-        tono: 'alerta',
-        texto: `${g.vencidos} publicación(es) programadas se pasaron de hora sin publicarse.`,
-      });
-    if (g.fallidosUltimos14Dias > 0)
-      out.push({
-        tono: 'alerta',
-        texto: `${g.fallidosUltimos14Dias} publicación(es) fallaron en los últimos 14 días.`,
-      });
-    if (g.proximos14Dias === 0) out.push({ tono: 'atencion', texto: 'La agenda de los próximos 14 días está vacía.' });
-  }
-  if (datos.arrastre.lectura && datos.arrastre.diferenciaPct !== null) {
-    out.push({ tono: datos.arrastre.diferenciaPct >= 0 ? 'bien' : 'atencion', texto: datos.arrastre.lectura });
-  }
-  if (datos.okrPeorBrecha) out.push({ tono: 'atencion', texto: datos.okrPeorBrecha });
-  if (datos.seguidoresCrecimientoPct !== null) {
+export interface MensajesJunta {
+  tono: TonoJunta;
+  titular: string;
+  grupos: GrupoMensajesJunta[];
+}
+
+/** Informe de la junta: titular de la situación y lecturas por área, las urgentes primero. */
+export const mensajesJunta = (porArea: Partial<Record<AreaJunta, AccionJunta[]>>): MensajesJunta => {
+  const grupos = ORDEN_AREAS.map((area) => ({
+    area,
+    etiqueta: ETIQUETA_AREA[area],
+    mensajes: [...(porArea[area] ?? [])]
+      .sort((a, b) => RANGO_TONO[a.tono] - RANGO_TONO[b.tono])
+      .slice(0, MENSAJES_POR_AREA),
+  })).filter((g) => g.mensajes.length > 0);
+  const todos = grupos.flatMap((g) => g.mensajes);
+  const alertas = todos.filter((m) => m.tono === 'alerta').length;
+  const atenciones = todos.filter((m) => m.tono === 'atencion').length;
+  const tono: TonoJunta = alertas > 0 ? 'alerta' : atenciones > 0 ? 'atencion' : 'bien';
+  const titular =
+    alertas > 0
+      ? `${alertas} asunto(s) urgente(s)${atenciones > 0 ? ` y ${atenciones} para revisar` : ''}.`
+      : atenciones > 0
+        ? `Nada urgente: ${atenciones} asunto(s) para revisar.`
+        : 'Todo en orden: no hay nada urgente ni pendiente.';
+  return { tono, titular, grupos };
+};
+
+export const lecturasProyectos = (
+  lista: Array<{ nombre: string; analisis: AnalisisProyecto }>,
+  resumen: ResumenProyectos,
+): AccionJunta[] => {
+  const out: AccionJunta[] = [];
+  for (const p of lista.filter((x) => x.analisis.etiqueta === 'Vencido').slice(0, 2))
+    out.push({ tono: 'alerta', texto: `«${p.nombre}» venció con tareas sin hacer: cerralo o reprogramalo.` });
+  for (const p of lista.filter((x) => x.analisis.etiqueta === 'Atrasado').slice(0, 2))
     out.push({
-      tono: datos.seguidoresCrecimientoPct >= 0 ? 'bien' : 'alerta',
-      texto: `Seguidores: ${datos.seguidoresCrecimientoPct >= 0 ? '+' : ''}${datos.seguidoresCrecimientoPct} % en el período.`,
+      tono: 'atencion',
+      texto: `«${p.nombre}» va atrasado: ${p.analisis.progresoRealPct} % hecho frente a ${p.analisis.progresoEsperadoPct ?? 0} % esperado.`,
     });
-  }
-  return out.slice(0, 5);
+  if (resumen.total === 0)
+    out.push({
+      tono: 'neutral',
+      texto: 'No tenés proyectos. Creá una serie o campaña para organizar tareas y fechas.',
+    });
+  else if (resumen.enCurso === 0 && resumen.completados < resumen.total)
+    out.push({
+      tono: 'atencion',
+      texto: 'Ningún proyecto está en curso: arrancá uno o pausá los que no vas a seguir.',
+    });
+  return out;
+};
+
+export interface ObjetivoJunta {
+  titulo: string;
+  estado: string;
+  progresoPct: number;
+  progresoEsperadoPct: number | null;
+  recomendaciones: string[];
+}
+
+export const lecturasEstrategias = (objetivos: ObjetivoJunta[]): AccionJunta[] => {
+  if (objetivos.length === 0)
+    return [{ tono: 'neutral', texto: 'No hay objetivos activos. Definí OKR para medir la estrategia.' }];
+  const out: AccionJunta[] = [];
+  for (const o of objetivos.filter((x) => x.estado === 'behind').slice(0, 2))
+    out.push({
+      tono: 'alerta',
+      texto: `«${o.titulo}» está atrasado: ${o.progresoPct} % frente a ${o.progresoEsperadoPct ?? 0} % esperado.`,
+    });
+  for (const o of objetivos.filter((x) => x.estado === 'at-risk').slice(0, 2))
+    out.push({
+      tono: 'atencion',
+      texto: `«${o.titulo}» está en riesgo: ${o.progresoPct} % frente a ${o.progresoEsperadoPct ?? 0} % esperado.`,
+    });
+  const peor = objetivos.find((x) => x.estado === 'behind') ?? objetivos.find((x) => x.estado === 'at-risk');
+  const recomendacion = peor?.recomendaciones[0];
+  if (peor && recomendacion) out.push({ tono: 'atencion', texto: `Para «${peor.titulo}»: ${recomendacion}` });
+  if (out.length === 0) out.push({ tono: 'bien', texto: 'Todos los objetivos van en camino o adelantados.' });
+  return out;
+};
+
+export const lecturasNumeros = (lecturas: AccionJunta[], crecimientoPct: number | null): AccionJunta[] => {
+  if (crecimientoPct === null) return lecturas;
+  const crecimiento: AccionJunta = {
+    tono: crecimientoPct >= 0 ? 'bien' : 'alerta',
+    texto: `Seguidores: ${crecimientoPct >= 0 ? '+' : ''}${crecimientoPct} % en el período.`,
+  };
+  return [...lecturas, crecimiento];
 };

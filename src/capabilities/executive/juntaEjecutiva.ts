@@ -20,6 +20,9 @@ import {
   etiquetasOKR,
   franjasPorPlataforma,
   lecturasDecisiones,
+  lecturasEstrategias,
+  lecturasNumeros,
+  lecturasProyectos,
   mejoresDias,
   mensajesJunta,
   progresoEsperado,
@@ -152,24 +155,40 @@ export const construirJunta = async (cuentasId: string, plataformaId: string, us
   const seguidoresCrec =
     crecimientoPct(igAnalytics?.cuenta.crecimiento) ?? crecimientoPct(ttAnalytics?.cuenta.crecimiento);
 
-  const peorBrecha = okr.valor?.topConcern
-    ? `Va atrasado: «${okr.valor.topConcern.krDescription}» en «${okr.valor.topConcern.objectiveTitle}» (brecha ${okr.valor.topConcern.gap.toFixed(0)} %).`
-    : null;
-
-  const mensajes = decResumenFinal
-    ? mensajesJunta({
-        decisiones: decResumenFinal,
-        diagnostico,
-        arrastre,
-        okrPeorBrecha: peorBrecha,
-        seguidoresCrecimientoPct: seguidoresCrec,
-      })
-    : [];
-
   const proyectosAnalizados = (proyectos.valor ?? []).map((p) => ({
     ...p,
     progreso: progresoProyecto(p),
     analisis: analizarProyecto(p, ahora),
+  }));
+  const proyectosResumen = resumenProyectos(proyectosAnalizados);
+
+  const objetivosJunta = (objetivos.valor ?? []).map((o) => ({
+    id: o.id,
+    titulo: o.title,
+    porque: o.porque,
+    categoria: o.category,
+    periodo: etiquetasOKR.periodo(o.period),
+    inicio: o.periodStart,
+    fin: o.periodEnd,
+    estado: o.status,
+    estadoLabel: etiquetasOKR.estado(o.status),
+    progresoPct: Math.round(o.overallProgressPct),
+    progresoEsperadoPct: progresoEsperado(o.periodStart, o.periodEnd, ahora),
+    semanasRestantes: o.weeksRemaining,
+    recomendaciones: o.recommendations,
+    resultados: o.keyResults.map((k) => ({
+      descripcion: k.description,
+      actual: k.current,
+      meta: k.target,
+      unidad: k.unidad,
+      progresoPct: Math.round(k.progressPct),
+      estado: k.status,
+      estadoLabel: etiquetasOKR.estado(k.status),
+      fuente: etiquetasOKR.fuente(k.fuente),
+      tendencia: etiquetasOKR.tendencia(k.trend),
+      proyeccionFinal: Math.round(k.projectedFinal * 100) / 100,
+      llegaMeta: k.projectedHitsTarget,
+    })),
   }));
 
   const cuentas: Record<PlataformaJunta, CuentaPlataforma> = {
@@ -182,6 +201,15 @@ export const construirJunta = async (cuentasId: string, plataformaId: string, us
       crecimientoPct: crecimientoPct(ttAnalytics?.cuenta.crecimiento),
     },
   };
+  const comparativa = comparativaPlataformas(posts, cuentas, ahora);
+
+  const mensajes = mensajesJunta({
+    decisiones: decResumenFinal ? lecturasDecisiones(decResumenFinal) : [],
+    programacion: resumen.acciones,
+    proyectos: lecturasProyectos(proyectosAnalizados, proyectosResumen),
+    estrategias: lecturasEstrategias(objetivosJunta),
+    numeros: lecturasNumeros(comparativa.lecturas, seguidoresCrec),
+  });
 
   return {
     generadoEn: new Date(ahora).toISOString(),
@@ -239,39 +267,12 @@ export const construirJunta = async (cuentasId: string, plataformaId: string, us
       semanas: serieSemanal(posts, 8, ahora),
     },
     proyectos: {
-      resumen: resumenProyectos(proyectosAnalizados),
+      resumen: proyectosResumen,
       lista: proyectosAnalizados,
     },
     estrategias: {
       resumen: okr.valor,
-      objetivos: (objetivos.valor ?? []).map((o) => ({
-        id: o.id,
-        titulo: o.title,
-        porque: o.porque,
-        categoria: o.category,
-        periodo: etiquetasOKR.periodo(o.period),
-        inicio: o.periodStart,
-        fin: o.periodEnd,
-        estado: o.status,
-        estadoLabel: etiquetasOKR.estado(o.status),
-        progresoPct: Math.round(o.overallProgressPct),
-        progresoEsperadoPct: progresoEsperado(o.periodStart, o.periodEnd, ahora),
-        semanasRestantes: o.weeksRemaining,
-        recomendaciones: o.recommendations,
-        resultados: o.keyResults.map((k) => ({
-          descripcion: k.description,
-          actual: k.current,
-          meta: k.target,
-          unidad: k.unidad,
-          progresoPct: Math.round(k.progressPct),
-          estado: k.status,
-          estadoLabel: etiquetasOKR.estado(k.status),
-          fuente: etiquetasOKR.fuente(k.fuente),
-          tendencia: etiquetasOKR.tendencia(k.trend),
-          proyeccionFinal: Math.round(k.projectedFinal * 100) / 100,
-          llegaMeta: k.projectedHitsTarget,
-        })),
-      })),
+      objetivos: objetivosJunta,
     },
     numeros: {
       seguidores: {
@@ -289,7 +290,7 @@ export const construirJunta = async (cuentasId: string, plataformaId: string, us
         tiktok: posts.filter((p) => p.plataforma === 'tiktok' && Date.parse(p.publicadoEn) >= ahora - 30 * DIA_MS)
           .length,
       },
-      comparativa: comparativaPlataformas(posts, cuentas, ahora),
+      comparativa,
     },
   };
 };

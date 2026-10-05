@@ -174,39 +174,14 @@ describe('resumenDecisiones y mensajes', () => {
     expect(r.criticas).toBe(1);
   });
 
-  it('prioriza alertas críticas y limita a cinco mensajes', () => {
+  it('agrupa las lecturas por área y titula según urgencia', () => {
     const msgs = mensajesJunta({
-      decisiones: resumenDecisiones(
-        {
-          pending: 4,
-          approved: 0,
-          rejected: 0,
-          avgResolutionMinutes: 0,
-          byUrgency: { critical: 2 },
-          bySourceResolution: {},
-        },
-        [],
-        AHORA,
-      ),
-      diagnostico: {
-        proximos14Dias: 0,
-        vencidos: 2,
-        fallidosUltimos14Dias: 1,
-        disciplinaPct: null,
-        porDia: [],
-        porFormato: [],
-      },
-      arrastre: {
-        conArrastre: { n: 0, medianaTasa: null },
-        sinArrastre: { n: 0, medianaTasa: null },
-        diferenciaPct: null,
-        lectura: '',
-      },
-      okrPeorBrecha: 'Va atrasado',
-      seguidoresCrecimientoPct: -2,
+      decisiones: [{ tono: 'alerta', texto: 'x' }],
+      programacion: [{ tono: 'atencion', texto: 'y' }],
     });
-    expect(msgs[0]?.tono).toBe('alerta');
-    expect(msgs.length).toBeLessThanOrEqual(5);
+    expect(msgs.tono).toBe('alerta');
+    expect(msgs.titular).toBe('1 asunto(s) urgente(s) y 1 para revisar.');
+    expect(msgs.grupos.map((g) => g.area)).toEqual(['decisiones', 'programacion']);
   });
 });
 

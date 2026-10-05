@@ -97,6 +97,11 @@ const ESTILOS = `<style>
   .jt-plan-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;}
   .jt-cupo{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:10px;background:var(--bg-hover,rgba(255,255,255,.04));margin-top:8px;}
   .jt-cupo-cab{display:flex;justify-content:space-between;gap:8px;font-size:13px;}
+  .jt-mensajes-titular{font-size:15px;font-weight:700;}
+  .jt-mensajes-area{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+  .jt-mensajes-cab{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .jt-ancla{font-size:12px;color:#fdba74;text-decoration:none;white-space:nowrap;}
+  .jt-ancla:hover{text-decoration:underline;}
   .jt-sub-tit{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--text-tertiary,#a1a1aa);margin-top:4px;}
   @media (max-width:720px){ .jt-fila{grid-template-columns:1fr;} .jt-acciones{justify-content:flex-start;} .jt-agenda-item{grid-template-columns:52px 1fr;} }
 </style>`;
@@ -130,14 +135,35 @@ const barra = (valor, max, color) => {
 const cifra = (titulo, valor, detalle = '', color = '#60a5fa') =>
   `<div class="jt-cifra" style="border-top-color:${color};"><span>${escape(titulo)}</span><b>${escape(String(valor))}</b>${detalle ? `<small>${escape(detalle)}</small>` : ''}</div>`;
 
-const mensajesHtml = (mensajes) => {
-  if (!mensajes?.length) return '<div class="jt-vacio">Sin novedades que destacar por ahora.</div>';
-  return `<div class="jt-mensajes">${mensajes
-    .map((m) => {
-      const t = TONO[m.tono] ?? TONO.atencion;
-      return `<div class="jt-mensaje" style="color:${t.color};background:${t.fondo};">${t.icono} ${escape(m.texto)}</div>`;
-    })
-    .join('')}</div>`;
+const AREA_JT = {
+  decisiones: 'decisiones',
+  programacion: 'programacion',
+  proyectos: 'proyectos',
+  estrategias: 'estrategias',
+  numeros: 'numeros',
+};
+
+const mensajesHtml = (m) => {
+  if (!m) return '<div class="jt-vacio">Sin novedades que destacar por ahora.</div>';
+  const t = tonoDe(m.tono);
+  const grupos = m.grupos
+    .map(
+      (g) => `<div class="jt-mensajes-area">
+        <div class="jt-mensajes-cab">
+          <span class="jt-sub-tit">${escape(g.etiqueta)}</span>
+          <a href="#jt-${AREA_JT[g.area]}" data-jt-ancla="${AREA_JT[g.area]}" class="jt-ancla">Ver sección ›</a>
+        </div>
+        ${g.mensajes
+          .map((x) => {
+            const tt = tonoDe(x.tono);
+            return `<div class="jt-mensaje" style="color:${tt.color};background:${tt.fondo};">${tt.icono} ${escape(x.texto)}</div>`;
+          })
+          .join('')}
+      </div>`,
+    )
+    .join('');
+  return `<div class="jt-mensajes-titular" style="color:${t.color};">${t.icono} ${escape(m.titular)}</div>
+    ${grupos || '<div class="jt-vacio">Nada que señalar.</div>'}`;
 };
 
 const URGENCIA_DECISION = {
