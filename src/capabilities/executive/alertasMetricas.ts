@@ -12,7 +12,9 @@ export type FuenteAlerta =
   | 'produccion'
   | 'economia'
   | 'auditoria'
-  | 'autopilot';
+  | 'autopilot'
+  | 'programacion'
+  | 'plan';
 
 export interface AccionAlerta {
   label: string;
@@ -58,6 +60,9 @@ export interface DatosAlertas {
     severidad: 'critical' | 'high' | 'medium' | 'low';
     evidencia: string;
   }>;
+  programacion: { disponible: boolean; vencidas: number; fallidas14d: number; proximos14d: number };
+  plan: Array<{ formato: string; etiqueta: string; limite: number; restantes: number; pctUsado: number }>;
+  interaccion: Array<{ plataforma: 'instagram' | 'tiktok'; variacionTasaPct: number | null; publicaciones30d: number }>;
 }
 
 const NOMBRE_RED = { instagram: 'Instagram', tiktok: 'TikTok' } as const;
@@ -68,6 +73,8 @@ const MIN_POSTS_INTERACCION = 5;
 const UMBRAL_REVISION = 5;
 const UMBRAL_BANDEJA = 10;
 const PUNTAJE_CRITICO_AUDITORIA = 40;
+const UMBRAL_CUPO_CASI_AGOTADO = 80;
+const UMBRAL_CAIDA_INTERACCION_PCT = -15;
 
 const miles = (n: number): string => Math.round(n).toLocaleString('es-AR');
 
@@ -101,6 +108,8 @@ const ACCION_INBOX: AccionAlerta = { label: 'Abrir inbox', tipo: 'ruta', valor: 
 const ACCION_COMANDOS: AccionAlerta = { label: 'Ver centro de comandos', tipo: 'tab', valor: 'commandCenter' };
 const ACCION_REPORTES: AccionAlerta = { label: 'Ver reporte', tipo: 'ruta', valor: 'reportes' };
 const ACCION_AUDIT: AccionAlerta = { label: 'Ver auditoría', tipo: 'tab', valor: 'audit' };
+const ACCION_PROGRAMACION: AccionAlerta = { label: 'Ver programación', tipo: 'tab', valor: 'summary' };
+const ACCION_PLAN: AccionAlerta = { label: 'Ver plan y cupo', tipo: 'tab', valor: 'summary' };
 
 const reglasCuentas = (datos: DatosAlertas, cuando: string): Alerta[] => {
   const out: Alerta[] = [];
@@ -185,8 +194,110 @@ const reglasCuentas = (datos: DatosAlertas, cuando: string): Alerta[] => {
   return out;
 };
 
+const reglasProgramacion = (datos: DatosAlertas, cuando: string): Alerta[] => {
+  const p = datos.programacion;
+  if (!p.disponible) return [];
+  const out: Alerta[] = [];
+  if (p.vencidas > 0)
+    out.push(
+      alerta(
+        'programacion',
+        'vencidas',
+        'alta',
+        `${p.vencidas} publicación(es) pasaron su hora sin salir`,
+        'Reprogramalas o publicalas a mano desde el calendario.',
+        ACCION_PROGRAMACION,
+        cuando,
+      ),
+    );
+  if (p.fallidas14d > 0)
+    out.push(
+      alerta(
+        'programacion',
+        'fallidas',
+        'alta',
+        `${p.fallidas14d} publicación(es) fallaron en 14 días`,
+        'Revisá el error de cada una y volvé a programarlas.',
+        ACCION_PROGRAMACION,
+        cuando,
+      ),
+    );
+  if (p.proximos14d === 0)
+    out.push(
+      alerta(
+        'programacion',
+        'agenda-vacia',
+        'media',
+        'No hay publicaciones programadas en 14 días',
+        'Programá piezas para no perder ritmo de publicación.',
+        ACCION_PROGRAMACION,
+        cuando,
+      ),
+    );
+  return out;
+};
+
+const reglasPlan = (datos: DatosAlertas, cuando: string): Alerta[] => {
+  const out: Alerta[] = [];
+  for (const c of datos.plan) {
+    if (c.limite === 0) continue;
+    const etiqueta = c.etiqueta.toLowerCase();
+    if (c.restantes === 0)
+      out.push(
+        alerta(
+          'plan',
+          `agotado-${c.formato}`,
+          'alta',
+          `Se agotó tu cupo de ${etiqueta} este ciclo`,
+          'Hasta la renovación no vas a poder producir más de este formato.',
+          ACCION_PLAN,
+          cuando,
+        ),
+      );
+    else if (c.pctUsado >= UMBRAL_CUPO_CASI_AGOTADO)
+      out.push(
+        alerta(
+          'plan',
+          `casi-agotado-${c.formato}`,
+          'media',
+          `Te quedan ${c.restantes} ${etiqueta} este ciclo`,
+          `Ya usaste el ${c.pctUsado} % del cupo.`,
+          ACCION_PLAN,
+          cuando,
+        ),
+      );
+  }
+  return out;
+};
+
+const reglasInteraccion = (datos: DatosAlertas, cuando: string): Alerta[] =>
+  datos.interaccion
+    .filter(
+      (i) =>
+        i.variacionTasaPct !== null &&
+        i.variacionTasaPct <= UMBRAL_CAIDA_INTERACCION_PCT &&
+        i.publicaciones30d >= MIN_POSTS_INTERACCION,
+    )
+    .map((i) =>
+      alerta(
+        'cuentas',
+        `interaccion-cae-${i.plataforma}`,
+        'media',
+        `${NOMBRE_RED[i.plataforma]}: la interacción bajó ${Math.abs(i.variacionTasaPct ?? 0)} % frente al mes anterior`,
+        `Basado en ${i.publicaciones30d} publicaciones de los últimos 30 días.`,
+        ACCION_POSTS,
+        cuando,
+        i.plataforma,
+      ),
+    );
+
 export const alertasDe = (datos: DatosAlertas, cuando: string): Alerta[] => {
-  const out: Alerta[] = [...reglasCuentas(datos, cuando)];
+  const out: Alerta[] = [
+    ...reglasCuentas(datos, cuando),
+    ...reglasProgramacion(datos, cuando),
+    ...reglasPlan(datos, cuando),
+    ...reglasInteraccion(datos, cuando),
+  ];
 
   const { decisiones, okr, comunidad, produccion, economia } = datos;
   if (decisiones.pendientesCriticas > 0) {
@@ -367,4 +478,29 @@ export const alertasDe = (datos: DatosAlertas, cuando: string): Alerta[] => {
   }
 
   return out.sort((a, b) => ORDEN[a.severidad] - ORDEN[b.severidad] || a.titulo.localeCompare(b.titulo));
+};
+
+export interface SilencioAlerta {
+  silenciadaHasta: string;
+}
+
+export type SilenciosAlertas = Record<string, SilencioAlerta>;
+
+export const silenciadaHasta = (horas: number, ahora: number): string =>
+  new Date(ahora + horas * 3_600_000).toISOString();
+
+/** Separa las alertas vigentes de las silenciadas; un silencio vencido vuelve a mostrar la alerta. */
+export const aplicarSilencios = (
+  alertas: Alerta[],
+  silencios: SilenciosAlertas,
+  ahora: number,
+): { activas: Alerta[]; silenciadas: Array<Alerta & SilencioAlerta> } => {
+  const activas: Alerta[] = [];
+  const silenciadas: Array<Alerta & SilencioAlerta> = [];
+  for (const a of alertas) {
+    const s = silencios[a.id];
+    if (s && Date.parse(s.silenciadaHasta) > ahora) silenciadas.push({ ...a, silenciadaHasta: s.silenciadaHasta });
+    else activas.push(a);
+  }
+  return { activas, silenciadas };
 };

@@ -5,7 +5,7 @@
 
 import { log } from '../../agent/logger.js';
 import { listCalendarPostsByAccount } from '../../database/calendarQueue.js';
-import { getOrCreateUserTier, tierConfig } from '../../db/user-tiers.js';
+import { getOrCreateUserTier, tierConfig, type UserTierRecord } from '../../db/user-tiers.js';
 import { construirAnalytics } from '../experience/analyticsResumen.js';
 import { getDecisionStats, listPending } from './executiveDecisionQueue.js';
 import { getOKRSummary, listActiveObjectives } from './executiveOKR.js';
@@ -60,6 +60,27 @@ const crecimientoPct = (
   const disponible = Object.values(crecimiento).find((d) => d.available && typeof d.pct === 'number');
   return disponible?.pct ?? null;
 };
+
+export const capacidadDeRegistro = (registro: UserTierRecord, ahora: number) =>
+  capacidadPlan(
+    {
+      plan: registro.tier,
+      precioUsd: tierConfig[registro.tier].monthlyPriceUsd,
+      cicloInicio: registro.subscriptionCycleStart,
+      cicloFin: registro.subscriptionCycleEnd,
+      limites: {
+        carrusel: registro.carouselsLimit,
+        historia: registro.storiesLimit,
+        video: registro.videosLimit,
+      },
+      usados: {
+        carrusel: registro.carouselsUsedThisMonth,
+        historia: registro.storiesUsedThisMonth,
+        video: registro.videosUsedThisMonth,
+      },
+    },
+    ahora,
+  );
 
 const accionDePayload = (
   payload: Record<string, unknown> | undefined,
@@ -118,27 +139,7 @@ export const construirJunta = async (cuentasId: string, plataformaId: string, us
     ? resumenDecisiones(estadisticasDec.valor, decisiones.valor ?? [], ahora)
     : null;
 
-  const capacidad = cuenta.valor
-    ? capacidadPlan(
-        {
-          plan: cuenta.valor.tier,
-          precioUsd: tierConfig[cuenta.valor.tier].monthlyPriceUsd,
-          cicloInicio: cuenta.valor.subscriptionCycleStart,
-          cicloFin: cuenta.valor.subscriptionCycleEnd,
-          limites: {
-            carrusel: cuenta.valor.carouselsLimit,
-            historia: cuenta.valor.storiesLimit,
-            video: cuenta.valor.videosLimit,
-          },
-          usados: {
-            carrusel: cuenta.valor.carouselsUsedThisMonth,
-            historia: cuenta.valor.storiesUsedThisMonth,
-            video: cuenta.valor.videosUsedThisMonth,
-          },
-        },
-        ahora,
-      )
-    : null;
+  const capacidad = cuenta.valor ? capacidadDeRegistro(cuenta.valor, ahora) : null;
   const asignacion = capacidad ? asignacionSugerida(capacidad, programados, posts, ahora) : null;
   const franjas = franjasPorPlataforma(posts);
   const resumen = resumenProgramacion({
