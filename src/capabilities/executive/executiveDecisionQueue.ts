@@ -258,6 +258,7 @@ export const getDecisionStats = async (
   avgResolutionMinutes: number;
   byUrgency: Record<DecisionUrgency, number>;
   bySource: Record<string, number>;
+  bySourceResolution: Record<string, { approved: number; rejected: number }>;
 }> => {
   const queue = await loadQueue(brandId);
   const cutoff = Date.now() - days * 86_400_000;
@@ -273,6 +274,7 @@ export const getDecisionStats = async (
     avgResolutionMinutes: 0,
     byUrgency: { critical: 0, high: 0, medium: 0, low: 0 } as Record<DecisionUrgency, number>,
     bySource: {} as Record<string, number>,
+    bySourceResolution: {} as Record<string, { approved: number; rejected: number }>,
   };
 
   let totalResolutionMs = 0;
@@ -286,6 +288,13 @@ export const getDecisionStats = async (
     else if (d.status === 'expired') stats.expired++;
     stats.byUrgency[d.urgency]++;
     stats.bySource[d.source] = (stats.bySource[d.source] ?? 0) + 1;
+    if (d.status === 'approved' || d.status === 'rejected') {
+      const previo = stats.bySourceResolution[d.source] ?? { approved: 0, rejected: 0 };
+      stats.bySourceResolution[d.source] = {
+        approved: previo.approved + (d.status === 'approved' ? 1 : 0),
+        rejected: previo.rejected + (d.status === 'rejected' ? 1 : 0),
+      };
+    }
     if (d.resolvedAt) {
       totalResolutionMs += new Date(d.resolvedAt).getTime() - new Date(d.createdAt).getTime();
       resolvedCount++;

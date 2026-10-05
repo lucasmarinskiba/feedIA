@@ -22,7 +22,8 @@ const buildJuntaRoutes = (brand: BrandProfile): RouteDefinition[] => {
       method: 'GET',
       pattern: '/api/executive/junta',
       handler: async ({ req, res }) => {
-        json(res, 200, await construirJunta(await marcaDeCuentas(req, brand), plataformaId()));
+        const usuarioId = (req.headers['x-user-id'] as string | undefined)?.trim() || 'test-user';
+        json(res, 200, await construirJunta(await marcaDeCuentas(req, brand), plataformaId(), usuarioId));
       },
     },
     {

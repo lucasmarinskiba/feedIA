@@ -90,6 +90,14 @@ const ESTILOS = `<style>
   .jt-agenda-dia{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--text-tertiary,#a1a1aa);margin-top:6px;}
   .jt-agenda-item{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;font-size:12.5px;padding:8px 10px;border-radius:10px;background:var(--bg-hover,rgba(255,255,255,.04));}
   .jt-agenda-hora{font-weight:700;font-variant-numeric:tabular-nums;color:#fdba74;}
+  .jt-resumen{border:1px solid;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;}
+  .jt-resumen-titular{font-size:15px;font-weight:700;}
+  .jt-resumen-sub{font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;color:var(--text-tertiary,#a1a1aa);}
+  .jt-acc{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.5;}
+  .jt-plan-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;}
+  .jt-cupo{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:10px;background:var(--bg-hover,rgba(255,255,255,.04));margin-top:8px;}
+  .jt-cupo-cab{display:flex;justify-content:space-between;gap:8px;font-size:13px;}
+  .jt-sub-tit{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--text-tertiary,#a1a1aa);margin-top:4px;}
   @media (max-width:720px){ .jt-fila{grid-template-columns:1fr;} .jt-acciones{justify-content:flex-start;} .jt-agenda-item{grid-template-columns:52px 1fr;} }
 </style>`;
 
@@ -110,7 +118,7 @@ const num = (n) => (typeof n === 'number' ? Math.round(n).toLocaleString('es-AR'
 const pct = (n, d = 2) => (typeof n === 'number' ? `${(n * 100).toFixed(d).replace('.', ',')} %` : 'sin dato');
 const porcentaje = (n) => (typeof n === 'number' ? `${n > 0 ? '+' : ''}${Math.round(n)} %` : 'sin dato');
 const fecha = (iso) => {
-  const d = new Date(iso);
+  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(iso) ? `${iso}T12:00:00` : iso);
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
 };
 
@@ -132,32 +140,101 @@ const mensajesHtml = (mensajes) => {
     .join('')}</div>`;
 };
 
+const URGENCIA_DECISION = {
+  critical: { label: 'Crítica', color: '#f87171' },
+  high: { label: 'Alta', color: '#fbbf24' },
+  medium: { label: 'Media', color: '#60a5fa' },
+  low: { label: 'Baja', color: '#a1a1aa' },
+};
+
+const tonoDe = (tono) => TONO[tono] ?? { color: '#a1a1aa', fondo: 'rgba(161,161,170,.12)', icono: '⚪' };
+
+const lecturasHtml = (lista) =>
+  lista.length
+    ? `<div class="jt-mensajes">${lista
+        .map((m) => {
+          const t = tonoDe(m.tono);
+          return `<div class="jt-mensaje" style="color:${t.color};background:${t.fondo};">${t.icono} ${escape(m.texto)}</div>`;
+        })
+        .join('')}</div>`
+    : '';
+
+const antiguedadTxt = (h) =>
+  h < 1 ? 'hace menos de 1 h' : h < 48 ? `hace ${num(h)} h` : `hace ${num(Math.round(h / 24))} días`;
+const tiempoTxt = (min) => (min < 60 ? `${num(min)} min` : `${num(Math.round(min / 60))} h`);
+
 const decisionesHtml = (d) => {
   const r = d.resumen;
   const cifras = r
     ? [
         cifra(
-          'Pendientes',
-          r.pendientes,
-          r.criticas ? `${r.criticas} críticas` : 'sin críticas',
+          'Esperando tu respuesta',
+          num(r.pendientes),
+          r.criticas ? `${r.criticas} crítica(s)` : 'sin críticas',
           r.criticas ? '#f87171' : '#60a5fa',
         ),
-        cifra('Aprobadas (30 d)', r.aprobadasUltimos30, '', '#34d399'),
-        cifra('Rechazadas (30 d)', r.rechazadasUltimos30, '', '#a1a1aa'),
+        cifra('Más de 24 h', num(r.esperandoMas24h), 'sin responder', r.esperandoMas24h ? '#f87171' : '#34d399'),
+        cifra('Aprobadas (30 d)', num(r.aprobadasUltimos30), '', '#34d399'),
+        cifra('Rechazadas (30 d)', num(r.rechazadasUltimos30), '', '#a1a1aa'),
         cifra(
           'Tasa de aprobación',
           r.tasaAprobacionPct === null ? 'sin dato' : `${r.tasaAprobacionPct} %`,
           'sobre decididas',
           '#fdba74',
         ),
+        cifra(
+          'Tiempo de respuesta',
+          r.tiempoRespuestaMin ? tiempoTxt(r.tiempoRespuestaMin) : 'sin dato',
+          'promedio',
+          '#c4b5fd',
+        ),
       ].join('')
     : '';
-  const esperando = r?.pendientes ?? 0;
+  const origenes = r?.porOrigen ?? [];
+  const porOrigen = origenes.length
+    ? `<div class="jt-sub-tit">Aprobación por agente</div>${origenes
+        .map(
+          (o) => `<div class="jt-fila">
+            <div class="jt-fila-nombre">${escape(o.origenLabel)}<small>${num(o.pendientes)} pendientes · ${num(o.aprobadas)} aprobadas · ${num(o.rechazadas)} rechazadas</small></div>
+            ${barra(o.tasaAprobacionPct ?? 0, 100, o.tasaAprobacionPct === null ? '#a1a1aa' : o.tasaAprobacionPct >= 60 ? '#34d399' : '#fbbf24')}
+            <span class="jt-val">${o.tasaAprobacionPct === null ? 'sin decididas' : `${o.tasaAprobacionPct} %`}</span>
+          </div>`,
+        )
+        .join('')}`
+    : '<div class="jt-vacio">Sin historial de decisiones todavía.</div>';
+  const lista = d.pendientes.length
+    ? d.pendientes
+        .map((x) => {
+          const u = URGENCIA_DECISION[x.urgencia] ?? URGENCIA_DECISION.medium;
+          const ocupado = state.ocupado === x.id;
+          return `<article class="jt-item">
+            <div class="jt-item-cab">
+              <strong>${escape(x.titulo)}</strong>
+              <span class="jt-tag" style="color:${u.color};">${escape(u.label)}</span>
+            </div>
+            <div class="jt-ayuda">${escape(x.origenLabel)} · ${escape(antiguedadTxt(x.antiguedadHoras))}</div>
+            ${x.contexto ? `<div class="jt-ayuda">${escape(x.contexto)}</div>` : ''}
+            ${x.resultadoEsperado ? `<div class="jt-ayuda"><strong>Si aceptás:</strong> ${escape(x.resultadoEsperado)}</div>` : ''}
+            ${x.riesgos?.length ? `<div class="jt-ayuda" style="color:#fcd34d;">Riesgos: ${escape(x.riesgos.join(' · '))}</div>` : ''}
+            <div class="jt-acciones">
+              <button class="jt-btn peligro" data-jt-accion="decidir" data-id="${escape(x.id)}" data-estado="rejected" ${ocupado ? 'disabled' : ''}>Rechazar</button>
+              <button class="jt-btn primario" data-jt-accion="decidir" data-id="${escape(x.id)}" data-estado="approved"
+                data-accion-tipo="${escape(x.accionTipo ?? '')}" data-accion-valor="${escape(x.accionValor ?? '')}" ${ocupado ? 'disabled' : ''}>${x.accion ? escape(x.accion) : 'Aceptar'}</button>
+            </div>
+          </article>`;
+        })
+        .join('')
+    : '<div class="jt-vacio">No hay decisiones esperando tu respuesta.</div>';
   return `
     <section class="jt-bloque" id="jt-decisiones">
       <h3>⚖️ Decisiones</h3>
-      <p class="jt-ayuda">${esperando ? `${esperando} esperando tu respuesta: aceptá o rechazá arriba, en Resumen.` : 'No hay decisiones esperando tu respuesta.'}</p>
+      <p class="jt-ayuda">Lo que los agentes proponen y necesita tu aprobación. Aceptar ejecuta la acción; rechazar la descarta.</p>
       ${cifras ? `<div class="jt-cifras">${cifras}</div>` : ''}
+      ${lecturasHtml(d.lecturas ?? [])}
+      <div class="jt-grid2">
+        <div style="display:flex;flex-direction:column;gap:10px;">${lista}</div>
+        <div class="jt-bloque" style="border:none;padding:0;">${porOrigen}</div>
+      </div>
     </section>`;
 };
 
@@ -272,98 +349,217 @@ const agendaHtml = (agenda, diaSel) => {
     .join('');
 };
 
+const FORMATO_LABEL = {
+  reel: 'Reels',
+  carrusel: 'Carruseles',
+  imagen: 'Imágenes',
+  video: 'Videos',
+  historia: 'Historias',
+};
+
+const resumenProgramacionHtml = (r) => {
+  if (!r) return '';
+  const t = TONO[r.tono] ?? TONO.atencion;
+  const acciones = r.acciones.length
+    ? `<ol class="jt-acc">${r.acciones.map((a) => `<li>${(TONO[a.tono] ?? TONO.atencion).icono} ${escape(a.texto)}</li>`).join('')}</ol>`
+    : '<p class="jt-ayuda">No hay nada urgente. Seguí publicando según tu agenda.</p>';
+  return `<div class="jt-resumen" style="background:${t.fondo};border-color:${t.color};">
+    <div class="jt-resumen-titular" style="color:${t.color};">${t.icono} ${escape(r.titular)}</div>
+    <div class="jt-resumen-sub">Qué hacer ahora</div>
+    ${acciones}
+  </div>`;
+};
+
+const planHtml = (plan) => {
+  if (!plan) return '<div class="jt-vacio">No pudimos leer tu plan. Recargá la página para volver a intentarlo.</div>';
+  const nombre = plan.plan.charAt(0).toUpperCase() + plan.plan.slice(1);
+  const precio = plan.precioUsd > 0 ? `US$ ${num(plan.precioUsd)} / mes` : 'Gratis';
+  const cupos = plan.cupos
+    .map((c) => {
+      if (c.limite === 0)
+        return `<div class="jt-cupo"><div class="jt-cupo-cab"><strong>${escape(c.etiqueta)}</strong><span class="jt-ayuda">Tu plan no incluye este formato</span></div></div>`;
+      const color = c.restantes === 0 ? '#f87171' : c.pctUsado >= 80 ? '#fbbf24' : '#34d399';
+      let proyeccion = 'Todavía no lo usaste este ciclo.';
+      if (c.restantes === 0) proyeccion = 'Cupo agotado: se renueva con tu ciclo.';
+      else if (c.diasParaAgotar !== null && c.diasParaAgotar <= plan.diasRestantes)
+        proyeccion = `Al ritmo actual se agota en ${num(c.diasParaAgotar)} día(s), antes de la renovación.`;
+      else if (c.diasParaAgotar !== null) proyeccion = 'Al ritmo actual te alcanza hasta la renovación.';
+      return `<div class="jt-cupo">
+        <div class="jt-cupo-cab"><strong>${escape(c.etiqueta)}</strong><span class="jt-val">${num(c.usados)} de ${num(c.limite)}</span></div>
+        ${barra(c.usados, c.limite, color)}
+        <div class="jt-ayuda">Te quedan <strong>${num(c.restantes)}</strong>. ${escape(proyeccion)}</div>
+      </div>`;
+    })
+    .join('');
+  return `<div class="jt-plan-cab"><strong>Plan ${escape(nombre)}</strong><span class="jt-tag">${escape(precio)}</span></div>
+    <div class="jt-ayuda">Se renueva el ${escape(plan.cicloFinTexto)}, en ${num(plan.diasRestantes)} día(s).</div>
+    ${cupos}`;
+};
+
+const asignacionHtml = (a, disponible) => {
+  if (!a) return '<div class="jt-vacio">Sin plan para calcular la asignación.</div>';
+  if (a.totalSugerido === 0)
+    return '<div class="jt-vacio">Tu plan no tiene cupo disponible para los próximos 14 días.</div>';
+  const filas = [...a.filas].sort((x, y) => (x.prioridad ?? 99) - (y.prioridad ?? 99));
+  return `<p class="jt-ayuda">Podés producir hasta <strong>${num(a.totalSugerido)}</strong> piezas en ${a.ventanaDias} días sin pasarte del plan${disponible ? `; ya tenés ${num(a.totalProgramado)} programadas` : ''}.</p>
+    <table class="jt-tabla">
+      <thead><tr><th>Formato</th><th>Sugerido</th><th>Programado</th><th>Rinde</th><th>Prioridad</th></tr></thead>
+      <tbody>${filas
+        .map(
+          (f) => `<tr>
+            <td>${escape(f.etiqueta)}${f.sinCupo ? ' <span class="jt-ayuda">· sin cupo</span>' : ''}</td>
+            <td class="jt-val">${num(f.sugerido)}</td>
+            <td class="jt-val">${disponible ? num(f.programados) : '—'}</td>
+            <td>${f.tasaHistorica === null ? '<span class="jt-ayuda">sin datos</span>' : pct(f.tasaHistorica)}</td>
+            <td>${f.prioridad === null ? '—' : `#${f.prioridad}`}</td>
+          </tr>`,
+        )
+        .join('')}</tbody>
+    </table>
+    <p class="jt-ayuda">Prioridad #1 = el formato que más rinde en tu cuenta: empezá por ahí.</p>`;
+};
+
+const rankingHtml = (filas, color) => {
+  if (!filas.length)
+    return '<div class="jt-vacio">Todavía no hay datos suficientes. Hacen falta al menos 2 publicaciones por grupo.</div>';
+  const max = Math.max(0.0001, ...filas.map((f) => f.medianaTasa));
+  return filas
+    .map(
+      (f) =>
+        `<div class="jt-fila"><div class="jt-fila-nombre">${escape(f.etiqueta)}<small>${num(f.posts)} publicaciones</small></div>${barra(f.medianaTasa, max, color)}<span class="jt-val">${pct(f.medianaTasa)}</span></div>`,
+    )
+    .join('');
+};
+
+const arrastreHtml = (arr) => {
+  const max = Math.max(arr.conArrastre.medianaTasa ?? 0, arr.sinArrastre.medianaTasa ?? 0, 0.0001);
+  const seguidor = arr.mejorSeguidor
+    ? `<div class="jt-ayuda">Lo que más rinde después de un post fuerte: <strong>${escape(FORMATO_LABEL[arr.mejorSeguidor.formato] ?? arr.mejorSeguidor.formato)}</strong> (${pct(arr.mejorSeguidor.medianaTasa)}, ${num(arr.mejorSeguidor.n)} casos).</div>`
+    : '';
+  return `<div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="jt-fila"><div class="jt-fila-nombre">Después de un post fuerte<small>n=${num(arr.conArrastre.n)} · dentro de 24 h</small></div>${barra(arr.conArrastre.medianaTasa ?? 0, max, '#34d399')}<span class="jt-val">${pct(arr.conArrastre.medianaTasa)}</span></div>
+      <div class="jt-fila"><div class="jt-fila-nombre">Resto de publicaciones<small>n=${num(arr.sinArrastre.n)}</small></div>${barra(arr.sinArrastre.medianaTasa ?? 0, max, '#a1a1aa')}<span class="jt-val">${pct(arr.sinArrastre.medianaTasa)}</span></div>
+      ${seguidor}
+    </div>
+    <p class="jt-ayuda">${escape(arr.lectura)}</p>`;
+};
+
 const programacionHtml = (p) => {
   if (!p)
-    return '<section class="jt-bloque" id="jt-programacion"><h3>🗓️ Programación</h3><div class="jt-vacio">No hay calendario disponible.</div></section>';
+    return '<section class="jt-bloque" id="jt-programacion"><h3>🗓️ Programación</h3><div class="jt-vacio">No hay datos de programación disponibles.</div></section>';
   const g = p.diagnostico;
   const agenda = p.agenda ?? [];
-  const avisoDisp = p.disponible
-    ? ''
-    : `<div class="jt-error">${escape(p.motivoNoDisponible ?? 'El calendario no está disponible en este servidor.')} Mientras tanto no hay agenda ni control de desvíos.</div>`;
   const mes = state.mes ?? { y: new Date().getFullYear(), m: new Date().getMonth() };
   const porDia = g?.porDia ?? [];
   const maxDia = Math.max(1, ...porDia.map((x) => x.posts));
-  const formatos = g?.porFormato ?? [];
-  const maxShare = Math.max(1, ...formatos.map((f) => f.sharePlanPct));
-  const balance = formatos.length
-    ? formatos
-        .map(
-          (f) => `<div class="jt-fila">
-            <div class="jt-fila-nombre">${escape(f.formato)}<small>${f.tasaHistorica === null ? 'sin tasa histórica' : `rinde ${pct(f.tasaHistorica)}`}</small></div>
-            ${barra(f.sharePlanPct, maxShare, '#fdba74')}
-            <span class="jt-val">${f.planificados} · ${f.sharePlanPct} %</span>
-          </div>${f.recomendacion ? `<div class="jt-ayuda" style="color:#fcd34d;">${escape(f.recomendacion)}</div>` : ''}`,
-        )
-        .join('')
-    : '';
-  const arr = p.arrastre;
-  const max = Math.max(arr.conArrastre.medianaTasa ?? 0, arr.sinArrastre.medianaTasa ?? 0, 0.0001);
-  const arrastre = `
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      <div class="jt-fila"><div class="jt-fila-nombre">Después de un post fuerte<small>n=${num(arr.conArrastre.n)}</small></div>${barra(arr.conArrastre.medianaTasa ?? 0, max, '#34d399')}<span class="jt-val">${pct(arr.conArrastre.medianaTasa)}</span></div>
-      <div class="jt-fila"><div class="jt-fila-nombre">Resto de publicaciones<small>n=${num(arr.sinArrastre.n)}</small></div>${barra(arr.sinArrastre.medianaTasa ?? 0, max, '#a1a1aa')}<span class="jt-val">${pct(arr.sinArrastre.medianaTasa)}</span></div>
-    </div>
-    <p class="jt-ayuda">${escape(arr.lectura)}</p>`;
-  const franjas = p.mejoresFranjas ?? [];
-  const maxF = Math.max(0.0001, ...franjas.map((f) => f.medianaTasa));
-  const franjasHtml = franjas.length
-    ? franjas
-        .map(
-          (f) =>
-            `<div class="jt-fila"><div class="jt-fila-nombre">${escape(f.franja)}<small>n=${num(f.posts)}</small></div>${barra(f.medianaTasa, maxF, '#c4b5fd')}<span class="jt-val">${pct(f.medianaTasa)}</span></div>`,
-        )
-        .join('')
-    : '<div class="jt-vacio">Hacen falta al menos 2 posts por franja para comparar.</div>';
+  const aviso = p.disponible
+    ? ''
+    : `<div class="jt-error">${escape(p.motivoNoDisponible ?? 'La agenda no está disponible en este servidor.')} El rendimiento, el cupo de tu plan y los horarios sí se muestran.</div>`;
+  const sinBorde = 'style="border:none;padding:0;"';
+  const agendaCeldas = p.disponible
+    ? [
+        `<div class="jt-bloque" ${sinBorde}><h3 style="font-size:13px;">Calendario</h3>${widgetCalendarioHtml(agenda, mes, state.diaSel)}</div>`,
+        `<div class="jt-bloque" ${sinBorde}><h3 style="font-size:13px;">Agenda ${state.diaSel ? `· ${escape(fecha(state.diaSel))}` : '· próximos 14 días'}</h3>${agendaHtml(agenda, state.diaSel)}</div>`,
+      ]
+    : [
+        `<div class="jt-bloque" ${sinBorde}><h3 style="font-size:13px;">Calendario y agenda</h3><div class="jt-vacio">Aparecen acá cuando el servidor tenga activo el almacenamiento de publicaciones.</div></div>`,
+      ];
+  const diasCarga = p.disponible
+    ? porDia.length
+      ? porDia
+          .map(
+            (x) =>
+              `<div class="jt-fila"><div class="jt-fila-nombre">${escape(fecha(x.dia))}</div>${barra(x.posts, maxDia, '#60a5fa')}<span class="jt-val">${num(x.posts)}</span></div>`,
+          )
+          .join('')
+      : '<div class="jt-vacio">No hay publicaciones programadas en los próximos 14 días.</div>'
+    : '<div class="jt-vacio">Sin agenda en este servidor.</div>';
+  const franjas = p.franjas ?? { instagram: [], tiktok: [] };
+  const rankFranjas = (lista) => lista.map((f) => ({ etiqueta: f.franja, posts: f.posts, medianaTasa: f.medianaTasa }));
   return `
     <section class="jt-bloque" id="jt-programacion">
       <h3>🗓️ Programación</h3>
-      <p class="jt-ayuda">Calendario, agenda y control de desvíos de tus publicaciones.</p>
-      ${avisoDisp}
+      <p class="jt-ayuda">Qué publicar, cuándo y cuánto podés producir con tu plan. Todo sale de tus publicaciones reales.</p>
+      ${aviso}
+      ${resumenProgramacionHtml(p.resumen)}
       <div class="jt-cifras">
-        ${cifra('Próximos 14 días', num(g?.proximos14Dias ?? 0), 'programadas', '#60a5fa')}
-        ${cifra('Vencidas sin publicar', num(g?.vencidos ?? 0), 'desvíos a corregir', g?.vencidos ? '#f87171' : '#34d399')}
-        ${cifra('Fallidas (14 d)', num(g?.fallidosUltimos14Dias ?? 0), '', g?.fallidosUltimos14Dias ? '#f87171' : '#34d399')}
-        ${cifra('Disciplina (30 d)', g?.disciplinaPct === null || g?.disciplinaPct === undefined ? 'sin dato' : `${g.disciplinaPct} %`, 'publicado vs. cerrado', '#fdba74')}
+        ${cifra('Próximos 14 días', num(g?.proximos14Dias ?? 0), 'piezas programadas', '#60a5fa')}
+        ${cifra('Vencidas sin publicar', num(g?.vencidos ?? 0), 'ya pasó su hora', g?.vencidos ? '#f87171' : '#34d399')}
+        ${cifra('Fallidas (14 días)', num(g?.fallidosUltimos14Dias ?? 0), 'no salieron por error', g?.fallidosUltimos14Dias ? '#f87171' : '#34d399')}
+        ${cifra('Disciplina (30 días)', g?.disciplinaPct === null || g?.disciplinaPct === undefined ? 'sin dato' : `${g.disciplinaPct} %`, 'de lo programado, salió', '#fdba74')}
       </div>
       <div class="jt-grid2">
-        <div class="jt-bloque" style="border:none;padding:0;">
-          <h3 style="font-size:13px;">Calendario</h3>
-          ${widgetCalendarioHtml(agenda, mes, state.diaSel)}
+        <div class="jt-bloque" ${sinBorde}><h3 style="font-size:13px;">Tu plan y cupo</h3>${planHtml(p.plan)}</div>
+        <div class="jt-bloque" ${sinBorde}><h3 style="font-size:13px;">Cuánto producir · próximos 14 días</h3>${asignacionHtml(p.asignacion, p.disponible)}</div>
+      </div>
+      <div class="jt-grid2">${agendaCeldas.join('')}</div>
+      <div class="jt-grid2">
+        <div class="jt-bloque" ${sinBorde}>
+          <h3 style="font-size:13px;">Mejores horarios</h3>
+          <div class="jt-sub-tit">Instagram</div>${rankingHtml(rankFranjas(franjas.instagram ?? []), '#fdba74')}
+          <div class="jt-sub-tit">TikTok</div>${rankingHtml(rankFranjas(franjas.tiktok ?? []), '#93c5fd')}
         </div>
-        <div class="jt-bloque" style="border:none;padding:0;">
-          <h3 style="font-size:13px;">Agenda ${state.diaSel ? `· ${escape(fecha(state.diaSel))}` : '· próximos 14 días'}</h3>
-          ${agendaHtml(agenda, state.diaSel)}
+        <div class="jt-bloque" ${sinBorde}>
+          <h3 style="font-size:13px;">Mejores días</h3>
+          ${rankingHtml(
+            (p.mejoresDias ?? []).map((x) => ({ etiqueta: x.dia, posts: x.posts, medianaTasa: x.medianaTasa })),
+            '#c4b5fd',
+          )}
         </div>
-        <div class="jt-bloque" style="border:none;padding:0;"><h3 style="font-size:13px;">Agenda por día</h3>${porDia.length ? `<div style="display:flex;flex-direction:column;gap:6px;">${porDia.map((x) => `<div class="jt-fila"><div class="jt-fila-nombre">${escape(fecha(x.dia))}</div>${barra(x.posts, maxDia, '#60a5fa')}<span class="jt-val">${num(x.posts)}</span></div>`).join('')}</div>` : '<div class="jt-vacio">No hay publicaciones programadas en los próximos 14 días.</div>'}</div>
-        <div class="jt-bloque" style="border:none;padding:0;"><h3 style="font-size:13px;">Asignación de recursos por formato</h3>${balance || '<div class="jt-vacio">Sin agenda para repartir.</div>'}</div>
-        <div class="jt-bloque" style="border:none;padding:0;"><h3 style="font-size:13px;">Efecto de arrastre (lead-in)</h3>${arrastre}</div>
-        <div class="jt-bloque" style="border:none;padding:0;"><h3 style="font-size:13px;">Optimización de tiempos: mejores franjas</h3>${franjasHtml}</div>
+      </div>
+      <div class="jt-grid2">
+        <div class="jt-bloque" ${sinBorde}><h3 style="font-size:13px;">Lead-in: qué sigue a un post fuerte</h3>${arrastreHtml(p.arrastre)}</div>
+        <div class="jt-bloque" ${sinBorde}><h3 style="font-size:13px;">Carga por día · próximos 14 días</h3>${diasCarga}</div>
       </div>
     </section>`;
 };
 
+const plazoTxt = (dias) =>
+  dias === null
+    ? 'sin fecha de fin'
+    : dias < 0
+      ? `venció hace ${num(-dias)} día(s)`
+      : dias === 0
+        ? 'vence hoy'
+        : `quedan ${num(dias)} día(s)`;
+
 const proyectoHtml = (p) => {
-  const pr = p.progreso;
+  const a = p.analisis;
+  const t = tonoDe(a.tono);
   const ocupado = state.ocupado === p.id;
   const tareas = p.tareas.length
     ? p.tareas
         .map(
-          (t) => `<label class="jt-tarea ${t.hecha ? 'hecha' : ''}">
-            <input type="checkbox" data-jt-accion="tarea" data-id="${escape(p.id)}" data-tarea="${escape(t.id)}" ${t.hecha ? 'checked' : ''} ${ocupado ? 'disabled' : ''} />
-            <span>${escape(t.texto)}</span></label>`,
+          (tarea) => `<label class="jt-tarea ${tarea.hecha ? 'hecha' : ''}">
+            <input type="checkbox" data-jt-accion="tarea" data-id="${escape(p.id)}" data-tarea="${escape(tarea.id)}" ${tarea.hecha ? 'checked' : ''} ${ocupado ? 'disabled' : ''} />
+            <span>${escape(tarea.texto)}</span></label>`,
         )
         .join('')
     : '<div class="jt-ayuda">Sin tareas todavía.</div>';
+  const esperado =
+    a.progresoEsperadoPct === null ? '' : ` · a esta altura debería ir en ${num(a.progresoEsperadoPct)} %`;
   return `
     <article class="jt-item">
       <div class="jt-item-cab">
         <strong>${escape(p.nombre)}</strong>
-        <div class="jt-tags"><span class="jt-tag">${escape(p.plataforma)}</span><span class="jt-tag">${pr.hechas}/${pr.total} · ${pr.pct} %</span></div>
+        <span class="jt-tag" style="color:${t.color};background:${t.fondo};">${t.icono} ${escape(a.etiqueta)}</span>
+      </div>
+      <div class="jt-tags">
+        <span class="jt-tag">${escape(p.plataforma)}</span>
+        <span class="jt-tag">${escape(ESTADOS_PROYECTO.find((e) => e.id === p.estado)?.label ?? p.estado)}</span>
       </div>
       ${p.objetivo ? `<div class="jt-ayuda">Objetivo: ${escape(p.objetivo)}</div>` : ''}
-      ${p.inicio || p.fin ? `<div class="jt-ayuda">${p.inicio ? `Desde ${escape(fecha(p.inicio))}` : ''}${p.fin ? ` hasta ${escape(fecha(p.fin))}` : ''}</div>` : ''}
-      ${barra(pr.pct, 100, '#34d399')}
-      <div class="jt-tareas">${tareas}</div>
+      ${p.inicio || p.fin ? `<div class="jt-ayuda">${p.inicio ? `Desde ${escape(fecha(p.inicio))}` : ''}${p.fin ? `${p.inicio ? ' · ' : ''}hasta ${escape(fecha(p.fin))}, ${escape(plazoTxt(a.diasRestantes))}` : ''}</div>` : ''}
+      <div class="jt-fila" style="grid-template-columns:1fr auto;">
+        <div class="jt-fila-nombre">Avance real<small>${num(p.progreso.hechas)} de ${num(p.progreso.total)} tareas${esperado}</small></div>
+        <span class="jt-val">${a.progresoRealPct} %</span>
+      </div>
+      ${barra(a.progresoRealPct, 100, t.color)}
+      ${a.proximaTarea ? `<div class="jt-ayuda"><strong>Próxima tarea:</strong> ${escape(a.proximaTarea)}</div>` : ''}
+      <details class="jt-ayuda">
+        <summary>Ver tareas</summary>
+        <div class="jt-tareas">${tareas}</div>
+      </details>
       <div class="jt-acciones">
         <select class="jt-btn" data-jt-accion="estado" data-id="${escape(p.id)}" aria-label="Estado del proyecto" ${ocupado ? 'disabled' : ''}>
           ${ESTADOS_PROYECTO.map((e) => `<option value="${e.id}" ${e.id === p.estado ? 'selected' : ''}>${escape(e.label)}</option>`).join('')}
@@ -372,13 +568,38 @@ const proyectoHtml = (p) => {
     </article>`;
 };
 
-const proyectosHtml = (proyectos) => `
+const proyectosHtml = (p) => {
+  const r = p?.resumen;
+  const lista = p?.lista ?? [];
+  const orden = {
+    Vencido: 0,
+    Atrasado: 1,
+    'Algo atrasado': 2,
+    'Sin fechas completas': 3,
+    'Sin tareas': 4,
+    'Al día': 5,
+    Adelantado: 6,
+    Pausado: 7,
+    Completado: 8,
+  };
+  const ordenados = [...lista].sort((x, y) => (orden[x.analisis.etiqueta] ?? 9) - (orden[y.analisis.etiqueta] ?? 9));
+  const cifras = r
+    ? [
+        cifra('Proyectos', num(r.total), `${num(r.enCurso)} en curso`, '#60a5fa'),
+        cifra('Tareas hechas', `${r.tareasPct} %`, 'del total', '#34d399'),
+        cifra('Atrasados', num(r.atrasados), 'frente a las fechas', r.atrasados ? '#fcd34d' : '#34d399'),
+        cifra('Vencidos', num(r.vencidos), 'sin completar', r.vencidos ? '#f87171' : '#34d399'),
+        cifra('Completados', num(r.completados), '', '#a1a1aa'),
+      ].join('')
+    : '';
+  return `
   <section class="jt-bloque" id="jt-proyectos">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
       <h3>🎬 Proyectos de contenido</h3>
       <button class="jt-btn primario" data-jt-accion="nuevo-proyecto">${state.mostrarFormProyecto ? 'Cerrar' : '+ Nuevo proyecto'}</button>
     </div>
-    <p class="jt-ayuda">Campañas y series para TikTok e Instagram: tareas, fechas y avance.</p>
+    <p class="jt-ayuda">Campañas y series con tareas y fechas. Comparamos lo hecho con lo que debería estar hecho según el calendario del proyecto.</p>
+    ${cifras ? `<div class="jt-cifras">${cifras}</div>` : ''}
     <form id="jt-form-proyecto" class="jt-bloque" style="${state.mostrarFormProyecto ? '' : 'display:none;'}">
       <div class="jt-form">
         <label class="jt-campo">Nombre <input name="nombre" maxlength="80" required /></label>
@@ -392,46 +613,97 @@ const proyectosHtml = (proyectos) => `
       </div>
       <div class="jt-acciones"><button type="submit" class="jt-btn primario">Crear proyecto</button></div>
     </form>
-    ${proyectos.length ? `<div class="jt-grid2">${proyectos.map(proyectoHtml).join('')}</div>` : '<div class="jt-vacio">Todavía no hay proyectos. Creá una serie o una campaña para organizar tareas y medir avance.</div>'}
+    ${ordenados.length ? `<div class="jt-grid2">${ordenados.map(proyectoHtml).join('')}</div>` : '<div class="jt-vacio">Todavía no hay proyectos. Creá una serie o una campaña para organizar tareas y medir avance.</div>'}
   </section>`;
+};
+
+const TONO_OKR = {
+  'on-track': 'bien',
+  ahead: 'bien',
+  completed: 'bien',
+  'at-risk': 'atencion',
+  behind: 'alerta',
+  abandoned: 'neutral',
+};
+
+const CATEGORIA_OKR = {
+  growth: 'Crecimiento',
+  engagement: 'Engagement',
+  revenue: 'Ingresos',
+  brand: 'Marca',
+  efficiency: 'Eficiencia',
+  community: 'Comunidad',
+};
+
+const krHtml = (k) => {
+  const color = k.progresoPct >= 70 ? '#34d399' : k.progresoPct >= 40 ? '#fbbf24' : '#f87171';
+  const llega = k.llegaMeta
+    ? '<span style="color:#6ee7b7;">llega a la meta</span>'
+    : '<span style="color:#fca5a5;">no llega a la meta</span>';
+  return `<div class="jt-cupo">
+    <div class="jt-cupo-cab"><strong>${escape(k.descripcion)}</strong><span class="jt-val">${num(k.actual)} / ${num(k.meta)} ${escape(k.unidad ?? '')}</span></div>
+    ${barra(k.progresoPct, 100, color)}
+    <div class="jt-ayuda">${escape(k.fuente)} · ${escape(k.tendencia)} · al ritmo actual cierra en ${num(k.proyeccionFinal)}${k.unidad ? ` ${escape(k.unidad)}` : ''}, ${llega}</div>
+  </div>`;
+};
+
+const objetivoHtml = (o) => {
+  const t = tonoDe(TONO_OKR[o.estado] ?? 'neutral');
+  const desfase = o.progresoEsperadoPct === null ? null : o.progresoPct - o.progresoEsperadoPct;
+  const ritmo =
+    desfase === null
+      ? ''
+      : desfase >= 5
+        ? `Vas ${num(desfase)} puntos por delante de lo esperado a esta altura.`
+        : desfase <= -5
+          ? `Vas ${num(-desfase)} puntos por detrás de lo esperado a esta altura.`
+          : 'Vas en línea con lo esperado a esta altura.';
+  return `<article class="jt-item">
+    <div class="jt-item-cab">
+      <strong>${escape(o.titulo)}</strong>
+      <span class="jt-tag" style="color:${t.color};">${t.icono} ${escape(o.estadoLabel)}</span>
+    </div>
+    <div class="jt-tags">
+      <span class="jt-tag">${escape(o.periodo)}</span>
+      <span class="jt-tag">${escape(CATEGORIA_OKR[o.categoria] ?? o.categoria)}</span>
+      <span class="jt-tag">${num(o.semanasRestantes)} semana(s) restantes</span>
+    </div>
+    ${o.porque ? `<div class="jt-ayuda"><strong>Por qué:</strong> ${escape(o.porque)}</div>` : ''}
+    <div class="jt-fila" style="grid-template-columns:1fr auto;">
+      <div class="jt-fila-nombre">Avance del objetivo<small>${o.progresoEsperadoPct === null ? '' : `esperado a esta altura: ${num(o.progresoEsperadoPct)} %`}</small></div>
+      <span class="jt-val">${o.progresoPct} %</span>
+    </div>
+    ${barra(o.progresoPct, 100, t.color)}
+    ${ritmo ? `<div class="jt-ayuda">${escape(ritmo)}</div>` : ''}
+    <div style="display:flex;flex-direction:column;gap:8px;">${o.resultados.map(krHtml).join('')}</div>
+    ${
+      o.recomendaciones?.length
+        ? `<div class="jt-sub-tit">Recomendaciones</div><ul class="jt-acc">${o.recomendaciones.map((x) => `<li>${escape(x)}</li>`).join('')}</ul>`
+        : ''
+    }
+  </article>`;
+};
 
 const estrategiasHtml = (e) => {
   const r = e?.resumen;
   const cifras = r
     ? [
-        cifra('Objetivos activos', r.totalActive, '', '#60a5fa'),
-        cifra('En camino', r.onTrack, `${r.ahead} adelantados`, '#34d399'),
-        cifra('En riesgo', r.atRisk, '', '#fcd34d'),
-        cifra('Atrasados', r.behind, '', r.behind ? '#f87171' : '#34d399'),
+        cifra('Objetivos activos', num(r.totalActive), '', '#60a5fa'),
+        cifra('En camino', num(r.onTrack), `${num(r.ahead)} adelantados`, '#34d399'),
+        cifra('En riesgo', num(r.atRisk), '', '#fcd34d'),
+        cifra('Atrasados', num(r.behind), '', r.behind ? '#f87171' : '#34d399'),
         cifra('Puntaje general', `${Math.round(r.overallScore ?? 0)} %`, '', '#fdba74'),
       ].join('')
     : '';
   const objetivos = (e?.objetivos ?? []).length
-    ? e.objetivos
-        .map(
-          (o) => `<article class="jt-item">
-            <div class="jt-item-cab"><strong>${escape(o.titulo)}</strong><span class="jt-tag">${escape(o.categoria ?? '')}</span></div>
-            <div class="jt-ayuda">Cierra ${escape(fecha(o.fin))} · ${escape(o.estado)}</div>
-            ${barra(o.progresoPct, 100, '#fdba74')}
-            <div class="jt-ayuda">${o.progresoPct} % del objetivo</div>
-            ${o.resultados
-              .map(
-                (k) => `<div class="jt-fila" style="grid-template-columns:minmax(120px,1.4fr) 2fr auto;">
-                  <div class="jt-fila-nombre">${escape(k.descripcion)}<small>${num(k.actual)} de ${num(k.meta)} ${escape(k.unidad ?? '')}</small></div>
-                  ${barra(k.progresoPct, 100, k.progresoPct >= 70 ? '#34d399' : k.progresoPct >= 40 ? '#fbbf24' : '#f87171')}
-                  <span class="jt-val">${k.progresoPct} %</span></div>`,
-              )
-              .join('')}
-          </article>`,
-        )
-        .join('')
+    ? `<div class="jt-grid2">${e.objetivos.map(objetivoHtml).join('')}</div>`
     : '<div class="jt-vacio">No hay objetivos activos. Definí OKR en la sección OKRs para medir la estrategia.</div>';
   return `
     <section class="jt-bloque" id="jt-estrategias">
       <h3>🏁 Estrategias y objetivos</h3>
-      <p class="jt-ayuda">Los OKR que sostienen la estrategia, con su avance real.</p>
+      <p class="jt-ayuda">Cada objetivo con su porqué, el avance frente a lo que corresponde a esta altura y hacia dónde va si seguís así.</p>
       ${cifras ? `<div class="jt-cifras">${cifras}</div>` : ''}
-      <div class="jt-grid2">${objetivos}</div>
+      ${objetivos}
     </section>`;
 };
 
@@ -476,27 +748,51 @@ const seriesSvg = (semanas) => {
 
 const numerosHtml = (n) => {
   if (!n)
-    return '<section class="jt-bloque" id="jt-numeros"><h3>📊 Números</h3><div class="jt-vacio">Sin números disponibles.</div></section>';
-  const max = Math.max(n.tasaMediana.instagram ?? 0, n.tasaMediana.tiktok ?? 0, 0.0001);
-  const maxPub = Math.max(n.publicaciones30d.instagram, n.publicaciones30d.tiktok, 1);
+    return '<section class="jt-bloque" id="jt-numeros"><h3>📊 Números comparativos</h3><div class="jt-vacio">Sin números disponibles.</div></section>';
+  const filas = n.comparativa?.filas ?? [];
+  const ig = filas.find((f) => f.plataforma === 'instagram');
+  const tt = filas.find((f) => f.plataforma === 'tiktok');
+  const fila = (titulo, render) =>
+    `<tr><th>${titulo}</th><td>${ig ? render(ig) : '—'}</td><td>${tt ? render(tt) : '—'}</td></tr>`;
+  const variacion = (v) =>
+    v === null || v === undefined
+      ? '<span class="jt-ayuda">sin dato</span>'
+      : `<span style="color:${v >= 0 ? '#6ee7b7' : '#fca5a5'};">${v >= 0 ? '↑' : '↓'} ${Math.abs(v)} %</span>`;
+  const tabla = `<table class="jt-tabla">
+    <thead><tr><th>Métrica</th><th>Instagram</th><th>TikTok</th></tr></thead>
+    <tbody>
+      ${fila('Seguidores', (f) => num(f.seguidores))}
+      ${fila('Crecimiento del período', (f) => porcentaje(f.crecimientoPct))}
+      ${fila('Publicaciones (30 días)', (f) => `${num(f.publicaciones30d)} <span class="jt-ayuda">· antes ${num(f.publicacionesPrev30d)}</span>`)}
+      ${fila('Tasa mediana (30 días)', (f) => pct(f.tasaMediana30d))}
+      ${fila('Tasa mediana (30 días previos)', (f) => pct(f.tasaMedianaPrev30d))}
+      ${fila('Variación de la tasa', (f) => variacion(f.variacionTasaPct))}
+    </tbody>
+  </table>`;
+  const barrasPares = (valorDe, formato) => {
+    const vIg = ig ? valorDe(ig) : null;
+    const vTt = tt ? valorDe(tt) : null;
+    const max = Math.max(vIg ?? 0, vTt ?? 0, 0.0001);
+    return `<div class="jt-fila"><div class="jt-fila-nombre">Instagram</div>${barra(vIg ?? 0, max, '#fdba74')}<span class="jt-val">${formato(vIg)}</span></div>
+      <div class="jt-fila"><div class="jt-fila-nombre">TikTok</div>${barra(vTt ?? 0, max, '#93c5fd')}<span class="jt-val">${formato(vTt)}</span></div>`;
+  };
   return `
     <section class="jt-bloque" id="jt-numeros">
       <h3>📊 Números comparativos</h3>
+      <p class="jt-ayuda">Instagram frente a TikTok: audiencia, cuánto publicaste y cuánto interactúa cada publicación. La comparación es contra los 30 días anteriores.</p>
       <div class="jt-cifras">
         ${cifra('Seguidores Instagram', num(n.seguidores.instagram), '', '#fdba74')}
         ${cifra('Seguidores TikTok', num(n.seguidores.tiktok), '', '#93c5fd')}
         ${cifra('Crecimiento', porcentaje(n.crecimientoPct), 'en el período', n.crecimientoPct !== null && n.crecimientoPct < 0 ? '#f87171' : '#34d399')}
       </div>
+      ${lecturasHtml(n.comparativa?.lecturas ?? [])}
       <div class="jt-grid2">
+        <div class="jt-bloque" style="border:none;padding:0;">${tabla}</div>
         <div class="jt-bloque" style="border:none;padding:0;">
-          <h3 style="font-size:13px;">Tasa mediana por plataforma</h3>
-          <div class="jt-fila"><div class="jt-fila-nombre">Instagram</div>${barra(n.tasaMediana.instagram ?? 0, max, '#fdba74')}<span class="jt-val">${pct(n.tasaMediana.instagram)}</span></div>
-          <div class="jt-fila"><div class="jt-fila-nombre">TikTok</div>${barra(n.tasaMediana.tiktok ?? 0, max, '#93c5fd')}<span class="jt-val">${pct(n.tasaMediana.tiktok)}</span></div>
-        </div>
-        <div class="jt-bloque" style="border:none;padding:0;">
-          <h3 style="font-size:13px;">Publicaciones últimos 30 días</h3>
-          <div class="jt-fila"><div class="jt-fila-nombre">Instagram</div>${barra(n.publicaciones30d.instagram, maxPub, '#fdba74')}<span class="jt-val">${num(n.publicaciones30d.instagram)}</span></div>
-          <div class="jt-fila"><div class="jt-fila-nombre">TikTok</div>${barra(n.publicaciones30d.tiktok, maxPub, '#93c5fd')}<span class="jt-val">${num(n.publicaciones30d.tiktok)}</span></div>
+          <h3 style="font-size:13px;">Tasa mediana (30 días)</h3>
+          ${barrasPares((f) => f.tasaMediana30d, pct)}
+          <h3 style="font-size:13px;margin-top:14px;">Publicaciones (30 días)</h3>
+          ${barrasPares((f) => f.publicaciones30d, num)}
         </div>
       </div>
       <div class="jt-bloque" style="border:none;padding:0;">
@@ -532,7 +828,7 @@ const pintar = (root) => {
   cont.innerHTML = [
     decisionesHtml(d.decisiones),
     programacionHtml(d.programacion),
-    proyectosHtml(d.proyectos ?? []),
+    proyectosHtml(d.proyectos),
     estrategiasHtml(d.estrategias),
     numerosHtml(d.numeros),
   ].join('');
@@ -586,6 +882,15 @@ const refrescarProgramacion = (root) => {
   if (sec && state.datos) sec.outerHTML = programacionHtml(state.datos.programacion);
 };
 
+const ejecutarAccionJunta = (tipo, valor) => {
+  if (!valor) return;
+  if (tipo === 'conectar') {
+    window.location.href = `/api/auth/${encodeURIComponent(valor)}/login?redirectAfter=${encodeURIComponent(`${window.location.origin}/`)}`;
+    return;
+  }
+  if (tipo === 'tab') document.querySelector(`.v2-tab[data-tab="${valor}"]`)?.click();
+};
+
 const enlazar = (root) => {
   if (enlazados.has(root)) return;
   enlazados.add(root);
@@ -607,6 +912,18 @@ const enlazar = (root) => {
     }
     if (accion === 'refrescar') {
       await cargar(root, true);
+      return;
+    }
+    if (accion === 'decidir') {
+      const aprobada = el.dataset.estado === 'approved';
+      const { accionTipo, accionValor } = el.dataset;
+      const ok = await mutar(
+        root,
+        '/api/executive/decisions/resolve',
+        { decisionId: el.dataset.id, status: el.dataset.estado },
+        aprobada ? 'Decisión aprobada' : 'Decisión rechazada',
+      );
+      if (ok && aprobada) ejecutarAccionJunta(accionTipo, accionValor);
       return;
     }
     if (accion === 'nuevo-proyecto') {

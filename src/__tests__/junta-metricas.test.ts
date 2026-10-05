@@ -158,14 +158,36 @@ describe('serieSemanal', () => {
 
 describe('resumenDecisiones y mensajes', () => {
   it('calcula tasa de aprobación sobre decididas', () => {
-    const r = resumenDecisiones({ pending: 3, approved: 6, rejected: 2, byUrgency: { critical: 1, high: 2 } });
+    const r = resumenDecisiones(
+      {
+        pending: 3,
+        approved: 6,
+        rejected: 2,
+        avgResolutionMinutes: 0,
+        byUrgency: { critical: 1, high: 2 },
+        bySourceResolution: {},
+      },
+      [],
+      AHORA,
+    );
     expect(r.tasaAprobacionPct).toBe(75);
     expect(r.criticas).toBe(1);
   });
 
   it('prioriza alertas críticas y limita a cinco mensajes', () => {
     const msgs = mensajesJunta({
-      decisiones: resumenDecisiones({ pending: 4, approved: 0, rejected: 0, byUrgency: { critical: 2 } }),
+      decisiones: resumenDecisiones(
+        {
+          pending: 4,
+          approved: 0,
+          rejected: 0,
+          avgResolutionMinutes: 0,
+          byUrgency: { critical: 2 },
+          bySourceResolution: {},
+        },
+        [],
+        AHORA,
+      ),
       diagnostico: {
         proximos14Dias: 0,
         vencidos: 2,
