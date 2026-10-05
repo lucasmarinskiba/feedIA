@@ -1,5 +1,5 @@
 import cron, { type ScheduledTask } from 'node-cron';
-import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { log } from '../agent/logger.js';
 import { sendAlert } from '../integrations/notifications.js';
@@ -29,12 +29,28 @@ const ensureDir = (): void => {
   mkdirSync(resolve('data/runtime'), { recursive: true });
 };
 
+const parsearConRecuperacion = (texto: string): JobRunRecord[] => {
+  try {
+    return JSON.parse(texto) as JobRunRecord[];
+  } catch (err) {
+    const posicion = /position (\d+)/.exec(String(err));
+    if (!posicion) return [];
+    try {
+      return JSON.parse(texto.slice(0, Number(posicion[1]))) as JobRunRecord[];
+    } catch {
+      return [];
+    }
+  }
+};
+
 const loadHistory = (): JobRunRecord[] =>
-  existsSync(HISTORY_PATH) ? (JSON.parse(readFileSync(HISTORY_PATH, 'utf-8')) as JobRunRecord[]) : [];
+  existsSync(HISTORY_PATH) ? parsearConRecuperacion(readFileSync(HISTORY_PATH, 'utf-8')) : [];
 
 const saveHistory = (records: JobRunRecord[]): void => {
   ensureDir();
-  writeFileSync(HISTORY_PATH, JSON.stringify(records.slice(-200), null, 2), 'utf-8');
+  const temporal = `${HISTORY_PATH}.${process.pid}.tmp`;
+  writeFileSync(temporal, JSON.stringify(records.slice(-200), null, 2), 'utf-8');
+  renameSync(temporal, HISTORY_PATH);
 };
 
 export const loadOverrides = (): JobOverride[] =>
@@ -128,9 +144,14 @@ const isEnabled = (job: JobDefinition, overrides: JobOverride[]): boolean => {
   return override ? override.enabled : true;
 };
 
+let activo = false;
+
+export const schedulerActivo = (): boolean => activo;
+
 export const startScheduler = (brand: BrandProfile): SchedulerHandle => {
   const overrides = loadOverrides();
   const tasks = new Map<JobName, ScheduledTask>();
+  activo = true;
 
   for (const job of jobs) {
     if (!isEnabled(job, overrides)) {
@@ -155,6 +176,7 @@ export const startScheduler = (brand: BrandProfile): SchedulerHandle => {
 
   const stop = (): void => {
     for (const task of tasks.values()) task.stop();
+    activo = false;
   };
   return { tasks, stop };
 };

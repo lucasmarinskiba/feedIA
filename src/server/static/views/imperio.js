@@ -54,6 +54,7 @@ const TABS = [
 const EMBED_VIEWS = {
   logbook: { path: './bitacora.js', name: 'renderBitacora' },
   experiments: { path: './experimentos.js', name: 'renderExperimentos' },
+  scheduler: { path: './scheduler.js', name: 'renderScheduler' },
   alerts: { path: './alertas.js', name: 'renderAlertas' },
   audit: { path: './audit.js', name: 'renderAudit' },
   predictor: { path: './predictor.js', name: 'renderPredictor' },
@@ -2057,8 +2058,6 @@ const renderTabContent = async (b) => {
     await panelReportes.cargar();
     return panelReportes.html();
   }
-  if (activeTab === 'scheduler')
-    return renderTabLink('scheduler', 'Scheduler', 'Jobs programados y próximas ejecuciones.');
   if (activeTab === 'collabs') return renderTabLink('collab', 'Collabs', 'Colaboraciones, brand deals y partnerships.');
   if (EMBED_VIEWS[activeTab]) {
     return `<div id="exec-embed" data-embed="${activeTab}"><div class="loading-screen"><span class="spinner lg"></span></div></div>`;
