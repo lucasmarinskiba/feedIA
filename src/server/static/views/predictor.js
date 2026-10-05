@@ -12,6 +12,8 @@ const CONFIANZA = {
   'sin-datos': { label: 'Sin historial', clase: 'info' },
 };
 const COLOR = { naranja: '#fdba74', verde: '#6ee7b7', rojo: '#fca5a5', gris: '#a1a1aa', azul: '#93c5fd' };
+const VEREDICTO_COLOR = { fuerte: COLOR.verde, promedio: COLOR.naranja, debil: COLOR.rojo, 'sin-datos': COLOR.gris };
+const HORA_DE_FRANJA = { madrugada: 3, mañana: 9, mediodía: 13, tarde: 17, noche: 21 };
 
 const ESTILOS = `<style>
   .pr-cab{display:flex;flex-direction:column;gap:8px;margin-bottom:6px;}
@@ -49,6 +51,13 @@ const ESTILOS = `<style>
   .pr-lista{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;}
   .pr-lista li{font-size:13px;line-height:1.5;padding:8px 10px;border-radius:10px;background:var(--bg-hover,rgba(255,255,255,.04));}
   .pr-momentos{display:flex;gap:8px;flex-wrap:wrap;}
+  .pr-veredicto{border-radius:14px;padding:16px 18px;background:var(--bg-card,rgba(255,255,255,.02));border:1px solid var(--border,rgba(255,255,255,.08));display:flex;flex-direction:column;gap:6px;margin-top:12px;}
+  .pr-veredicto strong{font-size:17px;letter-spacing:-0.01em;}
+  .pr-veredicto p{margin:0;font-size:14px;line-height:1.55;color:var(--text-secondary,#d4d4d8);}
+  .pr-momento-sugerido{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-radius:12px;padding:12px 14px;background:rgba(253,186,116,.08);font-size:13px;margin-top:12px;}
+  .pr-detalle{margin-top:12px;border:1px solid var(--border,rgba(255,255,255,.08));border-radius:14px;padding:12px 14px;}
+  .pr-detalle summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--text-secondary,#d4d4d8);}
+  .pr-fuentes{font-size:12px;color:var(--text-tertiary,#a1a1aa);margin:6px 0 0;}
   .pr-momento{font-size:12px;padding:6px 10px;border-radius:999px;background:var(--bg-hover,rgba(255,255,255,.04));border:1px solid var(--border,rgba(255,255,255,.08));}
   .pr-vacio{padding:28px 18px;text-align:center;color:var(--text-tertiary,#a1a1aa);font-size:13px;line-height:1.6;}
   .pr-variantes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
@@ -267,7 +276,7 @@ const estadisticasHtml = (r) => {
   </div>`;
 };
 
-const resultadoHtml = (r) => {
+const resultadoHtml = (r, formato) => {
   const conf = CONFIANZA[r.confianza] ?? CONFIANZA['sin-datos'];
   const cabecera = `
     <div class="pr-cab">
@@ -352,7 +361,25 @@ const resultadoHtml = (r) => {
     .map((x) => `<li>${escape(x)}</li>`)
     .join('')}</ul></div>`;
 
-  return `${cabecera}${kpis}${graficos}${estadisticasHtml(r)}${factores}${retencion}${momentos}${recomendaciones}`;
+  const veredicto = r.veredicto
+    ? `<div class="pr-veredicto" style="border-left:4px solid ${VEREDICTO_COLOR[r.veredicto.nivel] ?? COLOR.gris};">
+        <strong style="color:${VEREDICTO_COLOR[r.veredicto.nivel] ?? COLOR.gris};">${escape(r.veredicto.titulo)}</strong>
+        <p>${escape(r.veredicto.texto)}</p>
+      </div>`
+    : '';
+
+  const sugerido = r.mejorMomentoFormato
+    ? `<div class="pr-momento-sugerido">
+        <span>Mejor momento para ${escape(FORMATOS[formato] ?? 'este formato')}: <strong>${escape(r.mejorMomentoFormato.dia)} · ${escape(r.mejorMomentoFormato.franja)}</strong> (mediana ${escape(pct(r.mejorMomentoFormato.tasaMediana))}, n=${escape(String(r.mejorMomentoFormato.posts))})</span>
+        <button class="btn" id="pr-aplicar-momento" data-dia="${escape(r.mejorMomentoFormato.dia)}" data-franja="${escape(r.mejorMomentoFormato.franja)}">Usar este horario y recalcular</button>
+      </div>`
+    : '';
+
+  return `${cabecera}${veredicto}${kpis}${sugerido}${recomendaciones}
+    <details class="pr-detalle">
+      <summary>Detalle técnico: gráficos, calidad del modelo, factores y retención</summary>
+      ${graficos}${estadisticasHtml(r)}${factores}${retencion}${momentos}
+    </details>`;
 };
 
 const comparadorHtml = (captionPorDefecto) => `
@@ -455,7 +482,15 @@ const cargarHistorial = async (root) => {
   if (!estado) return;
   const nota = root.querySelector('#pr-nota-historial');
   if (nota) {
-    nota.textContent = `Historial disponible: ${estado.instagram} posts de Instagram y ${estado.tiktok} de TikTok${estado.reelsConTiempoVisualizacion ? `, ${estado.reelsConTiempoVisualizacion} con tiempo de visualización` : ''}.`;
+    const red = (nombre, posts, estadoRed) => {
+      if (estadoRed && !estadoRed.conectado) return `${nombre}: no conectado`;
+      if (estadoRed?.error) return `${nombre}: no se pudo actualizar (usamos ${posts} posts guardados)`;
+      return `${nombre}: ${posts} posts`;
+    };
+    const visualizacion = estado.reelsConTiempoVisualizacion
+      ? `, ${estado.reelsConTiempoVisualizacion} con tiempo de visualización`
+      : '';
+    nota.textContent = `Historial: ${red('Instagram', estado.instagram, estado.redes?.instagram)} · ${red('TikTok', estado.tiktok, estado.redes?.tiktok)}${visualizacion}.`;
   }
   const hist = root.querySelector('#pr-historial');
   if (hist) hist.innerHTML = historialHtml(estado.resumen);
@@ -505,11 +540,20 @@ export const renderPredictor = async (root) => {
       toast('No se pudo predecir', 'crit');
       return;
     }
-    preview.innerHTML = `${resultadoHtml(data)}${comparadorHtml(datos.caption)}`;
+    preview.innerHTML = `${resultadoHtml(data, datos.formato)}${comparadorHtml(datos.caption)}`;
     toast('Predicción lista', 'ok');
   });
 
   root.addEventListener('click', async (e) => {
+    const aplicar = e.target.closest('#pr-aplicar-momento');
+    if (aplicar) {
+      const horaSel = root.querySelector('#hora');
+      const diaSel = root.querySelector('#dia');
+      if (horaSel) horaSel.value = String(HORA_DE_FRANJA[aplicar.dataset.franja] ?? 19);
+      if (diaSel) diaSel.value = aplicar.dataset.dia ?? '';
+      root.querySelector('#predict-btn')?.click();
+      return;
+    }
     const agregar = e.target.closest('#pr-agregar-variante');
     if (agregar) {
       const ocultas = [...root.querySelectorAll('.pr-variante[hidden]')];

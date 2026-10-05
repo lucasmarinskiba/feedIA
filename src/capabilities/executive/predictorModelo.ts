@@ -81,8 +81,17 @@ export interface GrupoResumen {
   vsMediana: number | null;
 }
 
+export type NivelVeredicto = 'fuerte' | 'promedio' | 'debil' | 'sin-datos';
+
+export interface Veredicto {
+  nivel: NivelVeredicto;
+  titulo: string;
+  texto: string;
+}
+
 export interface PrediccionContenido {
   plataforma: PlataformaContenido;
+  veredicto: Veredicto;
   postsUsados: number;
   confianza: Confianza;
   exactitud: { tasaErrorTipicoPct: number | null; alcanceErrorTipicoPct: number | null };
@@ -100,6 +109,7 @@ export interface PrediccionContenido {
   factores: FactorPrediccion[];
   recomendaciones: string[];
   mejoresMomentos: Array<{ dia: string; franja: string; tasaMediana: number; posts: number }>;
+  mejorMomentoFormato: { dia: string; franja: string; tasaMediana: number; posts: number } | null;
   distribucion: Distribucion;
 }
 
@@ -669,6 +679,13 @@ const estadisticasVacias = (): EstadisticasModelo => ({
 
 const prediccionVacia = (plataforma: PlataformaContenido): PrediccionContenido => ({
   plataforma,
+  veredicto: veredictoDe({
+    postsUsados: 0,
+    tasaInteraccion: null,
+    probabilidades: { superarMediana: null },
+    medianas: { tasaInteraccion: null },
+    confianza: 'sin-datos',
+  }),
   postsUsados: 0,
   confianza: 'sin-datos',
   exactitud: { tasaErrorTipicoPct: null, alcanceErrorTipicoPct: null },
@@ -686,8 +703,48 @@ const prediccionVacia = (plataforma: PlataformaContenido): PrediccionContenido =
   factores: [],
   recomendaciones: recomendacionesSinDatos(),
   mejoresMomentos: [],
+  mejorMomentoFormato: null,
   distribucion: { bins: [], prediccionTasa: null, medianaTasa: null },
 });
+
+/** Lectura en lenguaje directo de la predicción: qué esperar y qué tan seguro es. */
+export const veredictoDe = (p: {
+  postsUsados?: number;
+  tasaInteraccion: RangoPrediccion | null;
+  probabilidades: { superarMediana: number | null };
+  medianas: { tasaInteraccion: number | null };
+  confianza: Confianza;
+}): Veredicto => {
+  const prob = p.probabilidades.superarMediana;
+  if (!p.tasaInteraccion || prob === null)
+    return {
+      nivel: 'sin-datos',
+      titulo: 'Todavía no puedo predecir este post',
+      texto: `Necesito al menos ${MIN_POSTS_PREDICCION} publicaciones de esta plataforma en tu historial. Conectá la cuenta o publicá unas semanas más.`,
+    };
+  const rango = `entre ${redondear(p.tasaInteraccion.p10, 1)} % y ${redondear(p.tasaInteraccion.p90, 1)} % de interacción`;
+  const mediana =
+    p.medianas.tasaInteraccion === null ? '' : ` (tu mediana es ${redondear(p.medianas.tasaInteraccion, 1)} %)`;
+  const nota =
+    p.confianza === 'baja' ? ' La predicción es poco firme: tu historial tiene pocos datos o mucha dispersión.' : '';
+  if (prob >= 60)
+    return {
+      nivel: 'fuerte',
+      titulo: 'Va a rendir por encima de tu mediana',
+      texto: `Esperá ${rango}${mediana}. Hay ${prob} % de chances de superarla.${nota}`,
+    };
+  if (prob >= 40)
+    return {
+      nivel: 'promedio',
+      titulo: 'Va a rendir como tu promedio',
+      texto: `Esperá ${rango}${mediana}. Hay ${prob} % de chances de superar tu mediana.${nota}`,
+    };
+  return {
+    nivel: 'debil',
+    titulo: 'Probablemente rinda por debajo de tu mediana',
+    texto: `Esperá ${rango}${mediana}. Solo ${prob} % de chances de superarla: revisá los factores antes de publicar.${nota}`,
+  };
+};
 
 const diasDesdeUltimoPost = (historial: PostHistorial[], ahora: number): number | null => {
   const tiempos = historial.map((p) => Date.parse(p.publicadoEn)).filter((t) => Number.isFinite(t));
@@ -742,7 +799,7 @@ export const predecirContenido = (historial: PostHistorial[], entrada: EntradaCo
 
   const enModelo = tasa.length >= MIN_POSTS_PREDICCION;
 
-  return {
+  const base: Omit<PrediccionContenido, 'veredicto'> = {
     plataforma: entrada.plataforma,
     postsUsados: tasa.length,
     confianza: confianzaDe(tasa.length, errorTasaPct, calidad.q2),
@@ -771,8 +828,10 @@ export const predecirContenido = (historial: PostHistorial[], entrada: EntradaCo
       ? recomendacionesConDatos(tasa, x, medianaTasa)
       : ['Todavía hay pocos posts para medir efectos: publicá unas semanas más y la predicción se calibra sola.'],
     mejoresMomentos: mejoresMomentosDe(tasa),
+    mejorMomentoFormato: mejoresMomentosDe(tasa.filter((f) => f.x.formato === entrada.formato))[0] ?? null,
     distribucion: distribucionDe(tasasHistoricas, enModelo ? Math.exp(logTasa) : null),
   };
+  return { ...base, veredicto: veredictoDe(base) };
 };
 
 const resumenDeGrupos = (
