@@ -47,6 +47,7 @@ import { log } from '../agent/logger.js';
 // ELEVENLABS, FAL_API_KEY vs FAL_KEY: nombres distintos silenciosamente
 // deshabilitan una credencial válida). Se leen en cada request para que un
 // cambio de env (y los tests) no dependa del orden de carga del módulo.
+import { registrarEvento } from '../capabilities/executive/bitacoraEjecutivo.js';
 const igCredenciales = (): { appId: string | undefined; appSecret: string | undefined } => ({
   appId: process.env.INSTAGRAM_APP_ID || process.env.META_APP_ID,
   appSecret: process.env.INSTAGRAM_APP_SECRET || process.env.META_APP_SECRET,
@@ -232,6 +233,13 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
           metadata: { igBusinessId: igUserId },
           connectedAt: new Date().toISOString(),
         });
+        await registrarEvento(stateData.brandId, {
+          categoria: 'cuentas',
+          titulo: 'Instagram conectada',
+          detalle: 'Se vinculó la cuenta profesional con un token de larga duración.',
+          actor: 'vos',
+          resultado: 'Conexión activa',
+        });
         redirect(res, `${stateData.redirectAfter ?? '/'}?connected=instagram&brandId=${stateData.brandId}`);
       } catch (err) {
         log.error('[oauthRoutes] IG callback error', { err: String(err) });
@@ -398,6 +406,13 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
           expiresAtIso: data.expires_in ? new Date(Date.now() + data.expires_in * 1000).toISOString() : undefined,
           connectedAt: new Date().toISOString(),
         });
+        await registrarEvento(stateData.brandId, {
+          categoria: 'cuentas',
+          titulo: 'TikTok conectada',
+          detalle: 'Se vinculó la cuenta con el permiso de lectura de videos.',
+          actor: 'vos',
+          resultado: 'Conexión activa',
+        });
         redirect(res, `${stateData.redirectAfter ?? '/'}?connected=tiktok&brandId=${stateData.brandId}`);
       } catch (err) {
         log.error('[oauthRoutes] TT callback error', { err: String(err) });
@@ -447,6 +462,15 @@ export const buildOAuthRoutes = (defaultBrand?: { id?: string; name: string }): 
         return;
       }
       const ok = await deleteConnection(requested.brandId, b.platform);
+      if (ok) {
+        await registrarEvento(requested.brandId, {
+          categoria: 'cuentas',
+          titulo: `${b.platform === 'instagram' ? 'Instagram' : 'TikTok'} desconectada`,
+          detalle: 'Se borró la conexión y el token guardado.',
+          actor: 'vos',
+          resultado: null,
+        });
+      }
       json(res, 200, { ok, brandId: requested.brandId, platform: b.platform });
     },
   },

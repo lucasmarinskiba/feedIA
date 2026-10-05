@@ -9,6 +9,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { log } from '../../agent/logger.js';
 
+import { registrarEvento } from './bitacoraEjecutivo.js';
 const OKR_DIR = path.resolve('data/executive/okr');
 const DIA = 86_400_000;
 const SEMANA = 7 * DIA;
@@ -356,6 +357,12 @@ export const createObjective = async (params: EntradaObjetivo & { brandId: strin
   const objectives = await loadObjectives(params.brandId);
   objectives.push(objective);
   await saveObjectives(params.brandId, objectives);
+  await registrarEvento(params.brandId, {
+    categoria: 'okr',
+    titulo: `Objetivo creado: ${objective.title}`,
+    detalle: `Categoría ${objective.category}, período ${objective.period}, ${objective.keyResults.length} resultado(s) clave.`,
+    actor: 'vos',
+  });
   log.info('[executiveOKR] objective created', { brandId: params.brandId, id: objective.id, puntaje: calidad.puntaje });
   return objective;
 };

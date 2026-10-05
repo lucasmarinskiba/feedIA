@@ -11,6 +11,7 @@ import {
   ultimaAuditoria,
 } from '../capabilities/executive/auditoriaEjecutiva.js';
 
+import { registrarEvento } from '../capabilities/executive/bitacoraEjecutivo.js';
 const LIMITE_HISTORIAL_MAX = 50;
 
 const buildAuditRoutes = (brand: BrandProfile): RouteDefinition[] => {
@@ -44,7 +45,15 @@ const buildAuditRoutes = (brand: BrandProfile): RouteDefinition[] => {
       pattern: '/api/executive/audit/run',
       handler: async ({ req, res }) => {
         const marcaCuentas = await marcaDeCuentas(req, brand);
-        json(res, 200, await correrAuditoria(marcaPlataforma, marcaCuentas));
+        const registro = await correrAuditoria(marcaPlataforma, marcaCuentas);
+        await registrarEvento(marcaPlataforma.id, {
+          categoria: 'auditoria',
+          titulo: 'Auditoría semanal ejecutada',
+          detalle: `Puntaje general ${registro.puntaje ?? 'sin datos'}/100 (${registro.banda}).`,
+          actor: 'vos',
+          resultado: registro.resumenFuente === 'ia' ? 'Resumen con IA' : 'Resumen por reglas',
+        });
+        json(res, 200, registro);
       },
     },
   ];

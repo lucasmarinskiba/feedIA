@@ -17,6 +17,7 @@ import {
 } from '../capabilities/executive/tiktokAutopilot.js';
 import { observacionRealTikTok } from '../capabilities/executive/ttObservacion.js';
 
+import { registrarEvento } from '../capabilities/executive/bitacoraEjecutivo.js';
 const buildAutopilotRoutes = (brand: BrandProfile): RouteDefinition[] => {
   const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
 
@@ -28,6 +29,13 @@ const buildAutopilotRoutes = (brand: BrandProfile): RouteDefinition[] => {
         const observacion = await observacionRealInstagram(brandId);
         const reporte = await runIGAutopilot(observacion);
         const propuestas = await proponerDesdeReporte(brandId, reporte);
+        await registrarEvento(brandId, {
+          categoria: 'autopilot',
+          titulo: 'Autopilot de Instagram ejecutado',
+          detalle: `${reporte.signals.length} señal(es) detectadas.`,
+          actor: 'sistema',
+          resultado: null,
+        });
         json(res, 200, { ...reporte, propuestasEncoladas: propuestas });
       },
     },
@@ -57,6 +65,13 @@ const buildAutopilotRoutes = (brand: BrandProfile): RouteDefinition[] => {
         const observacion = await observacionRealTikTok(brandId);
         const reporte = await runTTAutopilot(observacion);
         const propuestas = await proponerDesdeReporteTT(brandId, reporte);
+        await registrarEvento(brandId, {
+          categoria: 'autopilot',
+          titulo: 'Autopilot de TikTok ejecutado',
+          detalle: `${reporte.signals.length} señal(es) detectadas.`,
+          actor: 'sistema',
+          resultado: null,
+        });
         json(res, 200, { ...reporte, propuestasEncoladas: propuestas });
       },
     },

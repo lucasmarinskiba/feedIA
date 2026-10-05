@@ -122,62 +122,6 @@ export const renderApprovals = async (root) => {
 
 /* ── Bitácora / Diario de la IA ──────────────────────────────────────────── */
 const BITACORA_DEFAULT = { entries: [], stats: { totalTraces: 0, withOutcomes: 0, successRate: 0 } };
-export const renderBitacora = async (root) => {
-  const host = shell(
-    root,
-    '📓 Bitácora de FeedIA',
-    'El diario en lenguaje humano: qué decidió, por qué y con qué resultado.',
-    'bi-body',
-  );
-  const { data, error } = await apiSafe('/api/bitacora?limit=80', BITACORA_DEFAULT);
-  const d = data ?? BITACORA_DEFAULT;
-  const isOffline = !!error;
-  try {
-    const speech =
-      d.entries.length === 0
-        ? 'La bitácora está vacía. Todavía no tomé decisiones registradas.'
-        : `Tengo ${d.stats.totalTraces} decisiones registradas, con ${(d.stats.successRate * 100).toFixed(0)} por ciento de acierto. Las últimas: ` +
-          d.entries
-            .slice(0, 6)
-            .map((e) => `${e.what}. ${e.why}`)
-            .join('. ');
-    host.innerHTML = `
-      ${
-        isOffline
-          ? `<div class="alert" style="background:var(--bg-elev,#1c1c22);border:1px dashed var(--border);padding:10px 14px;border-radius:10px;margin-bottom:12px;">
-        <span class="small">📡 Backend offline · bitácora vacía.</span>
-      </div>`
-          : ''
-      }
-      <div class="btn-row" style="margin-bottom:12px;"><button class="btn ghost" id="bi-voice">🔊 Escuchar</button></div>
-      <div class="autopilot-stat-row" style="margin-bottom:14px;">
-        <div class="autopilot-stat"><div class="autopilot-stat-num">${d.stats.totalTraces}</div><div class="autopilot-stat-label">decisiones</div></div>
-        <div class="autopilot-stat"><div class="autopilot-stat-num">${d.stats.withOutcomes}</div><div class="autopilot-stat-label">con resultado</div></div>
-        <div class="autopilot-stat"><div class="autopilot-stat-num">${(d.stats.successRate * 100).toFixed(0)}%</div><div class="autopilot-stat-label">acierto</div></div>
-      </div>
-      ${
-        d.entries.length === 0
-          ? '<div class="card" style="text-align:center;padding:30px;"><div class="muted">Sin entradas todavía. A medida que FeedIA opere, su diario se llena solo.</div></div>'
-          : d.entries
-              .map(
-                (e) => `
-          <div class="card ws-log">
-            <div class="meta"><span class="tag accent tiny">${escape(e.agent)}</span><span class="tiny muted">${fmt.rel(e.at)}</span>${e.outcome ? `<span class="tag ok tiny">${escape(e.outcome)}</span>` : ''}</div>
-            <div class="small" style="margin:6px 0 2px;font-weight:600;">${escape(e.what)}</div>
-            <div class="tiny muted">${escape(e.why)}</div>
-          </div>`,
-              )
-              .join('')
-      }`;
-    host.querySelector('#bi-voice')?.addEventListener('click', (ev) => narrate(ev.currentTarget, speech));
-  } catch (e) {
-    host.innerHTML = `<div class="alert crit">Error: ${escape(e.message)}</div>`;
-  }
-};
-
-/* ── Centro de Alertas ───────────────────────────────────────────────────── */
-const ALV = { critica: 'crit', alta: 'warn', media: 'info', info: 'muted' };
-const ALERTAS_DEFAULT = { count: 0, critical: 0, alerts: [] };
 export const renderKanban = async (root) => {
   const host = shell(root, '🗂 Tablero de Contenido', 'El pipeline de tus piezas: de la idea al publicado.', 'kb-body');
   const { data, error } = await apiSafe('/api/kanban', KANBAN_DEFAULT);

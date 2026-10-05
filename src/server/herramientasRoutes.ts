@@ -3,9 +3,11 @@ import type { BrandProfile } from '../config/types.js';
 import { json, type RouteDefinition } from './http.js';
 import { adaptRoutesToExpress } from './expressRouteAdapter.js';
 import { marcaDeCuentas } from './marcaDeCuentas.js';
+import { resolveDefaultBrandId } from './oauthRoutes.js';
 import { HERRAMIENTAS, herramientaPorId, validarEntrada } from '../capabilities/executive/herramientasCatalogo.js';
 import { ejecutarHerramienta } from '../capabilities/executive/herramientasEjecutivo.js';
 
+import { registrarEvento } from '../capabilities/executive/bitacoraEjecutivo.js';
 const buildHerramientasRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'GET',
@@ -44,6 +46,13 @@ const buildHerramientasRoutes = (brand: BrandProfile): RouteDefinition[] => [
         json(res, 502, { error: salida.error });
         return;
       }
+      await registrarEvento(resolveDefaultBrandId(brand) ?? 'default', {
+        categoria: 'ia',
+        titulo: `Herramienta: ${def.nombre}`,
+        detalle: `Se generó con ${salida.fuente === 'ia' ? 'IA' : 'reglas automáticas'}.`,
+        actor: 'vos',
+        resultado: salida.resultado.titulo,
+      });
       json(res, 200, { herramienta: def.id, fuente: salida.fuente, resultado: salida.resultado });
     },
   },

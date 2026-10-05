@@ -11,6 +11,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { log } from '../../agent/logger.js';
 
+import { registrarEvento } from './bitacoraEjecutivo.js';
 const DECISION_DIR = path.resolve('data/executive/decisions');
 
 export type DecisionSource =
@@ -148,6 +149,21 @@ export const resolveDecision = async (
   decision.resolvedBy = resolution.resolvedBy ?? 'owner';
   decision.outcomeNote = resolution.outcomeNote;
   await saveQueue(brandId, queue);
+  await registrarEvento(brandId, {
+    categoria: 'decision',
+    titulo: decision.title,
+    detalle: `Origen: ${decision.source}. Urgencia: ${decision.urgency}.`,
+    actor:
+      resolution.resolvedBy === 'auto' ? 'sistema' : resolution.resolvedBy === 'expiry' ? 'sistema (expiró)' : 'vos',
+    resultado:
+      resolution.status === 'approved'
+        ? 'Aprobada'
+        : resolution.status === 'rejected'
+          ? 'Rechazada'
+          : resolution.status === 'auto-executed'
+            ? 'Ejecutada automáticamente'
+            : 'Expirada',
+  });
   return decision;
 };
 

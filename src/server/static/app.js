@@ -78,7 +78,7 @@ const ROUTES = {
   pizarra: V('./views/pizarra.js', 'renderPizarra'),
   agenda: V('./views/agenda.js', 'renderAgenda'),
   approvals: V('./views/workspace.js', 'renderApprovals'),
-  bitacora: V('./views/workspace.js', 'renderBitacora'),
+  bitacora: V('./views/bitacora.js', 'renderBitacora'),
   alertas: V('./views/alertas.js', 'renderAlertas'),
   kanban: V('./views/workspace.js', 'renderKanban'),
   moodboard: V('./views/workspace.js', 'renderMoodboard'),
