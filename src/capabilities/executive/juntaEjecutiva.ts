@@ -129,6 +129,18 @@ export const construirJunta = async (cuentasId: string, plataformaId: string) =>
     },
     programacion: {
       disponible: calendario.valor !== null,
+      motivoNoDisponible:
+        calendario.valor === null
+          ? 'El almacenamiento de publicaciones programadas no está disponible en este servidor.'
+          : null,
+      agenda: (calendario.valor ?? []).map((c) => ({
+        id: c.id,
+        cuando: c.scheduledAt ?? c.publishedAt ?? null,
+        plataforma: c.metadata?.['platform'] === 'tiktok' ? 'tiktok' : 'instagram',
+        formato: c.format,
+        estado: c.status,
+        texto: (c.caption ?? '').slice(0, 120),
+      })),
       diagnostico,
       arrastre,
       mejoresFranjas: mejoresFranjas(posts),

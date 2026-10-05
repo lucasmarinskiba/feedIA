@@ -79,10 +79,36 @@ const ESTILOS = `<style>
   .jt-tarea.hecha span{text-decoration:line-through;color:var(--text-tertiary,#a1a1aa);}
   .jt-vacio{padding:18px;text-align:center;color:var(--text-tertiary,#a1a1aa);font-size:13px;line-height:1.6;}
   .jt-error{padding:10px 12px;border-radius:10px;background:rgba(248,113,113,.12);color:#fca5a5;font-size:12.5px;}
-  @media (max-width:720px){ .jt-fila{grid-template-columns:1fr;} .jt-acciones{justify-content:flex-start;} }
+  .jt-cal{max-width:340px;border:1px solid var(--border,rgba(255,255,255,.08));border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--bg-hover,rgba(255,255,255,.03));}
+  .jt-cal-cab{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:13px;}
+  .jt-cal-nav{width:28px;height:28px;border-radius:50%;border:1px solid var(--border,rgba(255,255,255,.12));background:transparent;color:inherit;cursor:pointer;font-size:16px;line-height:1;}
+  .jt-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+  .jt-cal-sem{font-size:10px;text-align:center;color:var(--text-tertiary,#a1a1aa);padding:2px 0;}
+  .jt-cal-vacia{display:block;}
+  .jt-cal-dia{aspect-ratio:1;border:none;border-radius:9px;background:transparent;color:inherit;font-size:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;}
+  .jt-cal-dia:hover{background:rgba(255,255,255,.06);}
+  .jt-cal-dia.hoy{box-shadow:inset 0 0 0 1px #fdba74;}
+  .jt-cal-dia.con{font-weight:700;}
+  .jt-cal-dia.sel{background:#fdba74;color:#111;}
+  .jt-cal-puntos{display:flex;gap:2px;}
+  .jt-cal-puntos i{display:inline-block;width:5px;height:5px;border-radius:50%;}
+  .jt-cal-leyenda{display:flex;gap:10px;justify-content:center;font-size:11px;color:var(--text-tertiary,#a1a1aa);}
+  .jt-cal-leyenda i,.jt-punto{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;}
+  .jt-agenda-dia{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--text-tertiary,#a1a1aa);margin-top:6px;}
+  .jt-agenda-item{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;font-size:12.5px;padding:8px 10px;border-radius:10px;background:var(--bg-hover,rgba(255,255,255,.04));}
+  .jt-agenda-hora{font-weight:700;font-variant-numeric:tabular-nums;color:#fdba74;}
+  @media (max-width:720px){ .jt-fila{grid-template-columns:1fr;} .jt-acciones{justify-content:flex-start;} .jt-agenda-item{grid-template-columns:52px 1fr;} }
 </style>`;
 
-const state = { datos: null, error: false, cargando: false, ocupado: null, mostrarFormProyecto: false };
+const state = {
+  datos: null,
+  error: false,
+  cargando: false,
+  ocupado: null,
+  mostrarFormProyecto: false,
+  mes: null,
+  diaSel: null,
+};
 const enlazados = new WeakSet();
 
 const razonDe = (err, respaldo) =>
@@ -167,20 +193,128 @@ const decisionesHtml = (d) => {
     </section>`;
 };
 
+const MESES = [
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
+];
+const DIAS_CORTOS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+const ESTADO_CAL = {
+  scheduled: { label: 'Programado', color: '#93c5fd' },
+  publishing: { label: 'Publicando', color: '#fcd34d' },
+  published: { label: 'Publicado', color: '#6ee7b7' },
+  failed: { label: 'Fallido', color: '#fca5a5' },
+  draft: { label: 'Borrador', color: '#a1a1aa' },
+  cancelled: { label: 'Cancelado', color: '#a1a1aa' },
+};
+const COLOR_PLATAFORMA = { instagram: '#fdba74', tiktok: '#93c5fd' };
+
+const claveDia = (ms) => {
+  const d = new Date(ms);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+const hora = (iso) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+};
+
+const widgetCalendarioHtml = (agenda, mes, diaSel) => {
+  const primero = new Date(mes.y, mes.m, 1);
+  const offset = (primero.getDay() + 6) % 7;
+  const dias = new Date(mes.y, mes.m + 1, 0).getDate();
+  const conteo = new Map();
+  for (const it of agenda) {
+    const t = it.cuando ? Date.parse(it.cuando) : NaN;
+    if (!Number.isFinite(t)) continue;
+    const k = claveDia(t);
+    const c = conteo.get(k) ?? { instagram: 0, tiktok: 0 };
+    c[it.plataforma] += 1;
+    conteo.set(k, c);
+  }
+  const hoy = claveDia(Date.now());
+  const celdas = [];
+  for (let i = 0; i < offset; i++) celdas.push('<span class="jt-cal-vacia"></span>');
+  for (let d = 1; d <= dias; d++) {
+    const k = `${mes.y}-${String(mes.m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const c = conteo.get(k);
+    const clases = ['jt-cal-dia', k === hoy ? 'hoy' : '', k === diaSel ? 'sel' : '', c ? 'con' : '']
+      .filter(Boolean)
+      .join(' ');
+    const puntos = c
+      ? `<span class="jt-cal-puntos">${c.instagram ? `<i style="background:${COLOR_PLATAFORMA.instagram}"></i>` : ''}${c.tiktok ? `<i style="background:${COLOR_PLATAFORMA.tiktok}"></i>` : ''}</span>`
+      : '';
+    celdas.push(
+      `<button class="${clases}" data-jt-accion="dia" data-dia="${k}" aria-label="${d} de ${MESES[mes.m]}${c ? `, ${c.instagram + c.tiktok} publicaciones` : ''}">${d}${puntos}</button>`,
+    );
+  }
+  return `<div class="jt-cal" role="group" aria-label="Calendario de publicaciones">
+    <div class="jt-cal-cab">
+      <button class="jt-cal-nav" data-jt-accion="mes" data-paso="-1" aria-label="Mes anterior">‹</button>
+      <strong>${MESES[mes.m]} ${mes.y}</strong>
+      <button class="jt-cal-nav" data-jt-accion="mes" data-paso="1" aria-label="Mes siguiente">›</button>
+    </div>
+    <div class="jt-cal-grid">${DIAS_CORTOS.map((d) => `<span class="jt-cal-sem">${d}</span>`).join('')}${celdas.join('')}</div>
+    <div class="jt-cal-leyenda"><span><i style="background:${COLOR_PLATAFORMA.instagram}"></i> Instagram</span><span><i style="background:${COLOR_PLATAFORMA.tiktok}"></i> TikTok</span></div>
+    ${diaSel ? `<button class="jt-btn" data-jt-accion="dia" data-dia="" style="width:100%;">Ver todos los próximos días</button>` : ''}
+  </div>`;
+};
+
+const agendaHtml = (agenda, diaSel) => {
+  const ahora = Date.now();
+  const items = agenda
+    .filter((it) => {
+      const t = it.cuando ? Date.parse(it.cuando) : NaN;
+      if (!Number.isFinite(t)) return false;
+      if (diaSel) return claveDia(t) === diaSel;
+      return t >= ahora - 86_400_000 && t <= ahora + 14 * 86_400_000;
+    })
+    .sort((a, b) => Date.parse(a.cuando) - Date.parse(b.cuando));
+  if (items.length === 0) {
+    return `<div class="jt-vacio">${diaSel ? 'Nada programado para este día.' : 'No hay publicaciones en los próximos 14 días. Programá desde el calendario para llenar la agenda.'}</div>`;
+  }
+  const grupos = new Map();
+  for (const it of items) {
+    const k = claveDia(Date.parse(it.cuando));
+    grupos.set(k, [...(grupos.get(k) ?? []), it]);
+  }
+  return [...grupos.entries()]
+    .map(
+      ([dia, lista]) => `<div class="jt-agenda-dia">${escape(fecha(dia))}</div>
+        ${lista
+          .map((it) => {
+            const est = ESTADO_CAL[it.estado] ?? { label: it.estado, color: '#a1a1aa' };
+            return `<div class="jt-agenda-item">
+              <span class="jt-agenda-hora">${escape(hora(it.cuando))}</span>
+              <span><i class="jt-punto" style="background:${COLOR_PLATAFORMA[it.plataforma]};"></i>${escape(it.formato)} · ${escape(it.texto || 'Sin texto')}</span>
+              <span class="jt-tag" style="color:${est.color};">${escape(est.label)}</span>
+            </div>`;
+          })
+          .join('')}`,
+    )
+    .join('');
+};
+
 const programacionHtml = (p) => {
   if (!p)
     return '<section class="jt-bloque" id="jt-programacion"><h3>🗓️ Programación</h3><div class="jt-vacio">No hay calendario disponible.</div></section>';
   const g = p.diagnostico;
+  const agenda = p.agenda ?? [];
+  const avisoDisp = p.disponible
+    ? ''
+    : `<div class="jt-error">${escape(p.motivoNoDisponible ?? 'El calendario no está disponible en este servidor.')} Mientras tanto no hay agenda ni control de desvíos.</div>`;
+  const mes = state.mes ?? { y: new Date().getFullYear(), m: new Date().getMonth() };
   const porDia = g?.porDia ?? [];
   const maxDia = Math.max(1, ...porDia.map((x) => x.posts));
-  const agenda = porDia.length
-    ? `<div style="display:flex;flex-direction:column;gap:6px;">${porDia
-        .map(
-          (x) =>
-            `<div class="jt-fila"><div class="jt-fila-nombre">${escape(fecha(x.dia))}</div>${barra(x.posts, maxDia, '#60a5fa')}<span class="jt-val">${num(x.posts)}</span></div>`,
-        )
-        .join('')}</div>`
-    : '<div class="jt-vacio">No hay publicaciones programadas en los próximos 14 días.</div>';
   const formatos = g?.porFormato ?? [];
   const maxShare = Math.max(1, ...formatos.map((f) => f.sharePlanPct));
   const balance = formatos.length
@@ -215,7 +349,8 @@ const programacionHtml = (p) => {
   return `
     <section class="jt-bloque" id="jt-programacion">
       <h3>🗓️ Programación</h3>
-      <p class="jt-ayuda">Agenda, control de desvíos y cómo se encadenan tus publicaciones.</p>
+      <p class="jt-ayuda">Calendario, agenda y control de desvíos de tus publicaciones.</p>
+      ${avisoDisp}
       <div class="jt-cifras">
         ${cifra('Próximos 14 días', num(g?.proximos14Dias ?? 0), 'programadas', '#60a5fa')}
         ${cifra('Vencidas sin publicar', num(g?.vencidos ?? 0), 'desvíos a corregir', g?.vencidos ? '#f87171' : '#34d399')}
@@ -223,7 +358,15 @@ const programacionHtml = (p) => {
         ${cifra('Disciplina (30 d)', g?.disciplinaPct === null || g?.disciplinaPct === undefined ? 'sin dato' : `${g.disciplinaPct} %`, 'publicado vs. cerrado', '#fdba74')}
       </div>
       <div class="jt-grid2">
-        <div class="jt-bloque" style="border:none;padding:0;"><h3 style="font-size:13px;">Agenda por día</h3>${agenda}</div>
+        <div class="jt-bloque" style="border:none;padding:0;">
+          <h3 style="font-size:13px;">Calendario</h3>
+          ${widgetCalendarioHtml(agenda, mes, state.diaSel)}
+        </div>
+        <div class="jt-bloque" style="border:none;padding:0;">
+          <h3 style="font-size:13px;">Agenda ${state.diaSel ? `· ${escape(fecha(state.diaSel))}` : '· próximos 14 días'}</h3>
+          ${agendaHtml(agenda, state.diaSel)}
+        </div>
+        <div class="jt-bloque" style="border:none;padding:0;"><h3 style="font-size:13px;">Agenda por día</h3>${porDia.length ? `<div style="display:flex;flex-direction:column;gap:6px;">${porDia.map((x) => `<div class="jt-fila"><div class="jt-fila-nombre">${escape(fecha(x.dia))}</div>${barra(x.posts, maxDia, '#60a5fa')}<span class="jt-val">${num(x.posts)}</span></div>`).join('')}</div>` : '<div class="jt-vacio">No hay publicaciones programadas en los próximos 14 días.</div>'}</div>
         <div class="jt-bloque" style="border:none;padding:0;"><h3 style="font-size:13px;">Asignación de recursos por formato</h3>${balance || '<div class="jt-vacio">Sin agenda para repartir.</div>'}</div>
         <div class="jt-bloque" style="border:none;padding:0;"><h3 style="font-size:13px;">Efecto de arrastre (lead-in)</h3>${arrastre}</div>
         <div class="jt-bloque" style="border:none;padding:0;"><h3 style="font-size:13px;">Optimización de tiempos: mejores franjas</h3>${franjasHtml}</div>
@@ -470,6 +613,11 @@ const montarEstructura = (root) => {
     </section>`;
 };
 
+const refrescarProgramacion = (root) => {
+  const sec = root.querySelector('#jt-programacion');
+  if (sec && state.datos) sec.outerHTML = programacionHtml(state.datos.programacion);
+};
+
 const enlazar = (root) => {
   if (enlazados.has(root)) return;
   enlazados.add(root);
@@ -477,6 +625,18 @@ const enlazar = (root) => {
     const el = e.target.closest('[data-jt-accion]');
     if (!el || !root.contains(el)) return;
     const accion = el.dataset.jtAccion;
+    if (accion === 'mes') {
+      const base = state.mes ?? { y: new Date().getFullYear(), m: new Date().getMonth() };
+      const total = base.y * 12 + base.m + Number(el.dataset.paso);
+      state.mes = { y: Math.floor(total / 12), m: total % 12 };
+      refrescarProgramacion(root);
+      return;
+    }
+    if (accion === 'dia') {
+      state.diaSel = el.dataset.dia || null;
+      refrescarProgramacion(root);
+      return;
+    }
     if (accion === 'refrescar') {
       await cargar(root, true);
       return;
@@ -553,6 +713,8 @@ export const renderJunta = async (root) => {
   state.error = false;
   state.ocupado = null;
   state.mostrarFormProyecto = false;
+  state.mes = null;
+  state.diaSel = null;
   montarEstructura(root);
   enlazar(root);
   await cargar(root);
