@@ -47,7 +47,7 @@ const ROUTES = {
   predictor: V('./views/predictor.js', 'renderPredictor'),
   curator: V('./views/curator.js', 'renderCurator'),
   ugc: V('./views/ugc.js', 'renderUgc'),
-  experiments: V('./views/experiments.js', 'renderExperiments'),
+  experiments: V('./views/experimentos.js', 'renderExperimentos'),
   collab: V('./views/collab.js', 'renderCollab'),
   inbox: V('./views/inbox.js', 'renderInbox'),
   crisis: V('./views/crisis.js', 'renderCrisis'),

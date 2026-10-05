@@ -3,7 +3,7 @@
  * Función pura: no toca red ni disco.
  */
 
-export type CategoriaBitacora = 'decision' | 'cuentas' | 'okr' | 'autopilot' | 'auditoria' | 'ia';
+export type CategoriaBitacora = 'decision' | 'cuentas' | 'okr' | 'autopilot' | 'auditoria' | 'ia' | 'experimento';
 
 export interface EventoBitacora {
   id: string;
@@ -30,6 +30,11 @@ export const CATEGORIAS_BITACORA: Record<CategoriaBitacora, { label: string; emo
   },
   auditoria: { label: 'Auditoría', emoji: '🩺', descripcion: 'Auditorías semanales y su puntaje general.' },
   ia: { label: 'Herramientas IA', emoji: '🧰', descripcion: 'Herramientas IA que generaron un resultado para vos.' },
+  experimento: {
+    label: 'Experimentos',
+    emoji: '🧪',
+    descripcion: 'Experimentos A/B creados, iniciados, cerrados o descartados, con su veredicto.',
+  },
 };
 
 const MAX_LIMITE = 500;
@@ -75,6 +80,7 @@ export const contarPorCategoria = (eventos: EventoBitacora[]): Record<CategoriaB
     autopilot: 0,
     auditoria: 0,
     ia: 0,
+    experimento: 0,
   };
   for (const e of eventos) conteo[e.categoria] += 1;
   return conteo;

@@ -17,6 +17,11 @@ const CATEGORIAS = {
   },
   auditoria: { label: 'Auditoría', emoji: '🩺', descripcion: 'Auditorías semanales y su puntaje general.' },
   ia: { label: 'Herramientas IA', emoji: '🧰', descripcion: 'Herramientas IA que generaron un resultado para vos.' },
+  experimento: {
+    label: 'Experimentos',
+    emoji: '🧪',
+    descripcion: 'Experimentos A/B creados, iniciados, cerrados o descartados, con su veredicto.',
+  },
 };
 const ACTOR = { vos: 'Vos', sistema: 'Sistema', 'sistema (expiró)': 'Sistema' };
 
