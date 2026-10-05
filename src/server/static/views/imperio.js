@@ -53,6 +53,7 @@ const TABS = [
 
 const EMBED_VIEWS = {
   logbook: { path: './bitacora.js', name: 'renderBitacora' },
+  junta: { path: './junta.js', name: 'renderJunta' },
   experiments: { path: './experimentos.js', name: 'renderExperimentos' },
   scheduler: { path: './scheduler.js', name: 'renderScheduler' },
   collabs: { path: './collab.js', name: 'renderCollab' },
@@ -346,6 +347,7 @@ const renderSummary = async (b) => {
         }
       </div>
     </section>
+    <div id="exec-embed" data-embed="junta"><div class="loading-screen"><span class="spinner lg"></span></div></div>
   `;
 };
 
