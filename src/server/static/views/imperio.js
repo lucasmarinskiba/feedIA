@@ -56,6 +56,7 @@ const EMBED_VIEWS = {
   experiments: { path: './experimentos.js', name: 'renderExperimentos' },
   scheduler: { path: './scheduler.js', name: 'renderScheduler' },
   collabs: { path: './collab.js', name: 'renderCollab' },
+  proposals: { path: './propuestas.js', name: 'renderPropuestas' },
   alerts: { path: './alertas.js', name: 'renderAlertas' },
   audit: { path: './audit.js', name: 'renderAudit' },
   predictor: { path: './predictor.js', name: 'renderPredictor' },
@@ -348,128 +349,6 @@ const renderSummary = async (b) => {
   `;
 };
 
-const PROP_PRIORIDAD = {
-  alta: { label: 'Alta', color: '#fbbf24', fondo: 'rgba(251,191,36,.14)' },
-  media: { label: 'Media', color: '#60a5fa', fondo: 'rgba(96,165,250,.14)' },
-  baja: { label: 'Baja', color: '#a1a1aa', fondo: 'rgba(161,161,170,.14)' },
-};
-
-const renderProposals = async () => {
-  const { data, error } = await apiSafe('/api/executive/proposals', []);
-  const propuestas = Array.isArray(data) ? data : [];
-  const cabecera = `
-    <div class="prop-cabecera">
-      <div class="v2-eyebrow">Propuestas del equipo</div>
-      <h2 class="v2-h2">${propuestas.length ? `${propuestas.length} oportunidad(es) detectada(s)` : 'Sin oportunidades por ahora'}</h2>
-      <p class="v2-section-desc">Tus agentes proponen crecer a partir de tus datos reales: el formato que rinde, la hora de publicar, leads que esperan respuesta y metas atrasadas. Elegís cuáles hacer.${error ? ' <span class="prop-aviso">No se pudo cargar: revisá la conexión con el backend.</span>' : ''}</p>
-    </div>`;
-
-  if (propuestas.length === 0) {
-    return `
-      <div class="prop-wrap">
-        ${cabecera}
-        <div class="v2-card v2-card-pad prop-vacio">
-          <div class="v2-hint">Cuando tus datos muestren una oportunidad (un formato que rinde, un lead calificado sin responder o un OKR atrasado), aparece acá con el dato que la originó.</div>
-        </div>
-      </div>`;
-  }
-
-  return `
-    <div class="prop-wrap">
-      ${cabecera}
-      <div class="prop-grid">
-        ${propuestas
-          .map((p) => {
-            const pr = PROP_PRIORIDAD[p.prioridad] || PROP_PRIORIDAD.media;
-            return `
-          <article class="v2-card prop-card" data-prop-id="${escape(p.id)}">
-            <header class="prop-head">
-              <span class="prop-agente"><span class="prop-emoji">${escape(p.emoji)}</span>${escape(p.agente)}</span>
-              <span class="prop-prio" style="color:${pr.color};background:${pr.fondo};">${escape(pr.label)}</span>
-            </header>
-            <h3 class="prop-titulo">${escape(p.titulo)}</h3>
-            <p class="prop-detalle">${escape(p.detalle)}</p>
-            <div class="prop-dato"><span>Dato</span>${escape(p.dato)}</div>
-            <footer class="prop-acciones">
-              <button class="v2-btn v2-btn-ghost v2-btn-sm" data-prop-descartar="${escape(p.id)}">Descartar</button>
-              <button class="v2-btn v2-btn-primary v2-btn-sm" data-prop-aceptar="${escape(p.id)}"
-                data-accion-tipo="${escape(p.accion.tipo)}" data-accion-valor="${escape(p.accion.valor)}">${escape(p.accion.label)}</button>
-            </footer>
-          </article>`;
-          })
-          .join('')}
-      </div>
-      <style>
-        .prop-wrap{display:flex;flex-direction:column;gap:18px;}
-        .prop-cabecera{display:flex;flex-direction:column;gap:6px;}
-        .prop-aviso{color:#fbbf24;}
-        .prop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
-        .prop-card{padding:20px;display:flex;flex-direction:column;gap:12px;}
-        .prop-head{display:flex;justify-content:space-between;align-items:center;gap:10px;}
-        .prop-agente{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--v2-fg-2);}
-        .prop-emoji{font-size:16px;}
-        .prop-prio{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:4px 10px;border-radius:999px;}
-        .prop-titulo{margin:0;font-size:16px;font-weight:600;letter-spacing:-0.015em;color:var(--v2-fg);line-height:1.3;}
-        .prop-detalle{margin:0;font-size:13px;color:var(--v2-fg-2);line-height:1.5;}
-        .prop-dato{padding:10px 12px;border-radius:10px;background:var(--v2-hover);font-size:12.5px;color:var(--v2-fg-2);line-height:1.45;display:flex;flex-direction:column;gap:3px;}
-        .prop-dato span{font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--v2-fg-3);}
-        .prop-acciones{display:flex;justify-content:flex-end;gap:8px;padding-top:12px;border-top:1px solid var(--v2-line);margin-top:auto;}
-        .prop-vacio{text-align:center;padding:36px 24px;}
-        @media (max-width:720px){.prop-grid{grid-template-columns:1fr;}}
-      </style>
-    </div>`;
-};
-
-const wireProposals = (body, root, repaint) => {
-  body.querySelectorAll('[data-prop-descartar]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      btn.disabled = true;
-      try {
-        const r = await fetch('/api/executive/proposals/resolver', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ id: btn.dataset.propDescartar, estado: 'descartada' }),
-        });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const tarjeta = btn.closest('.prop-card');
-        toast('Propuesta descartada', 'info');
-        if (body.querySelectorAll('.prop-card').length <= 1) void repaint();
-        else tarjeta?.remove();
-      } catch (err) {
-        btn.disabled = false;
-        toast(`No se pudo descartar: ${err.message}`, 'err');
-      }
-    });
-  });
-
-  body.querySelectorAll('[data-prop-aceptar]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      btn.disabled = true;
-      try {
-        const r = await fetch('/api/executive/proposals/resolver', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ id: btn.dataset.propAceptar, estado: 'aceptada' }),
-        });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const tipo = btn.dataset.accionTipo;
-        const valor = btn.dataset.accionValor;
-        if (tipo === 'conectar') {
-          window.location.href = ccLoginUrl(valor);
-          return;
-        }
-        if (tipo === 'tab') {
-          root.querySelector(`.v2-tab[data-tab="${valor}"]`)?.click();
-          return;
-        }
-        window.location.hash = `#${valor}`;
-      } catch (err) {
-        btn.disabled = false;
-        toast(`No se pudo aceptar: ${err.message}`, 'err');
-      }
-    });
-  });
-};
 const PA_FORMATO = { reel: 'Reel', carrusel: 'Carrusel', imagen: 'Imagen', video: 'Video' };
 const PA_VEREDICTO = {
   destacado: { label: 'Destacado', color: '#6ee7b7', fondo: 'rgba(16,185,129,.12)' },
@@ -2049,7 +1928,6 @@ const renderTabContent = async (b) => {
   if (activeTab === 'okrs') return renderOKRs();
   if (activeTab === 'igAutopilot') return renderAutopilotReport('instagram');
   if (activeTab === 'ttAutopilot') return renderAutopilotReport('tiktok');
-  if (activeTab === 'proposals') return renderProposals();
   if (activeTab === 'posts') return renderPostsAnalysis();
   if (activeTab === 'analytics') {
     await panelAnalytics.cargar();
@@ -2387,7 +2265,6 @@ export const renderImperio = async (root) => {
         window.location.hash = `#${btn.dataset.goRoute}`;
       });
     });
-    wireProposals(body, root, repaint);
     wirePostsAnalysis(body);
     panelAnalytics.wire(body);
     panelReportes.wire(body);

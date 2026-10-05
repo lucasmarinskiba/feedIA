@@ -12,6 +12,20 @@ import { getLatestReport as getTTLatestReport } from './tiktokAutopilot.js';
 import { listConversations, type Conversation } from '../community/dmInbox.js';
 import { listCarouselJobs } from '../content/index.js';
 import { getOKRSummary } from './executiveOKR.js';
+import { askJson } from '../../agent/claude.js';
+import { log } from '../../agent/logger.js';
+import { analizarPostsDeMarca, type BloquePlataforma } from './postsAnalisis.js';
+import { mediana } from './postsMetricas.js';
+import {
+  AGENTES_ESPECIALISTAS,
+  OBJETIVOS,
+  promptEspecialistas,
+  reglasEspecialistas,
+  validarIdeasIA,
+  type ContextoEspecialistas,
+  type DatosPlataformaEspecialista,
+  type PropuestaEspecialista,
+} from './propuestasEspecialistas.js';
 
 const ESTADOS_DIR = path.resolve('data/executive/propuestas');
 const HORA_MS = 3_600_000;
@@ -49,6 +63,11 @@ export interface Propuesta {
   detalle: string;
   dato: string;
   accion: AccionPropuesta;
+  objetivo?: string;
+  gancho?: string | null;
+  estructura?: string[];
+  senal?: string;
+  base?: 'datos' | 'buenas-practicas';
 }
 
 interface EstadoPropuestas {
@@ -94,7 +113,80 @@ const leadsPrioritarios = (): Array<{ c: Conversation; score: number }> => {
     .slice(0, 3);
 };
 
-export const construirPropuestas = async (brandId: string, brandName: string): Promise<Propuesta[]> => {
+const datosPlataforma = (plataforma: 'instagram' | 'tiktok', bloque: BloquePlataforma): DatosPlataformaEspecialista => {
+  const r = bloque.resumen;
+  const pctARatio = (v: number | null): number | null => (v === null ? null : v / 100);
+  return {
+    plataforma,
+    conectado: bloque.conectado,
+    analizados: r.analizados,
+    baseSuficiente: r.baseSuficiente,
+    tasaMediana: pctARatio(r.tasaMediana),
+    tasaUltimos5: pctARatio(r.tasaUltimos5),
+    tasaAnteriores: pctARatio(r.tasaAnteriores),
+    mejorFormato: r.mejorFormato,
+    porFormato: r.porFormato.map((f) => ({
+      formato: f.formato,
+      posts: f.posts,
+      tasaMediana: pctARatio(f.tasaMediana),
+      alcanceMediano: f.alcanceMediano,
+    })),
+    mejorHora: r.mejorHora,
+    duracionMedianaSeg: mediana(bloque.posts.map((p) => p.duracionSeg).filter((x): x is number => x !== null && x > 0)),
+    retencionMedianaSeg: mediana(
+      bloque.posts
+        .map((p) => p.tiempoVisualizacionSeg)
+        .filter((x): x is number => x !== null && x !== undefined && x > 0),
+    ),
+  };
+};
+
+const CACHE_IA_MS = 6 * HORA_MS;
+const cacheIA = new Map<string, { at: number; propuestas: PropuestaEspecialista[] }>();
+
+const especialistasIA = async (ctx: ContextoEspecialistas): Promise<PropuestaEspecialista[]> => {
+  const clave = `${ctx.marca}|${JSON.stringify(ctx.plataformas)}`;
+  const previo = cacheIA.get(clave);
+  if (previo && Date.now() - previo.at < CACHE_IA_MS) return previo.propuestas;
+  try {
+    const raw = await askJson<unknown>(promptEspecialistas(ctx), { fast: true, maxTokens: 1800, temperature: 0.7 });
+    const validas = validarIdeasIA(raw, ctx);
+    if (validas.length > 0) {
+      cacheIA.set(clave, { at: Date.now(), propuestas: validas });
+      return validas;
+    }
+    log.warn('[Propuestas] IA sin propuestas válidas, uso reglas');
+  } catch (err) {
+    log.warn('[Propuestas] IA no disponible, uso reglas', { error: String(err) });
+  }
+  return reglasEspecialistas(ctx);
+};
+
+const comoPropuesta = (p: PropuestaEspecialista): Propuesta => {
+  const agente = AGENTES_ESPECIALISTAS[p.agente];
+  return {
+    id: p.id,
+    agente: `${agente.nombre} · ${agente.rol}`,
+    emoji: agente.emoji,
+    prioridad: p.prioridad,
+    titulo: p.titulo,
+    detalle: p.paso,
+    dato: p.dato,
+    accion: { label: p.accion.label, tipo: p.accion.tipo, valor: p.accion.valor },
+    objetivo: OBJETIVOS[p.objetivo],
+    gancho: p.gancho,
+    estructura: p.estructura,
+    senal: p.senal,
+    base: p.base,
+  };
+};
+
+export const construirPropuestas = async (
+  brandId: string,
+  brandName: string,
+  cuentasId: string,
+  nicho: string,
+): Promise<Propuesta[]> => {
   const propuestas: Propuesta[] = [];
   const dia = new Date().toISOString().slice(0, 10);
   const [ig, tt, okr] = await Promise.all([
@@ -211,11 +303,24 @@ export const construirPropuestas = async (brandId: string, brandName: string): P
     });
   }
 
+  const bloques = await analizarPostsDeMarca(cuentasId).catch((err: unknown) => {
+    log.warn('[Propuestas] posts no disponibles', { error: String(err) });
+    return null;
+  });
+  const contexto: ContextoEspecialistas = {
+    marca: brandName,
+    nicho,
+    plataformas: bloques
+      ? [datosPlataforma('instagram', bloques.instagram), datosPlataforma('tiktok', bloques.tiktok)]
+      : [],
+  };
+  for (const p of await especialistasIA(contexto)) propuestas.push(comoPropuesta(p));
+
   const estado = await leerEstado(brandId);
   return propuestas
     .filter((p) => !estado.resueltas[p.id])
     .sort((a, b) => RANGO[a.prioridad] - RANGO[b.prioridad])
-    .slice(0, 8);
+    .slice(0, 16);
 };
 
 /** Marca una propuesta como aceptada o descartada; no vuelve a aparecer. */

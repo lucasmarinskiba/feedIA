@@ -58,7 +58,7 @@ export const construirReporte = async ({
     construirAnalytics(marcaCuentas),
     analizarPostsDeMarca(marcaCuentas),
     listActiveObjectives(marcaPlataforma.id),
-    construirPropuestas(marcaPlataforma.id, marcaPlataforma.nombre),
+    construirPropuestas(marcaPlataforma.id, marcaPlataforma.nombre, marcaCuentas, ''),
     listPending(marcaPlataforma.id),
     getDecisionStats(marcaPlataforma.id, cfg.dias),
   ]);

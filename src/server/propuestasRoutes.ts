@@ -3,6 +3,7 @@ import type { BrandProfile } from '../config/types.js';
 import { json, type RouteDefinition } from './http.js';
 import { adaptRoutesToExpress } from './expressRouteAdapter.js';
 import { construirPropuestas, resolverPropuesta } from '../capabilities/executive/propuestasEquipo.js';
+import { marcaDeCuentas } from './marcaDeCuentas.js';
 
 const buildPropuestasRoutes = (brand: BrandProfile): RouteDefinition[] => {
   const brandId = (brand as { id?: string }).id ?? brand.name.toLowerCase().replace(/\s+/g, '-');
@@ -11,8 +12,9 @@ const buildPropuestasRoutes = (brand: BrandProfile): RouteDefinition[] => {
     {
       method: 'GET',
       pattern: '/api/executive/proposals',
-      handler: async ({ res }) => {
-        json(res, 200, await construirPropuestas(brandId, brand.name));
+      handler: async ({ req, res }) => {
+        const cuentasId = await marcaDeCuentas(req, brand);
+        json(res, 200, await construirPropuestas(brandId, brand.name, cuentasId, brand.niche));
       },
     },
     {
