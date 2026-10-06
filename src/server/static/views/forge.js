@@ -127,6 +127,7 @@ const buildForm = (platform) => `
       <button class="fg-btn fg-btn-secondary" data-action="analizar-predictor"><span class="fg-btn-icon">🔬</span>Analizar</button>
       <button class="fg-btn fg-btn-secondary" data-action="batch-comparison"><span class="fg-btn-icon">📈</span>Trends</button>
       <button class="fg-btn fg-btn-secondary" data-action="content-suggestions"><span class="fg-btn-icon">✍️</span>Sugerencias</button>
+      <button class="fg-btn fg-btn-secondary" data-action="performance-forecast"><span class="fg-btn-icon">🔮</span>Forecast</button>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
@@ -725,6 +726,8 @@ const manejarAccion = (root, action, idx) => {
       return cargarBatchComparison(root);
     case 'content-suggestions':
       return cargarContentSuggestions(root);
+    case 'performance-forecast':
+      return cargarPerformanceForecast(root);
     default:
       return undefined;
   }
@@ -1013,6 +1016,85 @@ const cargarContentSuggestions = async (root) => {
   toast('success', 'Sugerencias cargadas');
 };
 
+/* ───────── Phase 5: Performance Forecasting ───────── */
+
+const renderPerformanceForecast = (root, forecast) => {
+  const { baseline, scenarios, mostLikely } = forecast;
+
+  const scenarioHtml = scenarios
+    .map(
+      (s) =>
+        `<div class="fg-forecast-scenario" data-delta="${s.overallDelta}">
+      <div class="fg-scenario-title">${s.name}</div>
+      <div class="fg-scenario-scores">
+        <span class="fg-scenario-score" style="color: #8b5cf6;">📝 ${s.projectedScores.contenido}</span>
+        <span class="fg-scenario-score" style="color: #f59e0b;">🎣 ${s.projectedScores.hook}</span>
+        <span class="fg-scenario-score" style="color: #10b981;">📊 ${s.projectedScores.cuenta}</span>
+      </div>
+      <div class="fg-scenario-overall" style="color: ${s.overallDelta >= 10 ? '#10b981' : s.overallDelta >= 5 ? '#3b82f6' : '#94a3b8'};">
+        Overall: ${Math.round(
+          s.projectedScores.contenido * 0.45 + s.projectedScores.hook * 0.35 + s.projectedScores.cuenta * 0.2,
+        )}/100 (${s.overallDelta > 0 ? '+' : ''}${s.overallDelta})
+      </div>
+      <div class="fg-scenario-meta">${s.timeframe} · ${s.confidence}% confianza</div>
+    </div>`,
+    )
+    .join('');
+
+  const html = `<div class="fg-forecast-panel">
+    <h3>🔮 Performance Forecast</h3>
+
+    <div class="fg-forecast-baseline">
+      <h4>Baseline Actual</h4>
+      <div class="fg-baseline-scores">
+        <span>📝 Contenido: ${baseline.contenido}</span>
+        <span>🎣 Hook: ${baseline.hook}</span>
+        <span>📊 Cuenta: ${baseline.cuenta}</span>
+      </div>
+      <div class="fg-baseline-overall">Overall: ${baseline.overall}/100</div>
+    </div>
+
+    <h4>Escenarios Proyectados</h4>
+    <div class="fg-forecast-scenarios">
+      ${scenarioHtml}
+    </div>
+
+    <div class="fg-forecast-likely">
+      <h4>📊 Escenario Más Probable</h4>
+      <p class="fg-likely-desc">Aplicar hook + content suggestions en paralelo (estrategia de velocidad)</p>
+      <div class="fg-likely-score" style="font-size: 28px; font-weight: 700; color: #3b82f6;">
+        +${mostLikely.overallDelta} pts
+      </div>
+      <p style="font-size: 12px; color: #94a3b8; margin-top: 8px;">
+        Timeframe: ${mostLikely.timeframe} · Confianza: ${mostLikely.confidence}%
+      </p>
+    </div>
+  </div>`;
+
+  root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarPerformanceForecast = async (root) => {
+  const scores = {
+    contenido: actual?.contenido?.combinedScore || 60,
+    hook: actual?.hook?.score || 55,
+    cuenta: 65,
+  };
+
+  const result = await apiSafe(`/api/forge/forecast/simulate`, {
+    method: 'POST',
+    body: JSON.stringify({ scores }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en forecast');
+    return;
+  }
+
+  renderPerformanceForecast(root, result.forecast);
+  toast('success', 'Forecast cargado');
+};
+
 /* ───────── Vista ───────── */
 
 /* Referencia estable: así removeEventListener quita el mismo listener en cada render. */
@@ -1205,6 +1287,23 @@ export const renderForge = async (root) => {
       .fg-sugg-desc{margin:8px 0;font-size:13px;color:var(--text-secondary);line-height:1.5;}
       .fg-sugg-section{margin:12px 0;font-size:12px;}
       .fg-sugg-outcome{margin-top:10px;padding-top:10px;border-top:1px solid rgba(17,18,22,.1);font-size:12px;color:var(--text-secondary);font-style:italic;}
+
+      /* Phase 5: Performance Forecasting */
+      .fg-forecast-panel{padding:20px;background:rgba(17,18,22,.02);border-radius:12px;margin-top:20px;border:1px solid rgba(17,18,22,.1);}
+      .fg-forecast-panel h3{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text-primary);}
+      .fg-forecast-panel h4{font-size:14px;font-weight:600;color:var(--text-primary);margin-top:16px;margin-bottom:12px;}
+      .fg-forecast-baseline{padding:12px;background:rgba(17,18,22,.05);border-radius:8px;margin-bottom:20px;border-left:4px solid #94a3b8;}
+      .fg-baseline-scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:8px 0;font-size:12px;}
+      .fg-baseline-overall{font-size:16px;font-weight:700;margin-top:8px;color:var(--text-primary);}
+      .fg-forecast-scenarios{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;}
+      .fg-forecast-scenario{padding:12px;background:white;border-radius:8px;border:1px solid rgba(17,18,22,.1);}
+      .fg-scenario-title{font-weight:600;font-size:13px;margin-bottom:8px;}
+      .fg-scenario-scores{display:flex;gap:8px;margin-bottom:8px;font-size:12px;}
+      .fg-scenario-score{font-weight:600;}
+      .fg-scenario-overall{font-size:12px;font-weight:600;margin-bottom:4px;}
+      .fg-scenario-meta{font-size:10px;color:#94a3b8;text-align:right;}
+      .fg-forecast-likely{padding:16px;background:rgba(59,130,246,.08);border-radius:8px;border-left:4px solid #3b82f6;}
+      .fg-likely-desc{margin:8px 0 12px 0;font-size:13px;color:var(--text-secondary);}
 
       @media (max-width: 640px){
         .fg-form-grid{grid-template-columns:1fr;}

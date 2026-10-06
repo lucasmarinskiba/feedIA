@@ -72,6 +72,9 @@ import {
   type DetailedSuggestion,
 } from '../capabilities/forge/contentSuggestions.js';
 
+// Phase 5: Performance forecasting
+import { forecastScores, type PerformanceForecast } from '../capabilities/forge/performanceForecaster.js';
+
 // Phase 2: DB persistence (future)
 // import {
 //   saveForgeAttempt,
@@ -756,6 +759,35 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         log.info(`[forge] suggestions: ${suggestions.length} delivered`);
       } catch (err) {
         json(res, 500, errorInterno('suggestions', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/forecast/simulate',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { scores } = body as {
+          scores?: { contenido: number; hook: number; cuenta: number };
+        };
+
+        if (
+          !scores ||
+          typeof scores.contenido !== 'number' ||
+          typeof scores.hook !== 'number' ||
+          typeof scores.cuenta !== 'number'
+        ) {
+          json(res, 400, { error: 'scores requerido: {contenido, hook, cuenta}' });
+          return;
+        }
+
+        const forecast: PerformanceForecast = forecastScores(scores, []);
+        json(res, 200, { ok: true, forecast });
+        log.info(
+          `[forge] forecast: baseline=${forecast.baseline.overall}, bestCase=+${forecast.bestCase.overallDelta}`,
+        );
+      } catch (err) {
+        json(res, 500, errorInterno('forecast-simulate', err));
       }
     },
   },
