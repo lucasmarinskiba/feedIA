@@ -357,27 +357,49 @@ const renderPrediccion = (r) => {
 };
 
 const renderIntentos = () => {
+  const calcularScoreTotal = (pred) => {
+    const contenido = pred.contenido.puntaje || 0;
+    const hook = pred.hook.puntaje || 0;
+    const cuenta = pred.cuenta.disponible ? 75 : 50;
+    return Math.round((contenido * 0.45 + hook * 0.35 + cuenta * 0.2) / 10) * 10;
+  };
+
   const filas = estado.intentos
     .map((it, i) => {
-      const anterior = i > 0 ? estado.intentos[i - 1].prediccion.contenido.puntaje : null;
-      const diff = anterior === null ? null : it.prediccion.contenido.puntaje - anterior;
-      const cambio =
-        diff === null
+      const anterior = i > 0 ? estado.intentos[i - 1].prediccion : null;
+      const diffContenido = anterior ? it.prediccion.contenido.puntaje - anterior.contenido.puntaje : null;
+      const diffHook = anterior ? it.prediccion.hook.puntaje - anterior.hook.puntaje : null;
+      const scoreAnterior = anterior ? calcularScoreTotal(anterior) : null;
+      const scoreActual = calcularScoreTotal(it.prediccion);
+      const diffScore = scoreAnterior !== null ? scoreActual - scoreAnterior : null;
+
+      const ajustesMostrados = it.ajustes.length
+        ? `<div class="fg-tiny-muted">✓ ${it.ajustes.length} ajustes aplicados</div>`
+        : '';
+
+      const deltaTexto =
+        diffScore === null
           ? ''
-          : diff === 0
-            ? ' · sin cambio vs anterior'
-            : ` · ${diff > 0 ? '↑' : '↓'} ${Math.abs(diff)} pts vs anterior`;
+          : diffScore === 0
+            ? '<span class="fg-delta">→ igual</span>'
+            : `<span class="fg-delta ${diffScore > 0 ? 'up' : 'down'}">${diffScore > 0 ? '↑' : '↓'} ${Math.abs(diffScore)} pts</span>`;
+
       return `
       <div class="fg-attempt ${i === estado.activo ? 'best' : ''}">
-        <div>
+        <div class="fg-attempt-info">
           <strong>Intento ${it.n}</strong>
-          <span class="fg-tiny-muted">contenido ${it.prediccion.contenido.puntaje}/100 · hook ${it.prediccion.hook.puntaje}/100${cambio}</span>
+          <div class="fg-tiny-muted">
+            Contenido: ${it.prediccion.contenido.puntaje}/100${diffContenido !== null ? ` ${diffContenido > 0 ? '+' : ''}${diffContenido}` : ''}
+            · Hook: ${it.prediccion.hook.puntaje}/100${diffHook !== null ? ` ${diffHook > 0 ? '+' : ''}${diffHook}` : ''}
+            ${deltaTexto}
+          </div>
+          ${ajustesMostrados}
         </div>
-        <button class="fg-tiny-btn" data-action="ver-intento" data-idx="${i}">${i === estado.activo ? '✔ En uso' : 'Usar este'}</button>
+        <button class="fg-tiny-btn" data-action="ver-intento" data-idx="${i}">${i === estado.activo ? '✔ En uso' : 'Usar'}</button>
       </div>`;
     })
     .join('');
-  return `<div class="fg-card"><h3 class="fg-section-title">Intentos</h3><p class="fg-section-sub">Elegí cuál versión usar. Los intentos quedan guardados mientras no generes algo nuevo.</p>${filas}</div>`;
+  return `<div class="fg-card"><h3 class="fg-section-title">Comparar Intentos</h3><p class="fg-section-sub">Score total = 45% contenido + 35% hook + 20% cuenta. Elige el mejor.</p>${filas}</div>`;
 };
 
 const renderOutput = (root) => {
@@ -743,8 +765,12 @@ export const renderForge = async (root) => {
       .fg-check.ok .fg-check-icon{color:#10b981;}
       .fg-check.no .fg-check-icon{color:#f59e0b;}
       .fg-check-title{font-weight:700;}
-      .fg-attempt{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:10px;margin-top:8px;border-left:3px solid transparent;}
-      .fg-attempt.best{border-left-color:#a855f7;}
+      .fg-attempt{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:10px;margin-top:8px;border-left:3px solid transparent;}
+      .fg-attempt.best{border-left-color:#a855f7;background:linear-gradient(90deg,rgba(168,85,247,.08),transparent);}
+      .fg-attempt-info{flex:1;display:flex;flex-direction:column;gap:4px;}
+      .fg-delta{font-weight:700;display:inline-block;margin-left:6px;}
+      .fg-delta.up{color:#10b981;}
+      .fg-delta.down{color:#f59e0b;}
 
       @media (max-width: 640px){
         .fg-form-grid{grid-template-columns:1fr;}
