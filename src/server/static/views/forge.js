@@ -124,6 +124,7 @@ const buildForm = (platform) => `
       <button class="fg-btn fg-btn-secondary" data-action="producir">2 · Producir</button>
       <button class="fg-btn fg-btn-primary" data-action="todo"><span class="fg-btn-icon">✨</span>Generar todo</button>
       <button class="fg-btn fg-btn-secondary" data-action="cargar-historico"><span class="fg-btn-icon">📊</span>Ver Histórico</button>
+      <button class="fg-btn fg-btn-secondary" data-action="analizar-predictor"><span class="fg-btn-icon">🔬</span>Analizar</button>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
@@ -716,9 +717,117 @@ const manejarAccion = (root, action, idx) => {
       return enviarAPublicar(root);
     case 'cargar-historico':
       return cargarHistorico(root);
+    case 'analizar-predictor':
+      return cargarAnalisisPredictor(root);
     default:
       return undefined;
   }
+};
+
+/* ───────── Phase 2: Predictor Breakdown ───────── */
+
+const colorPuntajePred = (score) => {
+  if (score >= 80) return '#10b981'; // verde
+  if (score >= 60) return '#3b82f6'; // azul
+  if (score >= 40) return '#f59e0b'; // naranja
+  return '#ef4444'; // rojo
+};
+
+const renderPredictorAnalysis = (root, analysis) => {
+  const { contentBreakdown, hookBreakdown, accountBreakdown, overallScore, bottleneck, recommendations } = analysis;
+
+  const sectoresHtml = [
+    { bd: contentBreakdown, title: '📝 Contenido' },
+    { bd: hookBreakdown, title: '🎣 Hook' },
+    { bd: accountBreakdown, title: '📊 Cuenta' },
+  ]
+    .map(
+      ({ bd, title }) =>
+        `<div class="fg-pred-breakdown" style="border-left: 4px solid ${colorPuntajePred(bd.score)}">
+      <h4>${title}</h4>
+      <p class="fg-pred-score">${bd.score}/100</p>
+      <p class="fg-pred-summary">${bd.summary}</p>
+      <div class="fg-pred-factors">
+        ${bd.factors
+          .map(
+            (f) =>
+              `<div class="fg-pred-factor">
+          <div class="fg-pred-factor-name">${f.name}</div>
+          <div style="width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px; margin: 4px 0;">
+            <div style="width: ${f.value}%; height: 100%; background: ${colorPuntajePred(f.value)}; border-radius: 2px;"></div>
+          </div>
+          <div class="fg-pred-factor-value">${f.value}/100</div>
+        </div>`,
+          )
+          .join('')}
+      </div>
+    </div>`,
+    )
+    .join('');
+
+  const recsHtml = recommendations
+    .map(
+      (r) =>
+        `<div class="fg-rec" data-priority="${r.priority}">
+      <span class="fg-rec-priority">${r.priority === 'high' ? '🔴' : r.priority === 'medium' ? '🟡' : '🟢'}</span>
+      <div class="fg-rec-content">
+        <strong>${r.action}</strong>
+        <div class="fg-rec-meta">Impacto estimado: +${r.impact}% · Dificultad: ${r.difficulty}</div>
+      </div>
+    </div>`,
+    )
+    .join('');
+
+  const html = `<div class="fg-analysis-panel">
+    <h3>📊 Análisis de Predicción</h3>
+
+    <div class="fg-overall">
+      <div style="text-align: center;">
+        <div style="font-size: 48px; font-weight: 700; color: ${colorPuntajePred(overallScore)};">${overallScore}</div>
+        <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Puntuación Total</div>
+      </div>
+      <div style="border-left: 1px solid #e5e7eb; padding-left: 20px;">
+        <div style="font-size: 12px; margin-bottom: 8px;">Cuello de botella:</div>
+        <div style="font-size: 14px; font-weight: 600; color: #ef4444;">
+          ${bottleneck.charAt(0).toUpperCase() + bottleneck.slice(1)} (prioridad #1)
+        </div>
+      </div>
+    </div>
+
+    <div class="fg-breakdowns">
+      ${sectoresHtml}
+    </div>
+
+    <div class="fg-recommendations">
+      <h4>💡 Recomendaciones Priorizadas</h4>
+      ${recsHtml}
+    </div>
+  </div>`;
+
+  root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarAnalisisPredictor = async (root) => {
+  if (!actual || !actual.prediccion) {
+    toast('error', 'Ejecuta predicción primero');
+    return;
+  }
+
+  const scores = {
+    contentScore: actual.contenido?.combinedScore || 50,
+    hookScore: actual.hook?.score || 50,
+    accountScore: 60, // TODO: obtener de historial cuenta
+  };
+
+  const result = await apiSafe(`/api/forge/predictor/analyze`, { method: 'POST', body: JSON.stringify(scores) });
+
+  if (!result.ok) {
+    toast('error', 'Error al analizar predictor');
+    return;
+  }
+
+  renderPredictorAnalysis(root, result.analysis);
+  toast('success', 'Análisis predictor cargado');
 };
 
 /* ───────── Vista ───────── */
@@ -850,6 +959,30 @@ export const renderForge = async (root) => {
       .fg-score-label{font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
       .fg-score-value{font-size:16px;font-weight:700;color:var(--text-primary);}
       .fg-history-hook{font-size:12px;color:var(--text-secondary);font-style:italic;padding:6px 0;border-top:1px solid rgba(17,18,22,.1);}
+
+      /* Phase 2: Predictor Breakdown */
+      .fg-analysis-panel{padding:20px;background:rgba(17,18,22,.02);border-radius:12px;margin-top:20px;border:1px solid rgba(17,18,22,.1);}
+      .fg-analysis-panel h3{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text-primary);}
+      .fg-analysis-panel h4{font-size:14px;font-weight:600;color:var(--text-primary);margin-top:16px;margin-bottom:12px;}
+      .fg-overall{display:grid;grid-template-columns:1fr auto 1fr;gap:20px;padding:16px;background:rgba(17,18,22,.05);border-radius:8px;margin-bottom:20px;}
+      .fg-breakdowns{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-bottom:20px;}
+      .fg-pred-breakdown{padding:12px;border-radius:8px;background:rgba(17,18,22,.03);}
+      .fg-pred-breakdown h4{margin:0 0 8px 0;font-size:13px;}
+      .fg-pred-score{font-size:20px;font-weight:700;margin:4px 0;}
+      .fg-pred-summary{font-size:12px;color:var(--text-secondary);margin:8px 0;line-height:1.4;}
+      .fg-pred-factors{display:flex;flex-direction:column;gap:8px;}
+      .fg-pred-factor{font-size:11px;}
+      .fg-pred-factor-name{font-weight:500;margin-bottom:2px;}
+      .fg-pred-factor-value{font-size:10px;color:var(--text-secondary);}
+      .fg-recommendations{background:rgba(17,18,22,.03);border-radius:8px;padding:12px;}
+      .fg-rec{display:flex;gap:12px;padding:10px;border-radius:6px;background:white;margin-bottom:8px;border-left:4px solid #94a3b8;}
+      .fg-rec[data-priority="high"]{border-left-color:#ef4444;}
+      .fg-rec[data-priority="medium"]{border-left-color:#f59e0b;}
+      .fg-rec[data-priority="low"]{border-left-color:#10b981;}
+      .fg-rec-priority{font-size:18px;}
+      .fg-rec-content{flex:1;}
+      .fg-rec-content strong{font-size:13px;color:var(--text-primary);}
+      .fg-rec-meta{font-size:11px;color:var(--text-secondary);margin-top:4px;}
 
       @media (max-width: 640px){
         .fg-form-grid{grid-template-columns:1fr;}

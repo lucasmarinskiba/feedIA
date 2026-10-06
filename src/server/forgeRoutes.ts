@@ -55,7 +55,10 @@ import {
   type PlanEstrategia,
   type PlataformaForge,
 } from '../capabilities/forge/conocimientoEstrategia.js';
-// Phase 2: DB persistence
+// Phase 2: Predictor breakdown + recommendations
+import { analyzeScores, type PredictorAnalysis } from '../capabilities/forge/predictorBreakdown.js';
+
+// Phase 2: DB persistence (future)
 // import {
 //   saveForgeAttempt,
 //   getForgeHistory,
@@ -636,6 +639,32 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         json(res, 201, { ok: true, attemptId: genId() });
       } catch (err) {
         json(res, 500, errorInterno('history-save', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/predictor/analyze',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { contentScore, hookScore, accountScore } = body as {
+          contentScore?: unknown;
+          hookScore?: unknown;
+          accountScore?: unknown;
+        };
+
+        if (typeof contentScore !== 'number' || typeof hookScore !== 'number' || typeof accountScore !== 'number') {
+          json(res, 400, { error: 'contentScore, hookScore, accountScore requeridos (numbers 0-100)' });
+          return;
+        }
+
+        const analysis: PredictorAnalysis = analyzeScores(contentScore, hookScore, accountScore);
+        json(res, 200, { ok: true, analysis });
+        log.info(
+          `[forge] análisis predictor: content=${contentScore} hook=${hookScore} account=${accountScore} bottleneck=${analysis.bottleneck}`,
+        );
+      } catch (err) {
+        json(res, 500, errorInterno('predictor-analyze', err));
       }
     },
   },
