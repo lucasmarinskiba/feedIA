@@ -7,17 +7,21 @@ import { marcaDeCuentas } from './marcaDeCuentas.js';
 import {
   CONSEJOS_COLAB,
   ESTADOS_PROSPECTO,
+  ESTILOS_CONTENIDO,
+  ESTILOS_IDS,
+  LIMITE_ESTILOS,
   LIMITE_PROSPECTOS,
-  OPCIONES_TIKTOK,
+  LIMITE_SUBNICHOS,
   errorDeTransicion,
+  opcionesDeRed,
   plantillaOutreach,
   recomendarColabs,
   resumenPipeline,
   transicionesPermitidas,
+  validarPerfilContenido,
   validarProspecto,
   type EstadoProspecto,
   type Prospecto,
-  type TipoMarca,
 } from '../capabilities/executive/collabMetricas.js';
 import {
   ideasDeColab,
@@ -28,7 +32,6 @@ import {
 
 const ESTADOS_VALIDOS = Object.keys(ESTADOS_PROSPECTO) as EstadoProspecto[];
 
-const esTipoMarca = (v: unknown): v is TipoMarca => v === 'personal' || v === 'empresa';
 const esEstado = (v: unknown): v is EstadoProspecto =>
   typeof v === 'string' && (ESTADOS_VALIDOS as string[]).includes(v);
 
@@ -39,7 +42,7 @@ const buildCollabRoutes = (brand: BrandProfile): RouteDefinition[] => [
     handler: async ({ req, res }) => {
       const cuentasId = await marcaDeCuentas(req, brand);
       const archivo = await leerCollabs(cuentasId);
-      const perfil = await perfilDeCuenta(cuentasId, brand, archivo.tipoMarca);
+      const perfil = await perfilDeCuenta(cuentasId, brand, archivo);
       const recomendaciones = recomendarColabs(perfil);
       json(res, 200, {
         generadoEn: new Date().toISOString(),
@@ -47,7 +50,9 @@ const buildCollabRoutes = (brand: BrandProfile): RouteDefinition[] => [
         perfil,
         recomendaciones,
         consejos: CONSEJOS_COLAB,
-        tiktok: OPCIONES_TIKTOK,
+        opciones: opcionesDeRed(perfil.plataforma),
+        estilosCatalogo: ESTILOS_IDS.map((id) => ({ id, label: ESTILOS_CONTENIDO[id].label })),
+        limites: { subnichos: LIMITE_SUBNICHOS, estilos: LIMITE_ESTILOS },
         plantilla: plantillaOutreach(perfil, brand.name),
         prospectos: [...archivo.prospectos].sort((a, b) => Date.parse(b.actualizadoEn) - Date.parse(a.actualizadoEn)),
         resumen: resumenPipeline(archivo.prospectos),
@@ -60,17 +65,22 @@ const buildCollabRoutes = (brand: BrandProfile): RouteDefinition[] => [
     method: 'PUT',
     pattern: '/api/executive/collabs/perfil',
     handler: async ({ req, res, body }) => {
-      const tipo = (body as Record<string, unknown> | null)?.['tipoMarca'];
-      if (!esTipoMarca(tipo)) {
-        json(res, 400, { error: 'El tipo debe ser marca personal o empresa.' });
+      const entrada = validarPerfilContenido(body);
+      if (!entrada.ok) {
+        json(res, 400, { error: entrada.error });
         return;
       }
+      const { valor } = entrada;
       const cuentasId = await marcaDeCuentas(req, brand);
       await modificarCollabs(cuentasId, (datos) => {
-        datos.tipoMarca = tipo;
+        if (valor.tipoMarca !== undefined) datos.tipoMarca = valor.tipoMarca;
+        if (valor.nicho !== undefined) datos.nicho = valor.nicho;
+        if (valor.subnichos !== undefined) datos.subnichos = valor.subnichos;
+        if (valor.estilos !== undefined) datos.estilos = valor.estilos;
+        if (valor.plataforma !== undefined) datos.plataforma = valor.plataforma;
         return { resultado: true };
       });
-      json(res, 200, { tipoMarca: tipo });
+      json(res, 200, { ok: true });
     },
   },
   {
@@ -141,7 +151,7 @@ const buildCollabRoutes = (brand: BrandProfile): RouteDefinition[] => [
     handler: async ({ req, res }) => {
       const cuentasId = await marcaDeCuentas(req, brand);
       const archivo = await leerCollabs(cuentasId);
-      const perfil = await perfilDeCuenta(cuentasId, brand, archivo.tipoMarca);
+      const perfil = await perfilDeCuenta(cuentasId, brand, archivo);
       json(res, 200, await ideasDeColab(perfil, brand.name));
     },
   },

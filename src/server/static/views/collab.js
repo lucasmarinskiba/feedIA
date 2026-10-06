@@ -7,6 +7,7 @@ const RUTA = '/api/executive/collabs';
 
 const TIPOS_PROSPECTO = { marca: 'Marca', creador: 'Creador', medio: 'Medio', otro: 'Otro' };
 const PLATAFORMAS = { instagram: 'Instagram', tiktok: 'TikTok', otra: 'Otra' };
+const PLATAFORMAS_PRINCIPALES = { instagram: 'Instagram', tiktok: 'TikTok', ambas: 'Ambas' };
 const FILTROS_PIPELINE = [
   { id: 'todos', label: 'Todos' },
   { id: 'idea', label: 'Ideas' },
@@ -76,6 +77,7 @@ const state = {
   fuenteIdeas: null,
   pidiendoIdeas: false,
   ocupado: null,
+  borrador: null,
 };
 
 const enlazados = new WeakSet();
@@ -109,6 +111,8 @@ const perfilHtml = () => {
         <div>Seguidores<br><b>${num(perfil.seguidores)}</b></div>
         <div>Interacción mediana<br><b>${pct(perfil.tasaMediana)}</b></div>
         <div>Nicho<br><b>${escape(perfil.nicho || 'sin definir')}</b></div>
+        <div>Foco<br><b>${escape((perfil.subnichos ?? []).join(' · ') || 'nicho amplio')}</b></div>
+        <div>Red<br><b>${escape(PLATAFORMAS_PRINCIPALES[perfil.plataforma] ?? '—')}</b></div>
       </div>
     </div>`;
 };
@@ -149,8 +153,8 @@ const ideasHtml = () => {
       .join('')}</div>`;
 };
 
-const tiktokHtml = () => {
-  const opciones = state.datos?.tiktok ?? [];
+const opcionesHtml = () => {
+  const opciones = state.datos?.opciones ?? [];
   return `<div class="co-grid">${opciones
     .map(
       (o) => `
@@ -158,10 +162,37 @@ const tiktokHtml = () => {
         <strong>${escape(o.nombre)}</strong>
         <p>${escape(o.descripcion)}</p>
         <p><b>Cómo:</b> ${escape(o.paso)}</p>
-        <a class="co-btn primario co-pie" href="${escape(o.url)}" target="_blank" rel="noopener noreferrer">Abrir en TikTok ↗</a>
+        <a class="co-btn primario co-pie" href="${escape(o.url)}" target="_blank" rel="noopener noreferrer">Abrir en ${escape(PLATAFORMAS_PRINCIPALES[o.red] ?? 'la red')} ↗</a>
       </div>`,
     )
     .join('')}</div>`;
+};
+
+const limiteEstilos = () => state.datos?.limites?.estilos ?? 6;
+
+const rellenarNicho = (root) => {
+  const perfil = state.datos?.perfil;
+  if (!perfil) return;
+  state.borrador = { plataforma: perfil.plataforma, estilos: [...(perfil.estilos ?? [])] };
+  root.querySelector('#co-nicho').value = perfil.nicho ?? '';
+  root.querySelector('#co-subnichos').value = (perfil.subnichos ?? []).join(', ');
+  pintarChipsNicho(root);
+};
+
+const pintarChipsNicho = (root) => {
+  const borrador = state.borrador ?? { plataforma: 'ambas', estilos: [] };
+  root.querySelector('#co-plataforma').innerHTML = Object.entries(PLATAFORMAS_PRINCIPALES)
+    .map(
+      ([id, label]) =>
+        `<button type="button" class="${borrador.plataforma === id ? 'on' : ''}" data-co-accion="plataforma" data-plataforma="${id}">${escape(label)}</button>`,
+    )
+    .join('');
+  root.querySelector('#co-estilos').innerHTML = (state.datos?.estilosCatalogo ?? [])
+    .map(
+      (e) =>
+        `<button type="button" class="co-chip ${borrador.estilos.includes(e.id) ? 'on' : ''}" data-co-accion="estilo" data-estilo="${escape(e.id)}">${escape(e.label)}</button>`,
+    )
+    .join('');
 };
 
 const consejosHtml = () => {
@@ -253,8 +284,8 @@ const pintar = (root) => {
   if (recs) recs.innerHTML = recomendacionesHtml();
   const ideas = root.querySelector('#co-ideas');
   if (ideas) ideas.innerHTML = ideasHtml();
-  const tt = root.querySelector('#co-tiktok');
-  if (tt) tt.innerHTML = tiktokHtml();
+  const opciones = root.querySelector('#co-opciones');
+  if (opciones) opciones.innerHTML = opcionesHtml();
   const cons = root.querySelector('#co-consejos');
   if (cons) cons.innerHTML = consejosHtml();
   const resumen = root.querySelector('#co-pipeline-resumen');
@@ -279,6 +310,7 @@ const cargar = async (root, refrescar = false) => {
     return;
   }
   pintar(root);
+  rellenarNicho(root);
 };
 
 const mutar = async (root, path, body, okMsg, metodo = 'POST') => {
@@ -332,6 +364,23 @@ const montarEstructura = (root) => {
       </div>
       <div id="co-perfil">${loadingScreen()}</div>
       <section class="co-bloque">
+        <h3>Mi nicho y contenido</h3>
+        <p class="co-ayuda">Tu nicho amplio es el punto de partida. Los subnichos son a dónde querés llegar y los estilos definen el formato (vlog, humor, UGC…). Las recomendaciones se recalculan con cada cambio.</p>
+        <div class="co-form">
+          <label class="co-campo">Nicho amplio <input id="co-nicho" maxlength="80" placeholder="Ej.: Inteligencia artificial" /></label>
+          <label class="co-campo">Subnichos (separados por coma) <input id="co-subnichos" maxlength="330" placeholder="Ej.: Automatización para PyMEs, Prompts para marketing" /></label>
+          <div class="co-campo ancho">Red principal
+            <div class="co-seg" id="co-plataforma" role="group" aria-label="Red principal"></div>
+          </div>
+          <div class="co-campo ancho">Estilos de contenido
+            <div class="co-cifras" id="co-estilos"></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;">
+          <button class="co-btn primario" data-co-accion="guardar-nicho">Guardar nicho y contenido</button>
+        </div>
+      </section>
+      <section class="co-bloque">
         <h3>Colaboraciones recomendadas</h3>
         <div id="co-recs"></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
@@ -341,9 +390,9 @@ const montarEstructura = (root) => {
         <div id="co-ideas"></div>
       </section>
       <section class="co-bloque">
-        <h3>Colaboraciones de TikTok</h3>
-        <p class="co-ayuda">Los botones llevan a TikTok. Los requisitos y el alcance de cada opción los define la plataforma; revisalos antes de postularte.</p>
-        <div id="co-tiktok"></div>
+        <h3>Formatos de colaboración en tu red</h3>
+        <p class="co-ayuda">Los botones llevan a cada red. Los requisitos y el alcance de cada opción los define la plataforma; revisalos antes de postularte.</p>
+        <div id="co-opciones"></div>
       </section>
       <section class="co-bloque">
         <h3>Consejos para colaborar</h3>
@@ -379,6 +428,40 @@ const enlazar = (root) => {
     }
     if (accion === 'ideas') {
       await pedirIdeas(root);
+      return;
+    }
+    if (accion === 'plataforma') {
+      state.borrador = { ...state.borrador, plataforma: el.dataset.plataforma };
+      pintarChipsNicho(root);
+      return;
+    }
+    if (accion === 'estilo') {
+      const actuales = state.borrador?.estilos ?? [];
+      const id = el.dataset.estilo;
+      if (!actuales.includes(id) && actuales.length >= limiteEstilos()) {
+        toast(`Podés elegir hasta ${limiteEstilos()} estilos.`, 'info');
+        return;
+      }
+      const estilos = actuales.includes(id) ? actuales.filter((x) => x !== id) : [...actuales, id];
+      state.borrador = { ...state.borrador, estilos };
+      pintarChipsNicho(root);
+      return;
+    }
+    if (accion === 'guardar-nicho') {
+      const borrador = state.borrador ?? { plataforma: 'ambas', estilos: [] };
+      const nicho = root.querySelector('#co-nicho').value.trim();
+      const subnichos = root
+        .querySelector('#co-subnichos')
+        .value.split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      await mutar(
+        root,
+        `${RUTA}/perfil`,
+        { nicho, subnichos, estilos: borrador.estilos, plataforma: borrador.plataforma },
+        'Nicho y contenido guardados',
+        'PUT',
+      );
       return;
     }
     if (accion === 'nuevo-prospecto') {
@@ -439,6 +522,7 @@ export const renderCollab = async (root) => {
   state.ideas = null;
   state.fuenteIdeas = null;
   state.ocupado = null;
+  state.borrador = null;
   montarEstructura(root);
   enlazar(root);
   await cargar(root);
