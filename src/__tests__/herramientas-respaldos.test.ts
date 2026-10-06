@@ -186,3 +186,89 @@ describe('respaldos de estrategia y operación', () => {
     expect(prep.triaje.accion).toBe('escalar');
   });
 });
+
+describe('profundidad de los respaldos de estrategia', () => {
+  const lunesTarde = new Date(Date.UTC(2026, 9, 5, 18, 0, 0)).toISOString();
+  const diaFranja = new Intl.DateTimeFormat('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', weekday: 'long' })
+    .format(Date.parse(lunesTarde))
+    .toLowerCase();
+
+  it('calendario inteligente explica cuánto rinde la franja propuesta', () => {
+    const accion: AccionCreacion = {
+      tipo: 'movimientos',
+      modo: 'optimizar',
+      calendarioDisponible: true,
+      movimientos: [
+        { postId: 'p1', plataforma: 'instagram', caption: 'Pieza', actual: null, propuesto: lunesTarde, motivo: 'x' },
+      ],
+    };
+    const r = correr('calendario-inteligente', { ventana: '14' }, accion);
+    expect(JSON.stringify(r?.secciones)).toMatch(new RegExp(`${diaFranja} tarde: mediana 4\.5 %`));
+  });
+
+  it('el experimento calcula la factibilidad con la cadencia programada', () => {
+    const ctx = ctxAccion({ hipotesis: 'Un hook con pregunta sube los guardados', duracion: '2' });
+    ctx.calendario = {
+      disponible: true,
+      momentos: [],
+      posts: [1, 2, 3, 4].map((d) => ({
+        id: `p${d}`,
+        plataforma: 'instagram' as const,
+        caption: 'x',
+        status: 'scheduled' as const,
+        scheduledAt: new Date(AHORA + d * DIA_MS).toISOString(),
+      })),
+    };
+    const r = herramienta('experimento').respaldo?.(
+      { hipotesis: 'Un hook con pregunta sube los guardados', duracion: '2' },
+      contexto,
+      ctx,
+      { tipo: 'ninguna' },
+    );
+    expect(JSON.stringify(r?.secciones)).toMatch(/publicaciones por semana programadas/);
+    expect(r?.notas.join(' ')).toMatch(/menor que lo necesario/);
+  });
+
+  it('la bandeja pone primero las escaladas', () => {
+    const r = correr('bandeja', { enfoque: 'prioridades' });
+    const orden = r?.secciones.find((s) => s.titulo === 'Orden de atención');
+    expect(Array.isArray(orden?.contenido) ? orden.contenido[0] : '').toMatch(/Escaladas/);
+  });
+
+  it('las historias proponen una pregunta de sticker por día cuando hay tema', () => {
+    const r = correr('stories', { tema: 'lanzamiento', dias: '2', historias_por_dia: 2 });
+    expect(r?.secciones.some((s) => s.titulo === 'Preguntas para los stickers')).toBe(true);
+  });
+
+  it('las ideas asignan pilar, gancho y CTA a cada idea', () => {
+    const accion: AccionCreacion = {
+      tipo: 'piezas',
+      piezas: [piezaPrueba('Idea 1'), piezaPrueba('Idea 2')],
+    };
+    const r = correr('ideas', { tema: 'marketing', cantidad: 2, plataforma: 'instagram' }, accion);
+    const ideas = r?.secciones.find((s) => s.titulo === 'Ideas por pilar');
+    expect(Array.isArray(ideas?.contenido) ? ideas.contenido[0] : '').toMatch(/gancho: .+ · CTA: /);
+  });
+
+  it('el guion agrega prompts por toma para generar el video con IA', () => {
+    const r = correr('guion', {
+      tema: 'respuestas automáticas',
+      plataforma: 'tiktok',
+      duracion: '15',
+      tono: 'cercano',
+    });
+    const tomas = r?.secciones.find((s) => s.titulo.startsWith('Tomas para generar'));
+    expect(Array.isArray(tomas?.contenido) ? tomas.contenido.length : 0).toBeGreaterThan(0);
+    expect(JSON.stringify(tomas?.contenido)).toMatch(/vertical 9:16/);
+  });
+});
+
+const DIA_MS = 86_400_000;
+const piezaPrueba = (titulo: string) => ({
+  titulo,
+  formato: 'reel' as const,
+  plataforma: 'instagram' as const,
+  caption: '',
+  hashtags: [],
+  scheduledAt: null,
+});

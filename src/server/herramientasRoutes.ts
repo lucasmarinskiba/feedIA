@@ -9,6 +9,7 @@ import {
   HERRAMIENTAS,
   herramientaPorId,
   validarEntrada,
+  type AccionCreacion,
   type Destino,
   type MaterialPrevio,
 } from '../capabilities/executive/herramientasCatalogo.js';
@@ -46,6 +47,7 @@ import { registrarEvento } from '../capabilities/executive/bitacoraEjecutivo.js'
 import { log } from '../agent/logger.js';
 
 const DESTINOS: readonly Destino[] = ['calendario', 'proyecto', 'objetivo', 'experimento', 'bitacora', 'copiar'];
+const MAX_CAPTION = 2200;
 
 const buildHerramientasRoutes = (brand: BrandProfile): RouteDefinition[] => {
   const brandId = () => resolveDefaultBrandId(brand) ?? 'default';
@@ -160,15 +162,15 @@ const buildHerramientasRoutes = (brand: BrandProfile): RouteDefinition[] => {
     {
       method: 'GET',
       pattern: '/api/executive/tools/conocimiento/respuestas',
-      handler: async ({ req, res }) => {
-        json(res, 200, await leerConocimiento(await marcaDeCuentas(req, brand)));
+      handler: async ({ res }) => {
+        json(res, 200, leerConocimiento());
       },
     },
     {
       method: 'DELETE',
       pattern: '/api/executive/tools/conocimiento/respuestas/:kid',
-      handler: async ({ req, res, params }) => {
-        const borrada = await eliminarConocimiento(await marcaDeCuentas(req, brand), params['kid'] ?? '');
+      handler: async ({ res, params }) => {
+        const borrada = eliminarConocimiento(params['kid'] ?? '');
         if (!borrada) {
           json(res, 404, { error: 'respuesta no encontrada' });
           return;
@@ -202,7 +204,7 @@ const buildHerramientasRoutes = (brand: BrandProfile): RouteDefinition[] => {
           json(res, 400, { error: valida.error });
           return;
         }
-        const entrada = await agregarConocimiento(cuentas, valida.valor);
+        const entrada = agregarConocimiento(valida.valor);
         json(res, 201, entrada);
       },
     },
@@ -240,9 +242,37 @@ const buildHerramientasRoutes = (brand: BrandProfile): RouteDefinition[] => {
           json(res, 409, { error: 'La herramienta de esta creación ya no existe.' });
           return;
         }
+        let creacionAEnviar = creacion;
+        const piezasEditadas = (body as { piezas?: unknown } | null)?.piezas;
+        if (destino === 'calendario' && Array.isArray(piezasEditadas) && creacion.accion.tipo === 'piezas') {
+          const piezas = creacion.accion.piezas;
+          if (piezasEditadas.length !== piezas.length) {
+            json(res, 400, { error: 'La cantidad de piezas no coincide con la creación.' });
+            return;
+          }
+          const captions = piezasEditadas.map((p) => {
+            const caption = typeof p === 'object' && p !== null ? (p as { caption?: unknown }).caption : undefined;
+            return typeof caption === 'string'
+              ? caption
+                  .replace(/\u0000/g, '')
+                  .trim()
+                  .slice(0, MAX_CAPTION)
+              : null;
+          });
+          if (captions.some((c) => c === null || c.length > MAX_CAPTION)) {
+            json(res, 400, { error: `Cada texto puede tener hasta ${MAX_CAPTION} caracteres.` });
+            return;
+          }
+          const accion: AccionCreacion = {
+            tipo: 'piezas',
+            piezas: piezas.map((p, i) => ({ ...p, caption: captions[i] ?? '' })),
+          };
+          await modificarCreacion(cuentas, cid, (c) => ({ creacion: { ...c, accion }, salida: true }));
+          creacionAEnviar = { ...creacion, accion };
+        }
         let aplicada;
         try {
-          aplicada = await aplicarCreacion(creacion, destino as Destino, def, depsReales(cuentas), {
+          aplicada = await aplicarCreacion(creacionAEnviar, destino as Destino, def, depsReales(cuentas), {
             accountId: cuentas,
             conexiones: await conexionesDeCuenta(cuentas),
             ahora: Date.now(),

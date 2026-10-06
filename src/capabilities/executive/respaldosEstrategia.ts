@@ -1,7 +1,7 @@
 /**
  * Respaldos por reglas de las herramientas de estrategia y operación (plan, historias, ideas, calendario,
  * brief, OKR, experimentos, métricas, bandeja y resumen). Usan el historial real de la cuenta, las fechas
- * elegidas y el estado de la bandeja y del calendario. Función pura.
+ * elegidas, la cadencia programada y el estado de la bandeja. Función pura.
  */
 
 import type {
@@ -22,10 +22,26 @@ type Respaldo = (
 ) => ResultadoHerramienta;
 
 const AVISO = 'Respaldo por reglas: la IA no respondió. Revisá antes de usarlo.';
+const ZONA = 'America/Argentina/Buenos_Aires';
 const DIA_MS = 86_400_000;
 const PILARES = ['Educar', 'Mostrar el proceso', 'Prueba social', 'Conversión', 'Comunidad'];
+const CTA_POR_PILAR: Record<string, string> = {
+  Educar: 'Guardalo para volver a verlo.',
+  'Mostrar el proceso': 'Contá cómo lo harías vos.',
+  'Prueba social': 'Mandá tu caso por DM.',
+  Conversión: 'Escribinos por DM y te contamos.',
+  Comunidad: 'Respondé con tu experiencia.',
+};
+const GANCHOS = [
+  (t: string) => `Lo que nadie cuenta sobre ${t}`,
+  (t: string) => `3 señales de que ${t} te conviene`,
+  (t: string) => `Cómo empezar con ${t} sin gastar de más`,
+  (t: string) => `El error más común con ${t}`,
+  (t: string) => `Un día real con ${t}`,
+];
 const TIPOS_HISTORIA = ['Encuesta', 'Pregunta', 'Quiz', 'Detrás de escena', 'Enlace o CTA', 'Slider'];
 const FORMATOS_PESADOS = ['video', 'carrusel'];
+const PUBLICACIONES_POR_VARIANTE = 3;
 
 const texto = (v: Valores, clave: string): string => String(v[clave] ?? '').trim();
 const numero = (v: Valores, clave: string, defecto: number): number => {
@@ -35,7 +51,7 @@ const numero = (v: Valores, clave: string, defecto: number): number => {
 
 const cuandoLegible = (iso: string): string =>
   new Date(iso).toLocaleString('es-AR', {
-    timeZone: 'America/Argentina/Buenos_Aires',
+    timeZone: ZONA,
     weekday: 'long',
     day: '2-digit',
     month: '2-digit',
@@ -43,8 +59,27 @@ const cuandoLegible = (iso: string): string =>
     minute: '2-digit',
   });
 
-const diaLocal = (iso: string): string =>
-  new Date(iso).toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
+const diaLocal = (iso: string): string => new Date(iso).toLocaleDateString('en-CA', { timeZone: ZONA });
+
+const franjaDe = (iso: string): { dia: string; franja: string } | null => {
+  const ms = Date.parse(iso);
+  if (!Number.isFinite(ms)) return null;
+  const dia = new Intl.DateTimeFormat('es-AR', { timeZone: ZONA, weekday: 'long' }).format(ms).toLowerCase();
+  const hora =
+    Number(new Intl.DateTimeFormat('en-US', { timeZone: ZONA, hour: 'numeric', hour12: false }).format(ms)) % 24;
+  const franja = hora < 6 ? 'madrugada' : hora < 12 ? 'mañana' : hora < 15 ? 'mediodía' : hora < 19 ? 'tarde' : 'noche';
+  return { dia, franja };
+};
+
+/** Cuánto rinde la franja propuesta según el historial de la cuenta. */
+const rindeFranja = (iso: string, contexto: ContextoCuenta): string => {
+  const f = franjaDe(iso);
+  if (!f) return '';
+  const momento = contexto.momentos.find((m) => m.dia === f.dia && m.franja === f.franja);
+  return momento
+    ? `${f.dia} ${f.franja}: mediana ${momento.medianaTasa} % en ${momento.posts} publicaciones`
+    : `${f.dia} ${f.franja}: sin historial en esa franja`;
+};
 
 const lineaPieza = (p: PiezaCreacion): string =>
   `${p.titulo} · ${p.plataforma} · ${p.formato}${p.scheduledAt ? ` · ${cuandoLegible(p.scheduledAt)}` : ' · borrador sin fecha'}`;
@@ -61,10 +96,23 @@ const pesadasPorDia = (piezas: PiezaCreacion[]): string[] => {
   return [...conteo.entries()].filter(([, n]) => n > 1).map(([dia]) => dia);
 };
 
+/** Publicaciones programadas por semana en los próximos 30 días: la cadencia real del calendario. */
+const cadenciaSemanal = (ctx: ContextoAccion): number => {
+  if (!ctx.calendario.disponible) return 0;
+  const hasta = ctx.ahora + 30 * DIA_MS;
+  const programadas = ctx.calendario.posts.filter((p) => {
+    if (p.status !== 'scheduled' || !p.scheduledAt) return false;
+    const cuando = Date.parse(p.scheduledAt);
+    return cuando >= ctx.ahora && cuando <= hasta;
+  }).length;
+  return programadas / (30 / 7);
+};
+
 export const respaldoPlan: Respaldo = (valores, contexto, _ctx, accion) => {
   const piezas = piezasDe(accion);
   const semanas = numero(valores, 'semanas', 1);
   const porSemana = numero(valores, 'publicaciones', 3);
+  const objetivo = texto(valores, 'objetivo');
   const top = contexto.formatos[0];
   const notas = [
     contexto.momentos.length > 0
@@ -78,9 +126,12 @@ export const respaldoPlan: Respaldo = (valores, contexto, _ctx, accion) => {
     secciones: [
       { titulo: 'Calendario', tipo: 'lista', contenido: piezas.map(lineaPieza) },
       {
-        titulo: 'Pilares y formatos',
+        titulo: 'Brief por pieza',
         tipo: 'lista',
-        contenido: piezas.map((p, i) => `${PILARES[i % PILARES.length]} · ${p.formato}`),
+        contenido: piezas.map(
+          (p, i) =>
+            `${PILARES[i % PILARES.length]} · ${p.formato}: gancho con Hook Factory, CTA para "${objetivo || 'tu objetivo'}"`,
+        ),
       },
       {
         titulo: 'Por qué estos formatos',
@@ -105,26 +156,26 @@ export const respaldoStories: Respaldo = (valores, _contexto, _ctx, accion) => {
     );
     return `Día ${d + 1}: ${historias.join(' → ')}`;
   });
+  const secciones: SeccionResultado[] = [
+    { titulo: 'Guion por día', tipo: 'lista', contenido: guion },
+    { titulo: 'Calendario', tipo: 'lista', contenido: piezasDe(accion).map(lineaPieza) },
+  ];
+  if (tema) {
+    secciones.push({
+      titulo: 'Preguntas para los stickers',
+      tipo: 'lista',
+      contenido: Array.from({ length: dias }, (_, d) => `Día ${d + 1}: ¿Qué te gustaría saber sobre ${tema}?`),
+    });
+  }
   return {
     titulo: `Historias para ${dias} día(s)${tema ? `: ${tema}` : ''}`,
-    secciones: [
-      { titulo: 'Guion por día', tipo: 'lista', contenido: guion },
-      { titulo: 'Calendario', tipo: 'lista', contenido: piezasDe(accion).map(lineaPieza) },
-    ],
+    secciones,
     notas: [
       'Alterná encuesta, pregunta y detrás de escena para sostener la interacción.',
       'Las respuestas a preguntas y encuestas pasan a la bandeja: respondelas el mismo día.',
     ],
   };
 };
-
-const GANCHOS_IDEA = [
-  (t: string) => `Lo que nadie cuenta sobre ${t}`,
-  (t: string) => `3 señales de que ${t} te conviene`,
-  (t: string) => `Cómo empezar con ${t} sin gastar de más`,
-  (t: string) => `El error más común con ${t}`,
-  (t: string) => `Un día real con ${t}`,
-];
 
 export const respaldoIdeas: Respaldo = (valores, contexto, _ctx, accion) => {
   const tema = texto(valores, 'tema') || 'tu nicho';
@@ -135,9 +186,13 @@ export const respaldoIdeas: Respaldo = (valores, contexto, _ctx, accion) => {
     titulo: `Banco de ${piezas.length} ideas sobre ${tema}`,
     secciones: [
       {
-        titulo: 'Ideas',
+        titulo: 'Ideas por pilar',
         tipo: 'lista',
-        contenido: piezas.map((p, i) => `${p.formato} · ${GANCHOS_IDEA[i % GANCHOS_IDEA.length]?.(tema) ?? tema}`),
+        contenido: piezas.map((p, i) => {
+          const pilar = PILARES[i % PILARES.length] ?? 'Educar';
+          const gancho = GANCHOS[i % GANCHOS.length]?.(tema) ?? tema;
+          return `${pilar} · ${p.formato} · gancho: ${gancho} · CTA: ${CTA_POR_PILAR[pilar] ?? ''}`;
+        }),
       },
       {
         titulo: 'Formato sugerido',
@@ -155,7 +210,6 @@ export const respaldoIdeas: Respaldo = (valores, contexto, _ctx, accion) => {
 const movimientosComo = (
   titulo: string,
   sinMovimientos: string,
-  ctx: ContextoAccion,
   accion: AccionCreacion,
   etiquetaFecha: (m: { actual: string | null; propuesto: string }) => string,
 ): ResultadoHerramienta => {
@@ -174,26 +228,25 @@ const movimientosComo = (
   };
 };
 
-export const respaldoCalendarioInteligente: Respaldo = (_valores, _contexto, ctx, accion) =>
-  movimientosComo('Tu calendario ya está en los mejores horarios', 'Sin piezas para mover', ctx, accion, (m) =>
-    m.actual
+export const respaldoCalendarioInteligente: Respaldo = (_valores, contexto, _ctx, accion) =>
+  movimientosComo('Tu calendario ya está en los mejores horarios', 'Sin piezas para mover', accion, (m) => {
+    const rinde = rindeFranja(m.propuesto, contexto);
+    const cuando = m.actual
       ? `de ${cuandoLegible(m.actual)} a ${cuandoLegible(m.propuesto)}`
-      : `sin fecha → ${cuandoLegible(m.propuesto)}`,
-  );
+      : `sin fecha → ${cuandoLegible(m.propuesto)}`;
+    return `${cuando} · ${rinde}`;
+  });
 
-export const respaldoReprogramar: Respaldo = (_valores, _contexto, ctx, accion) => {
+export const respaldoReprogramar: Respaldo = (_valores, contexto, ctx, accion) => {
   const atraso = (iso: string | null): string => {
     if (!iso) return 'sin fecha';
     const dias = Math.max(0, Math.round((ctx.ahora - Date.parse(iso)) / DIA_MS));
     return `vencida hace ${dias} día(s)`;
   };
-  return movimientosComo(
-    'No hay piezas vencidas',
-    'Sin piezas vencidas para reubicar',
-    ctx,
-    accion,
-    (m) => `${atraso(m.actual)} → ${cuandoLegible(m.propuesto)}`,
-  );
+  return movimientosComo('No hay piezas vencidas', 'Sin piezas vencidas para reubicar', accion, (m) => {
+    const rinde = rindeFranja(m.propuesto, contexto);
+    return `${atraso(m.actual)} → ${cuandoLegible(m.propuesto)} · ${rinde}`;
+  });
 };
 
 const fechasFases = (inicio: string | null, fin: string | null): string[] => {
@@ -220,6 +273,16 @@ export const respaldoBrief: Respaldo = (valores, contexto, _ctx, accion) => {
       { titulo: 'Objetivo', tipo: 'texto', contenido: objetivo },
       { titulo: 'Fases', tipo: 'lista', contenido: fechasFases(proyecto?.inicio ?? null, proyecto?.fin ?? null) },
       { titulo: 'Tareas', tipo: 'lista', contenido: proyecto?.tareas ?? [] },
+      {
+        titulo: 'Checklist de lanzamiento',
+        tipo: 'lista',
+        contenido: [
+          'Revisá cada caption con Safety Check antes de programarlo.',
+          'Dejá lista la base de respuestas de Respuestas IA para las preguntas que van a llegar.',
+          'Definí quién atiende las escaladas y en cuánto tiempo.',
+          'Medí a los 7 y a los 14 días con Métricas explicadas.',
+        ],
+      },
       {
         titulo: 'Métrica de éxito',
         tipo: 'texto',
@@ -267,14 +330,30 @@ export const respaldoOkr: Respaldo = (valores, contexto, _ctx, accion) => {
   };
 };
 
-export const respaldoExperimento: Respaldo = (valores, contexto, _ctx, accion) => {
+export const respaldoExperimento: Respaldo = (valores, contexto, ctx, accion) => {
   const exp = accion.tipo === 'experimento' ? accion : null;
+  const duracion = exp?.duracionDias ?? numero(valores, 'duracion', 7);
+  const cadencia = cadenciaSemanal(ctx);
+  const necesarias = PUBLICACIONES_POR_VARIANTE * 2;
+  const diasNecesarios = cadencia > 0 ? Math.ceil(necesarias / (cadencia / 7)) : null;
+  const factibilidad =
+    diasNecesarios === null
+      ? `No hay piezas programadas: para ${necesarias} publicaciones (${PUBLICACIONES_POR_VARIANTE} por variante) programá la cadencia primero.`
+      : `Con ${cadencia.toFixed(1).replace('.', ',')} publicaciones por semana programadas, la prueba necesita unos ${diasNecesarios} día(s) para ${PUBLICACIONES_POR_VARIANTE} publicaciones por variante.`;
   const riesgos = [
     'Cambiar otra variable durante la prueba invalida el resultado.',
     contexto.totalPosts < 10
       ? 'Tu historial es corto: una diferencia chica puede ser ruido.'
       : 'Tu historial alcanza para comparar medianas entre variantes.',
   ];
+  const notas = [
+    'Se registra en Experimentos con el estado de borrador: iniciá la prueba cuando las dos variantes estén listas.',
+  ];
+  if (diasNecesarios !== null && duracion < diasNecesarios) {
+    notas.push(
+      `La duración elegida (${duracion} días) es menor que lo necesario: la prueba puede no llegar a una conclusión.`,
+    );
+  }
   return {
     titulo: `Experimento: ${texto(valores, 'hipotesis').slice(0, 120)}`,
     secciones: [
@@ -288,9 +367,10 @@ export const respaldoExperimento: Respaldo = (valores, contexto, _ctx, accion) =
         titulo: 'Medición',
         tipo: 'texto',
         contenido: exp
-          ? `Métrica: ${exp.metrica}. Duración: ${exp.duracionDias} días. Muestra mínima: 3 publicaciones por variante antes de decidir.`
+          ? `Métrica: ${exp.metrica}. Duración: ${exp.duracionDias} días. Muestra mínima: ${PUBLICACIONES_POR_VARIANTE} publicaciones por variante antes de decidir.`
           : '',
       },
+      { titulo: 'Factibilidad', tipo: 'texto', contenido: factibilidad },
       {
         titulo: 'Criterio de decisión',
         tipo: 'lista',
@@ -302,9 +382,7 @@ export const respaldoExperimento: Respaldo = (valores, contexto, _ctx, accion) =
       },
       { titulo: 'Riesgos', tipo: 'lista', contenido: riesgos },
     ],
-    notas: [
-      'Se registra en Experimentos con el estado de borrador: iniciá la prueba cuando las dos variantes estén listas.',
-    ],
+    notas,
   };
 };
 
@@ -356,6 +434,15 @@ export const respaldoMetricas: Respaldo = (valores, contexto, ctx) => {
 
 export const respaldoBandeja: Respaldo = (valores, _contexto, ctx) => {
   const { sinResponder, escaladas, leadsSinResponder } = ctx.bandeja;
+  const orden = [
+    escaladas > 0 ? `Escaladas (${escaladas}): asignalas a una persona hoy.` : null,
+    leadsSinResponder > 0
+      ? `Leads (${leadsSinResponder}): respondé por DM con Respuestas IA y pasalos a la bandeja.`
+      : null,
+    sinResponder > 0
+      ? `Resto sin responder (${sinResponder}): respondé con Respuestas IA; las de riesgo se escalan solas.`
+      : null,
+  ].filter((paso): paso is string => paso !== null);
   const siguiente =
     escaladas > 0
       ? 'Asigná las escaladas a una persona hoy: no las dejes para después.'
@@ -373,6 +460,11 @@ export const respaldoBandeja: Respaldo = (valores, _contexto, ctx) => {
           `${escaladas} necesitan una persona`,
           `${leadsSinResponder} lead(s) calificado(s) sin respuesta`,
         ],
+      },
+      {
+        titulo: 'Orden de atención',
+        tipo: 'lista',
+        contenido: orden.length > 0 ? orden : ['Nada pendiente en la bandeja.'],
       },
       {
         titulo: 'Atender primero',

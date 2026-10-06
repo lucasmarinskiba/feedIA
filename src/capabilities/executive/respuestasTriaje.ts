@@ -221,7 +221,6 @@ export const prepararRespuestas = (
 
 export const MAX_PREGUNTA = 300;
 export const MAX_RESPUESTA = 600;
-export const LIMITE_CONOCIMIENTO = 200;
 
 export const validarRespuestaAprobada = (
   pregunta: unknown,

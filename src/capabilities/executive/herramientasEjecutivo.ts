@@ -256,7 +256,7 @@ export const ejecutarHerramienta = async (
 ): Promise<ResultadoEjecucion | { error: string }> => {
   const contexto = await contextoDeCuenta(marcaCuentas);
   const momentos = contexto.momentos.map((m) => ({ dia: m.dia, franja: m.franja }));
-  const conocimiento = def.id === 'respuestas' ? await leerConocimiento(marcaCuentas) : [];
+  const conocimiento = def.id === 'respuestas' ? leerConocimiento() : [];
   const respuestas =
     def.id === 'respuestas'
       ? prepararRespuestas(

@@ -376,10 +376,25 @@ const respaldoGuion: Respaldo = (valores) => {
         tipo: 'lista',
         contenido: ['Plano de vos hablando a cámara', 'Pantalla o producto en uso', 'Un texto grande por cada punto'],
       },
+      {
+        titulo: 'Tomas para generar con IA (prompts)',
+        tipo: 'lista',
+        contenido: pasos.map((paso, i) => {
+          const plano = PLANOS_VIDEO[i % PLANOS_VIDEO.length] ?? 'plano medio';
+          const accion = paso.slice(paso.indexOf(': ') + 2);
+          return `Toma ${i + 1} (${plano}, vertical 9:16, unos 3 s): ${accion}. Luz natural, fondo simple, sin texto en pantalla, mismo personaje en todas las tomas.`;
+        }),
+      },
     ],
-    notas: ['Respaldo por reglas: la IA no respondió. Ajustá el guion a tu voz.', `Duración objetivo: ${duracion} s.`],
+    notas: [
+      'Respaldo por reglas: la IA no respondió. Ajustá el guion a tu voz.',
+      `Duración objetivo: ${duracion} s.`,
+      'Cada toma se genera por separado y se revisa clip por clip: ningún generador de video da el resultado garantizado.',
+    ],
   };
 };
+
+const PLANOS_VIDEO = ['primer plano', 'plano medio', 'plano detalle', 'plano general'];
 
 const segundosTexto = (segundos: number): string => `${segundos.toFixed(1).replace('.', ',')} s`;
 const tiempoCorto = (segundos: number): string => {

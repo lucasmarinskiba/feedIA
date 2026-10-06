@@ -225,10 +225,10 @@ const accionHtml = (c) => {
   if (accion.tipo === 'piezas')
     return `<div class="hi-sec"><h4>Piezas que se crean (${accion.piezas.length})</h4><div class="hi-piezas">${accion.piezas
       .map(
-        (p) => `<div class="hi-pieza">
+        (p, i) => `<div class="hi-pieza">
           <strong>${escape(p.titulo)}</strong>
           <small>${escape(p.plataforma)} · ${escape(p.formato)} · ${p.scheduledAt ? escape(cuandoLegible(p.scheduledAt)) : 'sin fecha: quedará en borrador'}</small>
-          ${p.caption ? `<span>${escape(p.caption.slice(0, 160))}${p.caption.length > 160 ? '…' : ''}</span>` : '<small>Sin texto: se guarda como borrador hasta que lo completes.</small>'}
+          <textarea class="hi-input" data-hi-caption="${i}" maxlength="2200" placeholder="Escribí el texto. Sin texto, la pieza queda en borrador.">${escape(p.caption)}</textarea>
         </div>`,
       )
       .join('')}</div></div>`;
@@ -390,11 +390,15 @@ const aplicarDestino = async (root, destino) => {
     await copiarTexto(textoCompletoDe(estado.creacion));
     return;
   }
+  const piezas =
+    destino === 'calendario'
+      ? [...root.querySelectorAll('[data-hi-caption]')].map((el) => ({ caption: el.value }))
+      : null;
   estado.ocupado = true;
   pintar(root);
   try {
     const respuesta = await api(`/api/executive/tools/creaciones/${encodeURIComponent(estado.creacion.id)}/aplicar`, {
-      body: { destino },
+      body: piezas?.length ? { destino, piezas } : { destino },
     });
     estado.creacion = respuesta.creacion ?? estado.creacion;
     await cargarCreaciones();
