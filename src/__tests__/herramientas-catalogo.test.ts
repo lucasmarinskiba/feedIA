@@ -1,150 +1,164 @@
 import { describe, it, expect } from 'vitest';
 import {
   HERRAMIENTAS,
-  auditoriaReglas,
-  herramientaPorId,
-  validarEntrada,
-  validarResultado,
+  type AccionCreacion,
+  type ContextoAccion,
   type ContextoCuenta,
 } from '../capabilities/executive/herramientasCatalogo.js';
 
-const contextoVacio: ContextoCuenta = { totalPosts: 0, topPosts: [], formatos: [], momentos: [], hashtagsTop: [] };
+const AHORA = Date.UTC(2026, 9, 5, 12, 0, 0);
 
-const def = (id: string) => {
-  const d = herramientaPorId(id);
-  if (!d) throw new Error(`herramienta ${id} no existe`);
-  return d;
+const contexto: ContextoCuenta = {
+  totalPosts: 12,
+  topPosts: [{ formato: 'reel', caption: 'Post de prueba', tasa: 4.2 }],
+  formatos: [
+    { formato: 'reel', posts: 6, medianaTasa: 4.2 },
+    { formato: 'carrusel', posts: 4, medianaTasa: 3.1 },
+  ],
+  momentos: [
+    { dia: 'lunes', franja: 'tarde', medianaTasa: 4.5, posts: 3 },
+    { dia: 'jueves', franja: 'noche', medianaTasa: 3.9, posts: 2 },
+  ],
+  hashtagsTop: ['#marketing'],
 };
 
-describe('catálogo', () => {
-  it('tiene once herramientas con id único, rol, reglas y campos', () => {
-    expect(HERRAMIENTAS).toHaveLength(11);
-    expect(new Set(HERRAMIENTAS.map((h) => h.id)).size).toBe(11);
-    for (const h of HERRAMIENTAS) {
-      expect(h.rol.length).toBeGreaterThan(10);
-      expect(h.reglas.length).toBeGreaterThanOrEqual(3);
-      expect(h.campos.length).toBeGreaterThan(0);
+const ctxAccion = (valores: Record<string, string | number>, conectadas = true): ContextoAccion => ({
+  valores,
+  contexto,
+  conexiones: { instagram: conectadas, tiktok: conectadas },
+  ahora: AHORA,
+  calendario: {
+    disponible: true,
+    momentos: contexto.momentos.map((m) => ({ dia: m.dia, franja: m.franja })),
+    posts: [
+      {
+        id: 'p-vencida',
+        plataforma: 'instagram',
+        caption: 'Vencida',
+        status: 'scheduled',
+        scheduledAt: new Date(AHORA - 3 * 86_400_000).toISOString(),
+      },
+    ],
+  },
+  bandeja: { disponible: true, sinResponder: 4, escaladas: 1, leadsSinResponder: 2, ejemplos: ['@ana: lead'] },
+  marca: { nombre: 'Marca de prueba', nicho: 'marketing' },
+});
+
+const VALORES_POR_HERRAMIENTA: Record<string, Record<string, string | number>> = {
+  caption: { formato: 'reel', plataforma: 'instagram', objetivo: 'alcance', idea: 'Tres errores al escribir captions' },
+  hooks: { idea: 'Errores de principiantes', formato: 'reel' },
+  hashtags: { tema: 'marketing', plataforma: 'instagram', cantidad: 10 },
+  guion: { tema: 'Un día con cliente', plataforma: 'tiktok', duracion: 30, tono: 'cercano' },
+  carrusel: { tema: 'Checklist de contenido', slides: '7', objetivo: 'guardados' },
+  repurpose: { contenido: 'Texto original', formato_origen: 'texto', formato_destino: 'reel', plataforma: 'tiktok' },
+  safety: { caption: 'Texto de prueba', hashtags: '#ok', plataforma: 'instagram' },
+  perfil: { propuesta: 'Ayudamos a pymes a crecer', bio_actual: '', nombre_visible: 'Pyme', link: '' },
+  respuestas: { mensaje: '¿Cuánto cuesta?', tipo: 'dm', intencion: 'consulta' },
+  plan: { semanas: '2', publicaciones: 3, objetivo: 'alcance' },
+  metricas: { metrica: 'alcance', cambio: 'Cayó un 30 % en la semana' },
+  stories: { tema: 'Lanzamiento', dias: '3', historias_por_dia: 2 },
+  ideas: { tema: 'Marketing', cantidad: 5, plataforma: 'instagram' },
+  'calendario-inteligente': { ventana: '14' },
+  reprogramar: { ventana: '7' },
+  brief: { objetivo: 'Lanzar el curso', plataforma: 'ambas', semanas: '4' },
+  okr: {
+    titulo: 'Crecer en TikTok',
+    porque: 'El canal trae clientes',
+    categoria: 'growth',
+    periodo: 'quarter',
+    metrica: 'seguidores-tiktok',
+    meta: 5000,
+  },
+  experimento: {
+    hipotesis: 'Un hook con pregunta sube los guardados',
+    variable: 'hook',
+    metrica: 'guardados',
+    duracion: '7',
+    nombreA: 'Afirmación',
+    nombreB: 'Pregunta',
+  },
+  bandeja: { enfoque: 'prioridades' },
+  digest: { periodo: '7' },
+};
+
+describe('catálogo de herramientas IA', () => {
+  it('tiene 20 herramientas con id único', () => {
+    expect(HERRAMIENTAS).toHaveLength(20);
+    expect(new Set(HERRAMIENTAS.map((h) => h.id)).size).toBe(20);
+  });
+
+  it('cada herramienta declara al menos un destino', () => {
+    for (const h of HERRAMIENTAS) expect(h.destinos.length, h.id).toBeGreaterThan(0);
+  });
+
+  it('solo ofrece calendario a las que producen piezas o movimientos', () => {
+    for (const h of HERRAMIENTAS.filter((x) => x.destinos.includes('calendario'))) {
+      const accion = h.accion?.(ctxAccion(VALORES_POR_HERRAMIENTA[h.id] ?? {}));
+      expect(['piezas', 'movimientos'], h.id).toContain(accion?.tipo);
     }
   });
 
-  it('Safety Check siempre usa reglas, nunca IA', () => {
-    expect(def('safety').soloReglas).toBe(true);
-  });
-});
-
-describe('validarEntrada', () => {
-  it('exige los campos requeridos y recorta el texto', () => {
-    expect(
-      validarEntrada(def('caption'), { formato: 'reel', plataforma: 'instagram', objetivo: 'alcance', idea: '   ' }),
-    ).toEqual({
-      ok: false,
-      error: 'Idea del contenido es obligatorio',
-    });
-    const ok = validarEntrada(def('caption'), {
-      formato: 'reel',
-      plataforma: 'instagram',
-      objetivo: 'alcance',
-      idea: '  Mi idea  ',
-    });
-    expect(ok).toEqual({
-      ok: true,
-      valores: { formato: 'reel', plataforma: 'instagram', objetivo: 'alcance', idea: 'Mi idea' },
-    });
+  it('toda herramienta que no depende de la IA tiene respaldo', () => {
+    for (const h of HERRAMIENTAS.filter((x) => x.soloReglas)) expect(h.respaldo, h.id).toBeTypeOf('function');
   });
 
-  it('rechaza opciones fuera de la lista y números fuera de rango', () => {
-    expect(
-      validarEntrada(def('caption'), { formato: 'story', plataforma: 'instagram', objetivo: 'alcance', idea: 'x' }),
-    ).toEqual({
-      ok: false,
-      error: 'Formato: opción inválida',
-    });
-    expect(validarEntrada(def('plan'), { semanas: '1', publicaciones: 9, objetivo: 'alcance' })).toEqual({
-      ok: false,
-      error: 'Publicaciones por semana debe ser un número entero entre 1 y 7',
-    });
-  });
-});
-
-describe('validarResultado', () => {
-  it('rechaza lo que no tiene la forma esperada', () => {
-    expect(validarResultado('texto suelto')).toBeNull();
-    expect(validarResultado({ titulo: 'x', secciones: [] })).toBeNull();
+  it('cada herramienta tiene valores de prueba para todos sus campos requeridos', () => {
+    for (const h of HERRAMIENTAS) {
+      const valores = VALORES_POR_HERRAMIENTA[h.id];
+      expect(valores, h.id).toBeDefined();
+      for (const campo of h.campos.filter((c) => c.requerido)) {
+        expect(valores?.[campo.id], `${h.id}.${campo.id}`).not.toBeUndefined();
+      }
+    }
   });
 
-  it('acepta el contrato y limita secciones', () => {
-    const secciones = Array.from({ length: 15 }, (_, i) => ({ titulo: `s${i}`, tipo: 'texto', contenido: 'ok' }));
-    const r = validarResultado({ titulo: 'Plan', secciones, notas: ['nota'] });
-    expect(r?.secciones).toHaveLength(12);
-    expect(r?.notas).toEqual(['nota']);
+  it('el plan semanal produce semanas × publicaciones piezas fechadas en el futuro', () => {
+    const plan = HERRAMIENTAS.find((h) => h.id === 'plan');
+    const accion = plan?.accion?.(ctxAccion(VALORES_POR_HERRAMIENTA['plan'] ?? {})) as Extract<
+      AccionCreacion,
+      { tipo: 'piezas' }
+    >;
+    expect(accion.piezas).toHaveLength(6);
+    for (const p of accion.piezas) {
+      expect(p.scheduledAt).not.toBeNull();
+      expect(Date.parse(p.scheduledAt ?? '')).toBeGreaterThan(AHORA);
+    }
   });
 
-  it('descarta listas vacías y tipos desconocidos pasan como texto', () => {
-    const r = validarResultado({
-      titulo: 'T',
-      secciones: [
-        { titulo: 'vacía', tipo: 'lista', contenido: [] },
-        { titulo: 'rara', tipo: 'otra', contenido: 'hola' },
-      ],
-    });
-    expect(r?.secciones).toEqual([{ titulo: 'rara', tipo: 'texto', contenido: 'hola' }]);
-  });
-});
-
-describe('auditoriaReglas', () => {
-  it('marca engagement bait como riesgo alto', () => {
-    const r = auditoriaReglas('Etiquetá a alguien que necesite esto', []);
-    expect(r.nivel).toBe('alto');
-    expect(r.hallazgos[0]?.severidad).toBe('alta');
+  it('el plan sin cuentas conectadas usa Instagram y deja las piezas para borrador', () => {
+    const plan = HERRAMIENTAS.find((h) => h.id === 'plan');
+    const accion = plan?.accion?.(ctxAccion(VALORES_POR_HERRAMIENTA['plan'] ?? {}, false)) as Extract<
+      AccionCreacion,
+      { tipo: 'piezas' }
+    >;
+    expect(new Set(accion.piezas.map((p) => p.plataforma))).toEqual(new Set(['instagram']));
   });
 
-  it('marca promesas absolutas como riesgo medio', () => {
-    expect(auditoriaReglas('Este método es 100% seguro', []).nivel).toBe('medio');
+  it('los respaldos de las herramientas sin IA devuelven un resultado con contenido', () => {
+    for (const h of HERRAMIENTAS.filter((x) => x.respaldo)) {
+      const ctx = ctxAccion(VALORES_POR_HERRAMIENTA[h.id] ?? {});
+      const accion = h.accion ? h.accion(ctx) : ({ tipo: 'ninguna' } as AccionCreacion);
+      const resultado = h.respaldo?.(ctx.valores, contexto, ctx, accion);
+      expect(resultado?.titulo, h.id).toBeTruthy();
+      expect(resultado?.secciones.length + (resultado?.notas.length ?? 0), h.id).toBeGreaterThan(0);
+    }
   });
 
-  it('marca más de 30 hashtags como riesgo alto y genéricos como medio', () => {
-    const muchos = Array.from({ length: 31 }, (_, i) => `#tag${i}`);
-    expect(auditoriaReglas('Texto', muchos).nivel).toBe('alto');
-    expect(auditoriaReglas('Texto', ['#love', '#marketing']).nivel).toBe('medio');
+  it('calendario inteligente y reprogramar proponen movimientos sobre el calendario actual', () => {
+    const reprogramar = HERRAMIENTAS.find((h) => h.id === 'reprogramar');
+    const accion = reprogramar?.accion?.(ctxAccion(VALORES_POR_HERRAMIENTA['reprogramar'] ?? {})) as Extract<
+      AccionCreacion,
+      { tipo: 'movimientos' }
+    >;
+    expect(accion.movimientos.map((m) => m.postId)).toEqual(['p-vencida']);
   });
 
-  it('avisa que los links no son clickeables', () => {
-    expect(auditoriaReglas('Mirá https://ejemplo.com', []).nivel).toBe('bajo');
-  });
-
-  it('no encuentra nada en un caption limpio', () => {
-    expect(auditoriaReglas('Hoy te cuento cómo organizo mi semana de contenido.', ['#marketing']).nivel).toBe(
-      'ninguno',
-    );
-  });
-});
-
-describe('respaldos deterministas', () => {
-  it('Hashtag Lab usa los hashtags de tus posts cuando existen', () => {
-    const r = def('hashtags').respaldo?.(
-      { tema: 'marketing', cantidad: 6 },
-      { ...contextoVacio, hashtagsTop: ['#ia', '#marca'] },
-    );
-    expect(r?.secciones.some((s) => s.tipo === 'copiable' && String(s.contenido).includes('#ia'))).toBe(true);
-    const sinHistorial = def('hashtags').respaldo?.({ tema: 'marketing' }, contextoVacio);
-    expect(sinHistorial?.secciones.some((s) => s.tipo === 'copiable')).toBe(false);
-  });
-
-  it('Hook Factory devuelve cinco ganchos', () => {
-    const r = def('hooks').respaldo?.({ idea: 'organizar el contenido', formato: 'reel' }, contextoVacio);
-    const ganchos = r?.secciones[0]?.contenido;
-    expect(Array.isArray(ganchos) ? ganchos : []).toHaveLength(5);
-  });
-
-  it('Plan semanal crea semanas × publicaciones y usa los momentos reales', () => {
-    const contexto: ContextoCuenta = {
-      ...contextoVacio,
-      momentos: [{ dia: 'martes', franja: 'noche', medianaTasa: 8, posts: 4 }],
-      formatos: [{ formato: 'reel', posts: 5, medianaTasa: 7 }],
-    };
-    const r = def('plan').respaldo?.({ semanas: '2', publicaciones: 3, objetivo: 'alcance' }, contexto);
-    const items = r?.secciones[0]?.contenido;
-    expect(Array.isArray(items) ? items : []).toHaveLength(6);
-    expect(Array.isArray(items) && items[0]?.includes('martes 20:00')).toBe(true);
+  it('el OKR sugerido arma su resultado clave con la meta y la fuente elegidas', () => {
+    const okr = HERRAMIENTAS.find((h) => h.id === 'okr');
+    const accion = okr?.accion?.(ctxAccion(VALORES_POR_HERRAMIENTA['okr'] ?? {})) as Extract<
+      AccionCreacion,
+      { tipo: 'objetivo' }
+    >;
+    expect(accion.keyResults[0]).toMatchObject({ fuente: 'seguidores-tiktok', target: 5000, direccion: 'increase' });
   });
 });

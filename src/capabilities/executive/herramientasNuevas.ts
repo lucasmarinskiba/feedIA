@@ -1,0 +1,237 @@
+/**
+ * Herramientas IA nuevas: definiciones (promesa, rol, reglas y campos). Qué crean o mueven cada una
+ * y sus respaldos viven en herramientasAcciones.ts.
+ */
+
+import type { DefinicionBase } from './herramientasCatalogo.js';
+
+export const NUEVAS_HERRAMIENTAS: DefinicionBase[] = [
+  {
+    id: 'stories',
+    nombre: 'Historias de la semana',
+    categoria: 'Contenido',
+    descripcion: 'Historias para los próximos días en los mejores horarios de tu cuenta, listas para programar.',
+    icono: '⭕',
+    rol: 'estratega de historias de Instagram con experiencia en formatos interactivos',
+    reglas: [
+      'Cada historia tiene una sola idea y se entiende en 5 segundos.',
+      'Alterná formatos: encuesta, pregunta, detrás de escena, recurso o cuenta regresiva.',
+      'Dejá una llamada a la acción por historia cuando corresponda.',
+      'No prometas resultados ni cifras que la marca no pueda sostener.',
+    ],
+    campos: [
+      { id: 'tema', etiqueta: 'Tema', tipo: 'texto', requerido: true },
+      { id: 'dias', etiqueta: 'Días a cubrir', tipo: 'select', requerido: true, opciones: ['3', '5', '7'] },
+      {
+        id: 'historias_por_dia',
+        etiqueta: 'Historias por día',
+        tipo: 'numero',
+        requerido: true,
+        min: 1,
+        max: 3,
+      },
+    ],
+  },
+  {
+    id: 'ideas',
+    nombre: 'Banco de ideas',
+    categoria: 'Contenido',
+    descripcion: 'Ideas de contenido sobre un tema, convertidas en borradores en tu calendario.',
+    icono: '💡',
+    rol: 'head de contenido con olfato para ideas que la audiencia comparte',
+    reglas: [
+      'Cada idea responde una pregunta concreta de la audiencia.',
+      'Indicá el formato sugerido para cada idea.',
+      'Priorizá ideas que se puedan producir con los recursos de la marca.',
+      'Evitá ideas que dependan de tendencias pasajeras sin relación con el nicho.',
+    ],
+    campos: [
+      { id: 'tema', etiqueta: 'Tema o nicho', tipo: 'texto', requerido: true },
+      { id: 'cantidad', etiqueta: 'Cantidad de ideas', tipo: 'numero', requerido: true, min: 3, max: 10 },
+      {
+        id: 'plataforma',
+        etiqueta: 'Plataforma',
+        tipo: 'select',
+        requerido: true,
+        opciones: ['instagram', 'tiktok'],
+      },
+    ],
+  },
+  {
+    id: 'calendario-inteligente',
+    nombre: 'Optimizar horarios',
+    categoria: 'Estrategia',
+    descripcion: 'Mueve tus piezas programadas o en borrador a los horarios que mejor rinden en tu cuenta.',
+    icono: '🧭',
+    rol: 'analista de programación que cuida la cadencia de publicación',
+    reglas: [
+      'Mové solo piezas que hoy están fuera de los mejores horarios.',
+      'No pises una pieza ya programada.',
+      'Explicá cada movimiento con su motivo.',
+    ],
+    campos: [
+      { id: 'ventana', etiqueta: 'Ventana a revisar (días)', tipo: 'select', requerido: true, opciones: ['7', '14'] },
+    ],
+    soloReglas: true,
+  },
+  {
+    id: 'reprogramar',
+    nombre: 'Reprogramar vencidas',
+    categoria: 'Operación',
+    descripcion: 'Encuentra las piezas que pasaron su hora sin publicarse y las reubica en el próximo hueco libre.',
+    icono: '🔁',
+    rol: 'operador de calendario que evita que se pierdan publicaciones',
+    reglas: [
+      'Reubicá solo piezas que ya vencieron sin publicarse.',
+      'Usá el próximo horario libre de tus mejores momentos.',
+      'Indicá qué piezas quedaron sin reubicar y por qué.',
+    ],
+    campos: [
+      {
+        id: 'ventana',
+        etiqueta: 'Ventana para buscar huecos (días)',
+        tipo: 'select',
+        requerido: true,
+        opciones: ['7', '14'],
+      },
+    ],
+    soloReglas: true,
+  },
+  {
+    id: 'brief',
+    nombre: 'Brief de campaña',
+    categoria: 'Estrategia',
+    descripcion: 'Brief con objetivo, tareas y fechas que se convierte en un proyecto con seguimiento.',
+    icono: '📋',
+    rol: 'project manager de campañas de contenido para redes sociales',
+    reglas: [
+      'Cada tarea tiene un resultado verificable.',
+      'Definí el mensaje y la audiencia antes de producir.',
+      'Cerrá con una tarea de medición que decida qué repetir.',
+      'No prometas resultados de alcance o ventas.',
+    ],
+    campos: [
+      { id: 'objetivo', etiqueta: 'Objetivo de la campaña', tipo: 'textarea', requerido: true },
+      {
+        id: 'plataforma',
+        etiqueta: 'Plataforma',
+        tipo: 'select',
+        requerido: true,
+        opciones: ['ambas', 'instagram', 'tiktok'],
+      },
+      { id: 'semanas', etiqueta: 'Duración (semanas)', tipo: 'select', requerido: true, opciones: ['2', '4', '8'] },
+    ],
+  },
+  {
+    id: 'okr',
+    nombre: 'OKR sugerido',
+    categoria: 'Estrategia',
+    descripcion: 'Objetivo con un resultado clave medible que se crea en la sección de OKR, ya validado.',
+    icono: '🏁',
+    rol: 'coach de objetivos que escribe OKR medibles y alcanzables',
+    reglas: [
+      'Un objetivo cualitativo y un resultado clave cuantitativo.',
+      'La meta tiene que ser alcanzable en el periodo elegido.',
+      'Explicá en una frase por qué importa el objetivo.',
+    ],
+    campos: [
+      { id: 'titulo', etiqueta: 'Objetivo', tipo: 'texto', requerido: true, ayuda: 'Ej.: Crecer en TikTok con series' },
+      { id: 'porque', etiqueta: 'Por qué importa', tipo: 'textarea', requerido: true },
+      {
+        id: 'categoria',
+        etiqueta: 'Categoría',
+        tipo: 'select',
+        requerido: true,
+        opciones: ['growth', 'engagement', 'revenue', 'brand', 'efficiency', 'community'],
+      },
+      {
+        id: 'periodo',
+        etiqueta: 'Periodo',
+        tipo: 'select',
+        requerido: true,
+        opciones: ['month', 'quarter', 'year'],
+      },
+      {
+        id: 'metrica',
+        etiqueta: 'Métrica a medir',
+        tipo: 'select',
+        requerido: true,
+        opciones: ['seguidores-instagram', 'seguidores-tiktok', 'piezas-creadas', 'carruseles-publicados'],
+      },
+      { id: 'meta', etiqueta: 'Meta', tipo: 'numero', requerido: true, min: 1, max: 1000000 },
+    ],
+  },
+  {
+    id: 'experimento',
+    nombre: 'Experimento A/B',
+    categoria: 'Estrategia',
+    descripcion: 'Compara dos variantes con una hipótesis y una métrica, y lo registra en Experimentos.',
+    icono: '🧪',
+    rol: 'diseñador de experimentos de contenido con criterio estadístico',
+    reglas: [
+      'Probá una sola variable por experimento.',
+      'La hipótesis dice qué cambia, qué esperás y por qué.',
+      'Elegí una métrica que refleje lo que te importa.',
+    ],
+    campos: [
+      { id: 'hipotesis', etiqueta: 'Hipótesis', tipo: 'textarea', requerido: true },
+      {
+        id: 'variable',
+        etiqueta: 'Variable a probar',
+        tipo: 'select',
+        requerido: true,
+        opciones: ['hook', 'formato', 'horario', 'caption'],
+      },
+      {
+        id: 'metrica',
+        etiqueta: 'Métrica',
+        tipo: 'select',
+        requerido: true,
+        opciones: ['guardados', 'compartidos', 'likes', 'interacciones'],
+      },
+      { id: 'nombreA', etiqueta: 'Variante A', tipo: 'texto', requerido: true },
+      { id: 'nombreB', etiqueta: 'Variante B', tipo: 'texto', requerido: true },
+      { id: 'duracion', etiqueta: 'Duración (días)', tipo: 'select', requerido: true, opciones: ['7', '14'] },
+      { id: 'umbral', etiqueta: 'Mejora mínima para ganar (%)', tipo: 'numero', requerido: false, min: 1, max: 100 },
+    ],
+  },
+  {
+    id: 'bandeja',
+    nombre: 'Resumen de bandeja',
+    categoria: 'Comunidad',
+    descripcion: 'Qué atender primero en la bandeja: sin responder, escaladas y leads calificados.',
+    icono: '📥',
+    rol: 'coordinador de comunidad que ordena la bandeja por impacto',
+    reglas: [
+      'Ordená por impacto: leads calificados y escaladas primero.',
+      'Indicá cuántas conversaciones hay en cada grupo.',
+      'No inventes nombres ni mensajes: usá solo los del contexto.',
+    ],
+    campos: [
+      {
+        id: 'enfoque',
+        etiqueta: 'Enfoque',
+        tipo: 'select',
+        requerido: true,
+        opciones: ['prioridades', 'leads', 'todo'],
+      },
+    ],
+    soloReglas: true,
+  },
+  {
+    id: 'digest',
+    nombre: 'Resumen semanal',
+    categoria: 'Estrategia',
+    descripcion:
+      'Resumen en lenguaje claro de contenido y bandeja, para compartir con el equipo o guardar en la bitácora.',
+    icono: '📰',
+    rol: 'analista que resume el desempeño de la semana para un equipo',
+    reglas: [
+      'Abrí con lo más importante del periodo.',
+      'Usá solo cifras del contexto.',
+      'Cerrá con una acción concreta para la próxima semana.',
+    ],
+    campos: [{ id: 'periodo', etiqueta: 'Periodo', tipo: 'select', requerido: true, opciones: ['7', '30'] }],
+    soloReglas: true,
+  },
+];

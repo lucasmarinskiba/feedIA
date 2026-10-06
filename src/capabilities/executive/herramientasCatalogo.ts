@@ -3,6 +3,15 @@
  * respaldos deterministas que usan datos reales de la cuenta. Función pura: no toca red ni disco.
  */
 
+import type {
+  MovimientoCalendario,
+  MomentoPlan,
+  PiezaCreacion,
+  PostCalendarioPlan,
+} from './herramientasPlanificacion.js';
+import { ENSAMBLAR_HERRAMIENTA } from './herramientasAcciones.js';
+import { NUEVAS_HERRAMIENTAS } from './herramientasNuevas.js';
+
 export type CategoriaHerramienta = 'Contenido' | 'Estrategia' | 'Comunidad' | 'Operación';
 
 export interface CampoHerramienta {
@@ -34,6 +43,79 @@ export interface ResultadoHerramienta {
   titulo: string;
   secciones: SeccionResultado[];
   notas: string[];
+  textosPiezas?: TextoPieza[];
+}
+
+export type Destino = 'calendario' | 'proyecto' | 'objetivo' | 'experimento' | 'bitacora' | 'copiar';
+
+export interface TextoPieza {
+  titulo: string;
+  caption: string;
+  hashtags: string[];
+}
+
+export interface KeyResultPropuesto {
+  descripcion: string;
+  fuente: string;
+  metricType: 'count' | 'percent' | 'currency' | 'ratio' | 'time-minutes';
+  unidad: string;
+  direccion: 'increase' | 'decrease';
+  baseline: number | null;
+  target: number;
+}
+
+export type AccionCreacion =
+  | { tipo: 'piezas'; piezas: PiezaCreacion[] }
+  | {
+      tipo: 'movimientos';
+      modo: 'optimizar' | 'reprogramar';
+      calendarioDisponible: boolean;
+      movimientos: MovimientoCalendario[];
+    }
+  | {
+      tipo: 'proyecto';
+      nombre: string;
+      objetivo: string;
+      plataforma: 'instagram' | 'tiktok' | 'ambas';
+      tareas: string[];
+      inicio: string | null;
+      fin: string | null;
+    }
+  | {
+      tipo: 'objetivo';
+      titulo: string;
+      porque: string;
+      categoria: string;
+      periodo: 'month' | 'quarter' | 'year';
+      keyResults: KeyResultPropuesto[];
+    }
+  | {
+      tipo: 'experimento';
+      hipotesis: string;
+      variable: string;
+      metrica: string;
+      umbralMejora: number;
+      duracionDias: number;
+      nombreA: string;
+      nombreB: string;
+    }
+  | { tipo: 'bitacora'; titulo: string; detalle: string }
+  | { tipo: 'ninguna' };
+
+export interface ContextoAccion {
+  valores: Record<string, string | number>;
+  contexto: ContextoCuenta;
+  conexiones: { instagram: boolean; tiktok: boolean };
+  ahora: number;
+  calendario: { disponible: boolean; posts: PostCalendarioPlan[]; momentos: MomentoPlan[] };
+  bandeja: {
+    disponible: boolean;
+    sinResponder: number;
+    escaladas: number;
+    leadsSinResponder: number;
+    ejemplos: string[];
+  };
+  marca: { nombre: string; nicho: string };
 }
 
 export interface HerramientaDef {
@@ -45,9 +127,18 @@ export interface HerramientaDef {
   rol: string;
   reglas: string[];
   campos: CampoHerramienta[];
+  destinos: Destino[];
   soloReglas?: boolean;
-  respaldo?: (valores: Record<string, string | number>, contexto: ContextoCuenta) => ResultadoHerramienta;
+  accion?: (ctx: ContextoAccion) => AccionCreacion;
+  respaldo?: (
+    valores: Record<string, string | number>,
+    contexto: ContextoCuenta,
+    ctx: ContextoAccion,
+    accion: AccionCreacion,
+  ) => ResultadoHerramienta;
 }
+
+export type DefinicionBase = Omit<HerramientaDef, 'destinos' | 'accion'>;
 
 const MAX_TEXTO = 2000;
 const MAX_SECCIONES = 12;
@@ -142,7 +233,20 @@ export const validarResultado = (raw: unknown): ResultadoHerramienta | null => {
         .slice(0, MAX_ITEMS)
         .map((n) => cortar(n, MAX_ITEM))
     : [];
-  return { titulo: cortar(r.titulo, 160), secciones, notas };
+  const textosPiezas: TextoPieza[] = Array.isArray(r.piezas)
+    ? r.piezas.flatMap((p) => {
+        if (typeof p !== 'object' || p === null) return [];
+        const pieza = p as Record<string, unknown>;
+        const caption = typeof pieza.caption === 'string' ? cortar(pieza.caption.trim(), MAX_CONTENIDO) : '';
+        if (!caption) return [];
+        const titulo = typeof pieza.titulo === 'string' ? cortar(pieza.titulo.trim(), 120) : '';
+        const hashtags = Array.isArray(pieza.hashtags)
+          ? pieza.hashtags.filter((h): h is string => typeof h === 'string').slice(0, MAX_ITEMS)
+          : [];
+        return [{ titulo, caption, hashtags }];
+      })
+    : [];
+  return { titulo: cortar(r.titulo, 160), secciones, notas, textosPiezas: textosPiezas.slice(0, MAX_ITEMS) };
 };
 
 export interface HallazgoSeguridad {
@@ -289,38 +393,9 @@ const respaldoHooks = (valores: Record<string, string | number>): ResultadoHerra
   };
 };
 
-const FRANJA_HORA: Record<string, number> = { madrugada: 6, mañana: 9, mediodía: 13, tarde: 18, noche: 20 };
-
-const respaldoPlan = (valores: Record<string, string | number>, contexto: ContextoCuenta): ResultadoHerramienta => {
-  const semanas = Number(valores.semanas) || 1;
-  const publicaciones = typeof valores.publicaciones === 'number' ? valores.publicaciones : 3;
-  const objetivo = String(valores.objetivo ?? 'alcance');
-  const momentos = contexto.momentos.length > 0 ? contexto.momentos : [];
-  const formatos = contexto.formatos.length > 0 ? contexto.formatos.map((f) => f.formato) : ['reel', 'carrusel'];
-  const items: string[] = [];
-  for (let s = 1; s <= semanas; s++) {
-    for (let p = 0; p < publicaciones; p++) {
-      const momento = momentos[p % Math.max(1, momentos.length)];
-      const formato = formatos[p % formatos.length] ?? 'reel';
-      const hora = momento ? (FRANJA_HORA[momento.franja] ?? 19) : 19;
-      const dia = momento
-        ? momento.dia
-        : ['martes', 'miércoles', 'jueves', 'lunes', 'viernes', 'sábado', 'domingo'][p % 7];
-      items.push(`Semana ${s} · ${dia} ${String(hora).padStart(2, '0')}:00 · ${formato} · objetivo: ${objetivo}`);
-    }
-  }
-  return {
-    titulo: `Plan de ${semanas} semana(s), ${publicaciones} publicaciones por semana`,
-    secciones: [{ titulo: 'Calendario', tipo: 'lista', contenido: items }],
-    notas: momentos.length
-      ? ['Días y horas salen de tus posts con mejor interacción; el tema de cada pieza queda a definir.']
-      : ['Sin historial: los horarios son sugeridos, no medidos en tu cuenta.'],
-  };
-};
-
 const TONO = ['cercano', 'experto', 'divertido', 'inspirador'];
 
-export const HERRAMIENTAS: HerramientaDef[] = [
+const BASE_HERRAMIENTAS: DefinicionBase[] = [
   {
     id: 'caption',
     nombre: 'Caption IA',
@@ -486,6 +561,13 @@ export const HERRAMIENTAS: HerramientaDef[] = [
         requerido: true,
         opciones: ['reel', 'carrusel', 'post', 'historia'],
       },
+      {
+        id: 'plataforma',
+        etiqueta: 'Plataforma destino',
+        tipo: 'select',
+        requerido: false,
+        opciones: ['instagram', 'tiktok'],
+      },
     ],
   },
   {
@@ -584,7 +666,6 @@ export const HERRAMIENTAS: HerramientaDef[] = [
         opciones: ['alcance', 'engagement', 'guardados', 'leads'],
       },
     ],
-    respaldo: (valores, contexto) => respaldoPlan(valores, contexto),
   },
   {
     id: 'metricas',
@@ -613,5 +694,7 @@ export const HERRAMIENTAS: HerramientaDef[] = [
     ],
   },
 ];
+
+export const HERRAMIENTAS: HerramientaDef[] = [...BASE_HERRAMIENTAS, ...NUEVAS_HERRAMIENTAS].map(ENSAMBLAR_HERRAMIENTA);
 
 export const herramientaPorId = (id: string): HerramientaDef | undefined => HERRAMIENTAS.find((h) => h.id === id);
