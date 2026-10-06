@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { HERRAMIENTAS } from '../capabilities/executive/herramientasCatalogo.js';
-import { parsearTranscripcion, planEdicion, type Segmento } from '../capabilities/executive/herramientasEdicion.js';
+import {
+  argumentosFfmpeg,
+  parsearTranscripcion,
+  planEdicion,
+  type Segmento,
+} from '../capabilities/executive/herramientasEdicion.js';
 
 const SRT = `1
 00:00:01,000 --> 00:00:02,500
@@ -113,5 +118,25 @@ describe('complemento de Guion', () => {
     const extra = guion?.complemento?.({ tema: 'x', transcripcion: 'hola como estas' });
     expect(extra?.secciones).toEqual([]);
     expect(extra?.notas[0]).toMatch(/no tiene tiempos/);
+  });
+});
+
+describe('argumentosFfmpeg', () => {
+  it('devuelve argumentos separados sin shell, con el filtro de cortes y el códec', () => {
+    const args = argumentosFfmpeg(
+      [
+        { inicio: 0, fin: 2.15 },
+        { inicio: 6.85, fin: 9 },
+      ],
+      '/datos/in.mp4',
+      '/datos/out.mp4',
+    );
+    expect(args?.slice(0, 4)).toEqual(['-y', '-i', '/datos/in.mp4', '-filter_complex']);
+    expect(args?.[4]).toContain('concat=n=2:v=1:a=1[v][a]');
+    expect(args?.at(-1)).toBe('/datos/out.mp4');
+  });
+
+  it('sin tramos no arma comando', () => {
+    expect(argumentosFfmpeg([], 'a.mp4', 'b.mp4')).toBeNull();
   });
 });

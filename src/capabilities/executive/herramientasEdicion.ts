@@ -195,15 +195,44 @@ const subtitulosSrt = (limpios: Segmento[], conservado: Intervalo[]): string => 
   return bloques.map((bloque, i) => `${i + 1}\n${bloque}`).join('\n\n');
 };
 
-const comandoFfmpeg = (conservado: Intervalo[]): string | null => {
-  if (conservado.length === 0 || conservado.length > MAX_INTERVALOS) return null;
+const filtroFfmpeg = (conservado: Intervalo[]): string => {
   const t = (valor: number): string => valor.toFixed(3);
   const pistas = conservado.map(
     (tramo, n) =>
       `[0:v]trim=start=${t(tramo.inicio)}:end=${t(tramo.fin)},setpts=PTS-STARTPTS[v${n}];[0:a]atrim=start=${t(tramo.inicio)}:end=${t(tramo.fin)},asetpts=PTS-STARTPTS[a${n}]`,
   );
   const uniones = conservado.map((_, n) => `[v${n}][a${n}]`).join('');
-  return `ffmpeg -i entrada.mp4 -filter_complex "${pistas.join(';')};${uniones}concat=n=${conservado.length}:v=1:a=1[v][a]" -map "[v]" -map "[a]" salida_editada.mp4`;
+  return `${pistas.join(';')};${uniones}concat=n=${conservado.length}:v=1:a=1[v][a]`;
+};
+
+/** Argumentos para ejecutar FFmpeg sin shell: cada elemento es un argumento separado. */
+export const argumentosFfmpeg = (conservado: Intervalo[], entrada: string, salida: string): string[] | null => {
+  if (conservado.length === 0 || conservado.length > MAX_INTERVALOS) return null;
+  return [
+    '-y',
+    '-i',
+    entrada,
+    '-filter_complex',
+    filtroFfmpeg(conservado),
+    '-map',
+    '[v]',
+    '-map',
+    '[a]',
+    '-c:v',
+    'libx264',
+    '-preset',
+    'veryfast',
+    '-c:a',
+    'aac',
+    salida,
+  ];
+};
+
+const comandoFfmpeg = (conservado: Intervalo[]): string | null => {
+  const args = argumentosFfmpeg(conservado, 'entrada.mp4', 'salida_editada.mp4');
+  if (!args) return null;
+  const citar = (a: string): string => (/[s;[]]/.test(a) ? `"${a}"` : a);
+  return `ffmpeg ${args.map(citar).join(' ')}`;
 };
 
 const redondear2 = (n: number): number => Math.round(n * 100) / 100;

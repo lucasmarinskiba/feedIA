@@ -12,6 +12,9 @@ import { loadBrandProfile } from '../../config/index.js';
 import type { BrandProfile } from '../../config/types.js';
 import { getPersonalization } from '../experience/personalizationEngine.js';
 
+const SCORE_SOLO_REGLAS_OK = 70;
+const SCORE_SOLO_REGLAS_FALLA = 30;
+
 // Single-tenant app: ver memory.ts::PERSONALIZATION_USER_ID para la misma
 // justificación — no hay per-request user id, 'default' es el único usuario.
 const PERSONALIZATION_USER_ID = 'default';
@@ -288,25 +291,31 @@ JSON:
     taskType: 'analysis',
     maxTokens: 1500,
     systemPrompt: 'Sos editor de marca senior. Evaluás con criterio profesional, no buscás errores donde no hay.',
+  }).catch((err: unknown) => {
+    log.warn('[ToneGuardian] IA no disponible: evaluación solo por reglas', { error: String(err) });
+    return null;
   });
 
-  const allIssues = [...fastIssues, ...(aiResult.additionalIssues ?? [])];
+  const allIssues = [...fastIssues, ...(aiResult?.additionalIssues ?? [])];
   const reasonsToReject = allIssues
     .filter((i) => i.severity === 'critical' || i.severity === 'high')
     .map((i) => i.problem);
-  const finalPasses = aiResult.passes && reasonsToReject.length === 0;
+  const finalPasses = (aiResult ? aiResult.passes : true) && reasonsToReject.length === 0;
 
   const result: ToneCheckResult = {
     passes: finalPasses,
-    score: aiResult.score,
+    score: aiResult?.score ?? (reasonsToReject.length === 0 ? SCORE_SOLO_REGLAS_OK : SCORE_SOLO_REGLAS_FALLA),
     issues: allIssues,
     reasonsToReject,
-    voiceCharacteristicsHit: aiResult.voiceCharacteristicsHit ?? [],
-    voiceCharacteristicsMiss: aiResult.voiceCharacteristicsMiss ?? [],
+    voiceCharacteristicsHit: aiResult?.voiceCharacteristicsHit ?? [],
+    voiceCharacteristicsMiss: aiResult?.voiceCharacteristicsMiss ?? [],
   };
 
   if (!finalPasses) {
-    result.suggestedRewrite = await rewriteText(text, allIssues, brand);
+    result.suggestedRewrite = await rewriteText(text, allIssues, brand).catch((err: unknown) => {
+      log.warn('[ToneGuardian] reescritura no disponible', { error: String(err) });
+      return undefined;
+    });
   }
 
   return result;

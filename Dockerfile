@@ -58,6 +58,9 @@ RUN pnpm prune --prod --ignore-scripts || pnpm prune --prod || true
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
 FROM node:20-alpine AS runtime
 
+# ffmpeg procesa los cortes de edición de video (Guion). Sin binario, la herramienta responde 503.
+RUN apk add --no-cache ffmpeg
+
 WORKDIR /app
 
 # node_modules is copied rather than reinstalled: the builder uses this same
@@ -76,9 +79,14 @@ COPY package.json pnpm-lock.yaml* ./
 # was unreachable on Railway before this line existed).
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/dist-static ./dist-static
-COPY data ./data
+COPY data ./data-seed
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
 COPY supabase/migrations ./supabase/migrations
 COPY src/db ./src/db
+
+# /app/data es el volumen persistente de Railway. docker-entrypoint.sh siembra
+# los archivos versionados sin pisar lo que ya exista ahí.
+RUN mkdir -p /app/data
 
 ENV NODE_ENV=production
 ENV WORKERS_ENABLED=true
@@ -88,4 +96,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD node -e "require('http').get('http://localhost:'+(process.env.PORT||3000)+'/api/systems/health',(r)=>{if(r.statusCode!==200)throw new Error(r.statusCode)}).on('error',(e)=>{throw e})"
 
+ENTRYPOINT ["sh", "/app/docker-entrypoint.sh"]
 CMD ["node", "dist/server.js"]

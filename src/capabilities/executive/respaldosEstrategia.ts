@@ -295,8 +295,24 @@ export const respaldoBrief: Respaldo = (valores, contexto, _ctx, accion) => {
   };
 };
 
+const SEMANAS_POR_PERIODO: Record<string, number> = { month: 4, quarter: 13, year: 52 };
+
+const ritmoDeKeyResult = (
+  kr: { descripcion: string; baseline: number | null; target: number; direccion: string },
+  periodo: string,
+): string => {
+  if (kr.baseline === null) return `${kr.descripcion}: sin línea base. Conectá la cuenta para medir desde hoy.`;
+  const semanas = SEMANAS_POR_PERIODO[periodo] ?? 13;
+  const diferencia = kr.target - kr.baseline;
+  if (kr.direccion === 'increase' && diferencia <= 0) return `${kr.descripcion}: ya se alcanzó (hoy ${kr.baseline}).`;
+  const porSemana = Math.abs(diferencia) / semanas;
+  const verbo = kr.direccion === 'increase' ? 'sumar' : 'bajar';
+  return `${kr.descripcion}: hoy ${kr.baseline}, hay que ${verbo} ${Math.abs(diferencia)} en ${semanas} semanas (unas ${porSemana.toFixed(1).replace('.', ',')} por semana).`;
+};
+
 export const respaldoOkr: Respaldo = (valores, contexto, _ctx, accion) => {
   const top = contexto.formatos[0];
+  const periodo = accion.tipo === 'objetivo' ? accion.periodo : 'quarter';
   return {
     titulo: `OKR: ${texto(valores, 'titulo')}`,
     secciones: [
@@ -311,6 +327,11 @@ export const respaldoOkr: Respaldo = (valores, contexto, _ctx, accion) => {
                   `${k.descripcion} · fuente ${k.fuente} · meta ${k.target} (${k.direccion === 'increase' ? 'subir' : 'bajar'})`,
               )
             : [],
+      },
+      {
+        titulo: 'Ritmo para llegar',
+        tipo: 'lista',
+        contenido: accion.tipo === 'objetivo' ? accion.keyResults.map((k) => ritmoDeKeyResult(k, periodo)) : [],
       },
       {
         titulo: 'Línea base de tu cuenta',

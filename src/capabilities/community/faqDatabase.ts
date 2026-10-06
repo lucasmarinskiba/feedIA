@@ -15,6 +15,17 @@ import type { BrandProfile } from '../../config/types.js';
 
 const FAQ_PATH = join(process.cwd(), 'data', 'community', 'faq.json');
 
+const slugMarca = (marca: string): string =>
+  marca
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '') || 'marca';
+
+const rutaFAQ = (marca?: string): string =>
+  marca ? join(process.cwd(), 'data', 'community', `faq-${slugMarca(marca)}.json`) : FAQ_PATH;
+
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 export interface FAQEntry {
@@ -72,20 +83,21 @@ const ensureDir = (): void => {
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 };
 
-const loadFAQ = (): FAQStore => {
+const loadFAQ = (marca?: string): FAQStore => {
   try {
     ensureDir();
-    if (!existsSync(FAQ_PATH)) return structuredClone(DEFAULT_STORE);
-    return JSON.parse(readFileSync(FAQ_PATH, 'utf8')) as FAQStore;
+    const ruta = rutaFAQ(marca);
+    if (!existsSync(ruta)) return structuredClone(DEFAULT_STORE);
+    return JSON.parse(readFileSync(ruta, 'utf8')) as FAQStore;
   } catch {
     return structuredClone(DEFAULT_STORE);
   }
 };
 
-const saveFAQ = (store: FAQStore): void => {
+const saveFAQ = (store: FAQStore, marca?: string): void => {
   ensureDir();
   store.lastUpdated = new Date().toISOString();
-  writeFileSync(FAQ_PATH, JSON.stringify(store, null, 2), 'utf8');
+  writeFileSync(rutaFAQ(marca), JSON.stringify(store, null, 2), 'utf8');
 };
 
 // ── Similitud entre preguntas (simple jaccard) ───────────────────────────────
@@ -119,8 +131,8 @@ export interface CreateFAQInput {
   approvedByHuman?: boolean;
 }
 
-export const createFAQ = (input: CreateFAQInput): FAQEntry => {
-  const store = loadFAQ();
+export const createFAQ = (input: CreateFAQInput, marca?: string): FAQEntry => {
+  const store = loadFAQ(marca);
   const entry: FAQEntry = {
     id: `faq-${Date.now()}-${Math.floor(Math.random() * 999)}`,
     question: input.question,
@@ -137,7 +149,7 @@ export const createFAQ = (input: CreateFAQInput): FAQEntry => {
     tags: [input.category],
   };
   store.entries.push(entry);
-  saveFAQ(store);
+  saveFAQ(store, marca);
   log.info(`[FAQDatabase] FAQ creada: "${input.question.slice(0, 50)}..." (${input.category})`);
   return entry;
 };
@@ -150,16 +162,18 @@ export interface FAQMatch {
   matchedPattern: string;
 }
 
-export const findMatchingFAQ = (question: string, minSimilarity = 0.5): FAQMatch | null => {
-  const store = loadFAQ();
+export const findMatchingFAQ = (question: string, minSimilarity = 0.5, marca?: string): FAQMatch | null => {
   let best: FAQMatch | null = null;
+  const ambitos = marca ? [marca, undefined] : [undefined];
 
-  for (const entry of store.entries) {
-    if (!entry.approvedByHuman) continue;
-    for (const pattern of entry.questionPatterns) {
-      const sim = jaccardSimilarity(question, pattern);
-      if (sim >= minSimilarity && (!best || sim > best.similarity)) {
-        best = { entry, similarity: sim, matchedPattern: pattern };
+  for (const ambito of ambitos) {
+    for (const entry of loadFAQ(ambito).entries) {
+      if (!entry.approvedByHuman) continue;
+      for (const pattern of entry.questionPatterns) {
+        const sim = jaccardSimilarity(question, pattern);
+        if (sim >= minSimilarity && (!best || sim > best.similarity)) {
+          best = { entry, similarity: sim, matchedPattern: pattern };
+        }
       }
     }
   }
@@ -394,8 +408,11 @@ export const approveAndAddFAQ = (
 
 // ── Consultas y vistas ───────────────────────────────────────────────────────
 
-export const listFAQs = (filters: { category?: FAQEntry['category']; minPopularity?: number } = {}): FAQEntry[] => {
-  let entries = loadFAQ().entries;
+export const listFAQs = (
+  filters: { category?: FAQEntry['category']; minPopularity?: number } = {},
+  marca?: string,
+): FAQEntry[] => {
+  let entries = loadFAQ(marca).entries;
   if (filters.category) entries = entries.filter((e) => e.category === filters.category);
   if (filters.minPopularity) entries = entries.filter((e) => e.popularity >= filters.minPopularity!);
   return entries.sort((a, b) => b.popularity - a.popularity);
@@ -412,11 +429,11 @@ export const updateFAQ = (faqId: string, updates: Partial<FAQEntry>): FAQEntry |
   return entry;
 };
 
-export const deleteFAQ = (faqId: string): boolean => {
-  const store = loadFAQ();
+export const deleteFAQ = (faqId: string, marca?: string): boolean => {
+  const store = loadFAQ(marca);
   const before = store.entries.length;
   store.entries = store.entries.filter((e) => e.id !== faqId);
-  saveFAQ(store);
+  saveFAQ(store, marca);
   return store.entries.length < before;
 };
 

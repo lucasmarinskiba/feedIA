@@ -144,6 +144,7 @@ export interface ContextoAccion {
   marca: { nombre: string; nicho: string };
   material?: MaterialPrevio | null;
   respuestas?: PreparacionRespuestas | null;
+  seguidores?: { instagram: number | null; tiktok: number | null };
   conocimiento?: EntradaConocimiento[];
 }
 

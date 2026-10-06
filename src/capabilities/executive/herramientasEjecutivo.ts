@@ -9,7 +9,7 @@ import { askJson } from '../../agent/claude.js';
 import { log } from '../../agent/logger.js';
 import type { BrandProfile } from '../../config/types.js';
 import { listCalendarPostsByAccount } from '../../database/calendarQueue.js';
-import { listConversations } from '../community/dmInbox.js';
+import { listConversations, type Conversation } from '../community/dmInbox.js';
 import {
   validarResultado,
   type AccionCreacion,
@@ -23,13 +23,19 @@ import {
   type ResultadoHerramienta,
 } from './herramientasCatalogo.js';
 import type { MomentoPlan } from './herramientasPlanificacion.js';
+import { construirAnalytics } from '../experience/analyticsResumen.js';
 import { leerConocimiento } from './respuestasConocimiento.js';
-import { prepararRespuestas, type EntradaConocimiento, type PreparacionRespuestas } from './respuestasTriaje.js';
+import {
+  prepararRespuestas,
+  triajarMensaje,
+  type EntradaConocimiento,
+  type PreparacionRespuestas,
+  type Triaje,
+} from './respuestasTriaje.js';
 import { diaDeIso, historialDesdePosts } from './predictorModelo.js';
 import { horaLocalDe, mediana } from './postsMetricas.js';
 import { leerPostsHistorial } from './postsStore.js';
 import { analizarPostsDeMarca } from './postsAnalisis.js';
-import { puntajeLead } from './propuestasEquipo.js';
 
 const HASHTAG = /#[\p{L}\p{N}_]+/gu;
 const MAX_TOP_POSTS = 5;
@@ -171,19 +177,50 @@ const cargarCalendario = async (
   };
 };
 
+const URGENCIA: Record<Triaje['accion'], number> = { escalar: 3, responder: 2, ocultar: 0, ignorar: 0 };
+const MAX_EJEMPLOS_BANDEJA = 5;
+
+export const priorizarBandeja = (conversaciones: Conversation[]): Array<{ usuario: string; triaje: Triaje }> => {
+  const pendientes = conversaciones.filter((c) => c.status === 'new' || c.status === 'escalated');
+  return pendientes
+    .map((c) => {
+      const ultimo = [...c.messages].reverse().find((m) => m.sender === 'them');
+      const triaje = triajarMensaje(ultimo?.text ?? '', 'dm');
+      if (c.status === 'escalated' && triaje.accion !== 'ocultar' && triaje.accion !== 'ignorar') {
+        return { usuario: c.contact.username, triaje: { ...triaje, accion: 'escalar' as const } };
+      }
+      return { usuario: c.contact.username, triaje };
+    })
+    .filter((item) => item.triaje.accion !== 'ocultar' && item.triaje.accion !== 'ignorar')
+    .sort((a, b) => URGENCIA[b.triaje.accion] - URGENCIA[a.triaje.accion] || b.triaje.leadScore - a.triaje.leadScore);
+};
+
+const seguidoresDeCuenta = async (marcaCuentas: string): Promise<ContextoAccion['seguidores']> => {
+  try {
+    const analytics = await construirAnalytics(marcaCuentas);
+    return {
+      instagram: analytics.instagram.cuenta.seguidores ?? null,
+      tiktok: analytics.tiktok.cuenta.seguidores ?? null,
+    };
+  } catch (err) {
+    log.warn('[Herramientas] seguidores no disponibles', { error: String(err) });
+    return { instagram: null, tiktok: null };
+  }
+};
+
 const cargarBandeja = (): ContextoAccion['bandeja'] => {
   try {
     const conversaciones = listConversations().filter((c) => c.status !== 'archived');
-    const nuevas = conversaciones.filter((c) => c.status === 'new');
-    const escaladas = conversaciones.filter((c) => c.status === 'escalated');
-    const leads = nuevas.filter((c) => puntajeLead(c) >= LEAD_MINIMO);
-    const ejemplos = [
-      ...escaladas.slice(0, 2).map((c) => `@${c.contact.username}: necesita una persona`),
-      ...leads.slice(0, 3).map((c) => `@${c.contact.username}: lead calificado sin respuesta`),
-    ];
+    const priorizadas = priorizarBandeja(conversaciones);
+    const escaladas = priorizadas.filter((p) => p.triaje.accion === 'escalar');
+    const leads = priorizadas.filter((p) => p.triaje.leadScore >= LEAD_MINIMO && p.triaje.accion === 'responder');
+    const ejemplos = priorizadas.slice(0, MAX_EJEMPLOS_BANDEJA).map((p) => {
+      const etiqueta = p.triaje.accion === 'escalar' ? 'necesita una persona' : p.triaje.motivo;
+      return `@${p.usuario}: ${etiqueta}`;
+    });
     return {
       disponible: true,
-      sinResponder: nuevas.length,
+      sinResponder: priorizadas.length,
       escaladas: escaladas.length,
       leadsSinResponder: leads.length,
       ejemplos,
@@ -280,7 +317,7 @@ export const ejecutarHerramienta = async (
 ): Promise<ResultadoEjecucion | { error: string }> => {
   const contexto = await contextoDeCuenta(marcaCuentas);
   const momentos = contexto.momentos.map((m) => ({ dia: m.dia, franja: m.franja }));
-  const conocimiento = def.id === 'respuestas' ? leerConocimiento() : [];
+  const conocimiento = def.id === 'respuestas' ? leerConocimiento(marca.name) : [];
   const respuestas =
     def.id === 'respuestas'
       ? prepararRespuestas(
@@ -301,6 +338,7 @@ export const ejecutarHerramienta = async (
     material,
     respuestas,
     conocimiento,
+    seguidores: await seguidoresDeCuenta(marcaCuentas),
   };
   const accionCruda: AccionCreacion = def.accion ? def.accion(ctx) : { tipo: 'ninguna' };
   const piezasPedidas = accionCruda.tipo === 'piezas' ? accionCruda.piezas.length : 0;

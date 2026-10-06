@@ -163,14 +163,14 @@ const buildHerramientasRoutes = (brand: BrandProfile): RouteDefinition[] => {
       method: 'GET',
       pattern: '/api/executive/tools/conocimiento/respuestas',
       handler: async ({ res }) => {
-        json(res, 200, leerConocimiento());
+        json(res, 200, leerConocimiento(brand.name));
       },
     },
     {
       method: 'DELETE',
       pattern: '/api/executive/tools/conocimiento/respuestas/:kid',
       handler: async ({ res, params }) => {
-        const borrada = eliminarConocimiento(params['kid'] ?? '');
+        const borrada = eliminarConocimiento(brand.name, params['kid'] ?? '');
         if (!borrada) {
           json(res, 404, { error: 'respuesta no encontrada' });
           return;
@@ -204,7 +204,7 @@ const buildHerramientasRoutes = (brand: BrandProfile): RouteDefinition[] => {
           json(res, 400, { error: valida.error });
           return;
         }
-        const entrada = agregarConocimiento(valida.valor);
+        const entrada = agregarConocimiento(brand.name, valida.valor);
         json(res, 201, entrada);
       },
     },

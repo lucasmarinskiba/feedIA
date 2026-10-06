@@ -189,7 +189,7 @@ export const generateSmartReply = async (input: SmartReplyInput): Promise<SmartR
   // 4. FAQ + knowledge en paralelo
   const [crm, faqMatch, knowledge] = await Promise.all([
     crmPromise,
-    Promise.resolve(findMatchingFAQ(message, 0.5)),
+    Promise.resolve(findMatchingFAQ(message, 0.5, brand.name)),
     Promise.resolve(searchKnowledge({ query: message, limit: 3 })),
   ]);
 

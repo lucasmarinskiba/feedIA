@@ -301,3 +301,51 @@ describe('digest semana contra semana', () => {
     expect(JSON.stringify(r?.secciones)).toMatch(/Sin datos suficientes para comparar/);
   });
 });
+
+describe('OKR con ritmo y línea base', () => {
+  const krCon = (baseline: number | null) => ({
+    descripcion: 'Llegar a 1500 seguidores de Instagram',
+    fuente: 'seguidores-instagram',
+    metricType: 'count' as const,
+    unidad: '',
+    direccion: 'increase' as const,
+    baseline,
+    target: 1500,
+  });
+
+  it('calcula cuánto crecer por semana con la línea base real', () => {
+    const accion: AccionCreacion = {
+      tipo: 'objetivo',
+      titulo: 'Crecer',
+      porque: 'Más alcance',
+      categoria: 'growth',
+      periodo: 'quarter',
+      keyResults: [krCon(1000)],
+    };
+    const r = herramienta('okr').respaldo?.(
+      { titulo: 'Crecer', porque: 'Más alcance' },
+      contexto,
+      ctxAccion({}),
+      accion,
+    );
+    expect(JSON.stringify(r?.secciones)).toMatch(/hoy 1000, hay que sumar 500 en 13 semanas \(unas 38,5 por semana\)/);
+  });
+
+  it('sin línea base lo dice en vez de inventar una cifra', () => {
+    const accion: AccionCreacion = {
+      tipo: 'objetivo',
+      titulo: 'Crecer',
+      porque: 'Más alcance',
+      categoria: 'growth',
+      periodo: 'month',
+      keyResults: [krCon(null)],
+    };
+    const r = herramienta('okr').respaldo?.(
+      { titulo: 'Crecer', porque: 'Más alcance' },
+      contexto,
+      ctxAccion({}),
+      accion,
+    );
+    expect(JSON.stringify(r?.secciones)).toMatch(/sin línea base/);
+  });
+});

@@ -244,6 +244,12 @@ const ACCIONES: Record<string, Accion> = {
   okr: (ctx) => {
     const metrica = texto(ctx.valores, 'metrica');
     const meta = numero(ctx.valores, 'meta', 100);
+    const baseline =
+      metrica === 'seguidores-instagram'
+        ? (ctx.seguidores?.instagram ?? null)
+        : metrica === 'seguidores-tiktok'
+          ? (ctx.seguidores?.tiktok ?? null)
+          : null;
     return {
       tipo: 'objetivo',
       titulo: texto(ctx.valores, 'titulo'),
@@ -259,7 +265,7 @@ const ACCIONES: Record<string, Accion> = {
           metricType: 'count',
           unidad: '',
           direccion: 'increase',
-          baseline: null,
+          baseline,
           target: meta,
         },
       ],
