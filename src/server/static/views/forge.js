@@ -1,514 +1,645 @@
 /* ══════════════════════════════════════════════════════════════════════════════
-   FORGE IA — Herramienta clave: estrategia + producción + predicción viral
+   FORGE IA — estrategia → producción → predicción
    ──────────────────────────────────────────────────────────────────────────────
-   Pipeline end-to-end visible:
-     1. Brief → strategy (audience + format + hooks)
-     2. Forge → carousel/reel/story con assets
-     3. Predict → viral score + métricas predichas
-     4. Iterate → regenera hasta breakout-potential
-
-   Funciona para Instagram + TikTok según platform switcher.
+   Tres etapas que se corren de a una o encadenadas ("Generar todo"):
+     1. Estrategia  → hooks rankeados + lo que tu cuenta ya demostró (historial real).
+     2. Producción  → carrusel, reel o historia con los pipelines de Studio.
+     3. Predicción  → veredicto calibrado con tus posts guardados + señales de contenido y hook.
+   "Mejorar con la predicción" vuelve a producir aplicando las correcciones y deja
+   los intentos lado a lado para que elijas cuál usar.
    ══════════════════════════════════════════════════════════════════════════════ */
 import { apiSafe } from '../lib/api.js';
 import { escape } from '../lib/dom.js';
 import { toast } from '../lib/toast.js';
 
-let lastResult = null;
+const FORMATOS = [
+  ['carrusel', '🗂️ Carrusel'],
+  ['reel', '🎬 Reel / Video'],
+  ['historia', '◎ Historia'],
+];
+const PLATAFORMAS = [
+  ['instagram', '📷 Instagram'],
+  ['tiktok', '🎵 TikTok'],
+];
+const OBJETIVOS = [
+  ['engagement', '💜 Engagement'],
+  ['alcance', '📡 Alcance'],
+  ['conversion', '💰 Conversión'],
+  ['comunidad', '👥 Comunidad'],
+  ['ventas', '🛒 Ventas'],
+];
+const VOCES = ['cercano', 'profesional', 'autoritativo', 'humorístico', 'inspirador'];
+
+const DECISION = {
+  listo: { label: '✅ Listo para publicar', color: '#10b981' },
+  mejorar: { label: '🔁 Conviene mejorar', color: '#f59e0b' },
+};
+const NIVEL_COLOR = { fuerte: '#10b981', promedio: '#3b82f6', debil: '#ef4444', 'sin-datos': '#94a3b8' };
+const BANDA_LABEL = {
+  'viral-candidate': '🚀 Candidato viral',
+  fuerte: '💪 Fuerte',
+  aceptable: '👍 Aceptable',
+  mejorable: '⚠️ Mejorable',
+  debil: '🚨 Débil',
+};
+
+const estado = {
+  entrada: null,
+  angulo: null,
+  estrategia: null,
+  hookElegido: null,
+  intentos: [],
+  activo: 0,
+  ocupado: false,
+};
 
 const getActivePlatform = () => {
   try {
-    const v = localStorage.getItem('feedia.platform');
-    return v === 'tiktok' ? 'tiktok' : 'instagram';
+    return localStorage.getItem('feedia.platform') === 'tiktok' ? 'tiktok' : 'instagram';
   } catch {
     return 'instagram';
   }
 };
 
-const VIRALITY_COLORS = {
-  'breakout-potential': '#10b981',
-  'high-potential': '#3b82f6',
-  solid: '#a855f7',
-  mediocre: '#f59e0b',
-  low: '#ef4444',
+const opciones = (lista, actual) =>
+  lista.map(([v, l]) => `<option value="${v}" ${v === actual ? 'selected' : ''}>${l}</option>`).join('');
+
+const pct = (v) => (v === null || v === undefined ? '—' : `${(v * 100).toFixed(1)}%`);
+const vsTxt = (v) => (v === null || v === undefined ? '' : `(${v.toFixed(1)}× la mediana)`);
+const colorPuntaje = (n) => (n >= 75 ? '#10b981' : n >= 60 ? '#3b82f6' : n >= 45 ? '#a855f7' : '#f59e0b');
+
+const mensajeDe = (err) => {
+  if (err?.status === 402) return err.payload?.reason ?? 'Llegaste al límite de tu plan.';
+  if (err?.code === 'API_NOT_FOUND') return 'Forge no está disponible en este servidor. Recargá la página.';
+  if (err?.payload?.error === 'forge-failed') return 'Forge falló al generar. Probá de nuevo en un momento.';
+  return err?.payload?.error || err?.message || 'Error inesperado';
 };
 
-const VIRALITY_LABELS = {
-  'breakout-potential': '🚀 Breakout potential',
-  'high-potential': '🎯 High potential',
-  solid: '💪 Solid',
-  mediocre: '⚠️ Mediocre',
-  low: '🚨 Bajo',
+const llamar = async (path, body) => {
+  const { data, error } = await apiSafe(path, null, { method: 'POST', body });
+  if (error) throw error;
+  return data;
 };
+
+/* ───────── Formulario ───────── */
 
 const buildForm = (platform) => `
   <div class="fg-card">
-    <h2 class="fg-section-title">1. Decile a Forge qué crear</h2>
-    <p class="fg-section-sub">Strategist + 12 hook formulas + viral predictor analizan ANTES de generar. Cero tokens malgastados.</p>
+    <h2 class="fg-section-title">Decile a Forge qué crear</h2>
+    <p class="fg-section-sub">Estrategia usa tu historial real y genera hooks con IA · Producción consume tu cuota del plan · Predicción calibra con tus posts guardados.</p>
 
     <div class="fg-form-grid">
       <label class="fg-field fg-field-wide">
         <span class="fg-label">¿Sobre qué?</span>
         <input class="fg-input" id="fg-topic" placeholder="Ej: cómo automatizar tu marketing con IA" autocomplete="off" />
       </label>
-
       <label class="fg-field">
         <span class="fg-label">Plataforma</span>
-        <select class="fg-input" id="fg-platform">
-          <option value="instagram" ${platform === 'instagram' ? 'selected' : ''}>📷 Instagram</option>
-          <option value="tiktok" ${platform === 'tiktok' ? 'selected' : ''}>🎵 TikTok</option>
-        </select>
+        <select class="fg-input" id="fg-platform">${opciones(PLATAFORMAS, platform)}</select>
       </label>
-
       <label class="fg-field">
         <span class="fg-label">Formato</span>
-        <select class="fg-input" id="fg-format">
-          <option value="carousel">🗂️ Carrusel</option>
-          <option value="reel" selected>🎬 Reel / Video</option>
-          <option value="story">◎ Story</option>
-        </select>
+        <select class="fg-input" id="fg-format">${opciones(FORMATOS, 'reel')}</select>
       </label>
-
       <label class="fg-field">
-        <span class="fg-label">Goal</span>
-        <select class="fg-input" id="fg-goal">
-          <option value="engagement" selected>💜 Engagement</option>
-          <option value="awareness">📡 Alcance</option>
-          <option value="conversion">💰 Conversión</option>
-          <option value="community">👥 Comunidad</option>
-          <option value="sales">🛒 Ventas</option>
-        </select>
+        <span class="fg-label">Objetivo</span>
+        <select class="fg-input" id="fg-goal">${opciones(OBJETIVOS, 'engagement')}</select>
       </label>
-
       <label class="fg-field">
         <span class="fg-label">Nicho</span>
         <input class="fg-input" id="fg-niche" placeholder="Ej: marketing, fitness, IA" autocomplete="off" />
       </label>
-
       <label class="fg-field">
         <span class="fg-label">Voz de marca</span>
-        <select class="fg-input" id="fg-voice">
-          <option value="cercano">Cercano</option>
-          <option value="profesional">Profesional</option>
-          <option value="autoritativo">Autoritativo</option>
-          <option value="humorístico">Humorístico</option>
-          <option value="inspirador">Inspirador</option>
-        </select>
+        <select class="fg-input" id="fg-voice">${VOCES.map((v) => `<option value="${v}">${v.charAt(0).toUpperCase() + v.slice(1)}</option>`).join('')}</select>
       </label>
-
       <label class="fg-field fg-field-wide">
-        <span class="fg-label">Ángulos competidores (opcional)</span>
+        <span class="fg-label">Ángulos que ya usa la competencia (opcional, separados por coma)</span>
         <input class="fg-input" id="fg-competitors" placeholder="Ej: tutorial paso a paso, tips de productividad" autocomplete="off" />
       </label>
     </div>
 
     <div class="fg-actions">
-      <button class="fg-btn fg-btn-secondary" id="fg-strategy-only">📋 Solo estrategia</button>
-      <button class="fg-btn fg-btn-primary" id="fg-forge-go">
-        <span class="fg-btn-icon">✨</span>
-        Forge contenido completo
-      </button>
+      <button class="fg-btn fg-btn-secondary" data-action="estrategia">1 · Estrategia</button>
+      <button class="fg-btn fg-btn-secondary" data-action="producir">2 · Producir</button>
+      <button class="fg-btn fg-btn-primary" data-action="todo"><span class="fg-btn-icon">✨</span>Generar todo</button>
     </div>
-    <p class="fg-disclaimer">Free: Llama 3.3 70B + Pollinations Flux. Paid: Claude Sonnet/Opus + fal.ai Flux-Pro. <a href="/pricing.html">Ver planes →</a></p>
+    <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
 
-const renderStrategy = (s) => {
-  if (!s) return '';
-  const score = s.strategicScore || 0;
-  const scoreColor = score >= 80 ? '#10b981' : score >= 60 ? '#3b82f6' : '#f59e0b';
-  return `
-    <div class="fg-card">
-      <div class="fg-strategy-head">
-        <div>
-          <h3 class="fg-section-title">2. Plan estratégico</h3>
-          <p class="fg-section-sub">${escape(s.brandVoiceGuideline || '')}</p>
-        </div>
-        <div class="fg-score-circle" style="background:${scoreColor};">
-          <div class="fg-score-val">${score}</div>
-          <div class="fg-score-lbl">strategic</div>
-        </div>
-      </div>
-
-      <div class="fg-strategy-grid">
-        <div class="fg-strategy-block">
-          <strong>🎯 Formato recomendado</strong>
-          <div class="fg-strategy-val">${escape(s.recommendedFormat?.format || '')} <span class="fg-muted">(fit ${((s.recommendedFormat?.fit || 0) * 100).toFixed(0)}%)</span></div>
-          <div class="fg-tiny-muted">${escape(s.recommendedFormat?.reason || '')}</div>
-        </div>
-
-        <div class="fg-strategy-block">
-          <strong>👥 Audiencia</strong>
-          <div class="fg-strategy-val">${escape(s.input?.audience || '')}</div>
-          <div class="fg-tiny-muted">Triggers: ${(s.audienceProfile?.triggers || []).slice(0, 3).join(', ')}</div>
-        </div>
-
-        <div class="fg-strategy-block">
-          <strong>⏰ Mejor ventana</strong>
-          <div class="fg-strategy-val">${escape((s.postingWindows || [])[0] || 'cualquier hora')}</div>
-          <div class="fg-tiny-muted">Atención: ${s.attentionBudgetSec || 2}s</div>
-        </div>
-      </div>
-
-      <div class="fg-hooks">
-        <strong>🎣 Top 5 hooks predichos:</strong>
-        <div class="fg-hook-list">
-          ${(s.hookCandidates || [])
-            .map(
-              (h, i) => `
-            <div class="fg-hook ${i === 0 ? 'best' : ''}">
-              <div class="fg-hook-head">
-                <span class="fg-hook-formula">${escape(h.formula)}</span>
-                <span class="fg-hook-strength" style="color:${h.predictedStrength >= 0.85 ? '#10b981' : '#a855f7'};">
-                  ${(h.predictedStrength * 100).toFixed(0)}% strength
-                </span>
-              </div>
-              <div class="fg-hook-text">${escape(h.hook)}</div>
-              ${i === 0 ? '<div class="fg-hook-badge">RECOMENDADO</div>' : ''}
-            </div>`,
-            )
-            .join('')}
-        </div>
-      </div>
-
-      ${
-        (s.algorithmChecklist || []).length
-          ? `
-        <div class="fg-checklist">
-          <strong>🧠 Optimización algorítmica (${s.input?.platform || 'IG'}):</strong>
-          <ul>
-            ${(s.algorithmChecklist || [])
-              .map(
-                (c) => `
-              <li><strong>${escape(c.signal)}:</strong> ${escape(c.tactic)}</li>`,
-              )
-              .join('')}
-          </ul>
-        </div>`
-          : ''
-      }
-
-      ${
-        (s.riskFlags || []).length
-          ? `
-        <div class="fg-flags">
-          <strong>⚠️ Risk flags:</strong>
-          ${(s.riskFlags || []).map((f) => `<div class="fg-flag">${escape(f)}</div>`).join('')}
-        </div>`
-          : ''
-      }
-    </div>`;
-};
-
-const renderPrediction = (p) => {
-  if (!p) return '';
-  const color = VIRALITY_COLORS[p.virality] || '#a855f7';
-  return `
-    <div class="fg-card">
-      <h3 class="fg-section-title">3. Viral predictor</h3>
-      <p class="fg-section-sub">Modelo determinístico 0-100 con benchmarks reales IG/TT.</p>
-
-      <div class="fg-viral-hero">
-        <div class="fg-viral-score" style="border-color:${color};">
-          <div class="fg-viral-num" style="color:${color};">${p.viralScore}</div>
-          <div class="fg-viral-lbl">viral score</div>
-        </div>
-        <div class="fg-viral-body">
-          <div class="fg-viral-class" style="background:${color}22;color:${color};">${VIRALITY_LABELS[p.virality] || p.virality}</div>
-          <div class="fg-tiny-muted">Techo si optimizás: ${p.ceilingScore} (gap ${p.optimizationGap}pts)</div>
-        </div>
-      </div>
-
-      <div class="fg-pred-metrics">
-        <div class="fg-pred-metric">
-          <div class="fg-pred-num">${p.predicted?.reach?.toLocaleString('es-AR') || 0}</div>
-          <div class="fg-pred-lbl">alcance predicho</div>
-        </div>
-        <div class="fg-pred-metric">
-          <div class="fg-pred-num">${((p.predicted?.engagementRate || 0) * 100).toFixed(1)}%</div>
-          <div class="fg-pred-lbl">engagement rate</div>
-        </div>
-        ${
-          p.predicted?.completion !== null
-            ? `
-          <div class="fg-pred-metric">
-            <div class="fg-pred-num">${(p.predicted?.completion * 100).toFixed(0)}%</div>
-            <div class="fg-pred-lbl">completion</div>
-          </div>`
-            : ''
-        }
-        <div class="fg-pred-metric">
-          <div class="fg-pred-num">${p.predicted?.saves?.toLocaleString('es-AR') || 0}</div>
-          <div class="fg-pred-lbl">saves</div>
-        </div>
-        <div class="fg-pred-metric">
-          <div class="fg-pred-num">${p.predicted?.shares?.toLocaleString('es-AR') || 0}</div>
-          <div class="fg-pred-lbl">shares</div>
-        </div>
-        <div class="fg-pred-metric">
-          <div class="fg-pred-num">${p.predicted?.comments?.toLocaleString('es-AR') || 0}</div>
-          <div class="fg-pred-lbl">comments</div>
-        </div>
-      </div>
-
-      <div class="fg-breakdown">
-        <strong>Breakdown:</strong>
-        <div class="fg-breakdown-grid">
-          ${Object.entries(p.breakdown || {})
-            .map(
-              ([k, v]) => `
-            <div class="fg-break-row">
-              <div class="fg-break-name">${escape(k)} <span class="fg-tiny-muted">(${v.weight}%)</span></div>
-              <div class="fg-break-bar"><div class="fg-break-fill" style="width:${v.score}%;background:${v.score >= 75 ? '#10b981' : v.score >= 50 ? '#a855f7' : '#f59e0b'};"></div></div>
-              <div class="fg-break-score">${v.score}</div>
-            </div>`,
-            )
-            .join('')}
-        </div>
-      </div>
-
-      ${
-        (p.improvements || []).length
-          ? `
-        <div class="fg-improvements">
-          <strong>💡 Mejoras sugeridas:</strong>
-          <ul>${(p.improvements || []).map((i) => `<li>${escape(i)}</li>`).join('')}</ul>
-        </div>`
-          : ''
-      }
-
-      ${
-        (p.flags || []).length
-          ? `
-        <div class="fg-flags">
-          <strong>🚨 Risk flags:</strong>
-          ${(p.flags || []).map((f) => `<div class="fg-flag">${escape(f)}</div>`).join('')}
-        </div>`
-          : ''
-      }
-    </div>`;
-};
-
-const renderContent = (c, assets, meta) => {
-  if (!c) return '';
-  const isCarousel = Array.isArray(c.slides);
-  const isReel = Array.isArray(c.beats);
-  const isStory = Array.isArray(c.frames);
-
-  return `
-    <div class="fg-card">
-      <h3 class="fg-section-title">4. Contenido generado</h3>
-      <p class="fg-section-sub">Provider: ${escape(meta?.llm?.provider || 'free')} · Modelo: ${escape(meta?.llm?.model || 'auto')}</p>
-
-      ${
-        assets?.coverImage
-          ? `
-        <div class="fg-cover">
-          <img src="${escape(assets.coverImage.url)}" alt="Cover" loading="lazy" />
-          <div class="fg-cover-meta">Cover ${assets.coverImage.width}×${assets.coverImage.height} · ${escape(assets.coverImage.provider)}</div>
-        </div>`
-          : ''
-      }
-
-      ${
-        isCarousel
-          ? `
-        <div class="fg-slides">
-          ${c.slides
-            .map(
-              (s) => `
-            <div class="fg-slide">
-              <div class="fg-slide-num">Slide ${s.n}</div>
-              <div class="fg-slide-headline">${escape(s.headline || '')}</div>
-              ${s.body ? `<div class="fg-slide-body">${escape(s.body)}</div>` : ''}
-              ${s.imagePrompt ? `<div class="fg-slide-prompt"><strong>Image prompt:</strong> ${escape(s.imagePrompt)}</div>` : ''}
-            </div>`,
-            )
-            .join('')}
-        </div>`
-          : ''
-      }
-
-      ${
-        isReel
-          ? `
-        <div class="fg-beats">
-          ${c.beats
-            .map(
-              (b) => `
-            <div class="fg-beat">
-              <div class="fg-beat-time">${escape(b.sec)}s</div>
-              <div class="fg-beat-body">
-                <div class="fg-beat-visual">🎬 ${escape(b.visual || '')}</div>
-                ${b.text ? `<div class="fg-beat-text">📝 ${escape(b.text)}</div>` : ''}
-                ${b.voiceover ? `<div class="fg-beat-vo">🎤 "${escape(b.voiceover)}"</div>` : ''}
-              </div>
-            </div>`,
-            )
-            .join('')}
-        </div>
-        ${c.suggestedAudio ? `<div class="fg-audio-hint">🎵 Audio: ${escape(c.suggestedAudio)}</div>` : ''}`
-          : ''
-      }
-
-      ${
-        isStory
-          ? `
-        <div class="fg-frames">
-          ${c.frames
-            .map(
-              (f, i) => `
-            <div class="fg-frame">
-              ${assets?.frameImages?.[i] ? `<img src="${escape(assets.frameImages[i].url)}" alt="Frame ${f.n}" loading="lazy" />` : ''}
-              <div class="fg-frame-body">
-                <div class="fg-frame-num">Frame ${f.n} · ${escape(f.stickerType || 'none')}</div>
-                <div class="fg-frame-text">${escape(f.overlayText || '')}</div>
-              </div>
-            </div>`,
-            )
-            .join('')}
-        </div>`
-          : ''
-      }
-
-      ${
-        c.caption
-          ? `
-        <div class="fg-caption">
-          <div class="fg-caption-head">
-            <strong>📝 Caption</strong>
-            <button class="fg-tiny-btn" data-copy="${encodeURIComponent(c.caption)}">Copiar</button>
-          </div>
-          <pre>${escape(c.caption)}</pre>
-        </div>`
-          : ''
-      }
-
-      ${
-        (c.hashtags || []).length
-          ? `
-        <div class="fg-hashtags">
-          <strong>#️⃣ Hashtags (${c.hashtags.length})</strong>
-          <div class="fg-tag-list">
-            ${c.hashtags.map((t) => `<span class="fg-tag">${escape(t)}</span>`).join('')}
-          </div>
-          <button class="fg-tiny-btn" data-copy="${encodeURIComponent((c.hashtags || []).join(' '))}">Copiar todos</button>
-        </div>`
-          : ''
-      }
-
-      <div class="fg-final-actions">
-        <button class="fg-btn fg-btn-secondary" id="fg-regenerate">🔄 Regenerar</button>
-        <button class="fg-btn fg-btn-primary" id="fg-publish">📤 Enviar a publicar</button>
-      </div>
-    </div>`;
-};
-
-const wireForm = (root) => {
-  const get = (id) => root.querySelector(`#${id}`);
-
-  const collectInputs = () => ({
-    topic: get('fg-topic')?.value.trim() || 'tu producto',
-    platform: get('fg-platform')?.value || 'instagram',
-    format: get('fg-format')?.value || 'reel',
-    goal: get('fg-goal')?.value || 'engagement',
-    brandNiche: get('fg-niche')?.value.trim() || '',
-    brandVoice: get('fg-voice')?.value || 'cercano',
-    competitorAngles: (get('fg-competitors')?.value || '')
+const leerEntrada = () => {
+  const val = (id) => document.querySelector(`#${id}`)?.value ?? '';
+  return {
+    tema: val('fg-topic').trim(),
+    plataforma: val('fg-platform') || 'instagram',
+    formato: val('fg-format') || 'reel',
+    objetivo: val('fg-goal') || 'engagement',
+    nicho: val('fg-niche').trim(),
+    voz: val('fg-voice') || 'cercano',
+    competidores: val('fg-competitors')
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean),
-  });
-
-  const setLoading = (label) => {
-    const out = root.querySelector('#fg-output');
-    if (out) out.innerHTML = `<div class="fg-loading"><div class="fg-spin"></div><div>${escape(label)}</div></div>`;
+    hook: estado.hookElegido,
+    angulo: estado.angulo,
+    ajustes: [],
   };
+};
 
-  const renderOutput = (result) => {
-    const out = root.querySelector('#fg-output');
-    if (!out) return;
-    out.innerHTML = [
-      renderStrategy(result.strategy),
-      renderContent(result.content, result.assets, result.meta),
-      renderPrediction(result.prediction),
-    ].join('');
-    wireOutput(root);
-  };
+/* ───────── Render de etapas ───────── */
 
-  get('fg-strategy-only')?.addEventListener('click', async () => {
-    setLoading('Pensando estrategia (sin gastar tokens)...');
-    const { data, error } = await apiSafe('/api/strategy/plan', null, { method: 'POST', body: collectInputs() });
-    if (error || !data) {
-      toast('No se pudo generar estrategia', 'err');
-      return;
-    }
-    const out = root.querySelector('#fg-output');
-    out.innerHTML = renderStrategy(data);
-    toast('Estrategia generada (gratis)', 'ok');
-  });
+const renderPlan = (plan) => {
+  if (!plan) return '';
+  const lista = (items, tag = 'ul') => `<${tag}>${items.map((s) => `<li>${escape(s)}</li>`).join('')}</${tag}>`;
+  const avisos = plan.avisos.map((a) => `<div class="fg-warn-line">⚠️ ${escape(a)}</div>`).join('');
+  const angulos = plan.angulos
+    .map(
+      (a, i) => `
+      <button class="fg-angle ${estado.angulo === a.texto ? 'best' : ''}" data-action="usar-angulo" data-idx="${i}">
+        <span class="fg-tiny-muted">${escape(a.categoria)}</span>
+        <span class="fg-angle-text">${escape(a.texto)}</span>
+      </button>`,
+    )
+    .join('');
+  return `
+    <div class="fg-plan">
+      <div class="fg-plan-block"><strong>🎯 Objetivo</strong>
+        <div class="fg-tiny-muted">${escape(plan.objetivo.meta)} Medí: ${escape(plan.objetivo.metricaClave)}</div>
+        <div class="fg-tiny-muted">Fundamento: ${escape(plan.objetivo.fundamento)}</div>
+      </div>
+      <div class="fg-plan-block"><strong>📐 Estructura del ${escape(plan.formato.formato)}</strong>
+        ${lista(plan.formato.estructura, 'ol')}
+        <div class="fg-tiny-muted">${escape(plan.formato.reglaClave)}</div>
+      </div>
+      <div class="fg-plan-block"><strong>👉 Escalera de CTA (de suave a directa)</strong>
+        ${lista(plan.objetivo.ctaEscalera, 'ol')}
+      </div>
+      ${avisos}
+    </div>
+    <div class="fg-angles">
+      <strong>🧩 Elegí un ángulo: le da a la pieza una promesa concreta</strong>
+      <div class="fg-angle-grid">${angulos}</div>
+      ${estado.angulo ? '' : '<div class="fg-tiny-muted">Sin ángulo elegido, Forge usa sólo el tema.</div>'}
+    </div>
+    <div class="fg-plan-block fg-routine">
+      <strong>🧭 Ruta de fundación de 30 días</strong>
+      <ul>${plan.rutaFundacion.map((b) => `<li>${escape(b.tipo)} · ${b.piezas} piezas</li>`).join('')}</ul>
+      <div class="fg-tiny-muted">${escape(plan.cadencia)}</div>
+      <div class="fg-tiny-muted">Hashtags: ${escape(plan.hashtags)}</div>
+    </div>`;
+};
 
-  get('fg-forge-go')?.addEventListener('click', async () => {
-    const inputs = collectInputs();
-    if (!inputs.topic || inputs.topic === 'tu producto') {
-      toast('Decile sobre qué crear contenido', 'warn');
-      get('fg-topic')?.focus();
-      return;
-    }
-    setLoading('Forge en proceso · strategy → produce → predict (10-30s)...');
+const renderEstrategia = (e) => {
+  const r = e.recomendacion;
+  const bloque = (g) =>
+    g
+      ? `<div class="fg-strategy-val">${escape(g.etiqueta)} <span class="fg-muted">${vsTxt(g.vsMediana)}</span></div>
+         <div class="fg-tiny-muted">${g.posts} posts</div>`
+      : '<div class="fg-tiny-muted">Sin datos suficientes</div>';
+
+  const hooks = e.hooks.length
+    ? e.hooks
+        .map(
+          (h, i) => `
+        <div class="fg-hook ${h.hook === estado.hookElegido ? 'best' : ''}">
+          <div class="fg-hook-head">
+            <span class="fg-hook-formula">${escape(h.categoria || 'hook')}</span>
+            <span class="fg-hook-strength" style="color:${colorPuntaje(h.puntaje)};">${h.puntaje}/100</span>
+          </div>
+          <div class="fg-hook-text">${escape(h.hook)}</div>
+          <button class="fg-tiny-btn fg-hook-pick" data-action="usar-hook" data-idx="${i}">
+            ${h.hook === estado.hookElegido ? '✔ Elegido' : 'Usar este'}
+          </button>
+        </div>`,
+        )
+        .join('')
+    : `<div class="fg-tiny-muted">${escape(e.avisoHooks || 'Sin hooks generados.')}</div>`;
+
+  const elegido = r.elegido
+    ? `<div class="fg-tiny-muted">Tu formato elegido (${escape(r.elegido.etiqueta)}) ${vsTxt(r.elegido.vsMediana) || 'sin comparación'} · ${r.elegido.posts} posts</div>`
+    : '';
+
+  return `
+    <div class="fg-card">
+      <h3 class="fg-section-title">1 · Estrategia</h3>
+      <p class="fg-section-sub ${r.disponible ? '' : 'fg-warn'}">${escape(r.motivo)}</p>
+      <div class="fg-strategy-grid">
+        <div class="fg-strategy-block"><strong>🎬 Formato que más rinde</strong>${bloque(r.mejorFormato)}</div>
+        <div class="fg-strategy-block"><strong>⏰ Franja que más rinde</strong>${bloque(r.mejorFranja)}</div>
+        <div class="fg-strategy-block"><strong>🎣 Hook que más rinde</strong>${bloque(r.mejorHook)}</div>
+        <div class="fg-strategy-block"><strong>👉 CTA que más rinde</strong>${bloque(r.mejorCta)}</div>
+      </div>
+      ${elegido}
+      ${renderPlan(e.plan)}
+      <div class="fg-hooks">
+        <strong>🎣 Hooks para tu tema (elegí uno para producir):</strong>
+        <div class="fg-hook-list">${hooks}</div>
+      </div>
+    </div>`;
+};
+
+const renderPieza = (p, n) => {
+  const caption = p.caption
+    ? `
+    <div class="fg-caption">
+      <div class="fg-caption-head">
+        <strong>📝 Caption</strong>
+        <button class="fg-tiny-btn" data-action="copiar-caption">Copiar</button>
+      </div>
+      <pre>${escape(p.caption)}</pre>
+    </div>`
+    : '<div class="fg-tiny-muted">Las historias no llevan caption: copiá el texto de cada frame.</div>';
+
+  const hashtags = p.hashtags.length
+    ? `<div class="fg-hashtags">
+         <strong>#️⃣ Hashtags (${p.hashtags.length})</strong>
+         <div class="fg-tag-list">${p.hashtags.map((t) => `<span class="fg-tag">${escape(t)}</span>`).join('')}</div>
+         <button class="fg-tiny-btn" data-action="copiar-hashtags">Copiar todos</button>
+       </div>`
+    : '';
+
+  const partes = p.cuerpo
+    .map(
+      (x) => `
+    <div class="fg-part">
+      <div class="fg-part-title">${escape(x.titulo)}</div>
+      <div class="fg-part-text">${escape(x.texto)}</div>
+      ${x.nota ? `<div class="fg-part-note">🎨 ${escape(x.nota)}</div>` : ''}
+    </div>`,
+    )
+    .join('');
+
+  const duracion = p.duracionSeg ? ` · ${p.duracionSeg}s` : '';
+  return `
+    <div class="fg-card">
+      <h3 class="fg-section-title">2 · Producción${estado.intentos.length > 1 ? ` · intento ${n}` : ''}</h3>
+      <p class="fg-section-sub">${escape(FORMATOS.find(([v]) => v === p.formato)?.[1] ?? p.formato)}${duracion} · ${p.cuerpo.length} partes</p>
+
+      <div class="fg-hook best">
+        <div class="fg-hook-head"><span class="fg-hook-formula">Hook</span></div>
+        <div class="fg-hook-text">${escape(p.hook)}</div>
+      </div>
+      ${p.portada ? `<div class="fg-cover-line"><strong>Portada:</strong> ${escape(p.portada)}</div>` : ''}
+
+      <div class="fg-parts">${partes}</div>
+      ${caption}
+      ${hashtags}
+
+      <div class="fg-final-actions">
+        <button class="fg-btn fg-btn-secondary" data-action="descargar-md">⬇️ Descargar .md</button>
+        <button class="fg-btn fg-btn-secondary" data-action="copiar-paquete">📋 Copiar paquete</button>
+        <button class="fg-btn fg-btn-secondary" data-action="mejorar">🔁 Mejorar</button>
+        <button class="fg-btn fg-btn-primary" data-action="enviar-publicar"><span class="fg-btn-icon">📅</span>Enviar a publicar</button>
+      </div>
+    </div>`;
+};
+
+const renderChequeos = (chequeos) => {
+  if (!chequeos?.length) return '';
+  const filas = chequeos
+    .map(
+      (c) => `
+      <div class="fg-check ${c.ok ? 'ok' : 'no'}">
+        <span class="fg-check-icon">${c.ok ? '✔' : '✖'}</span>
+        <div><div class="fg-check-title">${escape(c.titulo)}</div><div class="fg-tiny-muted">${escape(c.detalle)}</div></div>
+      </div>`,
+    )
+    .join('');
+  return `<div class="fg-checks"><strong>✅ Chequeos de estrategia</strong>${filas}</div>`;
+};
+
+const renderPrediccion = (r) => {
+  const dec = DECISION[r.decision] ?? DECISION.mejorar;
+  const cuenta = r.cuenta.prediccion;
+  const rango = cuenta?.tasaInteraccion;
+  const mejorMomento = cuenta?.mejorMomentoFormato;
+  const accionables = r.accionables.length
+    ? `<div class="fg-improvements"><strong>${r.decision === 'listo' ? '💡 Mejoras opcionales:' : '💡 Qué cambiar:'}</strong><ul>${r.accionables.map((a) => `<li>${escape(a)}</li>`).join('')}</ul></div>`
+    : '';
+
+  const bandaTxt = BANDA_LABEL[r.contenido.banda] ?? r.contenido.banda;
+  return `
+    <div class="fg-card">
+      <div class="fg-head-row">
+        <h3 class="fg-section-title">3 · Predicción</h3>
+        <span class="fg-decision" style="background:${dec.color}22;color:${dec.color};">${dec.label}</span>
+      </div>
+      <p class="fg-section-sub">Cada señal se mide por separado. Ninguna es un número mágico ni un promedio de benchmarks ajenos.</p>
+
+      <div class="fg-signals">
+        <div class="fg-signal">
+          <div class="fg-signal-lbl">Tu cuenta</div>
+          ${
+            cuenta
+              ? `<div class="fg-signal-val" style="color:${NIVEL_COLOR[cuenta.veredicto.nivel] ?? '#94a3b8'};">${escape(cuenta.veredicto.titulo)}</div>
+                 <div class="fg-tiny-muted">${escape(cuenta.veredicto.texto)}</div>
+                 ${rango ? `<div class="fg-tiny-muted">Interacción esperada ${pct(rango.p10)} – ${pct(rango.p90)} · tu mediana ${pct(cuenta.medianas.tasaInteraccion)}</div>` : ''}
+                 ${cuenta.probabilidades.superarMediana !== null ? `<div class="fg-tiny-muted">Probabilidad de superar tu mediana: ${cuenta.probabilidades.superarMediana}%</div>` : ''}`
+              : `<div class="fg-tiny-muted">${escape(r.cuenta.motivo)}</div>`
+          }
+        </div>
+        <div class="fg-signal">
+          <div class="fg-signal-lbl">Contenido</div>
+          <div class="fg-signal-val" style="color:${colorPuntaje(r.contenido.puntaje)};">${r.contenido.puntaje}/100 · ${escape(bandaTxt)}</div>
+          <div class="fg-tiny-muted">Compartir ${r.contenido.compartir}/100 · Guardar ${r.contenido.guardar}/100</div>
+        </div>
+        <div class="fg-signal">
+          <div class="fg-signal-lbl">Hook</div>
+          <div class="fg-signal-val" style="color:${colorPuntaje(r.hook.puntaje)};">${r.hook.puntaje}/100</div>
+          <div class="fg-tiny-muted">${r.hook.categoria ? escape(r.hook.categoria) : 'Sin categoría reconocida'}</div>
+        </div>
+      </div>
+
+      ${mejorMomento ? `<div class="fg-tiny-muted">⏰ Mejor momento para tu formato: ${escape(mejorMomento.dia)} ${escape(mejorMomento.franja)} (mediana ${pct(mejorMomento.tasaMediana)}, ${mejorMomento.posts} posts)</div>` : ''}
+      ${renderChequeos(r.chequeos)}
+      ${accionables}
+    </div>`;
+};
+
+const renderIntentos = () => {
+  const filas = estado.intentos
+    .map((it, i) => {
+      const anterior = i > 0 ? estado.intentos[i - 1].prediccion.contenido.puntaje : null;
+      const diff = anterior === null ? null : it.prediccion.contenido.puntaje - anterior;
+      const cambio =
+        diff === null
+          ? ''
+          : diff === 0
+            ? ' · sin cambio vs anterior'
+            : ` · ${diff > 0 ? '↑' : '↓'} ${Math.abs(diff)} pts vs anterior`;
+      return `
+      <div class="fg-attempt ${i === estado.activo ? 'best' : ''}">
+        <div>
+          <strong>Intento ${it.n}</strong>
+          <span class="fg-tiny-muted">contenido ${it.prediccion.contenido.puntaje}/100 · hook ${it.prediccion.hook.puntaje}/100${cambio}</span>
+        </div>
+        <button class="fg-tiny-btn" data-action="ver-intento" data-idx="${i}">${i === estado.activo ? '✔ En uso' : 'Usar este'}</button>
+      </div>`;
+    })
+    .join('');
+  return `<div class="fg-card"><h3 class="fg-section-title">Intentos</h3><p class="fg-section-sub">Elegí cuál versión usar. Los intentos quedan guardados mientras no generes algo nuevo.</p>${filas}</div>`;
+};
+
+const renderOutput = (root) => {
+  const out = root.querySelector('#fg-output');
+  if (!out) return;
+  const activo = estado.intentos[estado.activo];
+  out.innerHTML = [
+    estado.estrategia ? renderEstrategia(estado.estrategia) : '',
+    activo ? renderPieza(activo.pieza, activo.n) : '',
+    activo ? renderPrediccion(activo.prediccion) : '',
+    estado.intentos.length > 1 ? renderIntentos() : '',
+  ].join('');
+};
+
+const mostrarCarga = (root, texto) => {
+  const out = root.querySelector('#fg-output');
+  if (out) out.innerHTML = `<div class="fg-loading"><div class="fg-spin"></div><div>${escape(texto)}</div></div>`;
+};
+
+/* ───────── Etapas ───────── */
+
+const validarTema = (entrada, root) => {
+  if (entrada.tema) return true;
+  toast('Decile sobre qué crear contenido', 'warn');
+  root.querySelector('#fg-topic')?.focus();
+  return false;
+};
+
+const correrEstrategia = async (root, entrada) => {
+  mostrarCarga(root, 'Analizando tu historial y generando hooks (10-20 s)…');
+  const data = await llamar('/api/forge/estrategia', entrada);
+  estado.entrada = entrada;
+  estado.estrategia = data;
+  estado.hookElegido = data.hooks[0]?.hook ?? null;
+  estado.angulo = null;
+  estado.intentos = [];
+  estado.activo = 0;
+  return data;
+};
+
+const correrProduccion = async (root, entrada, etiqueta) => {
+  mostrarCarga(root, etiqueta);
+  const { pieza } = await llamar('/api/forge/producir', entrada);
+  return pieza;
+};
+
+const correrPrediccion = async (root, pieza, plataforma, etiqueta) => {
+  mostrarCarga(root, etiqueta);
+  return llamar('/api/forge/predecir', { pieza, plataforma });
+};
+
+const agregarIntento = (pieza, prediccion, ajustes) => {
+  estado.intentos.push({ n: estado.intentos.length + 1, pieza, prediccion, ajustes });
+  estado.activo = estado.intentos.length - 1;
+};
+
+const producirYPredecir = async (root, entrada, etiquetaProd) => {
+  try {
+    const pieza = await correrProduccion(root, entrada, etiquetaProd);
+    const prediccion = await correrPrediccion(root, pieza, entrada.plataforma, 'Prediciendo con tu historial…');
+    agregarIntento(pieza, prediccion, entrada.ajustes);
+    return true;
+  } catch (err) {
+    // El 402 también dispara el modal global de cuota (lo hace apiSafe).
+    toast(mensajeDe(err), err?.status === 402 ? 'warn' : 'err');
+    return false;
+  }
+};
+
+const conBusy = async (root, fn) => {
+  if (estado.ocupado) return;
+  estado.ocupado = true;
+  try {
+    await fn();
+  } finally {
+    estado.ocupado = false;
+  }
+};
+
+const accionEstrategia = (root) =>
+  conBusy(root, async () => {
+    const entrada = leerEntrada();
+    if (!validarTema(entrada, root)) return;
     try {
-      const r = await fetch('/api/forge/content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(inputs),
-      });
-      const data = await r.json();
-      if (r.status === 402) {
-        toast(data.reason || 'Límite alcanzado', 'warn');
-        window.dispatchEvent(new CustomEvent('feedia:quotaExceeded', { detail: data }));
-        const out = root.querySelector('#fg-output');
-        out.innerHTML = `<div class="fg-card" style="text-align:center;padding:40px;"><h3>🔒 Llegaste al límite</h3><p>${escape(data.reason)}</p><a href="/pricing.html" class="fg-btn fg-btn-primary" style="display:inline-block;margin-top:14px;text-decoration:none;">Ver planes →</a></div>`;
-        return;
-      }
-      if (!r.ok) {
-        toast(data.message || 'Error al forge', 'err');
-        return;
-      }
-      lastResult = data;
-      renderOutput(data);
-      toast(`Score viral: ${data.prediction?.viralScore || 0}/100`, data.prediction?.viralScore >= 70 ? 'ok' : 'info');
+      await correrEstrategia(root, entrada);
+      toast('Estrategia lista', 'ok');
     } catch (err) {
-      toast('Error de red', 'err');
+      toast(mensajeDe(err), 'err');
+    }
+    renderOutput(root);
+  });
+
+const accionProducir = (root) =>
+  conBusy(root, async () => {
+    const entrada = leerEntrada();
+    if (!validarTema(entrada, root)) return;
+    estado.entrada = entrada;
+    const ok = await producirYPredecir(root, entrada, '🗂️ Produciendo la pieza con IA (10-40 s)…');
+    if (ok) {
+      const decision = estado.intentos[estado.activo].prediccion.decision;
+      toast(decision === 'listo' ? 'Pieza lista para publicar' : 'Pieza generada: conviene mejorar', 'ok');
+    }
+    renderOutput(root);
+  });
+
+const accionTodo = (root) =>
+  conBusy(root, async () => {
+    const entrada = leerEntrada();
+    if (!validarTema(entrada, root)) return;
+    try {
+      await correrEstrategia(root, entrada);
+      const conHook = { ...entrada, hook: estado.hookElegido };
+      estado.entrada = conHook;
+      const ok = await producirYPredecir(root, conHook, '2/3 · Produciendo la pieza con IA (10-40 s)…');
+      if (ok) toast('Listo: estrategia, producción y predicción', 'ok');
+    } catch (err) {
+      toast(mensajeDe(err), 'err');
+    }
+    renderOutput(root);
+  });
+
+const accionMejorar = (root) =>
+  conBusy(root, async () => {
+    const actual = estado.intentos[estado.activo];
+    if (!actual || !estado.entrada) return;
+    const ajustes = actual.prediccion.accionables;
+    if (ajustes.length === 0) {
+      toast('La predicción no tiene correcciones que aplicar', 'info');
+      return;
+    }
+    const entrada = { ...estado.entrada, ajustes };
+    const ok = await producirYPredecir(root, entrada, '🔁 Regenerando con las correcciones de la predicción…');
+    if (ok) {
+      const nuevo = estado.intentos[estado.intentos.length - 1];
+      const diff = nuevo.prediccion.contenido.puntaje - actual.prediccion.contenido.puntaje;
+      toast(`Intento ${nuevo.n}: contenido ${diff >= 0 ? '+' : ''}${diff} pts`, diff >= 0 ? 'ok' : 'warn');
+    }
+    renderOutput(root);
+  });
+
+/* ───────── Acciones de salida ───────── */
+
+const obtenerAccountId = () => {
+  try {
+    const brujula = JSON.parse(localStorage.getItem('feedia.brujula.account') || '{}');
+    return brujula.handle || '';
+  } catch {
+    return '';
+  }
+};
+
+const enviarAPublicar = async (root) => {
+  const actual = estado.intentos[estado.activo];
+  if (!actual) return;
+  const accountId = obtenerAccountId();
+  if (!accountId) {
+    toast('Necesitás sincronizar tu cuenta en Brújula primero', 'warn');
+    return;
+  }
+  return conBusy(root, async () => {
+    try {
+      const datos = await llamar('/api/calendar/draft', {
+        accountId,
+        pieza: {
+          formato: actual.pieza.formato,
+          caption: actual.pieza.caption,
+          hashtags: actual.pieza.hashtags,
+          metadata: { hook: actual.pieza.hook, objetivo: estado.entrada.objetivo },
+        },
+      });
+      toast(`Post guardado en Calendario. Programalo en el <a href="#calendar">Calendario</a>.`, 'ok');
+    } catch (err) {
+      toast(mensajeDe(err), 'err');
     }
   });
 };
 
-const wireOutput = (root) => {
-  root.querySelectorAll('[data-copy]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const text = decodeURIComponent(btn.dataset.copy || '');
-      try {
-        navigator.clipboard.writeText(text);
-        toast('Copiado', 'ok');
-      } catch {
-        toast('No se pudo copiar', 'err');
-      }
-    });
-  });
-  root.querySelector('#fg-regenerate')?.addEventListener('click', () => {
-    root.querySelector('#fg-forge-go')?.click();
-  });
-  root.querySelector('#fg-publish')?.addEventListener('click', () => {
-    if (!lastResult) return;
-    try {
-      localStorage.setItem('feedia.forge.lastDraft', JSON.stringify(lastResult));
-      toast('Borrador guardado. Abriendo Studio…', 'ok');
-      setTimeout(() => {
-        window.location.hash = '#studio-carousel';
-      }, 500);
-    } catch {
-      toast('No se pudo guardar', 'err');
+const paqueteMd = (p) =>
+  [
+    `# ${p.hook}`,
+    '',
+    `Formato: ${p.formato}${p.duracionSeg ? ` · ${p.duracionSeg}s` : ''}`,
+    '',
+    p.portada ? `## Portada\n${p.portada}\n` : '',
+    ...p.cuerpo.map((x) => `## ${x.titulo}\n${x.texto}${x.nota ? `\n\n> ${x.nota}` : ''}\n`),
+    p.caption ? `## Caption\n${p.caption}\n` : '',
+    p.hashtags.length ? p.hashtags.join(' ') : '',
+  ]
+    .filter((l) => l !== '')
+    .join('\n');
+
+const copiar = async (texto, ok) => {
+  try {
+    await navigator.clipboard.writeText(texto);
+    toast(ok, 'ok');
+  } catch {
+    toast('No se pudo copiar', 'err');
+  }
+};
+
+const descargar = (nombre, contenido) => {
+  const url = URL.createObjectURL(new Blob([contenido], { type: 'text/markdown;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nombre;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+const manejarAccion = (root, action, idx) => {
+  const actual = estado.intentos[estado.activo];
+  switch (action) {
+    case 'estrategia':
+      return accionEstrategia(root);
+    case 'producir':
+      return accionProducir(root);
+    case 'todo':
+      return accionTodo(root);
+    case 'mejorar':
+      return accionMejorar(root);
+    case 'usar-angulo': {
+      const a = estado.estrategia?.plan?.angulos[Number(idx)];
+      if (!a) return undefined;
+      estado.angulo = a.texto;
+      renderOutput(root);
+      toast('Ángulo elegido. Se usa al producir.', 'ok');
+      return undefined;
     }
-  });
+    case 'usar-hook': {
+      const h = estado.estrategia?.hooks[Number(idx)];
+      if (!h) return undefined;
+      estado.hookElegido = h.hook;
+      renderOutput(root);
+      toast('Hook elegido. Producí la pieza con él.', 'ok');
+      return undefined;
+    }
+    case 'ver-intento':
+      estado.activo = Number(idx);
+      renderOutput(root);
+      return undefined;
+    case 'copiar-caption':
+      return actual && copiar(actual.pieza.caption, 'Caption copiado');
+    case 'copiar-hashtags':
+      return actual && copiar(actual.pieza.hashtags.join(' '), 'Hashtags copiados');
+    case 'copiar-paquete':
+      return actual && copiar(paqueteMd(actual.pieza), 'Paquete copiado');
+    case 'descargar-md':
+      if (actual) descargar(`forge-${actual.pieza.paqueteId || 'pieza'}.md`, paqueteMd(actual.pieza));
+      return undefined;
+    case 'enviar-publicar':
+      return enviarAPublicar(root);
+    default:
+      return undefined;
+  }
+};
+
+/* ───────── Vista ───────── */
+
+/* Referencia estable: así removeEventListener quita el mismo listener en cada render. */
+const sincronizarPlataforma = (e) => {
+  const select = document.querySelector('#fg-platform');
+  if (select) select.value = e.detail?.platform === 'tiktok' ? 'tiktok' : 'instagram';
 };
 
 export const renderForge = async (root) => {
@@ -528,6 +659,8 @@ export const renderForge = async (root) => {
       .fg-card{background:var(--bg-card,#fff);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:16px;color:var(--text-primary,var(--fg));box-shadow:var(--shadow-card,0 1px 4px rgba(0,0,0,.05));}
       .fg-section-title{font-size:18px;letter-spacing:-0.015em;margin:0 0 4px;}
       .fg-section-sub{font-size:13px;color:var(--text-tertiary,var(--text-muted,#888));margin:0 0 16px;}
+      .fg-warn{color:#b45309;}
+      .fg-head-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
       .fg-form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
       .fg-field-wide{grid-column:1 / -1;}
       .fg-field{display:flex;flex-direction:column;gap:5px;}
@@ -535,24 +668,19 @@ export const renderForge = async (root) => {
       .fg-input{padding:10px 12px;background:var(--bg-soft,rgba(17,18,22,.04));border:1px solid var(--border-soft,rgba(17,18,22,.08));border-radius:9px;color:var(--text-primary,var(--fg));font-size:14px;font-family:inherit;outline:none;transition:border-color .15s,background .15s;}
       .fg-input:focus{background:var(--bg-card,#fff);border-color:rgba(225,48,108,.45);box-shadow:0 0 0 3px rgba(225,48,108,.08);}
       .fg-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;flex-wrap:wrap;}
-      .fg-btn{padding:11px 18px;border-radius:10px;border:0;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;transition:filter .15s,transform .12s;}
+      .fg-btn{padding:11px 18px;border-radius:10px;border:0;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;transition:filter .15s,transform .12s;text-decoration:none;}
       .fg-btn-primary{background:linear-gradient(135deg,#f09433,#e1306c 40%,#a855f7);color:#fff;}
       .fg-btn-primary:hover{filter:brightness(1.08);} .fg-btn-primary:active{transform:scale(.985);}
       .fg-btn-secondary{background:var(--bg-soft,rgba(17,18,22,.04));color:var(--text-primary,var(--fg));border:1px solid var(--border-soft);}
       .fg-btn-secondary:hover{background:var(--bg-hover,rgba(17,18,22,.08));}
       .fg-btn-icon{font-size:16px;}
       .fg-disclaimer{font-size:11.5px;color:var(--text-tertiary);text-align:center;margin-top:10px;}
-      .fg-disclaimer a{color:#a855f7;text-decoration:none;font-weight:700;}
 
       .fg-loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:40px;color:var(--text-secondary);}
       .fg-spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:#a855f7;border-radius:50%;animation:fgSpin .9s linear infinite;}
       @keyframes fgSpin{to{transform:rotate(360deg);}}
 
-      .fg-strategy-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px;}
-      .fg-score-circle{flex-shrink:0;width:72px;height:72px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;}
-      .fg-score-val{font-size:22px;font-weight:800;line-height:1;}
-      .fg-score-lbl{font-size:9px;opacity:.85;letter-spacing:.05em;text-transform:uppercase;}
-      .fg-strategy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:18px;}
+      .fg-strategy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px;}
       .fg-strategy-block{padding:12px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:10px;}
       .fg-strategy-block strong{font-size:11.5px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;}
       .fg-strategy-val{font-size:15px;font-weight:700;margin:4px 0 2px;}
@@ -566,79 +694,72 @@ export const renderForge = async (root) => {
       .fg-hook-head{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
       .fg-hook-formula{color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.05em;font-weight:700;}
       .fg-hook-strength{font-weight:700;}
-      .fg-hook-text{font-size:14px;line-height:1.4;}
-      .fg-hook-badge{position:absolute;top:8px;right:10px;font-size:9px;font-weight:800;background:#a855f7;color:#fff;padding:2px 6px;border-radius:4px;letter-spacing:.05em;}
+      .fg-hook-text{font-size:14px;line-height:1.4;margin-bottom:8px;}
+      .fg-hook-pick{margin-top:2px;}
 
-      .fg-checklist{margin-top:14px;font-size:13px;}
-      .fg-checklist ul{margin:6px 0 0 16px;padding:0;display:flex;flex-direction:column;gap:6px;}
-      .fg-checklist li{line-height:1.5;}
-
-      .fg-flags{margin-top:14px;}
-      .fg-flag{font-size:12.5px;padding:8px 12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;margin-top:6px;color:#dc2626;}
-      [data-theme="dark"] .fg-flag{color:#fca5a5;}
-
-      .fg-viral-hero{display:flex;align-items:center;gap:16px;padding:18px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:12px;margin-bottom:16px;}
-      .fg-viral-score{width:80px;height:80px;border-radius:50%;border:4px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
-      .fg-viral-num{font-size:30px;font-weight:800;line-height:1;}
-      .fg-viral-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.05em;opacity:.7;}
-      .fg-viral-class{display:inline-block;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:800;margin-bottom:4px;}
-
-      .fg-pred-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:18px;}
-      .fg-pred-metric{padding:10px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:9px;text-align:center;}
-      .fg-pred-num{font-size:20px;font-weight:800;letter-spacing:-0.01em;}
-      .fg-pred-lbl{font-size:10.5px;color:var(--text-tertiary);margin-top:2px;}
-
-      .fg-breakdown{margin-bottom:14px;}
-      .fg-breakdown-grid{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
-      .fg-break-row{display:grid;grid-template-columns:130px 1fr 40px;gap:10px;align-items:center;font-size:12.5px;}
-      .fg-break-bar{height:5px;background:var(--border);border-radius:99px;overflow:hidden;}
-      .fg-break-fill{height:100%;transition:width .5s ease;}
-      .fg-break-score{text-align:right;font-weight:700;}
-
-      .fg-improvements{margin-top:14px;font-size:13px;}
-      .fg-improvements ul{margin:6px 0 0 16px;padding:0;display:flex;flex-direction:column;gap:6px;}
-
-      .fg-cover{margin-bottom:14px;}
-      .fg-cover img{width:100%;max-width:520px;border-radius:12px;display:block;}
-      .fg-cover-meta{font-size:11px;color:var(--text-tertiary);margin-top:6px;}
-
-      .fg-slides,.fg-beats,.fg-frames{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
-      .fg-slide,.fg-beat,.fg-frame{padding:12px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:10px;}
-      .fg-slide-num,.fg-beat-time,.fg-frame-num{font-size:11px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
-      .fg-slide-headline{font-size:15px;font-weight:700;margin-bottom:4px;}
-      .fg-slide-body{font-size:13px;line-height:1.45;color:var(--text-secondary);}
-      .fg-slide-prompt{font-size:11px;color:var(--text-tertiary);margin-top:6px;padding:6px 8px;background:rgba(168,85,247,.06);border-radius:6px;}
-      .fg-beat{display:flex;gap:14px;align-items:flex-start;}
-      .fg-beat-time{flex-shrink:0;min-width:50px;}
-      .fg-beat-body{flex:1;display:flex;flex-direction:column;gap:4px;font-size:13px;}
-      .fg-frame{display:flex;gap:12px;align-items:flex-start;}
-      .fg-frame img{width:80px;height:142px;object-fit:cover;border-radius:8px;flex-shrink:0;}
-      .fg-frame-text{font-size:13px;line-height:1.4;}
-      .fg-audio-hint{font-size:12.5px;padding:8px 12px;background:rgba(34,211,238,.08);border-radius:8px;color:var(--text-secondary);}
+      .fg-cover-line{font-size:13px;margin-bottom:12px;}
+      .fg-parts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+      .fg-part{padding:12px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:10px;}
+      .fg-part-title{font-size:11px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+      .fg-part-text{font-size:13.5px;line-height:1.45;white-space:pre-wrap;}
+      .fg-part-note{font-size:11.5px;color:var(--text-tertiary);margin-top:6px;}
 
       .fg-caption{margin-bottom:14px;}
       .fg-caption-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
       .fg-caption pre{padding:12px 14px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:9px;font-family:inherit;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word;}
-      .fg-tiny-btn{padding:4px 10px;font-size:11px;font-weight:700;background:transparent;border:1px solid var(--border);color:var(--text-secondary);border-radius:6px;cursor:pointer;}
+      .fg-tiny-btn{padding:4px 10px;font-size:11px;font-weight:700;background:transparent;border:1px solid var(--border);color:var(--text-secondary);border-radius:6px;cursor:pointer;font-family:inherit;}
       .fg-tiny-btn:hover{background:var(--bg-soft);color:var(--text-primary);}
-
       .fg-hashtags{margin-bottom:14px;}
       .fg-hashtags strong{display:block;margin-bottom:6px;}
       .fg-tag-list{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
       .fg-tag{padding:3px 9px;background:rgba(168,85,247,.10);color:#a855f7;font-size:12px;font-weight:600;border-radius:999px;}
-
       .fg-final-actions{display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--border-soft);padding-top:14px;margin-top:14px;flex-wrap:wrap;}
+
+      .fg-decision{padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:800;}
+      .fg-signals{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0;}
+      .fg-signal{padding:12px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:10px;}
+      .fg-signal-lbl{font-size:11px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+      .fg-signal-val{font-size:15px;font-weight:800;margin-bottom:2px;}
+      .fg-improvements{margin-top:14px;font-size:13px;}
+      .fg-improvements ul{margin:6px 0 0 16px;padding:0;display:flex;flex-direction:column;gap:6px;}
+
+      .fg-plan{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:12px 0;}
+      .fg-plan-block{padding:12px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:10px;font-size:13px;}
+      .fg-plan-block strong{display:block;font-size:11.5px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+      .fg-plan-block ol,.fg-plan-block ul{margin:4px 0 6px 18px;padding:0;display:flex;flex-direction:column;gap:4px;}
+      .fg-routine{grid-column:1 / -1;}
+      .fg-warn-line{grid-column:1 / -1;font-size:12.5px;padding:8px 12px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.3);border-radius:8px;color:#b45309;}
+      .fg-angles{margin:14px 0;}
+      .fg-angle-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:8px;}
+      .fg-angle{text-align:left;display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:10px;border:1px solid var(--border-soft);background:var(--bg-soft,rgba(17,18,22,.03));color:var(--text-primary,var(--fg));cursor:pointer;font-family:inherit;font-size:13.5px;}
+      .fg-angle:hover{background:var(--bg-hover,rgba(17,18,22,.08));}
+      .fg-angle.best{border-color:#a855f7;background:linear-gradient(90deg,rgba(168,85,247,.10),transparent);}
+      .fg-angle-text{font-weight:700;line-height:1.35;}
+      .fg-checks{margin:14px 0;display:flex;flex-direction:column;gap:8px;}
+      .fg-check{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:9px;font-size:13px;}
+      .fg-check.ok{background:rgba(16,185,129,.08);}
+      .fg-check.no{background:rgba(245,158,11,.10);}
+      .fg-check-icon{font-weight:800;}
+      .fg-check.ok .fg-check-icon{color:#10b981;}
+      .fg-check.no .fg-check-icon{color:#f59e0b;}
+      .fg-check-title{font-weight:700;}
+      .fg-attempt{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;background:var(--bg-soft,rgba(17,18,22,.03));border-radius:10px;margin-top:8px;border-left:3px solid transparent;}
+      .fg-attempt.best{border-left-color:#a855f7;}
 
       @media (max-width: 640px){
         .fg-form-grid{grid-template-columns:1fr;}
-        .fg-break-row{grid-template-columns:90px 1fr 35px;}
+        .fg-final-actions .fg-btn{flex:1 1 100%;justify-content:center;}
       }
     </style>`;
 
-  wireForm(root);
+  root.onclick = (ev) => {
+    const btn = ev.target instanceof Element ? ev.target.closest('[data-action]') : null;
+    if (!btn) return;
+    manejarAccion(root, btn.dataset.action, btn.dataset.idx);
+  };
 
-  const platformSelect = root.querySelector('#fg-platform');
-  window.addEventListener('feedia:platform', (e) => {
-    if (platformSelect) platformSelect.value = e.detail?.platform === 'tiktok' ? 'tiktok' : 'instagram';
-  });
+  window.removeEventListener('feedia:platform', sincronizarPlataforma);
+  window.addEventListener('feedia:platform', sincronizarPlataforma);
+
+  renderOutput(root);
 };

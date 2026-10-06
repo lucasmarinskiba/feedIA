@@ -9,6 +9,7 @@ import {
   listCalendarPostsByAccount,
   getCalendarPost,
   cancelCalendarPost,
+  insertCalendarPost,
   type CalendarPostStatus,
 } from '../database/calendarQueue.js';
 import { getBrandProfileForAccount } from '../database/accountBrands.js';
@@ -27,7 +28,62 @@ const isBriefRequest = (v: unknown): v is BriefRequest =>
 const validStatus = (v: unknown): v is CalendarPostStatus =>
   v === 'draft' || v === 'scheduled' || v === 'publishing' || v === 'published' || v === 'failed' || v === 'cancelled';
 
+interface PiezaDraft {
+  formato: 'carrusel' | 'reel' | 'historia' | 'imagen';
+  caption?: string;
+  hashtags?: string[];
+  metadata?: Record<string, unknown>;
+}
+
+const isPiezaDraft = (v: unknown): v is PiezaDraft =>
+  typeof v === 'object' &&
+  v !== null &&
+  (['carrusel', 'reel', 'historia', 'imagen'] as const).includes((v as PiezaDraft).formato);
+
 export const buildCalendarRoutes = (): RouteDefinition[] => [
+  {
+    method: 'POST',
+    pattern: '/api/calendar/draft',
+    handler: async ({ res, body }): Promise<void> => {
+      if (!body || typeof body !== 'object') {
+        json(res, 400, { error: 'Body requerido' });
+        return;
+      }
+      const { accountId, pieza, scheduledAt } = body as {
+        accountId?: unknown;
+        pieza?: unknown;
+        scheduledAt?: unknown;
+      };
+      if (!isString(accountId)) {
+        json(res, 400, { error: 'accountId requerido' });
+        return;
+      }
+      if (!isPiezaDraft(pieza)) {
+        json(res, 400, { error: 'pieza inválida (formato, caption, hashtags requeridos)' });
+        return;
+      }
+      const brand = await getBrandProfileForAccount(accountId);
+      if (!brand) {
+        json(res, 404, { error: 'Cuenta no encontrada o sin BrandProfile' });
+        return;
+      }
+      const post = await insertCalendarPost({
+        accountId,
+        format: pieza.formato,
+        caption: pieza.caption,
+        mediaUrls: [],
+        status: 'draft',
+        scheduledAt: isString(scheduledAt) ? scheduledAt : undefined,
+        metadata: {
+          ...pieza.metadata,
+          source: 'forge-ia',
+          hashtags: pieza.hashtags ?? [],
+        },
+      });
+      json(res, 201, { ok: true, postId: post.id, post });
+      log.info(`[calendarApi] draft creado desde Forge: ${post.id} para account ${accountId}`);
+    },
+  },
   {
     method: 'GET',
     pattern: '/api/calendar/posts',
