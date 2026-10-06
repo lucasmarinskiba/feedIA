@@ -75,6 +75,9 @@ import {
 // Phase 5: Performance forecasting
 import { forecastScores, type PerformanceForecast } from '../capabilities/forge/performanceForecaster.js';
 
+// Phase 6: A/B testing
+import { runABTest, type ABTestResult, type ContentVariant } from '../capabilities/forge/abTester.js';
+
 // Phase 2: DB persistence (future)
 // import {
 //   saveForgeAttempt,
@@ -788,6 +791,42 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         );
       } catch (err) {
         json(res, 500, errorInterno('forecast-simulate', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/abtest/compare',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { variantA, variantB, baselineAccountScore } = body as {
+          variantA?: unknown;
+          variantB?: unknown;
+          baselineAccountScore?: number;
+        };
+
+        if (
+          !variantA ||
+          typeof (variantA as ContentVariant).hook !== 'string' ||
+          !variantB ||
+          typeof (variantB as ContentVariant).hook !== 'string'
+        ) {
+          json(res, 400, { error: 'variantA, variantB requeridos con hook strings' });
+          return;
+        }
+
+        const result: ABTestResult = runABTest(
+          variantA as ContentVariant,
+          variantB as ContentVariant,
+          baselineAccountScore || 65,
+        );
+
+        json(res, 200, { ok: true, result });
+        log.info(
+          `[forge] A/B test: ${result.winner === 'A' ? 'A' : 'B'} wins (+${result.percentLift}%, ${result.confidence}% confidence)`,
+        );
+      } catch (err) {
+        json(res, 500, errorInterno('abtest-compare', err));
       }
     },
   },

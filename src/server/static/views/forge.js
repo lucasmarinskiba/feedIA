@@ -128,6 +128,7 @@ const buildForm = (platform) => `
       <button class="fg-btn fg-btn-secondary" data-action="batch-comparison"><span class="fg-btn-icon">📈</span>Trends</button>
       <button class="fg-btn fg-btn-secondary" data-action="content-suggestions"><span class="fg-btn-icon">✍️</span>Sugerencias</button>
       <button class="fg-btn fg-btn-secondary" data-action="performance-forecast"><span class="fg-btn-icon">🔮</span>Forecast</button>
+      <button class="fg-btn fg-btn-secondary" data-action="abtest"><span class="fg-btn-icon">🧪</span>A/B Test</button>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
@@ -728,6 +729,8 @@ const manejarAccion = (root, action, idx) => {
       return cargarContentSuggestions(root);
     case 'performance-forecast':
       return cargarPerformanceForecast(root);
+    case 'abtest':
+      return cargarABTest(root);
     default:
       return undefined;
   }
@@ -1095,6 +1098,101 @@ const cargarPerformanceForecast = async (root) => {
   toast('success', 'Forecast cargado');
 };
 
+/* ───────── Phase 6: A/B Testing ───────── */
+
+const renderABTestResult = (root, result) => {
+  const { variantA, variantB, winner, scoreDelta, percentLift, confidence, recommendations } = result;
+  const winnerVar = winner === 'A' ? variantA : variantB;
+  const loserVar = winner === 'A' ? variantB : variantA;
+
+  const html = `<div class="fg-abtest-panel">
+    <h3>🧪 A/B Test Result</h3>
+
+    <div class="fg-abtest-winner">
+      <div class="fg-ab-badge">🏆 Ganador: ${winnerVar.label}</div>
+      <div class="fg-ab-score" style="font-size: 32px; font-weight: 700; color: #10b981;">
+        ${winnerVar.overallScore}/100
+      </div>
+      <div class="fg-ab-detail">+${percentLift}% sobre perdedor · ${confidence}% confianza</div>
+    </div>
+
+    <div class="fg-abtest-comparison">
+      <div class="fg-ab-card fg-ab-winner" style="border-color: #10b981;">
+        <div class="fg-ab-card-label">${winnerVar.label}</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 12px; margin: 8px 0;">
+          <div>📝 ${winnerVar.scores.contenido}</div>
+          <div>🎣 ${winnerVar.scores.hook}</div>
+          <div>📊 ${winnerVar.scores.cuenta}</div>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; color: #10b981;">
+          ${winnerVar.overallScore}/100
+        </div>
+        <div class="fg-ab-rec" style="background: rgba(16, 185, 129, 0.08); color: #10b981;">
+          ✅ ${recommendations.forWinner}
+        </div>
+      </div>
+
+      <div class="fg-ab-card fg-ab-loser" style="border-color: #ef4444;">
+        <div class="fg-ab-card-label">${loserVar.label}</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 12px; margin: 8px 0;">
+          <div>📝 ${loserVar.scores.contenido}</div>
+          <div>🎣 ${loserVar.scores.hook}</div>
+          <div>📊 ${loserVar.scores.cuenta}</div>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; color: #ef4444;">
+          ${loserVar.overallScore}/100 (-${scoreDelta})
+        </div>
+        <div class="fg-ab-recs" style="background: rgba(239, 68, 68, 0.08);">
+          ${recommendations.forLoser.map((r) => `<div style="color: #ef4444; font-size: 11px; margin: 4px 0;">💡 ${r}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="fg-ab-recommendation" style="background: rgba(59, 130, 246, 0.08); border-left: 4px solid #3b82f6; padding: 12px; border-radius: 6px; margin-top: 16px;">
+      <strong style="color: #3b82f6;">Recomendación:</strong>
+      <p style="margin: 6px 0 0 0; font-size: 12px; color: #1f2937;">
+        Usa ${winnerVar.label} como versión principal. Si quieres mejorar ${loserVar.label},
+        ${recommendations.forLoser[0] || 'aplica los cambios sugeridos'}.
+      </p>
+    </div>
+  </div>`;
+
+  root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarABTest = async (root) => {
+  // Demo: variantA = hook actual, variantB = versión mejorada
+  const currentHook = actual?.pieza?.hook || 'Check this out';
+  const improvedHook = currentHook.includes('this')
+    ? currentHook.replace('Check this out', 'Here are 3 secrets nobody tells you')
+    : '5 steps to change your life (most people skip #3)';
+
+  const variantA = {
+    id: 'var-a',
+    label: 'Versión A (Actual)',
+    hook: currentHook,
+  };
+
+  const variantB = {
+    id: 'var-b',
+    label: 'Versión B (Mejorada)',
+    hook: improvedHook,
+  };
+
+  const result = await apiSafe(`/api/forge/abtest/compare`, {
+    method: 'POST',
+    body: JSON.stringify({ variantA, variantB, baselineAccountScore: 65 }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en A/B test');
+    return;
+  }
+
+  renderABTestResult(root, result.result);
+  toast('success', 'A/B test cargado');
+};
+
 /* ───────── Vista ───────── */
 
 /* Referencia estable: así removeEventListener quita el mismo listener en cada render. */
@@ -1304,6 +1402,21 @@ export const renderForge = async (root) => {
       .fg-scenario-meta{font-size:10px;color:#94a3b8;text-align:right;}
       .fg-forecast-likely{padding:16px;background:rgba(59,130,246,.08);border-radius:8px;border-left:4px solid #3b82f6;}
       .fg-likely-desc{margin:8px 0 12px 0;font-size:13px;color:var(--text-secondary);}
+
+      /* Phase 6: A/B Testing */
+      .fg-abtest-panel{padding:20px;background:rgba(17,18,22,.02);border-radius:12px;margin-top:20px;border:1px solid rgba(17,18,22,.1);}
+      .fg-abtest-panel h3{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text-primary);}
+      .fg-abtest-winner{padding:16px;background:rgba(16,185,129,.08);border-radius:8px;border-left:4px solid #10b981;margin-bottom:20px;}
+      .fg-ab-badge{font-size:13px;font-weight:600;color:#10b981;margin-bottom:8px;}
+      .fg-ab-detail{font-size:12px;color:#94a3b8;margin-top:6px;}
+      .fg-abtest-comparison{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:20px;}
+      .fg-ab-card{padding:14px;border-radius:8px;background:white;border:2px solid;display:flex;flex-direction:column;}
+      .fg-ab-card-label{font-weight:600;font-size:13px;margin-bottom:8px;}
+      .fg-ab-winner{border-color:#10b981;}
+      .fg-ab-loser{border-color:#ef4444;}
+      .fg-ab-rec{padding:8px;border-radius:6px;margin-top:8px;font-size:11px;font-weight:500;}
+      .fg-ab-recs{padding:8px;border-radius:6px;margin-top:8px;}
+      .fg-ab-recommendation{font-size:13px;}
 
       @media (max-width: 640px){
         .fg-form-grid{grid-template-columns:1fr;}
