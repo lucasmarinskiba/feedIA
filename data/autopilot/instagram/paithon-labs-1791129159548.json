@@ -1,0 +1,63 @@
+{
+  "brandId": "paithon-labs",
+  "generatedAt": "2026-10-04T15:52:39.548Z",
+  "observation": {
+    "brandId": "paithon-labs",
+    "timestamp": "2026-10-04T15:52:39.547Z",
+    "metrics": {
+      "reachLast7d": null,
+      "reachPrev7d": null,
+      "engagementRateLast7d": null,
+      "engagementRatePrev7d": null,
+      "followerDeltaLast7d": null,
+      "postsLast7d": null,
+      "storiesLast7d": null,
+      "reelsLast7d": null,
+      "avgDmResponseMinutes": 9816,
+      "commentBacklog": 4,
+      "dmBacklog": 88
+    },
+    "formatos": {
+      "reels": null,
+      "carruseles": null
+    },
+    "hashtagHealthScore": null,
+    "bestPostingHourLast30d": null,
+    "postingHourLast7d": null,
+    "fuentes": {
+      "alcance": "no disponible",
+      "engagement": "no disponible",
+      "seguidores": "no disponible",
+      "publicaciones": "no disponible",
+      "formatos": "no disponible",
+      "horarios": "no disponible",
+      "dms": "real",
+      "comentarios": "real",
+      "stories": "no disponible",
+      "hashtags": "no disponible"
+    }
+  },
+  "signals": [
+    {
+      "signal": "dm-backlog",
+      "confidence": 0.9,
+      "evidence": "88 conversaciones sin responder, espera promedio 9816 min",
+      "severity": "high",
+      "recommendedAction": "reply-dms-batch",
+      "reasoning": "Los DMs son leads calientes. Responder tarde baja mucho la conversión.",
+      "expectedImpact": "Recuperar conversaciones comerciales"
+    }
+  ],
+  "criticalCount": 0,
+  "recommendedNextAction": {
+    "signal": "dm-backlog",
+    "confidence": 0.9,
+    "evidence": "88 conversaciones sin responder, espera promedio 9816 min",
+    "severity": "high",
+    "recommendedAction": "reply-dms-batch",
+    "reasoning": "Los DMs son leads calientes. Responder tarde baja mucho la conversión.",
+    "expectedImpact": "Recuperar conversaciones comerciales"
+  },
+  "didacticInsight": "Atendé primero: 88 conversaciones sin responder, espera promedio 9816 min. Los DMs son leads calientes. Responder tarde baja mucho la conversión.",
+  "autopilotScore": 85
+}

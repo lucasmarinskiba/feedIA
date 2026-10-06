@@ -1,0 +1,142 @@
+[
+  {
+    "id": "dec-1791058280164-fn8uy",
+    "brandId": "paithon-labs",
+    "source": "social-connector",
+    "signalKey": "red:instagram",
+    "urgency": "medium",
+    "status": "pending",
+    "title": "Conectar Instagram para medir crecimiento real",
+    "context": "Instagram no está conectado.",
+    "reasoning": "Sin cuenta conectada no hay followers, alcance ni publicación en esa red.",
+    "evidence": [],
+    "recommendedAction": {
+      "label": "Conectar",
+      "payload": {
+        "tipo": "conectar",
+        "plataforma": "instagram"
+      },
+      "irreversible": false,
+      "estimatedCostUsd": 0,
+      "estimatedImpactScore": 8
+    },
+    "alternativeActions": [],
+    "expectedOutcome": "Se abre el login de Instagram. Al autorizar, empiezan a verse métricas reales.",
+    "risks": [],
+    "createdAt": "2026-10-03T20:11:20.164Z",
+    "autoExecuteIfNoResponse": false
+  },
+  {
+    "id": "dec-1791058280172-kk2ra",
+    "brandId": "paithon-labs",
+    "source": "social-connector",
+    "signalKey": "red:tiktok",
+    "urgency": "medium",
+    "status": "rejected",
+    "title": "Conectar TikTok para medir crecimiento real",
+    "context": "TikTok no está conectado.",
+    "reasoning": "Sin cuenta conectada no hay followers, alcance ni publicación en esa red.",
+    "evidence": [],
+    "recommendedAction": {
+      "label": "Conectar",
+      "payload": {
+        "tipo": "conectar",
+        "plataforma": "tiktok"
+      },
+      "irreversible": false,
+      "estimatedCostUsd": 0,
+      "estimatedImpactScore": 8
+    },
+    "alternativeActions": [],
+    "expectedOutcome": "Se abre el login de TikTok. Al autorizar, empiezan a verse métricas reales.",
+    "risks": [],
+    "createdAt": "2026-10-03T20:11:20.172Z",
+    "autoExecuteIfNoResponse": false,
+    "resolvedAt": "2026-10-03T20:14:07.310Z",
+    "resolvedBy": "owner"
+  },
+  {
+    "id": "dec-1791128922762-8ijzm",
+    "brandId": "paithon-labs",
+    "source": "ig-autopilot",
+    "signalKey": "ig:dm-backlog:2026-10-04",
+    "urgency": "high",
+    "status": "expired",
+    "title": "DMs sin responder: Responder DMs",
+    "context": "88 conversaciones sin responder, espera promedio 9812 min",
+    "reasoning": "Los DMs son leads calientes. Responder tarde baja mucho la conversión.",
+    "evidence": [],
+    "recommendedAction": {
+      "label": "Responder DMs",
+      "payload": {
+        "accion": "reply-dms-batch"
+      },
+      "irreversible": false,
+      "estimatedCostUsd": 0,
+      "estimatedImpactScore": 9
+    },
+    "alternativeActions": [],
+    "expectedOutcome": "Recuperar conversaciones comerciales",
+    "risks": [],
+    "createdAt": "2026-10-04T15:48:42.762Z",
+    "autoExecuteIfNoResponse": false,
+    "resolvedAt": "2026-10-04T15:48:59.272Z",
+    "resolvedBy": "expiry",
+    "outcomeNote": "La señal que la originó ya no existe."
+  },
+  {
+    "id": "dec-1791128955563-s6v88",
+    "brandId": "paithon-labs",
+    "source": "ig-autopilot",
+    "signalKey": "ig:dm-backlog:2026-10-04",
+    "urgency": "high",
+    "status": "expired",
+    "title": "DMs sin responder: Responder DMs",
+    "context": "88 conversaciones sin responder, espera promedio 9813 min",
+    "reasoning": "Los DMs son leads calientes. Responder tarde baja mucho la conversión.",
+    "evidence": [],
+    "recommendedAction": {
+      "label": "Responder DMs",
+      "payload": {
+        "accion": "reply-dms-batch"
+      },
+      "irreversible": false,
+      "estimatedCostUsd": 0,
+      "estimatedImpactScore": 9
+    },
+    "alternativeActions": [],
+    "expectedOutcome": "Recuperar conversaciones comerciales",
+    "risks": [],
+    "createdAt": "2026-10-04T15:49:15.563Z",
+    "autoExecuteIfNoResponse": false,
+    "resolvedAt": "2026-10-04T15:49:15.900Z",
+    "resolvedBy": "expiry",
+    "outcomeNote": "La señal que la originó ya no existe."
+  },
+  {
+    "id": "dec-1791129133923-efz54",
+    "brandId": "paithon-labs",
+    "source": "ig-autopilot",
+    "signalKey": "ig:dm-backlog:2026-10-04",
+    "urgency": "high",
+    "status": "pending",
+    "title": "DMs sin responder: Responder DMs",
+    "context": "88 conversaciones sin responder, espera promedio 9816 min",
+    "reasoning": "Los DMs son leads calientes. Responder tarde baja mucho la conversión.",
+    "evidence": [],
+    "recommendedAction": {
+      "label": "Responder DMs",
+      "payload": {
+        "accion": "reply-dms-batch"
+      },
+      "irreversible": false,
+      "estimatedCostUsd": 0,
+      "estimatedImpactScore": 9
+    },
+    "alternativeActions": [],
+    "expectedOutcome": "Recuperar conversaciones comerciales",
+    "risks": [],
+    "createdAt": "2026-10-04T15:52:13.924Z",
+    "autoExecuteIfNoResponse": false
+  }
+]

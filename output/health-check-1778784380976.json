@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-05-14T18:46:20.970Z",
+  "overallStatus": "critical",
+  "checks": [
+    {
+      "name": "Espacio en disco",
+      "status": "healthy",
+      "message": "Escritura en audit log funcionando"
+    },
+    {
+      "name": "Rate limits",
+      "status": "healthy",
+      "message": "Sin actividad reciente"
+    },
+    {
+      "name": "Meta API",
+      "status": "healthy",
+      "message": "No configurada — modo simulación"
+    },
+    {
+      "name": "Términos aceptados",
+      "status": "critical",
+      "message": "COMPLIANCE_ACCEPTED_TERMS=false",
+      "detail": "El sistema no debe operar en producción sin aceptar términos."
+    },
+    {
+      "name": "Estado de crisis",
+      "status": "healthy",
+      "message": "Sin crisis activa"
+    },
+    {
+      "name": "Backup",
+      "status": "healthy",
+      "message": "Archivos críticos presentes y actualizados"
+    },
+    {
+      "name": "Modo DRY_RUN",
+      "status": "healthy",
+      "message": "Modo simulación activo — seguro"
+    }
+  ],
+  "healthy": false
+}

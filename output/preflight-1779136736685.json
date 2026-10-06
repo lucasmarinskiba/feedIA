@@ -1,0 +1,103 @@
+{
+  "timestamp": "2026-05-18T20:38:56.679Z",
+  "overallStatus": "FAIL",
+  "checks": [
+    {
+      "name": "Términos aceptados",
+      "status": "FAIL",
+      "message": "COMPLIANCE_ACCEPTED_TERMS=false",
+      "detail": "Leé TERMS_OF_SERVICE.md y configurá COMPLIANCE_ACCEPTED_TERMS=true antes de operar."
+    },
+    {
+      "name": "Configuración de entorno",
+      "status": "WARNING",
+      "message": "Faltan variables opcionales: ANTHROPIC_API_KEY, META_ACCESS_TOKEN, META_IG_BUSINESS_ID",
+      "detail": "El sistema puede operar en modo simulado sin estas variables."
+    },
+    {
+      "name": "Modo DRY_RUN",
+      "status": "WARNING",
+      "message": "DRY_RUN=true — Nada se publicará realmente",
+      "detail": "Esto es seguro para pruebas. Cambiá a false solo cuando estés listo para producción."
+    },
+    {
+      "name": "Audit log escribible",
+      "status": "PASS",
+      "message": "Directorio listo (C:\\Users\\Usuario\\Pictures\\Somos paithon labs\\Agente IA - Especialista Instagram\\data\\runtime\\audit)"
+    },
+    {
+      "name": "Espacio en disco",
+      "status": "PASS",
+      "message": "Escritura posible en data/runtime/"
+    },
+    {
+      "name": "Rate limits",
+      "status": "PASS",
+      "message": "Sin actividad previa (límites limpios)"
+    },
+    {
+      "name": "Reglas de compliance",
+      "status": "PASS",
+      "message": "16 reglas cargadas (9 críticas)"
+    },
+    {
+      "name": "Perfil de marca",
+      "status": "PASS",
+      "message": "Marca: Paithon Labs (Automatización con IA para PyMEs en LATAM)"
+    },
+    {
+      "name": "Modo estricto",
+      "status": "PASS",
+      "message": "COMPLIANCE_STRICT_MODE=true (máxima protección)"
+    },
+    {
+      "name": "Módulos antiBan",
+      "status": "WARNING",
+      "message": "Directorio src/capabilities/antiBan existe",
+      "detail": "Verificá que no uses fingerprint.ts ni shadowbanGuard.ts en flujos productivos. Estos módulos pueden violar AUTO-002."
+    },
+    {
+      "name": "Multi-cuenta",
+      "status": "PASS",
+      "message": "1 marca(s) en data/brands/"
+    },
+    {
+      "name": "SQLite DB",
+      "status": "PASS",
+      "message": "Base de datos lista"
+    },
+    {
+      "name": "Email",
+      "status": "WARNING",
+      "message": "EMAIL_PROVIDER=none",
+      "detail": "Las notificaciones por email están desactivadas. Configurá EMAIL_PROVIDER=resend y RESEND_API_KEY."
+    },
+    {
+      "name": "Video",
+      "status": "WARNING",
+      "message": "VIDEO_PROVIDER=none",
+      "detail": "La generación de reels está desactivada. Configurá VIDEO_PROVIDER=replicate y REPLICATE_API_TOKEN."
+    },
+    {
+      "name": "Trends",
+      "status": "WARNING",
+      "message": "Sin APIs configuradas",
+      "detail": "Solo Reddit funcionará. Configurá SERPAPI_KEY para Google Trends o TWITTER_BEARER_TOKEN."
+    },
+    {
+      "name": "Competitors",
+      "status": "WARNING",
+      "message": "Sin APIs configuradas",
+      "detail": "Configurá RAPIDAPI_KEY, APIFY_API_TOKEN, o COMPETITOR_WEBHOOK_URL."
+    },
+    {
+      "name": "Meta API",
+      "status": "FAIL",
+      "message": "META_ACCESS_TOKEN no configurado",
+      "detail": "Sin esto no se puede publicar en Instagram."
+    }
+  ],
+  "passed": 8,
+  "warnings": 7,
+  "failed": 2
+}

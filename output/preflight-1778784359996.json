@@ -1,0 +1,63 @@
+{
+  "timestamp": "2026-05-14T18:45:59.991Z",
+  "overallStatus": "FAIL",
+  "checks": [
+    {
+      "name": "Términos aceptados",
+      "status": "FAIL",
+      "message": "COMPLIANCE_ACCEPTED_TERMS=false",
+      "detail": "Leé TERMS_OF_SERVICE.md y configurá COMPLIANCE_ACCEPTED_TERMS=true antes de operar."
+    },
+    {
+      "name": "Configuración de entorno",
+      "status": "WARNING",
+      "message": "Faltan variables opcionales: ANTHROPIC_API_KEY, META_ACCESS_TOKEN, META_IG_BUSINESS_ID",
+      "detail": "El sistema puede operar en modo simulado sin estas variables."
+    },
+    {
+      "name": "Modo DRY_RUN",
+      "status": "WARNING",
+      "message": "DRY_RUN=true — Nada se publicará realmente",
+      "detail": "Esto es seguro para pruebas. Cambiá a false solo cuando estés listo para producción."
+    },
+    {
+      "name": "Audit log escribible",
+      "status": "PASS",
+      "message": "Directorio listo (C:\\Users\\Usuario\\Pictures\\Somos paithon labs\\Agente IA - Especialista Instagram\\data\\runtime\\audit)"
+    },
+    {
+      "name": "Espacio en disco",
+      "status": "PASS",
+      "message": "Escritura posible en data/runtime/"
+    },
+    {
+      "name": "Rate limits",
+      "status": "PASS",
+      "message": "Sin actividad previa (límites limpios)"
+    },
+    {
+      "name": "Reglas de compliance",
+      "status": "PASS",
+      "message": "16 reglas cargadas (9 críticas)"
+    },
+    {
+      "name": "Perfil de marca",
+      "status": "PASS",
+      "message": "Marca: Paithon Labs (Automatización con IA para PyMEs en LATAM)"
+    },
+    {
+      "name": "Modo estricto",
+      "status": "PASS",
+      "message": "COMPLIANCE_STRICT_MODE=true (máxima protección)"
+    },
+    {
+      "name": "Módulos antiBan",
+      "status": "WARNING",
+      "message": "Directorio src/capabilities/antiBan existe",
+      "detail": "Verificá que no uses fingerprint.ts ni shadowbanGuard.ts en flujos productivos. Estos módulos pueden violar AUTO-002."
+    }
+  ],
+  "passed": 6,
+  "warnings": 3,
+  "failed": 1
+}

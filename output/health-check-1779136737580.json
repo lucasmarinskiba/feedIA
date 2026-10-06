@@ -1,0 +1,68 @@
+{
+  "timestamp": "2026-05-18T20:38:57.565Z",
+  "overallStatus": "critical",
+  "checks": [
+    {
+      "name": "Espacio en disco",
+      "status": "healthy",
+      "message": "Escritura en audit log funcionando"
+    },
+    {
+      "name": "Rate limits",
+      "status": "healthy",
+      "message": "Sin actividad reciente"
+    },
+    {
+      "name": "Meta API",
+      "status": "healthy",
+      "message": "No configurada — modo simulación"
+    },
+    {
+      "name": "Términos aceptados",
+      "status": "critical",
+      "message": "COMPLIANCE_ACCEPTED_TERMS=false",
+      "detail": "El sistema no debe operar en producción sin aceptar términos."
+    },
+    {
+      "name": "Estado de crisis",
+      "status": "healthy",
+      "message": "Sin crisis activa"
+    },
+    {
+      "name": "Backup",
+      "status": "healthy",
+      "message": "Archivos críticos presentes y actualizados"
+    },
+    {
+      "name": "Modo DRY_RUN",
+      "status": "healthy",
+      "message": "Modo simulación activo — seguro"
+    },
+    {
+      "name": "SQLite DB",
+      "status": "healthy",
+      "message": "Base de datos saludable (0.1MB)"
+    },
+    {
+      "name": "Email queue",
+      "status": "healthy",
+      "message": "1 emails pendientes"
+    },
+    {
+      "name": "Video provider",
+      "status": "healthy",
+      "message": "No configurado — reels se planifican sin video"
+    },
+    {
+      "name": "Trends sources",
+      "status": "degraded",
+      "message": "Solo Reddit disponible (sin API keys)"
+    },
+    {
+      "name": "Competitor sources",
+      "status": "degraded",
+      "message": "Sin fuentes configuradas"
+    }
+  ],
+  "healthy": false
+}

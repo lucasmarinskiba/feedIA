@@ -1,0 +1,5851 @@
+{
+  "plans": [
+    {
+      "id": "boost-test-postboost-1790352324754-1790352324755",
+      "postId": "test-postboost-1790352324754",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T16:05:24.754Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T16:10:24.754Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T16:20:24.754Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T16:30:24.754Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T17:05:24.754Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T18:05:24.754Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T16:05:24.755Z",
+      "completedAt": "2026-09-25T16:05:24.763Z"
+    },
+    {
+      "id": "boost-test-postboost-1790352403442-1790352403444",
+      "postId": "test-postboost-1790352403442",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T16:06:43.442Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T16:11:43.442Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T16:21:43.442Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T16:31:43.442Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T17:06:43.442Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T18:06:43.442Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T16:06:43.445Z",
+      "completedAt": "2026-09-25T16:06:43.454Z"
+    },
+    {
+      "id": "boost-test-postboost-1790352434052-1790352434054",
+      "postId": "test-postboost-1790352434052",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T16:07:14.052Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T16:12:14.052Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T16:22:14.052Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T16:32:14.052Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T17:07:14.052Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T18:07:14.052Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T16:07:14.054Z",
+      "completedAt": "2026-09-25T16:07:14.065Z"
+    },
+    {
+      "id": "boost-test-postboost-1790365068827-1790365068828",
+      "postId": "test-postboost-1790365068827",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T19:37:48.827Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T19:42:48.827Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T19:52:48.827Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T20:02:48.827Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T20:37:48.827Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T21:37:48.827Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T19:37:48.828Z",
+      "completedAt": "2026-09-25T19:37:48.831Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790365068833-1790365068834",
+      "postId": "test-postboost-mediaid-1790365068833",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T19:27:48.833Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T19:32:48.833Z",
+          "status": "done",
+          "executedAt": "2026-09-25T19:37:48.838Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T19:42:48.833Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T19:52:48.833Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T20:27:48.833Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T21:27:48.833Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T19:37:48.834Z",
+      "completedAt": "2026-09-25T19:37:48.841Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790365068842-1790365068843",
+      "postId": "test-postboost-nomediaid-1790365068842",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T19:27:48.842Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T19:32:48.842Z",
+          "status": "done",
+          "executedAt": "2026-09-25T19:37:48.845Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T19:42:48.842Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T19:52:48.842Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T20:27:48.842Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T21:27:48.842Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T19:37:48.843Z",
+      "completedAt": "2026-09-25T19:37:48.846Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790365068847-1790365068848",
+      "postId": "test-postboost-blocked-1790365068847",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T19:27:48.847Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T19:32:48.847Z",
+          "status": "done",
+          "executedAt": "2026-09-25T19:37:48.850Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T19:42:48.847Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T19:52:48.847Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T20:27:48.847Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T21:27:48.847Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T19:37:48.848Z",
+      "completedAt": "2026-09-25T19:37:48.852Z"
+    },
+    {
+      "id": "boost-test-postboost-1790365103105-1790365103106",
+      "postId": "test-postboost-1790365103105",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T19:38:23.105Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T19:43:23.105Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T19:53:23.105Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T20:03:23.105Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T20:38:23.105Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T21:38:23.105Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T19:38:23.106Z",
+      "completedAt": "2026-09-25T19:38:23.110Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790365103113-1790365103113",
+      "postId": "test-postboost-mediaid-1790365103113",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T19:28:23.113Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T19:33:23.113Z",
+          "status": "done",
+          "executedAt": "2026-09-25T19:38:23.118Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T19:43:23.113Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T19:53:23.113Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T20:28:23.113Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T21:28:23.113Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T19:38:23.113Z",
+      "completedAt": "2026-09-25T19:38:23.123Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790365103124-1790365103125",
+      "postId": "test-postboost-nomediaid-1790365103124",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T19:28:23.124Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T19:33:23.124Z",
+          "status": "done",
+          "executedAt": "2026-09-25T19:38:23.127Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T19:43:23.124Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T19:53:23.124Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T20:28:23.124Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T21:28:23.124Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T19:38:23.125Z",
+      "completedAt": "2026-09-25T19:38:23.129Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790365103130-1790365103131",
+      "postId": "test-postboost-blocked-1790365103130",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T19:28:23.130Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T19:33:23.130Z",
+          "status": "done",
+          "executedAt": "2026-09-25T19:38:23.133Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T19:43:23.130Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T19:53:23.130Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T20:28:23.130Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T21:28:23.130Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T19:38:23.131Z",
+      "completedAt": "2026-09-25T19:38:23.135Z"
+    },
+    {
+      "id": "boost-test-postboost-1790367745296-1790367745297",
+      "postId": "test-postboost-1790367745296",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T20:22:25.296Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T20:27:25.296Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T20:37:25.296Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T20:47:25.296Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T21:22:25.296Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T22:22:25.296Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T20:22:25.297Z",
+      "completedAt": "2026-09-25T20:22:25.302Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790367745306-1790367745307",
+      "postId": "test-postboost-mediaid-1790367745306",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T20:12:25.306Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T20:17:25.306Z",
+          "status": "done",
+          "executedAt": "2026-09-25T20:22:25.316Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T20:27:25.306Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T20:37:25.306Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T21:12:25.306Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T22:12:25.306Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T20:22:25.307Z",
+      "completedAt": "2026-09-25T20:22:25.321Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790367745323-1790367745324",
+      "postId": "test-postboost-nomediaid-1790367745323",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T20:12:25.323Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T20:17:25.323Z",
+          "status": "done",
+          "executedAt": "2026-09-25T20:22:25.328Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T20:27:25.323Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T20:37:25.323Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T21:12:25.323Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T22:12:25.323Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T20:22:25.324Z",
+      "completedAt": "2026-09-25T20:22:25.331Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790367745334-1790367745335",
+      "postId": "test-postboost-blocked-1790367745334",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T20:12:25.334Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T20:17:25.334Z",
+          "status": "done",
+          "executedAt": "2026-09-25T20:22:25.339Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T20:27:25.334Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T20:37:25.334Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T21:12:25.334Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T22:12:25.334Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T20:22:25.335Z",
+      "completedAt": "2026-09-25T20:22:25.343Z"
+    },
+    {
+      "id": "boost-test-postboost-1790370487991-1790370487992",
+      "postId": "test-postboost-1790370487991",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:08:07.991Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:13:07.991Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:23:07.991Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:33:07.991Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:08:07.991Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:08:07.991Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:08:07.992Z",
+      "completedAt": "2026-09-25T21:08:07.997Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790370488001-1790370488002",
+      "postId": "test-postboost-mediaid-1790370488001",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T20:58:08.001Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:03:08.001Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:08:08.011Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:13:08.001Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:23:08.001Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T21:58:08.001Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T22:58:08.001Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:08:08.002Z",
+      "completedAt": "2026-09-25T21:08:08.015Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790370488018-1790370488019",
+      "postId": "test-postboost-nomediaid-1790370488018",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T20:58:08.018Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:03:08.018Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:08:08.023Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:13:08.018Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:23:08.018Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T21:58:08.018Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T22:58:08.018Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:08:08.019Z",
+      "completedAt": "2026-09-25T21:08:08.026Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790370488028-1790370488029",
+      "postId": "test-postboost-blocked-1790370488028",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T20:58:08.028Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:03:08.028Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:08:08.033Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:13:08.028Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:23:08.028Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T21:58:08.028Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T22:58:08.028Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:08:08.029Z",
+      "completedAt": "2026-09-25T21:08:08.037Z"
+    },
+    {
+      "id": "boost-test-postboost-1790371150428-1790371150429",
+      "postId": "test-postboost-1790371150428",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:19:10.428Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:24:10.428Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:34:10.428Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:44:10.428Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:19:10.428Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:19:10.428Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:19:10.429Z",
+      "completedAt": "2026-09-25T21:19:10.435Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790371150439-1790371150440",
+      "postId": "test-postboost-mediaid-1790371150439",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:09:10.439Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:14:10.439Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:19:10.446Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:24:10.439Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:34:10.439Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:09:10.439Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:09:10.439Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:19:10.440Z",
+      "completedAt": "2026-09-25T21:19:10.452Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790371150454-1790371150455",
+      "postId": "test-postboost-nomediaid-1790371150454",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:09:10.454Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:14:10.454Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:19:10.459Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:24:10.454Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:34:10.454Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:09:10.454Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:09:10.454Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:19:10.455Z",
+      "completedAt": "2026-09-25T21:19:10.461Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790371150463-1790371150464",
+      "postId": "test-postboost-blocked-1790371150463",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:09:10.463Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:14:10.463Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:19:10.466Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:24:10.463Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:34:10.463Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:09:10.463Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:09:10.463Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:19:10.464Z",
+      "completedAt": "2026-09-25T21:19:10.469Z"
+    },
+    {
+      "id": "boost-test-postboost-1790371559199-1790371559200",
+      "postId": "test-postboost-1790371559199",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:25:59.199Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:30:59.199Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:40:59.199Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:50:59.199Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:25:59.199Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:25:59.199Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:25:59.201Z",
+      "completedAt": "2026-09-25T21:25:59.206Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790371559209-1790371559209",
+      "postId": "test-postboost-mediaid-1790371559209",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:15:59.209Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:20:59.209Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:25:59.215Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:30:59.209Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:40:59.209Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:15:59.209Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:15:59.209Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:25:59.209Z",
+      "completedAt": "2026-09-25T21:25:59.219Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790371559221-1790371559223",
+      "postId": "test-postboost-nomediaid-1790371559221",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:15:59.221Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:20:59.221Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:25:59.226Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:30:59.221Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:40:59.221Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:15:59.221Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:15:59.221Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:25:59.223Z",
+      "completedAt": "2026-09-25T21:25:59.228Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790371559229-1790371559230",
+      "postId": "test-postboost-blocked-1790371559229",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:15:59.229Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:20:59.229Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:25:59.233Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:30:59.229Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:40:59.229Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:15:59.229Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:15:59.229Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:25:59.230Z",
+      "completedAt": "2026-09-25T21:25:59.235Z"
+    },
+    {
+      "id": "boost-test-postboost-1790372635455-1790372635457",
+      "postId": "test-postboost-1790372635455",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:43:55.455Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:48:55.455Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:58:55.455Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T22:08:55.455Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:43:55.455Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:43:55.455Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:43:55.457Z",
+      "completedAt": "2026-09-25T21:43:55.466Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790372635472-1790372635473",
+      "postId": "test-postboost-mediaid-1790372635472",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:33:55.472Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:38:55.472Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:43:55.487Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:48:55.472Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:58:55.472Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:33:55.472Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:33:55.472Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:43:55.473Z",
+      "completedAt": "2026-09-25T21:43:55.496Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790372635499-1790372635501",
+      "postId": "test-postboost-nomediaid-1790372635499",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:33:55.499Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:38:55.499Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:43:55.506Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:48:55.499Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:58:55.499Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:33:55.499Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:33:55.499Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:43:55.501Z",
+      "completedAt": "2026-09-25T21:43:55.510Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790372635518-1790372635519",
+      "postId": "test-postboost-blocked-1790372635518",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:33:55.518Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:38:55.518Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:43:55.525Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:48:55.518Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T21:58:55.518Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:33:55.518Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:33:55.518Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:43:55.520Z",
+      "completedAt": "2026-09-25T21:43:55.529Z"
+    },
+    {
+      "id": "boost-test-postboost-1790373183901-1790373183902",
+      "postId": "test-postboost-1790373183901",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:53:03.901Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:58:03.901Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T22:08:03.901Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T22:18:03.901Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:53:03.901Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:53:03.901Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:53:03.903Z",
+      "completedAt": "2026-09-25T21:53:03.912Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790373183918-1790373183920",
+      "postId": "test-postboost-mediaid-1790373183918",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:43:03.918Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:48:03.918Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:53:03.932Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:58:03.918Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T22:08:03.918Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:43:03.918Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:43:03.918Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:53:03.920Z",
+      "completedAt": "2026-09-25T21:53:03.940Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790373183943-1790373183945",
+      "postId": "test-postboost-nomediaid-1790373183943",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:43:03.943Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:48:03.943Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:53:03.951Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:58:03.943Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T22:08:03.943Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:43:03.943Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:43:03.943Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:53:03.945Z",
+      "completedAt": "2026-09-25T21:53:03.956Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790373183959-1790373183960",
+      "postId": "test-postboost-blocked-1790373183959",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T21:43:03.959Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T21:48:03.959Z",
+          "status": "done",
+          "executedAt": "2026-09-25T21:53:03.966Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T21:58:03.959Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T22:08:03.959Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T22:43:03.959Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-25T23:43:03.959Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T21:53:03.961Z",
+      "completedAt": "2026-09-25T21:53:03.971Z"
+    },
+    {
+      "id": "boost-test-postboost-1790374349594-1790374349596",
+      "postId": "test-postboost-1790374349594",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T22:12:29.594Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T22:17:29.594Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T22:27:29.594Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T22:37:29.594Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T23:12:29.594Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-26T00:12:29.594Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T22:12:29.596Z",
+      "completedAt": "2026-09-25T22:12:29.606Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790374349611-1790374349613",
+      "postId": "test-postboost-mediaid-1790374349611",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T22:02:29.611Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T22:07:29.611Z",
+          "status": "done",
+          "executedAt": "2026-09-25T22:12:29.625Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T22:17:29.611Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T22:27:29.611Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T23:02:29.611Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-26T00:02:29.611Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T22:12:29.613Z",
+      "completedAt": "2026-09-25T22:12:29.637Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790374349640-1790374349643",
+      "postId": "test-postboost-nomediaid-1790374349640",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T22:02:29.640Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T22:07:29.640Z",
+          "status": "done",
+          "executedAt": "2026-09-25T22:12:29.652Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T22:17:29.640Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T22:27:29.640Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T23:02:29.640Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-26T00:02:29.640Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T22:12:29.643Z",
+      "completedAt": "2026-09-25T22:12:29.656Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790374349660-1790374349661",
+      "postId": "test-postboost-blocked-1790374349660",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-25T22:02:29.660Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-25T22:07:29.660Z",
+          "status": "done",
+          "executedAt": "2026-09-25T22:12:29.669Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-25T22:17:29.660Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-25T22:27:29.660Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-25T23:02:29.660Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-26T00:02:29.660Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-25T22:12:29.661Z",
+      "completedAt": "2026-09-25T22:12:29.673Z"
+    },
+    {
+      "id": "boost-test-postboost-1790631171447-1790631171449",
+      "postId": "test-postboost-1790631171447",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T21:32:51.447Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T21:37:51.447Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T21:47:51.447Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T21:57:51.447Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-28T22:32:51.447Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-28T23:32:51.447Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T21:32:51.449Z",
+      "completedAt": "2026-09-28T21:32:51.457Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790631171462-1790631171464",
+      "postId": "test-postboost-mediaid-1790631171462",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T21:22:51.462Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T21:27:51.462Z",
+          "status": "done",
+          "executedAt": "2026-09-28T21:32:51.475Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T21:37:51.462Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T21:47:51.462Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-28T22:22:51.462Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-28T23:22:51.462Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T21:32:51.464Z",
+      "completedAt": "2026-09-28T21:32:51.482Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790631171484-1790631171486",
+      "postId": "test-postboost-nomediaid-1790631171484",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T21:22:51.484Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T21:27:51.484Z",
+          "status": "done",
+          "executedAt": "2026-09-28T21:32:51.491Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T21:37:51.484Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T21:47:51.484Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-28T22:22:51.484Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-28T23:22:51.484Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T21:32:51.486Z",
+      "completedAt": "2026-09-28T21:32:51.494Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790631171497-1790631171498",
+      "postId": "test-postboost-blocked-1790631171497",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T21:22:51.497Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T21:27:51.497Z",
+          "status": "done",
+          "executedAt": "2026-09-28T21:32:51.503Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T21:37:51.497Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T21:47:51.497Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-28T22:22:51.497Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-28T23:22:51.497Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T21:32:51.498Z",
+      "completedAt": "2026-09-28T21:32:51.507Z"
+    },
+    {
+      "id": "boost-test-postboost-1790633008819-1790633008822",
+      "postId": "test-postboost-1790633008819",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T22:03:28.819Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T22:08:28.819Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T22:18:28.819Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T22:28:28.819Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-28T23:03:28.819Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T00:03:28.819Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T22:03:28.822Z",
+      "completedAt": "2026-09-28T22:03:28.833Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790633008838-1790633008840",
+      "postId": "test-postboost-mediaid-1790633008838",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T21:53:28.838Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T21:58:28.838Z",
+          "status": "done",
+          "executedAt": "2026-09-28T22:03:28.854Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T22:08:28.838Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T22:18:28.838Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-28T22:53:28.838Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-28T23:53:28.838Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T22:03:28.840Z",
+      "completedAt": "2026-09-28T22:03:28.864Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790633008868-1790633008870",
+      "postId": "test-postboost-nomediaid-1790633008868",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T21:53:28.868Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T21:58:28.868Z",
+          "status": "done",
+          "executedAt": "2026-09-28T22:03:28.877Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T22:08:28.868Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T22:18:28.868Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-28T22:53:28.868Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-28T23:53:28.868Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T22:03:28.870Z",
+      "completedAt": "2026-09-28T22:03:28.884Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790633008888-1790633008890",
+      "postId": "test-postboost-blocked-1790633008888",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T21:53:28.888Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T21:58:28.888Z",
+          "status": "done",
+          "executedAt": "2026-09-28T22:03:28.897Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T22:08:28.888Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T22:18:28.888Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-28T22:53:28.888Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-28T23:53:28.888Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T22:03:28.890Z",
+      "completedAt": "2026-09-28T22:03:28.902Z"
+    },
+    {
+      "id": "boost-test-postboost-1790634277308-1790634277311",
+      "postId": "test-postboost-1790634277308",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T22:24:37.308Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T22:29:37.308Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T22:39:37.308Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T22:49:37.308Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-28T23:24:37.308Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T00:24:37.308Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T22:24:37.311Z",
+      "completedAt": "2026-09-28T22:24:37.320Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790634277328-1790634277330",
+      "postId": "test-postboost-mediaid-1790634277328",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T22:14:37.328Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T22:19:37.328Z",
+          "status": "done",
+          "executedAt": "2026-09-28T22:24:37.347Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T22:29:37.328Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T22:39:37.328Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-28T23:14:37.328Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T00:14:37.328Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T22:24:37.330Z",
+      "completedAt": "2026-09-28T22:24:37.355Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790634277360-1790634277361",
+      "postId": "test-postboost-nomediaid-1790634277360",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T22:14:37.360Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T22:19:37.360Z",
+          "status": "done",
+          "executedAt": "2026-09-28T22:24:37.367Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T22:29:37.360Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T22:39:37.360Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-28T23:14:37.360Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T00:14:37.360Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T22:24:37.361Z",
+      "completedAt": "2026-09-28T22:24:37.372Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790634277376-1790634277379",
+      "postId": "test-postboost-blocked-1790634277376",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T22:14:37.377Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T22:19:37.377Z",
+          "status": "done",
+          "executedAt": "2026-09-28T22:24:37.385Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T22:29:37.377Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T22:39:37.377Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-28T23:14:37.377Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T00:14:37.377Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T22:24:37.379Z",
+      "completedAt": "2026-09-28T22:24:37.393Z"
+    },
+    {
+      "id": "boost-test-postboost-1790638908792-1790638908794",
+      "postId": "test-postboost-1790638908792",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T23:41:48.792Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T23:46:48.792Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T23:56:48.792Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T00:06:48.792Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T00:41:48.792Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T01:41:48.792Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T23:41:48.795Z",
+      "completedAt": "2026-09-28T23:41:48.808Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790638908815-1790638908817",
+      "postId": "test-postboost-mediaid-1790638908815",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T23:31:48.815Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T23:36:48.815Z",
+          "status": "done",
+          "executedAt": "2026-09-28T23:41:48.830Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T23:46:48.815Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T23:56:48.815Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T00:31:48.815Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T01:31:48.815Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T23:41:48.817Z",
+      "completedAt": "2026-09-28T23:41:48.842Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790638908847-1790638908849",
+      "postId": "test-postboost-nomediaid-1790638908847",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T23:31:48.847Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T23:36:48.847Z",
+          "status": "done",
+          "executedAt": "2026-09-28T23:41:48.855Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T23:46:48.847Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T23:56:48.847Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T00:31:48.847Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T01:31:48.847Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T23:41:48.849Z",
+      "completedAt": "2026-09-28T23:41:48.860Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790638908864-1790638908866",
+      "postId": "test-postboost-blocked-1790638908864",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-28T23:31:48.864Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-28T23:36:48.864Z",
+          "status": "done",
+          "executedAt": "2026-09-28T23:41:48.872Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-28T23:46:48.864Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-28T23:56:48.864Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T00:31:48.864Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T01:31:48.864Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-28T23:41:48.866Z",
+      "completedAt": "2026-09-28T23:41:48.878Z"
+    },
+    {
+      "id": "boost-test-postboost-1790702625599-1790702625601",
+      "postId": "test-postboost-1790702625599",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T17:23:45.599Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T17:28:45.599Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T17:38:45.599Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T17:48:45.599Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T18:23:45.599Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T19:23:45.599Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T17:23:45.601Z",
+      "completedAt": "2026-09-29T17:23:45.610Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790702625615-1790702625617",
+      "postId": "test-postboost-mediaid-1790702625615",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T17:13:45.616Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T17:18:45.616Z",
+          "status": "done",
+          "executedAt": "2026-09-29T17:23:45.630Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T17:28:45.616Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T17:38:45.616Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T18:13:45.616Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T19:13:45.616Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T17:23:45.617Z",
+      "completedAt": "2026-09-29T17:23:45.639Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790702625644-1790702625646",
+      "postId": "test-postboost-nomediaid-1790702625644",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T17:13:45.644Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T17:18:45.644Z",
+          "status": "done",
+          "executedAt": "2026-09-29T17:23:45.652Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T17:28:45.644Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T17:38:45.644Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T18:13:45.644Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T19:13:45.644Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T17:23:45.646Z",
+      "completedAt": "2026-09-29T17:23:45.659Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790702625663-1790702625666",
+      "postId": "test-postboost-blocked-1790702625663",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T17:13:45.663Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T17:18:45.663Z",
+          "status": "done",
+          "executedAt": "2026-09-29T17:23:45.674Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T17:28:45.663Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T17:38:45.663Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T18:13:45.663Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T19:13:45.663Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T17:23:45.666Z",
+      "completedAt": "2026-09-29T17:23:45.679Z"
+    },
+    {
+      "id": "boost-test-postboost-1790705969127-1790705969129",
+      "postId": "test-postboost-1790705969127",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T18:19:29.127Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T18:24:29.127Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T18:34:29.127Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T18:44:29.127Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T19:19:29.127Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T20:19:29.127Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T18:19:29.130Z",
+      "completedAt": "2026-09-29T18:19:29.138Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790705969143-1790705969145",
+      "postId": "test-postboost-mediaid-1790705969143",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T18:09:29.143Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T18:14:29.143Z",
+          "status": "done",
+          "executedAt": "2026-09-29T18:19:29.156Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T18:24:29.143Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T18:34:29.143Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T19:09:29.143Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T20:09:29.143Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T18:19:29.145Z",
+      "completedAt": "2026-09-29T18:19:29.164Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790705969167-1790705969171",
+      "postId": "test-postboost-nomediaid-1790705969167",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T18:09:29.167Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T18:14:29.167Z",
+          "status": "done",
+          "executedAt": "2026-09-29T18:19:29.177Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T18:24:29.167Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T18:34:29.167Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T19:09:29.167Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T20:09:29.167Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T18:19:29.171Z",
+      "completedAt": "2026-09-29T18:19:29.182Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790705969186-1790705969188",
+      "postId": "test-postboost-blocked-1790705969186",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T18:09:29.186Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T18:14:29.186Z",
+          "status": "done",
+          "executedAt": "2026-09-29T18:19:29.194Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T18:24:29.186Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T18:34:29.186Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T19:09:29.186Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T20:09:29.186Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T18:19:29.188Z",
+      "completedAt": "2026-09-29T18:19:29.199Z"
+    },
+    {
+      "id": "boost-test-postboost-1790712479844-1790712479847",
+      "postId": "test-postboost-1790712479844",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T20:07:59.844Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T20:12:59.844Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T20:22:59.844Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T20:32:59.844Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T21:07:59.844Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T22:07:59.844Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T20:07:59.848Z",
+      "completedAt": "2026-09-29T20:07:59.860Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790712479866-1790712479868",
+      "postId": "test-postboost-mediaid-1790712479866",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T19:57:59.866Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T20:02:59.866Z",
+          "status": "done",
+          "executedAt": "2026-09-29T20:07:59.884Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T20:12:59.866Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T20:22:59.866Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T20:57:59.866Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T21:57:59.866Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T20:07:59.868Z",
+      "completedAt": "2026-09-29T20:07:59.893Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790712479898-1790712479901",
+      "postId": "test-postboost-nomediaid-1790712479898",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T19:57:59.898Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T20:02:59.898Z",
+          "status": "done",
+          "executedAt": "2026-09-29T20:07:59.908Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T20:12:59.898Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T20:22:59.898Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T20:57:59.898Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T21:57:59.898Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T20:07:59.901Z",
+      "completedAt": "2026-09-29T20:07:59.915Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790712479921-1790712479924",
+      "postId": "test-postboost-blocked-1790712479921",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T19:57:59.921Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T20:02:59.921Z",
+          "status": "done",
+          "executedAt": "2026-09-29T20:07:59.932Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T20:12:59.921Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T20:22:59.921Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T20:57:59.921Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T21:57:59.921Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T20:07:59.924Z",
+      "completedAt": "2026-09-29T20:07:59.938Z"
+    },
+    {
+      "id": "boost-test-postboost-1790712577408-1790712577411",
+      "postId": "test-postboost-1790712577408",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T20:09:37.408Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T20:14:37.408Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T20:24:37.408Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T20:34:37.408Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T21:09:37.408Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T22:09:37.408Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T20:09:37.411Z",
+      "completedAt": "2026-09-29T20:09:37.421Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790712577425-1790712577427",
+      "postId": "test-postboost-mediaid-1790712577425",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T19:59:37.425Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T20:04:37.425Z",
+          "status": "done",
+          "executedAt": "2026-09-29T20:09:37.441Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T20:14:37.425Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T20:24:37.425Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T20:59:37.425Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T21:59:37.425Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T20:09:37.427Z",
+      "completedAt": "2026-09-29T20:09:37.449Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790712577453-1790712577455",
+      "postId": "test-postboost-nomediaid-1790712577453",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T19:59:37.453Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T20:04:37.453Z",
+          "status": "done",
+          "executedAt": "2026-09-29T20:09:37.461Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T20:14:37.453Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T20:24:37.453Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T20:59:37.453Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T21:59:37.453Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T20:09:37.455Z",
+      "completedAt": "2026-09-29T20:09:37.467Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790712577471-1790712577473",
+      "postId": "test-postboost-blocked-1790712577471",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T19:59:37.471Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T20:04:37.471Z",
+          "status": "done",
+          "executedAt": "2026-09-29T20:09:37.481Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T20:14:37.471Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T20:24:37.471Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T20:59:37.471Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-29T21:59:37.471Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T20:09:37.473Z",
+      "completedAt": "2026-09-29T20:09:37.485Z"
+    },
+    {
+      "id": "boost-test-postboost-1790722432747-1790722432748",
+      "postId": "test-postboost-1790722432747",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T22:53:52.747Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T22:58:52.747Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T23:08:52.747Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T23:18:52.747Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T23:53:52.747Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T00:53:52.747Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T22:53:52.748Z",
+      "completedAt": "2026-09-29T22:53:52.753Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790722432755-1790722432756",
+      "postId": "test-postboost-mediaid-1790722432755",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T22:43:52.755Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T22:48:52.755Z",
+          "status": "done",
+          "executedAt": "2026-09-29T22:53:52.762Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T22:58:52.755Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T23:08:52.755Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T23:43:52.755Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T00:43:52.755Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T22:53:52.756Z",
+      "completedAt": "2026-09-29T22:53:52.766Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790722432768-1790722432769",
+      "postId": "test-postboost-nomediaid-1790722432768",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T22:43:52.768Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T22:48:52.768Z",
+          "status": "done",
+          "executedAt": "2026-09-29T22:53:52.772Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T22:58:52.768Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T23:08:52.768Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T23:43:52.768Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T00:43:52.768Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T22:53:52.769Z",
+      "completedAt": "2026-09-29T22:53:52.775Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790722432778-1790722432779",
+      "postId": "test-postboost-blocked-1790722432778",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-29T22:43:52.778Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-29T22:48:52.778Z",
+          "status": "done",
+          "executedAt": "2026-09-29T22:53:52.782Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-29T22:58:52.778Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-29T23:08:52.778Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-29T23:43:52.778Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T00:43:52.778Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-29T22:53:52.779Z",
+      "completedAt": "2026-09-29T22:53:52.785Z"
+    },
+    {
+      "id": "boost-test-postboost-1790784604887-1790784604889",
+      "postId": "test-postboost-1790784604887",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T16:10:04.887Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T16:15:04.887Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T16:25:04.887Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T16:35:04.887Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T17:10:04.887Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T18:10:04.887Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T16:10:04.889Z",
+      "completedAt": "2026-09-30T16:10:04.894Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790784604897-1790784604898",
+      "postId": "test-postboost-mediaid-1790784604897",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T16:00:04.897Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T16:05:04.897Z",
+          "status": "done",
+          "executedAt": "2026-09-30T16:10:04.905Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T16:15:04.897Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T16:25:04.897Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T17:00:04.897Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T18:00:04.897Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T16:10:04.899Z",
+      "completedAt": "2026-09-30T16:10:04.910Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790784604912-1790784604914",
+      "postId": "test-postboost-nomediaid-1790784604912",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T16:00:04.912Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T16:05:04.912Z",
+          "status": "done",
+          "executedAt": "2026-09-30T16:10:04.917Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T16:15:04.912Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T16:25:04.912Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T17:00:04.912Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T18:00:04.912Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T16:10:04.914Z",
+      "completedAt": "2026-09-30T16:10:04.920Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790784604922-1790784604923",
+      "postId": "test-postboost-blocked-1790784604922",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T16:00:04.922Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T16:05:04.922Z",
+          "status": "done",
+          "executedAt": "2026-09-30T16:10:04.927Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T16:15:04.922Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T16:25:04.922Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T17:00:04.922Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T18:00:04.922Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T16:10:04.923Z",
+      "completedAt": "2026-09-30T16:10:04.930Z"
+    },
+    {
+      "id": "boost-test-postboost-1790800373030-1790800373032",
+      "postId": "test-postboost-1790800373030",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T20:32:53.030Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T20:37:53.030Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T20:47:53.030Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T20:57:53.030Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T21:32:53.030Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T22:32:53.030Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T20:32:53.032Z",
+      "completedAt": "2026-09-30T20:32:53.037Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790800373040-1790800373042",
+      "postId": "test-postboost-mediaid-1790800373040",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T20:22:53.040Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T20:27:53.040Z",
+          "status": "done",
+          "executedAt": "2026-09-30T20:32:53.048Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T20:37:53.040Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T20:47:53.040Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T21:22:53.040Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T22:22:53.040Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T20:32:53.042Z",
+      "completedAt": "2026-09-30T20:32:53.053Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790800373055-1790800373056",
+      "postId": "test-postboost-nomediaid-1790800373055",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T20:22:53.055Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T20:27:53.055Z",
+          "status": "done",
+          "executedAt": "2026-09-30T20:32:53.060Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T20:37:53.055Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T20:47:53.055Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T21:22:53.055Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T22:22:53.055Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T20:32:53.056Z",
+      "completedAt": "2026-09-30T20:32:53.063Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790800373064-1790800373066",
+      "postId": "test-postboost-blocked-1790800373064",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T20:22:53.064Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T20:27:53.064Z",
+          "status": "done",
+          "executedAt": "2026-09-30T20:32:53.070Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T20:37:53.064Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T20:47:53.064Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T21:22:53.064Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T22:22:53.064Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T20:32:53.066Z",
+      "completedAt": "2026-09-30T20:32:53.073Z"
+    },
+    {
+      "id": "boost-test-postboost-1790802602387-1790802602388",
+      "postId": "test-postboost-1790802602387",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T21:10:02.387Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T21:15:02.387Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T21:25:02.387Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T21:35:02.387Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T22:10:02.387Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T23:10:02.387Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T21:10:02.388Z",
+      "completedAt": "2026-09-30T21:10:02.393Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790802602397-1790802602398",
+      "postId": "test-postboost-mediaid-1790802602397",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T21:00:02.397Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T21:05:02.397Z",
+          "status": "done",
+          "executedAt": "2026-09-30T21:10:02.405Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T21:15:02.397Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T21:25:02.397Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T22:00:02.397Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T23:00:02.397Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T21:10:02.398Z",
+      "completedAt": "2026-09-30T21:10:02.410Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790802602412-1790802602413",
+      "postId": "test-postboost-nomediaid-1790802602412",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T21:00:02.412Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T21:05:02.412Z",
+          "status": "done",
+          "executedAt": "2026-09-30T21:10:02.417Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T21:15:02.412Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T21:25:02.412Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T22:00:02.412Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T23:00:02.412Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T21:10:02.413Z",
+      "completedAt": "2026-09-30T21:10:02.420Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790802602422-1790802602423",
+      "postId": "test-postboost-blocked-1790802602422",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T21:00:02.422Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T21:05:02.422Z",
+          "status": "done",
+          "executedAt": "2026-09-30T21:10:02.427Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T21:15:02.422Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T21:25:02.422Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T22:00:02.422Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T23:00:02.422Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T21:10:02.423Z",
+      "completedAt": "2026-09-30T21:10:02.430Z"
+    },
+    {
+      "id": "boost-test-postboost-1790804511216-1790804511218",
+      "postId": "test-postboost-1790804511216",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T21:41:51.216Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T21:46:51.216Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T21:56:51.216Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T22:06:51.216Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T22:41:51.216Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T23:41:51.216Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T21:41:51.218Z",
+      "completedAt": "2026-09-30T21:41:51.227Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1790804511233-1790804511235",
+      "postId": "test-postboost-mediaid-1790804511233",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T21:31:51.233Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T21:36:51.233Z",
+          "status": "done",
+          "executedAt": "2026-09-30T21:41:51.245Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T21:46:51.233Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T21:56:51.233Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T22:31:51.233Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T23:31:51.233Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T21:41:51.235Z",
+      "completedAt": "2026-09-30T21:41:51.252Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1790804511255-1790804511257",
+      "postId": "test-postboost-nomediaid-1790804511255",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T21:31:51.255Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T21:36:51.255Z",
+          "status": "done",
+          "executedAt": "2026-09-30T21:41:51.262Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T21:46:51.255Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T21:56:51.255Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T22:31:51.255Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T23:31:51.255Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T21:41:51.257Z",
+      "completedAt": "2026-09-30T21:41:51.267Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1790804511269-1790804511271",
+      "postId": "test-postboost-blocked-1790804511269",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-09-30T21:31:51.269Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-09-30T21:36:51.269Z",
+          "status": "done",
+          "executedAt": "2026-09-30T21:41:51.277Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-09-30T21:46:51.269Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-09-30T21:56:51.269Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-09-30T22:31:51.269Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-09-30T23:31:51.269Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-09-30T21:41:51.271Z",
+      "completedAt": "2026-09-30T21:41:51.283Z"
+    },
+    {
+      "id": "boost-test-postboost-1791136454285-1791136454287",
+      "postId": "test-postboost-1791136454285",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T17:54:14.285Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T17:59:14.285Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T18:09:14.285Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:19:14.285Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T18:54:14.285Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T19:54:14.285Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T17:54:14.287Z",
+      "completedAt": "2026-10-04T17:54:14.293Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791136454296-1791136454297",
+      "postId": "test-postboost-mediaid-1791136454296",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T17:44:14.296Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T17:49:14.296Z",
+          "status": "done",
+          "executedAt": "2026-10-04T17:54:14.304Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T17:59:14.296Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:09:14.296Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T18:44:14.296Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T19:44:14.296Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T17:54:14.297Z",
+      "completedAt": "2026-10-04T17:54:14.309Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791136454312-1791136454313",
+      "postId": "test-postboost-nomediaid-1791136454312",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T17:44:14.312Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T17:49:14.312Z",
+          "status": "done",
+          "executedAt": "2026-10-04T17:54:14.317Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T17:59:14.312Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:09:14.312Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T18:44:14.312Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T19:44:14.312Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T17:54:14.313Z",
+      "completedAt": "2026-10-04T17:54:14.321Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791136454324-1791136454325",
+      "postId": "test-postboost-blocked-1791136454324",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T17:44:14.324Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T17:49:14.324Z",
+          "status": "done",
+          "executedAt": "2026-10-04T17:54:14.331Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T17:59:14.324Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:09:14.324Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T18:44:14.324Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T19:44:14.324Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T17:54:14.325Z",
+      "completedAt": "2026-10-04T17:54:14.335Z"
+    },
+    {
+      "id": "boost-test-postboost-1791136516352-1791136516354",
+      "postId": "test-postboost-1791136516352",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T17:55:16.352Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T18:00:16.352Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T18:10:16.352Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:20:16.352Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T18:55:16.352Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T19:55:16.352Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T17:55:16.354Z",
+      "completedAt": "2026-10-04T17:55:16.359Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791136516362-1791136516364",
+      "postId": "test-postboost-mediaid-1791136516362",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T17:45:16.362Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T17:50:16.362Z",
+          "status": "done",
+          "executedAt": "2026-10-04T17:55:16.372Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T18:00:16.362Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:10:16.362Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T18:45:16.362Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T19:45:16.362Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T17:55:16.364Z",
+      "completedAt": "2026-10-04T17:55:16.377Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791136516379-1791136516380",
+      "postId": "test-postboost-nomediaid-1791136516379",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T17:45:16.379Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T17:50:16.379Z",
+          "status": "done",
+          "executedAt": "2026-10-04T17:55:16.385Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T18:00:16.379Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:10:16.379Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T18:45:16.379Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T19:45:16.379Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T17:55:16.380Z",
+      "completedAt": "2026-10-04T17:55:16.388Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791136516391-1791136516392",
+      "postId": "test-postboost-blocked-1791136516391",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T17:45:16.391Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T17:50:16.391Z",
+          "status": "done",
+          "executedAt": "2026-10-04T17:55:16.396Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T18:00:16.391Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:10:16.391Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T18:45:16.391Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T19:45:16.391Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T17:55:16.392Z",
+      "completedAt": "2026-10-04T17:55:16.399Z"
+    },
+    {
+      "id": "boost-test-postboost-1791137234070-1791137234072",
+      "postId": "test-postboost-1791137234070",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T18:07:14.070Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T18:12:14.070Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T18:22:14.070Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:32:14.070Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T19:07:14.070Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T20:07:14.070Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T18:07:14.072Z",
+      "completedAt": "2026-10-04T18:07:14.078Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791137234081-1791137234082",
+      "postId": "test-postboost-mediaid-1791137234081",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T17:57:14.081Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T18:02:14.081Z",
+          "status": "done",
+          "executedAt": "2026-10-04T18:07:14.090Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T18:12:14.081Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:22:14.081Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T18:57:14.081Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T19:57:14.081Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T18:07:14.082Z",
+      "completedAt": "2026-10-04T18:07:14.096Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791137234098-1791137234100",
+      "postId": "test-postboost-nomediaid-1791137234098",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T17:57:14.098Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T18:02:14.098Z",
+          "status": "done",
+          "executedAt": "2026-10-04T18:07:14.104Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T18:12:14.098Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:22:14.098Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T18:57:14.098Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T19:57:14.098Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T18:07:14.100Z",
+      "completedAt": "2026-10-04T18:07:14.108Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791137234110-1791137234112",
+      "postId": "test-postboost-blocked-1791137234110",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T17:57:14.110Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T18:02:14.110Z",
+          "status": "done",
+          "executedAt": "2026-10-04T18:07:14.116Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T18:12:14.110Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:22:14.110Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T18:57:14.110Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T19:57:14.110Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T18:07:14.112Z",
+      "completedAt": "2026-10-04T18:07:14.120Z"
+    },
+    {
+      "id": "boost-test-postboost-1791138601948-1791138601949",
+      "postId": "test-postboost-1791138601948",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T18:30:01.948Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T18:35:01.948Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T18:45:01.948Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:55:01.948Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T19:30:01.948Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T20:30:01.948Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T18:30:01.949Z",
+      "completedAt": "2026-10-04T18:30:01.955Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791138601959-1791138601961",
+      "postId": "test-postboost-mediaid-1791138601959",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T18:20:01.959Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T18:25:01.959Z",
+          "status": "done",
+          "executedAt": "2026-10-04T18:30:01.969Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T18:35:01.959Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:45:01.959Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T19:20:01.959Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T20:20:01.959Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T18:30:01.961Z",
+      "completedAt": "2026-10-04T18:30:01.974Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791138601978-1791138601979",
+      "postId": "test-postboost-nomediaid-1791138601978",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T18:20:01.978Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T18:25:01.978Z",
+          "status": "done",
+          "executedAt": "2026-10-04T18:30:01.984Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T18:35:01.978Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:45:01.978Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T19:20:01.978Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T20:20:01.978Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T18:30:01.979Z",
+      "completedAt": "2026-10-04T18:30:01.988Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791138601993-1791138601995",
+      "postId": "test-postboost-blocked-1791138601993",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T18:20:01.993Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T18:25:01.993Z",
+          "status": "done",
+          "executedAt": "2026-10-04T18:30:01.999Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T18:35:01.993Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T18:45:01.993Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T19:20:01.993Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T20:20:01.993Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T18:30:01.995Z",
+      "completedAt": "2026-10-04T18:30:02.002Z"
+    },
+    {
+      "id": "boost-test-postboost-1791140397708-1791140397710",
+      "postId": "test-postboost-1791140397708",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T18:59:57.708Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T19:04:57.708Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T19:14:57.708Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T19:24:57.708Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T19:59:57.708Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T20:59:57.708Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T18:59:57.710Z",
+      "completedAt": "2026-10-04T18:59:57.717Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791140397722-1791140397723",
+      "postId": "test-postboost-mediaid-1791140397722",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T18:49:57.722Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T18:54:57.722Z",
+          "status": "done",
+          "executedAt": "2026-10-04T18:59:57.731Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T19:04:57.722Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T19:14:57.722Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T19:49:57.722Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T20:49:57.722Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T18:59:57.724Z",
+      "completedAt": "2026-10-04T18:59:57.737Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791140397740-1791140397742",
+      "postId": "test-postboost-nomediaid-1791140397740",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T18:49:57.740Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T18:54:57.740Z",
+          "status": "done",
+          "executedAt": "2026-10-04T18:59:57.746Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T19:04:57.740Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T19:14:57.740Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T19:49:57.740Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T20:49:57.740Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T18:59:57.742Z",
+      "completedAt": "2026-10-04T18:59:57.750Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791140397753-1791140397755",
+      "postId": "test-postboost-blocked-1791140397753",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T18:49:57.753Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T18:54:57.753Z",
+          "status": "done",
+          "executedAt": "2026-10-04T18:59:57.762Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T19:04:57.753Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T19:14:57.753Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T19:49:57.753Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T20:49:57.753Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T18:59:57.755Z",
+      "completedAt": "2026-10-04T18:59:57.767Z"
+    },
+    {
+      "id": "boost-test-postboost-1791143472503-1791143472505",
+      "postId": "test-postboost-1791143472503",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T19:51:12.503Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T19:56:12.503Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T20:06:12.503Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T20:16:12.503Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T20:51:12.503Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T21:51:12.503Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T19:51:12.505Z",
+      "completedAt": "2026-10-04T19:51:12.513Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791143472519-1791143472521",
+      "postId": "test-postboost-mediaid-1791143472519",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T19:41:12.519Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T19:46:12.519Z",
+          "status": "done",
+          "executedAt": "2026-10-04T19:51:12.530Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T19:56:12.519Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T20:06:12.519Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T20:41:12.519Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T21:41:12.519Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T19:51:12.521Z",
+      "completedAt": "2026-10-04T19:51:12.536Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791143472539-1791143472540",
+      "postId": "test-postboost-nomediaid-1791143472539",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T19:41:12.539Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T19:46:12.539Z",
+          "status": "done",
+          "executedAt": "2026-10-04T19:51:12.545Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T19:56:12.539Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T20:06:12.539Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T20:41:12.539Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T21:41:12.539Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T19:51:12.540Z",
+      "completedAt": "2026-10-04T19:51:12.551Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791143472554-1791143472555",
+      "postId": "test-postboost-blocked-1791143472554",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T19:41:12.554Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T19:46:12.554Z",
+          "status": "done",
+          "executedAt": "2026-10-04T19:51:12.560Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T19:56:12.554Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T20:06:12.554Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T20:41:12.554Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T21:41:12.554Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T19:51:12.555Z",
+      "completedAt": "2026-10-04T19:51:12.564Z"
+    },
+    {
+      "id": "boost-test-postboost-1791144882920-1791144882922",
+      "postId": "test-postboost-1791144882920",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T20:14:42.920Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T20:19:42.920Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T20:29:42.920Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T20:39:42.920Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T21:14:42.920Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T22:14:42.920Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T20:14:42.922Z",
+      "completedAt": "2026-10-04T20:14:42.928Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791144882932-1791144882934",
+      "postId": "test-postboost-mediaid-1791144882932",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T20:04:42.932Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T20:09:42.932Z",
+          "status": "done",
+          "executedAt": "2026-10-04T20:14:42.941Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T20:19:42.932Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T20:29:42.932Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T21:04:42.932Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T22:04:42.932Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T20:14:42.934Z",
+      "completedAt": "2026-10-04T20:14:42.947Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791144882949-1791144882951",
+      "postId": "test-postboost-nomediaid-1791144882949",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T20:04:42.949Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T20:09:42.949Z",
+          "status": "done",
+          "executedAt": "2026-10-04T20:14:42.956Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T20:19:42.949Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T20:29:42.949Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T21:04:42.949Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T22:04:42.949Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T20:14:42.951Z",
+      "completedAt": "2026-10-04T20:14:42.960Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791144882963-1791144882964",
+      "postId": "test-postboost-blocked-1791144882963",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T20:04:42.963Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T20:09:42.963Z",
+          "status": "done",
+          "executedAt": "2026-10-04T20:14:42.969Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T20:19:42.963Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T20:29:42.963Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T21:04:42.963Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T22:04:42.963Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T20:14:42.965Z",
+      "completedAt": "2026-10-04T20:14:42.973Z"
+    },
+    {
+      "id": "boost-test-postboost-1791145662792-1791145662794",
+      "postId": "test-postboost-1791145662792",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T20:27:42.792Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T20:32:42.792Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T20:42:42.792Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T20:52:42.792Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T21:27:42.792Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T22:27:42.792Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T20:27:42.794Z",
+      "completedAt": "2026-10-04T20:27:42.800Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791145662804-1791145662805",
+      "postId": "test-postboost-mediaid-1791145662804",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T20:17:42.804Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T20:22:42.804Z",
+          "status": "done",
+          "executedAt": "2026-10-04T20:27:42.813Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T20:32:42.804Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T20:42:42.804Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T21:17:42.804Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T22:17:42.804Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T20:27:42.805Z",
+      "completedAt": "2026-10-04T20:27:42.820Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791145662822-1791145662824",
+      "postId": "test-postboost-nomediaid-1791145662822",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T20:17:42.822Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T20:22:42.822Z",
+          "status": "done",
+          "executedAt": "2026-10-04T20:27:42.829Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T20:32:42.822Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T20:42:42.822Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T21:17:42.822Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T22:17:42.822Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T20:27:42.824Z",
+      "completedAt": "2026-10-04T20:27:42.834Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791145662837-1791145662838",
+      "postId": "test-postboost-blocked-1791145662837",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T20:17:42.837Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T20:22:42.837Z",
+          "status": "done",
+          "executedAt": "2026-10-04T20:27:42.843Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T20:32:42.837Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T20:42:42.837Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T21:17:42.837Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T22:17:42.837Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T20:27:42.838Z",
+      "completedAt": "2026-10-04T20:27:42.847Z"
+    },
+    {
+      "id": "boost-test-postboost-1791147116309-1791147116310",
+      "postId": "test-postboost-1791147116309",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T20:51:56.309Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T20:56:56.309Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T21:06:56.309Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T21:16:56.309Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T21:51:56.309Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T22:51:56.309Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T20:51:56.311Z",
+      "completedAt": "2026-10-04T20:51:56.317Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791147116321-1791147116323",
+      "postId": "test-postboost-mediaid-1791147116321",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T20:41:56.321Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T20:46:56.321Z",
+          "status": "done",
+          "executedAt": "2026-10-04T20:51:56.331Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T20:56:56.321Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T21:06:56.321Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T21:41:56.321Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T22:41:56.321Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T20:51:56.323Z",
+      "completedAt": "2026-10-04T20:51:56.338Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791147116341-1791147116343",
+      "postId": "test-postboost-nomediaid-1791147116341",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T20:41:56.341Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T20:46:56.341Z",
+          "status": "done",
+          "executedAt": "2026-10-04T20:51:56.348Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T20:56:56.341Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T21:06:56.341Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T21:41:56.341Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T22:41:56.341Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T20:51:56.343Z",
+      "completedAt": "2026-10-04T20:51:56.352Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791147116355-1791147116357",
+      "postId": "test-postboost-blocked-1791147116355",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T20:41:56.355Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T20:46:56.355Z",
+          "status": "done",
+          "executedAt": "2026-10-04T20:51:56.362Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T20:56:56.355Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T21:06:56.355Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-04T21:41:56.355Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-04T22:41:56.355Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T20:51:56.357Z",
+      "completedAt": "2026-10-04T20:51:56.366Z"
+    },
+    {
+      "id": "boost-test-postboost-1791155572374-1791155572377",
+      "postId": "test-postboost-1791155572374",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T23:12:52.374Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T23:17:52.374Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T23:27:52.374Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T23:37:52.374Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T00:12:52.374Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T01:12:52.374Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T23:12:52.377Z",
+      "completedAt": "2026-10-04T23:12:52.384Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791155572388-1791155572390",
+      "postId": "test-postboost-mediaid-1791155572388",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T23:02:52.388Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T23:07:52.388Z",
+          "status": "done",
+          "executedAt": "2026-10-04T23:12:52.398Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T23:17:52.388Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T23:27:52.388Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T00:02:52.388Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T01:02:52.388Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T23:12:52.390Z",
+      "completedAt": "2026-10-04T23:12:52.403Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791155572406-1791155572408",
+      "postId": "test-postboost-nomediaid-1791155572406",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T23:02:52.406Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T23:07:52.406Z",
+          "status": "done",
+          "executedAt": "2026-10-04T23:12:52.414Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T23:17:52.406Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T23:27:52.406Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T00:02:52.406Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T01:02:52.406Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T23:12:52.408Z",
+      "completedAt": "2026-10-04T23:12:52.419Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791155572422-1791155572424",
+      "postId": "test-postboost-blocked-1791155572422",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-04T23:02:52.422Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-04T23:07:52.422Z",
+          "status": "done",
+          "executedAt": "2026-10-04T23:12:52.429Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-04T23:17:52.422Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-04T23:27:52.422Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T00:02:52.422Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T01:02:52.422Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-04T23:12:52.424Z",
+      "completedAt": "2026-10-04T23:12:52.432Z"
+    },
+    {
+      "id": "boost-test-postboost-1791160057882-1791160057884",
+      "postId": "test-postboost-1791160057882",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T00:27:37.882Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T00:32:37.882Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T00:42:37.882Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T00:52:37.882Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T01:27:37.882Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T02:27:37.882Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T00:27:37.885Z",
+      "completedAt": "2026-10-05T00:27:37.893Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791160057897-1791160057899",
+      "postId": "test-postboost-mediaid-1791160057897",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T00:17:37.897Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T00:22:37.897Z",
+          "status": "done",
+          "executedAt": "2026-10-05T00:27:37.911Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T00:32:37.897Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T00:42:37.897Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T01:17:37.897Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T02:17:37.897Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T00:27:37.899Z",
+      "completedAt": "2026-10-05T00:27:37.919Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791160057923-1791160057925",
+      "postId": "test-postboost-nomediaid-1791160057923",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T00:17:37.923Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T00:22:37.923Z",
+          "status": "done",
+          "executedAt": "2026-10-05T00:27:37.930Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T00:32:37.923Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T00:42:37.923Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T01:17:37.923Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T02:17:37.923Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T00:27:37.925Z",
+      "completedAt": "2026-10-05T00:27:37.936Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791160057939-1791160057942",
+      "postId": "test-postboost-blocked-1791160057939",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T00:17:37.939Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T00:22:37.939Z",
+          "status": "done",
+          "executedAt": "2026-10-05T00:27:37.948Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T00:32:37.939Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T00:42:37.939Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T01:17:37.939Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T02:17:37.939Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T00:27:37.942Z",
+      "completedAt": "2026-10-05T00:27:37.954Z"
+    },
+    {
+      "id": "boost-test-postboost-1791161894373-1791161894375",
+      "postId": "test-postboost-1791161894373",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T00:58:14.373Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T01:03:14.373Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T01:13:14.373Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T01:23:14.373Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T01:58:14.373Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T02:58:14.373Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T00:58:14.375Z",
+      "completedAt": "2026-10-05T00:58:14.382Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791161894386-1791161894388",
+      "postId": "test-postboost-mediaid-1791161894386",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T00:48:14.386Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T00:53:14.386Z",
+          "status": "done",
+          "executedAt": "2026-10-05T00:58:14.397Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T01:03:14.386Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T01:13:14.386Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T01:48:14.386Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T02:48:14.386Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T00:58:14.388Z",
+      "completedAt": "2026-10-05T00:58:14.405Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791161894408-1791161894410",
+      "postId": "test-postboost-nomediaid-1791161894408",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T00:48:14.408Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T00:53:14.408Z",
+          "status": "done",
+          "executedAt": "2026-10-05T00:58:14.415Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T01:03:14.408Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T01:13:14.408Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T01:48:14.408Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T02:48:14.408Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T00:58:14.410Z",
+      "completedAt": "2026-10-05T00:58:14.420Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791161894423-1791161894425",
+      "postId": "test-postboost-blocked-1791161894423",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T00:48:14.423Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T00:53:14.423Z",
+          "status": "done",
+          "executedAt": "2026-10-05T00:58:14.430Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T01:03:14.423Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T01:13:14.423Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T01:48:14.423Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T02:48:14.423Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T00:58:14.425Z",
+      "completedAt": "2026-10-05T00:58:14.435Z"
+    },
+    {
+      "id": "boost-test-postboost-1791169762219-1791169762221",
+      "postId": "test-postboost-1791169762219",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T03:09:22.219Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T03:14:22.219Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T03:24:22.219Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T03:34:22.219Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T04:09:22.219Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T05:09:22.219Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T03:09:22.221Z",
+      "completedAt": "2026-10-05T03:09:22.227Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791169762231-1791169762233",
+      "postId": "test-postboost-mediaid-1791169762231",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T02:59:22.231Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T03:04:22.231Z",
+          "status": "done",
+          "executedAt": "2026-10-05T03:09:22.240Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T03:14:22.231Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T03:24:22.231Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T03:59:22.231Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T04:59:22.231Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T03:09:22.233Z",
+      "completedAt": "2026-10-05T03:09:22.246Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791169762249-1791169762251",
+      "postId": "test-postboost-nomediaid-1791169762249",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T02:59:22.249Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T03:04:22.249Z",
+          "status": "done",
+          "executedAt": "2026-10-05T03:09:22.256Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T03:14:22.249Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T03:24:22.249Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T03:59:22.249Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T04:59:22.249Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T03:09:22.251Z",
+      "completedAt": "2026-10-05T03:09:22.261Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791169762263-1791169762266",
+      "postId": "test-postboost-blocked-1791169762263",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T02:59:22.263Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T03:04:22.263Z",
+          "status": "done",
+          "executedAt": "2026-10-05T03:09:22.272Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T03:14:22.263Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T03:24:22.263Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T03:59:22.263Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T04:59:22.263Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T03:09:22.266Z",
+      "completedAt": "2026-10-05T03:09:22.277Z"
+    },
+    {
+      "id": "boost-test-postboost-1791206013847-1791206013850",
+      "postId": "test-postboost-1791206013847",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T13:13:33.847Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T13:18:33.847Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T13:28:33.847Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T13:38:33.847Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T14:13:33.847Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T15:13:33.847Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T13:13:33.850Z",
+      "completedAt": "2026-10-05T13:13:33.856Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791206013859-1791206013861",
+      "postId": "test-postboost-mediaid-1791206013859",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T13:03:33.859Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T13:08:33.859Z",
+          "status": "done",
+          "executedAt": "2026-10-05T13:13:33.869Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T13:18:33.859Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T13:28:33.859Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T14:03:33.859Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T15:03:33.859Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T13:13:33.861Z",
+      "completedAt": "2026-10-05T13:13:33.875Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791206013878-1791206013879",
+      "postId": "test-postboost-nomediaid-1791206013878",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T13:03:33.878Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T13:08:33.878Z",
+          "status": "done",
+          "executedAt": "2026-10-05T13:13:33.885Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T13:18:33.878Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T13:28:33.878Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T14:03:33.878Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T15:03:33.878Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T13:13:33.879Z",
+      "completedAt": "2026-10-05T13:13:33.889Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791206013891-1791206013893",
+      "postId": "test-postboost-blocked-1791206013891",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T13:03:33.891Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T13:08:33.891Z",
+          "status": "done",
+          "executedAt": "2026-10-05T13:13:33.898Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T13:18:33.891Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T13:28:33.891Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T14:03:33.891Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T15:03:33.891Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T13:13:33.893Z",
+      "completedAt": "2026-10-05T13:13:33.902Z"
+    },
+    {
+      "id": "boost-test-postboost-1791217686537-1791217686540",
+      "postId": "test-postboost-1791217686537",
+      "postUrl": "https://instagram.com/p/propio123",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T16:28:06.537Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T16:33:06.537Z",
+          "status": "pending"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T16:43:06.537Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T16:53:06.537Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T17:28:06.537Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T18:28:06.537Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T16:28:06.540Z",
+      "completedAt": "2026-10-05T16:28:06.548Z"
+    },
+    {
+      "id": "boost-test-postboost-mediaid-1791217686552-1791217686555",
+      "postId": "test-postboost-mediaid-1791217686552",
+      "postUrl": "https://instagram.com/p/propio123",
+      "mediaId": "17895695668004550",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T16:18:06.552Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T16:23:06.552Z",
+          "status": "done",
+          "executedAt": "2026-10-05T16:28:06.564Z",
+          "result": "Anchor comment publicado automáticamente (commentId comment-abc): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T16:33:06.552Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T16:43:06.552Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T17:18:06.552Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T18:18:06.552Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T16:28:06.555Z",
+      "completedAt": "2026-10-05T16:28:06.571Z"
+    },
+    {
+      "id": "boost-test-postboost-nomediaid-1791217686574-1791217686577",
+      "postId": "test-postboost-nomediaid-1791217686574",
+      "postUrl": "https://instagram.com/p/propio456",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T16:18:06.574Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T16:23:06.574Z",
+          "status": "done",
+          "executedAt": "2026-10-05T16:28:06.583Z",
+          "result": "Anchor comment listo para revisión humana (sin media ID, no se auto-publica): \"Respuesta de prueba...\""
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T16:33:06.574Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T16:43:06.574Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T17:18:06.574Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T18:18:06.574Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T16:28:06.577Z",
+      "completedAt": "2026-10-05T16:28:06.589Z"
+    },
+    {
+      "id": "boost-test-postboost-blocked-1791217686592-1791217686594",
+      "postId": "test-postboost-blocked-1791217686592",
+      "mediaId": "17895695668004999",
+      "postFormat": "post",
+      "publishedAt": "2026-10-05T16:18:06.592Z",
+      "stage": "cancelled",
+      "actions": [
+        {
+          "type": "pinned-comment",
+          "scheduledAt": "2026-10-05T16:23:06.592Z",
+          "status": "done",
+          "executedAt": "2026-10-05T16:28:06.600Z",
+          "result": "Anchor comment bloqueado/falló al auto-publicar (queda para revisión humana): \"Respuesta de prueba...\" — Compliance: violación ALTA"
+        },
+        {
+          "type": "community-prime",
+          "scheduledAt": "2026-10-05T16:33:06.592Z",
+          "status": "pending"
+        },
+        {
+          "type": "cross-promotion",
+          "scheduledAt": "2026-10-05T16:43:06.592Z",
+          "status": "pending"
+        },
+        {
+          "type": "reply-thread",
+          "scheduledAt": "2026-10-05T17:18:06.592Z",
+          "status": "pending"
+        },
+        {
+          "type": "check-metrics",
+          "scheduledAt": "2026-10-05T18:18:06.592Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-05T16:28:06.594Z",
+      "completedAt": "2026-10-05T16:28:06.604Z"
+    }
+  ],
+  "lastUpdated": "2026-10-05T16:28:06.605Z"
+}

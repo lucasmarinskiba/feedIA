@@ -1,0 +1,20 @@
+{
+  "period": "semanal",
+  "generatedAt": "2026-05-14T18:59:08.521Z",
+  "summary": {
+    "totalActions": 0,
+    "blockedActions": 0,
+    "complianceScore": 100,
+    "incidents": 0
+  },
+  "details": {
+    "rateLimits": {},
+    "actionTypesMonitored": 0,
+    "dryRun": true,
+    "strictMode": true
+  },
+  "recommendations": [
+    "El sistema sigue en modo DRY_RUN. Considerar activar producción si las pruebas fueron exitosas.",
+    "Sin actividad registrada esta semana. Verificar que el scheduler y el daemon estén activos."
+  ]
+}

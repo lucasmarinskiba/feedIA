@@ -123,6 +123,7 @@ const buildForm = (platform) => `
       <button class="fg-btn fg-btn-secondary" data-action="estrategia">1 · Estrategia</button>
       <button class="fg-btn fg-btn-secondary" data-action="producir">2 · Producir</button>
       <button class="fg-btn fg-btn-primary" data-action="todo"><span class="fg-btn-icon">✨</span>Generar todo</button>
+      <button class="fg-btn fg-btn-secondary" data-action="cargar-historico"><span class="fg-btn-icon">📊</span>Ver Histórico</button>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
@@ -402,6 +403,56 @@ const renderIntentos = () => {
   return `<div class="fg-card"><h3 class="fg-section-title">Comparar Intentos</h3><p class="fg-section-sub">Score total = 45% contenido + 35% hook + 20% cuenta. Elige el mejor.</p>${filas}</div>`;
 };
 
+const renderHistorico = (historial) => {
+  if (!historial || historial.length === 0)
+    return '<div class="fg-card"><p class="fg-section-sub">Sin histórico de intentos aún.</p></div>';
+
+  const items = historial
+    .map((att, idx) => {
+      const scoreColor = colorPuntaje(att.scoreTotal);
+      const fecha = new Date(att.createdAt).toLocaleString('es-AR', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      return `
+      <div class="fg-history-item" style="border-left: 4px solid ${scoreColor}">
+        <div class="fg-history-header">
+          <span class="fg-history-fecha">${fecha}</span>
+          <span class="fg-history-tema">${escape(att.tema)}</span>
+        </div>
+        <div class="fg-history-scores">
+          <span class="fg-history-score" style="--score: ${att.contenidoScore}%">
+            <span class="fg-score-label">Contenido</span>
+            <span class="fg-score-value">${att.contenidoScore}</span>
+          </span>
+          <span class="fg-history-score" style="--score: ${att.hookScore}%">
+            <span class="fg-score-label">Hook</span>
+            <span class="fg-score-value">${att.hookScore}</span>
+          </span>
+          <span class="fg-history-score" style="--score: ${att.cuentaScore}%">
+            <span class="fg-score-label">Cuenta</span>
+            <span class="fg-score-value">${att.cuentaScore}</span>
+          </span>
+          <span class="fg-history-score-total" style="--score: ${att.scoreTotal}%">
+            <span class="fg-score-label">Total</span>
+            <span class="fg-score-value" style="color: ${scoreColor}">${att.scoreTotal}</span>
+          </span>
+        </div>
+        <div class="fg-history-hook">"${escape(att.hook.substring(0, 100))}${att.hook.length > 100 ? '...' : ''}"</div>
+      </div>
+    `;
+    })
+    .join('');
+
+  return `<div class="fg-card">
+    <h3 class="fg-section-title">📊 Histórico de Intentos</h3>
+    <p class="fg-section-sub">Heatmap de scores. Rojo = débil, verde = fuerte.</p>
+    <div class="fg-history-timeline">${items}</div>
+  </div>`;
+};
+
 const renderOutput = (root) => {
   const out = root.querySelector('#fg-output');
   if (!out) return;
@@ -609,6 +660,18 @@ const descargar = (nombre, contenido) => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
+const cargarHistorico = async (root) => {
+  const out = root.querySelector('#fg-output');
+  if (!out) return;
+  out.innerHTML = `<div class="fg-loading"><div class="fg-spin"></div><div>Cargando histórico...</div></div>`;
+  try {
+    const { ok, attempts } = await llamar('/api/forge/history?limit=50', {});
+    out.innerHTML = ok ? renderHistorico(attempts) : '<div class="fg-card"><p>Error al cargar histórico</p></div>';
+  } catch (err) {
+    out.innerHTML = `<div class="fg-card"><p style="color:#ef4444">Error: ${escape(mensajeDe(err))}</p></div>`;
+  }
+};
+
 const manejarAccion = (root, action, idx) => {
   const actual = estado.intentos[estado.activo];
   switch (action) {
@@ -651,6 +714,8 @@ const manejarAccion = (root, action, idx) => {
       return undefined;
     case 'enviar-publicar':
       return enviarAPublicar(root);
+    case 'cargar-historico':
+      return cargarHistorico(root);
     default:
       return undefined;
   }
@@ -771,6 +836,20 @@ export const renderForge = async (root) => {
       .fg-delta{font-weight:700;display:inline-block;margin-left:6px;}
       .fg-delta.up{color:#10b981;}
       .fg-delta.down{color:#f59e0b;}
+
+      /* Histórico + Heatmap */
+      .fg-history-timeline{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+      .fg-history-item{padding:12px;border-radius:10px;background:var(--bg-soft,rgba(17,18,22,.03));border-left:4px solid transparent;}
+      .fg-history-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:12px;}
+      .fg-history-fecha{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;}
+      .fg-history-tema{font-weight:700;font-size:14px;flex:1;}
+      .fg-history-scores{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0;}
+      .fg-history-score{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:8px 6px;border-radius:6px;background:rgba(17,18,22,.05);min-height:50px;position:relative;}
+      .fg-history-score::after{content:'';position:absolute;bottom:0;left:0;right:0;height:calc(var(--score, 0) * 1%);background:linear-gradient(to top,#10b981,#a855f7,#f59e0b,#ef4444);border-radius:0 0 6px 6px;opacity:.5;}
+      .fg-history-score-total{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:8px 6px;border-radius:6px;background:rgba(17,18,22,.08);min-height:50px;font-weight:700;border:2px solid rgba(17,18,22,.2);}
+      .fg-score-label{font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+      .fg-score-value{font-size:16px;font-weight:700;color:var(--text-primary);}
+      .fg-history-hook{font-size:12px;color:var(--text-secondary);font-style:italic;padding:6px 0;border-top:1px solid rgba(17,18,22,.1);}
 
       @media (max-width: 640px){
         .fg-form-grid{grid-template-columns:1fr;}

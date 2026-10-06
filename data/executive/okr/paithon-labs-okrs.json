@@ -1,0 +1,204 @@
+[
+  {
+    "id": "okr-1791063407494-fb01f",
+    "brandId": "paithon-labs",
+    "period": "quarter",
+    "periodStart": "2026-10-03T21:36:47.493Z",
+    "periodEnd": "2027-01-01T21:36:47.493Z",
+    "title": "Crecer en redes sociales",
+    "description": "Más personas que nos siguen y se interesan por lo que publicamos.",
+    "category": "growth",
+    "keyResults": [
+      {
+        "id": "kr-pvq2qh",
+        "description": "Seguidores en Instagram",
+        "fuente": "seguidores-instagram",
+        "metricType": "count",
+        "baseline": 0,
+        "target": 20000,
+        "current": 0,
+        "progressPct": 0,
+        "status": "on-track",
+        "lastUpdated": "2026-10-03T21:36:47.493Z",
+        "weeklyProgress": [
+          {
+            "week": "2026-10-03",
+            "value": 0
+          }
+        ],
+        "trend": "steady",
+        "projectedFinal": 0,
+        "projectedHitsTarget": false
+      },
+      {
+        "id": "kr-esgvvg",
+        "description": "Seguidores en TikTok",
+        "fuente": "seguidores-tiktok",
+        "metricType": "count",
+        "baseline": 0,
+        "target": 50000,
+        "current": 0,
+        "progressPct": 0,
+        "status": "on-track",
+        "lastUpdated": "2026-10-03T21:36:47.493Z",
+        "weeklyProgress": [
+          {
+            "week": "2026-10-03",
+            "value": 0
+          }
+        ],
+        "trend": "steady",
+        "projectedFinal": 0,
+        "projectedHitsTarget": false
+      }
+    ],
+    "overallProgressPct": 0,
+    "status": "abandoned",
+    "createdAt": "2026-10-03T21:36:47.493Z",
+    "weeksRemaining": 13,
+    "recommendations": []
+  },
+  {
+    "id": "okr-1791063661929-rjbmk",
+    "brandId": "paithon-labs",
+    "period": "month",
+    "periodStart": "2026-10-03T21:41:01.928Z",
+    "periodEnd": "2026-11-02T21:41:01.928Z",
+    "title": "Producir contenido",
+    "description": "d",
+    "category": "efficiency",
+    "keyResults": [
+      {
+        "id": "kr-jsccd1",
+        "description": "Piezas",
+        "fuente": "piezas-creadas",
+        "metricType": "count",
+        "baseline": 0,
+        "target": 10,
+        "current": 0,
+        "progressPct": 0,
+        "status": "behind",
+        "lastUpdated": "2026-10-03T22:08:56.200Z",
+        "weeklyProgress": [
+          {
+            "week": "2026-10-03",
+            "value": 0
+          }
+        ],
+        "trend": "steady",
+        "projectedFinal": 0,
+        "projectedHitsTarget": false
+      },
+      {
+        "id": "kr-lmzrue",
+        "description": "Atender a mano",
+        "fuente": "manual",
+        "metricType": "count",
+        "baseline": 0,
+        "target": 20,
+        "current": 7,
+        "progressPct": 35,
+        "status": "at-risk",
+        "lastUpdated": "2026-10-03T22:05:33.892Z",
+        "weeklyProgress": [
+          {
+            "week": "2026-10-03",
+            "value": 7
+          }
+        ],
+        "trend": "steady",
+        "projectedFinal": 7,
+        "projectedHitsTarget": false
+      }
+    ],
+    "overallProgressPct": 17.5,
+    "status": "abandoned",
+    "createdAt": "2026-10-03T21:41:01.928Z",
+    "weeksRemaining": 5,
+    "recommendations": [
+      "KR \"Piezas\" cierra ~0 vs target 10 (gap 10)",
+      "KR \"Atender a mano\" cierra ~7 vs target 20 (gap 13)"
+    ],
+    "lastReview": "2026-10-03T22:08:56.200Z"
+  },
+  {
+    "id": "okr-1791067265195-l0538",
+    "brandId": "paithon-labs",
+    "period": "quarter",
+    "periodStart": "2026-10-03T22:41:05.195Z",
+    "periodEnd": "2027-01-01T22:41:05.195Z",
+    "title": "Ser la cuenta de referencia en IA para PyMEs",
+    "porque": "Atraer clientes que buscan automatizar su negocio y reducir la dependencia de agencias caras.",
+    "category": "brand",
+    "keyResults": [
+      {
+        "id": "kr-vd4bpp",
+        "description": "Reducir el tiempo de respuesta a consultas",
+        "fuente": "manual",
+        "metricType": "time-minutes",
+        "unidad": "minutos",
+        "direccion": "decrease",
+        "baseline": 240,
+        "target": 60,
+        "current": 150,
+        "progressPct": 50,
+        "status": "on-track",
+        "lastUpdated": "2026-10-03T22:44:27.643Z",
+        "weeklyProgress": [
+          {
+            "week": "2026-10-03",
+            "value": 150
+          }
+        ],
+        "checkIns": [
+          {
+            "fecha": "2026-10-03T22:44:27.643Z",
+            "valor": 150,
+            "nota": "Bajamos a 150 min tras automatizar respuestas"
+          }
+        ],
+        "trend": "steady",
+        "projectedFinal": 150,
+        "projectedHitsTarget": false
+      },
+      {
+        "id": "kr-wsrnaf",
+        "description": "Llegar a 50 conversaciones comerciales",
+        "fuente": "manual",
+        "metricType": "count",
+        "unidad": "conversaciones",
+        "direccion": "increase",
+        "baseline": 0,
+        "target": 50,
+        "current": 0,
+        "progressPct": 0,
+        "status": "behind",
+        "lastUpdated": "2026-10-03T22:41:05.195Z",
+        "weeklyProgress": [
+          {
+            "week": "2026-10-03",
+            "value": 0
+          }
+        ],
+        "checkIns": [],
+        "trend": "steady",
+        "projectedFinal": 0,
+        "projectedHitsTarget": false
+      }
+    ],
+    "overallProgressPct": 25,
+    "status": "abandoned",
+    "createdAt": "2026-10-03T22:41:05.195Z",
+    "updatedAt": "2026-10-03T22:47:31.323Z",
+    "weeksRemaining": 13,
+    "recommendations": [
+      "\"Llegar a 50 conversaciones comerciales\" cierra en ~0 conversaciones y la meta es 50 (brecha 100%)."
+    ],
+    "calidad": {
+      "puntaje": 100,
+      "bloqueantes": [],
+      "observaciones": []
+    },
+    "lastReview": "2026-10-03T22:44:27.644Z"
+  }
+]
