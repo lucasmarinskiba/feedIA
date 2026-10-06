@@ -126,6 +126,7 @@ const buildForm = (platform) => `
       <button class="fg-btn fg-btn-secondary" data-action="cargar-historico"><span class="fg-btn-icon">📊</span>Ver Histórico</button>
       <button class="fg-btn fg-btn-secondary" data-action="analizar-predictor"><span class="fg-btn-icon">🔬</span>Analizar</button>
       <button class="fg-btn fg-btn-secondary" data-action="batch-comparison"><span class="fg-btn-icon">📈</span>Trends</button>
+      <button class="fg-btn fg-btn-secondary" data-action="content-suggestions"><span class="fg-btn-icon">✍️</span>Sugerencias</button>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
@@ -722,6 +723,8 @@ const manejarAccion = (root, action, idx) => {
       return cargarAnalisisPredictor(root);
     case 'batch-comparison':
       return cargarBatchComparison(root);
+    case 'content-suggestions':
+      return cargarContentSuggestions(root);
     default:
       return undefined;
   }
@@ -947,6 +950,69 @@ const cargarBatchComparison = async (root) => {
   toast('success', 'Batch comparison cargado');
 };
 
+/* ───────── Phase 4: Content Suggestions ───────── */
+
+const renderContentSuggestions = (root, suggestions) => {
+  const html = `<div class="fg-suggestions-panel">
+    <h3>💡 Sugerencias Detalladas</h3>
+    <div class="fg-suggestions-list">
+      ${suggestions
+        .map(
+          (s) =>
+            `<div class="fg-suggestion" data-category="${s.category}">
+        <div class="fg-sugg-header">
+          <h4>${s.title}</h4>
+          <span class="fg-sugg-impact">+${s.estimatedImpact}%</span>
+        </div>
+        <p class="fg-sugg-desc">${s.description}</p>
+
+        <div class="fg-sugg-section">
+          <strong style="font-size: 12px; text-transform: uppercase; color: #94a3b8;">Ejemplos</strong>
+          <ul style="margin: 6px 0; padding-left: 16px; font-size: 12px;">
+            ${s.examples.map((ex) => `<li style="margin: 3px 0; line-height: 1.3;">${ex}</li>`).join('')}
+          </ul>
+        </div>
+
+        <div class="fg-sugg-section">
+          <strong style="font-size: 12px; text-transform: uppercase; color: #94a3b8;">Cómo Implementar</strong>
+          <ol style="margin: 6px 0; padding-left: 16px; font-size: 12px;">
+            ${s.implementationSteps.map((step) => `<li style="margin: 3px 0; line-height: 1.3;">${step}</li>`).join('')}
+          </ol>
+        </div>
+
+        <div class="fg-sugg-outcome">
+          <span style="font-weight: 600;">Resultado esperado:</span> ${s.expectedOutcome}
+        </div>
+      </div>`,
+        )
+        .join('')}
+    </div>
+  </div>`;
+
+  root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarContentSuggestions = async (root) => {
+  const scores = {
+    contenido: actual?.contenido?.combinedScore || 60,
+    hook: actual?.hook?.score || 55,
+    cuenta: 65,
+  };
+
+  const result = await apiSafe(`/api/forge/suggestions`, {
+    method: 'POST',
+    body: JSON.stringify({ mode: 'by-score', scores }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error cargando sugerencias');
+    return;
+  }
+
+  renderContentSuggestions(root, result.suggestions);
+  toast('success', 'Sugerencias cargadas');
+};
+
 /* ───────── Vista ───────── */
 
 /* Referencia estable: así removeEventListener quita el mismo listener en cada render. */
@@ -1124,6 +1190,21 @@ export const renderForge = async (root) => {
       .fg-change-title{font-weight:600;font-size:13px;margin-bottom:6px;}
       .fg-change-score{font-size:16px;font-weight:700;margin-bottom:6px;}
       .fg-change-detail{font-size:11px;color:var(--text-secondary);}
+
+      /* Phase 4: Content Suggestions */
+      .fg-suggestions-panel{padding:20px;background:rgba(17,18,22,.02);border-radius:12px;margin-top:20px;border:1px solid rgba(17,18,22,.1);}
+      .fg-suggestions-panel h3{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text-primary);}
+      .fg-suggestions-list{display:flex;flex-direction:column;gap:16px;}
+      .fg-suggestion{padding:16px;background:white;border-radius:8px;border-left:4px solid #3b82f6;}
+      .fg-suggestion[data-category="contenido"]{border-left-color:#8b5cf6;}
+      .fg-suggestion[data-category="hook"]{border-left-color:#f59e0b;}
+      .fg-suggestion[data-category="cuenta"]{border-left-color:#10b981;}
+      .fg-sugg-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+      .fg-sugg-header h4{margin:0;font-size:14px;font-weight:600;color:var(--text-primary);flex:1;}
+      .fg-sugg-impact{font-size:12px;font-weight:700;color:#10b981;background:rgba(16,185,129,.1);padding:2px 8px;border-radius:4px;white-space:nowrap;}
+      .fg-sugg-desc{margin:8px 0;font-size:13px;color:var(--text-secondary);line-height:1.5;}
+      .fg-sugg-section{margin:12px 0;font-size:12px;}
+      .fg-sugg-outcome{margin-top:10px;padding-top:10px;border-top:1px solid rgba(17,18,22,.1);font-size:12px;color:var(--text-secondary);font-style:italic;}
 
       @media (max-width: 640px){
         .fg-form-grid{grid-template-columns:1fr;}

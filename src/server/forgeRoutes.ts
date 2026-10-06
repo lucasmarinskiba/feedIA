@@ -65,6 +65,13 @@ import {
   type BatchComparisonResult,
 } from '../capabilities/forge/batchComparator.js';
 
+// Phase 4: Content suggestions
+import {
+  getSuggestions,
+  getSuggestionsByScore,
+  type DetailedSuggestion,
+} from '../capabilities/forge/contentSuggestions.js';
+
 // Phase 2: DB persistence (future)
 // import {
 //   saveForgeAttempt,
@@ -716,6 +723,39 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         );
       } catch (err) {
         json(res, 500, errorInterno('comparison-batch', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/suggestions',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { mode, scores } = body as {
+          mode?: 'all' | 'by-score';
+          scores?: { contenido: number; hook: number; cuenta: number };
+        };
+
+        let suggestions: DetailedSuggestion[] = [];
+
+        if (mode === 'by-score' && scores) {
+          if (
+            typeof scores.contenido !== 'number' ||
+            typeof scores.hook !== 'number' ||
+            typeof scores.cuenta !== 'number'
+          ) {
+            json(res, 400, { error: 'scores requerido: {contenido, hook, cuenta} numbers' });
+            return;
+          }
+          suggestions = getSuggestionsByScore(scores);
+        } else {
+          suggestions = getSuggestions('all');
+        }
+
+        json(res, 200, { ok: true, suggestions });
+        log.info(`[forge] suggestions: ${suggestions.length} delivered`);
+      } catch (err) {
+        json(res, 500, errorInterno('suggestions', err));
       }
     },
   },
