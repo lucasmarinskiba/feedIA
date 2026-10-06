@@ -272,3 +272,32 @@ const piezaPrueba = (titulo: string) => ({
   hashtags: [],
   scheduledAt: null,
 });
+
+describe('digest semana contra semana', () => {
+  it('compara la mediana de los últimos 7 días contra los 7 anteriores', () => {
+    const ctx = ctxAccion({ periodo: '7' });
+    const r = herramienta('digest').respaldo?.(
+      { periodo: '7' },
+      { ...contexto, semanas: { ultimos7: { posts: 4, medianaTasa: 5 }, anteriores7: { posts: 3, medianaTasa: 4 } } },
+      ctx,
+      { tipo: 'ninguna' },
+    );
+    expect(JSON.stringify(r?.secciones)).toMatch(
+      /5 % en los últimos 7 días contra 4 % en los 7 anteriores, subió 25 %/,
+    );
+  });
+
+  it('avisa cuando no hay publicaciones suficientes para comparar', () => {
+    const ctx = ctxAccion({ periodo: '7' });
+    const r = herramienta('digest').respaldo?.(
+      { periodo: '7' },
+      {
+        ...contexto,
+        semanas: { ultimos7: { posts: 0, medianaTasa: null }, anteriores7: { posts: 2, medianaTasa: 3 } },
+      },
+      ctx,
+      { tipo: 'ninguna' },
+    );
+    expect(JSON.stringify(r?.secciones)).toMatch(/Sin datos suficientes para comparar/);
+  });
+});

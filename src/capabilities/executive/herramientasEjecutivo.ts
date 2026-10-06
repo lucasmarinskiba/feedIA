@@ -16,6 +16,8 @@ import {
   type ComplementoResultado,
   type ContextoAccion,
   type ContextoCuenta,
+  type VentanaSemanal,
+  type VentanasSemanales,
   type HerramientaDef,
   type MaterialPrevio,
   type ResultadoHerramienta,
@@ -88,6 +90,7 @@ export const contextoDeCuenta = async (marcaCuentas: string): Promise<ContextoCu
 
   return {
     totalPosts: posts.length,
+    semanas: ventanasSemanales(posts, Date.now()),
     topPosts: ordenados.slice(0, MAX_TOP_POSTS).map((p) => ({
       formato: p.formato,
       caption: p.captionCompleto.slice(0, 280),
@@ -99,6 +102,27 @@ export const contextoDeCuenta = async (marcaCuentas: string): Promise<ContextoCu
       .sort((a, b) => b[1] - a[1])
       .slice(0, MAX_HASHTAGS)
       .map(([h]) => h),
+  };
+};
+
+const ventanasSemanales = (
+  posts: Array<{ publicadoEn: string; tasaInteraccion: number | null }>,
+  ahora: number,
+): VentanasSemanales => {
+  const tasasEntre = (desde: number, hasta: number): number[] =>
+    posts
+      .filter((p) => {
+        const t = Date.parse(p.publicadoEn);
+        return t >= desde && t < hasta && p.tasaInteraccion !== null;
+      })
+      .map((p) => p.tasaInteraccion ?? 0);
+  const ventana = (tasas: number[]): VentanaSemanal => ({
+    posts: tasas.length,
+    medianaTasa: tasas.length > 0 ? redondear2(mediana(tasas) ?? 0) : null,
+  });
+  return {
+    ultimos7: ventana(tasasEntre(ahora - 7 * DIA_MS, ahora)),
+    anteriores7: ventana(tasasEntre(ahora - 14 * DIA_MS, ahora - 7 * DIA_MS)),
   };
 };
 

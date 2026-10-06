@@ -13,6 +13,8 @@ const aEntrada = (faq: ReturnType<typeof listFAQs>[number]): EntradaConocimiento
   creadaEn: faq.createdAt,
 });
 
+const sinAcentos = (texto: string): string => texto.normalize('NFD').replace(/[̀-ͯ]/g, '');
+
 export const leerConocimiento = (): EntradaConocimiento[] =>
   listFAQs()
     .filter((faq) => faq.approvedByHuman)
@@ -24,7 +26,7 @@ export const agregarConocimiento = (datos: { pregunta: string; respuesta: string
       question: datos.pregunta,
       answer: datos.respuesta,
       category: 'general',
-      patterns: [datos.pregunta],
+      patterns: [...new Set([datos.pregunta, sinAcentos(datos.pregunta)])],
       approvedByHuman: true,
     }),
   );

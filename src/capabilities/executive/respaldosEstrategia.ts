@@ -479,6 +479,23 @@ export const respaldoBandeja: Respaldo = (valores, _contexto, ctx) => {
   };
 };
 
+const comparacionSemanal = (contexto: ContextoCuenta): string => {
+  const { ultimos7, anteriores7 } = contexto.semanas ?? {
+    ultimos7: { posts: 0, medianaTasa: null },
+    anteriores7: { posts: 0, medianaTasa: null },
+  };
+  if (ultimos7.medianaTasa === null || anteriores7.medianaTasa === null) {
+    return `Sin datos suficientes para comparar: ${ultimos7.posts} publicación(es) en los últimos 7 días y ${anteriores7.posts} en los 7 anteriores.`;
+  }
+  const cambio =
+    anteriores7.medianaTasa === 0
+      ? null
+      : ((ultimos7.medianaTasa - anteriores7.medianaTasa) / anteriores7.medianaTasa) * 100;
+  const sentido =
+    cambio === null ? '' : cambio >= 0 ? `, subió ${cambio.toFixed(0)} %` : `, bajó ${Math.abs(cambio).toFixed(0)} %`;
+  return `Mediana de interacción: ${ultimos7.medianaTasa} % en los últimos 7 días contra ${anteriores7.medianaTasa} % en los 7 anteriores${sentido}.`;
+};
+
 export const respaldoDigest: Respaldo = (valores, contexto, ctx) => {
   const top = contexto.formatos[0];
   const bajo = contexto.formatos.length > 1 ? contexto.formatos[contexto.formatos.length - 1] : undefined;
@@ -499,6 +516,11 @@ export const respaldoDigest: Respaldo = (valores, contexto, ctx) => {
         contenido: top
           ? `Llevás ${contexto.totalPosts} publicaciones analizadas. ${top.formato} es el que mejor rinde (${top.medianaTasa} %)${bajo && bajo.formato !== top.formato ? `; ${bajo.formato} es el más bajo (${bajo.medianaTasa} %)` : ''}.`
           : `Todavía no hay publicaciones analizadas (${contexto.totalPosts}).`,
+      },
+      {
+        titulo: 'Semana contra semana',
+        tipo: 'texto',
+        contenido: comparacionSemanal(contexto),
       },
       {
         titulo: 'Calendario',

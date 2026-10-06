@@ -46,6 +46,17 @@ export interface ContextoCuenta {
   formatos: Array<{ formato: string; posts: number; medianaTasa: number }>;
   momentos: Array<{ dia: string; franja: string; medianaTasa: number; posts: number }>;
   hashtagsTop: string[];
+  semanas?: VentanasSemanales;
+}
+
+export interface VentanaSemanal {
+  posts: number;
+  medianaTasa: number | null;
+}
+
+export interface VentanasSemanales {
+  ultimos7: VentanaSemanal;
+  anteriores7: VentanaSemanal;
 }
 
 export interface SeccionResultado {
