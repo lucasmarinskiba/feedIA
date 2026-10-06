@@ -125,6 +125,7 @@ const buildForm = (platform) => `
       <button class="fg-btn fg-btn-primary" data-action="todo"><span class="fg-btn-icon">✨</span>Generar todo</button>
       <button class="fg-btn fg-btn-secondary" data-action="cargar-historico"><span class="fg-btn-icon">📊</span>Ver Histórico</button>
       <button class="fg-btn fg-btn-secondary" data-action="analizar-predictor"><span class="fg-btn-icon">🔬</span>Analizar</button>
+      <button class="fg-btn fg-btn-secondary" data-action="batch-comparison"><span class="fg-btn-icon">📈</span>Trends</button>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
@@ -719,6 +720,8 @@ const manejarAccion = (root, action, idx) => {
       return cargarHistorico(root);
     case 'analizar-predictor':
       return cargarAnalisisPredictor(root);
+    case 'batch-comparison':
+      return cargarBatchComparison(root);
     default:
       return undefined;
   }
@@ -828,6 +831,120 @@ const cargarAnalisisPredictor = async (root) => {
 
   renderPredictorAnalysis(root, result.analysis);
   toast('success', 'Análisis predictor cargado');
+};
+
+/* ───────── Phase 3: Batch Comparison ───────── */
+
+const trendArrow = (direction) => (direction === 'up' ? '📈' : direction === 'down' ? '📉' : '→');
+
+const renderBatchComparison = (root, comparison) => {
+  const { attempts, trends, impactfulChanges, bestAttempt, worstAttempt, averageScore, improvementRate } = comparison;
+
+  const trendsHtml = trends
+    .map(
+      (t) =>
+        `<div class="fg-trend">
+      <div class="fg-trend-category">${t.category === 'contenido' ? '📝' : t.category === 'hook' ? '🎣' : '📊'} ${t.category}</div>
+      <div class="fg-trend-data">
+        <span class="fg-trend-arrow">${trendArrow(t.direction)}</span>
+        <span class="fg-trend-delta">${t.delta > 0 ? '+' : ''}${t.delta}</span>
+        <span class="fg-trend-momentum">(Momentum: ${t.momentum > 0 ? '+' : ''}${t.momentum}%)</span>
+      </div>
+    </div>`,
+    )
+    .join('');
+
+  const changesHtml = impactfulChanges
+    .map(
+      (c) =>
+        `<div class="fg-change" data-score="${c.scoreDelta}">
+      <div class="fg-change-title">${c.estimatedCause}</div>
+      <div class="fg-change-score" style="color: ${c.scoreDelta > 0 ? '#10b981' : '#ef4444'};">
+        ${c.scoreDelta > 0 ? '+' : ''}${c.scoreDelta}
+      </div>
+      <div class="fg-change-detail">
+        ${c.hookChanged ? '🎣 Hook changed · ' : ''}Content: ${c.categoryDeltas.contenido > 0 ? '+' : ''}${Math.round(c.categoryDeltas.contenido)}
+        · Hook: ${c.categoryDeltas.hook > 0 ? '+' : ''}${Math.round(c.categoryDeltas.hook)}
+        · Account: ${c.categoryDeltas.cuenta > 0 ? '+' : ''}${Math.round(c.categoryDeltas.cuenta)}
+      </div>
+    </div>`,
+    )
+    .join('');
+
+  const html = `<div class="fg-batch-panel">
+    <h3>📊 Batch Comparison: ${attempts.length} intentos</h3>
+
+    <div class="fg-batch-stats">
+      <div class="fg-stat">
+        <div class="fg-stat-label">Promedio</div>
+        <div class="fg-stat-value">${averageScore}/100</div>
+      </div>
+      <div class="fg-stat">
+        <div class="fg-stat-label">Mejora</div>
+        <div class="fg-stat-value" style="color: ${improvementRate >= 0 ? '#10b981' : '#ef4444'};">
+          ${improvementRate > 0 ? '+' : ''}${improvementRate}%
+        </div>
+      </div>
+      <div class="fg-stat">
+        <div class="fg-stat-label">Mejor</div>
+        <div class="fg-stat-value" style="font-size: 14px;">
+          ${Math.round(bestAttempt.contenidoScore * 0.45 + bestAttempt.hookScore * 0.35 + bestAttempt.cuentaScore * 0.2)}/100
+        </div>
+      </div>
+    </div>
+
+    <h4>📈 Trends</h4>
+    <div class="fg-trends">
+      ${trendsHtml}
+    </div>
+
+    ${impactfulChanges.length > 0 ? `<h4>⚡ Cambios Impactantes</h4><div class="fg-changes">${changesHtml}</div>` : '<p style="color: #94a3b8; font-size: 12px;">Sin cambios significativos detectados</p>'}
+  </div>`;
+
+  root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarBatchComparison = async (root) => {
+  // Mock: simular 3 intentos para demo
+  const mockAttempts = [
+    {
+      id: 'att-1',
+      createdAt: new Date(Date.now() - 3600000).toISOString(),
+      contenidoScore: 55,
+      hookScore: 48,
+      cuentaScore: 62,
+      hook: 'Original hook text here',
+    },
+    {
+      id: 'att-2',
+      createdAt: new Date(Date.now() - 1800000).toISOString(),
+      contenidoScore: 62,
+      hookScore: 55,
+      cuentaScore: 62,
+      hook: 'Original hook text here',
+    },
+    {
+      id: 'att-3',
+      createdAt: new Date().toISOString(),
+      contenidoScore: 72,
+      hookScore: 68,
+      cuentaScore: 65,
+      hook: 'Improved hook with specificity',
+    },
+  ];
+
+  const result = await apiSafe(`/api/forge/comparison/batch`, {
+    method: 'POST',
+    body: JSON.stringify({ attempts: mockAttempts }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en batch comparison');
+    return;
+  }
+
+  renderBatchComparison(root, result.comparison);
+  toast('success', 'Batch comparison cargado');
 };
 
 /* ───────── Vista ───────── */
@@ -983,6 +1100,30 @@ export const renderForge = async (root) => {
       .fg-rec-content{flex:1;}
       .fg-rec-content strong{font-size:13px;color:var(--text-primary);}
       .fg-rec-meta{font-size:11px;color:var(--text-secondary);margin-top:4px;}
+
+      /* Phase 3: Batch Comparison */
+      .fg-batch-panel{padding:20px;background:rgba(17,18,22,.02);border-radius:12px;margin-top:20px;border:1px solid rgba(17,18,22,.1);}
+      .fg-batch-panel h3{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text-primary);}
+      .fg-batch-panel h4{font-size:14px;font-weight:600;color:var(--text-primary);margin-top:16px;margin-bottom:12px;}
+      .fg-batch-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:20px;}
+      .fg-stat{padding:12px;background:rgba(17,18,22,.05);border-radius:8px;text-align:center;}
+      .fg-stat-label{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+      .fg-stat-value{font-size:20px;font-weight:700;color:var(--text-primary);}
+      .fg-trends{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;}
+      .fg-trend{padding:12px;background:rgba(17,18,22,.03);border-radius:8px;border-left:4px solid #94a3b8;}
+      .fg-trend-category{font-weight:600;font-size:13px;margin-bottom:8px;}
+      .fg-trend-data{display:flex;gap:8px;align-items:center;font-size:14px;}
+      .fg-trend-arrow{font-size:18px;}
+      .fg-trend-delta{font-weight:700;}
+      .fg-trend-momentum{font-size:11px;color:var(--text-secondary);}
+      .fg-changes{display:flex;flex-direction:column;gap:10px;}
+      .fg-change{padding:12px;background:rgba(17,18,22,.05);border-radius:8px;border-left:4px solid #94a3b8;}
+      .fg-change[data-score="0"]{border-left-color:#94a3b8;}
+      .fg-change[data-score="-1"]{border-left-color:#ef4444;}
+      .fg-change[data-score="1"]{border-left-color:#10b981;}
+      .fg-change-title{font-weight:600;font-size:13px;margin-bottom:6px;}
+      .fg-change-score{font-size:16px;font-weight:700;margin-bottom:6px;}
+      .fg-change-detail{font-size:11px;color:var(--text-secondary);}
 
       @media (max-width: 640px){
         .fg-form-grid{grid-template-columns:1fr;}

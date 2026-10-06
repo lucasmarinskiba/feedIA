@@ -58,6 +58,13 @@ import {
 // Phase 2: Predictor breakdown + recommendations
 import { analyzeScores, type PredictorAnalysis } from '../capabilities/forge/predictorBreakdown.js';
 
+// Phase 3: Batch comparison + trends
+import {
+  compareAttempts,
+  type AttemptSnapshot,
+  type BatchComparisonResult,
+} from '../capabilities/forge/batchComparator.js';
+
 // Phase 2: DB persistence (future)
 // import {
 //   saveForgeAttempt,
@@ -665,6 +672,50 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         );
       } catch (err) {
         json(res, 500, errorInterno('predictor-analyze', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/comparison/batch',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { attempts } = body as {
+          attempts?: unknown;
+        };
+
+        if (!Array.isArray(attempts) || attempts.length === 0) {
+          json(res, 400, { error: 'attempts array requerido (mínimo 1)' });
+          return;
+        }
+
+        // Validate attempt structure
+        const validAttempts = attempts
+          .filter(
+            (a): a is AttemptSnapshot =>
+              typeof a === 'object' &&
+              a !== null &&
+              typeof (a as AttemptSnapshot).id === 'string' &&
+              typeof (a as AttemptSnapshot).createdAt === 'string' &&
+              typeof (a as AttemptSnapshot).contenidoScore === 'number' &&
+              typeof (a as AttemptSnapshot).hookScore === 'number' &&
+              typeof (a as AttemptSnapshot).cuentaScore === 'number' &&
+              typeof (a as AttemptSnapshot).hook === 'string',
+          )
+          .slice(0, 50); // Max 50 attempts per request
+
+        if (validAttempts.length === 0) {
+          json(res, 400, { error: 'No valid attempts found' });
+          return;
+        }
+
+        const comparison: BatchComparisonResult = compareAttempts(validAttempts);
+        json(res, 200, { ok: true, comparison });
+        log.info(
+          `[forge] batch comparison: ${validAttempts.length} attempts, improvement=${comparison.improvementRate}%`,
+        );
+      } catch (err) {
+        json(res, 500, errorInterno('comparison-batch', err));
       }
     },
   },
