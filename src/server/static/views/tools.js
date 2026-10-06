@@ -65,16 +65,21 @@ const ESTILOS = `<style>
   @media (max-width:820px){.hi-detalle{grid-template-columns:1fr;}}
 </style>`;
 
-let estado = {
+const estadoInicial = () => ({
   catalogo: [],
   creaciones: [],
+  conocimiento: [],
   vista: 'herramientas',
   categoria: 'Todas',
   herramienta: null,
   creacion: null,
+  base: null,
+  valoresIniciales: null,
   ocupado: false,
   error: null,
-};
+});
+
+let estado = estadoInicial();
 
 const cuandoLegible = (iso) =>
   new Date(iso).toLocaleString('es-AR', {
@@ -121,28 +126,85 @@ const catalogoHtml = () => {
     </div>`;
 };
 
-const campoHtml = (c) => {
+const campoHtml = (c, valores) => {
   const id = `hi-${c.id}`;
   const ayuda = c.ayuda ? `<small>${escape(c.ayuda)}</small>` : '';
   const requerido = c.requerido ? ' *' : '';
+  const valor = valores[c.id];
   if (c.tipo === 'select')
     return `<div class="hi-campo"><label for="${id}">${escape(c.etiqueta)}${requerido}</label><select class="hi-input" id="${id}" data-campo="${escape(c.id)}">${c.opciones
-      .map((o) => `<option value="${escape(o)}">${escape(o)}</option>`)
+      .map((o) => `<option value="${escape(o)}" ${String(valor) === o ? 'selected' : ''}>${escape(o)}</option>`)
       .join('')}</select>${ayuda}</div>`;
   if (c.tipo === 'textarea')
-    return `<div class="hi-campo"><label for="${id}">${escape(c.etiqueta)}${requerido}</label><textarea class="hi-input" id="${id}" data-campo="${escape(c.id)}"></textarea>${ayuda}</div>`;
+    return `<div class="hi-campo"><label for="${id}">${escape(c.etiqueta)}${requerido}</label><textarea class="hi-input" id="${id}" data-campo="${escape(c.id)}" maxlength="${c.maxCaracteres ?? 2000}">${escape(valor ?? '')}</textarea>${ayuda}</div>`;
   const tipo = c.tipo === 'numero' ? 'number' : 'text';
   const minMax = c.tipo === 'numero' ? ` min="${c.min ?? 1}" max="${c.max ?? 100}"` : '';
-  return `<div class="hi-campo"><label for="${id}">${escape(c.etiqueta)}${requerido}</label><input class="hi-input" id="${id}" type="${tipo}"${minMax} data-campo="${escape(c.id)}" />${ayuda}</div>`;
+  const valorAttr = valor === undefined ? '' : ` value="${escape(valor)}"`;
+  return `<div class="hi-campo"><label for="${id}">${escape(c.etiqueta)}${requerido}</label><input class="hi-input" id="${id}" type="${tipo}"${minMax}${valorAttr} data-campo="${escape(c.id)}" />${ayuda}</div>`;
 };
 
-const formularioHtml = (h) => `
+const conocimientoHtml = () => {
+  if (estado.conocimiento.length === 0)
+    return '<p class="hi-desc">Todavía no hay respuestas aprobadas. Cuando un resultado te sirva, guardalo como respuesta aprobada y la próxima vez se usa para preguntas parecidas.</p>';
+  return `<div class="hi-piezas">${estado.conocimiento
+    .map(
+      (e) => `<div class="hi-pieza">
+        <strong>${escape(e.pregunta)}</strong>
+        <span>${escape(e.respuesta)}</span>
+        <button type="button" class="hi-btn hi-btn-sec hi-btn-chico" data-hi-borrar-kb="${escape(e.id)}">Quitar</button>
+      </div>`,
+    )
+    .join('')}</div>`;
+};
+
+const formularioHtml = (h) => {
+  const valores = estado.valoresIniciales ?? {};
+  const base = estado.base
+    ? `<div class="hi-aplicado">Usa como base: <strong>${escape(estado.base.titulo)}</strong>
+        <span>${escape(estado.base.nombre)}</span>
+        <button type="button" class="hi-btn hi-btn-sec hi-btn-chico" data-hi-quitar-base>Quitar base</button></div>`
+    : '';
+  const conocimiento =
+    h.id === 'respuestas'
+      ? `<div class="hi-sec"><h4>Respuestas aprobadas (${estado.conocimiento.length})</h4>${conocimientoHtml()}</div>`
+      : '';
+  return `
   <form class="hi-form" id="hi-form">
     <h3>${escape(h.icono)} ${escape(h.nombre)}</h3>
     <p class="hi-desc">${escape(h.descripcion)}</p>
-    ${h.campos.map(campoHtml).join('')}
+    ${base}
+    ${h.campos.map((c) => campoHtml(c, valores)).join('')}
+    ${conocimiento}
     <button class="hi-btn" type="submit" ${estado.ocupado ? 'disabled' : ''}>${estado.ocupado ? 'Generando…' : 'Generar'}</button>
   </form>`;
+};
+
+const cargarConocimiento = async () => {
+  const { data } = await apiSafe('/api/executive/tools/conocimiento/respuestas', [], { noCache: true });
+  estado.conocimiento = Array.isArray(data) ? data : [];
+};
+
+const aprobarRespuesta = async (root, creacionId) => {
+  const respuesta = root.querySelector('#hi-aprobar-texto')?.value.trim() ?? '';
+  try {
+    await api(`/api/executive/tools/creaciones/${encodeURIComponent(creacionId)}/aprobar`, { body: { respuesta } });
+    await cargarConocimiento();
+    toast('Guardada como respuesta aprobada', 'ok');
+  } catch (err) {
+    toast(err?.message?.replace(/^.*→\s*/, '') || 'No se pudo guardar', 'err');
+  }
+};
+
+const borrarRespuestaAprobada = async (root, id) => {
+  try {
+    await api(`/api/executive/tools/conocimiento/respuestas/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    await cargarConocimiento();
+    toast('Respuesta quitada de la base', 'ok');
+    pintar(root);
+  } catch (err) {
+    toast(err?.message?.replace(/^.*→\s*/, '') || 'No se pudo quitar', 'err');
+  }
+};
 
 const seccionesHtml = (r) =>
   r.secciones
@@ -213,17 +275,43 @@ const accionesDestinoHtml = (c, herramienta) => {
   return `<div class="hi-acciones">${botones}<button class="hi-btn hi-btn-sec hi-btn-chico" data-hi-copiar>${DESTINO.copiar.etiqueta}</button></div>`;
 };
 
+const aprobarHtml = (c) => {
+  const sugerida = c.resultado.secciones.find((s) => s.tipo === 'copiable');
+  const texto = typeof sugerida?.contenido === 'string' ? sugerida.contenido : '';
+  return `<div class="hi-sec"><h4>Guardar como respuesta aprobada</h4>
+    <small class="hi-desc">Corregí el texto si hace falta: se guarda tal como lo dejes y se usa para preguntas parecidas.</small>
+    <textarea class="hi-input" id="hi-aprobar-texto" maxlength="600">${escape(texto)}</textarea>
+    <div class="hi-acciones"><button class="hi-btn hi-btn-sec hi-btn-chico" data-hi-aprobar="${escape(c.id)}">✅ Guardar como respuesta aprobada</button></div>
+  </div>`;
+};
+
+const seguirHtml = (c, herramienta) => {
+  const siguientes = (herramienta?.continuaCon ?? [])
+    .map((id) => estado.catalogo.find((h) => h.id === id))
+    .filter(Boolean);
+  if (siguientes.length === 0) return '';
+  return `<div class="hi-sec"><h4>Seguir con</h4><div class="hi-acciones">${siguientes
+    .map(
+      (h) =>
+        `<button class="hi-btn hi-btn-sec hi-btn-chico" data-hi-seguir="${escape(h.id)}" data-hi-base="${escape(c.id)}">${escape(h.icono)} ${escape(h.nombre)}</button>`,
+    )
+    .join('')}</div></div>`;
+};
+
 const resultadoHtml = (c) => {
   const herramienta = estado.catalogo.find((h) => h.id === c.herramientaId);
   return `
     <div class="hi-salida">
       <div class="hi-card-cab"><h3>${escape(c.resultado.titulo)}</h3></div>
       <span class="hi-fuente">${c.fuente === 'ia' ? 'Generado con IA' : 'Generado con reglas automáticas'}</span>
+      ${c.origen ? `<span class="hi-fuente">Partió de: ${escape(c.origen.nombre)}</span>` : ''}
       ${seccionesHtml(c.resultado)}
       ${accionHtml(c)}
       ${c.resultado.notas.length ? `<ul class="hi-notas">${c.resultado.notas.map((n) => `<li>${escape(n)}</li>`).join('')}</ul>` : ''}
       ${aplicacionesHtml(c)}
+      ${seguirHtml(c, herramienta)}
       ${accionesDestinoHtml(c, herramienta)}
+      ${c.herramientaId === 'respuestas' ? aprobarHtml(c) : ''}
       <div><button class="hi-btn hi-btn-sec hi-btn-chico" data-hi-volver>← Volver</button></div>
     </div>`;
 };
@@ -243,6 +331,7 @@ const bibliotecaHtml = () => {
         <div class="hi-tags">
           <span class="hi-tag">${escape(cuandoLegible(c.creadaEn))}</span>
           <span class="hi-tag ${c.fuente === 'ia' ? 'ia' : ''}">${c.fuente === 'ia' ? 'IA' : 'Reglas'}</span>
+          ${c.origen ? `<span class="hi-tag">Desde ${escape(c.origen.nombre)}</span>` : ''}
           ${c.aplicaciones.length ? `<span class="hi-tag">Enviada a ${c.aplicaciones.length} destino(s)</span>` : '<span class="hi-tag">Sin enviar</span>'}
         </div>
       </button>`,
@@ -326,8 +415,26 @@ const abrirCreacion = async (id) => {
   estado.vista = 'herramientas';
 };
 
+const continuarCon = async (root, herramientaId, creacionId) => {
+  const def = estado.catalogo.find((h) => h.id === herramientaId);
+  const origen = estado.creaciones.find((c) => c.id === creacionId);
+  if (!def || !origen) return;
+  const { data } = await apiSafe(
+    `/api/executive/tools/creaciones/${encodeURIComponent(creacionId)}/para/${encodeURIComponent(herramientaId)}`,
+    { valores: {} },
+    { noCache: true },
+  );
+  estado.herramienta = def;
+  estado.creacion = null;
+  estado.valoresIniciales = data?.valores ?? {};
+  estado.base = { creacionId, nombre: origen.nombre, titulo: origen.resultado.titulo };
+  estado.error = null;
+  pintar(root);
+};
+
 const generar = async (root, herramientaId) => {
   const valores = leerValores(root);
+  if (estado.base) valores.desdeCreacion = estado.base.creacionId;
   const boton = root.querySelector('#hi-form button[type="submit"]');
   if (boton) {
     boton.disabled = true;
@@ -337,6 +444,8 @@ const generar = async (root, herramientaId) => {
     const respuesta = await api(`/api/executive/tools/${encodeURIComponent(herramientaId)}`, { body: valores });
     estado.creacion = respuesta.creacion;
     estado.herramienta = null;
+    estado.base = null;
+    estado.valoresIniciales = null;
     await cargarCreaciones();
     toast('Listo: quedó guardado en tu biblioteca', 'ok');
     pintar(root);
@@ -355,16 +464,7 @@ const irAPestana = (pestana) => {
 };
 
 export const renderTools = async (root) => {
-  estado = {
-    catalogo: [],
-    creaciones: [],
-    vista: 'herramientas',
-    categoria: 'Todas',
-    herramienta: null,
-    creacion: null,
-    ocupado: false,
-    error: null,
-  };
+  estado = estadoInicial();
   root.innerHTML = `${ESTILOS}<div class="hi-wrap"><div id="hi-cuerpo">${loadingScreen()}</div></div>`;
   const [catalogo] = await Promise.all([apiSafe('/api/executive/tools', []), cargarCreaciones()]);
   estado.catalogo = Array.isArray(catalogo.data) ? catalogo.data : [];
@@ -392,7 +492,20 @@ export const renderTools = async (root) => {
     if (abrir) {
       estado.herramienta = estado.catalogo.find((h) => h.id === abrir.dataset.hiAbrir) ?? null;
       estado.creacion = null;
+      estado.base = null;
+      estado.valoresIniciales = null;
+      if (estado.herramienta?.id === 'respuestas') await cargarConocimiento();
       pintar(root);
+      return;
+    }
+    const aprobar = e.target.closest('[data-hi-aprobar]');
+    if (aprobar) {
+      await aprobarRespuesta(root, aprobar.dataset.hiAprobar);
+      return;
+    }
+    const borrarKb = e.target.closest('[data-hi-borrar-kb]');
+    if (borrarKb) {
+      await borrarRespuestaAprobada(root, borrarKb.dataset.hiBorrarKb);
       return;
     }
     const creacion = e.target.closest('[data-hi-creacion]');
@@ -404,6 +517,19 @@ export const renderTools = async (root) => {
     if (e.target.closest('[data-hi-volver]')) {
       estado.herramienta = null;
       estado.creacion = null;
+      estado.base = null;
+      estado.valoresIniciales = null;
+      pintar(root);
+      return;
+    }
+    const seguir = e.target.closest('[data-hi-seguir]');
+    if (seguir) {
+      await continuarCon(root, seguir.dataset.hiSeguir, seguir.dataset.hiBase);
+      return;
+    }
+    if (e.target.closest('[data-hi-quitar-base]')) {
+      estado.base = null;
+      estado.valoresIniciales = null;
       pintar(root);
       return;
     }

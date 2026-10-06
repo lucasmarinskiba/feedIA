@@ -20,6 +20,21 @@ import { securityLogger } from './security-logger.js';
 
 // Maximum string value length in any JSON field
 const MAX_STRING_LENGTH = 50_000;
+// Campos de texto libre con saltos de línea (textarea). Solo estos admiten \r\n en el body; el resto
+// de los patrones (XSS, SQLi, command injection, null bytes) se aplica igual a todos los campos.
+const MULTILINEA_BODY = new Set([
+  'transcripcion',
+  'caption',
+  'hashtags',
+  'tema',
+  'idea',
+  'contenido',
+  'propuesta',
+  'bio_actual',
+  'mensaje',
+  'contexto',
+  'cambio',
+]);
 // Maximum total JSON body size (also enforced at transport level via express.json limit)
 const MAX_BODY_DEPTH = 10;
 // Maximum array/object elements at any level
@@ -60,12 +75,13 @@ const PATTERNS: Array<{ name: string; regex: RegExp }> = [
   { name: 'bidi_override', regex: /[‏‫‮⁧⁩]/ },
 ];
 
-const scanString = (value: string, path: string): string | null => {
+const scanString = (value: string, path: string, multilinea = false): string | null => {
   if (value.length > MAX_STRING_LENGTH) {
     return `field_too_long:${path} (${value.length} chars, max ${MAX_STRING_LENGTH})`;
   }
 
   for (const { name, regex } of PATTERNS) {
+    if (multilinea && name === 'header_inject') continue;
     if (regex.test(value)) {
       return `${name}:${path}`;
     }
@@ -74,13 +90,13 @@ const scanString = (value: string, path: string): string | null => {
   return null;
 };
 
-const scanValue = (value: unknown, path: string, depth: number): string | null => {
+const scanValue = (value: unknown, path: string, depth: number, multilinea = false): string | null => {
   if (depth > MAX_BODY_DEPTH) {
     return `depth_exceeded:${path}`;
   }
 
   if (typeof value === 'string') {
-    return scanString(value, path);
+    return scanString(value, path, multilinea);
   }
 
   if (Array.isArray(value)) {
@@ -88,7 +104,7 @@ const scanValue = (value: unknown, path: string, depth: number): string | null =
       return `array_too_large:${path} (${value.length} items, max ${MAX_COLLECTION_SIZE})`;
     }
     for (let i = 0; i < value.length; i++) {
-      const result = scanValue(value[i], `${path}[${i}]`, depth + 1);
+      const result = scanValue(value[i], `${path}[${i}]`, depth + 1, multilinea);
       if (result) return result;
     }
     return null;
@@ -104,7 +120,12 @@ const scanValue = (value: unknown, path: string, depth: number): string | null =
       if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
         return `prototype_pollution:${path}.${key}`;
       }
-      const result = scanValue((value as Record<string, unknown>)[key], `${path}.${key}`, depth + 1);
+      const result = scanValue(
+        (value as Record<string, unknown>)[key],
+        `${path}.${key}`,
+        depth + 1,
+        MULTILINEA_BODY.has(key),
+      );
       if (result) return result;
     }
     return null;

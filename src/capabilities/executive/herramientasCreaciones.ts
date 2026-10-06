@@ -19,6 +19,12 @@ export interface AplicacionCreacion {
   referencias: string[];
 }
 
+export interface OrigenCreacion {
+  creacionId: string;
+  herramientaId: string;
+  nombre: string;
+}
+
 export interface CreacionGuardada {
   id: string;
   herramientaId: string;
@@ -29,6 +35,7 @@ export interface CreacionGuardada {
   resultado: ResultadoHerramienta;
   accion: AccionCreacion;
   aplicaciones: AplicacionCreacion[];
+  origen?: OrigenCreacion | null;
 }
 
 const archivo = (marcaId: string): string => path.join(DIR, `${marcaId.replace(/[^a-zA-Z0-9_-]/g, '_')}.json`);

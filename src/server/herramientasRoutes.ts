@@ -10,6 +10,7 @@ import {
   herramientaPorId,
   validarEntrada,
   type Destino,
+  type MaterialPrevio,
 } from '../capabilities/executive/herramientasCatalogo.js';
 import { conexionesDeCuenta, ejecutarHerramienta } from '../capabilities/executive/herramientasEjecutivo.js';
 import {
@@ -19,7 +20,15 @@ import {
   obtenerCreacion,
   leerCreaciones,
   type CreacionGuardada,
+  type OrigenCreacion,
 } from '../capabilities/executive/herramientasCreaciones.js';
+import { materialDe, siguientesDe, valoresHeredados } from '../capabilities/executive/herramientasCadena.js';
+import {
+  agregarConocimiento,
+  eliminarConocimiento,
+  leerConocimiento,
+} from '../capabilities/executive/respuestasConocimiento.js';
+import { prepararRespuestas, validarRespuestaAprobada } from '../capabilities/executive/respuestasTriaje.js';
 import { aplicarCreacion, type DepsAplicar } from '../capabilities/executive/herramientasAplicar.js';
 import {
   LIMITE_PROYECTOS,
@@ -124,6 +133,7 @@ const buildHerramientasRoutes = (brand: BrandProfile): RouteDefinition[] => {
             campos,
             destinos,
             soloReglas: soloReglas === true,
+            continuaCon: siguientesDe(id),
           })),
         );
       },
@@ -145,6 +155,68 @@ const buildHerramientasRoutes = (brand: BrandProfile): RouteDefinition[] => {
           return;
         }
         json(res, 200, creacion);
+      },
+    },
+    {
+      method: 'GET',
+      pattern: '/api/executive/tools/conocimiento/respuestas',
+      handler: async ({ req, res }) => {
+        json(res, 200, await leerConocimiento(await marcaDeCuentas(req, brand)));
+      },
+    },
+    {
+      method: 'DELETE',
+      pattern: '/api/executive/tools/conocimiento/respuestas/:kid',
+      handler: async ({ req, res, params }) => {
+        const borrada = await eliminarConocimiento(await marcaDeCuentas(req, brand), params['kid'] ?? '');
+        if (!borrada) {
+          json(res, 404, { error: 'respuesta no encontrada' });
+          return;
+        }
+        json(res, 200, { ok: true });
+      },
+    },
+    {
+      method: 'POST',
+      pattern: '/api/executive/tools/creaciones/:cid/aprobar',
+      handler: async ({ req, res, params, body }) => {
+        const cuentas = await marcaDeCuentas(req, brand);
+        const creacion = await obtenerCreacion(cuentas, params['cid'] ?? '');
+        if (!creacion || creacion.herramientaId !== 'respuestas') {
+          json(res, 404, { error: 'Solo se pueden aprobar respuestas de Respuestas IA.' });
+          return;
+        }
+        const mensaje = String(creacion.valores['mensaje'] ?? '');
+        const tipo = creacion.valores['tipo'] === 'dm' ? 'dm' : 'comentario';
+        const { triaje } = prepararRespuestas(mensaje, tipo, creacion.valores['intencion'], []);
+        if (triaje.accion !== 'responder') {
+          json(res, 409, { error: 'Este mensaje requiere una persona: no se guarda como respuesta aprobada.' });
+          return;
+        }
+        const sugerida = creacion.resultado.secciones.find((s) => s.tipo === 'copiable');
+        const editada = (body as { respuesta?: unknown } | null)?.respuesta;
+        const texto =
+          typeof editada === 'string' ? editada : typeof sugerida?.contenido === 'string' ? sugerida.contenido : '';
+        const valida = validarRespuestaAprobada(mensaje, texto);
+        if (!valida.ok) {
+          json(res, 400, { error: valida.error });
+          return;
+        }
+        const entrada = await agregarConocimiento(cuentas, valida.valor);
+        json(res, 201, entrada);
+      },
+    },
+    {
+      method: 'GET',
+      pattern: '/api/executive/tools/creaciones/:cid/para/:toolId',
+      handler: async ({ req, res, params }) => {
+        const creacion = await obtenerCreacion(await marcaDeCuentas(req, brand), params['cid'] ?? '');
+        const def = herramientaPorId(params['toolId'] ?? '');
+        if (!creacion || !def) {
+          json(res, 404, { error: 'creación o herramienta no encontrada' });
+          return;
+        }
+        json(res, 200, { valores: valoresHeredados(creacion.valores, def.campos) });
       },
     },
     {
@@ -208,7 +280,19 @@ const buildHerramientasRoutes = (brand: BrandProfile): RouteDefinition[] => {
           return;
         }
         const cuentas = await marcaDeCuentas(req, brand);
-        const salida = await ejecutarHerramienta(def, entrada.valores, brand, cuentas);
+        const desde = (body as { desdeCreacion?: unknown } | null)?.desdeCreacion;
+        let material: MaterialPrevio | null = null;
+        let origen: OrigenCreacion | null = null;
+        if (typeof desde === 'string' && desde.length > 0) {
+          const base = await obtenerCreacion(cuentas, desde.slice(0, 80));
+          if (!base) {
+            json(res, 404, { error: 'La creación de origen ya no está en tu biblioteca.' });
+            return;
+          }
+          material = materialDe(base);
+          origen = { creacionId: base.id, herramientaId: base.herramientaId, nombre: base.nombre };
+        }
+        const salida = await ejecutarHerramienta(def, entrada.valores, brand, cuentas, Date.now(), material);
         if ('error' in salida) {
           json(res, 502, { error: salida.error });
           return;
@@ -223,6 +307,7 @@ const buildHerramientasRoutes = (brand: BrandProfile): RouteDefinition[] => {
           resultado: salida.resultado,
           accion: salida.accion,
           aplicaciones: [],
+          origen,
         };
         await agregarCreacion(cuentas, creacion);
         await registrarEvento(brandId(), {

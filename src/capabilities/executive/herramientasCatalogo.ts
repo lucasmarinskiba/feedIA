@@ -11,6 +11,7 @@ import type {
 } from './herramientasPlanificacion.js';
 import { ENSAMBLAR_HERRAMIENTA } from './herramientasAcciones.js';
 import { NUEVAS_HERRAMIENTAS } from './herramientasNuevas.js';
+import type { EntradaConocimiento, PreparacionRespuestas } from './respuestasTriaje.js';
 
 export type CategoriaHerramienta = 'Contenido' | 'Estrategia' | 'Comunidad' | 'Operación';
 
@@ -23,6 +24,20 @@ export interface CampoHerramienta {
   min?: number;
   max?: number;
   ayuda?: string;
+  maxCaracteres?: number;
+}
+
+export interface MaterialPrevio {
+  creacionId: string;
+  herramientaId: string;
+  nombre: string;
+  titulo: string;
+  texto: string;
+}
+
+export interface ComplementoResultado {
+  secciones: SeccionResultado[];
+  notas: string[];
 }
 
 export interface ContextoCuenta {
@@ -116,6 +131,9 @@ export interface ContextoAccion {
     ejemplos: string[];
   };
   marca: { nombre: string; nicho: string };
+  material?: MaterialPrevio | null;
+  respuestas?: PreparacionRespuestas | null;
+  conocimiento?: EntradaConocimiento[];
 }
 
 export interface HerramientaDef {
@@ -136,6 +154,7 @@ export interface HerramientaDef {
     ctx: ContextoAccion,
     accion: AccionCreacion,
   ) => ResultadoHerramienta;
+  complemento?: (valores: Record<string, string | number>) => ComplementoResultado | null;
 }
 
 export type DefinicionBase = Omit<HerramientaDef, 'destinos' | 'accion'>;
@@ -145,21 +164,6 @@ const MAX_SECCIONES = 12;
 const MAX_CONTENIDO = 3000;
 const MAX_ITEMS = 20;
 const MAX_ITEM = 400;
-const HASHTAGS_GENERICOS = [
-  '#love',
-  '#instagood',
-  '#follow',
-  '#like',
-  '#like4like',
-  '#followme',
-  '#photooftheday',
-  '#picoftheday',
-];
-const PATRON_BAIT =
-  /(etiquet\S*\s+a\s+(alguien|un amigo|tu)|comparte\s+(para|y)\s+(ganar|participar)|sorteo|gana[rs]?\s+\$|sigu[eé]\s+y\s+te\s+(doy|regalo)|dale\s+like\s+si|comenta\s+(y|para)\s+(ganar|participar))/i;
-const PATRON_ABSOLUTO =
-  /(\b(garantizad[oa]s?|siempre funciona|resultados seguros|sin esfuerzo|de la noche a la ma[ñn]ana)\b|100\s?%)/i;
-const PATRON_LINK = /https?:\/\/|www\./i;
 
 export const validarEntrada = (
   def: HerramientaDef,
@@ -188,7 +192,7 @@ export const validarEntrada = (
         ? valor
             .replace(/\u0000/g, '')
             .trim()
-            .slice(0, MAX_TEXTO)
+            .slice(0, campo.maxCaracteres ?? MAX_TEXTO)
         : '';
     if (!texto) {
       if (campo.requerido) return { ok: false, error: `${campo.etiqueta} es obligatorio` };
@@ -247,150 +251,6 @@ export const validarResultado = (raw: unknown): ResultadoHerramienta | null => {
       })
     : [];
   return { titulo: cortar(r.titulo, 160), secciones, notas, textosPiezas: textosPiezas.slice(0, MAX_ITEMS) };
-};
-
-export interface HallazgoSeguridad {
-  severidad: 'alta' | 'media' | 'baja';
-  texto: string;
-  correccion: string;
-}
-
-export const auditoriaReglas = (
-  caption: string,
-  hashtags: string[],
-): { nivel: 'alto' | 'medio' | 'bajo' | 'ninguno'; hallazgos: HallazgoSeguridad[] } => {
-  const hallazgos: HallazgoSeguridad[] = [];
-  if (PATRON_BAIT.test(caption)) {
-    hallazgos.push({
-      severidad: 'alta',
-      texto: 'Engagement bait: pedir etiquetas, likes o compartidos a cambio de algo puede limitar el alcance.',
-      correccion: 'Reemplazalo por una invitación genuina, por ejemplo: "Si te pasó algo parecido, contalo abajo".',
-    });
-  }
-  if (PATRON_ABSOLUTO.test(caption)) {
-    hallazgos.push({
-      severidad: 'media',
-      texto: 'Promesa absoluta o garantía: la audiencia la percibe como exagerada y la plataforma la puede marcar.',
-      correccion: 'Describí el resultado con condiciones reales: "pensado para", "en nuestra experiencia".',
-    });
-  }
-  const total = new Set(hashtags.map((h) => h.toLowerCase())).size;
-  if (total > 30) {
-    hallazgos.push({
-      severidad: 'alta',
-      texto: `${total} hashtags: Instagram admite hasta 30 por publicación.`,
-      correccion: 'Quedate con 5 a 12 relevantes y sacá los que no describen el contenido.',
-    });
-  }
-  const genericos = hashtags.filter((h) => HASHTAGS_GENERICOS.includes(h.toLowerCase()));
-  if (genericos.length > 0) {
-    hallazgos.push({
-      severidad: 'media',
-      texto: `Hashtags genéricos saturados: ${genericos.join(' ')}.`,
-      correccion: 'Cambialos por hashtags de nicho más específicos.',
-    });
-  }
-  if (PATRON_LINK.test(caption)) {
-    hallazgos.push({
-      severidad: 'baja',
-      texto: 'Los links en el caption no son clickeables en Instagram.',
-      correccion: 'Usá "link en bio" y dejá el enlace en el perfil.',
-    });
-  }
-  const palabras = caption.split(/\s+/).filter((p) => p.length > 3);
-  const mayusculas = palabras.filter((p) => p === p.toUpperCase() && /[A-ZÁÉÍÓÚÑ]/.test(p)).length;
-  if (palabras.length >= 6 && mayusculas / palabras.length > 0.4) {
-    hallazgos.push({
-      severidad: 'baja',
-      texto: 'Demasiadas palabras en mayúsculas: cuesta leer y se ve como grito.',
-      correccion: 'Dejá mayúsculas solo para una palabra clave.',
-    });
-  }
-  const nivel = hallazgos.some((h) => h.severidad === 'alta')
-    ? 'alto'
-    : hallazgos.some((h) => h.severidad === 'media')
-      ? 'medio'
-      : hallazgos.length > 0
-        ? 'bajo'
-        : 'ninguno';
-  return { nivel, hallazgos };
-};
-
-const respaldoSafety = (valores: Record<string, string | number>): ResultadoHerramienta => {
-  const hashtags = String(valores.hashtags ?? '')
-    .split(/[\s\n]+/)
-    .map((h) => h.trim())
-    .filter(Boolean);
-  const { nivel, hallazgos } = auditoriaReglas(String(valores.caption ?? ''), hashtags);
-  const etiqueta = { alto: 'Riesgo alto', medio: 'Riesgo medio', bajo: 'Riesgo bajo', ninguno: 'Sin hallazgos' }[nivel];
-  return {
-    titulo: 'Revisión previa a publicar',
-    secciones: [
-      { titulo: 'Nivel de riesgo', tipo: 'texto', contenido: etiqueta },
-      {
-        titulo: 'Hallazgos',
-        tipo: 'lista',
-        contenido: hallazgos.length
-          ? hallazgos.map((h) => `[${h.severidad}] ${h.texto} Corrección: ${h.correccion}`)
-          : ['No se detectaron patrones de riesgo en este caption.'],
-      },
-    ],
-    notas: ['Revisión por reglas: no reemplaza el criterio de quien conoce tu cuenta ni es asesoría legal.'],
-  };
-};
-
-const respaldoHashtags = (valores: Record<string, string | number>, contexto: ContextoCuenta): ResultadoHerramienta => {
-  const tema = String(valores.tema ?? '');
-  const cantidad = typeof valores.cantidad === 'number' ? valores.cantidad : 10;
-  const secciones: SeccionResultado[] = [
-    {
-      titulo: 'Mezcla recomendada',
-      tipo: 'lista',
-      contenido: [
-        `40% nicho específico (${Math.max(1, Math.round(cantidad * 0.4))}): términos exactos de "${tema}".`,
-        `40% nicho medio (${Math.max(1, Math.round(cantidad * 0.4))}): categorías cercanas a "${tema}".`,
-        `20% amplio o tendencia relevante (${Math.max(1, Math.round(cantidad * 0.2))}).`,
-      ],
-    },
-  ];
-  if (contexto.hashtagsTop.length > 0) {
-    secciones.push({
-      titulo: 'De tus posts que mejor rinden',
-      tipo: 'copiable',
-      contenido: contexto.hashtagsTop.slice(0, cantidad).join(' '),
-    });
-  }
-  return {
-    titulo: `Hashtags para ${tema}`,
-    secciones,
-    notas: [
-      'No tenemos volumen por hashtag: la mezcla es una heurística de discovery, no una medición.',
-      contexto.hashtagsTop.length > 0
-        ? 'Los hashtags de tus posts salen de tu historial real: medí cuáles siguen rindiendo.'
-        : 'Todavía no hay historial de posts para tomar hashtags de tu cuenta.',
-    ],
-  };
-};
-
-const respaldoHooks = (valores: Record<string, string | number>): ResultadoHerramienta => {
-  const idea = String(valores.idea ?? '');
-  return {
-    titulo: `Hooks para ${idea}`,
-    secciones: [
-      {
-        titulo: 'Ganchos',
-        tipo: 'lista',
-        contenido: [
-          `Contraste: Nadie te cuenta esto sobre ${idea}.`,
-          `Número: 3 errores frecuentes con ${idea} y cómo evitarlos.`,
-          `Pregunta: ¿Por qué ${idea} sigue sin funcionarte?`,
-          `Consecuencia: Si seguís ignorando ${idea}, te va a costar más de lo que creés.`,
-          `Curiosidad: Lo que aprendí sobre ${idea} cuando dejé de hacerlo igual.`,
-        ],
-      },
-    ],
-    notas: ['Plantillas de respaldo: la IA no respondió. Reemplazá los ejemplos por tu caso concreto.'],
-  };
 };
 
 const TONO = ['cercano', 'experto', 'divertido', 'inspirador'];
@@ -454,7 +314,6 @@ const BASE_HERRAMIENTAS: DefinicionBase[] = [
       { id: 'idea', etiqueta: 'Idea del contenido', tipo: 'textarea', requerido: true },
       { id: 'formato', etiqueta: 'Formato', tipo: 'select', requerido: true, opciones: ['reel', 'carrusel', 'video'] },
     ],
-    respaldo: (valores) => respaldoHooks(valores),
   },
   {
     id: 'hashtags',
@@ -475,7 +334,6 @@ const BASE_HERRAMIENTAS: DefinicionBase[] = [
       { id: 'plataforma', etiqueta: 'Plataforma', tipo: 'select', requerido: true, opciones: ['instagram', 'tiktok'] },
       { id: 'cantidad', etiqueta: 'Cantidad', tipo: 'numero', requerido: false, min: 3, max: 30 },
     ],
-    respaldo: (valores, contexto) => respaldoHashtags(valores, contexto),
   },
   {
     id: 'guion',
@@ -503,6 +361,15 @@ const BASE_HERRAMIENTAS: DefinicionBase[] = [
         opciones: ['15', '30', '45', '60'],
       },
       { id: 'tono', etiqueta: 'Tono', tipo: 'select', requerido: true, opciones: TONO },
+      {
+        id: 'transcripcion',
+        etiqueta: 'Transcripción del video grabado (opcional)',
+        tipo: 'textarea',
+        requerido: false,
+        maxCaracteres: 8000,
+        ayuda:
+          'Pegá el SRT o líneas que empiecen con [mm:ss]. Sirve para recortar silencios y muletillas y generar subtítulos y el comando de edición.',
+      },
     ],
   },
   {
@@ -591,7 +458,6 @@ const BASE_HERRAMIENTAS: DefinicionBase[] = [
       { id: 'plataforma', etiqueta: 'Plataforma', tipo: 'select', requerido: true, opciones: ['instagram', 'tiktok'] },
     ],
     soloReglas: true,
-    respaldo: (valores) => respaldoSafety(valores),
   },
   {
     id: 'perfil',
@@ -623,21 +489,23 @@ const BASE_HERRAMIENTAS: DefinicionBase[] = [
     rol: 'community manager senior con criterio de crisis y de ventas',
     reglas: [
       'Reconocé lo que la persona dijo antes de responder.',
-      'Si es un lead, invitá a DM o al canal de contacto sin presionar.',
-      'Quejas graves o temas médicos, legales o financieros: escalar a una persona.',
+      'Si el triaje detectó un lead, invitá a seguir por DM o al canal de contacto sin presionar.',
+      'Si hay riesgo (salud, legal, dinero, datos, crisis o reembolso), la acción es escalar: no des una respuesta de venta.',
+      'Si una respuesta aprobada por la marca aplica, usala sin cambiar lo esencial y sin inventar datos.',
       'Nunca prometas reembolsos, plazos ni resultados.',
       'Respuestas de una a tres frases, sin jerga.',
-      'Spam: no respondas; sugerí ocultar o reportar.',
+      'Spam: no respondas; el triaje ya indica si ocultar o ignorar.',
     ],
     campos: [
-      { id: 'mensaje', etiqueta: 'Mensaje recibido', tipo: 'textarea', requerido: true },
+      { id: 'mensaje', etiqueta: 'Mensaje recibido', tipo: 'textarea', requerido: true, maxCaracteres: 2000 },
       { id: 'tipo', etiqueta: 'Tipo', tipo: 'select', requerido: true, opciones: ['comentario', 'dm'] },
       {
         id: 'intencion',
         etiqueta: 'Intención',
         tipo: 'select',
         requerido: true,
-        opciones: ['pregunta', 'queja', 'elogio', 'lead', 'spam', 'otro'],
+        opciones: ['auto', 'pregunta', 'queja', 'elogio', 'lead', 'spam', 'otro'],
+        ayuda: 'Auto: la herramienta la detecta del mensaje.',
       },
     ],
   },

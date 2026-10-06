@@ -7,6 +7,7 @@
 
 import type {
   AccionCreacion,
+  ComplementoResultado,
   ContextoAccion,
   Destino,
   DefinicionBase,
@@ -22,10 +23,35 @@ import {
   type PiezaCreacion,
   type PlataformaPieza,
 } from './herramientasPlanificacion.js';
+import { parsearTranscripcion, planEdicion, type PlanEdicion } from './herramientasEdicion.js';
+import { respaldoRespuestas } from './respuestasRespaldo.js';
+import {
+  respaldoCarrusel,
+  respaldoHashtags,
+  respaldoHooks,
+  respaldoPerfil,
+  respaldoRepurpose,
+  respaldoSafety,
+} from './respaldosContenido.js';
+import {
+  respaldoBandeja,
+  respaldoBrief,
+  respaldoCalendarioInteligente,
+  respaldoDigest,
+  respaldoExperimento,
+  respaldoIdeas,
+  respaldoMetricas,
+  respaldoOkr,
+  respaldoPlan,
+  respaldoReprogramar,
+  respaldoStories,
+} from './respaldosEstrategia.js';
+import { prepararRespuestas, type TipoCanal } from './respuestasTriaje.js';
 
 type Valores = Record<string, string | number>;
 type Respaldo = NonNullable<HerramientaDef['respaldo']>;
 type Accion = (ctx: ContextoAccion) => AccionCreacion;
+type Complemento = NonNullable<HerramientaDef['complemento']>;
 
 const DIA_MS = 86_400_000;
 const FORMATOS_PIEZA: FormatoPieza[] = ['reel', 'carrusel', 'imagen', 'historia'];
@@ -274,182 +300,184 @@ const DESTINOS: Record<string, Destino[]> = {
   digest: ['bitacora', 'copiar'],
 };
 
-const cuandoLegible = (iso: string): string =>
-  new Date(iso).toLocaleString('es-AR', {
-    timeZone: 'America/Argentina/Buenos_Aires',
-    weekday: 'long',
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-
-const lineaPieza = (p: PiezaCreacion): string =>
-  `${p.titulo} · ${p.plataforma} · ${p.formato}${p.scheduledAt ? ` · ${cuandoLegible(p.scheduledAt)}` : ' · borrador sin fecha'}`;
-
-const respaldoPiezas = (titulo: string, piezas: PiezaCreacion[], notas: string[]): ResultadoHerramienta => ({
-  titulo,
-  secciones: [{ titulo: 'Calendario', tipo: 'lista', contenido: piezas.map(lineaPieza) }],
-  notas,
-});
-
-const respaldoPlan: Respaldo = (valores, contexto, ctx, accion) => {
-  const piezas = accion.tipo === 'piezas' ? accion.piezas : [];
-  const semanas = numero(valores, 'semanas', 1);
-  const porSemana = numero(valores, 'publicaciones', 3);
-  const notas = [
-    contexto.momentos.length > 0
-      ? 'Los horarios salen de los días y franjas que mejor rinden en tu cuenta.'
-      : 'Sin historial: los horarios son sugeridos, no medidos en tu cuenta.',
-  ];
-  if (!ctx.conexiones.instagram && !ctx.conexiones.tiktok)
-    notas.push('No hay cuentas conectadas: las piezas quedan en borrador hasta que conectes una red.');
-  return respaldoPiezas(`Plan de ${semanas} semana(s), ${porSemana} publicaciones por semana`, piezas, notas);
+const CTA_POR_OBJETIVO: Record<string, string> = {
+  alcance: 'Compartilo con alguien que lo necesite.',
+  engagement: 'Contame en los comentarios qué te pasa a vos con esto.',
+  guardados: 'Guardalo para cuando te haga falta.',
+  leads: 'Escribime por DM con la palabra "info" y te cuento cómo aplicarlo a tu caso.',
+  ventas: 'Si querés verlo aplicado a tu caso, escribime por DM.',
 };
 
-const respaldoStories: Respaldo = (valores, _contexto, _ctx, accion) =>
-  respaldoPiezas(`Historias para ${numero(valores, 'dias', 3)} día(s)`, accion.tipo === 'piezas' ? accion.piezas : [], [
-    'Alterná encuesta, pregunta y detrás de escena para sostener la interacción.',
-  ]);
-
-const respaldoIdeas: Respaldo = (valores, _contexto, _ctx, accion) => {
-  const piezas = accion.tipo === 'piezas' ? accion.piezas : [];
+const respaldoCaption: Respaldo = (valores, contexto, ctx) => {
+  const idea = texto(valores, 'idea');
+  const objetivo = texto(valores, 'objetivo');
+  const desdeMaterial =
+    ctx.material?.herramientaId === 'hooks'
+      ? ctx.material.texto
+          .split('\n')
+          .map((l) => l.trim())
+          .find((l) => l.startsWith('- '))
+          ?.slice(2)
+      : undefined;
+  const gancho = desdeMaterial ?? `${idea}: lo que casi nadie te cuenta.`;
+  const cuerpo =
+    'Hay un paso concreto que cambia el resultado. Te lo muestro y te digo cómo medir si funciona en tu caso.';
+  const cta = CTA_POR_OBJETIVO[objetivo] ?? CTA_POR_OBJETIVO['engagement'] ?? '';
+  const hashtags = contexto.hashtagsTop.slice(0, 5).join(' ');
+  const caption = [gancho, '', cuerpo, '', cta, ...(hashtags ? ['', hashtags] : [])].join('\n');
   return {
-    titulo: `Banco de ${piezas.length} ideas sobre ${texto(valores, 'tema') || 'tu nicho'}`,
-    secciones: [{ titulo: 'Ideas', tipo: 'lista', contenido: piezas.map((p) => `${p.titulo} · ${p.formato}`) }],
-    notas: ['Las ideas quedan como borradores sin fecha: asignales horario cuando las conviertas en piezas.'],
-  };
-};
-
-const respaldoMovimientos =
-  (titulo: string, sinMovimientos: string): Respaldo =>
-  (_valores, _contexto, _ctx, accion) => {
-    if (accion.tipo !== 'movimientos') return { titulo, secciones: [], notas: [] };
-    const lineas = accion.movimientos.map(
-      (m) =>
-        `${m.caption.slice(0, 60) || 'Pieza sin texto'} · ${m.actual ? `de ${cuandoLegible(m.actual)}` : 'sin fecha'} a ${cuandoLegible(m.propuesto)} · ${m.motivo}`,
-    );
-    return {
-      titulo: accion.movimientos.length > 0 ? `${accion.movimientos.length} pieza(s) para reubicar` : sinMovimientos,
-      secciones: lineas.length > 0 ? [{ titulo: 'Movimientos', tipo: 'lista', contenido: lineas }] : [],
-      notas: !accion.calendarioDisponible
-        ? ['El calendario no está disponible en este servidor: no se pudo leer ni mover piezas.']
-        : accion.movimientos.length === 0
-          ? [`${sinMovimientos}. Revisamos la ventana elegida y no hay cambios que proponer.`]
-          : [],
-    };
-  };
-
-const respaldoBrief: Respaldo = (valores, _contexto, _ctx, accion) => ({
-  titulo: `Brief: ${texto(valores, 'objetivo').slice(0, 100)}`,
-  secciones: [
-    { titulo: 'Objetivo', tipo: 'texto', contenido: texto(valores, 'objetivo') },
-    { titulo: 'Tareas', tipo: 'lista', contenido: accion.tipo === 'proyecto' ? accion.tareas : [] },
-  ],
-  notas: ['Se crea como proyecto en Junta ejecutiva para seguir el avance de cada tarea.'],
-});
-
-const respaldoOkr: Respaldo = (valores, _contexto, _ctx, accion) => ({
-  titulo: `OKR: ${texto(valores, 'titulo')}`,
-  secciones: [
-    { titulo: 'Por qué importa', tipo: 'texto', contenido: texto(valores, 'porque') },
-    {
-      titulo: 'Resultados clave',
-      tipo: 'lista',
-      contenido:
-        accion.tipo === 'objetivo' ? accion.keyResults.map((k) => `${k.descripcion} (fuente: ${k.fuente})`) : [],
-    },
-  ],
-  notas: ['Se valida al crear: si la meta no es razonable o faltan datos, el sistema devuelve el motivo.'],
-});
-
-const respaldoExperimento: Respaldo = (valores, _contexto, _ctx, accion) => ({
-  titulo: `Experimento: ${texto(valores, 'hipotesis').slice(0, 120)}`,
-  secciones: [
-    {
-      titulo: 'Variantes',
-      tipo: 'texto',
-      contenido: `A: ${texto(valores, 'nombreA')} · B: ${texto(valores, 'nombreB')}`,
-    },
-    {
-      titulo: 'Medición',
-      tipo: 'texto',
-      contenido:
-        accion.tipo === 'experimento'
-          ? `Métrica: ${accion.metrica}. Duración: ${accion.duracionDias} días. Gana la variante que mejore al menos ${accion.umbralMejora} %.`
-          : '',
-    },
-  ],
-  notas: [
-    'Se registra en Experimentos con el estado de borrador: iniciá la prueba cuando las dos variantes estén listas.',
-  ],
-});
-
-const respaldoBandeja: Respaldo = (valores, _contexto, ctx) => ({
-  titulo: 'Resumen de la bandeja',
-  secciones: [
-    {
-      titulo: 'Pendientes',
-      tipo: 'lista',
-      contenido: [
-        `${ctx.bandeja.sinResponder} conversación(es) sin responder`,
-        `${ctx.bandeja.escaladas} necesitan una persona`,
-        `${ctx.bandeja.leadsSinResponder} lead(s) calificado(s) sin respuesta`,
-      ],
-    },
-    {
-      titulo: 'Atender primero',
-      tipo: 'lista',
-      contenido: ctx.bandeja.ejemplos.length > 0 ? ctx.bandeja.ejemplos : ['Nada urgente en la bandeja.'],
-    },
-  ],
-  notas: ctx.bandeja.disponible
-    ? [`Enfoque: ${texto(valores, 'enfoque') || 'prioridades'}.`]
-    : ['La bandeja no está disponible en este momento.'],
-});
-
-const respaldoDigest: Respaldo = (valores, contexto, ctx) => {
-  const top = contexto.formatos[0];
-  return {
-    titulo: `Resumen de los últimos ${texto(valores, 'periodo') || '7'} días`,
+    titulo: 'Caption listo para revisar',
     secciones: [
+      { titulo: 'Caption', tipo: 'copiable', contenido: caption },
       {
-        titulo: 'Contenido',
+        titulo: 'Estructura',
         tipo: 'texto',
-        contenido: top
-          ? `Llevás ${contexto.totalPosts} publicaciones analizadas. El formato que mejor rinde es ${top.formato}, con ${top.medianaTasa} % de interacción mediana.`
-          : `Todavía no hay publicaciones analizadas (${contexto.totalPosts}).`,
-      },
-      {
-        titulo: 'Bandeja',
-        tipo: 'texto',
-        contenido: `${ctx.bandeja.sinResponder} sin responder, ${ctx.bandeja.escaladas} escaladas y ${ctx.bandeja.leadsSinResponder} leads calificados esperando respuesta.`,
-      },
-      {
-        titulo: 'Próximo paso',
-        tipo: 'texto',
-        contenido:
-          ctx.bandeja.leadsSinResponder > 0
-            ? 'Respondé primero a los leads calificados: son la acción con más impacto esta semana.'
-            : 'Mantené la cadencia del calendario y revisá qué formato repetir la semana que viene.',
+        contenido: `Gancho de contraste, cuerpo concreto y un CTA para el objetivo "${objetivo}".`,
       },
     ],
-    notas: ['Cifras tomadas de tu cuenta y de la bandeja en este momento.'],
+    notas: [
+      'Respaldo por reglas: la IA no respondió. Reemplazá el cuerpo por un ejemplo real de tu cuenta.',
+      ...(ctx.material ? [`Partió de: ${ctx.material.nombre}.`] : []),
+    ],
   };
+};
+
+const respaldoGuion: Respaldo = (valores) => {
+  const tema = texto(valores, 'tema');
+  const duracion = numero(valores, 'duracion', 30);
+  const beats = Math.max(2, Math.floor(duracion / 3) - 1);
+  const pasos = Array.from({ length: beats }, (_, i) => {
+    const desde = i * 3;
+    const hasta = (i + 1) * 3;
+    const accion =
+      i === 0
+        ? `Mostrá el problema concreto de ${tema}`
+        : i === beats - 1
+          ? `Cerrá el ejemplo con el resultado de ${tema}`
+          : `Paso ${i} sobre ${tema}: una acción, un dato o una comparación`;
+    return `${desde}-${hasta} s: ${accion}`;
+  });
+  return {
+    titulo: `Guion de ${duracion} segundos`,
+    secciones: [
+      {
+        titulo: 'Hook (0-2 s)',
+        tipo: 'texto',
+        contenido: `En pantalla: "${tema.slice(0, 60)}". Voz: una frase que promete algo concreto sobre el tema.`,
+      },
+      { titulo: 'Desarrollo', tipo: 'lista', contenido: pasos },
+      {
+        titulo: 'Cierre (últimos 3 s)',
+        tipo: 'copiable',
+        contenido: 'Una pregunta o un CTA concreto: ¿Qué te pasa a vos con esto? Contalo abajo.',
+      },
+      {
+        titulo: 'B-roll sugerido',
+        tipo: 'lista',
+        contenido: ['Plano de vos hablando a cámara', 'Pantalla o producto en uso', 'Un texto grande por cada punto'],
+      },
+    ],
+    notas: ['Respaldo por reglas: la IA no respondió. Ajustá el guion a tu voz.', `Duración objetivo: ${duracion} s.`],
+  };
+};
+
+const segundosTexto = (segundos: number): string => `${segundos.toFixed(1).replace('.', ',')} s`;
+const tiempoCorto = (segundos: number): string => {
+  const minutos = Math.floor(segundos / 60);
+  const resto = segundos - minutos * 60;
+  return `${String(minutos).padStart(2, '0')}:${resto.toFixed(1).padStart(4, '0').replace('.', ',')}`;
+};
+const MAX_CORTES_EN_RESULTADO = 20;
+
+const seccionesDeEdicion = (plan: PlanEdicion): ComplementoResultado => {
+  const ahorro = Math.max(0, plan.duracionOriginal - plan.duracionFinal);
+  const cortes = plan.cortes
+    .slice(0, MAX_CORTES_EN_RESULTADO)
+    .map(
+      (c) =>
+        `${tiempoCorto(c.inicio)} → ${tiempoCorto(c.fin)} · ${c.motivo === 'silencio' ? 'silencio' : 'muletilla'} (${segundosTexto(c.fin - c.inicio)})`,
+    );
+  return {
+    secciones: [
+      {
+        titulo: 'Edición propuesta',
+        tipo: 'texto',
+        contenido: `Duración ${segundosTexto(plan.duracionOriginal)} → ${segundosTexto(plan.duracionFinal)} (ahorro ${segundosTexto(ahorro)}). Muletillas quitadas: ${plan.muletillas}. Silencios recortados: ${plan.silencios}.`,
+      },
+      {
+        titulo: 'Cortes',
+        tipo: 'lista',
+        contenido: cortes.length > 0 ? cortes : ['No hay silencios ni muletillas para cortar.'],
+      },
+      { titulo: 'Subtítulos (SRT, ya ajustados al video editado)', tipo: 'copiable', contenido: plan.subtitulosSrt },
+      {
+        titulo: 'Comando de edición (FFmpeg)',
+        tipo: 'copiable',
+        contenido: plan.ffmpeg ?? 'Hay demasiados cortes para un solo comando: editá por partes.',
+      },
+    ],
+    notas: [
+      'Los cortes salen de los tiempos de la transcripción: revisá el video antes de exportar.',
+      'El comando asume entrada.mp4 con pista de video y de audio. Si no tiene audio, quitá las partes de audio.',
+      'El comando termina donde termina la transcripción: si el video sigue, agregá ese tramo al final.',
+    ],
+  };
+};
+
+const complementoGuion: Complemento = (valores) => {
+  const transcripcion = texto(valores, 'transcripcion');
+  if (!transcripcion) return null;
+  const segmentos = parsearTranscripcion(transcripcion);
+  if (segmentos.length === 0) {
+    return {
+      secciones: [],
+      notas: [
+        'La transcripción no tiene tiempos: pegá el SRT o líneas que empiecen con [mm:ss] para recortar y subtitular.',
+      ],
+    };
+  }
+  const plan = planEdicion(segmentos);
+  if (!plan) {
+    return {
+      secciones: [],
+      notas: ['No queda contenido después de quitar silencios y muletillas: revisá la transcripción.'],
+    };
+  }
+  return seccionesDeEdicion(plan);
+};
+
+const COMPLEMENTOS: Record<string, Complemento> = {
+  guion: complementoGuion,
+};
+
+const tipoDeCanal = (valores: Valores): TipoCanal => (valores['tipo'] === 'dm' ? 'dm' : 'comentario');
+
+const respaldoRespuestasHerramienta: Respaldo = (valores, _contexto, ctx) => {
+  const preparacion =
+    ctx.respuestas ??
+    prepararRespuestas(texto(valores, 'mensaje'), tipoDeCanal(valores), valores['intencion'], ctx.conocimiento ?? []);
+  return respaldoRespuestas(preparacion, tipoDeCanal(valores));
 };
 
 const RESPALDOS: Record<string, Respaldo> = {
+  caption: respaldoCaption,
+  guion: respaldoGuion,
+  respuestas: respaldoRespuestasHerramienta,
+  hooks: (valores) => respaldoHooks(valores),
+  hashtags: (valores, contexto) => respaldoHashtags(valores, contexto),
+  safety: (valores) => respaldoSafety(valores),
+  carrusel: (valores) => respaldoCarrusel(valores),
+  repurpose: (valores) => respaldoRepurpose(valores),
+  perfil: (valores) => respaldoPerfil(valores),
   plan: respaldoPlan,
   stories: respaldoStories,
   ideas: respaldoIdeas,
-  'calendario-inteligente': respaldoMovimientos(
-    'Tu calendario ya está en los mejores horarios',
-    'Sin piezas para mover',
-  ),
-  reprogramar: respaldoMovimientos('No hay piezas vencidas', 'Sin piezas vencidas para reubicar'),
+  'calendario-inteligente': respaldoCalendarioInteligente,
+  reprogramar: respaldoReprogramar,
   brief: respaldoBrief,
   okr: respaldoOkr,
   experimento: respaldoExperimento,
+  metricas: respaldoMetricas,
   bandeja: respaldoBandeja,
   digest: respaldoDigest,
 };
@@ -461,10 +489,12 @@ const dePropiedad = <T>(mapa: Record<string, T>, clave: string): T | undefined =
 export const ENSAMBLAR_HERRAMIENTA = (def: DefinicionBase): HerramientaDef => {
   const accion = dePropiedad(ACCIONES, def.id);
   const respaldo = dePropiedad(RESPALDOS, def.id) ?? def.respaldo;
+  const complemento = dePropiedad(COMPLEMENTOS, def.id);
   return {
     ...def,
     destinos: DESTINOS[def.id] ?? ['copiar'],
     ...(accion ? { accion } : {}),
     ...(respaldo ? { respaldo } : {}),
+    ...(complemento ? { complemento } : {}),
   };
 };

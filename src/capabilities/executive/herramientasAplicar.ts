@@ -4,7 +4,8 @@
  * poder probar la regla sin base de datos.
  */
 
-import { auditoriaReglas, type Destino, type HerramientaDef } from './herramientasCatalogo.js';
+import type { Destino, HerramientaDef } from './herramientasCatalogo.js';
+import { auditoriaReglas } from './herramientasReglas.js';
 import type { PiezaCreacion } from './herramientasPlanificacion.js';
 import type { AplicacionCreacion, CreacionGuardada } from './herramientasCreaciones.js';
 
