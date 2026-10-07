@@ -187,12 +187,12 @@ const buildForm = (platform) => `
         </div>
       </button>
 
-      <!-- Herramientas Individuales (COLLAPSE para no saturar UI) -->
-      <details style="width: 100%; margin-bottom: 16px;">
-        <summary style="cursor: pointer; padding: 12px; background: #f8fafc; border-radius: 6px; font-weight: 600; user-select: none;">
-          🔧 Herramientas Avanzadas (18 análisis individuales)
-        </summary>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; padding: 12px; background: #f1f5f9; border-radius: 6px;">
+      <!-- Herramientas Individuales (EXPANDIDO por defecto) -->
+      <div style="width: 100%; margin-bottom: 16px;">
+        <div style="padding: 12px; background: #fff7ed; border-radius: 6px; border-left: 4px solid #f59e0b; margin-bottom: 12px; font-size: 13px; color: #92400e;">
+          ⓘ <strong>Nota:</strong> Herramientas de análisis individual (benchmark, personas, hashtags, etc.) están disponibles en <strong>Sala Ejecutiva → Analytics</strong> para investigación profunda.
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; background: #f1f5f9; border-radius: 6px;">
           <button class="fg-btn fg-btn-secondary" data-action="estrategia" style="font-size: 13px;">1 · Estrategia</button>
           <button class="fg-btn fg-btn-secondary" data-action="producir" style="font-size: 13px;">2 · Producir</button>
           <button class="fg-btn fg-btn-secondary" data-action="todo" style="font-size: 13px;">✨ Generar todo</button>
@@ -213,7 +213,7 @@ const buildForm = (platform) => `
           <button class="fg-btn fg-btn-secondary" data-action="repurpose" style="font-size: 13px;">♻️ Repurpose (P15)</button>
           <button class="fg-btn fg-btn-secondary" data-action="growth" style="font-size: 13px;">📈 Growth (Phase 16)</button>
         </div>
-      </details>
+      </div>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
