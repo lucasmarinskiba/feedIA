@@ -131,6 +131,7 @@ const buildForm = (platform) => `
       <button class="fg-btn fg-btn-secondary" data-action="abtest"><span class="fg-btn-icon">🧪</span>A/B Test</button>
       <button class="fg-btn fg-btn-secondary" data-action="benchmark"><span class="fg-btn-icon">📊</span>Benchmark</button>
       <button class="fg-btn fg-btn-secondary" data-action="seasonality"><span class="fg-btn-icon">📈</span>Seasonality</button>
+      <button class="fg-btn fg-btn-secondary" data-action="persona"><span class="fg-btn-icon">👥</span>Personas</button>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
@@ -737,6 +738,8 @@ const manejarAccion = (root, action, idx) => {
       return cargarBenchmark(root);
     case 'seasonality':
       return cargarSeasonality(root);
+    case 'persona':
+      return cargarPersonaAnalysis(root);
     default:
       return undefined;
   }
@@ -1377,6 +1380,87 @@ const cargarSeasonality = async (root) => {
   toast('success', 'Análisis estacional cargado');
 };
 
+/* ───────── Phase 9: Audience Persona Analysis ───────── */
+
+const renderPersonaAnalysis = (root, result) => {
+  const {
+    personas,
+    dominantPersona,
+    personaGap,
+    contentAllocationByPersona,
+    crossPersonaOpportunity,
+    recommendations,
+  } = result;
+
+  const html = `<div class="fg-persona-panel">
+    <h3>👥 Audience Persona Analysis</h3>
+
+    <div class="fg-persona-header">
+      <div class="fg-dominant-persona">
+        <div class="fg-persona-label">Persona Dominante</div>
+        <div class="fg-persona-name">${dominantPersona.name}</div>
+        <div class="fg-persona-pct">${dominantPersona.percentOfAudience}% de tu audiencia</div>
+        <div class="fg-persona-ltv">LTV: ${dominantPersona.estimatedLTV}/10</div>
+      </div>
+    </div>
+
+    <div class="fg-personas-grid">
+      ${personas
+        .map(
+          (p) => `<div class="fg-persona-card">
+        <div class="fg-persona-card-name">${p.name}</div>
+        <div class="fg-persona-card-desc">${p.description}</div>
+        <div class="fg-persona-card-pct"><strong>${p.percentOfAudience}%</strong> of audience</div>
+        <div class="fg-persona-card-pain">
+          <strong>Pain points:</strong>
+          ${p.primaryPainPoints.map((pp) => `<div>• ${pp}</div>`).join('')}
+        </div>
+        <div class="fg-persona-card-cta">CTA: "${p.callToAction}"</div>
+      </div>`,
+        )
+        .join('')}
+    </div>
+
+    ${
+      personaGap
+        ? `<div class="fg-persona-gap">
+      <div class="fg-gap-label">🎯 Opportunity Persona (Not Yet Served):</div>
+      <div class="fg-gap-name">${personaGap.name}</div>
+      <div class="fg-gap-desc">${personaGap.description}</div>
+      <div class="fg-gap-pain">Pain: ${personaGap.primaryPainPoints.join(', ')}</div>
+    </div>`
+        : ''
+    }
+
+    <div class="fg-persona-cross">
+      <div class="fg-cross-label">🔗 Cross-Persona Opportunity</div>
+      <div class="fg-cross-content">${crossPersonaOpportunity}</div>
+    </div>
+
+    <div class="fg-persona-recs">
+      <h4>Recomendaciones</h4>
+      ${recommendations.map((r) => `<div class="fg-persona-rec">💡 ${r}</div>`).join('')}
+    </div>
+  </div>`;
+
+  root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarPersonaAnalysis = async (root) => {
+  const result = await apiSafe(`/api/forge/persona/analyze`, {
+    method: 'POST',
+    body: JSON.stringify({ engagementMetrics: { saveRate: 0.45, shareRate: 0.35 } }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en análisis de personas');
+    return;
+  }
+
+  renderPersonaAnalysis(root, result.result);
+  toast('success', 'Análisis de personas cargado');
+};
+
 /* ───────── Vista ───────── */
 
 /* Referencia estable: así removeEventListener quita el mismo listener en cada render. */
@@ -1635,6 +1719,35 @@ export const renderForge = async (root) => {
       .fg-season-recs{padding:16px;background:rgba(59,130,246,.05);border-radius:8px;border-left:4px solid #3b82f6;}
       .fg-season-rec{font-size:12px;color:var(--text-primary);margin-bottom:8px;line-height:1.4;}
       .fg-season-rec:last-child{margin-bottom:0;}
+
+      /* Phase 9: Audience Personas */
+      .fg-persona-panel{padding:20px;background:rgba(17,18,22,.02);border-radius:12px;margin-top:20px;border:1px solid rgba(17,18,22,.1);}
+      .fg-persona-panel h3{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text-primary);}
+      .fg-persona-panel h4{font-size:14px;font-weight:600;margin-top:16px;margin-bottom:12px;}
+      .fg-persona-header{padding:16px;background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(59,130,246,.08));border-radius:8px;margin-bottom:20px;}
+      .fg-dominant-persona{text-align:center;}
+      .fg-persona-label{font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px;}
+      .fg-persona-name{font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:4px;}
+      .fg-persona-pct{font-size:13px;color:#10b981;font-weight:600;}
+      .fg-persona-ltv{font-size:12px;color:#64748b;margin-top:4px;}
+      .fg-personas-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;}
+      .fg-persona-card{padding:12px;border-radius:8px;background:white;border:1px solid rgba(17,18,22,.1);font-size:12px;}
+      .fg-persona-card-name{font-weight:600;font-size:13px;margin-bottom:6px;color:var(--text-primary);}
+      .fg-persona-card-desc{font-size:11px;color:#64748b;margin-bottom:8px;}
+      .fg-persona-card-pct{color:#3b82f6;font-weight:600;margin-bottom:8px;}
+      .fg-persona-card-pain{font-size:11px;color:#64748b;margin-bottom:6px;}
+      .fg-persona-card-cta{font-size:11px;font-weight:600;color:#10b981;font-style:italic;}
+      .fg-persona-gap{padding:12px;background:rgba(245,158,11,.05);border-radius:8px;border-left:3px solid #f59e0b;margin-bottom:16px;}
+      .fg-gap-label{font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px;}
+      .fg-gap-name{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:4px;}
+      .fg-gap-desc{font-size:11px;color:#64748b;margin-bottom:4px;}
+      .fg-gap-pain{font-size:11px;color:#f59e0b;}
+      .fg-persona-cross{padding:12px;background:rgba(59,130,246,.05);border-radius:8px;border-left:3px solid #3b82f6;margin-bottom:16px;}
+      .fg-cross-label{font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px;}
+      .fg-cross-content{font-size:12px;color:var(--text-primary);}
+      .fg-persona-recs{padding:16px;background:rgba(16,185,129,.05);border-radius:8px;border-left:4px solid #10b981;}
+      .fg-persona-rec{font-size:12px;color:var(--text-primary);margin-bottom:8px;line-height:1.4;}
+      .fg-persona-rec:last-child{margin-bottom:0;}
 
       @media (max-width: 640px){
         .fg-form-grid{grid-template-columns:1fr;}

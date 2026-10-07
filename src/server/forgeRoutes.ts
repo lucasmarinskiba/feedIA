@@ -84,6 +84,9 @@ import { benchmarkScores, getAllNiches, type BenchmarkComparison } from '../capa
 // Phase 8: Seasonality & trend analysis
 import { analyzeSeasonality, type SeasonalityAnalysis } from '../capabilities/forge/seasonalityTrend.js';
 
+// Phase 9: Audience persona analysis
+import { analyzeAudiencePersonas, type PersonaAnalysisResult } from '../capabilities/forge/audiencePersonaAnalysis.js';
+
 // Phase 2: DB persistence (future)
 // import {
 //   saveForgeAttempt,
@@ -899,6 +902,25 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         );
       } catch (err) {
         json(res, 500, errorInterno('seasonality-analyze', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/persona/analyze',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { engagementMetrics } = body as {
+          engagementMetrics?: Record<string, number>;
+        };
+
+        const result: PersonaAnalysisResult = analyzeAudiencePersonas(engagementMetrics);
+        json(res, 200, { ok: true, result });
+        log.info(
+          `[forge] persona: ${result.personas.length} personas identified, dominant: ${result.dominantPersona.name}`,
+        );
+      } catch (err) {
+        json(res, 500, errorInterno('persona-analyze', err));
       }
     },
   },
