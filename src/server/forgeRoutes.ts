@@ -507,6 +507,7 @@ const errorInterno = (ruta: string, err: unknown): { error: string } => {
   return { error: 'forge-failed' };
 };
 
+// Force redeploy: phases 14-16 with 🚀 🔄 📈 buttons deployed
 const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'POST',
