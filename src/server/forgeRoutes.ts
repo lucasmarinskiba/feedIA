@@ -87,6 +87,9 @@ import { analyzeSeasonality, type SeasonalityAnalysis } from '../capabilities/fo
 // Phase 9: Audience persona analysis
 import { analyzeAudiencePersonas, type PersonaAnalysisResult } from '../capabilities/forge/audiencePersonaAnalysis.js';
 
+// Phase 10: Hashtag strategy
+import { analyzeHashtagStrategy, type HashtagStrategyResult } from '../capabilities/forge/hashtagStrategy.js';
+
 // Phase 2: DB persistence (future)
 // import {
 //   saveForgeAttempt,
@@ -921,6 +924,25 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         );
       } catch (err) {
         json(res, 500, errorInterno('persona-analyze', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/hashtag/strategy',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { usedHashtags } = body as {
+          usedHashtags?: string[];
+        };
+
+        const strategy: HashtagStrategyResult = analyzeHashtagStrategy(usedHashtags);
+        json(res, 200, { ok: true, strategy });
+        log.info(
+          `[forge] hashtag: ${strategy.optimalHashtagCount} hashtags recommended, ${strategy.recommendations.length} total pool`,
+        );
+      } catch (err) {
+        json(res, 500, errorInterno('hashtag-strategy', err));
       }
     },
   },

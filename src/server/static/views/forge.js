@@ -132,6 +132,7 @@ const buildForm = (platform) => `
       <button class="fg-btn fg-btn-secondary" data-action="benchmark"><span class="fg-btn-icon">📊</span>Benchmark</button>
       <button class="fg-btn fg-btn-secondary" data-action="seasonality"><span class="fg-btn-icon">📈</span>Seasonality</button>
       <button class="fg-btn fg-btn-secondary" data-action="persona"><span class="fg-btn-icon">👥</span>Personas</button>
+      <button class="fg-btn fg-btn-secondary" data-action="hashtag"><span class="fg-btn-icon">#️⃣</span>Hashtags</button>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
@@ -740,6 +741,8 @@ const manejarAccion = (root, action, idx) => {
       return cargarSeasonality(root);
     case 'persona':
       return cargarPersonaAnalysis(root);
+    case 'hashtag':
+      return cargarHashtagStrategy(root);
     default:
       return undefined;
   }
@@ -1461,6 +1464,67 @@ const cargarPersonaAnalysis = async (root) => {
   toast('success', 'Análisis de personas cargado');
 };
 
+/* ───────── Phase 10: Hashtag Strategy ───────── */
+
+const renderHashtagStrategy = (root, strategy) => {
+  const { mixBreakdown, hashtagRotationStrategy, recommendations_text, optimalHashtagCount } = strategy;
+
+  const html = `<div class="fg-hashtag-panel">
+    <h3>#️⃣ Hashtag Strategy</h3>
+
+    <div class="fg-hashtag-optimal">
+      <div class="fg-optimal-label">Hashtags recomendados</div>
+      <div class="fg-optimal-number">${optimalHashtagCount}</div>
+    </div>
+
+    <div class="fg-hashtag-mix">
+      <div class="fg-mix-category">
+        <div class="fg-mix-label">🔴 Primary (Broad)</div>
+        <div class="fg-mix-tags">${mixBreakdown.primary.map((t) => `<span class="fg-tag fg-tag-primary">${t}</span>`).join('')}</div>
+      </div>
+      <div class="fg-mix-category">
+        <div class="fg-mix-label">🟡 Secondary (Medium)</div>
+        <div class="fg-mix-tags">${mixBreakdown.secondary.map((t) => `<span class="fg-tag fg-tag-secondary">${t}</span>`).join('')}</div>
+      </div>
+      <div class="fg-mix-category">
+        <div class="fg-mix-label">🟢 Niche (Specific)</div>
+        <div class="fg-mix-tags">${mixBreakdown.niche.map((t) => `<span class="fg-tag fg-tag-niche">${t}</span>`).join('')}</div>
+      </div>
+      <div class="fg-mix-category">
+        <div class="fg-mix-label">⭐ Trending</div>
+        <div class="fg-mix-tags">${mixBreakdown.trending.map((t) => `<span class="fg-tag fg-tag-trending">${t}</span>`).join('')}</div>
+      </div>
+    </div>
+
+    <div class="fg-hashtag-rotation">
+      <h4>Estrategia de Rotación</h4>
+      ${hashtagRotationStrategy.map((week) => `<div class="fg-rotation-week">📅 ${week}</div>`).join('')}
+    </div>
+
+    <div class="fg-hashtag-recs">
+      <h4>Recomendaciones</h4>
+      ${recommendations_text.map((r) => `<div class="fg-hashtag-rec">💡 ${r}</div>`).join('')}
+    </div>
+  </div>`;
+
+  root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarHashtagStrategy = async (root) => {
+  const result = await apiSafe(`/api/forge/hashtag/strategy`, {
+    method: 'POST',
+    body: JSON.stringify({ usedHashtags: ['#contentcreator', '#marketing', '#growth', '#socialmedia', '#instagram'] }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en estrategia de hashtags');
+    return;
+  }
+
+  renderHashtagStrategy(root, result.strategy);
+  toast('success', 'Estrategia de hashtags cargada');
+};
+
 /* ───────── Vista ───────── */
 
 /* Referencia estable: así removeEventListener quita el mismo listener en cada render. */
@@ -1748,6 +1812,29 @@ export const renderForge = async (root) => {
       .fg-persona-recs{padding:16px;background:rgba(16,185,129,.05);border-radius:8px;border-left:4px solid #10b981;}
       .fg-persona-rec{font-size:12px;color:var(--text-primary);margin-bottom:8px;line-height:1.4;}
       .fg-persona-rec:last-child{margin-bottom:0;}
+
+      /* Phase 10: Hashtag Strategy */
+      .fg-hashtag-panel{padding:20px;background:rgba(17,18,22,.02);border-radius:12px;margin-top:20px;border:1px solid rgba(17,18,22,.1);}
+      .fg-hashtag-panel h3{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text-primary);}
+      .fg-hashtag-panel h4{font-size:14px;font-weight:600;margin-top:16px;margin-bottom:12px;}
+      .fg-hashtag-optimal{text-align:center;padding:16px;background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(59,130,246,.08));border-radius:8px;margin-bottom:20px;}
+      .fg-optimal-label{font-size:12px;font-weight:600;color:#64748b;}
+      .fg-optimal-number{font-size:32px;font-weight:700;color:#10b981;}
+      .fg-hashtag-mix{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:20px;}
+      .fg-mix-category{padding:12px;border-radius:8px;background:white;border:1px solid rgba(17,18,22,.1);}
+      .fg-mix-label{font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px;}
+      .fg-mix-tags{display:flex;flex-wrap:wrap;gap:6px;}
+      .fg-tag{display:inline-block;font-size:11px;padding:4px 8px;border-radius:4px;font-weight:600;}
+      .fg-tag-primary{background:#3b82f6;color:white;}
+      .fg-tag-secondary{background:#f59e0b;color:white;}
+      .fg-tag-niche{background:#10b981;color:white;}
+      .fg-tag-trending{background:#ef4444;color:white;}
+      .fg-hashtag-rotation{padding:12px;background:rgba(59,130,246,.05);border-radius:8px;border-left:3px solid #3b82f6;margin-bottom:16px;}
+      .fg-rotation-week{font-size:12px;color:var(--text-primary);margin-bottom:6px;}
+      .fg-rotation-week:last-child{margin-bottom:0;}
+      .fg-hashtag-recs{padding:16px;background:rgba(16,185,129,.05);border-radius:8px;border-left:4px solid #10b981;}
+      .fg-hashtag-rec{font-size:12px;color:var(--text-primary);margin-bottom:8px;line-height:1.4;}
+      .fg-hashtag-rec:last-child{margin-bottom:0;}
 
       @media (max-width: 640px){
         .fg-form-grid{grid-template-columns:1fr;}
