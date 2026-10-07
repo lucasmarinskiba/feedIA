@@ -120,25 +120,38 @@ const buildForm = (platform) => `
     </div>
 
     <div class="fg-actions">
-      <button class="fg-btn fg-btn-secondary" data-action="estrategia">1 · Estrategia</button>
-      <button class="fg-btn fg-btn-secondary" data-action="producir">2 · Producir</button>
-      <button class="fg-btn fg-btn-primary" data-action="todo"><span class="fg-btn-icon">✨</span>Generar todo</button>
-      <button class="fg-btn fg-btn-secondary" data-action="cargar-historico"><span class="fg-btn-icon">📊</span>Ver Histórico</button>
-      <button class="fg-btn fg-btn-secondary" data-action="analizar-predictor"><span class="fg-btn-icon">🔬</span>Analizar</button>
-      <button class="fg-btn fg-btn-secondary" data-action="batch-comparison"><span class="fg-btn-icon">📈</span>Trends</button>
-      <button class="fg-btn fg-btn-secondary" data-action="content-suggestions"><span class="fg-btn-icon">✍️</span>Sugerencias</button>
-      <button class="fg-btn fg-btn-secondary" data-action="performance-forecast"><span class="fg-btn-icon">🔮</span>Forecast</button>
-      <button class="fg-btn fg-btn-secondary" data-action="abtest"><span class="fg-btn-icon">🧪</span>A/B Test</button>
-      <button class="fg-btn fg-btn-secondary" data-action="benchmark"><span class="fg-btn-icon">📊</span>Benchmark</button>
-      <button class="fg-btn fg-btn-secondary" data-action="seasonality"><span class="fg-btn-icon">📈</span>Seasonality</button>
-      <button class="fg-btn fg-btn-secondary" data-action="persona"><span class="fg-btn-icon">👥</span>Personas</button>
-      <button class="fg-btn fg-btn-secondary" data-action="hashtag"><span class="fg-btn-icon">#️⃣</span>Hashtags</button>
-      <button class="fg-btn fg-btn-secondary" data-action="calendar"><span class="fg-btn-icon">📅</span>Calendario</button>
-      <button class="fg-btn fg-btn-secondary" data-action="revenue"><span class="fg-btn-icon">💰</span>Revenue</button>
-      <button class="fg-btn fg-btn-secondary" data-action="health"><span class="fg-btn-icon">🏥</span>Health</button>
-      <button class="fg-btn fg-btn-secondary" data-action="viral"><span class="fg-btn-icon">🚀</span>Viral</button>
-      <button class="fg-btn fg-btn-secondary" data-action="repurpose"><span class="fg-btn-icon">♻️</span>Repurpose</button>
-      <button class="fg-btn fg-btn-secondary" data-action="growth"><span class="fg-btn-icon">📈</span>Growth</button>
+      <!-- Decision Engine (NEW: orquesta phases 1-16) -->
+      <button class="fg-btn fg-btn-primary" data-action="decision-engine-flow" style="width: 100%; padding: 14px 24px; font-size: 16px; margin-bottom: 16px;">
+        <span class="fg-btn-icon">🎯</span>Iniciar Decision Engine (Fases 1-16)
+      </button>
+
+      <!-- Herramientas Individuales (COLLAPSE para no saturar UI) -->
+      <details style="width: 100%; margin-bottom: 16px;">
+        <summary style="cursor: pointer; padding: 12px; background: #f8fafc; border-radius: 6px; font-weight: 600; user-select: none;">
+          🔧 Herramientas Avanzadas (18 análisis individuales)
+        </summary>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; padding: 12px; background: #f1f5f9; border-radius: 6px;">
+          <button class="fg-btn fg-btn-secondary" data-action="estrategia" style="font-size: 13px;">1 · Estrategia</button>
+          <button class="fg-btn fg-btn-secondary" data-action="producir" style="font-size: 13px;">2 · Producir</button>
+          <button class="fg-btn fg-btn-secondary" data-action="todo" style="font-size: 13px;">✨ Generar todo</button>
+          <button class="fg-btn fg-btn-secondary" data-action="cargar-historico" style="font-size: 13px;">📊 Histórico</button>
+          <button class="fg-btn fg-btn-secondary" data-action="analizar-predictor" style="font-size: 13px;">🔬 Analizar</button>
+          <button class="fg-btn fg-btn-secondary" data-action="batch-comparison" style="font-size: 13px;">📈 Trends</button>
+          <button class="fg-btn fg-btn-secondary" data-action="content-suggestions" style="font-size: 13px;">✍️ Sugerencias</button>
+          <button class="fg-btn fg-btn-secondary" data-action="performance-forecast" style="font-size: 13px;">🔮 Forecast</button>
+          <button class="fg-btn fg-btn-secondary" data-action="abtest" style="font-size: 13px;">🧪 A/B Test</button>
+          <button class="fg-btn fg-btn-secondary" data-action="benchmark" style="font-size: 13px;">📊 Benchmark</button>
+          <button class="fg-btn fg-btn-secondary" data-action="seasonality" style="font-size: 13px;">📈 Seasonality</button>
+          <button class="fg-btn fg-btn-secondary" data-action="persona" style="font-size: 13px;">👥 Personas</button>
+          <button class="fg-btn fg-btn-secondary" data-action="hashtag" style="font-size: 13px;">#️⃣ Hashtags</button>
+          <button class="fg-btn fg-btn-secondary" data-action="calendar" style="font-size: 13px;">📅 Calendario</button>
+          <button class="fg-btn fg-btn-secondary" data-action="revenue" style="font-size: 13px;">💰 Revenue</button>
+          <button class="fg-btn fg-btn-secondary" data-action="health" style="font-size: 13px;">🏥 Health</button>
+          <button class="fg-btn fg-btn-secondary" data-action="viral" style="font-size: 13px;">🚀 Viral (Phase 14)</button>
+          <button class="fg-btn fg-btn-secondary" data-action="repurpose" style="font-size: 13px;">♻️ Repurpose (P15)</button>
+          <button class="fg-btn fg-btn-secondary" data-action="growth" style="font-size: 13px;">📈 Growth (Phase 16)</button>
+        </div>
+      </details>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
@@ -761,6 +774,43 @@ const manejarAccion = (root, action, idx) => {
       return cargarRepurposingPlan(root);
     case 'growth':
       return cargarGrowthTrajectory(root);
+    case 'decision-engine-flow': {
+      // Orquestación automática: phases 1-16 en secuencia
+      const renderDecisionFlowStarting = () => {
+        const html = `<div style="padding: 24px; background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%); border-radius: 12px; color: white;">
+          <h3 style="margin: 0 0 12px 0; font-size: 20px;">🎯 Decision Engine — Análisis Completo</h3>
+          <p style="margin: 0; font-size: 14px; opacity: 0.9;">Orquestando 16 fases en orden para decisión ejecutable...</p>
+          <div style="margin-top: 16px; font-size: 13px; opacity: 0.8;">
+            ⏳ STEP 1/5: PREDICT (phases 1-5)
+          </div>
+        </div>`;
+        root.insertAdjacentHTML('beforeend', html);
+      };
+
+      renderDecisionFlowStarting();
+
+      // Ejecutar en cascada
+      return Promise.resolve()
+        .then(() => cargarEstrategia(root))
+        .then(() => cargarBenchmark(root))
+        .then(() => cargarHealthScorecard(root))
+        .then(() => cargarViralCoefficient(root))
+        .then(() => cargarGrowthTrajectory(root))
+        .then(() => {
+          const finalHtml = `<div style="padding: 16px; background: #f0fdf4; border-radius: 12px; border: 2px solid #10b981; margin-top: 24px;">
+            <h3 style="margin: 0 0 12px 0; color: #16a34a;">✅ Decision Engine Complete</h3>
+            <p style="margin: 0; font-size: 14px; color: #166534;">
+              Has visto todas las dimensiones: Predicción → Optimización → Salud → Veredicto → Crecimiento.
+              <br/><strong>Próximo paso:</strong> Ejecutar el plan de acción arriba.
+            </p>
+          </div>`;
+          root.insertAdjacentHTML('beforeend', finalHtml);
+          toast('success', 'Decision Engine completado');
+        })
+        .catch((err) => {
+          toast('error', `Error en Decision Engine: ${err.message}`);
+        });
+    }
     default:
       return undefined;
   }
