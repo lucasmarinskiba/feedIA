@@ -136,6 +136,9 @@ const buildForm = (platform) => `
       <button class="fg-btn fg-btn-secondary" data-action="calendar"><span class="fg-btn-icon">📅</span>Calendario</button>
       <button class="fg-btn fg-btn-secondary" data-action="revenue"><span class="fg-btn-icon">💰</span>Revenue</button>
       <button class="fg-btn fg-btn-secondary" data-action="health"><span class="fg-btn-icon">🏥</span>Health</button>
+      <button class="fg-btn fg-btn-secondary" data-action="viral"><span class="fg-btn-icon">🚀</span>Viral</button>
+      <button class="fg-btn fg-btn-secondary" data-action="repurpose"><span class="fg-btn-icon">♻️</span>Repurpose</button>
+      <button class="fg-btn fg-btn-secondary" data-action="growth"><span class="fg-btn-icon">📈</span>Growth</button>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
@@ -752,6 +755,12 @@ const manejarAccion = (root, action, idx) => {
       return cargarRevenueEstimate(root);
     case 'health':
       return cargarHealthScorecard(root);
+    case 'viral':
+      return cargarViralCoefficient(root);
+    case 'repurpose':
+      return cargarRepurposingPlan(root);
+    case 'growth':
+      return cargarGrowthTrajectory(root);
     default:
       return undefined;
   }
@@ -1802,6 +1811,91 @@ const cargarHealthScorecard = async (root) => {
 
   renderHealthScorecard(root, result.scorecard);
   toast('success', 'Scorecard de salud cargado');
+};
+
+/* Phase 14, 15, 16 */
+const cargarViralCoefficient = async (root) => {
+  const result = await apiSafe(`/api/forge/viral/coefficient`, {
+    method: 'POST',
+    body: JSON.stringify({
+      hookScore: 72,
+      engagementHealth: 68,
+      growthTrajectory: 70,
+      audienceFit: 75,
+      engagementTrend: 65,
+      hashtagStrength: 68,
+      accountHealth: 72,
+      trendAlignment: 60,
+    }),
+  });
+  if (!result.ok) {
+    toast('error', 'Error viral');
+    return;
+  }
+  const html = `<div style="padding:20px;background:rgba(17,18,22,.02);border-radius:12px;margin-top:20px;">
+    <h3>🚀 Viral Coefficient: ${result.result.overallViralScore}/100 (${result.result.viralProbability})</h3>
+    <div style="font-size:12px;color:#64748b;margin:12px 0;">Confianza: ${result.result.confidence}%</div>
+    <div>${result.result.recommendation}</div>
+    <div style="margin-top:12px;">${result.result.topViraDrivers.map((d) => `<div>✓ ${d}</div>`).join('')}</div>
+  </div>`;
+  root.insertAdjacentHTML('beforeend', html);
+  toast('success', 'Viral score cargado');
+};
+
+const cargarRepurposingPlan = async (root) => {
+  const result = await apiSafe(`/api/forge/repurpose/plan`, {
+    method: 'POST',
+    body: JSON.stringify({ engagementRate: 0.08, reach: 5000 }),
+  });
+  if (!result.ok) {
+    toast('error', 'Error repurpose');
+    return;
+  }
+  const html = `<div style="padding:20px;background:rgba(17,18,22,.02);border-radius:12px;margin-top:20px;">
+    <h3>♻️ Repurposing Plan: ${result.plan.variations.length} Variaciones</h3>
+    <div style="font-size:12px;color:#64748b;margin:12px 0;">${Math.round(result.plan.totalReachMultiplier)}x Reach Multiplier</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;">
+    ${result.plan.variations
+      .map(
+        (
+          v,
+        ) => `<div style="padding:8px;background:white;border-radius:6px;border:1px solid rgba(17,18,22,.1);font-size:11px;">
+      <strong>${v.format}</strong><br/>${v.angle}<br/>📅 ${v.publishDay}
+    </div>`,
+      )
+      .join('')}
+    </div>
+  </div>`;
+  root.insertAdjacentHTML('beforeend', html);
+  toast('success', 'Repurposing plan cargado');
+};
+
+const cargarGrowthTrajectory = async (root) => {
+  const result = await apiSafe(`/api/forge/growth/trajectory`, {
+    method: 'POST',
+    body: JSON.stringify({ currentFollowers: 12000, currentGrowthRate: 0.15 }),
+  });
+  if (!result.ok) {
+    toast('error', 'Error growth');
+    return;
+  }
+  const traj = result.trajectory;
+  const html = `<div style="padding:20px;background:rgba(17,18,22,.02);border-radius:12px;margin-top:20px;">
+    <h3>📈 Growth Trajectory: ${traj.optimisticCaseFollowers90.toLocaleString()} @ 90d (Optimistic)</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0;">
+    ${traj.scenarios
+      .map(
+        (s) => `<div style="padding:12px;background:white;border-radius:6px;border:1px solid rgba(17,18,22,.1);">
+      <div style="font-weight:600;font-size:12px;">${s.label}</div>
+      <div style="font-size:16px;color:#10b981;margin-top:6px;">${s.projectedFollowers['90days'].toLocaleString()}</div>
+      <div style="font-size:11px;color:#64748b;margin-top:4px;">+${s.followerGain['90days'].toLocaleString()}</div>
+    </div>`,
+      )
+      .join('')}
+    </div>
+  </div>`;
+  root.insertAdjacentHTML('beforeend', html);
+  toast('success', 'Growth trajectory cargado');
 };
 
 /* ───────── Vista ───────── */
