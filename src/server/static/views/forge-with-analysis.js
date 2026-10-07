@@ -688,6 +688,18 @@ const descargar = (nombre, contenido) => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
+const cargarHistorico = async (root) => {
+  const out = root.querySelector('#fg-output');
+  if (!out) return;
+  out.innerHTML = `<div class="fg-loading"><div class="fg-spin"></div><div>Cargando histórico...</div></div>`;
+  try {
+    const { ok, attempts } = await llamar('/api/forge/history?limit=50', {});
+    out.innerHTML = ok ? renderHistorico(attempts) : '<div class="fg-card"><p>Error al cargar histórico</p></div>';
+  } catch (err) {
+    out.innerHTML = `<div class="fg-card"><p style="color:#ef4444">Error: ${escape(mensajeDe(err))}</p></div>`;
+  }
+};
+
 const manejarAccion = (root, action, idx) => {
   const actual = estado.intentos[estado.activo];
   switch (action) {
@@ -730,6 +742,32 @@ const manejarAccion = (root, action, idx) => {
       return undefined;
     case 'enviar-publicar':
       return enviarAPublicar(root);
+    case 'cargar-historico':
+      return cargarHistorico(root);
+    case 'analizar-predictor':
+      return cargarAnalisisPredictor(root);
+    case 'batch-comparison':
+      return cargarBatchComparison(root);
+    case 'content-suggestions':
+      return cargarContentSuggestions(root);
+    case 'performance-forecast':
+      return cargarPerformanceForecast(root);
+    case 'abtest':
+      return cargarABTest(root);
+    case 'benchmark':
+      return cargarBenchmark(root);
+    case 'seasonality':
+      return cargarSeasonality(root);
+    case 'persona':
+      return cargarPersonaAnalysis(root);
+    case 'hashtag':
+      return cargarHashtagStrategy(root);
+    case 'calendar':
+      return cargarContentCalendar(root);
+    case 'revenue':
+      return cargarRevenueEstimate(root);
+    case 'health':
+      return cargarHealthScorecard(root);
     case 'viral':
       return cargarViralCoefficient(root);
     case 'repurpose':
@@ -751,16 +789,12 @@ const manejarAccion = (root, action, idx) => {
 
       renderDecisionFlowStarting();
 
-      // Ejecutar en cascada: PREDICT (1-5) → VERDICT (14-16)
-      const entrada = leerEntrada();
-      if (!validarTema(entrada, root)) {
-        toast('Necesitás describir qué contenido querés crear', 'warn');
-        return undefined;
-      }
-
-      return correrEstrategia(root, entrada)
+      // Ejecutar en cascada
+      return Promise.resolve()
+        .then(() => cargarEstrategia(root))
+        .then(() => cargarBenchmark(root))
+        .then(() => cargarHealthScorecard(root))
         .then(() => cargarViralCoefficient(root))
-        .then(() => cargarRepurposingPlan(root))
         .then(() => cargarGrowthTrajectory(root))
         .then(() => {
           const finalHtml = `<div style="padding: 16px; background: #f0fdf4; border-radius: 12px; border: 2px solid #10b981; margin-top: 24px;">
@@ -865,6 +899,29 @@ const renderPredictorAnalysis = (root, analysis) => {
   root.insertAdjacentHTML('beforeend', html);
 };
 
+const cargarAnalisisPredictor = async (root) => {
+  if (!actual || !actual.prediccion) {
+    toast('error', 'Ejecuta predicción primero');
+    return;
+  }
+
+  const scores = {
+    contentScore: actual.contenido?.combinedScore || 50,
+    hookScore: actual.hook?.score || 50,
+    accountScore: 60, // TODO: obtener de historial cuenta
+  };
+
+  const result = await apiSafe(`/api/forge/predictor/analyze`, { method: 'POST', body: JSON.stringify(scores) });
+
+  if (!result.ok) {
+    toast('error', 'Error al analizar predictor');
+    return;
+  }
+
+  renderPredictorAnalysis(root, result.analysis);
+  toast('success', 'Análisis predictor cargado');
+};
+
 /* ───────── Phase 3: Batch Comparison ───────── */
 
 const trendArrow = (direction) => (direction === 'up' ? '📈' : direction === 'down' ? '📉' : '→');
@@ -936,6 +993,49 @@ const renderBatchComparison = (root, comparison) => {
   root.insertAdjacentHTML('beforeend', html);
 };
 
+const cargarBatchComparison = async (root) => {
+  // Mock: simular 3 intentos para demo
+  const mockAttempts = [
+    {
+      id: 'att-1',
+      createdAt: new Date(Date.now() - 3600000).toISOString(),
+      contenidoScore: 55,
+      hookScore: 48,
+      cuentaScore: 62,
+      hook: 'Original hook text here',
+    },
+    {
+      id: 'att-2',
+      createdAt: new Date(Date.now() - 1800000).toISOString(),
+      contenidoScore: 62,
+      hookScore: 55,
+      cuentaScore: 62,
+      hook: 'Original hook text here',
+    },
+    {
+      id: 'att-3',
+      createdAt: new Date().toISOString(),
+      contenidoScore: 72,
+      hookScore: 68,
+      cuentaScore: 65,
+      hook: 'Improved hook with specificity',
+    },
+  ];
+
+  const result = await apiSafe(`/api/forge/comparison/batch`, {
+    method: 'POST',
+    body: JSON.stringify({ attempts: mockAttempts }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en batch comparison');
+    return;
+  }
+
+  renderBatchComparison(root, result.comparison);
+  toast('success', 'Batch comparison cargado');
+};
+
 /* ───────── Phase 4: Content Suggestions ───────── */
 
 const renderContentSuggestions = (root, suggestions) => {
@@ -976,6 +1076,27 @@ const renderContentSuggestions = (root, suggestions) => {
   </div>`;
 
   root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarContentSuggestions = async (root) => {
+  const scores = {
+    contenido: actual?.contenido?.combinedScore || 60,
+    hook: actual?.hook?.score || 55,
+    cuenta: 65,
+  };
+
+  const result = await apiSafe(`/api/forge/suggestions`, {
+    method: 'POST',
+    body: JSON.stringify({ mode: 'by-score', scores }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error cargando sugerencias');
+    return;
+  }
+
+  renderContentSuggestions(root, result.suggestions);
+  toast('success', 'Sugerencias cargadas');
 };
 
 /* ───────── Phase 5: Performance Forecasting ───────── */
@@ -1034,6 +1155,27 @@ const renderPerformanceForecast = (root, forecast) => {
   </div>`;
 
   root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarPerformanceForecast = async (root) => {
+  const scores = {
+    contenido: actual?.contenido?.combinedScore || 60,
+    hook: actual?.hook?.score || 55,
+    cuenta: 65,
+  };
+
+  const result = await apiSafe(`/api/forge/forecast/simulate`, {
+    method: 'POST',
+    body: JSON.stringify({ scores }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en forecast');
+    return;
+  }
+
+  renderPerformanceForecast(root, result.forecast);
+  toast('success', 'Forecast cargado');
 };
 
 /* ───────── Phase 6: A/B Testing ───────── */
@@ -1096,6 +1238,39 @@ const renderABTestResult = (root, result) => {
   </div>`;
 
   root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarABTest = async (root) => {
+  // Demo: variantA = hook actual, variantB = versión mejorada
+  const currentHook = actual?.pieza?.hook || 'Check this out';
+  const improvedHook = currentHook.includes('this')
+    ? currentHook.replace('Check this out', 'Here are 3 secrets nobody tells you')
+    : '5 steps to change your life (most people skip #3)';
+
+  const variantA = {
+    id: 'var-a',
+    label: 'Versión A (Actual)',
+    hook: currentHook,
+  };
+
+  const variantB = {
+    id: 'var-b',
+    label: 'Versión B (Mejorada)',
+    hook: improvedHook,
+  };
+
+  const result = await apiSafe(`/api/forge/abtest/compare`, {
+    method: 'POST',
+    body: JSON.stringify({ variantA, variantB, baselineAccountScore: 65 }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en A/B test');
+    return;
+  }
+
+  renderABTestResult(root, result.result);
+  toast('success', 'A/B test cargado');
 };
 
 /* ───────── Phase 7: Competitor Benchmarking ───────── */
@@ -1172,6 +1347,27 @@ const renderBenchmark = (root, comparison) => {
   root.insertAdjacentHTML('beforeend', html);
 };
 
+const cargarBenchmark = async (root) => {
+  const scores = {
+    contenido: actual?.contenido?.combinedScore || 60,
+    hook: actual?.hook?.score || 55,
+    cuenta: 65,
+  };
+
+  const result = await apiSafe(`/api/forge/benchmark/compare`, {
+    method: 'POST',
+    body: JSON.stringify({ scores, niche: 'creator' }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en benchmark');
+    return;
+  }
+
+  renderBenchmark(root, result.comparison);
+  toast('success', 'Benchmark cargado');
+};
+
 /* ───────── Phase 8: Seasonality & Trend Analysis ───────── */
 
 const renderSeasonality = (root, analysis) => {
@@ -1228,6 +1424,31 @@ const renderSeasonality = (root, analysis) => {
   </div>`;
 
   root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarSeasonality = async (root) => {
+  const postHistory = [];
+  for (let i = 30; i > 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    postHistory.push({
+      date: d.toISOString().split('T')[0],
+      engagement: Math.floor(Math.random() * 100) + 30,
+    });
+  }
+
+  const result = await apiSafe(`/api/forge/seasonality/analyze`, {
+    method: 'POST',
+    body: JSON.stringify({ postHistory }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en análisis estacional');
+    return;
+  }
+
+  renderSeasonality(root, result.analysis);
+  toast('success', 'Análisis estacional cargado');
 };
 
 /* ───────── Phase 9: Audience Persona Analysis ───────── */
@@ -1296,6 +1517,21 @@ const renderPersonaAnalysis = (root, result) => {
   root.insertAdjacentHTML('beforeend', html);
 };
 
+const cargarPersonaAnalysis = async (root) => {
+  const result = await apiSafe(`/api/forge/persona/analyze`, {
+    method: 'POST',
+    body: JSON.stringify({ engagementMetrics: { saveRate: 0.45, shareRate: 0.35 } }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en análisis de personas');
+    return;
+  }
+
+  renderPersonaAnalysis(root, result.result);
+  toast('success', 'Análisis de personas cargado');
+};
+
 /* ───────── Phase 10: Hashtag Strategy ───────── */
 
 const renderHashtagStrategy = (root, strategy) => {
@@ -1340,6 +1576,21 @@ const renderHashtagStrategy = (root, strategy) => {
   </div>`;
 
   root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarHashtagStrategy = async (root) => {
+  const result = await apiSafe(`/api/forge/hashtag/strategy`, {
+    method: 'POST',
+    body: JSON.stringify({ usedHashtags: ['#contentcreator', '#marketing', '#growth', '#socialmedia', '#instagram'] }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en estrategia de hashtags');
+    return;
+  }
+
+  renderHashtagStrategy(root, result.strategy);
+  toast('success', 'Estrategia de hashtags cargada');
 };
 
 /* ───────── Phase 11: Content Calendar Planner ───────── */
@@ -1406,6 +1657,20 @@ const renderContentCalendar = (root, plan) => {
   </div>`;
 
   root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarContentCalendar = async (root) => {
+  const result = await apiSafe(`/api/forge/calendar/plan`, {
+    method: 'GET',
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en calendario de contenido');
+    return;
+  }
+
+  renderContentCalendar(root, result.plan);
+  toast('success', 'Calendario de contenido cargado');
 };
 
 /* ───────── Phase 12: Revenue Potential Estimate ───────── */
@@ -1484,6 +1749,21 @@ const renderRevenueEstimate = (root, estimate) => {
   root.insertAdjacentHTML('beforeend', html);
 };
 
+const cargarRevenueEstimate = async (root) => {
+  const result = await apiSafe(`/api/forge/revenue/estimate`, {
+    method: 'POST',
+    body: JSON.stringify({ followerCount: 15000, avgEngagementRate: 0.067 }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en estimación de ingresos');
+    return;
+  }
+
+  renderRevenueEstimate(root, result.estimate);
+  toast('success', 'Estimación de ingresos cargada');
+};
+
 /* ───────── Phase 13: Account Health Scorecard ───────── */
 
 const renderHealthScorecard = (root, scorecard) => {
@@ -1557,6 +1837,30 @@ const renderHealthScorecard = (root, scorecard) => {
   </div>`;
 
   root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarHealthScorecard = async (root) => {
+  const result = await apiSafe(`/api/forge/health/scorecard`, {
+    method: 'POST',
+    body: JSON.stringify({
+      contentQuality: 62,
+      engagementHealth: 58,
+      growthTrajectory: 65,
+      audienceFit: 71,
+      postingConsistency: 48,
+      nicheClarityscore: 60,
+      monetizationReadiness: 42,
+      trendAlignment: 55,
+    }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en scorecard de salud');
+    return;
+  }
+
+  renderHealthScorecard(root, result.scorecard);
+  toast('success', 'Scorecard de salud cargado');
 };
 
 /* Phase 14, 15, 16 */
