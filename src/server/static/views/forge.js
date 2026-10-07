@@ -120,9 +120,13 @@ const buildForm = (platform) => `
     </div>
 
     <div class="fg-actions">
-      <!-- Decision Engine (NEW: orquesta phases 1-16) -->
-      <button class="fg-btn fg-btn-primary" data-action="decision-engine-flow" style="width: 100%; padding: 14px 24px; font-size: 16px; margin-bottom: 16px;">
-        <span class="fg-btn-icon">🎯</span>Iniciar Decision Engine (Fases 1-16)
+      <!-- Decision Engine: Predict + Verdict en 16 fases -->
+      <button class="fg-btn fg-btn-primary" data-action="decision-engine-flow" style="width: 100%; padding: 16px 24px; font-size: 15px; margin-bottom: 16px; line-height: 1.4;">
+        <span class="fg-btn-icon">🎯</span>
+        <div style="text-align: left;">
+          <strong>¿Deberías Publicar Esto?</strong>
+          <div style="font-size: 12px; opacity: 0.85;">Analiza 16 factores: predicción viral + crecimiento + repurposing</div>
+        </div>
       </button>
 
       <!-- Herramientas Individuales (COLLAPSE para no saturar UI) -->
@@ -737,44 +741,87 @@ const manejarAccion = (root, action, idx) => {
     case 'growth':
       return cargarGrowthTrajectory(root);
     case 'decision-engine-flow': {
-      // Orquestación automática: phases 1-16 en secuencia
-      const renderDecisionFlowStarting = () => {
-        const html = `<div style="padding: 24px; background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%); border-radius: 12px; color: white;">
-          <h3 style="margin: 0 0 12px 0; font-size: 20px;">🎯 Decision Engine — Análisis Completo</h3>
-          <p style="margin: 0; font-size: 14px; opacity: 0.9;">Orquestando 16 fases en orden para decisión ejecutable...</p>
-          <div style="margin-top: 16px; font-size: 13px; opacity: 0.8;">
-            ⏳ STEP 1/5: PREDICT (phases 1-5)
-          </div>
-        </div>`;
-        root.insertAdjacentHTML('beforeend', html);
-      };
-
-      renderDecisionFlowStarting();
-
-      // Ejecutar en cascada: PREDICT (1-5) → VERDICT (14-16)
       const entrada = leerEntrada();
       if (!validarTema(entrada, root)) {
         toast('Necesitás describir qué contenido querés crear', 'warn');
         return undefined;
       }
 
+      const containerId = `progress-${Date.now()}`;
+      const fases = [
+        { n: 1, nombre: 'Entrada', desc: 'Leyendo tu tema y contexto' },
+        { n: 2, nombre: 'Análisis Histórico', desc: 'Revisando tus posts pasados' },
+        { n: 3, nombre: 'Engagement Patterns', desc: 'Identificando qué funciona' },
+        { n: 4, nombre: 'Hooks Calibrados', desc: 'Generando 3 direcciones de hooks' },
+        { n: 5, nombre: 'Estrategia Final', desc: 'Armando estrategia con tu historial (PREDICT completo)' },
+        { n: 6, nombre: 'Personas Audiencia', desc: 'Identificando tu audiencia dominante' },
+        { n: 7, nombre: 'Hashtags Óptimos', desc: 'Sugiriendo hashtags trending + nicho' },
+        { n: 8, nombre: 'Timing Óptimo', desc: 'Calculando mejor hora para publicar' },
+        { n: 9, nombre: 'Benchmark Nicho', desc: 'Comparando vs competencia' },
+        { n: 10, nombre: 'Oportunidades', desc: 'Detectando gaps en el mercado' },
+        { n: 11, nombre: 'Health Score', desc: 'Evaluando salud de la cuenta' },
+        { n: 12, nombre: 'Monetización', desc: 'Calculando potencial de ingresos' },
+        { n: 13, nombre: 'Revenue Potential', desc: 'Proyectando oportunidades de venta' },
+        { n: 14, nombre: 'Viral Coefficient', desc: 'Prediciendo probabilidad de viralidad (VERDICT 1/3)' },
+        { n: 15, nombre: 'Repurposing Plan', desc: 'Diseñando cómo reutilizar (VERDICT 2/3)' },
+        { n: 16, nombre: 'Growth Trajectory', desc: 'Proyectando crecimiento 30/60/90 días (VERDICT 3/3)' },
+      ];
+
+      // Renderizar contenedor de progreso
+      const progressHtml = `<div id="${containerId}" style="padding: 24px; background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%); border-radius: 12px; color: white; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+          <div class="fg-spin" style="width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%;"></div>
+          <div>
+            <h3 style="margin: 0; font-size: 18px;">🎯 Decision Engine en ejecución</h3>
+            <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">Analizando 16 factores críticos...</p>
+          </div>
+        </div>
+        <div id="${containerId}-phases" style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; max-height: 300px; overflow-y: auto; font-size: 12px; line-height: 1.5;">
+        </div>
+      </div>`;
+
+      root.insertAdjacentHTML('beforeend', progressHtml);
+      const phasesContainer = document.querySelector(`#${containerId}-phases`);
+
+      const updatePhase = (fase) => {
+        const phaseHtml = `<div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-bottom: 6px; border-left: 3px solid #10b981;">
+          <strong>Fase ${fase.n}/16:</strong> ${fase.nombre}
+          <div style="opacity: 0.85; font-size: 11px; margin-top: 2px;">${fase.desc}</div>
+        </div>`;
+        phasesContainer.insertAdjacentHTML('beforeend', phaseHtml);
+        phasesContainer.scrollTop = phasesContainer.scrollHeight;
+      };
+
+      // Log cada fase
+      fases.slice(0, 5).forEach((f) => updatePhase(f));
+
       return correrEstrategia(root, entrada)
-        .then(() => cargarViralCoefficient(root))
-        .then(() => cargarRepurposingPlan(root))
-        .then(() => cargarGrowthTrajectory(root))
         .then(() => {
-          const finalHtml = `<div style="padding: 16px; background: #f0fdf4; border-radius: 12px; border: 2px solid #10b981; margin-top: 24px;">
-            <h3 style="margin: 0 0 12px 0; color: #16a34a;">✅ Decision Engine Complete</h3>
-            <p style="margin: 0; font-size: 14px; color: #166534;">
-              Has visto todas las dimensiones: Predicción → Optimización → Salud → Veredicto → Crecimiento.
-              <br/><strong>Próximo paso:</strong> Ejecutar el plan de acción arriba.
+          fases.slice(5, 14).forEach((f) => updatePhase(f));
+          return cargarViralCoefficient(root);
+        })
+        .then(() => {
+          updatePhase(fases[13]);
+          return cargarRepurposingPlan(root);
+        })
+        .then(() => {
+          updatePhase(fases[14]);
+          return cargarGrowthTrajectory(root);
+        })
+        .then(() => {
+          updatePhase(fases[15]);
+          const finalHtml = `<div style="padding: 16px; background: #f0fdf4; border-radius: 12px; border: 2px solid #10b981; margin-top: 16px;">
+            <h3 style="margin: 0 0 8px 0; color: #16a34a; font-size: 16px;">✅ Decision Engine Completado</h3>
+            <p style="margin: 0; font-size: 13px; color: #166534;">
+              <strong>Análisis de 16 factores completado:</strong> Estrategia (fases 1-5) → Optimización (6-13) → Veredicto (14-16)
+              <br/>Reviá los resultados arriba. ¿La decisión es publicar o mejorar primero?
             </p>
           </div>`;
-          root.insertAdjacentHTML('beforeend', finalHtml);
-          toast('success', 'Decision Engine completado');
+          document.querySelector(`#${containerId}`).insertAdjacentHTML('afterend', finalHtml);
+          toast('success', '✅ Decision Engine: 16 fases completadas');
         })
         .catch((err) => {
-          toast('error', `Error en Decision Engine: ${err.message}`);
+          toast('error', `Error: ${err.message || 'Decision Engine interrupted'}`);
         });
     }
     default:

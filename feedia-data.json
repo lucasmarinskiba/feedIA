@@ -4215,6 +4215,23 @@
       "auto_renew": true,
       "created_at": "2026-10-06T02:45:01.230Z",
       "updated_at": "2026-10-06T02:45:01.230Z"
+    },
+    {
+      "id": "tier_6a21c317-a896-4f26-85e7-53147a73da44",
+      "user_id": "6a21c317-a896-4f26-85e7-53147a73da44",
+      "email": "6a21c317-a896-4f26-85e7-53147a73da44@feedia.local",
+      "tier": "free",
+      "campaigns_used_this_month": 0,
+      "campaigns_limit": 5,
+      "batch_limit": 1,
+      "custom_brand_kit": false,
+      "analytics_depth": 2,
+      "support_level": "community",
+      "monthly_price": 1,
+      "subscription_end_date": null,
+      "auto_renew": true,
+      "created_at": "2026-10-07T15:53:28.368Z",
+      "updated_at": "2026-10-07T15:53:28.368Z"
     }
   ]
 }
