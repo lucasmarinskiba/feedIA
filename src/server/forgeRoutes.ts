@@ -81,6 +81,9 @@ import { runABTest, type ABTestResult, type ContentVariant } from '../capabiliti
 // Phase 7: Competitor benchmarking
 import { benchmarkScores, getAllNiches, type BenchmarkComparison } from '../capabilities/forge/competitorBenchmark.js';
 
+// Phase 8: Seasonality & trend analysis
+import { analyzeSeasonality, type SeasonalityAnalysis } from '../capabilities/forge/seasonalityTrend.js';
+
 // Phase 2: DB persistence (future)
 // import {
 //   saveForgeAttempt,
@@ -872,6 +875,30 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         json(res, 200, { ok: true, niches });
       } catch (err) {
         json(res, 500, errorInterno('benchmark-niches', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/seasonality/analyze',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { postHistory } = body as {
+          postHistory?: Array<{ date: string; engagement: number }>;
+        };
+
+        if (!postHistory || !Array.isArray(postHistory) || postHistory.length === 0) {
+          json(res, 400, { error: 'postHistory requerido: array de {date, engagement}' });
+          return;
+        }
+
+        const analysis: SeasonalityAnalysis = analyzeSeasonality(postHistory);
+        json(res, 200, { ok: true, analysis });
+        log.info(
+          `[forge] seasonality: ${postHistory.length} posts analyzed, ${analysis.trendPatterns.length} trends detected`,
+        );
+      } catch (err) {
+        json(res, 500, errorInterno('seasonality-analyze', err));
       }
     },
   },
