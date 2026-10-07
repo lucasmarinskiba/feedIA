@@ -1806,7 +1806,12 @@ export const renderForge = async (root) => {
     <header class="view-header page-header">
       <div>
         <h1 class="view-title page-title">✨ Forge IA</h1>
-        <p class="view-subtitle page-subtitle">Estrategia → producción → predicción viral · Para Instagram + TikTok</p>
+        <p class="view-subtitle page-subtitle">Motor de decisiones pre-publicación: ¿Deberías publicar esto?</p>
+        <p style="font-size: 14px; color: #64748b; margin-top: 8px; line-height: 1.5;">
+          Analiza 16 factores (estrategia, hooks, viralidad, repurposing, crecimiento) basados en tu historial real.
+          Predice antes de publicar · Genera plan de 7 formatos · Proyecta crecimiento 30/60/90 días.
+          Para Instagram + TikTok.
+        </p>
       </div>
     </header>
     <div class="page-body">
