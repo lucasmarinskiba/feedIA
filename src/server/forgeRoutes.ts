@@ -96,6 +96,9 @@ import { planContentCalendar, type ContentCalendarPlan } from '../capabilities/f
 // Phase 12: Revenue potential estimate
 import { estimateRevenuePotential, type RevenuePotential } from '../capabilities/forge/revenuePotentialEstimate.js';
 
+// Phase 13: Account health scorecard
+import { calculateAccountHealth, type AccountHealthScorecard } from '../capabilities/forge/accountHealthScorecard.js';
+
 // Phase 2: DB persistence (future)
 // import {
 //   saveForgeAttempt,
@@ -982,6 +985,50 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         );
       } catch (err) {
         json(res, 500, errorInterno('revenue-estimate', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/health/scorecard',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const {
+          contentQuality,
+          engagementHealth,
+          growthTrajectory,
+          audienceFit,
+          postingConsistency,
+          nicheClarityscore,
+          monetizationReadiness,
+          trendAlignment,
+        } = body as {
+          contentQuality?: number;
+          engagementHealth?: number;
+          growthTrajectory?: number;
+          audienceFit?: number;
+          postingConsistency?: number;
+          nicheClarityscore?: number;
+          monetizationReadiness?: number;
+          trendAlignment?: number;
+        };
+
+        const scorecard: AccountHealthScorecard = calculateAccountHealth(
+          contentQuality,
+          engagementHealth,
+          growthTrajectory,
+          audienceFit,
+          postingConsistency,
+          nicheClarityscore,
+          monetizationReadiness,
+          trendAlignment,
+        );
+        json(res, 200, { ok: true, scorecard });
+        log.info(
+          `[forge] health: ${scorecard.overallScore}/100 (${scorecard.overallStatus}), percentil ${scorecard.percentile}th`,
+        );
+      } catch (err) {
+        json(res, 500, errorInterno('health-scorecard', err));
       }
     },
   },
