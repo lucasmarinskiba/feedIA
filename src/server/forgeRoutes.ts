@@ -99,6 +99,22 @@ import { estimateRevenuePotential, type RevenuePotential } from '../capabilities
 // Phase 13: Account health scorecard
 import { calculateAccountHealth, type AccountHealthScorecard } from '../capabilities/forge/accountHealthScorecard.js';
 
+// Phase 14: Viral coefficient score
+import {
+  calculateViralCoefficient,
+  type ViralCoefficientResult,
+  type ViralityFactors,
+} from '../capabilities/forge/viralCoefficientScore.js';
+
+// Phase 15: Content repurposing strategy
+import { planContentRepurposing, type RepurposingPlan } from '../capabilities/forge/contentRepurposingStrategy.js';
+
+// Phase 16: Audience growth trajectory
+import {
+  projectAudienceGrowth,
+  type AudienceGrowthTrajectory,
+} from '../capabilities/forge/audienceGrowthTrajectory.js';
+
 // Phase 2: DB persistence (future)
 // import {
 //   saveForgeAttempt,
@@ -1029,6 +1045,57 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         );
       } catch (err) {
         json(res, 500, errorInterno('health-scorecard', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/viral/coefficient',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const factors = body as ViralityFactors;
+        const result: ViralCoefficientResult = calculateViralCoefficient(factors);
+        json(res, 200, { ok: true, result });
+        log.info(
+          `[forge] viral: ${result.overallViralScore}/100 (${result.viralProbability}), confidence ${result.confidence}%`,
+        );
+      } catch (err: unknown) {
+        json(res, 500, errorInterno('viral-coefficient', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/repurpose/plan',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { engagementRate, reach } = body as { engagementRate?: number; reach?: number };
+        const plan: RepurposingPlan = planContentRepurposing(engagementRate, reach);
+        json(res, 200, { ok: true, plan });
+        log.info(
+          `[forge] repurpose: ${plan.variations.length} variations, ${Math.round(plan.totalReachMultiplier)}x multiplier`,
+        );
+      } catch (err) {
+        json(res, 500, errorInterno('repurpose-plan', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/growth/trajectory',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { currentFollowers, currentGrowthRate } = body as {
+          currentFollowers?: number;
+          currentGrowthRate?: number;
+        };
+        const trajectory: AudienceGrowthTrajectory = projectAudienceGrowth(currentFollowers, currentGrowthRate);
+        json(res, 200, { ok: true, trajectory });
+        log.info(
+          `[forge] growth: ${trajectory.optimisticCaseFollowers90.toLocaleString()} followers projected 90d optimistic`,
+        );
+      } catch (err) {
+        json(res, 500, errorInterno('growth-trajectory', err));
       }
     },
   },
