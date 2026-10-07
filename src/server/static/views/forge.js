@@ -129,6 +129,7 @@ const buildForm = (platform) => `
       <button class="fg-btn fg-btn-secondary" data-action="content-suggestions"><span class="fg-btn-icon">✍️</span>Sugerencias</button>
       <button class="fg-btn fg-btn-secondary" data-action="performance-forecast"><span class="fg-btn-icon">🔮</span>Forecast</button>
       <button class="fg-btn fg-btn-secondary" data-action="abtest"><span class="fg-btn-icon">🧪</span>A/B Test</button>
+      <button class="fg-btn fg-btn-secondary" data-action="benchmark"><span class="fg-btn-icon">📊</span>Benchmark</button>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
@@ -731,6 +732,8 @@ const manejarAccion = (root, action, idx) => {
       return cargarPerformanceForecast(root);
     case 'abtest':
       return cargarABTest(root);
+    case 'benchmark':
+      return cargarBenchmark(root);
     default:
       return undefined;
   }
@@ -1193,6 +1196,101 @@ const cargarABTest = async (root) => {
   toast('success', 'A/B test cargado');
 };
 
+/* ───────── Phase 7: Competitor Benchmarking ───────── */
+
+const renderBenchmark = (root, comparison) => {
+  const { userScores, niche, gaps, topQuartileGaps, percentileRank, recommendations } = comparison;
+  const userOverall = Math.round(userScores.contenido * 0.45 + userScores.hook * 0.35 + userScores.cuenta * 0.2);
+  const nicheAvgOverall = Math.round(
+    niche.avgContentScore * 0.45 + niche.avgHookScore * 0.35 + niche.avgAccountScore * 0.2,
+  );
+
+  const html = `<div class="fg-benchmark-panel">
+    <h3>📊 Benchmark vs Mercado: ${niche.name}</h3>
+
+    <div class="fg-bench-overall">
+      <div class="fg-bench-stat">
+        <div class="fg-bench-label">Tu Score</div>
+        <div class="fg-bench-value" style="font-size: 32px; color: ${userOverall > nicheAvgOverall ? '#10b981' : '#f59e0b'};">
+          ${userOverall}/100
+        </div>
+      </div>
+      <div class="fg-bench-stat">
+        <div class="fg-bench-label">Promedio Niche</div>
+        <div class="fg-bench-value" style="font-size: 28px; color: #94a3b8;">
+          ${nicheAvgOverall}/100
+        </div>
+      </div>
+      <div class="fg-bench-stat">
+        <div class="fg-bench-label">Top 25%</div>
+        <div class="fg-bench-value" style="font-size: 28px; color: #3b82f6;">
+          ${Math.round(niche.p75ContentScore * 0.45 + niche.p75HookScore * 0.35 + niche.p75AccountScore * 0.2)}/100
+        </div>
+      </div>
+    </div>
+
+    <div class="fg-bench-comparison">
+      <div class="fg-bench-cat">
+        <div class="fg-cat-label">📝 Contenido</div>
+        <div class="fg-cat-scores">
+          <span>Tú: ${userScores.contenido}</span>
+          <span>Promedio: ${niche.avgContentScore}</span>
+          <span>Gap: ${gaps.contenido > 0 ? '+' : ''}${gaps.contenido}</span>
+        </div>
+        <div class="fg-cat-percentile">Percentil: ${percentileRank.contenido}%</div>
+      </div>
+
+      <div class="fg-bench-cat">
+        <div class="fg-cat-label">🎣 Hook</div>
+        <div class="fg-cat-scores">
+          <span>Tú: ${userScores.hook}</span>
+          <span>Promedio: ${niche.avgHookScore}</span>
+          <span>Gap: ${gaps.hook > 0 ? '+' : ''}${gaps.hook}</span>
+        </div>
+        <div class="fg-cat-percentile">Percentil: ${percentileRank.hook}%</div>
+      </div>
+
+      <div class="fg-bench-cat">
+        <div class="fg-cat-label">📊 Cuenta</div>
+        <div class="fg-cat-scores">
+          <span>Tú: ${userScores.cuenta}</span>
+          <span>Promedio: ${niche.avgAccountScore}</span>
+          <span>Gap: ${gaps.cuenta > 0 ? '+' : ''}${gaps.cuenta}</span>
+        </div>
+        <div class="fg-cat-percentile">Percentil: ${percentileRank.cuenta}%</div>
+      </div>
+    </div>
+
+    <div class="fg-bench-recs">
+      <h4>Acciones Prioritarias</h4>
+      ${recommendations.map((r) => `<div class="fg-bench-rec">💡 ${r}</div>`).join('')}
+    </div>
+  </div>`;
+
+  root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarBenchmark = async (root) => {
+  const scores = {
+    contenido: actual?.contenido?.combinedScore || 60,
+    hook: actual?.hook?.score || 55,
+    cuenta: 65,
+  };
+
+  const result = await apiSafe(`/api/forge/benchmark/compare`, {
+    method: 'POST',
+    body: JSON.stringify({ scores, niche: 'creator' }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en benchmark');
+    return;
+  }
+
+  renderBenchmark(root, result.comparison);
+  toast('success', 'Benchmark cargado');
+};
+
 /* ───────── Vista ───────── */
 
 /* Referencia estable: así removeEventListener quita el mismo listener en cada render. */
@@ -1417,6 +1515,23 @@ export const renderForge = async (root) => {
       .fg-ab-rec{padding:8px;border-radius:6px;margin-top:8px;font-size:11px;font-weight:500;}
       .fg-ab-recs{padding:8px;border-radius:6px;margin-top:8px;}
       .fg-ab-recommendation{font-size:13px;}
+
+      /* Phase 7: Competitor Benchmarking */
+      .fg-benchmark-panel{padding:20px;background:rgba(17,18,22,.02);border-radius:12px;margin-top:20px;border:1px solid rgba(17,18,22,.1);}
+      .fg-benchmark-panel h3{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text-primary);}
+      .fg-benchmark-panel h4{font-size:14px;font-weight:600;margin-top:16px;margin-bottom:12px;}
+      .fg-bench-overall{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:24px;}
+      .fg-bench-stat{padding:16px;background:white;border-radius:8px;border:1px solid rgba(17,18,22,.1);text-align:center;}
+      .fg-bench-label{font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px;}
+      .fg-bench-value{font-size:28px;font-weight:700;color:#10b981;}
+      .fg-bench-comparison{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:20px;}
+      .fg-bench-cat{padding:14px;border-radius:8px;background:white;border:1px solid rgba(17,18,22,.1);}
+      .fg-cat-label{font-weight:600;font-size:13px;margin-bottom:8px;color:var(--text-primary);}
+      .fg-cat-scores{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;font-size:12px;color:#64748b;}
+      .fg-cat-percentile{font-size:11px;font-weight:600;color:#3b82f6;background:rgba(59,130,246,.08);padding:6px;border-radius:4px;}
+      .fg-bench-recs{padding:16px;background:rgba(59,130,246,.05);border-radius:8px;border-left:4px solid #3b82f6;}
+      .fg-bench-rec{font-size:12px;color:var(--text-primary);margin-bottom:8px;line-height:1.4;}
+      .fg-bench-rec:last-child{margin-bottom:0;}
 
       @media (max-width: 640px){
         .fg-form-grid{grid-template-columns:1fr;}

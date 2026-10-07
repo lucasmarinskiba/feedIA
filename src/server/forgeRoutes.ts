@@ -78,6 +78,9 @@ import { forecastScores, type PerformanceForecast } from '../capabilities/forge/
 // Phase 6: A/B testing
 import { runABTest, type ABTestResult, type ContentVariant } from '../capabilities/forge/abTester.js';
 
+// Phase 7: Competitor benchmarking
+import { benchmarkScores, getAllNiches, type BenchmarkComparison } from '../capabilities/forge/competitorBenchmark.js';
+
 // Phase 2: DB persistence (future)
 // import {
 //   saveForgeAttempt,
@@ -827,6 +830,48 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         );
       } catch (err) {
         json(res, 500, errorInterno('abtest-compare', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/benchmark/compare',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { scores, niche } = body as {
+          scores?: { contenido: number; hook: number; cuenta: number };
+          niche?: string;
+        };
+
+        if (
+          !scores ||
+          typeof scores.contenido !== 'number' ||
+          typeof scores.hook !== 'number' ||
+          typeof scores.cuenta !== 'number'
+        ) {
+          json(res, 400, { error: 'scores requerido: {contenido, hook, cuenta}' });
+          return;
+        }
+
+        const comparison: BenchmarkComparison = benchmarkScores(scores, niche || 'creator');
+        json(res, 200, { ok: true, comparison });
+        log.info(
+          `[forge] benchmark: ${niche || 'creator'} niche, user top ${Math.round((comparison.percentileRank.contenido + comparison.percentileRank.hook + comparison.percentileRank.cuenta) / 3)}th percentile`,
+        );
+      } catch (err) {
+        json(res, 500, errorInterno('benchmark-compare', err));
+      }
+    },
+  },
+  {
+    method: 'GET',
+    pattern: '/api/forge/benchmark/niches',
+    handler: async ({ res }): Promise<void> => {
+      try {
+        const niches = getAllNiches();
+        json(res, 200, { ok: true, niches });
+      } catch (err) {
+        json(res, 500, errorInterno('benchmark-niches', err));
       }
     },
   },
