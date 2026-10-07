@@ -93,6 +93,9 @@ import { analyzeHashtagStrategy, type HashtagStrategyResult } from '../capabilit
 // Phase 11: Content calendar planner
 import { planContentCalendar, type ContentCalendarPlan } from '../capabilities/forge/contentCalendarPlanner.js';
 
+// Phase 12: Revenue potential estimate
+import { estimateRevenuePotential, type RevenuePotential } from '../capabilities/forge/revenuePotentialEstimate.js';
+
 // Phase 2: DB persistence (future)
 // import {
 //   saveForgeAttempt,
@@ -959,6 +962,26 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         log.info(`[forge] calendar: ${plan.weekPlan.length}-day plan, ${plan.contentGaps.length} gaps identified`);
       } catch (err) {
         json(res, 500, errorInterno('calendar-plan', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/revenue/estimate',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { followerCount, avgEngagementRate } = body as {
+          followerCount?: number;
+          avgEngagementRate?: number;
+        };
+
+        const estimate: RevenuePotential = estimateRevenuePotential(followerCount || 10000, avgEngagementRate || 0.05);
+        json(res, 200, { ok: true, estimate });
+        log.info(
+          `[forge] revenue: ${estimate.monetizationChannels.length} channels, $${estimate.totalMonthlyPotential.realistic}/month realistic`,
+        );
+      } catch (err) {
+        json(res, 500, errorInterno('revenue-estimate', err));
       }
     },
   },

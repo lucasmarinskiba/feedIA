@@ -134,6 +134,7 @@ const buildForm = (platform) => `
       <button class="fg-btn fg-btn-secondary" data-action="persona"><span class="fg-btn-icon">👥</span>Personas</button>
       <button class="fg-btn fg-btn-secondary" data-action="hashtag"><span class="fg-btn-icon">#️⃣</span>Hashtags</button>
       <button class="fg-btn fg-btn-secondary" data-action="calendar"><span class="fg-btn-icon">📅</span>Calendario</button>
+      <button class="fg-btn fg-btn-secondary" data-action="revenue"><span class="fg-btn-icon">💰</span>Revenue</button>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
@@ -746,6 +747,8 @@ const manejarAccion = (root, action, idx) => {
       return cargarHashtagStrategy(root);
     case 'calendar':
       return cargarContentCalendar(root);
+    case 'revenue':
+      return cargarRevenueEstimate(root);
     default:
       return undefined;
   }
@@ -1608,6 +1611,97 @@ const cargarContentCalendar = async (root) => {
   toast('success', 'Calendario de contenido cargado');
 };
 
+/* ───────── Phase 12: Revenue Potential Estimate ───────── */
+
+const renderRevenueEstimate = (root, estimate) => {
+  const {
+    followerCount,
+    avgEngagementRate,
+    cpmEstimate,
+    monetizationChannels,
+    totalMonthlyPotential,
+    bestChannel,
+    recommendations,
+  } = estimate;
+
+  const html = `<div class="fg-revenue-panel">
+    <h3>💰 Revenue Potential Estimate</h3>
+
+    <div class="fg-revenue-summary">
+      <div class="fg-summary-metric">
+        <div class="fg-metric-label">Followers</div>
+        <div class="fg-metric-value">${followerCount.toLocaleString()}</div>
+      </div>
+      <div class="fg-summary-metric">
+        <div class="fg-metric-label">Engagement Rate</div>
+        <div class="fg-metric-value">${(avgEngagementRate * 100).toFixed(1)}%</div>
+      </div>
+      <div class="fg-summary-metric">
+        <div class="fg-metric-label">CPM Estimate</div>
+        <div class="fg-metric-value">$${cpmEstimate}/1K</div>
+      </div>
+    </div>
+
+    <div class="fg-revenue-potential">
+      <div class="fg-potential-label">Potencial Mensual</div>
+      <div class="fg-potential-range">
+        <div class="fg-range-bar">
+          <div class="fg-range-low">
+            <span class="fg-range-label">Conservador</span>
+            <span class="fg-range-value">$${totalMonthlyPotential.conservative.toLocaleString()}</span>
+          </div>
+          <div class="fg-range-realistic">
+            <span class="fg-range-label">Realista</span>
+            <span class="fg-range-value">$${totalMonthlyPotential.realistic.toLocaleString()}</span>
+          </div>
+          <div class="fg-range-high">
+            <span class="fg-range-label">Optimista</span>
+            <span class="fg-range-value">$${totalMonthlyPotential.optimistic.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fg-channels-grid">
+      <h4>Canales de Monetización</h4>
+      ${monetizationChannels
+        .map(
+          (ch) => `<div class="fg-channel-card ${ch.channel === bestChannel.channel ? 'fg-channel-best' : ''}">
+        <div class="fg-channel-name">${ch.channel.replace('-', ' ').toUpperCase()}</div>
+        <div class="fg-channel-range">$${ch.monthlyRevenue.toLocaleString()} - $${ch.monthlyRevenuePeak.toLocaleString()}</div>
+        <div class="fg-channel-effort">⚡ Esfuerzo: ${ch.effort}</div>
+        <div class="fg-channel-setup">⏱️ Setup: ${ch.timeToSetup}w</div>
+        <div class="fg-channel-scale">📈 Escalabilidad: ${ch.scalability}</div>
+        ${ch.channel === bestChannel.channel ? '<div class="fg-channel-badge">⭐ MEJOR</div>' : ''}
+      </div>`,
+        )
+        .join('')}
+    </div>
+
+    <div class="fg-revenue-recs">
+      <h4>Recomendaciones</h4>
+      ${recommendations.map((r) => `<div class="fg-revenue-rec">💡 ${r}</div>`).join('')}
+    </div>
+  </div>`;
+
+  root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarRevenueEstimate = async (root) => {
+  const result = await apiSafe(`/api/forge/revenue/estimate`, {
+    method: 'POST',
+    body: JSON.stringify({ followerCount: 15000, avgEngagementRate: 0.067 }),
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en estimación de ingresos');
+    return;
+  }
+
+  renderRevenueEstimate(root, result.estimate);
+  toast('success', 'Estimación de ingresos cargada');
+};
+
 /* ───────── Vista ───────── */
 
 /* Referencia estable: así removeEventListener quita el mismo listener en cada render. */
@@ -1942,6 +2036,32 @@ export const renderForge = async (root) => {
       .fg-calendar-recs{padding:16px;background:rgba(16,185,129,.05);border-radius:8px;border-left:4px solid #10b981;}
       .fg-calendar-rec{font-size:12px;color:var(--text-primary);margin-bottom:8px;line-height:1.4;}
       .fg-calendar-rec:last-child{margin-bottom:0;}
+
+      /* Phase 12: Revenue Potential */
+      .fg-revenue-panel{padding:20px;background:rgba(17,18,22,.02);border-radius:12px;margin-top:20px;border:1px solid rgba(17,18,22,.1);}
+      .fg-revenue-panel h3{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text-primary);}
+      .fg-revenue-panel h4{font-size:14px;font-weight:600;margin-top:16px;margin-bottom:12px;}
+      .fg-revenue-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:20px;}
+      .fg-summary-metric{padding:12px;background:white;border-radius:8px;border:1px solid rgba(17,18,22,.1);text-align:center;}
+      .fg-metric-label{font-size:11px;font-weight:600;color:#64748b;margin-bottom:6px;}
+      .fg-metric-value{font-size:16px;font-weight:700;color:#10b981;}
+      .fg-revenue-potential{padding:16px;background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(59,130,246,.08));border-radius:8px;margin-bottom:20px;}
+      .fg-potential-label{font-size:12px;font-weight:600;color:#64748b;margin-bottom:12px;}
+      .fg-potential-range{display:flex;gap:12px;}
+      .fg-range-bar{display:flex;gap:12px;width:100%;}
+      .fg-range-low,.fg-range-realistic,.fg-range-high{flex:1;padding:10px;background:white;border-radius:6px;border:1px solid rgba(17,18,22,.1);}
+      .fg-range-label{display:block;font-size:10px;font-weight:600;color:#64748b;margin-bottom:4px;}
+      .fg-range-value{display:block;font-size:14px;font-weight:700;color:#10b981;}
+      .fg-channels-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;}
+      .fg-channel-card{padding:12px;background:white;border-radius:8px;border:1px solid rgba(17,18,22,.1);font-size:11px;position:relative;}
+      .fg-channel-best{border-color:#f59e0b;border-width:2px;background:rgba(245,158,11,.05);}
+      .fg-channel-name{font-weight:600;font-size:12px;color:var(--text-primary);margin-bottom:6px;}
+      .fg-channel-range{color:#10b981;font-weight:600;margin-bottom:6px;}
+      .fg-channel-effort,.fg-channel-setup,.fg-channel-scale{color:#64748b;margin-bottom:3px;}
+      .fg-channel-badge{position:absolute;top:6px;right:6px;background:#f59e0b;color:white;padding:2px 6px;border-radius:3px;font-weight:600;font-size:9px;}
+      .fg-revenue-recs{padding:16px;background:rgba(16,185,129,.05);border-radius:8px;border-left:4px solid #10b981;}
+      .fg-revenue-rec{font-size:12px;color:var(--text-primary);margin-bottom:8px;line-height:1.4;}
+      .fg-revenue-rec:last-child{margin-bottom:0;}
 
       @media (max-width: 640px){
         .fg-form-grid{grid-template-columns:1fr;}
