@@ -90,6 +90,9 @@ import { analyzeAudiencePersonas, type PersonaAnalysisResult } from '../capabili
 // Phase 10: Hashtag strategy
 import { analyzeHashtagStrategy, type HashtagStrategyResult } from '../capabilities/forge/hashtagStrategy.js';
 
+// Phase 11: Content calendar planner
+import { planContentCalendar, type ContentCalendarPlan } from '../capabilities/forge/contentCalendarPlanner.js';
+
 // Phase 2: DB persistence (future)
 // import {
 //   saveForgeAttempt,
@@ -943,6 +946,19 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         );
       } catch (err) {
         json(res, 500, errorInterno('hashtag-strategy', err));
+      }
+    },
+  },
+  {
+    method: 'GET',
+    pattern: '/api/forge/calendar/plan',
+    handler: async ({ res }): Promise<void> => {
+      try {
+        const plan: ContentCalendarPlan = planContentCalendar();
+        json(res, 200, { ok: true, plan });
+        log.info(`[forge] calendar: ${plan.weekPlan.length}-day plan, ${plan.contentGaps.length} gaps identified`);
+      } catch (err) {
+        json(res, 500, errorInterno('calendar-plan', err));
       }
     },
   },

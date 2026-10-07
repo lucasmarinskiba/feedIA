@@ -133,6 +133,7 @@ const buildForm = (platform) => `
       <button class="fg-btn fg-btn-secondary" data-action="seasonality"><span class="fg-btn-icon">📈</span>Seasonality</button>
       <button class="fg-btn fg-btn-secondary" data-action="persona"><span class="fg-btn-icon">👥</span>Personas</button>
       <button class="fg-btn fg-btn-secondary" data-action="hashtag"><span class="fg-btn-icon">#️⃣</span>Hashtags</button>
+      <button class="fg-btn fg-btn-secondary" data-action="calendar"><span class="fg-btn-icon">📅</span>Calendario</button>
     </div>
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
@@ -743,6 +744,8 @@ const manejarAccion = (root, action, idx) => {
       return cargarPersonaAnalysis(root);
     case 'hashtag':
       return cargarHashtagStrategy(root);
+    case 'calendar':
+      return cargarContentCalendar(root);
     default:
       return undefined;
   }
@@ -1525,6 +1528,86 @@ const cargarHashtagStrategy = async (root) => {
   toast('success', 'Estrategia de hashtags cargada');
 };
 
+/* ───────── Phase 11: Content Calendar Planner ───────── */
+
+const renderContentCalendar = (root, plan) => {
+  const { weekPlan, contentBalance, monthlyThemes, contentGaps, recommendations } = plan;
+
+  const html = `<div class="fg-calendar-panel">
+    <h3>📅 Content Calendar Plan</h3>
+
+    <div class="fg-balance-visual">
+      <div class="fg-balance-label">Distribución Semanal</div>
+      <div class="fg-balance-bars">
+        <div class="fg-balance-bar" style="width: ${contentBalance.educational}%; background: #3b82f6;">
+          <span class="fg-bar-label">${contentBalance.educational}%</span>
+        </div>
+        <div class="fg-balance-bar" style="width: ${contentBalance.inspirational}%; background: #f59e0b;">
+          <span class="fg-bar-label">${contentBalance.inspirational}%</span>
+        </div>
+        <div class="fg-balance-bar" style="width: ${contentBalance.promotional}%; background: #10b981;">
+          <span class="fg-bar-label">${contentBalance.promotional}%</span>
+        </div>
+        <div class="fg-balance-bar" style="width: ${contentBalance.entertainment}%; background: #ef4444;">
+          <span class="fg-bar-label">${contentBalance.entertainment}%</span>
+        </div>
+        <div class="fg-balance-bar" style="width: ${contentBalance.behindTheScenes}%; background: #8b5cf6;">
+          <span class="fg-bar-label">${contentBalance.behindTheScenes}%</span>
+        </div>
+      </div>
+      <div class="fg-balance-legend">
+        <span>📚 Educativo</span> <span>💡 Inspiracional</span> <span>🛍️ Promocional</span> <span>🎬 Entretenimiento</span> <span>👁️ BTS</span>
+      </div>
+    </div>
+
+    <div class="fg-week-schedule">
+      <h4>Calendario Semanal</h4>
+      ${weekPlan
+        .map(
+          (slot) => `<div class="fg-slot">
+        <div class="fg-slot-day"><strong>${slot.day}</strong></div>
+        <div class="fg-slot-time">⏰ ${slot.optimalTime}</div>
+        <div class="fg-slot-type">${slot.contentType.toUpperCase()}</div>
+        <div class="fg-slot-format">📱 ${slot.format}</div>
+        <div class="fg-slot-persona">👥 ${slot.persona}</div>
+      </div>`,
+        )
+        .join('')}
+    </div>
+
+    <div class="fg-monthly-themes">
+      <h4>Temas Mensuales</h4>
+      ${monthlyThemes.map((theme) => `<div class="fg-theme">📍 ${theme}</div>`).join('')}
+    </div>
+
+    <div class="fg-content-gaps">
+      <h4>Gaps Detectados</h4>
+      ${contentGaps.map((gap) => `<div class="fg-gap">⚠️ ${gap}</div>`).join('')}
+    </div>
+
+    <div class="fg-calendar-recs">
+      <h4>Recomendaciones</h4>
+      ${recommendations.map((r) => `<div class="fg-calendar-rec">💡 ${r}</div>`).join('')}
+    </div>
+  </div>`;
+
+  root.insertAdjacentHTML('beforeend', html);
+};
+
+const cargarContentCalendar = async (root) => {
+  const result = await apiSafe(`/api/forge/calendar/plan`, {
+    method: 'GET',
+  });
+
+  if (!result.ok) {
+    toast('error', 'Error en calendario de contenido');
+    return;
+  }
+
+  renderContentCalendar(root, result.plan);
+  toast('success', 'Calendario de contenido cargado');
+};
+
 /* ───────── Vista ───────── */
 
 /* Referencia estable: así removeEventListener quita el mismo listener en cada render. */
@@ -1835,6 +1918,30 @@ export const renderForge = async (root) => {
       .fg-hashtag-recs{padding:16px;background:rgba(16,185,129,.05);border-radius:8px;border-left:4px solid #10b981;}
       .fg-hashtag-rec{font-size:12px;color:var(--text-primary);margin-bottom:8px;line-height:1.4;}
       .fg-hashtag-rec:last-child{margin-bottom:0;}
+
+      /* Phase 11: Content Calendar */
+      .fg-calendar-panel{padding:20px;background:rgba(17,18,22,.02);border-radius:12px;margin-top:20px;border:1px solid rgba(17,18,22,.1);}
+      .fg-calendar-panel h3{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text-primary);}
+      .fg-calendar-panel h4{font-size:14px;font-weight:600;margin-top:16px;margin-bottom:12px;}
+      .fg-balance-visual{margin-bottom:20px;padding:12px;background:white;border-radius:8px;border:1px solid rgba(17,18,22,.1);}
+      .fg-balance-label{font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px;}
+      .fg-balance-bars{display:flex;height:24px;border-radius:4px;overflow:hidden;margin-bottom:8px;}
+      .fg-balance-bar{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:white;}
+      .fg-bar-label{display:none;}
+      .fg-balance-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:#64748b;}
+      .fg-week-schedule{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:20px;}
+      .fg-slot{padding:10px;background:white;border-radius:8px;border:1px solid rgba(17,18,22,.1);font-size:11px;}
+      .fg-slot-day{font-weight:600;color:var(--text-primary);margin-bottom:4px;}
+      .fg-slot-time,.fg-slot-type,.fg-slot-format,.fg-slot-persona{font-size:10px;color:#64748b;margin-bottom:3px;}
+      .fg-monthly-themes{margin-bottom:16px;padding:12px;background:rgba(59,130,246,.05);border-radius:8px;border-left:3px solid #3b82f6;}
+      .fg-theme{font-size:12px;color:var(--text-primary);margin-bottom:6px;}
+      .fg-theme:last-child{margin-bottom:0;}
+      .fg-content-gaps{margin-bottom:16px;padding:12px;background:rgba(245,158,11,.05);border-radius:8px;border-left:3px solid #f59e0b;}
+      .fg-gap{font-size:12px;color:var(--text-primary);margin-bottom:6px;}
+      .fg-gap:last-child{margin-bottom:0;}
+      .fg-calendar-recs{padding:16px;background:rgba(16,185,129,.05);border-radius:8px;border-left:4px solid #10b981;}
+      .fg-calendar-rec{font-size:12px;color:var(--text-primary);margin-bottom:8px;line-height:1.4;}
+      .fg-calendar-rec:last-child{margin-bottom:0;}
 
       @media (max-width: 640px){
         .fg-form-grid{grid-template-columns:1fr;}
