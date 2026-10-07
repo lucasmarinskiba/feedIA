@@ -83,39 +83,97 @@ const llamar = async (path, body) => {
 
 /* ───────── Formulario ───────── */
 
+const sugerenciasTemaPorNicho = {
+  marketing: [
+    'cómo hacer viral un post',
+    'estrategia de contenido 2026',
+    'growth hacking con IA',
+    'email marketing que convierte',
+  ],
+  fitness: ['rutina de 15 minutos', 'nutrición para definir', 'antes y después real', 'cómo empezar a entrenar'],
+  tech: ['app que cambió mi vida', 'setup de programador', 'AI tools que no conocés', 'cómo aprender a programar'],
+  negocio: ['lanzar un producto', 'vender en redes', 'automatizar el negocio', 'aumentar conversión'],
+  emprendimiento: ['historia de cómo empecé', 'primeros 100 clientes', 'métricas que importan', 'errores que cometí'],
+};
+
 const buildForm = (platform) => `
   <div class="fg-card">
-    <h2 class="fg-section-title">Decile a Forge qué crear</h2>
-    <p class="fg-section-sub">Estrategia usa tu historial real y genera hooks con IA · Producción consume tu cuota del plan · Predicción calibra con tus posts guardados.</p>
+    <h2 class="fg-section-title">🎬 Decile a Forge qué crear</h2>
+    <p class="fg-section-sub">
+      <strong>Entrada clara</strong> = mejor análisis.<br/>
+      Strateg usa historial real + genera hooks calibrados · Producción consume cuota · Predicción es pre-publish.
+    </p>
 
     <div class="fg-form-grid">
       <label class="fg-field fg-field-wide">
-        <span class="fg-label">¿Sobre qué?</span>
-        <input class="fg-input" id="fg-topic" placeholder="Ej: cómo automatizar tu marketing con IA" autocomplete="off" />
+        <span class="fg-label">🎯 ¿Sobre qué EXACTAMENTE? (lo más importante)</span>
+        <div style="font-size: 12px; color: #64748b; margin-bottom: 6px;">
+          Sé específico: no "marketing" → "cómo vender más con email marketing"
+        </div>
+        <input
+          class="fg-input"
+          id="fg-topic"
+          placeholder="Ej: cómo automatizar tu marketing con IA"
+          autocomplete="off"
+          style="font-size: 14px; padding: 12px;"
+        />
+        <div id="fg-topic-suggestions" style="margin-top: 8px; display: none;">
+          <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">💡 Sugerencias por nicho:</div>
+          <div id="fg-topic-list" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+        </div>
       </label>
+
       <label class="fg-field">
-        <span class="fg-label">Plataforma</span>
+        <span class="fg-label">📱 Plataforma</span>
         <select class="fg-input" id="fg-platform">${opciones(PLATAFORMAS, platform)}</select>
+        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Dónde vas a publicar</div>
       </label>
+
       <label class="fg-field">
-        <span class="fg-label">Formato</span>
+        <span class="fg-label">🎬 Formato</span>
         <select class="fg-input" id="fg-format">${opciones(FORMATOS, 'reel')}</select>
+        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Tipo de contenido</div>
       </label>
+
       <label class="fg-field">
-        <span class="fg-label">Objetivo</span>
+        <span class="fg-label">🎯 Objetivo principal</span>
         <select class="fg-input" id="fg-goal">${opciones(OBJETIVOS, 'engagement')}</select>
+        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">¿Qué buscás lograr?</div>
       </label>
+
       <label class="fg-field">
-        <span class="fg-label">Nicho</span>
-        <input class="fg-input" id="fg-niche" placeholder="Ej: marketing, fitness, IA" autocomplete="off" />
+        <span class="fg-label">🔍 Nicho/Industria</span>
+        <input
+          class="fg-input"
+          id="fg-niche"
+          placeholder="Ej: marketing, fitness, IA, emprendimiento"
+          autocomplete="off"
+          list="nicho-suggestions"
+        />
+        <datalist id="nicho-suggestions">
+          ${Object.keys(sugerenciasTemaPorNicho)
+            .map((n) => `<option>${n}</option>`)
+            .join('')}
+        </datalist>
       </label>
+
       <label class="fg-field">
-        <span class="fg-label">Voz de marca</span>
+        <span class="fg-label">🎤 Voz de marca</span>
         <select class="fg-input" id="fg-voice">${VOCES.map((v) => `<option value="${v}">${v.charAt(0).toUpperCase() + v.slice(1)}</option>`).join('')}</select>
+        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Tono del mensaje</div>
       </label>
+
       <label class="fg-field fg-field-wide">
-        <span class="fg-label">Ángulos que ya usa la competencia (opcional, separados por coma)</span>
-        <input class="fg-input" id="fg-competitors" placeholder="Ej: tutorial paso a paso, tips de productividad" autocomplete="off" />
+        <span class="fg-label">🚫 Ángulos competencia (opcional)</span>
+        <div style="font-size: 12px; color: #64748b; margin-bottom: 6px;">
+          Qué ya hace la competencia (para evitar repetir)
+        </div>
+        <input
+          class="fg-input"
+          id="fg-competitors"
+          placeholder="Ej: tutorial paso a paso, tips de productividad"
+          autocomplete="off"
+        />
       </label>
     </div>
 
@@ -160,19 +218,51 @@ const buildForm = (platform) => `
     <p class="fg-disclaimer">Estrategia y predicción usan tus posts guardados (sincronizalos desde Predictor). Si la cuenta no tiene historial, Forge lo dice en vez de inventar cifras.</p>
   </div>`;
 
+const normalizarTema = (tema) => {
+  // Limpiar espacios extras
+  let t = tema.trim().toLowerCase();
+  // Quitar artículos comunes si es necesario
+  t = t.replace(/^(el|la|los|las|un|una|unos|unas)\s+/i, '');
+  // Asegurar que empiece con mayúscula
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
+
+const validarEntrada = (entrada) => {
+  const errores = [];
+
+  if (!entrada.tema || entrada.tema.length < 5) {
+    errores.push('Tema muy corto. Sé más específico (ej: "cómo vender más con email marketing")');
+  }
+
+  if (entrada.tema.split(' ').length === 1) {
+    errores.push('Tema muy genérico. Necesito más contexto (ej: "marketing" → "estrategia de email marketing")');
+  }
+
+  if (entrada.tema.length > 150) {
+    errores.push('Tema muy largo (máx 150 caracteres)');
+  }
+
+  return errores;
+};
+
 const leerEntrada = () => {
   const val = (id) => document.querySelector(`#${id}`)?.value ?? '';
+  const tema = val('fg-topic').trim();
+  const nicho = val('fg-niche').trim();
+
   return {
-    tema: val('fg-topic').trim(),
+    tema: normalizarTema(tema),
+    temaOriginal: tema,
     plataforma: val('fg-platform') || 'instagram',
     formato: val('fg-format') || 'reel',
     objetivo: val('fg-goal') || 'engagement',
-    nicho: val('fg-niche').trim(),
+    nicho: nicho || 'general',
     voz: val('fg-voice') || 'cercano',
     competidores: val('fg-competitors')
       .split(',')
       .map((s) => s.trim())
-      .filter(Boolean),
+      .filter((s) => s.length > 0)
+      .slice(0, 5), // Máx 5 competidores
     hook: estado.hookElegido,
     angulo: estado.angulo,
     ajustes: [],
@@ -505,10 +595,21 @@ const mostrarCarga = (root, texto) => {
 /* ───────── Etapas ───────── */
 
 const validarTema = (entrada, root) => {
-  if (entrada.tema) return true;
-  toast('Decile sobre qué crear contenido', 'warn');
-  root.querySelector('#fg-topic')?.focus();
-  return false;
+  const errores = validarEntrada(entrada);
+
+  if (errores.length > 0) {
+    toast(errores[0], 'warn');
+    root.querySelector('#fg-topic')?.focus();
+    return false;
+  }
+
+  if (!entrada.tema) {
+    toast('Describí qué contenido querés crear', 'warn');
+    root.querySelector('#fg-topic')?.focus();
+    return false;
+  }
+
+  return true;
 };
 
 const correrEstrategia = async (root, entrada) => {
@@ -2090,6 +2191,48 @@ export const renderForge = async (root) => {
         .fg-final-actions .fg-btn{flex:1 1 100%;justify-content:center;}
       }
     </style>`;
+
+  // Event listeners para sugerencias dinámicas
+  setTimeout(() => {
+    const nichoInput = root.querySelector('#fg-niche');
+    const topicInput = root.querySelector('#fg-topic');
+    const suggestionsContainer = root.querySelector('#fg-topic-suggestions');
+    const suggestionsList = root.querySelector('#fg-topic-list');
+
+    if (nichoInput && topicInput && suggestionsContainer && suggestionsList) {
+      nichoInput.addEventListener('change', () => {
+        const nicho = nichoInput.value.toLowerCase();
+        const sugerencias = sugerenciasTemaPorNicho[nicho];
+
+        if (sugerencias && sugerencias.length > 0) {
+          suggestionsContainer.style.display = 'block';
+          suggestionsList.innerHTML = sugerencias
+            .map(
+              (s) => `
+              <button
+                type="button"
+                style="
+                  padding: 4px 8px;
+                  background: #e0f2fe;
+                  border: 1px solid #0284c7;
+                  border-radius: 4px;
+                  color: #0c4a6e;
+                  font-size: 11px;
+                  cursor: pointer;
+                "
+                onclick="document.querySelector('#fg-topic').value='${s.replace(/'/g, "\\'")}'; document.querySelector('#fg-topic-suggestions').style.display='none';"
+              >
+                ${escape(s)}
+              </button>
+            `,
+            )
+            .join('');
+        } else {
+          suggestionsContainer.style.display = 'none';
+        }
+      });
+    }
+  }, 100);
 
   root.onclick = (ev) => {
     const btn = ev.target instanceof Element ? ev.target.closest('[data-action]') : null;
