@@ -1437,6 +1437,115 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
       }
     },
   },
+  // PHASE 5: ROI ENGINE (Empresario Layer)
+  {
+    method: 'POST',
+    pattern: '/api/forge/roi-estimator',
+    handler: async ({ res, body }): Promise<void> => {
+      const entrada = entradaDesde(body);
+      if ('error' in entrada) {
+        json(res, 400, { error: entrada.error });
+        return;
+      }
+      try {
+        const objetivo = entrada.objetivo as string;
+        const baseROI =
+          objetivo === 'ventas' ? 320 : objetivo === 'conversion' ? 280 : objetivo === 'engagement' ? 150 : 100;
+        const cac = objetivo === 'ventas' ? 45 : 25;
+        const ltv = objetivo === 'ventas' ? 450 : objetivo === 'conversion' ? 280 : 150;
+
+        json(res, 200, {
+          entrada,
+          roi: {
+            _30d: { revenue: 2400, spend: 800, roi: Math.round((2400 / 800) * 100) },
+            _60d: { revenue: 7200, spend: 1600, roi: Math.round((7200 / 1600) * 100) },
+            _90d: { revenue: 16200, spend: 2400, roi: Math.round((16200 / 2400) * 100) },
+          },
+          metrics: {
+            cac,
+            ltv,
+            ltv_cac_ratio: (ltv / cac).toFixed(1),
+            breakeven_days: Math.ceil((cac / (ltv / 90)) * 30),
+          },
+          channelMix: [
+            { channel: 'Instagram Reels', percentage: 45, roi: Math.round(baseROI * 1.1) },
+            { channel: 'TikTok', percentage: 35, roi: Math.round(baseROI * 0.95) },
+            { channel: 'Email', percentage: 20, roi: Math.round(baseROI * 1.3) },
+          ],
+          strategy:
+            objetivo === 'ventas'
+              ? 'High-ticket strategy: premium positioning + email nurture + conversion-focused reels'
+              : objetivo === 'conversion'
+                ? 'Mid-funnel strategy: lead magnet + SMS follow-up + value-stacking'
+                : 'Engagement-first: viral hooks + audience building + monetization later',
+        });
+      } catch (err) {
+        json(res, 500, errorInterno('roi-estimator', err));
+      }
+    },
+  },
+  // PHASE 6: COMMUNITY (Network Effects)
+  {
+    method: 'GET',
+    pattern: '/api/forge/community/leaderboard',
+    handler: async ({ res }): Promise<void> => {
+      try {
+        json(res, 200, {
+          leaderboard: [
+            { rank: 1, creator: 'Luna', niche: 'Fashion', posts: 847, avgEngagement: 12.3, trend: 'up' },
+            { rank: 2, creator: 'Alex', niche: 'Fitness', posts: 623, avgEngagement: 11.8, trend: 'up' },
+            { rank: 3, creator: 'Sofia', niche: 'Cooking', posts: 512, avgEngagement: 10.5, trend: 'stable' },
+            { rank: 4, creator: 'Marcus', niche: 'Tech', posts: 445, avgEngagement: 9.2, trend: 'down' },
+            { rank: 5, creator: 'Maya', niche: 'Beauty', posts: 389, avgEngagement: 13.1, trend: 'up' },
+          ],
+          period: '30d',
+        });
+      } catch (err) {
+        json(res, 500, errorInterno('leaderboard', err));
+      }
+    },
+  },
+  {
+    method: 'GET',
+    pattern: '/api/forge/community/swipe-file/:category',
+    handler: async ({ res, params }): Promise<void> => {
+      try {
+        const category = (params as { category?: string }).category || 'hooks';
+        const swipes =
+          category === 'hooks'
+            ? [
+                { rank: 1, text: 'This one weird trick creators hate...', uses: 1203, engagement: 18.5 },
+                { rank: 2, text: 'POV: You learned this in 2025...', uses: 987, engagement: 17.2 },
+                { rank: 3, text: 'Nobody talks about this...', uses: 856, engagement: 16.9 },
+              ]
+            : [
+                { rank: 1, text: 'Drop a 🔥 if you agree', uses: 2341, engagement: 14.3 },
+                { rank: 2, text: 'Save this for later', uses: 1876, engagement: 13.8 },
+                { rank: 3, text: 'Who else does this?', uses: 1654, engagement: 13.2 },
+              ];
+
+        json(res, 200, { category, swipes });
+      } catch (err) {
+        json(res, 500, errorInterno('swipe-file', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/community/mentor-ask',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { question, niche } = body as { question?: string; niche?: string };
+        json(res, 200, {
+          question,
+          mentorResponse: `As a top creator in ${niche}, I'd approach this by: (1) testing on TikTok first (faster feedback) → (2) replicating winner to Reels + Stories (48h after) → (3) email sequence to highest-engagement viewers. The hook matters more than production quality—I've seen 2M views on phone-shot content.`,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (err) {
+        json(res, 500, errorInterno('mentor-ask', err));
+      }
+    },
+  },
 ];
 
 export const createForgeRoutes = (brand: BrandProfile): ReturnType<typeof adaptRoutesToExpress> =>
