@@ -18,6 +18,8 @@ import { getPlanLimits, recordUsage, checkQuota } from './_usage.js';
 import { PLAN_FEATURES, buildPlanAwareSystemPrompt, hasFeature, getFeature } from './_planFeatures.js';
 import { generateVideoEditSpec } from './_videoEditor.js';
 import { buildMemoryContext, recordPlan } from './_accountMemory.js';
+import { loadLearnings } from './_feedbackLoop.js';
+import { simularAlcanceReal } from './_alcanceSimulado.js';
 
 const isPaidPlan = (planId) => planId && planId !== 'free';
 
@@ -93,33 +95,24 @@ const runCouncilIfEligible = async (planId, content, strategy) => {
 };
 
 /**
- * Monte Carlo simulation (Gold+).
+ * Simulación de alcance (Gold+) sobre el historial real de la cuenta.
  */
-const runMonteCarloIfEligible = async (planId, content, strategy) => {
+const runMonteCarloIfEligible = (planId, metrics) => {
   const mcFeature = getFeature(planId, 'contentGeneration.monteCarloSimulation');
   if (!mcFeature || !mcFeature.value) return null;
-  const trials = mcFeature.trials || mcFeature.value || 500;
-  const baseReach = 1000;
-  const reaches = [];
-  for (let i = 0; i < Math.min(trials, 100); i++) {
-    const noise = (Math.random() - 0.5) * 0.6;
-    const reach = Math.max(0, baseReach * (1 + noise) * (1 + (strategy?.strategicScore || 50) / 100));
-    reaches.push(Math.round(reach));
-  }
-  reaches.sort((a, b) => a - b);
-  return {
-    trials,
-    distribution: {
-      p10: reaches[Math.floor(reaches.length * 0.1)] || 0,
-      p50: reaches[Math.floor(reaches.length * 0.5)] || 0,
-      p90: reaches[Math.floor(reaches.length * 0.9)] || 0,
-      mean: Math.round(reaches.reduce((s, r) => s + r, 0) / reaches.length),
-    },
-    successProbability: reaches.filter((r) => r > baseReach * 1.5).length / reaches.length,
-    blackSwanProbability: reaches.filter((r) => r > baseReach * 4).length / reaches.length,
-    recommendation: 'ship',
-  };
+  return simularAlcanceReal({ metrics, trials: mcFeature.trials || mcFeature.value });
 };
+
+const textoLearnings = (l) =>
+  l
+    ? [
+        l.summary && `ANÁLISIS DEL FEEDBACK LOOP: ${l.summary}`,
+        l.doubleDownOn && `Ampliá: ${l.doubleDownOn}.`,
+        l.redFlags?.length && `NO repetir: ${l.redFlags.join('; ')}.`,
+      ]
+        .filter(Boolean)
+        .join('\n')
+    : '';
 
 /**
  * A/B testing pre-publish (Premium).
@@ -389,6 +382,11 @@ export const forgeContent = async ({
   const memory = accountId ? await buildMemoryContext(memoryScope, accountId).catch(() => null) : null;
   const savedProfile = memory?.profile || {};
 
+  // 0b. APRENDIZAJES DEL FEEDBACK LOOP — escritos por analyzeAccount() (LLM sobre métricas reales).
+  //     Antes solo los leían autopilot/gstack; el pipeline de contenido los ignoraba.
+  const learnings = accountId ? await loadLearnings({ scope: memoryScope, accountId }).catch(() => null) : null;
+  const memoryText = [memory?.insights?.summaryText, textoLearnings(learnings)].filter(Boolean).join('\n');
+
   // Lo que llega en el request gana; si no llega, usa lo guardado del perfil de la cuenta.
   const effectiveBrandNiche = brandNiche || savedProfile.brandNiche || savedProfile.niche || '';
   const effectiveBrandVoice = brandVoice || savedProfile.brandVoice || 'cercano';
@@ -404,9 +402,9 @@ export const forgeContent = async ({
     targetAge: effectiveTargetAge,
     competitorAngles,
     brandVoice: effectiveBrandVoice,
-    bestFormat: memory?.insights?.bestFormat || null,
+    bestFormat: memory?.insights?.bestFormat || learnings?.winningFormat || null,
     recentTopics: memory?.insights?.recentTopics || [],
-    memoryText: memory?.insights?.summaryText || '',
+    memoryText,
   });
   const strategyDepth = getFeature(plan, 'contentGeneration.strategist.depth') || 'shallow';
   strategy.depthLevel = strategyDepth;
@@ -442,7 +440,7 @@ export const forgeContent = async ({
   const councilResult = await runCouncilIfEligible(plan, finalContent, strategy);
 
   // 5. MONTE CARLO (Gold+)
-  const monteCarlo = await runMonteCarloIfEligible(plan, finalContent, strategy);
+  const monteCarlo = runMonteCarloIfEligible(plan, memory?.metrics || []);
 
   // 6. A/B TEST (Premium)
   const abTest = await runABTestIfEligible(plan, finalContent, strategy, platform, format);
@@ -526,6 +524,7 @@ export const forgeContent = async ({
       generatedAt: new Date().toISOString(),
       accountMemoryUsed: Boolean(memory?.insights?.hasData),
       postsAnalyzed: memory?.insights?.postsTracked || 0,
+      learningsApplied: Boolean(learnings),
     },
   };
 };

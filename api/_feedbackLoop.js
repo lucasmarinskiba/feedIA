@@ -72,7 +72,7 @@ export const extractWinningPatterns = (metrics = []) => {
   const enriched = metrics.map((m) => ({
     ...m,
     hookStyle: detectHookStyle(m.topic || ''),
-    hour: hourFromIso(m.postedAt || m.at),
+    hour: hourFromIso(m.postedAt || m.ts),
   }));
   const sorted = [...enriched].sort((a, b) => scorePost(b) - scorePost(a));
   const top20 = sorted.slice(0, Math.max(1, Math.ceil(sorted.length * 0.2)));
@@ -155,6 +155,22 @@ export const updateNicheCache = async (scope, accountId, learnings) => {
   };
   await store.set(key, merged).catch(() => {});
   return merged;
+};
+
+// ── Lectura de learnings para otros productores (ej. generación de contenido) ──
+export const loadLearnings = async ({ scope = 'anon', accountId = '' } = {}) => {
+  const intel = await store.get(INTEL_KEY(scope, accountId)).catch(() => null);
+  const s = intel?.summary;
+  if (!s?.learningsSummary) return null;
+  return {
+    summary: s.learningsSummary,
+    winningFormat: s.winningFormat || null,
+    winningHookStyle: s.winningHookStyle || null,
+    doubleDownOn: s.doubleDownOn || null,
+    recommendations: intel.learnings?.recommendations || [],
+    redFlags: intel.learnings?.redFlags || [],
+    builtAt: intel.learnings?.builtAt || null,
+  };
 };
 
 // ── Pipeline principal ──────────────────────────────────────────────────────
