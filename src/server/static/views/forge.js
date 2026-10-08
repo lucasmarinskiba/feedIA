@@ -915,6 +915,61 @@ const manejarAccion = (root, action, idx) => {
           `;
 
           document.querySelector(`#${containerId}-result`).innerHTML = resultHtml;
+
+          // PHASE 3: Multimedia Output (Card + Copy + Blueprint)
+          return llamar('/api/forge/output-multimedia', entrada);
+        })
+        .then((multimedia) => {
+          const { card, copyShortcut, repurposingBlueprint } = multimedia;
+          const multimediaHtml = `
+            <div style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); border-radius: 12px; color: white;">
+              <h3 style="margin: 0 0 16px 0; font-size: 16px;">🎨 OUTPUTS (PHASE 3)</h3>
+
+              <!-- CARD VISUAL -->
+              <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">📊 Card Predicción</div>
+                <div style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+                  <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">${card.headline}</div>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <span>⭐ Viralidad:</span>
+                    <span style="font-size: 20px; font-weight: 700; color: #fbbf24;">${card.viralityScore}/100</span>
+                  </div>
+                  <div style="font-size: 12px; opacity: 0.9;">
+                    ${card.quickWins.map((w) => '<div style="margin: 4px 0;">✅ ' + w + '</div>').join('')}
+                  </div>
+                </div>
+              </div>
+
+              <!-- COPY SHORTCUT -->
+              <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">✍️ Copy Shortcut (1-click)</div>
+                <div style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 12px; margin-bottom: 12px; font-size: 12px; line-height: 1.5;">
+                  <div style="font-weight: 600; margin-bottom: 8px;">Caption:</div>
+                  <pre style="margin: 0; font-size: 11px; white-space: pre-wrap; word-wrap: break-word; opacity: 0.9;">${copyShortcut.fullCaption}</pre>
+                </div>
+                <button onclick="navigator.clipboard.writeText(\`${copyShortcut.fullCaption}\`).then(() => alert('✅ Caption copiada')); return false;" style="width: 100%; padding: 10px; background: rgba(34,197,94,0.7); border: none; color: white; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;">
+                  📋 Copiar Caption Completa
+                </button>
+              </div>
+
+              <!-- REPURPOSING BLUEPRINT -->
+              <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 16px;">
+                <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">♻️ Repurposing Blueprint (7 formatos)</div>
+                ${repurposingBlueprint
+                  .map(
+                    (r) =>
+                      `<div style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+                  <div style="font-weight: 600; font-size: 12px;">${r.formato} · ${r.timing}</div>
+                  <div style="font-size: 11px; opacity: 0.8; margin: 4px 0;">Assets: ${r.assets}</div>
+                  <div style="font-size: 11px; opacity: 0.8;">${r.checklist.map((c) => '☐ ' + c).join(' · ')}</div>
+                </div>`,
+                  )
+                  .join('')}
+              </div>
+            </div>
+          `;
+
+          document.querySelector(`#${containerId}`).insertAdjacentHTML('afterend', multimediaHtml);
         })
         .then(() => {
           // TRACK B: Deep Analysis (opt-in, 5 min)
