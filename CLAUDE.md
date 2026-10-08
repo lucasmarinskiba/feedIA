@@ -10,6 +10,7 @@
 ## Estilo de Código
 
 - Preferir **funciones flecha** sobre declaraciones de función tradicionales.
+
   ```ts
   // Correcto
   const saludar = (nombre: string): string => `Hola, ${nombre}`;
@@ -19,6 +20,7 @@
     return `Hola, ${nombre}`;
   }
   ```
+
 - Usar `const` por defecto; `let` solo cuando la reasignación sea necesaria.
 
 ## Flujo de Commits
@@ -29,6 +31,19 @@
   ```
 - No realizar commits con errores de linting pendientes.
 - Si el proyecto usa un pre-commit hook (por ejemplo con Husky), no omitirlo con `--no-verify`.
+
+## Coordinación entre sesiones (obligatorio)
+
+Varias sesiones de Claude trabajan sobre este repo. Compartir la carpeta principal provocó commits que se llevaron cambios ajenos (`a56d065`, `16aa7a1`).
+
+- **Cada sesión trabaja en su propio worktree y rama**, nunca en la carpeta principal:
+  ```bash
+  git worktree add .claude/worktrees/<nombre> -b claude/<nombre> main
+  ```
+- **Nunca commitear directo a `main`.** Integrar la rama con `git rebase main` y luego `git merge --ff-only claude/<nombre>` desde el worktree de `main`, que tiene que estar limpio.
+- **Stagear solo archivos por nombre.** Prohibido `git add -A` y `git add .`. Antes de commitear, `git status` y `git diff --cached --stat` deben mostrar solo los archivos de la tarea.
+- **Cambios sin commitear que no son tuyos**: no commitearlos, no borrarlos, no revertirlos. Avisar al usuario.
+- **Migraciones, submódulos y `feedIA/`** no entran en commits de feature salvo que la tarea los toque.
 
 ## Política de Seguridad (Crítico)
 
@@ -89,7 +104,7 @@ VERCEL_OIDC_TOKEN=<regenerated-token>
 
 - Auditoría de seguridad después de cada cambio crítico (payment, auth, credentials)
 - No mergear cambios sin validar que no expongan credenciales
-- Pre-commit hook debe detectar patrones de secrets (sk_live_, whsec_, etc.)
+- Pre-commit hook debe detectar patrones de secrets (sk*live*, whsec\_, etc.)
 
 ---
 
