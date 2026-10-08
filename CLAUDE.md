@@ -104,7 +104,7 @@ VERCEL_OIDC_TOKEN=<regenerated-token>
 
 - Auditoría de seguridad después de cada cambio crítico (payment, auth, credentials)
 - No mergear cambios sin validar que no expongan credenciales
-- Pre-commit hook debe detectar patrones de secrets (sk*live*, whsec\_, etc.)
+- Pre-commit hook debe detectar patrones de secrets (`sk_live_`, `whsec_`, etc.)
 
 ---
 
