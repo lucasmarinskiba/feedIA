@@ -854,81 +854,91 @@ const manejarAccion = (root, action, idx) => {
         return undefined;
       }
 
-      const containerId = `progress-${Date.now()}`;
-      const fases = [
-        { n: 1, nombre: 'Entrada', desc: 'Leyendo tu tema y contexto' },
-        { n: 2, nombre: 'Análisis Histórico', desc: 'Revisando tus posts pasados' },
-        { n: 3, nombre: 'Engagement Patterns', desc: 'Identificando qué funciona' },
-        { n: 4, nombre: 'Hooks Calibrados', desc: 'Generando 3 direcciones de hooks' },
-        { n: 5, nombre: 'Estrategia Final', desc: 'Armando estrategia con tu historial (PREDICT completo)' },
-        { n: 6, nombre: 'Personas Audiencia', desc: 'Identificando tu audiencia dominante' },
-        { n: 7, nombre: 'Hashtags Óptimos', desc: 'Sugiriendo hashtags trending + nicho' },
-        { n: 8, nombre: 'Timing Óptimo', desc: 'Calculando mejor hora para publicar' },
-        { n: 9, nombre: 'Benchmark Nicho', desc: 'Comparando vs competencia' },
-        { n: 10, nombre: 'Oportunidades', desc: 'Detectando gaps en el mercado' },
-        { n: 11, nombre: 'Health Score', desc: 'Evaluando salud de la cuenta' },
-        { n: 12, nombre: 'Monetización', desc: 'Calculando potencial de ingresos' },
-        { n: 13, nombre: 'Revenue Potential', desc: 'Proyectando oportunidades de venta' },
-        { n: 14, nombre: 'Viral Coefficient', desc: 'Prediciendo probabilidad de viralidad (VERDICT 1/3)' },
-        { n: 15, nombre: 'Repurposing Plan', desc: 'Diseñando cómo reutilizar (VERDICT 2/3)' },
-        { n: 16, nombre: 'Growth Trajectory', desc: 'Proyectando crecimiento 30/60/90 días (VERDICT 3/3)' },
-      ];
+      estado.ocupado = true;
+      const containerId = `verdict-${Date.now()}`;
 
-      // Renderizar contenedor de progreso
-      const progressHtml = `<div id="${containerId}" style="padding: 24px; background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%); border-radius: 12px; color: white; margin-bottom: 20px;">
+      // TRACK A: Quick Verdict (2 min)
+      const quickVerdictHtml = `<div id="${containerId}" style="padding: 20px; background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); border-radius: 12px; color: white; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-          <div class="fg-spin" style="width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%;"></div>
+          <div class="fg-spin" style="width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%;"></div>
           <div>
-            <h3 style="margin: 0; font-size: 18px;">🎯 Decision Engine en ejecución</h3>
-            <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">Analizando 16 factores críticos...</p>
+            <h3 style="margin: 0; font-size: 16px;">⚡ TRACK A: Análisis Rápido (2 min)</h3>
+            <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.9;">Viralidad + Hook + Timing</p>
           </div>
         </div>
-        <div id="${containerId}-phases" style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; max-height: 300px; overflow-y: auto; font-size: 12px; line-height: 1.5;">
+        <div id="${containerId}-result" style="background: rgba(0,0,0,0.15); border-radius: 8px; padding: 12px; min-height: 60px;">
+          <div style="text-align: center; opacity: 0.8; font-size: 12px;">Analizando...</div>
         </div>
       </div>`;
 
-      root.insertAdjacentHTML('beforeend', progressHtml);
-      const phasesContainer = document.querySelector(`#${containerId}-phases`);
+      root.insertAdjacentHTML('beforeend', quickVerdictHtml);
 
-      const updatePhase = (fase) => {
-        const phaseHtml = `<div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-bottom: 6px; border-left: 3px solid #10b981;">
-          <strong>Fase ${fase.n}/16:</strong> ${fase.nombre}
-          <div style="opacity: 0.85; font-size: 11px; margin-top: 2px;">${fase.desc}</div>
-        </div>`;
-        phasesContainer.insertAdjacentHTML('beforeend', phaseHtml);
-        phasesContainer.scrollTop = phasesContainer.scrollHeight;
-      };
+      return llamar('/api/forge/quick-verdict', entrada)
+        .then((result) => {
+          const { verdict, scores, nextActions, recomendacion } = result;
+          const verdictColor = verdict === 'listo' ? '#10b981' : verdict === 'mejorable' ? '#f59e0b' : '#ef4444';
+          const verdictEmoji = verdict === 'listo' ? '✅' : verdict === 'mejorable' ? '⚠️' : '⏸️';
+          const verdictLabel =
+            verdict === 'listo'
+              ? 'LISTO PARA PUBLICAR'
+              : verdict === 'mejorable'
+                ? 'CONVIENE MEJORAR'
+                : 'GUARDAR PARA DESPUÉS';
 
-      // Log cada fase
-      fases.slice(0, 5).forEach((f) => updatePhase(f));
+          const resultHtml = `
+            <div style="text-align: center; margin-bottom: 16px;">
+              <div style="font-size: 48px; margin-bottom: 8px;">${verdictEmoji}</div>
+              <div style="font-size: 18px; font-weight: 700; color: ${verdictColor};">${verdictLabel}</div>
+              <div style="font-size: 12px; opacity: 0.85; margin-top: 4px;">${recomendacion}</div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
+              <div style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; text-align: center;">
+                <div style="font-size: 24px; font-weight: 700;">${scores.content}</div>
+                <div style="font-size: 10px; opacity: 0.8;">Content</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; text-align: center;">
+                <div style="font-size: 24px; font-weight: 700;">${scores.hook}</div>
+                <div style="font-size: 10px; opacity: 0.8;">Hook</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; text-align: center;">
+                <div style="font-size: 24px; font-weight: 700;">${scores.account}</div>
+                <div style="font-size: 10px; opacity: 0.8;">Cuenta</div>
+              </div>
+            </div>
+            <div style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+              <div style="font-weight: 600; margin-bottom: 8px;">📋 Próximos pasos:</div>
+              ${nextActions.map((a) => `<div style="font-size: 12px; margin: 4px 0; opacity: 0.9;">• ${a}</div>`).join('')}
+            </div>
+            <button onclick="document.getElementById('${containerId}-deep').style.display = 'block'; this.style.display = 'none';" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600;">
+              📊 Ver Análisis Profundo (Track B)
+            </button>
+          `;
 
-      return correrEstrategia(root, entrada)
-        .then(() => {
-          fases.slice(5, 14).forEach((f) => updatePhase(f));
-          return cargarViralCoefficient(root);
+          document.querySelector(`#${containerId}-result`).innerHTML = resultHtml;
         })
         .then(() => {
-          updatePhase(fases[13]);
-          return cargarRepurposingPlan(root);
-        })
-        .then(() => {
-          updatePhase(fases[14]);
-          return cargarGrowthTrajectory(root);
-        })
-        .then(() => {
-          updatePhase(fases[15]);
-          const finalHtml = `<div style="padding: 16px; background: #f0fdf4; border-radius: 12px; border: 2px solid #10b981; margin-top: 16px;">
-            <h3 style="margin: 0 0 8px 0; color: #16a34a; font-size: 16px;">✅ Decision Engine Completado</h3>
-            <p style="margin: 0; font-size: 13px; color: #166534;">
-              <strong>Análisis de 16 factores completado:</strong> Estrategia (fases 1-5) → Optimización (6-13) → Veredicto (14-16)
-              <br/>Reviá los resultados arriba. ¿La decisión es publicar o mejorar primero?
-            </p>
+          // TRACK B: Deep Analysis (opt-in, 5 min)
+          const deepHtml = `<div id="${containerId}-deep" style="display: none; padding: 20px; background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); border-radius: 12px; color: white; margin-bottom: 20px; margin-top: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+              <div class="fg-spin" style="width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%;"></div>
+              <div>
+                <h3 style="margin: 0; font-size: 16px;">📊 TRACK B: Análisis Profundo (5 min)</h3>
+                <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.9;">ROI + Repurposing + Growth 30/60/90</p>
+              </div>
+            </div>
+            <div id="${containerId}-deep-result" style="background: rgba(0,0,0,0.15); border-radius: 8px; padding: 12px; min-height: 60px;">
+              <div style="text-align: center; opacity: 0.8; font-size: 12px;">Analizando...</div>
+            </div>
           </div>`;
-          document.querySelector(`#${containerId}`).insertAdjacentHTML('afterend', finalHtml);
-          toast('success', '✅ Decision Engine: 16 fases completadas');
+
+          document.querySelector(`#${containerId}`).insertAdjacentHTML('afterend', deepHtml);
+
+          // Cargar Track B cuando se clickee el botón (lazy-load)
+          estado.trackBEntrada = entrada;
         })
         .catch((err) => {
-          toast('error', `Error: ${err.message || 'Decision Engine interrupted'}`);
+          toast('error', `Track A falló: ${err.message || 'Error en análisis rápido'}`);
+          estado.ocupado = false;
         });
     }
     default:
