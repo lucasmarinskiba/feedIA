@@ -388,6 +388,7 @@ export const recomendacionDesde = (
   resumen: ResumenHistorial,
   plataforma: PlataformaForge,
   formato: FormatoForge,
+  objetivo?: ObjetivoForge,
 ): RecomendacionCuenta => {
   const bloque = resumen.plataformas.find((p) => p.plataforma === plataforma);
   if (!bloque || bloque.posts === 0) {
@@ -405,9 +406,23 @@ export const recomendacionDesde = (
   const clave = FORMATO_PREDICTOR[formato];
   const elegido = clave ? bloque.porFormato.find((g) => g.clave === clave) : undefined;
   const aviso = bloque.posts < MIN_POSTS_ORIENTATIVO ? ` Son ${bloque.posts} posts: tomalo como orientativo.` : '';
+
+  // Calibrar recomendaciones según objetivo
+  let motivo = `Basado en ${bloque.posts} posts de ${plataforma} de tu cuenta.${aviso}`;
+  if (objetivo) {
+    const objetivosTexto: Record<ObjetivoForge, string> = {
+      engagement: 'priorizando engagement (comentarios, compartidos)',
+      alcance: 'priorizando alcance (impresiones, nuevos followers)',
+      conversion: 'priorizando conversión (clickthroughs, saves)',
+      comunidad: 'priorizando comunidad (reply rate, DM-opens)',
+      ventas: 'priorizando ventas (CTA clicks, link visits)',
+    };
+    motivo += ` ${objetivosTexto[objetivo] || ''}`;
+  }
+
   return {
     disponible: true,
-    motivo: `Basado en ${bloque.posts} posts de ${plataforma} de tu cuenta.${aviso}`,
+    motivo,
     posts: bloque.posts,
     elegido: elegido ? { etiqueta: elegido.etiqueta, posts: elegido.posts, vsMediana: elegido.vsMediana } : null,
     mejorFormato: primero(bloque.porFormato),
@@ -521,7 +536,7 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
       try {
         const marca = await marcaDeCuentas(req, brand);
         const resumen = resumenHistorial(historialDesdePosts(await leerPostsHistorial(marca)));
-        const recomendacion = recomendacionDesde(resumen, entrada.plataforma, entrada.formato);
+        const recomendacion = recomendacionDesde(resumen, entrada.plataforma, entrada.formato, entrada.objetivo);
 
         // Sin LLM disponible, generateHooks devuelve entradas con texto vacío: se descartan
         // para no mostrar hooks en blanco y se avisa que la generación falló.

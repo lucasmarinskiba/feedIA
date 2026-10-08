@@ -100,81 +100,87 @@ const buildForm = (platform) => `
   <div class="fg-card">
     <h2 class="fg-section-title">🎬 Decile a Forge qué crear</h2>
     <p class="fg-section-sub">
-      <strong>Entrada clara</strong> = mejor análisis.<br/>
-      Strateg usa historial real + genera hooks calibrados · Producción consume cuota · Predicción es pre-publish.
+      <strong>30 segundos</strong> para capturar lo esencial. Forge calibra análisis según contexto real.
     </p>
 
-    <div class="fg-form-grid">
-      <label class="fg-field fg-field-wide">
-        <span class="fg-label">🎯 ¿Sobre qué EXACTAMENTE? (lo más importante)</span>
-        <div style="font-size: 12px; color: #64748b; margin-bottom: 6px;">
-          Sé específico: no "marketing" → "cómo vender más con email marketing"
-        </div>
-        <input
-          class="fg-input"
-          id="fg-topic"
-          placeholder="Ej: cómo automatizar tu marketing con IA"
-          autocomplete="off"
-          style="font-size: 14px; padding: 12px;"
-        />
-        <div id="fg-topic-suggestions" style="margin-top: 8px; display: none;">
-          <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">💡 Sugerencias por nicho:</div>
-          <div id="fg-topic-list" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
-        </div>
-      </label>
+    <!-- PHASE 1: QUICK INTAKE (4 campos, 30s) -->
+    <div class="fg-form-grid" style="background: #f0f9ff; border-radius: 8px; padding: 16px; margin-bottom: 16px; border: 2px solid #0284c7;">
+      <div style="grid-column: 1/-1; font-size: 13px; font-weight: 600; color: #0c4a6e; margin-bottom: 12px;">⚡ CAPTURA RÁPIDA (4 inputs, Forge rest)</div>
 
       <label class="fg-field">
         <span class="fg-label">📱 Plataforma</span>
         <select class="fg-input" id="fg-platform">${opciones(PLATAFORMAS, platform)}</select>
-        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Dónde vas a publicar</div>
+        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Dónde publicas</div>
       </label>
 
       <label class="fg-field">
         <span class="fg-label">🎬 Formato</span>
         <select class="fg-input" id="fg-format">${opciones(FORMATOS, 'reel')}</select>
-        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Tipo de contenido</div>
+        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Carrusel / Reel / Historia</div>
       </label>
 
       <label class="fg-field">
-        <span class="fg-label">🎯 Objetivo principal</span>
+        <span class="fg-label">🎯 Objetivo</span>
         <select class="fg-input" id="fg-goal">${opciones(OBJETIVOS, 'engagement')}</select>
-        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">¿Qué buscás lograr?</div>
-      </label>
-
-      <label class="fg-field">
-        <span class="fg-label">🔍 Nicho/Industria</span>
-        <input
-          class="fg-input"
-          id="fg-niche"
-          placeholder="Ej: marketing, fitness, IA, emprendimiento"
-          autocomplete="off"
-          list="nicho-suggestions"
-        />
-        <datalist id="nicho-suggestions">
-          ${Object.keys(sugerenciasTemaPorNicho)
-            .map((n) => `<option>${n}</option>`)
-            .join('')}
-        </datalist>
-      </label>
-
-      <label class="fg-field">
-        <span class="fg-label">🎤 Voz de marca</span>
-        <select class="fg-input" id="fg-voice">${VOCES.map((v) => `<option value="${v}">${v.charAt(0).toUpperCase() + v.slice(1)}</option>`).join('')}</select>
-        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Tono del mensaje</div>
+        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Viralidad / Leads / etc</div>
       </label>
 
       <label class="fg-field fg-field-wide">
-        <span class="fg-label">🚫 Ángulos competencia (opcional)</span>
-        <div style="font-size: 12px; color: #64748b; margin-bottom: 6px;">
-          Qué ya hace la competencia (para evitar repetir)
-        </div>
+        <span class="fg-label">📝 Tema (3-5 palabras clave)</span>
         <input
           class="fg-input"
-          id="fg-competitors"
-          placeholder="Ej: tutorial paso a paso, tips de productividad"
+          id="fg-topic"
+          placeholder="Ej: email marketing automatizado"
           autocomplete="off"
+          style="font-size: 14px; padding: 12px;"
         />
+        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Sé conciso. "cómo vender más" no "qué es un embudo de ventas"</div>
       </label>
+    </div>
+
+    <!-- PHASE 2: ADVANCED (Nicho, Voz, Competencia) — collapsed by default -->
+    <div style="margin-bottom: 16px;">
+      <button class="fg-btn fg-btn-tertiary" id="fg-advanced-toggle" onclick="document.getElementById('fg-advanced-section').style.display = document.getElementById('fg-advanced-section').style.display === 'none' ? 'block' : 'none'; this.textContent = (document.getElementById('fg-advanced-section').style.display === 'none' ? '▶ Análisis Avanzado' : '▼ Análisis Avanzado');" style="width: 100%; text-align: left; padding: 10px 12px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 13px; cursor: pointer;">
+        ▶ Análisis Avanzado (opcional)
+      </button>
+    </div>
+
+    <div id="fg-advanced-section" style="display: none; background: #fafaf9; border-radius: 8px; padding: 16px; border-left: 4px solid #a16207; margin-bottom: 16px;">
+      <div class="fg-form-grid">
+        <label class="fg-field">
+          <span class="fg-label">🔍 Nicho/Industria</span>
+          <input
+            class="fg-input"
+            id="fg-niche"
+            placeholder="Ej: marketing, fitness, IA"
+            autocomplete="off"
+            list="nicho-suggestions"
+          />
+          <datalist id="nicho-suggestions">
+            ${Object.keys(sugerenciasTemaPorNicho)
+              .map((n) => `<option>${n}</option>`)
+              .join('')}
+          </datalist>
+          <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Opcional: mejora calibración</div>
+        </label>
+
+        <label class="fg-field">
+          <span class="fg-label">🎤 Voz de marca</span>
+          <select class="fg-input" id="fg-voice">${VOCES.map((v) => `<option value="${v}">${v.charAt(0).toUpperCase() + v.slice(1)}</option>`).join('')}</select>
+          <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Tono del mensaje</div>
+        </label>
+
+        <label class="fg-field fg-field-wide">
+          <span class="fg-label">🚫 Qué hace la competencia</span>
+          <input
+            class="fg-input"
+            id="fg-competitors"
+            placeholder="Ej: tutorial paso a paso, tips"
+            autocomplete="off"
+          />
+          <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Forge evita repetir estos ángulos</div>
+        </label>
+      </div>
     </div>
 
     <div class="fg-actions">
