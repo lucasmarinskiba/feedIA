@@ -821,6 +821,89 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
       }
     },
   },
+  // PHASE 4: Feedback Loop (tracking predicción vs realidad)
+  {
+    method: 'POST',
+    pattern: '/api/forge/feedback-retro',
+    handler: async ({ res, body }): Promise<void> => {
+      const entrada = entradaDesde(body);
+      if ('error' in entrada) {
+        json(res, 400, { error: entrada.error });
+        return;
+      }
+      try {
+        const { realViralityScore, realEngagement, realLeads, realConversions } = body as {
+          realViralityScore?: number;
+          realEngagement?: number;
+          realLeads?: number;
+          realConversions?: number;
+        };
+
+        // Calcular accuracy: comparar predicción vs realidad
+        const predictedViralityScore = Math.floor(Math.random() * 35) + 65; // simulado, en real vendría de entrada.prediction
+        const viralityAccuracy = realViralityScore
+          ? (Math.min(predictedViralityScore, realViralityScore) /
+              Math.max(predictedViralityScore, realViralityScore)) *
+            100
+          : 0;
+
+        // Retro summary: qué salió bien, qué no
+        const retroSummary = {
+          tema: entrada.tema,
+          plataforma: entrada.plataforma,
+          formato: entrada.formato,
+          objetivo: entrada.objetivo,
+          predictedVirality: predictedViralityScore,
+          realViralityScore: realViralityScore || 0,
+          viralityAccuracy: Math.round(viralityAccuracy),
+          engagement: {
+            predicted: Math.floor(Math.random() * 500) + 200,
+            real: realEngagement || 0,
+          },
+          conversions: {
+            predicted: Math.floor(Math.random() * 50) + 20,
+            real: realConversions || 0,
+          },
+          leads: {
+            predicted: Math.floor(Math.random() * 30) + 10,
+            real: realLeads || 0,
+          },
+          insights: [
+            viralityAccuracy >= 85
+              ? '✅ Predicción muy precisa (85%+)'
+              : viralityAccuracy >= 70
+                ? '🟡 Predicción buena, pero con margen'
+                : '⚠️ Predicción necesita calibración',
+            realEngagement && realEngagement > 300 ? '✅ Alto engagement (>300)' : '📉 Engagement bajo, revisá hook',
+            realConversions && realConversions > 30 ? '💰 Conversión buena' : '🔄 Conversión baja, testea CTA',
+          ],
+        };
+
+        // Store feedback para mejorar modelo (en BD real sería: retroFeedback table)
+        // Por ahora solo retornamos el análisis
+        json(res, 200, {
+          success: true,
+          retroSummary,
+          nextIteration: {
+            recommendation:
+              viralityAccuracy >= 80
+                ? 'Mantén estrategia actual, duplica formato que funciona'
+                : 'Ajusta hook y timing según datos reales',
+            adjustments:
+              viralityAccuracy < 70
+                ? [
+                    'Hook: más específico en primeros 1 segundo',
+                    'Timing: testea 30min antes/después horario actual',
+                    `Ángulo: la competencia usa "${entrada.competidores?.[0] || 'similar approach'}", diferenciáte más`,
+                  ]
+                : [],
+          },
+        });
+      } catch (err) {
+        json(res, 500, errorInterno('feedback-retro', err));
+      }
+    },
+  },
   {
     method: 'POST',
     pattern: '/api/forge/producir',
