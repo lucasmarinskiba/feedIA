@@ -206,6 +206,52 @@ Devolvé SOLO JSON con el plan estratégico unificado:
   );
 };
 
+const CAMPOS_APRENDIZAJE = [
+  'winningArchetype',
+  'winningFormat',
+  'winningHookStyle',
+  'doubleDownOn',
+  'learningsSummary',
+];
+
+const pickAprendizajes = (summary) =>
+  Object.fromEntries(CAMPOS_APRENDIZAJE.filter((c) => summary?.[c] != null).map((c) => [c, summary[c]]));
+
+const texto = (v) => (typeof v === 'string' ? v.trim() : '');
+const textos = (arr) => (Array.isArray(arr) ? arr.filter((x) => typeof x === 'string' && x.trim()) : []);
+
+export const formatearPrimingIntel = (intel) => {
+  const s = intel?.summary || {};
+  const niche = intel?.niche || {};
+  const aprendizajes = intel?.learnings || {};
+  const nicho = texto(niche.primaryNiche);
+  const detallesNicho = [
+    texto(niche.saturationLevel) && `saturación ${texto(niche.saturationLevel)}`,
+    texto(niche.monetizationPotential) && `monetización ${texto(niche.monetizationPotential)}`,
+  ].filter(Boolean);
+  const oportunidad = texto(intel?.opportunities?.top3Opportunities?.[0]?.opportunity);
+  const noHacer = textos(intel?.opportunities?.redFlags).slice(0, 2);
+  const noRepetir = textos(aprendizajes.redFlags).slice(0, 3);
+
+  const lineas = [
+    nicho && `Nicho: ${nicho}${detallesNicho.length ? ` (${detallesNicho.join(', ')})` : ''}.`,
+    texto(s.mainAngle) && `Posicionamiento: ${texto(s.mainAngle)}.`,
+    texto(s.keyAudienceTrigger) && `Trigger #1 audiencia: ${texto(s.keyAudienceTrigger)}.`,
+    texto(s.mainContentGap) && `Gap de contenido #1: ${texto(s.mainContentGap)}.`,
+    texto(s.differentiationPlay) && `Jugada de diferenciación: ${texto(s.differentiationPlay)}.`,
+    oportunidad && `Oportunidad top: ${oportunidad}.`,
+    texto(s.winningFormat) && `Formato que más rinde en esta cuenta: ${texto(s.winningFormat)}.`,
+    texto(s.doubleDownOn) && `Ampliar: ${texto(s.doubleDownOn)}.`,
+    texto(s.learningsSummary) && `Aprendizaje de datos reales: ${texto(s.learningsSummary)}`,
+    noHacer.length && `NO HACER: ${noHacer.join(', ')}.`,
+    noRepetir.length && `NO repetir (datos reales): ${noRepetir.join('; ')}.`,
+  ].filter(Boolean);
+
+  if (!lineas.length) return '';
+  const fecha = texto(intel?.builtAt) || texto(aprendizajes.builtAt);
+  return [`[INTELIGENCIA DE LA CUENTA${fecha ? ` — analizada el ${fecha}` : ''}]`, ...lineas].join('\n');
+};
+
 // ── ORQUESTADOR principal ────────────────────────────────────────────────────
 export const runNicheIntelligence = async ({
   topic = '',
@@ -218,13 +264,16 @@ export const runNicheIntelligence = async ({
 } = {}) => {
   const startedAt = Date.now();
   const key = cacheKey(scope, accountId || accountHandle || 'general');
+  const previo = await store.get(key).catch(() => null);
 
-  // Cache hit (si no forzamos re-corrida)
-  if (!force) {
-    const cached = await store.get(key).catch(() => null);
-    if (cached?.builtAt && Date.now() - new Date(cached.builtAt).getTime() < CACHE_TTL_SEC * 1000) {
-      return { ...cached, fromCache: true };
-    }
+  // Cache hit: solo si el registro es un niche completo (el feedback loop también escribe en esta clave)
+  if (
+    !force &&
+    previo?.niche &&
+    previo?.builtAt &&
+    Date.now() - new Date(previo.builtAt).getTime() < CACHE_TTL_SEC * 1000
+  ) {
+    return { ...previo, fromCache: true };
   }
 
   // Pipeline en paralelo donde sea posible
@@ -253,12 +302,14 @@ export const runNicheIntelligence = async ({
     opportunities,
     bestCreativeCombo: andromeda?.featured?.[0] || null,
     summary: {
-      mainAngle: opportunities?.positioningStatement || nicheData.uniqueAngleHint,
+      mainAngle: opportunities?.positioningStatement || nicheData.uniqueAngleHint || '',
       topOpportunity: opportunities?.top3Opportunities?.[0]?.opportunity || '',
       keyAudienceTrigger: audience?.decisionTriggers?.[0] || '',
       mainContentGap: competitive?.contentGaps?.[0] || '',
       differentiationPlay: competitive?.differentiationPlay || '',
+      ...pickAprendizajes(previo?.summary),
     },
+    learnings: previo?.learnings,
   };
 
   // Guardar en KV
@@ -283,15 +334,7 @@ export const loadIntelligenceRaw = async ({ scope = 'anon', accountId = '', acco
 export const loadIntelligencePriming = async ({ scope = 'anon', accountId = '', accountHandle = '' } = {}) => {
   const key = cacheKey(scope, accountId || accountHandle || 'general');
   const intel = await store.get(key).catch(() => null);
-  if (!intel?.summary) return '';
-  return `[INTELIGENCIA DE LA CUENTA — analizada el ${intel.builtAt}]
-Nicho: ${intel.niche?.primaryNiche || ''} (saturación ${intel.niche?.saturationLevel || ''}, monetización ${intel.niche?.monetizationPotential || ''}).
-Posicionamiento: ${intel.summary.mainAngle}.
-Trigger #1 audiencia: ${intel.summary.keyAudienceTrigger}.
-Gap de contenido #1: ${intel.summary.mainContentGap}.
-Jugada de diferenciación: ${intel.summary.differentiationPlay}.
-${intel.opportunities?.top3Opportunities?.[0] ? `Oportunidad top: ${intel.opportunities.top3Opportunities[0].opportunity}` : ''}
-${intel.opportunities?.redFlags?.length ? `NO HACER: ${intel.opportunities.redFlags.slice(0, 2).join(', ')}` : ''}`;
+  return formatearPrimingIntel(intel);
 };
 
 // ── HTTP ──────────────────────────────────────────────────────────────────────

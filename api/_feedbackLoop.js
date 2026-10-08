@@ -151,7 +151,6 @@ export const updateNicheCache = async (scope, accountId, learnings) => {
       recommendations: learnings?.recommendations || [],
       redFlags: learnings?.redFlags || [],
     },
-    builtAt: cur.builtAt || new Date().toISOString(),
   };
   await store.set(key, merged).catch(() => {});
   return merged;
