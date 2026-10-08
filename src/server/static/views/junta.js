@@ -7,6 +7,7 @@ const RUTA = '/api/executive/junta';
 
 const SECCIONES = [
   { id: 'mesa', label: '🪑 Mesa' },
+  { id: 'piloto', label: '🧪 Piloto' },
   { id: 'decisiones', label: '⚖️ Decisiones' },
   { id: 'programacion', label: '🗓️ Programación' },
   { id: 'proyectos', label: '🎬 Proyectos' },
@@ -867,6 +868,39 @@ export const mesaHtml = (m) => {
     </section>`;
 };
 
+export const pilotoHtml = (p) => {
+  const cabecera = '<h3>🧪 Piloto</h3>';
+  if (!p?.piloto) {
+    return `<section class="jt-bloque" id="jt-piloto">
+      ${cabecera}
+      <p class="jt-ayuda">Marcá el día que empezaste a usar FeedIA. Comparamos lo publicado antes y después de esa fecha con la misma métrica.</p>
+      <form id="jt-form-piloto" class="jt-form">
+        <label class="jt-campo">Nombre <input name="nombre" maxlength="80" required /></label>
+        <label class="jt-campo">Empezó el <input name="desde" type="date" required /></label>
+        <label class="jt-campo ancho">Hipótesis (opcional) <input name="hipotesis" maxlength="200" placeholder="Ej.: más guardados con carruseles" /></label>
+        <div class="jt-acciones"><button type="submit" class="jt-btn primario">Empezar piloto</button></div>
+      </form>
+    </section>`;
+  }
+  const c = p.comparacion;
+  const tasa = (v) => (v === null || v === undefined ? 'sin dato' : `${v}%`);
+  const cambio = c.deltaPp === null ? 'sin comparar' : `${c.deltaPp >= 0 ? '+' : ''}${c.deltaPp} pp`;
+  const colorCambio =
+    c.deltaPp === null ? '#fcd34d' : c.deltaPp > 0 ? '#34d399' : c.deltaPp < 0 ? '#f87171' : '#fcd34d';
+  return `<section class="jt-bloque" id="jt-piloto">
+    ${cabecera}
+    <p class="jt-ayuda">${escape(p.piloto.nombre)} · desde el ${escape(p.piloto.desde)} · ${num(c.dias)} día(s)${p.piloto.hipotesis ? ` · Hipótesis: ${escape(p.piloto.hipotesis)}` : ''}</p>
+    <div class="jt-cifras">
+      ${cifra('Antes', tasa(c.antes.tasaMediana), `${num(c.antes.publicaciones)} publicaciones`, '#a1a1aa')}
+      ${cifra('Después', tasa(c.despues.tasaMediana), `${num(c.despues.publicaciones)} publicaciones`, '#60a5fa')}
+      ${cifra('Cambio', cambio, '', colorCambio)}
+    </div>
+    <p>${escape(c.lectura)}</p>
+    ${c.faltantes.length ? `<ul class="jt-faltantes">${c.faltantes.map((f) => `<li>${escape(f)}</li>`).join('')}</ul>` : ''}
+    <div class="jt-acciones"><button class="jt-btn peligro" data-jt-accion="quitar-piloto">Quitar piloto</button></div>
+  </section>`;
+};
+
 const pintar = (root) => {
   const d = state.datos;
   const cab = root.querySelector('#jt-cabecera');
@@ -889,6 +923,7 @@ const pintar = (root) => {
   }
   cont.innerHTML = [
     mesaHtml(d.mesa),
+    pilotoHtml(d.piloto),
     decisionesHtml(d.decisiones),
     programacionHtml(d.programacion),
     proyectosHtml(d.proyectos),
@@ -961,6 +996,11 @@ const enlazar = (root) => {
     const el = e.target.closest('[data-jt-accion]');
     if (!el || !root.contains(el)) return;
     const accion = el.dataset.jtAccion;
+    if (accion === 'quitar-piloto') {
+      if (!confirm('¿Quitar el piloto? Se pierde la fecha de inicio y la comparación.')) return;
+      await mutar(root, `${RUTA.replace('/junta', '')}/piloto`, undefined, 'Piloto quitado', 'DELETE');
+      return;
+    }
     if (accion === 'mes') {
       const base = state.mes ?? { y: new Date().getFullYear(), m: new Date().getMonth() };
       const total = base.y * 12 + base.m + Number(el.dataset.paso);
@@ -1016,6 +1056,22 @@ const enlazar = (root) => {
     }
   });
   root.addEventListener('submit', async (e) => {
+    if (e.target.id === 'jt-form-piloto') {
+      e.preventDefault();
+      const form = e.target;
+      const boton = form.querySelector('button[type="submit"]');
+      boton.disabled = true;
+      try {
+        await api(`${RUTA.replace('/junta', '')}/piloto`, { body: Object.fromEntries(new FormData(form).entries()) });
+        apiBust(RUTA);
+        toast('Piloto iniciado', 'ok');
+        await cargar(root, true);
+      } catch (err) {
+        toast(razonDe(err, 'No se pudo guardar el piloto'), 'crit');
+        boton.disabled = false;
+      }
+      return;
+    }
     if (e.target.id !== 'jt-form-proyecto') return;
     e.preventDefault();
     const form = e.target;

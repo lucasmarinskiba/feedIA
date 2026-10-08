@@ -36,6 +36,7 @@ import {
   type ProgramadoJunta,
 } from './juntaMetricas.js';
 import { construirMesa } from './mesaEjecutiva.js';
+import { compararPiloto, leerPiloto } from './pilotoEjecutivo.js';
 import { analizarPostsDeMarca } from './postsAnalisis.js';
 import { leerProyectos, progresoProyecto } from './proyectosEjecutivo.js';
 
@@ -213,6 +214,14 @@ export const construirJunta = async (cuentasId: string, plataformaId: string, us
     numeros: lecturasNumeros(comparativa.lecturas, seguidoresCrec),
   });
 
+  const pilotoLeido = await enSeccion('piloto', () => leerPiloto(plataformaId));
+  const piloto = pilotoLeido.valor
+    ? {
+        piloto: pilotoLeido.valor,
+        comparacion: compararPiloto({ piloto: pilotoLeido.valor, posts, ahora }),
+      }
+    : { piloto: null, comparacion: null };
+
   const seguidoresDisponibles = [cuentas.instagram.seguidores, cuentas.tiktok.seguidores].filter(
     (s): s is number => typeof s === 'number',
   );
@@ -254,11 +263,23 @@ export const construirJunta = async (cuentasId: string, plataformaId: string, us
       instagram: bloques.valor?.instagram.conectado ?? false,
       tiktok: bloques.valor?.tiktok.conectado ?? false,
     },
-    errores: [decisiones, estadisticasDec, okr, objetivos, bloques, calendario, analytics, proyectos, cuenta]
+    errores: [
+      decisiones,
+      estadisticasDec,
+      okr,
+      objetivos,
+      bloques,
+      calendario,
+      analytics,
+      proyectos,
+      cuenta,
+      pilotoLeido,
+    ]
       .map((s) => s.error)
       .filter((e): e is string => e !== null),
     mensajes,
     mesa,
+    piloto,
     decisiones: {
       resumen: decResumenFinal,
       lecturas: decResumenFinal ? lecturasDecisiones(decResumenFinal) : [],

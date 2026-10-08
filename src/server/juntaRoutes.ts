@@ -5,6 +5,7 @@ import { adaptRoutesToExpress } from './expressRouteAdapter.js';
 import { marcaDeCuentas } from './marcaDeCuentas.js';
 import { resolveDefaultBrandId } from './oauthRoutes.js';
 import { construirJunta } from '../capabilities/executive/juntaEjecutiva.js';
+import { guardarPiloto, quitarPiloto, validarPiloto } from '../capabilities/executive/pilotoEjecutivo.js';
 import {
   ESTADOS_PROYECTO,
   LIMITE_PROYECTOS,
@@ -94,6 +95,26 @@ const buildJuntaRoutes = (brand: BrandProfile): RouteDefinition[] => {
           return;
         }
         json(res, 200, salida);
+      },
+    },
+    {
+      method: 'POST',
+      pattern: '/api/executive/piloto',
+      handler: async ({ res, body }) => {
+        const entrada = validarPiloto(body, Date.now());
+        if (!entrada.ok) {
+          json(res, 400, { error: entrada.error });
+          return;
+        }
+        json(res, 200, await guardarPiloto(plataformaId(), entrada.valor));
+      },
+    },
+    {
+      method: 'DELETE',
+      pattern: '/api/executive/piloto',
+      handler: async ({ res }) => {
+        await quitarPiloto(plataformaId());
+        json(res, 200, { ok: true });
       },
     },
   ];
