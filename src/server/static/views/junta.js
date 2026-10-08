@@ -6,6 +6,7 @@ import { loadingScreen } from '../lib/ui.js';
 const RUTA = '/api/executive/junta';
 
 const SECCIONES = [
+  { id: 'mesa', label: '🪑 Mesa' },
   { id: 'decisiones', label: '⚖️ Decisiones' },
   { id: 'programacion', label: '🗓️ Programación' },
   { id: 'proyectos', label: '🎬 Proyectos' },
@@ -70,6 +71,10 @@ const ESTILOS = `<style>
   .jt-tareas{display:flex;flex-direction:column;gap:6px;}
   .jt-tarea{display:flex;gap:8px;align-items:center;font-size:12.5px;}
   .jt-tarea.hecha span{text-decoration:line-through;color:var(--text-tertiary,#a1a1aa);}
+  .jt-asiento{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;}
+  .jt-asiento header{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .jt-chip{font-size:12px;font-weight:600;}
+  .jt-faltantes{margin:0;padding-left:18px;color:#fcd34d;font-size:13px;line-height:1.5;}
   .jt-vacio{padding:18px;text-align:center;color:var(--text-tertiary,#a1a1aa);font-size:13px;line-height:1.6;}
   .jt-error{padding:10px 12px;border-radius:10px;background:rgba(248,113,113,.12);color:#fca5a5;font-size:12.5px;}
   .jt-cal{max-width:340px;border:1px solid var(--border,rgba(255,255,255,.08));border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--bg-hover,rgba(255,255,255,.03));}
@@ -831,6 +836,37 @@ const numerosHtml = (n) => {
 const navHtml = () =>
   `<nav class="jt-nav" aria-label="Secciones de la junta">${SECCIONES.map((s) => `<a href="#jt-${s.id}" data-jt-ancla="${s.id}">${escape(s.label)}</a>`).join('')}</nav>`;
 
+const ESTADO_MESA = {
+  listo: { label: 'Lectura completa', color: '#34d399' },
+  parcial: { label: 'Parcial', color: '#fcd34d' },
+  'sin-datos': { label: 'Sin datos', color: '#a1a1aa' },
+};
+
+const CONFIANZA_MESA = { 'sin-datos': 'sin datos', baja: 'baja', media: 'media' };
+
+const asientoHtml = (a) => {
+  const est = ESTADO_MESA[a.estado] ?? ESTADO_MESA['sin-datos'];
+  return `<article class="jt-asiento">
+    <header><strong>${escape(a.rol)}</strong><span class="jt-chip" style="color:${est.color};">${est.label}</span></header>
+    <small class="jt-ayuda">${escape(a.pregunta)}</small>
+    <p>${escape(a.respuesta)}</p>
+    <small class="jt-ayuda">Sobre ${num(a.evidencia?.muestra)} publicaciones · confianza ${escape(CONFIANZA_MESA[a.evidencia?.confianza] ?? 'sin datos')}</small>
+    ${a.faltantes?.length ? `<ul class="jt-faltantes">${a.faltantes.map((f) => `<li>${escape(f)}</li>`).join('')}</ul>` : ''}
+  </article>`;
+};
+
+export const mesaHtml = (m) => {
+  if (!m?.asientos?.length) return '';
+  const r = m.resumen ?? {};
+  return `
+    <section class="jt-bloque" id="jt-mesa">
+      <h3>🪑 Mesa ejecutiva</h3>
+      <p class="jt-ayuda">Cada área responde con sus datos. Lo que no se mide aparece como faltante, nunca como cero.</p>
+      <div class="jt-cifras">${cifra('Lectura completa', num(r.listo), '', '#34d399')}${cifra('Parciales', num(r.parcial), '', '#fcd34d')}${cifra('Sin datos', num(r['sin-datos']), '', '#a1a1aa')}</div>
+      <div class="jt-grid2">${m.asientos.map(asientoHtml).join('')}</div>
+    </section>`;
+};
+
 const pintar = (root) => {
   const d = state.datos;
   const cab = root.querySelector('#jt-cabecera');
@@ -852,6 +888,7 @@ const pintar = (root) => {
     return;
   }
   cont.innerHTML = [
+    mesaHtml(d.mesa),
     decisionesHtml(d.decisiones),
     programacionHtml(d.programacion),
     proyectosHtml(d.proyectos),

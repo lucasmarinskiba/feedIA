@@ -129,8 +129,8 @@ type Caracteristicas = Record<string, string>;
 
 const ZONA_HORARIA = 'America/Argentina/Buenos_Aires';
 const DIA_MS = 86_400_000;
-const MIN_POSTS_PREDICCION = 8;
-const MIN_POSTS_ALTA = 21;
+export const MIN_POSTS_PREDICCION = 8;
+export const MIN_POSTS_ALTA = 21;
 const MIN_POSTS_RETENCION = 6;
 const MIN_GRUPO = 2;
 const MIN_GRUPO_RECOMENDACION = 3;

@@ -35,6 +35,7 @@ import {
   type PostJunta,
   type ProgramadoJunta,
 } from './juntaMetricas.js';
+import { construirMesa } from './mesaEjecutiva.js';
 import { analizarPostsDeMarca } from './postsAnalisis.js';
 import { leerProyectos, progresoProyecto } from './proyectosEjecutivo.js';
 
@@ -212,6 +213,41 @@ export const construirJunta = async (cuentasId: string, plataformaId: string, us
     numeros: lecturasNumeros(comparativa.lecturas, seguidoresCrec),
   });
 
+  const seguidoresDisponibles = [cuentas.instagram.seguidores, cuentas.tiktok.seguidores].filter(
+    (s): s is number => typeof s === 'number',
+  );
+  const mesa = construirMesa({
+    totalPosts: posts.length,
+    seguidoresTotal: seguidoresDisponibles.length ? seguidoresDisponibles.reduce((s, v) => s + v, 0) : null,
+    crecimientoPct: seguidoresCrec,
+    decisiones: decisiones.valor
+      ? {
+          pendientes: decisiones.valor.length,
+          criticas: decisiones.valor.filter((d) => d.urgency === 'critical').length,
+          masAntiguaHoras: Math.max(
+            0,
+            ...decisiones.valor.map((d) => Math.round((ahora - Date.parse(d.createdAt)) / HORA_MS)),
+          ),
+        }
+      : null,
+    programacion: diagnostico
+      ? {
+          proximos14Dias: diagnostico.proximos14Dias,
+          vencidos: diagnostico.vencidos,
+          fallidos: diagnostico.fallidosUltimos14Dias,
+        }
+      : null,
+    objetivos: objetivos.valor
+      ? objetivosJunta.map((o) => ({
+          titulo: o.titulo,
+          progresoPct: o.progresoPct,
+          progresoEsperadoPct: o.progresoEsperadoPct,
+          resultadosTotal: o.resultados.length,
+          resultadosQueLlegan: o.resultados.filter((r) => r.llegaMeta).length,
+        }))
+      : null,
+  });
+
   return {
     generadoEn: new Date(ahora).toISOString(),
     cuentas: {
@@ -222,6 +258,7 @@ export const construirJunta = async (cuentasId: string, plataformaId: string, us
       .map((s) => s.error)
       .filter((e): e is string => e !== null),
     mensajes,
+    mesa,
     decisiones: {
       resumen: decResumenFinal,
       lecturas: decResumenFinal ? lecturasDecisiones(decResumenFinal) : [],
