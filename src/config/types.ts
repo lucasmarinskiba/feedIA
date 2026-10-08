@@ -214,3 +214,54 @@ export interface CapabilityResult<T = unknown> {
   error?: string;
   tokensUsed?: number;
 }
+
+// ─── Phase 5: ROI Engine ───────────────────────────────────────────────────────
+export interface ROIMetrics {
+  _30d: { revenue: number; spend: number; roi: number };
+  _60d: { revenue: number; spend: number; roi: number };
+  _90d: { revenue: number; spend: number; roi: number };
+}
+
+export interface CAC_LTVMetrics {
+  cac: number;
+  ltv: number;
+  ltv_cac_ratio: string;
+  breakeven_days: number;
+}
+
+export interface ChannelROI {
+  channel: string;
+  percentage: number;
+  roi: number;
+}
+
+export interface ROIEstimatorOutput {
+  entrada: Record<string, unknown>;
+  roi: ROIMetrics;
+  metrics: CAC_LTVMetrics;
+  channelMix: ChannelROI[];
+  strategy: string;
+}
+
+// ─── Phase 6: Community ───────────────────────────────────────────────────────
+export interface LeaderboardEntry {
+  rank: number;
+  creator: string;
+  niche: string;
+  posts: number;
+  avgEngagement: number;
+  trend: 'up' | 'stable' | 'down';
+}
+
+export interface SwipeFileEntry {
+  rank: number;
+  text: string;
+  uses: number;
+  engagement: number;
+}
+
+export interface MentorResponse {
+  question: string;
+  mentorResponse: string;
+  timestamp: string;
+}

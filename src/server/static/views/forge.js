@@ -618,6 +618,59 @@ const validarTema = (entrada, root) => {
   return true;
 };
 
+const handleTrackB = async (containerId, entrada) => {
+  const deepContainer = document.getElementById(`${containerId}-deep`);
+  if (!deepContainer) return;
+
+  deepContainer.style.display = 'block';
+  const resultDiv = document.getElementById(`${containerId}-deep-result`);
+  if (!resultDiv) return;
+
+  try {
+    const data = await llamar('/api/forge/deep-analysis', entrada);
+    const { revenueForecast, repurposingBlueprint, growthTrajectory, insights } = data;
+
+    const deepHtml = `
+      <div style="padding: 16px;">
+        <div style="margin-bottom: 16px;">
+          <div style="font-weight: 600; margin-bottom: 8px;">💰 Revenue Forecast</div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            ${Object.entries(revenueForecast)
+              .map(
+                ([period, metrics]) =>
+                  `<div style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 8px; text-align: center;">
+              <div style="font-size: 12px; opacity: 0.8;">${period}</div>
+              <div style="font-size: 16px; font-weight: 700;">$${metrics._30d || metrics._60d || metrics._90d || 0}</div>
+            </div>`,
+              )
+              .join('')}
+          </div>
+        </div>
+        <div style="margin-bottom: 16px;">
+          <div style="font-weight: 600; margin-bottom: 8px;">♻️ Repurposing (7 formatos)</div>
+          ${repurposingBlueprint
+            .slice(0, 3)
+            .map(
+              (r) =>
+                `<div style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 8px; margin-bottom: 6px; font-size: 11px;">
+            <strong>${r.formato}</strong> · ${r.timing}
+          </div>`,
+            )
+            .join('')}
+        </div>
+        <div>
+          <div style="font-weight: 600; margin-bottom: 8px;">📈 Insights</div>
+          ${insights.map((i) => `<div style="font-size: 11px; margin: 4px 0;">• ${i}</div>`).join('')}
+        </div>
+      </div>
+    `;
+    resultDiv.innerHTML = deepHtml;
+  } catch (err) {
+    toast('error', `Track B falló: ${err.message}`);
+    deepContainer.style.display = 'none';
+  }
+};
+
 const correrEstrategia = async (root, entrada) => {
   mostrarCarga(root, 'Analizando tu historial y generando hooks (10-20 s)…');
   const data = await llamar('/api/forge/estrategia', entrada);
@@ -909,7 +962,7 @@ const manejarAccion = (root, action, idx) => {
               <div style="font-weight: 600; margin-bottom: 8px;">📋 Próximos pasos:</div>
               ${nextActions.map((a) => `<div style="font-size: 12px; margin: 4px 0; opacity: 0.9;">• ${a}</div>`).join('')}
             </div>
-            <button onclick="document.getElementById('${containerId}-deep').style.display = 'block'; this.style.display = 'none';" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600;">
+            <button onclick="handleTrackB('${containerId}', JSON.parse('${JSON.stringify(entrada).replace(/'/g, "\\'")}'))" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600;">
               📊 Ver Análisis Profundo (Track B)
             </button>
           `;
