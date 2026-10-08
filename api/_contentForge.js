@@ -17,6 +17,7 @@ import { getSessionFromReq } from './_users.js';
 import { getPlanLimits, recordUsage, checkQuota } from './_usage.js';
 import { PLAN_FEATURES, buildPlanAwareSystemPrompt, hasFeature, getFeature } from './_planFeatures.js';
 import { generateVideoEditSpec } from './_videoEditor.js';
+import { buildMemoryContext, recordPlan } from './_accountMemory.js';
 
 const isPaidPlan = (planId) => planId && planId !== 'free';
 
@@ -135,7 +136,7 @@ const runABTestIfEligible = async (planId, content, strategy, platform, format) 
 
 /* ───────── Producer functions ───────── */
 
-const produceCarousel = async ({ strategy, topic, brand, plan }) => {
+const produceCarousel = async ({ strategy, topic, brand, plan, userId }) => {
   const slides = 7;
   const topHook = strategy.topHook?.hook || `Sobre ${topic}`;
   const baseSystem =
@@ -147,6 +148,7 @@ Hook strategic: ${topHook}
 Audiencia: ${strategy.input.audience}
 Voz: ${strategy.brandVoiceGuideline}
 Goal: ${strategy.input.goal}
+${strategy.accountMemory ? `\n${strategy.accountMemory}\n` : ''}
 
 Generá un carrusel de ${slides} slides para Instagram (formato 4:5).
 
@@ -170,7 +172,7 @@ Devuelve JSON con esta forma:
 
   // Plan-aware routing: free→Llama, starter/pro→Sonnet, gold/premium→Opus
   try {
-    const res = await routeLlm({ userId: null, planId: plan || 'free', system, prompt, maxTokens: 2000 });
+    const res = await routeLlm({ userId, planId: plan || 'free', system, prompt, maxTokens: 2000 });
     llmMeta = { provider: res.provider, model: res.model, tier: res.tier };
     if (res.text) parsed = JSON.parse(res.text.replace(/```json\s*|\s*```/g, '').trim());
   } catch {
@@ -208,7 +210,7 @@ Devuelve JSON con esta forma:
   let coverImage = null;
   if (parsed.slides[0]) {
     coverImage = await routeImage({
-      userId: null,
+      userId,
       planId: plan || 'free',
       prompt: parsed.slides[0].imagePrompt || `${topic}, instagram cover, minimal, ${strategy.input.audience}`,
       width: 1080,
@@ -219,7 +221,7 @@ Devuelve JSON con esta forma:
   return { content: parsed, llmMeta, coverImage };
 };
 
-const produceReelScript = async ({ strategy, topic, brand, plan }) => {
+const produceReelScript = async ({ strategy, topic, brand, plan, userId }) => {
   const topHook = strategy.topHook?.hook || `Sobre ${topic}`;
   const baseSystem = 'Sos guionista de Reels/TikTok experto en retención. Devolvés JSON válido sin markdown.';
   const system = buildPlanAwareSystemPrompt(plan || 'free', baseSystem);
@@ -229,6 +231,7 @@ Hook: ${topHook}
 Audiencia: ${strategy.input.audience}
 Attention budget: ${strategy.attentionBudgetSec}s
 Goal: ${strategy.input.goal}
+${strategy.accountMemory ? `\n${strategy.accountMemory}\n` : ''}
 
 Generá guion para un Reel de 20-30 segundos. Estructura:
 - Hook 0-2s: el hook provisto, dicho con energía
@@ -253,7 +256,7 @@ JSON:
   let provider = 'fallback',
     model = 'none';
   try {
-    const res = await routeLlm({ userId: null, planId: plan || 'free', system, prompt, maxTokens: 1800 });
+    const res = await routeLlm({ userId, planId: plan || 'free', system, prompt, maxTokens: 1800 });
     provider = res.provider;
     model = res.model;
     if (res.text) parsed = JSON.parse(res.text.replace(/```json\s*|\s*```/g, '').trim());
@@ -293,7 +296,7 @@ JSON:
   }
 
   const coverImage = await routeImage({
-    userId: null,
+    userId,
     planId: plan || 'free',
     prompt: parsed.coverFramePrompt || `${topic}, reel cover, vertical 9:16, dramatic`,
     width: 1080,
@@ -303,13 +306,14 @@ JSON:
   return { content: parsed, llmMeta: { provider, model }, coverImage };
 };
 
-const produceStorySeries = async ({ strategy, topic, brand, plan }) => {
+const produceStorySeries = async ({ strategy, topic, brand, plan, userId }) => {
   const frames = 5;
   const topHook = strategy.topHook?.hook || topic;
   const baseSystem =
     'Sos experto en Stories de Instagram con stickers interactivos. Devolvés JSON válido sin markdown.';
   const system = buildPlanAwareSystemPrompt(plan || 'free', baseSystem);
   const prompt = `Tema: ${topic} | Marca: ${brand} | Audiencia: ${strategy.input.audience}
+${strategy.accountMemory ? `${strategy.accountMemory}\n` : ''}
 
 Generá secuencia de ${frames} stories con stickers interactivos (poll, quiz, question, slider).
 
@@ -330,7 +334,7 @@ Frame 5: CTA con link (${strategy.ctaLadder[0]})`;
   let provider = 'fallback',
     model = 'none';
   try {
-    const res = await routeLlm({ userId: null, planId: plan || 'free', system, prompt, maxTokens: 1500 });
+    const res = await routeLlm({ userId, planId: plan || 'free', system, prompt, maxTokens: 1500 });
     provider = res.provider;
     model = res.model;
     if (res.text) parsed = JSON.parse(res.text.replace(/```json\s*|\s*```/g, '').trim());
@@ -353,7 +357,7 @@ Frame 5: CTA con link (${strategy.ctaLadder[0]})`;
   // Genera imágenes para cada frame en paralelo
   const frameImages = await Promise.all(
     parsed.frames.map((f) =>
-      routeImage({ userId: null, planId: plan || 'free', prompt: f.imagePrompt, width: 1080, height: 1920 }),
+      routeImage({ userId, planId: plan || 'free', prompt: f.imagePrompt, width: 1080, height: 1920 }),
     ),
   );
 
@@ -368,6 +372,7 @@ export const forgeContent = async ({
   brand,
   planId,
   userId,
+  accountId,
   brandNiche,
   targetAge,
   platform = 'instagram',
@@ -377,12 +382,38 @@ export const forgeContent = async ({
 }) => {
   const plan = planId || 'free';
 
-  // 1. STRATEGY (always, deterministic + plan-aware)
-  const strategy = buildStrategicPlan({ topic, platform, goal, brandNiche, targetAge, competitorAngles, brandVoice });
+  // 0. MEMORIA POR CUENTA — perfil guardado + insights de posts reales (ver _accountMemory.js).
+  //    Sin esto, cada generación era ciega al historial de la cuenta (mismo prompt genérico
+  //    para cuenta nueva o cuenta con 200 posts analizados).
+  const memoryScope = userId || 'anon';
+  const memory = accountId ? await buildMemoryContext(memoryScope, accountId).catch(() => null) : null;
+  const savedProfile = memory?.profile || {};
+
+  // Lo que llega en el request gana; si no llega, usa lo guardado del perfil de la cuenta.
+  const effectiveBrandNiche = brandNiche || savedProfile.brandNiche || savedProfile.niche || '';
+  const effectiveBrandVoice = brandVoice || savedProfile.brandVoice || 'cercano';
+  const effectiveTargetAge = targetAge ?? savedProfile.targetAge ?? null;
+  const effectiveGoal = goal || savedProfile.goal || 'engagement';
+
+  // 1. STRATEGY (always, deterministic + plan-aware) — ahora con señales reales de la cuenta.
+  const strategy = buildStrategicPlan({
+    topic,
+    platform,
+    goal: effectiveGoal,
+    brandNiche: effectiveBrandNiche,
+    targetAge: effectiveTargetAge,
+    competitorAngles,
+    brandVoice: effectiveBrandVoice,
+    bestFormat: memory?.insights?.bestFormat || null,
+    recentTopics: memory?.insights?.recentTopics || [],
+    memoryText: memory?.insights?.summaryText || '',
+  });
   const strategyDepth = getFeature(plan, 'contentGeneration.strategist.depth') || 'shallow';
   strategy.depthLevel = strategyDepth;
 
-  // 2. PRODUCE — plan-aware system prompt aplicado
+  // 2. PRODUCE — plan-aware system prompt aplicado. userId viaja hasta routeLlm/routeImage
+  //    para que el budget/cost-guardian y el rate-limit por usuario vean estas llamadas
+  //    (antes iban con userId: null y quedaban fuera de todo tracking).
   let production;
   const produceFn =
     format === 'carousel'
@@ -392,12 +423,12 @@ export const forgeContent = async ({
         : format === 'story' || format === 'stories'
           ? produceStorySeries
           : produceCarousel;
-  production = await produceFn({ strategy, topic, brand, plan });
+  production = await produceFn({ strategy, topic, brand, plan, userId });
 
   // 3. ENFORCE viral floor (regenerate if below plan minScore)
   const regenerateFn = async ({ improvements, flags }) => {
     const enrichedTopic = `${topic} [improving: ${(improvements || []).slice(0, 2).join(', ')}]`;
-    const reproduced = await produceFn({ strategy, topic: enrichedTopic, brand, plan });
+    const reproduced = await produceFn({ strategy, topic: enrichedTopic, brand, plan, userId });
     return reproduced.content;
   };
   const {
@@ -451,6 +482,22 @@ export const forgeContent = async ({
     }
   }
 
+  // 7b. Guarda el plan en la memoria de la cuenta — sin esto `recentTopics`/`bestFormat`
+  //     nunca se poblaban y la personalización de arriba no tenía nada que leer.
+  if (accountId) {
+    try {
+      await recordPlan(memoryScope, accountId, {
+        topic,
+        format,
+        platform,
+        goal: effectiveGoal,
+        strategicScore: strategy.strategicScore,
+      });
+    } catch {
+      /* noop */
+    }
+  }
+
   return {
     strategy,
     content: finalContent,
@@ -477,6 +524,8 @@ export const forgeContent = async ({
       planId: plan,
       featuresApplied: PLAN_FEATURES[plan] ? Object.keys(PLAN_FEATURES[plan]) : [],
       generatedAt: new Date().toISOString(),
+      accountMemoryUsed: Boolean(memory?.insights?.hasData),
+      postsAnalyzed: memory?.insights?.postsTracked || 0,
     },
   };
 };
@@ -513,6 +562,7 @@ export const handleContentForge = async (req, res, path, m, body) => {
         format: b.format || 'carousel',
         topic: b.topic || 'tu producto',
         brand: b.brand || ctx?.user?.displayName || 'tu marca',
+        accountId: b.accountId || '',
         brandNiche: b.brandNiche || '',
         targetAge: b.targetAge || null,
         platform: b.platform || 'instagram',

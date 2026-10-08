@@ -343,3 +343,45 @@ export interface OrchestrationPlan {
     metrics: string[];
   };
 }
+
+// ─── Phase 8: Revenue Tracking (Stripe Integration) ──────────────────────
+export interface StripeWebhookPayload {
+  type: string;
+  data: {
+    object: {
+      id: string;
+      amount: number;
+      currency: string;
+      status: string;
+      metadata?: Record<string, string>;
+    };
+  };
+}
+
+export interface RevenueTracking {
+  publishScheduleId: string;
+  orchestrationRunId: string;
+  platform: string;
+  contentId: string;
+  stripeSessionId?: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed';
+  conversions: number;
+  conversionRate: number;
+  roi: number;
+  trackedAt: string;
+}
+
+export interface RevenueMetrics {
+  totalRevenue: number;
+  totalConversions: number;
+  avgConversionRate: number;
+  avgROI: number;
+  period: string;
+  byPlatform: {
+    platform: string;
+    revenue: number;
+    conversions: number;
+  }[];
+}

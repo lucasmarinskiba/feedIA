@@ -162,6 +162,22 @@ const OPTIMAL_POSTING_WINDOWS = {
   },
 };
 
+// _accountMemory.js guarda formato tal cual lo reporta Instagram Graph API (reel/carousel/post,
+// ver _socialConnect.js igSyncInsights) o lo que tipea el usuario a mano. decideFormat() usa otro
+// vocabulario (reels/stories/photo). Sin este mapeo, bestFormat nunca calzaba con una key real de
+// formatScores y el boost de personalización era un no-op silencioso.
+const FORMAT_MEMORY_TO_SCORE_KEY = {
+  reel: 'reels',
+  reels: 'reels',
+  video: 'video',
+  story: 'stories',
+  stories: 'stories',
+  carousel: 'carousel',
+  post: 'photo',
+  photo: 'photo',
+};
+const normalizeMemoryFormat = (f) => FORMAT_MEMORY_TO_SCORE_KEY[String(f || '').toLowerCase()] || null;
+
 const detectAudienceSegment = (brandNiche, targetAge) => {
   const niche = (brandNiche || '').toLowerCase();
   if (/business|b2b|saas|consultor|empresa/.test(niche)) return 'business';
@@ -268,11 +284,21 @@ export const buildStrategicPlan = (input) => {
     targetAge = null,
     competitorAngles = [],
     brandVoice = 'cercano',
+    // Señales de memoria por cuenta (ver _accountMemory.js) — personalizan el plan
+    // con lo que YA funcionó en esta cuenta, no solo heurísticas genéricas.
+    bestFormat = null,
+    recentTopics = [],
+    memoryText = '',
   } = input || {};
 
   const audience = detectAudienceSegment(brandNiche, targetAge);
   const audienceProfile = AUDIENCE_PSYCHOGRAPHY[audience];
   const formatScores = decideFormat(goal, audience);
+  // El formato que ya rindió en esta cuenta pesa más que la heurística genérica.
+  const bestFormatKey = normalizeMemoryFormat(bestFormat);
+  if (bestFormatKey && formatScores[bestFormatKey] != null) {
+    formatScores[bestFormatKey] = Math.min(0.99, formatScores[bestFormatKey] + 0.12);
+  }
   const formatRanked = Object.entries(formatScores)
     .map(([fmt, fit]) => ({ format: fmt, fit }))
     .sort((a, b) => b.fit - a.fit);
@@ -300,6 +326,15 @@ export const buildStrategicPlan = (input) => {
           'Caso real con números',
         ]
       : ['Caso real con números', 'Detrás de escena del proceso', 'Errores que cometiste'];
+
+  // Si el topic ya se tocó hace poco en esta cuenta, lo marca para forzar un ángulo nuevo
+  // en vez de repetir el mismo contenido (recentTopics viene de _accountMemory.js).
+  const repeatsRecentTopic = recentTopics.some(
+    (t) => t && topic && t.toLowerCase().includes(topic.toLowerCase().slice(0, 12)),
+  );
+  if (repeatsRecentTopic) {
+    differentiationAngles.unshift('Ángulo nuevo obligatorio: ya se publicó sobre esto recientemente en esta cuenta');
+  }
 
   const trendOpportunities = []; // Si hay trendDetector vivo, lo pone acá
 
@@ -336,6 +371,8 @@ export const buildStrategicPlan = (input) => {
     riskFlags,
     brandVoiceGuideline: `Tono ${brandVoice} + triggers ${audienceProfile.triggers.slice(0, 3).join(', ')} + evitar ${audienceProfile.avoid.slice(0, 2).join(', ')}`,
     attentionBudgetSec: audienceProfile.attentionSec,
+    // Aprendizajes reales de esta cuenta (posts publicados) — null si todavía no hay datos.
+    accountMemory: memoryText || null,
     nextSteps: [
       `1. Producir hook usando: "${hookCandidates[0]?.hook}"`,
       `2. Formato: ${recommendedFormat.format} (fit ${(recommendedFormat.fit * 100).toFixed(0)}%)`,
