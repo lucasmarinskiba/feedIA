@@ -1546,6 +1546,212 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
       }
     },
   },
+  // PHASE 7: ORCHESTRATOR (Instagram Graph API + Content Generators)
+  {
+    method: 'POST',
+    pattern: '/api/forge/instagram/connect',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { accountId, accessToken, businessAccountId } = body as {
+          accountId?: string;
+          accessToken?: string;
+          businessAccountId?: string;
+        };
+
+        if (!accessToken || !accountId) {
+          json(res, 400, { error: 'accessToken y accountId requeridos' });
+          return;
+        }
+
+        // TODO: Validate token with Instagram Service
+        // TODO: Store in DB (forge_instagram_accounts table)
+        json(res, 200, {
+          ok: true,
+          account: {
+            id: accountId,
+            businessAccountId: businessAccountId || accountId,
+            connected: true,
+            connectedAt: new Date().toISOString(),
+          },
+        });
+        log.info('[forge] Instagram account connected', { accountId });
+      } catch (err) {
+        json(res, 500, errorInterno('instagram-connect', err));
+      }
+    },
+  },
+  {
+    method: 'GET',
+    pattern: '/api/forge/instagram/metrics',
+    handler: async ({ res, query }): Promise<void> => {
+      try {
+        const accountId = (query as { accountId?: string }).accountId;
+        if (!accountId) {
+          json(res, 400, { error: 'accountId requerido' });
+          return;
+        }
+
+        // TODO: Fetch real metrics from Instagram Service
+        json(res, 200, {
+          accountId,
+          metrics: {
+            totalFollowers: 15420,
+            avgEngagementRate: 8.3,
+            topPostType: 'CAROUSEL_ALBUM',
+            bestTimeToPost: 'Tuesday 10 AM',
+            audienceDemographics: {
+              ageRange: '18-34',
+              topCountries: ['AR', 'MX', 'CO'],
+              topCities: ['Buenos Aires', 'Mexico City', 'Bogotá'],
+            },
+            last30DaysGrowth: 5.2,
+            predictorAccuracy: 0,
+          },
+        });
+      } catch (err) {
+        json(res, 500, errorInterno('instagram-metrics', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/orchestrate',
+    handler: async ({ res, body }): Promise<void> => {
+      const entrada = entradaDesde(body);
+      if ('error' in entrada) {
+        json(res, 400, { error: entrada.error });
+        return;
+      }
+
+      try {
+        const { accountId, accessToken } = body as { accountId?: string; accessToken?: string };
+        if (!accountId || !accessToken) {
+          json(res, 400, { error: 'accountId y accessToken requeridos para orquestar' });
+          return;
+        }
+
+        // STEP 1: Predict (Track A) — MVP uses mock prediction
+        const predictionScore = Math.floor(Math.random() * 100);
+        const verdict: 'listo' | 'mejorable' | 'postponer' =
+          predictionScore > 75 ? 'listo' : predictionScore > 50 ? 'mejorable' : 'postponer';
+
+        // STEP 2: If verdict=listo, orchestrate generators
+        const plan: Record<string, unknown> = {
+          entrada,
+          verdict,
+          predictionScore,
+          accountMetrics: {
+            totalFollowers: 15420,
+            avgEngagementRate: 8.3,
+            topPostType: 'CAROUSEL_ALBUM',
+            bestTimeToPost: 'Tuesday 10 AM',
+            last30DaysGrowth: 5.2,
+          },
+          generatorCalls: [],
+          executionPlan: [],
+        };
+
+        if (verdict === 'listo') {
+          // CAROUSEL
+          if (entrada.formato === 'carrusel') {
+            plan.generatorCalls = [
+              {
+                type: 'carousel',
+                tema: entrada.tema,
+                formato: entrada.formato,
+                scheduledFor: new Date(Date.now() + 3600000).toISOString(),
+              },
+            ];
+            plan.executionPlan = [
+              {
+                step: 1,
+                action: 'Generate Carousel',
+                scheduledFor: new Date().toISOString(),
+                generator: 'carousel-designer-pro',
+              },
+              {
+                step: 2,
+                action: 'Publish to Instagram',
+                scheduledFor: new Date(Date.now() + 3600000).toISOString(),
+                generator: 'instagram-publisher',
+              },
+            ];
+          }
+
+          // REEL
+          if (entrada.formato === 'reel') {
+            plan.generatorCalls = [
+              {
+                type: 'video',
+                tema: entrada.tema,
+                formato: entrada.formato,
+                scheduledFor: new Date(Date.now() + 86400000).toISOString(),
+              },
+            ];
+            plan.executionPlan = [
+              {
+                step: 1,
+                action: 'Generate Video (Reel)',
+                scheduledFor: new Date().toISOString(),
+                generator: 'video-batch-generator',
+              },
+              {
+                step: 2,
+                action: 'Publish to TikTok + Reels',
+                scheduledFor: new Date(Date.now() + 86400000).toISOString(),
+                generator: 'video-publisher',
+              },
+            ];
+          }
+
+          plan.feedbackSchedule = {
+            collectAt: new Date(Date.now() + 604800000).toISOString(), // 7 days
+            metrics: ['engagement', 'reach', 'impressions', 'saves', 'shares'],
+          };
+        }
+
+        json(res, 200, plan);
+        log.info(
+          `[forge] orchestrate: verdict=${verdict}, prediction=${predictionScore}, generators=${(plan.generatorCalls as Record<string, unknown>[]).length}`,
+        );
+      } catch (err) {
+        json(res, 500, errorInterno('orchestrate', err));
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: '/api/forge/publish-scheduled',
+    handler: async ({ res, body }): Promise<void> => {
+      try {
+        const { contentId, platform, scheduledFor } = body as {
+          contentId?: string;
+          platform?: string;
+          scheduledFor?: string;
+        };
+
+        if (!contentId || !platform) {
+          json(res, 400, { error: 'contentId y platform requeridos' });
+          return;
+        }
+
+        // TODO: Store in DB scheduling table
+        // TODO: Trigger publisher at scheduledFor time
+        json(res, 200, {
+          ok: true,
+          scheduled: {
+            contentId,
+            platform,
+            scheduledFor: scheduledFor || new Date().toISOString(),
+            status: 'scheduled',
+          },
+        });
+        log.info('[forge] content scheduled', { contentId, platform, scheduledFor });
+      } catch (err) {
+        json(res, 500, errorInterno('publish-scheduled', err));
+      }
+    },
+  },
 ];
 
 export const createForgeRoutes = (brand: BrandProfile): ReturnType<typeof adaptRoutesToExpress> =>

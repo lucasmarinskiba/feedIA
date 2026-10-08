@@ -265,3 +265,81 @@ export interface MentorResponse {
   mentorResponse: string;
   timestamp: string;
 }
+
+// ─── Phase 7: Orchestrator (Instagram Graph API) ────────────────────────────
+export interface InstagramAccount {
+  id: string;
+  username: string;
+  followerCount: number;
+  followingCount: number;
+  mediaCount: number;
+  biography: string;
+  profilePictureUrl: string;
+  businessAccountId: string;
+  accessToken: string;
+}
+
+export interface InstagramPost {
+  id: string;
+  caption: string;
+  mediaType: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
+  mediaUrl: string;
+  permalink: string;
+  timestamp: string;
+  likesCount: number;
+  commentsCount: number;
+  sharesCount: number;
+  impressions: number;
+  reach: number;
+  engagementRate: number;
+}
+
+export interface AccountMetrics {
+  totalFollowers: number;
+  avgEngagementRate: number;
+  topPostType: string;
+  bestTimeToPost: string;
+  audienceDemographics: {
+    ageRange: string;
+    topCountries: string[];
+    topCities: string[];
+  };
+  last30DaysGrowth: number;
+  predictorAccuracy: number;
+}
+
+export interface GeneratorRequest {
+  type: 'carousel' | 'video' | 'copy';
+  tema: string;
+  formato: string;
+  brandProfile: BrandProfile;
+  targetAudience: Record<string, unknown>;
+  scheduledFor: string;
+}
+
+export interface GeneratorResponse {
+  type: string;
+  contentId: string;
+  preview: string;
+  scheduledFor: string;
+  estimatedReach: number;
+  estimatedEngagement: number;
+}
+
+export interface OrchestrationPlan {
+  entrada: Record<string, unknown>;
+  verdict: 'listo' | 'mejorable' | 'postponer';
+  predictionScore: number;
+  accountMetrics: AccountMetrics;
+  generatorCalls: GeneratorRequest[];
+  executionPlan: {
+    step: number;
+    action: string;
+    scheduledFor: string;
+    generator: string;
+  }[];
+  feedbackSchedule: {
+    collectAt: string;
+    metrics: string[];
+  };
+}
