@@ -1758,9 +1758,16 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
     pattern: '/api/forge/stripe/webhook',
     handler: async ({ res, body, req }): Promise<void> => {
       try {
-        // TODO: Validate Stripe signature
-        void req.headers['stripe-signature'];
-        void JSON.stringify(body);
+        // Validate Stripe signature (REQUIRED for production)
+        const signature = (req.headers['stripe-signature'] as string) || '';
+        if (!signature) {
+          json(res, 401, { error: 'missing-stripe-signature' });
+          return;
+        }
+
+        // TODO: Call stripeService.validateWebhookSignature(rawBody, signature)
+        // For MVP: accept all (TODO: implement validation)
+        // if (!isValid) { json(res, 401, { error: 'invalid-signature' }); return; }
 
         const webhookData = body as Record<string, unknown>;
         const eventType = webhookData.type as string;
