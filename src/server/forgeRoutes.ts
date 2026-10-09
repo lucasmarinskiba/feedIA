@@ -16,6 +16,7 @@ import { json, type RouteDefinition } from './http.js';
 import { adaptRoutesToExpress } from './expressRouteAdapter.js';
 import { marcaDeCuentas } from './marcaDeCuentas.js';
 import { log } from '../agent/logger.js';
+import { verificarFirmaStripe } from './forgeStripeSignature.js';
 import { leerPostsHistorial } from '../capabilities/executive/postsStore.js';
 import {
   historialDesdePosts,
@@ -1756,18 +1757,26 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'POST',
     pattern: '/api/forge/stripe/webhook',
-    handler: async ({ res, body, req }): Promise<void> => {
+    handler: async ({ res, body, req, rawBody }): Promise<void> => {
       try {
-        // Validate Stripe signature (REQUIRED for production)
+        // Fail-closed: sin secreto no hay forma de verificar, así que no se acepta nada.
+        const secreto = process.env.STRIPE_WEBHOOK_SECRET ?? '';
+        if (!secreto) {
+          log.error('[forge] STRIPE_WEBHOOK_SECRET no configurado — webhook rechazado');
+          json(res, 503, { error: 'stripe-webhook-not-configured' });
+          return;
+        }
+
         const signature = (req.headers['stripe-signature'] as string) || '';
         if (!signature) {
           json(res, 401, { error: 'missing-stripe-signature' });
           return;
         }
 
-        // TODO: Call stripeService.validateWebhookSignature(rawBody, signature)
-        // For MVP: accept all (TODO: implement validation)
-        // if (!isValid) { json(res, 401, { error: 'invalid-signature' }); return; }
+        if (!verificarFirmaStripe(rawBody, signature, secreto)) {
+          json(res, 401, { error: 'invalid-signature' });
+          return;
+        }
 
         const webhookData = body as Record<string, unknown>;
         const eventType = webhookData.type as string;

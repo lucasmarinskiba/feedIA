@@ -232,7 +232,15 @@ app.use(apiKeyAuth);
 app.use(userContextMiddleware);
 
 // 7. Body parsing with strict size limits (1MB prevents DoS via large payloads)
-app.use(express.json({ limit: '1mb' }));
+// rawBody se conserva para verificar firmas de webhooks (Stripe firma los bytes crudos).
+app.use(
+  express.json({
+    limit: '1mb',
+    verify: (req, _res, buf): void => {
+      (req as unknown as { rawBody?: Buffer }).rawBody = buf;
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // 8. Input sanitization (after body parse, before route handlers)
