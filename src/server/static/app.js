@@ -28,7 +28,10 @@ const V = (path, name) => {
   const loader = () => {
     let p = _modCache.get(url);
     if (!p) {
-      p = import(url);
+      p = import(url).catch((err) => {
+        _modCache.delete(url);
+        throw err;
+      });
       _modCache.set(url, p);
     }
     return p.then((m) => m[name]);
@@ -194,6 +197,24 @@ const $desktopSearch = document.querySelector('#global-search');
    ══════════════════════════════════════════════════════════ */
 let _currentRoute = '';
 
+const RECARGA_AUTO = '__fx_recarga_auto';
+const puedeRecargarSolo = () => {
+  try {
+    if (sessionStorage.getItem(RECARGA_AUTO)) return false;
+    sessionStorage.setItem(RECARGA_AUTO, '1');
+    return true;
+  } catch {
+    return false;
+  }
+};
+const limpiarRecargaAuto = () => {
+  try {
+    sessionStorage.removeItem(RECARGA_AUTO);
+  } catch {
+    /* noop */
+  }
+};
+
 const navigate = async (route) => {
   if (!ROUTES[route]) route = 'feed';
   _currentRoute = route;
@@ -253,6 +274,7 @@ const navigate = async (route) => {
       /* noop */
     }
     history.replaceState(null, '', `#${route}`);
+    limpiarRecargaAuto();
   } catch (err) {
     // Detecta el error específico de "import() devolvió HTML en vez de JS"
     // (servidor desactualizado: el cliente pidió /views/foo.js y el server le devolvió index.html).
@@ -262,31 +284,10 @@ const navigate = async (route) => {
       /Failed to fetch dynamically imported module/i.test(rawMsg) ||
       /MIME type \("text\/html"\)/i.test(rawMsg);
 
-    const isCachebuster = sessionStorage.getItem(`__retry_${route}`) === '1';
-
-    if (looksLikeHtmlImport && !isCachebuster) {
-      // Intento automático: cache-bust del módulo y reintento UNA vez (silencioso).
-      sessionStorage.setItem(`__retry_${route}`, '1');
-      const loader = ROUTES[route];
-      if (loader && loader._path) {
-        try {
-          // Forzar fetch fresco evitando cualquier cache HTTP/SW
-          const bust = `?bust=${Date.now()}`;
-          const mod = await import(loader._path + bust);
-          const fnName = Object.keys(mod).find((k) => typeof mod[k] === 'function');
-          if (fnName) {
-            getView().innerHTML = '';
-            await mod[fnName](getView());
-            sessionStorage.removeItem(`__retry_${route}`);
-            return;
-          }
-        } catch (retryErr) {
-          // El segundo intento también falló → mensaje accionable
-          console.error('[navigate] retry failed:', retryErr); // eslint-disable-line no-console
-        }
-      }
+    if (looksLikeHtmlImport && puedeRecargarSolo()) {
+      location.reload();
+      return;
     }
-    sessionStorage.removeItem(`__retry_${route}`);
 
     const isHtmlError = looksLikeHtmlImport;
     const title = isHtmlError ? 'Recargá la página' : 'Error al cargar la vista';
