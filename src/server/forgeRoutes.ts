@@ -17,6 +17,18 @@ import { adaptRoutesToExpress } from './expressRouteAdapter.js';
 import { marcaDeCuentas } from './marcaDeCuentas.js';
 import { log } from '../agent/logger.js';
 import { verificarFirmaStripe } from './forgeStripeSignature.js';
+import {
+  atribuirIngreso,
+  baseDeDatosConfigurada,
+  guardarEventoIngreso,
+  guardarIntento,
+  listarIntentos,
+  programarPublicacion,
+  type IntentoGuardado,
+} from './forge/forgeStore.js';
+import { marcaActiva, puedeUsarMarca, usuarioDeSesion } from './forge/forgeSesion.js';
+import { deleteConnection, listConnectionsForBrand, saveConnection } from '../integrations/oauthConnections.js';
+import { randomUUID } from 'node:crypto';
 import { leerPostsHistorial } from '../capabilities/executive/postsStore.js';
 import {
   historialDesdePosts,
@@ -1014,11 +1026,25 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'GET',
     pattern: '/api/forge/history',
-    handler: async ({ res }): Promise<void> => {
+    handler: async ({ req, res, query }): Promise<void> => {
       try {
-        // TODO: Integrar con base de datos real en Fase 2
-        // Por ahora devuelve array vacío (placeholder para UI)
-        json(res, 200, { ok: true, attempts: [] });
+        const usuario = await usuarioDeSesion(req);
+        if (!usuario) {
+          json(res, 401, { error: 'no-autenticado' });
+          return;
+        }
+        const cuenta = marcaActiva(usuario);
+        if (!cuenta) {
+          json(res, 200, { ok: true, attempts: [] });
+          return;
+        }
+        if (!baseDeDatosConfigurada()) {
+          json(res, 503, { error: 'database-not-configured' });
+          return;
+        }
+        const limite = Math.min(Math.max(Number(query.limit) || 50, 1), 100);
+        const attempts = await listarIntentos(cuenta, limite);
+        json(res, 200, { ok: true, attempts });
       } catch (err) {
         json(res, 500, errorInterno('history', err));
       }
@@ -1027,12 +1053,57 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'POST',
     pattern: '/api/forge/history/save',
-    handler: async ({ res }): Promise<void> => {
-      // TODO: Guardar en BD en Fase 2
-      // Por ahora devuelve OK sin persistir
+    handler: async ({ req, res, body }): Promise<void> => {
       try {
-        const { randomUUID: genId } = await import('crypto');
-        json(res, 201, { ok: true, attemptId: genId() });
+        const usuario = await usuarioDeSesion(req);
+        if (!usuario) {
+          json(res, 401, { error: 'no-autenticado' });
+          return;
+        }
+        const cuenta = marcaActiva(usuario);
+        if (!cuenta) {
+          json(res, 400, { error: 'usuario-sin-marca' });
+          return;
+        }
+        if (!baseDeDatosConfigurada()) {
+          json(res, 503, { error: 'database-not-configured' });
+          return;
+        }
+
+        const datos = (body ?? {}) as Record<string, unknown>;
+        const textosRequeridos = ['tema', 'formato', 'plataforma', 'objetivo', 'nicho', 'voz', 'hook', 'caption'];
+        if (textosRequeridos.some((campo) => typeof datos[campo] !== 'string')) {
+          json(res, 400, { error: 'campos-invalidos', requeridos: textosRequeridos });
+          return;
+        }
+        const puntaje = (valor: unknown): number | null => (typeof valor === 'number' ? valor : null);
+
+        const intento: IntentoGuardado = {
+          id: randomUUID(),
+          accountId: cuenta,
+          userId: usuario.id,
+          tema: datos.tema as string,
+          formato: datos.formato as string,
+          plataforma: datos.plataforma as string,
+          objetivo: datos.objetivo as string,
+          nicho: datos.nicho as string,
+          voz: datos.voz as string,
+          hooksJson: datos.hooks ?? [],
+          planJson: datos.plan ?? {},
+          hook: datos.hook as string,
+          caption: datos.caption as string,
+          hashtagsJson: datos.hashtags ?? [],
+          portada: typeof datos.portada === 'string' ? datos.portada : null,
+          prediccionJson: datos.prediccion ?? {},
+          contenidoScore: puntaje(datos.contenidoScore),
+          hookScore: puntaje(datos.hookScore),
+          cuentaScore: puntaje(datos.cuentaScore),
+          scoreTotal: puntaje(datos.scoreTotal),
+          status: 'completed',
+          errorMessage: null,
+        };
+        await guardarIntento(intento);
+        json(res, 201, { ok: true, attemptId: intento.id });
       } catch (err) {
         json(res, 500, errorInterno('history-save', err));
       }
@@ -1551,7 +1622,7 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'POST',
     pattern: '/api/forge/instagram/connect',
-    handler: async ({ res, body }): Promise<void> => {
+    handler: async ({ req, res, body }): Promise<void> => {
       try {
         const { accountId, accessToken, businessAccountId } = body as {
           accountId?: string;
@@ -1564,18 +1635,52 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
           return;
         }
 
-        // TODO: Validate token with Instagram Service
-        // TODO: Store in DB (forge_instagram_accounts table)
+        const usuario = await usuarioDeSesion(req);
+        if (!usuario) {
+          json(res, 401, { error: 'no-autenticado' });
+          return;
+        }
+        const brandId = marcaActiva(usuario);
+        if (!brandId) {
+          json(res, 400, { error: 'usuario-sin-marca' });
+          return;
+        }
+
+        // Validar el token contra Graph: el token viaja en el header, nunca en la URL (no se loguea).
+        const verificacion = await fetch('https://graph.instagram.com/me?fields=user_id,username', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          signal: AbortSignal.timeout(10_000),
+        });
+        if (!verificacion.ok) {
+          json(res, 401, { error: 'token-invalido' });
+          return;
+        }
+        const perfil = (await verificacion.json()) as { user_id?: string; username?: string };
+        if (!perfil.user_id || String(perfil.user_id) !== String(accountId)) {
+          json(res, 400, { error: 'account-no-coincide-con-token' });
+          return;
+        }
+
+        // Se guarda en el store OAuth existente (cifrado en DB), no en una tabla paralela.
+        await saveConnection({
+          platform: 'instagram',
+          brandId,
+          accessToken,
+          openId: String(perfil.user_id),
+          metadata: { username: perfil.username ?? '', businessAccountId: businessAccountId ?? '' },
+          connectedAt: new Date().toISOString(),
+        });
         json(res, 200, {
           ok: true,
           account: {
             id: accountId,
-            businessAccountId: businessAccountId || accountId,
+            brandId,
+            username: perfil.username ?? null,
             connected: true,
             connectedAt: new Date().toISOString(),
           },
         });
-        log.info('[forge] Instagram account connected', { accountId });
+        log.info('[forge] Instagram account connected', { brandId });
       } catch (err) {
         json(res, 500, errorInterno('instagram-connect', err));
       }
@@ -1723,12 +1828,13 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'POST',
     pattern: '/api/forge/publish-scheduled',
-    handler: async ({ res, body }): Promise<void> => {
+    handler: async ({ req, res, body }): Promise<void> => {
       try {
-        const { contentId, platform, scheduledFor } = body as {
+        const { contentId, platform, scheduledFor, brandId } = body as {
           contentId?: string;
           platform?: string;
           scheduledFor?: string;
+          brandId?: string;
         };
 
         if (!contentId || !platform) {
@@ -1736,18 +1842,52 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
           return;
         }
 
-        // TODO: Store in DB scheduling table
-        // TODO: Trigger publisher at scheduledFor time
+        const usuario = await usuarioDeSesion(req);
+        if (!usuario) {
+          json(res, 401, { error: 'no-autenticado' });
+          return;
+        }
+        const marca = brandId ?? marcaActiva(usuario);
+        if (!marca || !puedeUsarMarca(usuario, marca)) {
+          json(res, 403, { error: 'marca-no-autorizada' });
+          return;
+        }
+        if (!baseDeDatosConfigurada()) {
+          json(res, 503, { error: 'database-not-configured' });
+          return;
+        }
+
+        const cuando = scheduledFor ? new Date(scheduledFor) : new Date();
+        if (Number.isNaN(cuando.getTime())) {
+          json(res, 400, { error: 'scheduledFor-invalido' });
+          return;
+        }
+
+        const creada = await programarPublicacion({
+          id: randomUUID(),
+          userId: usuario.id,
+          brandId: marca,
+          contentId,
+          platform,
+          scheduledFor: cuando.toISOString(),
+        });
+        if (!creada) {
+          json(res, 409, { error: 'ya-programado' });
+          return;
+        }
+
+        // El disparo del publicador en scheduledFor AÚN NO existe: la fila queda en 'scheduled' hasta que se conecte el worker.
         json(res, 200, {
           ok: true,
           scheduled: {
             contentId,
             platform,
-            scheduledFor: scheduledFor || new Date().toISOString(),
+            brandId: marca,
+            scheduledFor: cuando.toISOString(),
             status: 'scheduled',
           },
         });
-        log.info('[forge] content scheduled', { contentId, platform, scheduledFor });
+        log.info('[forge] content scheduled', { contentId, platform, brandId: marca });
       } catch (err) {
         json(res, 500, errorInterno('publish-scheduled', err));
       }
@@ -1784,16 +1924,30 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
         if (eventType === 'payment_intent.succeeded' || eventType === 'checkout.session.completed') {
           const objectData = (webhookData.data as Record<string, unknown>).object as Record<string, unknown>;
           const sessionId = (objectData.id as string) || '';
-          const amount = (objectData.amount as number) || 0;
+          // checkout.session expone amount_total; payment_intent expone amount.
+          const amount = Number(objectData.amount_total ?? objectData.amount ?? 0);
           const metadata = (objectData.metadata as Record<string, string>) || {};
+          const currency = typeof objectData.currency === 'string' ? objectData.currency : 'usd';
+          const stripeEventId = typeof webhookData.id === 'string' ? webhookData.id : '';
 
-          // TODO: Store in DB and track revenue
-          log.info('[forge] stripe webhook received', {
-            event: eventType,
-            sessionId,
-            amount,
+          if (!stripeEventId || !sessionId) {
+            json(res, 400, { error: 'evento-stripe-incompleto' });
+            return;
+          }
+          // Sin DB no se responde 200: Stripe reintentaría y el ingreso se perdería en silencio.
+          if (!baseDeDatosConfigurada()) {
+            json(res, 503, { error: 'database-not-configured' });
+            return;
+          }
+          const nuevo = await guardarEventoIngreso({
+            stripeEventId,
+            stripeSessionId: sessionId,
+            eventType,
+            amountCents: amount,
+            currency,
             metadata,
           });
+          log.info('[forge] stripe revenue event', { event: eventType, sessionId, amount, nuevo });
         }
 
         json(res, 200, { received: true });
@@ -1806,9 +1960,9 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'POST',
     pattern: '/api/forge/revenue/track',
-    handler: async ({ res, body }): Promise<void> => {
+    handler: async ({ req, res, body }): Promise<void> => {
       try {
-        const { publishScheduleId, orchestrationRunId, platform, contentId, stripeSessionId } = body as {
+        const { publishScheduleId, platform, contentId, stripeSessionId } = body as {
           publishScheduleId?: string;
           orchestrationRunId?: string;
           platform?: string;
@@ -1821,24 +1975,38 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
           return;
         }
 
-        // TODO: Call Stripe API and store revenue
-        const tracking = {
-          publishScheduleId,
-          orchestrationRunId,
-          platform: platform || 'instagram',
-          contentId: contentId || '',
-          stripeSessionId,
-          amount: Math.floor(Math.random() * 500) + 50,
-          currency: 'USD',
-          status: 'completed' as const,
-          conversions: Math.floor(Math.random() * 20) + 5,
-          conversionRate: (Math.random() * 5).toFixed(2),
-          roi: Math.floor(Math.random() * 300) + 100,
-          trackedAt: new Date().toISOString(),
-        };
+        const usuario = await usuarioDeSesion(req);
+        if (!usuario) {
+          json(res, 401, { error: 'no-autenticado' });
+          return;
+        }
+        const marca = marcaActiva(usuario);
+        if (!marca) {
+          json(res, 400, { error: 'usuario-sin-marca' });
+          return;
+        }
+        if (!baseDeDatosConfigurada()) {
+          json(res, 503, { error: 'database-not-configured' });
+          return;
+        }
 
-        json(res, 200, { ok: true, tracking });
-        log.info('[forge] revenue tracked', { publishScheduleId, amount: tracking.amount });
+        // Los montos vienen del webhook de Stripe, no de la API: aquí solo se atribuyen al contenido.
+        const ingreso = await atribuirIngreso({
+          stripeSessionId,
+          brandId: marca,
+          contentId: contentId || publishScheduleId,
+          platform: platform || 'instagram',
+        });
+        if (!ingreso) {
+          json(res, 404, {
+            error: 'ingreso-no-registrado',
+            detalle: 'El webhook de Stripe todavía no llegó para esta sesión.',
+          });
+          return;
+        }
+
+        json(res, 200, { ok: true, tracking: ingreso });
+        log.info('[forge] revenue attributed', { publishScheduleId, amountCents: ingreso.amountCents });
       } catch (err) {
         json(res, 500, errorInterno('revenue-track', err));
       }
@@ -1993,88 +2161,51 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
     method: 'GET',
     pattern: '/api/forge/instagram/oauth-authorize',
     handler: async ({ res }): Promise<void> => {
-      try {
-        // TODO: Generate OAuth URL
-        const authUrl =
-          'https://api.instagram.com/oauth/authorize?client_id=YOUR_APP_ID&redirect_uri=http://localhost:3000/api/forge/instagram/oauth-callback&scope=instagram_business_basic,instagram_business_content_publish&response_type=code';
-
-        json(res, 200, {
-          ok: true,
-          authorizationUrl: authUrl,
-          message: 'Redirect user to this URL to authorize Instagram access',
-        });
-
-        log.info('[forge] OAuth authorization URL generated');
-      } catch (err) {
-        json(res, 500, errorInterno('oauth-authorize', err));
-      }
+      // Reemplazado: el flujo real de Instagram vive en /api/auth/instagram/login (oauthRoutes.ts).
+      json(res, 410, { error: 'use-existing-flow', destino: '/api/auth/instagram/login' });
     },
   },
   {
     method: 'GET',
     pattern: '/api/forge/instagram/oauth-callback',
-    handler: async ({ res, query }): Promise<void> => {
-      try {
-        const code = (query as { code?: string }).code;
-        // TODO: Verify state token for CSRF protection
-        void (query as { state?: string }).state;
-
-        if (!code) {
-          json(res, 400, { error: 'code requerido (Instagram OAuth callback)' });
-          return;
-        }
-
-        // TODO: Exchange code for access token
-        // TODO: Fetch user profile + business account
-        // TODO: Store in DB (forge_instagram_accounts table)
-
-        // MVP: Mock token exchange
-        const accessToken = `access_token_${Date.now()}`;
-        const businessAccountId = `ig_business_${Date.now()}`;
-        const username = 'your_instagram_handle';
-
-        json(res, 200, {
-          ok: true,
-          account: {
-            accessToken,
-            businessAccountId,
-            username,
-            connectedAt: new Date().toISOString(),
-          },
-          message: 'Instagram account connected successfully',
-        });
-
-        log.info('[forge] Instagram OAuth callback processed', {
-          username,
-          businessAccountId,
-        });
-      } catch (err) {
-        json(res, 500, errorInterno('oauth-callback', err));
-      }
+    handler: async ({ res }): Promise<void> => {
+      // Reemplazado: el callback real (con state CSRF y intercambio de código) está en /api/auth/instagram/callback.
+      // Este endpoint devolvía un access_token falso al navegador.
+      json(res, 410, { error: 'use-existing-flow', destino: '/api/auth/instagram/callback' });
     },
   },
   {
     method: 'POST',
     pattern: '/api/forge/instagram/disconnect',
-    handler: async ({ res, body }): Promise<void> => {
+    handler: async ({ req, res, body }): Promise<void> => {
       try {
-        const { accountId } = body as { accountId?: string };
+        const { brandId } = body as { brandId?: string };
 
-        if (!accountId) {
-          json(res, 400, { error: 'accountId requerido' });
+        const usuario = await usuarioDeSesion(req);
+        if (!usuario) {
+          json(res, 401, { error: 'no-autenticado' });
+          return;
+        }
+        const marca = brandId ?? marcaActiva(usuario);
+        if (!marca || !puedeUsarMarca(usuario, marca)) {
+          json(res, 403, { error: 'marca-no-autorizada' });
           return;
         }
 
-        // TODO: Remove from DB (forge_instagram_accounts table)
-        // TODO: Revoke access token
+        // Solo borra la conexión local (DB cifrada + archivo legacy). La revocación en Meta NO se hace todavía.
+        const eliminada = await deleteConnection(marca, 'instagram');
+        if (!eliminada) {
+          json(res, 404, { error: 'conexion-no-encontrada' });
+          return;
+        }
 
         json(res, 200, {
           ok: true,
           message: 'Instagram account disconnected',
-          accountId,
+          brandId: marca,
         });
 
-        log.info('[forge] Instagram account disconnected', { accountId });
+        log.info('[forge] Instagram account disconnected', { brandId: marca });
       } catch (err) {
         json(res, 500, errorInterno('instagram-disconnect', err));
       }
@@ -2083,32 +2214,40 @@ const buildForgeRoutes = (brand: BrandProfile): RouteDefinition[] => [
   {
     method: 'GET',
     pattern: '/api/forge/instagram/connected-accounts',
-    handler: async ({ res, query }): Promise<void> => {
+    handler: async ({ req, res }): Promise<void> => {
       try {
-        const userId = (query as { userId?: string }).userId;
-
-        if (!userId) {
-          json(res, 400, { error: 'userId requerido' });
+        // El usuario sale de la sesión, nunca del query string (antes cualquiera podía pedir las cuentas de otro).
+        const usuario = await usuarioDeSesion(req);
+        if (!usuario) {
+          json(res, 401, { error: 'no-autenticado' });
           return;
         }
 
-        // TODO: Query forge_instagram_accounts table
+        type CuentaConectada = {
+          brandId: string;
+          username: string | null;
+          connectedAt: string;
+          lastRefreshedAt: string | null;
+          expiresAt: string | null;
+        };
+        const cuentas: CuentaConectada[] = [];
+        for (const brandId of usuario.brandIds) {
+          const conexiones = await listConnectionsForBrand(brandId);
+          for (const conexion of conexiones) {
+            if (conexion.platform !== 'instagram') continue;
+            cuentas.push({
+              brandId,
+              username: typeof conexion.metadata?.username === 'string' ? conexion.metadata.username : null,
+              connectedAt: conexion.connectedAt,
+              lastRefreshedAt: conexion.lastRefreshedAt ?? null,
+              expiresAt: conexion.expiresAtIso ?? null,
+            });
+          }
+        }
 
-        json(res, 200, {
-          ok: true,
-          accounts: [
-            {
-              id: 'acct_123',
-              username: 'your_handle',
-              followers: 15420,
-              businessAccountId: 'ig_biz_456',
-              connectedAt: '2026-10-08T00:00:00Z',
-              lastSynced: '2026-10-08T12:00:00Z',
-            },
-          ],
-        });
+        json(res, 200, { ok: true, accounts: cuentas });
 
-        log.info('[forge] connected accounts fetched', { userId });
+        log.info('[forge] connected accounts fetched', { brands: usuario.brandIds.length });
       } catch (err) {
         json(res, 500, errorInterno('connected-accounts', err));
       }

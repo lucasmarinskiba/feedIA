@@ -774,6 +774,8 @@ async function runMigrationsIfNeeded(): Promise<void> {
       'src/db/video-storage-schema.sql',
       'src/db/analytics-schema.sql',
       'src/db/social-automation-schema.sql',
+      // Forge IA (histórico, publicaciones programadas, ingresos Stripe). Idempotente: CREATE ... IF NOT EXISTS.
+      'db/migrations/004_forge.sql',
     ];
 
     for (const file of files) {
